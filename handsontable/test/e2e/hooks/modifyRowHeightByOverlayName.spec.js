@@ -38,54 +38,29 @@ describe('Hook', () => {
         },
       });
 
+      const layout = getThemeLayout();
+
       // master table
-      expect(getCell(0, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      expect(getCell(1, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      expect(getCell(2, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      expect(getCell(3, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      expect(getCell(4, 0).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      // top inline start corner
-      expect(getCell(0, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(28);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      // top overlay
-      expect(getCell(0, 2, true).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(33);
-        main.toBe(33);
-        horizon.toBe(36);
-      });
-      // inline start overlay
-      expect(getCell(2, 0, true).clientHeight).toBe(39);
-      // bottom inline start corner
-      expect(getCell(3, 0, true).clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(43);
-        main.toBe(43);
-        horizon.toBe(43);
-      });
-      // bottom overlay
-      expect(getCell(4, 2, true).clientHeight).toBe(49);
+      expect(getCell(0, 0).clientHeight).toBe(layout.cellContentHeight);
+      expect(getCell(1, 0).clientHeight).toBe(layout.cellContentHeight);
+      expect(getCell(2, 0).clientHeight).toBe(layout.cellContentHeight);
+      expect(getCell(3, 0).clientHeight).toBe(layout.cellContentHeight);
+      expect(getCell(4, 0).clientHeight).toBe(layout.cellContentHeight);
+      // top inline start corner (row 0, first rendered row, hook returns 30)
+      expect(getCell(0, 0, true).clientHeight)
+        .toBe(Math.max(30 - (2 * layout.cellBorderWidth), layout.cellContentHeight));
+      // top overlay (row 0, first rendered row, hook returns 35)
+      expect(getCell(0, 2, true).clientHeight)
+        .toBe(Math.max(35 - (2 * layout.cellBorderWidth), layout.cellContentHeight));
+      // inline start overlay (row 2, hook returns 40)
+      expect(getCell(2, 0, true).clientHeight)
+        .toBe(Math.max(40 - layout.cellBorderWidth, layout.cellContentHeight));
+      // bottom inline start corner (row 3, first rendered row, hook returns 45)
+      expect(getCell(3, 0, true).clientHeight)
+        .toBe(Math.max(45 - (2 * layout.cellBorderWidth), layout.cellContentHeight));
+      // bottom overlay (row 4, not first rendered row, hook returns 50)
+      expect(getCell(4, 2, true).clientHeight)
+        .toBe(Math.max(50 - layout.cellBorderWidth, layout.cellContentHeight));
     });
   });
 });

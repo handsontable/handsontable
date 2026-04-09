@@ -27,17 +27,16 @@ describe('ColHeader', () => {
   });
 
   it('should show col headers if height is set to "auto"', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       colHeaders: true,
       height: 'auto',
     });
 
+    // THs content height + 1px border on top
     expect(spec().$container.find('.handsontable.ht_clone_top').height())
-      .forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(26); // THs are 25px height and have 1px border on top
-        main.toEqual(29);
-        horizon.toEqual(37);
-      });
+      .toEqual(layout.defaultDataRowHeight);
   });
 
   it('should properly calculate colHeaders\' overlay width', async() => {
@@ -393,11 +392,7 @@ describe('ColHeader', () => {
 
     await render();
 
-    expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(39);
-      main.toEqual(39);
-      horizon.toEqual(39);
-    });
+    expect(spec().$container.find('th').eq(0).height()).toEqual(39);
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
@@ -428,11 +423,7 @@ describe('ColHeader', () => {
     await render();
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
-      .forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(43);
-        main.toEqual(43);
-        horizon.toEqual(43);
-      });
+      .toEqual(43);
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(2) th:nth-child(1)').height()).toEqual(65);
   });
