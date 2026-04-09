@@ -225,11 +225,16 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
         el: button,
         theme: 'nano',
         default: editor.input.value || '#000000',
+        autoReposition: false,
+        padding: 0,
         components: {
           preview: true,
           hue: true,
         }
       });
+
+      editor.pickr._root.root.style.height = '0';
+      editor.pickr._root.root.style.overflow = 'hidden';
 
       editor.preventCloseElement = editor.pickr._root.app;
 
@@ -241,14 +246,29 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
       });
 
       editor.pickr.on('hide', () => {
+        if (Date.now() - editor._openedAt < 400) {
+          editor.pickr.show();
+
+          return;
+        }
         editor.finishEditing();
       });
     },
     afterOpen(editor) {
+      editor._openedAt = Date.now();
       editor.pickr.setColor(editor.input.value || '#000000');
       editor.pickr.show();
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const cellRect = editor.TD.getBoundingClientRect();
+
+          editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+        });
+      });
     },
     afterClose(editor) {
+      editor.pickr._root.app.classList.remove('visible');
       editor.pickr.hide();
     },
     getValue(editor) {

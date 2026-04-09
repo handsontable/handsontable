@@ -139,6 +139,16 @@ class TableView {
    */
   #mouseDownLastPos = null;
   /**
+   * Timestamp of the last touchend event on documentElement. Used to detect
+   * synthetic mouse events that Android fires after touch interactions. These
+   * synthetic events arrive asynchronously (0–400 ms after touchend) and must
+   * be ignored by the outside-click handler to prevent editors/popups from
+   * closing immediately after opening via double-tap.
+   *
+   * @type {number}
+   */
+  #lastTouchEndTimestamp = 0;
+  /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
   constructor(hotInstance) {
@@ -308,6 +318,11 @@ class TableView {
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
+      // Ignore synthetic mousedown events from Android touch interactions.
+      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+        return;
+      }
+
       this.#selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
@@ -318,6 +333,11 @@ class TableView {
     });
 
     this.eventManager.addEventListener(rootElement, 'mouseup', () => {
+      // Ignore synthetic mouseup events from Android touch interactions.
+      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+        return;
+      }
+
       this.#selectionMouseDown = false;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
@@ -343,6 +363,11 @@ class TableView {
       }
 
       this.#mouseDown = false;
+
+      // Ignore synthetic mouseup events from Android touch interactions.
+      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+        return;
+      }
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
 
@@ -370,6 +395,7 @@ class TableView {
       }
 
       this.#mouseDown = false;
+      this.#lastTouchEndTimestamp = Date.now();
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -380,6 +406,13 @@ class TableView {
 
       if (this.#mouseDown || !rootElement || !this.hot.view) {
         return; // it must have been started in a cell
+      }
+
+      // Ignore synthetic mousedown events that Android fires after touchend.
+      // These arrive 0–400 ms after the touch and can falsely trigger outside-click
+      // detection, closing editors or popups that just opened via double-tap.
+      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+        return;
       }
 
       // immediate click on "holder" means click on the right side of vertical scrollbar
