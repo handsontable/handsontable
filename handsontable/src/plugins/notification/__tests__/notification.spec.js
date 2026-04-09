@@ -13,7 +13,7 @@ describe('Notification', () => {
   });
 
   it('should be disabled by default', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
     });
 
@@ -21,7 +21,7 @@ describe('Notification', () => {
   });
 
   it('should show and hide a toast', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -33,19 +33,21 @@ describe('Notification', () => {
     const toastId = plugin.showMessage({ message: 'Saved.' });
 
     expect(toastId.length).toBeGreaterThan(0);
-    await spec();
+    // Flush layout/focus after toast DOM update.
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
     expect(plugin.isVisible()).toBe(true);
     expect(plugin.isVisible(toastId)).toBe(true);
 
     plugin.hide(toastId);
-    await spec();
+    // Flush layout/focus after toast DOM update.
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
     expect(plugin.isVisible()).toBe(false);
   });
 
   it('should cancel show when beforeNotificationShow returns false', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
       beforeNotificationShow: () => false,
@@ -55,14 +57,14 @@ describe('Notification', () => {
     const toastId = plugin.showMessage({ message: 'Blocked' });
 
     expect(toastId).toBe('');
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
   });
 
   it('should fire beforeNotificationShow once per showMessage and not again when a queued toast mounts', async() => {
     const beforeShow = jasmine.createSpy('beforeNotificationShow');
 
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -74,7 +76,7 @@ describe('Notification', () => {
     const firstId = plugin.showMessage({ message: 'First' });
     const queuedId = plugin.showMessage({ message: 'Queued' });
 
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(beforeShow).toHaveBeenCalledTimes(2);
     expect(beforeShow.calls.argsFor(0)[0]).toEqual(jasmine.objectContaining({
@@ -87,14 +89,14 @@ describe('Notification', () => {
     }));
 
     plugin.hide(firstId);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(beforeShow).toHaveBeenCalledTimes(2);
     expect(document.querySelector('.ht-notification__message').textContent).toContain('Queued');
   });
 
   it('should queue toasts when stackLimit is reached', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -107,12 +109,12 @@ describe('Notification', () => {
     plugin.showMessage({ message: 'Second' });
 
     expect(plugin.getQueueSize()).toBe(1);
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
   });
 
   it('should hide all toasts and clear the queue', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -124,14 +126,14 @@ describe('Notification', () => {
     plugin.showMessage({ message: 'First' });
     plugin.showMessage({ message: 'Queued' });
     plugin.hideAll();
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(plugin.getQueueSize()).toBe(0);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
   });
 
   it('should respect beforeNotificationHide returning false', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
       beforeNotificationHide: () => false,
@@ -141,9 +143,9 @@ describe('Notification', () => {
 
     const toastId = plugin.showMessage({ message: 'Stay' });
 
-    await spec();
+    await waitForNextAnimationFrames(1);
     plugin.hide(toastId);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
   });
@@ -151,7 +153,7 @@ describe('Notification', () => {
   it('should resume auto-dismiss after a blocked programmatic hide', async() => {
     let blockHide = false;
 
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
       beforeNotificationHide: () => (blockHide ? false : undefined),
@@ -161,17 +163,17 @@ describe('Notification', () => {
 
     const toastId = plugin.showMessage({ message: 'Timer resumes', duration: 600 });
 
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     blockHide = true;
     plugin.hide(toastId);
     blockHide = false;
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
     await sleep(1100);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
     expect(plugin.isVisible()).toBe(false);
@@ -180,7 +182,7 @@ describe('Notification', () => {
   it('should restart countdown when beforeNotificationHide blocks a timer-triggered hide', async() => {
     let hideCalls = 0;
 
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
       beforeNotificationHide: () => {
@@ -193,10 +195,10 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Two-phase dismiss', duration: 400 });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await sleep(1500);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
     expect(plugin.isVisible()).toBe(false);
@@ -204,7 +206,7 @@ describe('Notification', () => {
   });
 
   it('should disable via updateSettings', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -212,19 +214,19 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Hello' });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
     await updateSettings({
       notification: false,
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelector('.ht-notification')).toBe(null);
   });
 
   it('should use an updated sanitizer for new toasts after updateSettings', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -234,10 +236,10 @@ describe('Notification', () => {
     await updateSettings({
       sanitizer: () => '',
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.showMessage({ message: '<em>x</em>' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const msg = document.querySelector('.ht-notification__message');
 
@@ -245,32 +247,32 @@ describe('Notification', () => {
   });
 
   it('should keep notification host dir aligned with the grid root after updateSettings', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
       layoutDirection: 'rtl',
     });
 
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const host = document.querySelector('.ht-notification');
 
     expect(host.getAttribute('dir')).toBe('rtl');
 
     await updateSettings({ colHeaders: true });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(host.getAttribute('dir')).toBe('rtl');
   });
 
   it('should keep visible toasts when updateSettings repeats the same notification option (e.g. spread of getSettings)', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     getPlugin('notification').showMessage({ message: 'Still here', duration: 0 });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
@@ -278,20 +280,20 @@ describe('Notification', () => {
       ...getSettings(),
       readOnly: true,
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
     expect(document.querySelector('.ht-notification__message').textContent).toContain('Still here');
   });
 
   it('should still rebuild notification UI when notification stackLimit changes', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: { stackLimit: 10 },
     });
 
     getPlugin('notification').showMessage({ message: 'Toast', duration: 0 });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
@@ -299,23 +301,23 @@ describe('Notification', () => {
       ...getSettings(),
       notification: { stackLimit: 5 },
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
   });
 
   it('should return empty string from showMessage when the plugin is not enabled', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: false,
     });
 
     expect(getPlugin('notification').showMessage({ message: 'x' })).toBe('');
-    await spec();
+    await waitForNextAnimationFrames(1);
   });
 
   it('should enable and disable programmatically', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: false,
     });
@@ -325,7 +327,7 @@ describe('Notification', () => {
     plugin.enablePlugin();
     await render();
     plugin.showMessage({ message: 'On' });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
     plugin.disablePlugin();
@@ -335,7 +337,7 @@ describe('Notification', () => {
   });
 
   it('should apply variant class names on toasts', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -346,7 +348,7 @@ describe('Notification', () => {
     plugin.showMessage({ message: 'Success', variant: 'success' });
     plugin.showMessage({ message: 'Warning', variant: 'warning' });
     plugin.showMessage({ message: 'Error', variant: 'error' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelector('.ht-notification__toast--info')).not.toBe(null);
     expect(document.querySelector('.ht-notification__toast--success')).not.toBe(null);
@@ -355,7 +357,7 @@ describe('Notification', () => {
   });
 
   it('should use assertive aria-live only for the error variant', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -364,7 +366,7 @@ describe('Notification', () => {
 
     plugin.showMessage({ message: 'Warn', variant: 'warning', closable: false });
     plugin.showMessage({ message: 'Err', variant: 'error', closable: false });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const warningToast = document.querySelector('.ht-notification__toast--warning');
     const errorToast = document.querySelector('.ht-notification__toast--error');
@@ -376,7 +378,7 @@ describe('Notification', () => {
   });
 
   it('should place toasts in the stack that matches position', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -387,7 +389,7 @@ describe('Notification', () => {
     plugin.showMessage({ message: 'TE', position: 'top-end' });
     plugin.showMessage({ message: 'BS', position: 'bottom-start' });
     plugin.showMessage({ message: 'BE', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelector('[data-ht-notification-position="top-start"] .ht-notification__message')
       .textContent).toContain('TS');
@@ -400,7 +402,7 @@ describe('Notification', () => {
   });
 
   it('should render title when provided', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -409,13 +411,13 @@ describe('Notification', () => {
       title: 'Disk full',
       message: 'Free space is low.',
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelector('.ht-notification__title').textContent).toBe('Disk full');
   });
 
   it('should omit close control when closable is false', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -424,13 +426,13 @@ describe('Notification', () => {
       message: 'No close',
       closable: false,
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelector('.ht-notification__close')).toBe(null);
   });
 
   it('should hide toast when the close control is clicked', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -438,17 +440,17 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Close me' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await simulateClick(document.querySelector('.ht-notification__close'));
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
     expect(plugin.isVisible()).toBe(false);
   });
 
   it('should run action callback when an action button is clicked', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -468,20 +470,20 @@ describe('Notification', () => {
         },
       ],
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const btn = document.querySelector('[data-ht-notification-action="0"]');
 
     expect(btn.classList.contains('ht-button--primary')).toBe(true);
 
     await simulateClick(btn);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(called).toBe(true);
   });
 
   it('should use secondary button styling when the action type is secondary', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -496,7 +498,7 @@ describe('Notification', () => {
         },
       ],
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const btn = document.querySelector('[data-ht-notification-action="0"]');
 
@@ -504,7 +506,7 @@ describe('Notification', () => {
   });
 
   it('should append HTMLElement messages into the toast body', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -516,13 +518,13 @@ describe('Notification', () => {
     span.textContent = 'From element';
 
     plugin.showMessage({ message: span });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelector('.ht-notification-test-custom-node').textContent).toBe('From element');
   });
 
   it('should not use enter-animation class when animation is disabled in settings', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         animation: false,
@@ -530,7 +532,7 @@ describe('Notification', () => {
     });
 
     getPlugin('notification').showMessage({ message: 'Static' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const toast = document.querySelector('.ht-notification__toast');
 
@@ -538,7 +540,7 @@ describe('Notification', () => {
   });
 
   it('should auto-dismiss after duration when tab is active', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -546,18 +548,18 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Short', duration: 400 });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
     await sleep(900);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
     expect(plugin.isVisible()).toBe(false);
   });
 
   it('should keep toast visible while pointer hovers during countdown', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -565,24 +567,24 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Hover pause', duration: 400 });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const toast = document.querySelector('.ht-notification__toast');
 
     toast.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
     await sleep(900);
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
     toast.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
     await sleep(900);
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
     expect(plugin.isVisible()).toBe(false);
   });
 
   it('should keep toast until dismissed when duration is 0', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -590,20 +592,20 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
     const toastId = plugin.showMessage({ message: 'Sticky', duration: 0 });
 
-    await spec();
+    await waitForNextAnimationFrames(1);
     await sleep(800);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
 
     plugin.hide(toastId);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
   });
 
   it('should show queued toast after the visible toast at that position is hidden', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -615,19 +617,19 @@ describe('Notification', () => {
     const firstId = plugin.showMessage({ message: 'First' });
 
     plugin.showMessage({ message: 'Second' });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
     expect(document.querySelector('.ht-notification__message').textContent).toContain('First');
 
     plugin.hide(firstId);
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
     expect(document.querySelector('.ht-notification__message').textContent).toContain('Second');
     expect(plugin.getQueueSize()).toBe(0);
   });
 
   it('should keep focus on a queued replacement toast after closing the visible one (stackLimit 1)', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -638,17 +640,17 @@ describe('Notification', () => {
     const firstId = plugin.showMessage({ message: 'First' });
 
     plugin.showMessage({ message: 'Second' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const firstClose = document.querySelector('.ht-notification__toast .ht-notification__close');
 
     expect(document.activeElement).toBe(firstClose);
 
     plugin.hide(firstId);
-    await spec();
+    await waitForNextAnimationFrames(1);
     await waitForNextAnimationFrames(2);
 
     expect(document.querySelector('.ht-notification__message').textContent).toContain('Second');
@@ -659,7 +661,7 @@ describe('Notification', () => {
   });
 
   it('should move focus to the next toast when the focused toast is closed and another remains visible', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -668,10 +670,10 @@ describe('Notification', () => {
 
     plugin.showMessage({ message: 'First', position: 'bottom-end' });
     plugin.showMessage({ message: 'Second', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const closes = [...document.querySelectorAll('.ht-notification__toast .ht-notification__close')];
     const secondClose = closes[1];
@@ -679,7 +681,7 @@ describe('Notification', () => {
     expect(document.activeElement).toBe(closes[0]);
 
     await simulateClick(closes[0]);
-    await spec();
+    await waitForNextAnimationFrames(1);
     await waitForNextAnimationFrames(2);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
@@ -687,7 +689,7 @@ describe('Notification', () => {
   });
 
   it('should show one toast per corner when stackLimit is 1', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -698,7 +700,7 @@ describe('Notification', () => {
 
     plugin.showMessage({ message: 'Top start', position: 'top-start' });
     plugin.showMessage({ message: 'Bottom end', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(2);
     expect(plugin.getQueueSize()).toBe(0);
@@ -708,7 +710,7 @@ describe('Notification', () => {
     const afterShow = jasmine.createSpy('afterNotificationShow');
     const afterHide = jasmine.createSpy('afterNotificationHide');
 
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
       afterNotificationShow: afterShow,
@@ -718,7 +720,7 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
     const toastId = plugin.showMessage({ message: 'Hooked' });
 
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(afterShow).toHaveBeenCalledWith(toastId, jasmine.objectContaining({
       id: toastId,
@@ -726,13 +728,13 @@ describe('Notification', () => {
     }));
 
     plugin.hide(toastId);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(afterHide).toHaveBeenCalledWith(toastId);
   });
 
   it('should apply stackLimit from updateSettings', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 5,
@@ -744,7 +746,7 @@ describe('Notification', () => {
     plugin.showMessage({ message: 'a' });
     plugin.showMessage({ message: 'b' });
     plugin.showMessage({ message: 'c' });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(3);
 
     await updateSettings({
@@ -752,22 +754,22 @@ describe('Notification', () => {
         stackLimit: 2,
       },
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.hideAll();
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.showMessage({ message: 'x' });
     plugin.showMessage({ message: 'y' });
     plugin.showMessage({ message: 'z' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(2);
     expect(plugin.getQueueSize()).toBe(1);
   });
 
   it('should drop a queued toast when hide is called with its id', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: {
         stackLimit: 1,
@@ -784,37 +786,37 @@ describe('Notification', () => {
     plugin.hide(queuedId);
     expect(plugin.getQueueSize()).toBe(0);
 
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
     expect(document.querySelector('.ht-notification__message').textContent).toContain('On screen');
   });
 
   it('should not move focus when a toast opens', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const plugin = getPlugin('notification');
     const focusedBefore = document.activeElement;
 
     plugin.showMessage({ message: 'No focus steal' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(document.activeElement).toBe(focusedBefore);
   });
 
   it('should keep scroll stack elements out of the sequential tab order', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(2, 2),
       notification: true,
     });
 
     getPlugin('notification').showMessage({ message: 'Toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     document.querySelectorAll('.ht-notification__stack').forEach((stackEl) => {
       expect(stackEl.tabIndex).toBe(-1);
@@ -822,56 +824,56 @@ describe('Notification', () => {
   });
 
   it('should not move focus when additional toasts open', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(0, 0);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const plugin = getPlugin('notification');
     const focusedBefore = document.activeElement;
 
     plugin.showMessage({ message: 'First', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.activeElement).toBe(focusedBefore);
 
     plugin.showMessage({ message: 'Second', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
     expect(document.activeElement).toBe(focusedBefore);
   });
 
   it('should move focus into toasts on F6 and return to the grid on Escape', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const focusedBefore = document.activeElement;
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Shortcut toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const closeBtn = document.querySelector('.ht-notification__toast .ht-notification__close');
 
     expect(document.activeElement).toBe(closeBtn);
 
     await keyDownUp('esc');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(focusedBefore);
   });
 
   it('should return focus to the correct cell after F6, notification rebuild, click into toast, and Escape', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -879,65 +881,65 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.showMessage({ message: 'Before rebuild' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     await updateSettings({
       notification: {
         stackLimit: 5,
       },
     });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.showMessage({ message: 'After rebuild' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await selectCell(2, 2);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const focusedCellAfterSecondSelect = document.activeElement;
     const closeBtn = document.querySelector('.ht-notification__toast .ht-notification__close');
 
     await simulateClick(closeBtn);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('esc');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(focusedCellAfterSecondSelect);
   });
 
   it('should return focus to the grid after F6 and closing the last toast, matching Escape', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const focusedBefore = document.activeElement;
 
     getPlugin('notification').showMessage({ message: 'Close last toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(document.querySelector('.ht-notification__toast .ht-notification__close'));
-    await spec();
+    await waitForNextAnimationFrames(1);
     await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(focusedBefore);
   });
 
   it('should return focus to an external control after F6 and Escape when focus started outside the table', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -949,18 +951,18 @@ describe('Notification', () => {
     externalInput.id = 'notification-test-f6-external';
     document.body.appendChild(externalInput);
     externalInput.focus();
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.showMessage({ message: 'Toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(document.querySelector('.ht-notification__toast .ht-notification__close'));
 
     await keyDownUp('esc');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(externalInput);
 
@@ -968,7 +970,7 @@ describe('Notification', () => {
   });
 
   it('should return focus to an external control after F6 and closing the last toast when focus started outside the table', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -980,18 +982,18 @@ describe('Notification', () => {
     externalInput.id = 'notification-test-f6-external-close';
     document.body.appendChild(externalInput);
     externalInput.focus();
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     plugin.showMessage({ message: 'Toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(document.querySelector('.ht-notification__toast .ht-notification__close'));
 
     await simulateClick(document.querySelector('.ht-notification__toast .ht-notification__close'));
-    await spec();
+    await waitForNextAnimationFrames(1);
     await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(externalInput);
@@ -1000,33 +1002,33 @@ describe('Notification', () => {
   });
 
   it('should take notification controls out of the tab order when focus moves to the grid or outside the table', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const closeBtn = document.querySelector('.ht-notification__toast .ht-notification__close');
 
     expect(closeBtn.tabIndex).toBe(0);
 
     await selectCell(2, 2);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(closeBtn.tabIndex).toBe(-1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
     expect(closeBtn.tabIndex).toBe(0);
 
     const externalInput = document.createElement('input');
@@ -1035,7 +1037,7 @@ describe('Notification', () => {
     externalInput.id = 'notification-test-external-focus';
     document.body.appendChild(externalInput);
     externalInput.focus();
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     expect(closeBtn.tabIndex).toBe(-1);
 
@@ -1043,7 +1045,7 @@ describe('Notification', () => {
   });
 
   it('should let Tab move between stacked toasts after entering the region with F6', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -1052,29 +1054,29 @@ describe('Notification', () => {
 
     plugin.showMessage({ message: 'First', position: 'bottom-end' });
     plugin.showMessage({ message: 'Second', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const closes = [...document.querySelectorAll('.ht-notification__toast .ht-notification__close')];
 
     expect(document.activeElement).toBe(closes[0]);
 
     await keyDownUp('tab');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(closes[1]);
   });
 
   it('should move Tab from the last notification control to the highlighted grid cell', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(2, 2);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const highlightedCell = document.activeElement;
 
@@ -1082,69 +1084,69 @@ describe('Notification', () => {
 
     plugin.showMessage({ message: 'First', position: 'bottom-end' });
     plugin.showMessage({ message: 'Second', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const closes = [...document.querySelectorAll('.ht-notification__toast .ht-notification__close')];
 
     expect(document.activeElement).toBe(closes[0]);
 
     await keyDownUp('tab');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(closes[1]);
 
     await keyDownUp('tab');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(highlightedCell);
   });
 
   it('should return focus to the cell active before re-entry after Tab exit from the region then click and Escape', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Toast' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     await keyDownUp('tab');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     await selectCell(2, 2);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const cellBeforeClickIntoToast = document.activeElement;
     const closeBtn = document.querySelector('.ht-notification__toast .ht-notification__close');
 
     await simulateClick(closeBtn);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('esc');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(cellBeforeClickIntoToast);
   });
 
   it('should move Tab from the last remaining toast to the grid after closing another toast', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
 
     await selectCell(1, 1);
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const highlightedCell = document.activeElement;
 
@@ -1152,15 +1154,15 @@ describe('Notification', () => {
 
     plugin.showMessage({ message: 'First', position: 'bottom-end' });
     plugin.showMessage({ message: 'Second', position: 'bottom-end' });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     const closes = [...document.querySelectorAll('.ht-notification__toast .ht-notification__close')];
 
     await simulateClick(closes[0]);
-    await spec();
+    await waitForNextAnimationFrames(1);
     await waitForNextAnimationFrames(2);
 
     const secondClose = document.querySelector('.ht-notification__toast .ht-notification__close');
@@ -1168,13 +1170,13 @@ describe('Notification', () => {
     expect(document.activeElement).toBe(secondClose);
 
     await keyDownUp('tab');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(highlightedCell);
   });
 
   it('should focus the toast root on F6 when it has no buttons', async() => {
-    await handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       notification: true,
     });
@@ -1182,14 +1184,14 @@ describe('Notification', () => {
     const plugin = getPlugin('notification');
 
     plugin.showMessage({ message: 'Plain', closable: false });
-    await spec();
+    await waitForNextAnimationFrames(1);
 
     const toastEl = document.querySelector('.ht-notification__toast');
 
     expect(toastEl.tabIndex).toBe(-1);
 
     await keyDownUp('f6');
-    await spec();
+    await waitForNextAnimationFrames(2);
 
     expect(toastEl.tabIndex).toBe(0);
     expect(document.activeElement).toBe(toastEl);
@@ -1218,11 +1220,11 @@ describe('Notification', () => {
 
       setCurrentHotInstance(hot1);
       hot1.selectCell(0, 0);
-      await spec();
+      await waitForNextAnimationFrames(1);
 
       hot1.getPlugin('notification').showMessage({ message: 'Toast A' });
       hot2.getPlugin('notification').showMessage({ message: 'Toast B' });
-      await spec();
+      await waitForNextAnimationFrames(1);
 
       const close1 = hot1.rootWrapperElement.querySelector('.ht-notification__toast .ht-notification__close');
       const close2 = hot2.rootWrapperElement.querySelector('.ht-notification__toast .ht-notification__close');
@@ -1231,17 +1233,17 @@ describe('Notification', () => {
       expect(close2).not.toBe(null);
 
       await keyDownUp('f6');
-      await spec();
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(close1);
       expect(document.activeElement).not.toBe(close2);
 
       setCurrentHotInstance(hot2);
       hot2.selectCell(0, 0);
-      await spec();
+      await waitForNextAnimationFrames(1);
 
       await keyDownUp('f6');
-      await spec();
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(close2);
       expect(document.activeElement).not.toBe(close1);
