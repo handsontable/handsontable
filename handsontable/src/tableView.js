@@ -149,7 +149,6 @@ class TableView {
    * @type {boolean}
    */
   #recentTouchEnd = false;
-
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
@@ -480,6 +479,28 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
+  }
+
+  /**
+   * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
+   */
+  invalidateIndexSizesCache() {
+    this._wt.wtViewport.invalidateRowHeightCache();
+    this._wt.wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Invalidates Walkontable viewport cache for column widths.
+   */
+  invalidateColumnWidthCache() {
+    this._wt.wtViewport.invalidateColumnWidthCache();
+  }
+
+  /**
+   * Invalidates Walkontable viewport cache for row heights.
+   */
+  invalidateRowHeightCache() {
+    this._wt.wtViewport.invalidateRowHeightCache();
   }
 
   /**
@@ -1221,50 +1242,34 @@ class TableView {
       viewportRowCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
-        if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
-          viewportOffset = 10;
+        if (viewportOffset === 'auto') {
+          viewportOffset = 1;
         }
 
-        if (viewportOffset > 0 || viewportOffset === 'auto') {
+        if (viewportOffset > 0) {
           const renderableRows = this.countRenderableRows();
           const firstRenderedRow = calc.startRow;
           const lastRenderedRow = calc.endRow;
 
-          if (typeof viewportOffset === 'number') {
-            calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
-            calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
-
-          } else if (viewportOffset === 'auto') {
-            const offset = Math.max(1, Math.ceil(lastRenderedRow / renderableRows * 12));
-
-            calc.startRow = Math.max(firstRenderedRow - offset, 0);
-            calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
-          }
+          calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
+          calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
         }
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
 
-        if (viewportOffset === 'auto' && this.settings.fixedColumnsStart) {
-          viewportOffset = 10;
+        if (viewportOffset === 'auto') {
+          viewportOffset = 1;
         }
 
-        if (viewportOffset > 0 || viewportOffset === 'auto') {
+        if (viewportOffset > 0) {
           const renderableColumns = this.countRenderableColumns();
           const firstRenderedColumn = calc.startColumn;
           const lastRenderedColumn = calc.endColumn;
 
-          if (typeof viewportOffset === 'number') {
-            calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
-            calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
-          }
-          if (viewportOffset === 'auto') {
-            const offset = Math.max(1, Math.ceil(lastRenderedColumn / renderableColumns * 6));
-
-            calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
-            calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
-          }
+          calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
+          calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },

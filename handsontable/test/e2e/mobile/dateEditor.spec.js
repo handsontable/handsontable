@@ -48,7 +48,6 @@ describe('Date Editor', () => {
 
   });
 
-
   it('should display the correct date in the cell after select the date', async() => {
     handsontable({
       data: [

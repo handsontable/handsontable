@@ -243,6 +243,7 @@ Every code change **must** satisfy all of the following:
 - **Filters plugin visual/physical column index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
 - For hook signature/behavior fixes, add both a runtime regression and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` -- warnings about ignored build scripts (e.g., `less`) are expected.
+- **Never use raw `setTimeout` in core code.** Use `this.hot._registerTimeout(fn, delay)` instead -- it auto-clears all registered timeouts on `hot.destroy()`, preventing memory leaks and stale callbacks after the instance is destroyed.
 
 ---
 
