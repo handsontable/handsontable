@@ -12,34 +12,42 @@ Local server  -->  Cloudflare tunnel  -->  BrowserStack Live
 (any port)        (public trycloudflare.com URL)   (real device)
 ```
 
-## Step 1 — Confirm the local server is running
+## Step 1 — Prepare something to test
 
-Check that the URL the user wants to test is reachable locally:
+### Option A: Handsontable demo page
+
+If the user wants to test Handsontable behavior (bug fix, feature, plugin, editor, etc.), use the **demo-page** skill to generate `handsontable/dev-generated.html`. That skill builds a two-tab HTML page (Released vs PR Build) with test-specific config and reproduction steps.
+
+After the demo page is generated, serve it:
+
+```bash
+python3 -m http.server 8767 --directory handsontable &
+```
+
+Verify it works:
+
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8767/dev-generated.html
+```
+
+The tunnel URL path will be `/dev-generated.html`.
+
+### Option B: Existing local server
+
+If the user wants to test the docs site, a recipe page, or any other already-running server, just confirm reachability:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" <URL>
 ```
 
-If the server is not running, help the user start it. Common patterns in this repo:
+Common servers in this repo:
 
 | Server | Start command | Default port |
 |--------|--------------|-------------|
 | Docs (Astro) | `npm run dev --prefix docs` | 4321 |
-| Handsontable static files | `python3 -m http.server 8767` from `handsontable/` | 8767 |
+| Handsontable static files | `python3 -m http.server 8767 --directory handsontable` | 8767 |
 
-### Handsontable build check
-
-When testing local Handsontable builds (e.g., `demo-mobile.html?version=fix`), the built assets must exist:
-
-```bash
-ls handsontable/dist/handsontable.full.js
-```
-
-If missing, build first: `npm run build --prefix handsontable`.
-
-### Astro dev servers
-
-Vite-based dev servers block requests from unknown hostnames by default. If the tunnel URL returns a "Blocked request" error, add this to the Vite config (inside `astro.config.mjs`):
+For Vite-based dev servers (like Astro docs), tunnel hostnames get blocked by default. If the tunnel URL returns a "Blocked request" error, add this to the Vite config (inside `astro.config.mjs`):
 
 ```js
 vite: {
@@ -51,11 +59,15 @@ vite: {
 
 Then restart the dev server. Check whether it is already configured before modifying the file.
 
+### Option C: Public URL
+
+If the user provides a public URL (e.g., a staging deployment), skip straight to Step 2. No tunnel is needed — pass the URL directly to BrowserStack in Step 3.
+
 ## Step 2 — Start the Cloudflare tunnel
 
-BrowserStack cannot access `localhost`. A Cloudflare quick tunnel creates an ephemeral public URL that proxies to the local server.
+BrowserStack cannot access `localhost`. A Cloudflare quick tunnel creates an ephemeral public URL that proxies to the local server. No Cloudflare account is needed — the tunnel is ephemeral and disappears when the process exits.
 
-Capture output to a log file — the tunnel URL is printed to stderr:
+Capture output to a log file (the tunnel URL is printed to stderr):
 
 ```bash
 npx cloudflared tunnel --url http://localhost:<PORT> > /tmp/cloudflare-tunnel.log 2>&1 &
@@ -75,7 +87,6 @@ The URL looks like `https://some-random-words.trycloudflare.com`.
 
 - If no URL appears after 10 seconds, wait a few more and re-check: `cat /tmp/cloudflare-tunnel.log`.
 - If the tunnel fails to start, check for port conflicts or kill stale tunnel processes.
-- No Cloudflare account is needed. The tunnel is ephemeral and disappears when the process exits.
 - The URL changes every time the tunnel restarts.
 
 ## Step 3 — Launch the BrowserStack session
@@ -135,12 +146,3 @@ kill <tunnel-pid> 2>/dev/null
 ```
 
 If a local HTTP server was started for this session, kill that too.
-
-## Known Android touch behavior
-
-Android fires synthetic `mousedown`, `mouseup`, and `click` events after every `touchend`. These arrive asynchronously (~0–300 ms later) at the same coordinates as the touch. This matters when testing editors or popups that open on double-tap — the synthetic events can:
-
-1. **Trigger outside-click handlers** that close the editor immediately after it opens.
-2. **Click buttons or links** that rendered at the touch position when the editor appeared.
-
-If you observe popups or editors opening and instantly closing on Android, this is the likely cause. The fix is a timing guard: ignore events that fire within 300 ms of the editor opening.
