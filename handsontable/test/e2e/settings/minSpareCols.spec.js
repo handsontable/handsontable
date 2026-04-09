@@ -191,6 +191,24 @@ describe('settings', () => {
 
         expect(countCols()).toBe(2);
       });
+
+      it('should not add extra columns when object-valued dataSchema defaults are used (GH #671)', async() => {
+        handsontable({
+          data: [['A']],
+          // The 2nd column default is an object, so the initial spare column contains an object value.
+          dataSchema: [null, { done: false }],
+          minSpareCols: 1,
+        });
+
+        // 1 data column + 1 spare column seeded from dataSchema.
+        expect(countCols()).toBe(2);
+
+        // Editing non-spare data should not trigger adding another column
+        // as long as the spare column (object default) is still recognized as empty.
+        await setDataAtCell(0, 0, 'B');
+
+        expect(countCols()).toBe(2);
+      });
     });
 
     describe('cell meta', () => {
