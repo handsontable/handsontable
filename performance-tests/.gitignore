@@ -1,10 +1,12 @@
-
-# Playwright
 node_modules/
-/blob-report/
-/playwright/.cache/
-output
-!output/.gitkeep
-# Playwright
-/playwright/.auth/
+output/
+golden/
+test-results/
+playwright-report/
+blob-report/
 .DS_Store
+
+# Built fixtures (copied from handsontable/dist and handsontable/styles)
+fixtures/*.js
+fixtures/*.css
+fixtures/*.map

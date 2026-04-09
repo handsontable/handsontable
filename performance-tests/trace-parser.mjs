@@ -29,26 +29,26 @@ import { pathToFileURL } from 'node:url';
 //             'other' (shown as System), 'idle', 'gpu', 'async'
 const EVENT_STYLES = {
   // other (System)
-  'RunTask': 'other',
-  'Program': 'other',
+  RunTask: 'other',
+  Program: 'other',
   'CpuProfiler::StartProfiling': 'other',
   'v8.parseOnBackground': 'other',
   'V8.FinalizeDeserialization': 'other',
 
   // scripting
-  'ProfileCall': 'scripting',
-  'JSSample': 'scripting',
-  'EventDispatch': 'scripting',
-  'TimerInstall': 'scripting',
-  'TimerRemove': 'scripting',
-  'TimerFire': 'scripting',
-  'XHRReadyStateChange': 'scripting',
-  'XHRLoad': 'scripting',
+  ProfileCall: 'scripting',
+  JSSample: 'scripting',
+  EventDispatch: 'scripting',
+  TimerInstall: 'scripting',
+  TimerRemove: 'scripting',
+  TimerFire: 'scripting',
+  XHRReadyStateChange: 'scripting',
+  XHRLoad: 'scripting',
   'v8.compile': 'scripting',
   'v8.produceCache': 'scripting',
   'V8.CompileCode': 'scripting',
   'V8.OptimizeCode': 'scripting',
-  'EvaluateScript': 'scripting',
+  EvaluateScript: 'scripting',
   'V8.CompileModule': 'scripting',
   'v8.produceModuleCache': 'scripting',
   'v8.evaluateModule': 'scripting',
@@ -59,95 +59,95 @@ const EVENT_STYLES = {
   'v8.wasm.cachedModule': 'scripting',
   'v8.wasm.moduleCacheHit': 'scripting',
   'v8.wasm.moduleCacheInvalid': 'scripting',
-  'TimeStamp': 'scripting',
-  'ConsoleTime': 'scripting',
-  'UserTiming': 'scripting',
-  'RunMicrotasks': 'scripting',
-  'FunctionCall': 'scripting',
-  'GCEvent': 'scripting',
-  'MajorGC': 'scripting',
-  'MinorGC': 'scripting',
+  TimeStamp: 'scripting',
+  ConsoleTime: 'scripting',
+  UserTiming: 'scripting',
+  RunMicrotasks: 'scripting',
+  FunctionCall: 'scripting',
+  GCEvent: 'scripting',
+  MajorGC: 'scripting',
+  MinorGC: 'scripting',
   'CppGC.IncrementalSweep': 'scripting',
-  'RequestAnimationFrame': 'scripting',
-  'CancelAnimationFrame': 'scripting',
-  'FireAnimationFrame': 'scripting',
-  'RequestIdleCallback': 'scripting',
-  'CancelIdleCallback': 'scripting',
-  'FireIdleCallback': 'scripting',
-  'WebSocketCreate': 'scripting',
-  'WebSocketSendHandshakeRequest': 'scripting',
-  'WebSocketReceiveHandshakeResponse': 'scripting',
-  'WebSocketDestroy': 'scripting',
-  'WebSocketSend': 'scripting',
-  'WebSocketReceive': 'scripting',
-  'EmbedderCallback': 'scripting',
+  RequestAnimationFrame: 'scripting',
+  CancelAnimationFrame: 'scripting',
+  FireAnimationFrame: 'scripting',
+  RequestIdleCallback: 'scripting',
+  CancelIdleCallback: 'scripting',
+  FireIdleCallback: 'scripting',
+  WebSocketCreate: 'scripting',
+  WebSocketSendHandshakeRequest: 'scripting',
+  WebSocketReceiveHandshakeResponse: 'scripting',
+  WebSocketDestroy: 'scripting',
+  WebSocketSend: 'scripting',
+  WebSocketReceive: 'scripting',
+  EmbedderCallback: 'scripting',
   'BlinkGC.AtomicPhase': 'scripting',
-  'DoEncrypt': 'scripting',
-  'DoEncryptReply': 'scripting',
-  'DoDecrypt': 'scripting',
-  'DoDecryptReply': 'scripting',
-  'DoDigest': 'scripting',
-  'DoDigestReply': 'scripting',
-  'DoSign': 'scripting',
-  'DoSignReply': 'scripting',
-  'DoVerify': 'scripting',
-  'DoVerifyReply': 'scripting',
-  'SchedulePostTaskCallback': 'scripting',
-  'RunPostTaskCallback': 'scripting',
-  'AbortPostTaskCallback': 'scripting',
+  DoEncrypt: 'scripting',
+  DoEncryptReply: 'scripting',
+  DoDecrypt: 'scripting',
+  DoDecryptReply: 'scripting',
+  DoDigest: 'scripting',
+  DoDigestReply: 'scripting',
+  DoSign: 'scripting',
+  DoSignReply: 'scripting',
+  DoVerify: 'scripting',
+  DoVerifyReply: 'scripting',
+  SchedulePostTaskCallback: 'scripting',
+  RunPostTaskCallback: 'scripting',
+  AbortPostTaskCallback: 'scripting',
   'V8Console::runTask': 'scripting',
 
   // rendering
-  'Animation': 'rendering',
-  'HitTest': 'rendering',
-  'ScheduleStyleRecalculation': 'rendering',
-  'UpdateLayoutTree': 'rendering',
-  'Layerize': 'rendering',
-  'Layout': 'rendering',
-  'UpdateLayerTree': 'rendering',
-  'PrePaint': 'rendering',
-  'ScrollLayer': 'rendering',
-  'ComputeIntersections': 'rendering',
+  Animation: 'rendering',
+  HitTest: 'rendering',
+  ScheduleStyleRecalculation: 'rendering',
+  UpdateLayoutTree: 'rendering',
+  Layerize: 'rendering',
+  Layout: 'rendering',
+  UpdateLayerTree: 'rendering',
+  PrePaint: 'rendering',
+  ScrollLayer: 'rendering',
+  ComputeIntersections: 'rendering',
 
   // painting
-  'PaintSetup': 'painting',
-  'Paint': 'painting',
-  'PaintImage': 'painting',
-  'RasterTask': 'painting',
-  'Commit': 'painting',
-  'CompositeLayers': 'painting',
+  PaintSetup: 'painting',
+  Paint: 'painting',
+  PaintImage: 'painting',
+  RasterTask: 'painting',
+  Commit: 'painting',
+  CompositeLayers: 'painting',
   'Decode Image': 'painting',
 
   // loading
-  'ParseHTML': 'loading',
-  'ParseAuthorStyleSheet': 'loading',
-  'ResourceWillSendRequest': 'loading',
-  'ResourceSendRequest': 'loading',
-  'ResourceReceiveResponse': 'loading',
-  'ResourceFinish': 'loading',
-  'ResourceReceivedData': 'loading',
+  ParseHTML: 'loading',
+  ParseAuthorStyleSheet: 'loading',
+  ResourceWillSendRequest: 'loading',
+  ResourceSendRequest: 'loading',
+  ResourceReceiveResponse: 'loading',
+  ResourceFinish: 'loading',
+  ResourceReceivedData: 'loading',
 
   // experience
-  'SyntheticLayoutShift': 'experience',
-  'SyntheticLayoutShiftCluster': 'experience',
-  'EventTiming': 'experience',
+  SyntheticLayoutShift: 'experience',
+  SyntheticLayoutShiftCluster: 'experience',
+  EventTiming: 'experience',
 
   // messaging
-  'HandlePostMessage': 'messaging',
-  'SchedulePostMessage': 'messaging',
+  HandlePostMessage: 'messaging',
+  SchedulePostMessage: 'messaging',
 
   // gpu
-  'GPUTask': 'gpu',
+  GPUTask: 'gpu',
 
   // async
-  'AsyncTask': 'async',
+  AsyncTask: 'async',
 
   // idle
   'v8.parseOnBackgroundWaiting': 'idle',
 };
 
 function getEventCategory(event) {
-  return EVENT_STYLES[event.name] || null;  // null = not visible / not in map
+  return EVENT_STYLES[event.name] || null; // null = not visible / not in map
 }
 
 function isVisibleEvent(event) {
@@ -178,10 +178,12 @@ function forEachEvent(events, config) {
   const sortedEvents = [...events].sort((a, b) => {
     const aStart = eventTimingsMilliSeconds(a).startTime;
     const bStart = eventTimingsMilliSeconds(b).startTime;
-    if (aStart !== bStart) return aStart - bStart;
+
+    if (aStart !== bStart) { return aStart - bStart; }
     // Same start: longer events first (parents before children)
     const aDur = eventTimingsMilliSeconds(a).duration;
     const bDur = eventTimingsMilliSeconds(b).duration;
+
     return bDur - aDur;
   });
 
@@ -199,13 +201,15 @@ function forEachEvent(events, config) {
       continue;
     }
 
-    if (currentEnd < globalStartTime) continue;
-    if (currentStart > globalEndTime) break;
+    if (currentEnd < globalStartTime) { continue; }
+    if (currentStart > globalEndTime) { break; }
 
     // Pop events that ended before current starts
     let lastEventOnStack = stack[stack.length - 1];
+
     while (lastEventOnStack) {
       const lastEnd = eventTimingsMilliSeconds(lastEventOnStack).endTime;
+
       if (lastEnd <= currentStart) {
         stack.pop();
         config.onEndEvent(lastEventOnStack);
@@ -215,7 +219,7 @@ function forEachEvent(events, config) {
       }
     }
 
-    if (config.eventFilter && !config.eventFilter(currentEvent)) continue;
+    if (config.eventFilter && !config.eventFilter(currentEvent)) { continue; }
 
     if (currentDuration > 0) {
       config.onStartEvent(currentEvent);
@@ -225,7 +229,8 @@ function forEachEvent(events, config) {
 
   while (stack.length) {
     const last = stack.pop();
-    if (last) config.onEndEvent(last);
+
+    if (last) { config.onEndEvent(last); }
   }
 }
 
@@ -234,18 +239,20 @@ function forEachEvent(events, config) {
 const categoryBreakdownCacheSymbol = Symbol('categoryBreakdownCache');
 
 function buildRangeStatsCacheIfNeeded(events) {
-  if (events[categoryBreakdownCacheSymbol]) return;
+  if (events[categoryBreakdownCacheSymbol]) { return; }
 
   const sortedEvents = [...events].sort((a, b) => {
     const aTimings = eventTimingsMilliSeconds(a);
     const bTimings = eventTimingsMilliSeconds(b);
+
     if (aTimings.startTime !== bTimings.startTime) {
       return aTimings.startTime - bTimings.startTime;
     }
+
     return (bTimings.duration || 0) - (aTimings.duration || 0);
   });
 
-  if (sortedEvents.length === 0) return;
+  if (sortedEvents.length === 0) { return; }
 
   const aggregatedStats = {};
   const categoryStack = [];
@@ -256,24 +263,28 @@ function buildRangeStatsCacheIfNeeded(events) {
       aggregatedStats[category] = { time: [], value: [] };
     }
     const statsArrays = aggregatedStats[category];
-    if (statsArrays.time.length && statsArrays.time[statsArrays.time.length - 1] === time) return;
-    if (lastTime > time) return;
+
+    if (statsArrays.time.length && statsArrays.time[statsArrays.time.length - 1] === time) { return; }
+    if (lastTime > time) { return; }
     const lastValue = statsArrays.value.length > 0 ? statsArrays.value[statsArrays.value.length - 1] : 0;
+
     // Match TimelineUIUtils: always append (including zero-length steps at categoryChange)
     statsArrays.value.push(lastValue + time - lastTime);
     statsArrays.time.push(time);
   }
 
   function categoryChange(from, to, time) {
-    if (from) updateCategory(from, time);
+    if (from) { updateCategory(from, time); }
     lastTime = time;
-    if (to) updateCategory(to, time);
+
+    if (to) { updateCategory(to, time); }
   }
 
   function onStartEvent(e) {
     const startTime = eventTimingsMilliSeconds(e).startTime;
     const category = getEventCategory(e);
     const parentCategory = categoryStack.length ? categoryStack[categoryStack.length - 1] : null;
+
     if (category !== parentCategory) {
       categoryChange(parentCategory || null, category, startTime);
     }
@@ -284,6 +295,7 @@ function buildRangeStatsCacheIfNeeded(events) {
     const endTime = eventTimingsMilliSeconds(e).endTime;
     const category = categoryStack.pop();
     const parentCategory = categoryStack.length ? categoryStack[categoryStack.length - 1] : null;
+
     if (category !== parentCategory) {
       categoryChange(category, parentCategory, endTime || 0);
     }
@@ -297,14 +309,17 @@ function buildRangeStatsCacheIfNeeded(events) {
 function upperBound(array, value, comparator) {
   let low = 0;
   let high = array.length;
+
   while (low < high) {
     const mid = Math.floor((low + high) / 2);
+
     if (comparator(array[mid], value) <= 0) {
       low = mid + 1;
     } else {
       high = mid;
     }
   }
+
   return low;
 }
 
@@ -318,11 +333,13 @@ function statsForTimeRange(events, startTime, endTime) {
   function aggregatedStatsAtTime(time) {
     const stats = {};
     const cache = events[categoryBreakdownCacheSymbol];
-    if (!cache) return stats;
-    for (const category in cache) {
+
+    if (!cache) { return stats; }
+    for (const category of Object.keys(cache)) {
       const categoryCache = cache[category];
       const index = upperBound(categoryCache.time, time, (a, b) => a - b);
       let value;
+
       if (index === 0) {
         value = 0;
       } else if (index === categoryCache.time.length) {
@@ -332,60 +349,73 @@ function statsForTimeRange(events, startTime, endTime) {
         const t1 = categoryCache.time[index];
         const v0 = categoryCache.value[index - 1];
         const v1 = categoryCache.value[index];
+
         value = v0 + (v1 - v0) * (time - t0) / (t1 - t0);
       }
       stats[category] = value;
     }
+
     return stats;
   }
 
   function subtractStats(a, b) {
-    const result = Object.assign({}, a);
-    for (const key in b) {
+    const result = { ...a };
+
+    for (const key of Object.keys(b)) {
       result[key] = (result[key] || 0) - b[key];
     }
+
     return result;
   }
 
   const aggregatedStats = subtractStats(aggregatedStatsAtTime(endTime), aggregatedStatsAtTime(startTime));
   const aggregatedTotal = Object.values(aggregatedStats).reduce((a, b) => a + b, 0);
-  aggregatedStats['idle'] = Math.max(0, endTime - startTime - aggregatedTotal);
+
+  aggregatedStats.idle = Math.max(0, endTime - startTime - aggregatedTotal);
+
   return aggregatedStats;
 }
 
 // Find ALL CrRendererMain threads, return the one with the most events
 function findMainRendererThread(events) {
   const threadNames = new Map();
+
   for (const event of events) {
     if (event.name === 'thread_name' && event.ph === 'M' && event.args && event.args.name) {
       const key = `${event.pid}-${event.tid}`;
+
       threadNames.set(key, event.args.name);
     }
   }
 
   const rendererThreads = [];
+
   for (const [key, name] of threadNames.entries()) {
     if (name === 'CrRendererMain') {
       const [pid, tid] = key.split('-').map(Number);
+
       rendererThreads.push({ pid, tid });
     }
   }
 
-  if (rendererThreads.length === 0) return null;
-  if (rendererThreads.length === 1) return rendererThreads[0];
+  if (rendererThreads.length === 0) { return null; }
+  if (rendererThreads.length === 1) { return rendererThreads[0]; }
 
   // Multiple renderer threads: pick the one with the most complete events
   let best = null;
   let bestCount = 0;
+
   for (const thread of rendererThreads) {
     const count = events.filter(e =>
       e.ph === 'X' && e.pid === thread.pid && e.tid === thread.tid
     ).length;
+
     if (count > bestCount) {
       bestCount = count;
       best = thread;
     }
   }
+
   return best;
 }
 
@@ -401,6 +431,7 @@ function computeTraceBounds(events) {
     if (event.ts !== undefined) {
       minTs = Math.min(minTs, event.ts);
       const eventEnd = event.ts + (event.dur || 0);
+
       maxTs = Math.max(maxTs, eventEnd);
     }
     if ((event.name === 'TracingStartedInBrowser' || event.name === 'TracingStartedInPage') && event.ph === 'I') {
@@ -427,7 +458,7 @@ function computeTraceBounds(events) {
 // Finds the "interesting" region of the trace by detecting low utilization at edges
 // Uses ALL main thread entries (not just visible) - matches DevTools behavior
 function calculateWindow(traceBoundsUs, allMainThreadEntries) {
-  if (!allMainThreadEntries.length) return traceBoundsUs;
+  if (!allMainThreadEntries.length) { return traceBoundsUs; }
 
   // Sort entries (already sorted, but ensure)
   const entries = [...allMainThreadEntries].sort((a, b) => a.ts - b.ts);
@@ -439,10 +470,12 @@ function calculateWindow(traceBoundsUs, allMainThreadEntries) {
     let cutTime = (e0.ts * 2 + (e0.dur || 0)) / 2;
     let usedTime = 0;
     const step = Math.sign(stopIndex - startIndex);
+
     for (let i = startIndex; i !== stopIndex; i += step) {
       const task = entries[i];
       const taskMid = (task.ts * 2 + (task.dur || 0)) / 2;
       const interval = Math.abs(cutTime - taskMid);
+
       if (usedTime < threshold * interval) {
         cutIndex = i;
         cutTime = taskMid;
@@ -450,6 +483,7 @@ function calculateWindow(traceBoundsUs, allMainThreadEntries) {
       }
       usedTime += (task.dur || 0);
     }
+
     return cutIndex;
   }
 
@@ -483,7 +517,8 @@ function calculateWindow(traceBoundsUs, allMainThreadEntries) {
 function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, windowMaxUs) {
   // Find Profile event (gives start time for CPU profiling)
   const profileEvent = events.find(e => e.name === 'Profile' && e.pid === mainPid);
-  if (!profileEvent || !profileEvent.args?.data?.startTime) return 0;
+
+  if (!profileEvent || !profileEvent.args?.data?.startTime) { return 0; }
 
   const cpuStartTime = profileEvent.args.data.startTime; // μs absolute
 
@@ -492,55 +527,65 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
     .filter(e => e.name === 'ProfileChunk' && e.pid === mainPid)
     .sort((a, b) => a.ts - b.ts);
 
-  if (chunks.length === 0) return 0;
+  if (chunks.length === 0) { return 0; }
 
-  let allSamples = [];
-  let allDeltas = [];
+  const allSamples = [];
+  const allDeltas = [];
   const allNodes = new Map();
 
   for (const chunk of chunks) {
     const d = chunk.args?.data;
-    if (!d) continue;
-    if (d.cpuProfile?.samples) allSamples.push(...d.cpuProfile.samples);
-    if (d.timeDeltas) allDeltas.push(...d.timeDeltas);
+
+    if (!d) { continue; }
+    if (d.cpuProfile?.samples) { allSamples.push(...d.cpuProfile.samples); }
+    if (d.timeDeltas) { allDeltas.push(...d.timeDeltas); }
     if (d.cpuProfile?.nodes) {
-      for (const n of d.cpuProfile.nodes) allNodes.set(n.id, n);
+      for (const n of d.cpuProfile.nodes) { allNodes.set(n.id, n); }
     }
   }
 
-  if (allSamples.length === 0) return 0;
+  if (allSamples.length === 0) { return 0; }
 
   // Compute absolute timestamps for each sample
   let t = cpuStartTime;
-  const timestamps = allDeltas.map(d => { t += d; return t; });
+  const timestamps = allDeltas.map((d) => {
+    t += d;
+
+    return t;
+  });
 
   // Idle function names (ProfileCall events for these are filtered out)
   const IDLE_NAMES = new Set(['(idle)', '(program)', '(root)', '']);
 
   // Helper: merge overlapping intervals for correct binary search
   function mergeIntervals(intervals) {
-    if (!intervals.length) return [];
+    if (!intervals.length) { return []; }
     intervals.sort((a, b) => a[0] - b[0]);
     const merged = [intervals[0].slice()];
+
     for (let i = 1; i < intervals.length; i++) {
       const last = merged[merged.length - 1];
+
       if (intervals[i][0] <= last[1]) {
         last[1] = Math.max(last[1], intervals[i][1]);
       } else {
         merged.push(intervals[i].slice());
       }
     }
+
     return merged;
   }
 
   function inMerged(ts, merged) {
-    let lo = 0, hi = merged.length - 1;
+    let lo = 0; let
+      hi = merged.length - 1;
+
     while (lo <= hi) {
-      const mid = (lo + hi) >> 1;
-      if (merged[mid][1] <= ts) lo = mid + 1;
-      else if (merged[mid][0] > ts) hi = mid - 1;
-      else return true;
+      const mid = Math.floor((lo + hi) / 2);
+
+      if (merged[mid][1] <= ts) { lo = mid + 1; } else if (merged[mid][0] > ts) { hi = mid - 1; } else { return true; }
     }
+
     return false;
   }
 
@@ -549,8 +594,9 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   ).sort((a, b) => a.ts - b.ts);
 
   // Visible scripting events (these already account for scripting time)
-  const scriptingEvents = mainEvents.filter(e => {
+  const scriptingEvents = mainEvents.filter((e) => {
     const cat = EVENT_STYLES[e.name];
+
     return cat === 'scripting' && e.name !== 'ProfileCall';
   });
   const mergedScripting = mergeIntervals(scriptingEvents.map(e => [e.ts, e.ts + e.dur]));
@@ -569,29 +615,34 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   // Find the next event start after ts within the same RunTask
   function nextEventStartInRunTask(ts, runTaskEnd) {
     // Binary search for first event start > ts
-    let lo = 0, hi = nonRunTaskEventStarts.length;
+    let lo = 0; let
+      hi = nonRunTaskEventStarts.length;
+
     while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (nonRunTaskEventStarts[mid] <= ts) lo = mid + 1;
-      else hi = mid;
+      const mid = Math.floor((lo + hi) / 2);
+
+      if (nonRunTaskEventStarts[mid] <= ts) { lo = mid + 1; } else { hi = mid; }
     }
     // lo is the index of the first event start > ts
     if (lo < nonRunTaskEventStarts.length && nonRunTaskEventStarts[lo] < runTaskEnd) {
       return nonRunTaskEventStarts[lo];
     }
+
     return runTaskEnd;
   }
 
   // Find RunTask end for a given timestamp
   function getRunTaskEnd(ts) {
     for (const rt of runTaskEvents) {
-      if (ts >= rt.ts && ts < rt.ts + rt.dur) return rt.ts + rt.dur;
+      if (ts >= rt.ts && ts < rt.ts + rt.dur) { return rt.ts + rt.dur; }
     }
+
     return ts; // shouldn't happen
   }
 
   // Sum up scripting time from non-idle samples in RunTask gaps
   let profileCallScriptingUs = 0;
+
   for (let i = 0; i < allSamples.length; i++) {
     const ts = timestamps[i];
     // For the last sample there is no next sample, so use Infinity as cap —
@@ -599,19 +650,20 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
     const nextTs = i < allSamples.length - 1 ? timestamps[i + 1] : Infinity;
 
     // Only consider samples within the display window
-    if (ts < windowMinUs || ts >= windowMaxUs) continue;
+    if (ts < windowMinUs || ts >= windowMaxUs) { continue; }
 
     // Check if non-idle
     const nodeId = allSamples[i];
     const node = allNodes.get(nodeId);
     const fname = node?.callFrame?.functionName ?? '';
-    if (IDLE_NAMES.has(fname)) continue;
+
+    if (IDLE_NAMES.has(fname)) { continue; }
 
     // Must be within a RunTask
-    if (!inMerged(ts, mergedRunTasks)) continue;
+    if (!inMerged(ts, mergedRunTasks)) { continue; }
 
     // Must NOT be within an existing visible scripting event
-    if (inMerged(ts, mergedScripting)) continue;
+    if (inMerged(ts, mergedScripting)) { continue; }
 
     // Cap duration at: next trace event start in RunTask, RunTask end, next sample, window end
     const runTaskEnd = getRunTaskEnd(ts);
@@ -635,6 +687,7 @@ function formatHeapMaxBytesLabel(bytes) {
   if (bytes >= 1_000_000) {
     return `${(bytes / 1_000_000).toFixed(1)} Mb`;
   }
+
   return `${Math.round(bytes / 1000)} kb`;
 }
 
@@ -650,6 +703,7 @@ export function computeUpdateCountersRanges(events, mainThread) {
       e.args?.data &&
       (!mainThread || (e.pid === mainThread.pid && e.tid === mainThread.tid)),
   );
+
   if (list.length === 0) {
     return null;
   }
@@ -665,6 +719,7 @@ export function computeUpdateCountersRanges(events, mainThread) {
 
   for (const e of list) {
     const d = e.args.data;
+
     if (typeof d.jsHeapSizeUsed === 'number') {
       jsHeapMin = Math.min(jsHeapMin, d.jsHeapSizeUsed);
       jsHeapMax = Math.max(jsHeapMax, d.jsHeapSizeUsed);
@@ -707,6 +762,7 @@ export function parseTrace(traceJson) {
 
   // Find main renderer thread
   const mainThread = findMainRendererThread(events);
+
   if (!mainThread) {
     throw new Error('Could not find main renderer thread (CrRendererMain)');
   }
@@ -758,8 +814,8 @@ export function parseTrace(traceJson) {
   );
 
   if (profileCallMs > 0) {
-    stats['scripting'] = (stats['scripting'] || 0) + profileCallMs;
-    stats['other'] = Math.max(0, (stats['other'] || 0) - profileCallMs);
+    stats.scripting = (stats.scripting || 0) + profileCallMs;
+    stats.other = Math.max(0, (stats.other || 0) - profileCallMs);
     // Adjust idle (total non-idle increased by profileCallMs - profileCallMs = 0 change)
     // Actually no change needed since we moved time from other→scripting, both non-idle
   }
@@ -788,7 +844,8 @@ export function parseTrace(traceJson) {
 }
 
 function mean(nums) {
-  if (nums.length === 0) return NaN;
+  if (nums.length === 0) { return NaN; }
+
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
@@ -804,14 +861,17 @@ export function averageParsedTraces(parsedResults) {
   const n = parsedResults.length;
 
   const catKeys = new Set();
+
   for (const r of parsedResults) {
     if (r.categories) {
-      for (const k of Object.keys(r.categories)) catKeys.add(k);
+      for (const k of Object.keys(r.categories)) { catKeys.add(k); }
     }
   }
   const categories = {};
+
   for (const k of catKeys) {
     const vals = parsedResults.map(r => r.categories?.[k]).filter(v => typeof v === 'number');
+
     categories[k] = mean(vals);
   }
 
@@ -820,15 +880,18 @@ export function averageParsedTraces(parsedResults) {
 
   let updateCounters = null;
   const withUc = parsedResults.filter(r => r.updateCounters);
+
   if (withUc.length > 0) {
     const uc = withUc.map(r => r.updateCounters);
-    const num = fn => {
+    const num = (fn) => {
       const vals = uc.map(fn).filter(v => typeof v === 'number' && !Number.isNaN(v));
+
       return vals.length ? mean(vals) : null;
     };
     const rnd = x => (x != null && Number.isFinite(x) ? Math.round(x) : null);
     const jsHeapMinBytes = num(u => u.jsHeapMinBytes);
     const jsHeapMaxBytes = num(u => u.jsHeapMaxBytes);
+
     updateCounters = {
       sampleCount: rnd(num(u => u.sampleCount)) ?? 0,
       jsHeapMinBytes,
@@ -861,11 +924,13 @@ export function averageParsedTraces(parsedResults) {
  * Read each path as JSON, run `parseTrace`, then `averageParsedTraces`.
  */
 export function averageTraceFiles(filePaths) {
-  const parsed = filePaths.map(fp => {
+  const parsed = filePaths.map((fp) => {
     const text = fs.readFileSync(fp, 'utf8');
+
     return parseTrace(JSON.parse(text));
   });
   const agg = averageParsedTraces(parsed);
+
   return {
     ...agg,
     _debug: {
@@ -894,6 +959,7 @@ export function formatOutput(stats, options = {}) {
   console.log(`Loading     ${round(categories.loading)} ms`);
   console.log(`Painting    ${round(categories.painting)} ms`);
   console.log(`Experience  ${round(categories.experience)} ms`);
+
   if (full || round(categories.messaging)) {
     console.log(`Messaging   ${round(categories.messaging)} ms`);
   }
@@ -909,11 +975,13 @@ export function formatOutput(stats, options = {}) {
 
   if (updateCounters) {
     const u = updateCounters;
+
     console.log('');
     console.log(
       runs != null ? 'UpdateCounters (main frame, averaged)' : 'UpdateCounters (main frame)',
     );
     const cell = v => (v == null ? '—' : String(v));
+
     console.log(`Min JS heap     ${u.jsHeapMinLabel}`);
     console.log(`Max JS heap     ${u.jsHeapMaxLabel}`);
     console.log(`Min Documents   ${cell(u.documentsMin)}`);
