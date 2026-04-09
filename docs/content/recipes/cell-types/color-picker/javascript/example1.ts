@@ -233,6 +233,8 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
         }
       });
 
+      // Collapse the Pickr trigger button so it doesn't add vertical space
+      // between the cell editor and the popup.
       editor.pickr._root.root.style.height = '0';
       editor.pickr._root.root.style.overflow = 'hidden';
 
@@ -259,6 +261,8 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
       editor.pickr.setColor(editor.input.value || '#000000');
       editor.pickr.show();
 
+      // Pickr positions its popup relative to the trigger button with an
+      // internal offset. Override the top to sit flush below the cell.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const cellRect = editor.TD.getBoundingClientRect();
