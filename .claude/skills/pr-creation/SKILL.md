@@ -61,10 +61,10 @@ All PRs target the **develop** branch. Cherry-picks to `release/*` or `lts/*` br
 
 ## 6. Create the PR
 
-Use the GitHub CLI to create the PR:
+Use the GitHub CLI to create the PR. **Always create PRs as drafts** -- the author marks it ready for review when appropriate.
 
 ```bash
-gh pr create --base develop --title "DEV-xxx: Short description" --body "..."
+gh pr create --draft --base develop --title "DEV-xxx: Short description" --body "..."
 ```
 
 - **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).
