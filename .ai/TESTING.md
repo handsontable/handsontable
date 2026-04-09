@@ -366,6 +366,48 @@ export function getColumnsForFilters() { /* ... */ }
 **ASCII Table Selection Testing** (from `test/helpers/asciiTable.js`):
 Tests selection patterns by rendering an ASCII representation of the table's selection state using symbols like `#` (current), `0` (area), `r` (row), `c` (column).
 
+## Data-Driven Theme Assertions
+
+Theme-dependent expected values in E2E tests come from a single resolver:
+`test/helpers/themeLayoutFromTokens.js`. This module imports the same static
+theme token/sizing/density modules used by production themes and resolves
+them to pixel numbers.
+
+### Usage in specs
+
+```js
+const layout = getThemeLayout(); // global, backed by themeLayoutFromTokens(getLoadedTheme())
+
+expect(getRowHeight(0)).toBe(layout.defaultDataRowHeight);
+expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 3 }));
+expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
+```
+
+### Available metrics
+
+- `defaultDataRowHeight` -- outer height of a data row (content + 1px border)
+- `defaultColumnHeaderHeight` -- content height of column header (no border)
+- `firstRenderedRowDefaultHeight` -- first row in an overlay (extra 1px compensation)
+- `defaultColumnWidth` -- 50px (Walkontable constant)
+- `defaultRowHeaderWidth` -- 50px classic, 49px main/horizon (border-box correction)
+- `cellContentHeight` -- same as defaultColumnHeaderHeight (TD clientHeight)
+- `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
+- `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
+
+### Preferred patterns
+
+- **Scroll unchanged:** Capture position before action, assert same after
+- **Scroll to row:** `layout.verticalScrollForRow(rowIndex)`
+- **Overlay heights:** `layout.overlayHeight({ rows: N })`
+- **Cell clientHeight:** `layout.cellContentHeight`
+
+### Do not use
+
+- Hard-coded per-theme pixel numbers in `forThemes` blocks (deprecated)
+- Per-theme `switch` statements in helpers for values derivable from tokens
+
+See `E2E_THEME_DATA_DRIVEN_SPEC.md` for the full specification.
+
 ## Coverage
 
 **Requirements:** No enforced minimum coverage target

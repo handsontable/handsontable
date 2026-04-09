@@ -496,6 +496,13 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
         }
       };
     },
+    /**
+     * @deprecated Use data-driven assertions via getThemeLayout() instead.
+     * This matcher is kept only as an escape hatch for non-layout expectations
+     * that cannot be expressed from theme tokens. Each remaining use must include
+     * a code comment explaining why.
+     * See: E2E_THEME_DATA_DRIVEN_SPEC.md
+     */
     forThemes(matchersUtil) {
       const currentTheme = getLoadedTheme();
       const createThemeHelper = (theme, expectationMatchers) => {
