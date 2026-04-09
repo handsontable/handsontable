@@ -139,15 +139,17 @@ class TableView {
    */
   #mouseDownLastPos = null;
   /**
-   * Timestamp of the last touchend event on documentElement. Used to detect
-   * synthetic mouse events that Android fires after touch interactions. These
-   * synthetic events arrive asynchronously (0–400 ms after touchend) and must
-   * be ignored by the outside-click handler to prevent editors/popups from
-   * closing immediately after opening via double-tap.
+   * Flag indicating that a touch interaction just ended. Set to `true` on
+   * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
+   * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
+   * mouse events that Android fires after touch interactions. These synthetic
+   * events can falsely trigger the outside-click handler, closing editors or
+   * popups that just opened via double-tap.
    *
-   * @type {number}
+   * @type {boolean}
    */
-  #lastTouchEndTimestamp = 0;
+  #recentTouchEnd = false;
+
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
@@ -319,7 +321,7 @@ class TableView {
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
       // Ignore synthetic mousedown events from Android touch interactions.
-      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+      if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
 
@@ -332,9 +334,9 @@ class TableView {
       }
     });
 
-    this.eventManager.addEventListener(rootElement, 'mouseup', () => {
+    this.eventManager.addEventListener(rootElement, 'mouseup', (event) => {
       // Ignore synthetic mouseup events from Android touch interactions.
-      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+      if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
 
@@ -365,7 +367,7 @@ class TableView {
       this.#mouseDown = false;
 
       // Ignore synthetic mouseup events from Android touch interactions.
-      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+      if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
 
@@ -395,7 +397,14 @@ class TableView {
       }
 
       this.#mouseDown = false;
-      this.#lastTouchEndTimestamp = Date.now();
+      this.#recentTouchEnd = true;
+
+      // Clear the flag after the browser's synthetic mouse event sequence completes.
+      // Android dispatches mousedown/mouseup/click asynchronously after touchend,
+      // so the flag must survive across multiple event loop ticks.
+      this.hot._registerTimeout(() => {
+        this.#recentTouchEnd = false;
+      }, 400);
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
@@ -409,9 +418,7 @@ class TableView {
       }
 
       // Ignore synthetic mousedown events that Android fires after touchend.
-      // These arrive 0–400 ms after the touch and can falsely trigger outside-click
-      // detection, closing editors or popups that just opened via double-tap.
-      if (Date.now() - this.#lastTouchEndTimestamp < 400) {
+      if (this.#isSyntheticMouseEvent(event)) {
         return;
       }
 
@@ -473,28 +480,6 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
-  }
-
-  /**
-   * Invalidates Walkontable viewport caches for row heights and column widths (per-index axis sizes).
-   */
-  invalidateIndexSizesCache() {
-    this._wt.wtViewport.invalidateRowHeightCache();
-    this._wt.wtViewport.invalidateColumnWidthCache();
-  }
-
-  /**
-   * Invalidates Walkontable viewport cache for column widths.
-   */
-  invalidateColumnWidthCache() {
-    this._wt.wtViewport.invalidateColumnWidthCache();
-  }
-
-  /**
-   * Invalidates Walkontable viewport cache for row heights.
-   */
-  invalidateRowHeightCache() {
-    this._wt.wtViewport.invalidateRowHeightCache();
   }
 
   /**
@@ -1236,34 +1221,50 @@ class TableView {
       viewportRowCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportRowRenderingOffset;
 
-        if (viewportOffset === 'auto') {
-          viewportOffset = 1;
+        if (viewportOffset === 'auto' && this.settings.fixedRowsTop) {
+          viewportOffset = 10;
         }
 
-        if (viewportOffset > 0) {
+        if (viewportOffset > 0 || viewportOffset === 'auto') {
           const renderableRows = this.countRenderableRows();
           const firstRenderedRow = calc.startRow;
           const lastRenderedRow = calc.endRow;
 
-          calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
-          calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
+          if (typeof viewportOffset === 'number') {
+            calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
+            calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
+
+          } else if (viewportOffset === 'auto') {
+            const offset = Math.max(1, Math.ceil(lastRenderedRow / renderableRows * 12));
+
+            calc.startRow = Math.max(firstRenderedRow - offset, 0);
+            calc.endRow = Math.min(lastRenderedRow + offset, renderableRows - 1);
+          }
         }
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc) => {
         let viewportOffset = this.settings.viewportColumnRenderingOffset;
 
-        if (viewportOffset === 'auto') {
-          viewportOffset = 1;
+        if (viewportOffset === 'auto' && this.settings.fixedColumnsStart) {
+          viewportOffset = 10;
         }
 
-        if (viewportOffset > 0) {
+        if (viewportOffset > 0 || viewportOffset === 'auto') {
           const renderableColumns = this.countRenderableColumns();
           const firstRenderedColumn = calc.startColumn;
           const lastRenderedColumn = calc.endColumn;
 
-          calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
-          calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
+          if (typeof viewportOffset === 'number') {
+            calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
+          }
+          if (viewportOffset === 'auto') {
+            const offset = Math.max(1, Math.ceil(lastRenderedColumn / renderableColumns * 6));
+
+            calc.startColumn = Math.max(firstRenderedColumn - offset, 0);
+            calc.endColumn = Math.min(lastRenderedColumn + offset, renderableColumns - 1);
+          }
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
@@ -1351,6 +1352,27 @@ class TableView {
    */
   isMouseDown() {
     return this.#mouseDown;
+  }
+
+  /**
+   * Checks if a mouse event is a synthetic event generated by the browser
+   * after a touch interaction. On Android, the browser fires mousedown,
+   * mouseup, and click events after every touchend. These must be ignored
+   * to prevent the outside-click handler from closing editors.
+   *
+   * Uses `sourceCapabilities.firesTouchEvents` (Chrome/Blink) when available,
+   * falls back to the `#recentTouchEnd` flag for other browsers (Firefox, Safari).
+   *
+   * @param {MouseEvent} event The mouse event to check.
+   * @private
+   * @returns {boolean}
+   */
+  #isSyntheticMouseEvent(event) {
+    if (event.sourceCapabilities) {
+      return event.sourceCapabilities.firesTouchEvents === true;
+    }
+
+    return this.#recentTouchEnd;
   }
 
   /**
