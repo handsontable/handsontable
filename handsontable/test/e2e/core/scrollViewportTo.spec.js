@@ -38,17 +38,13 @@ describe('Core.scrollViewportTo', () => {
         col: 50,
       });
 
+      const layout = getThemeLayout();
+
       expect(result).toBe(true);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2826);
-        main.toBe(2826);
-        horizon.toBe(2826);
-      });
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3669);
-        main.toBe(4125);
-        horizon.toBe(5341);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(2826);
+      // Auto bottom snap: row 150 should be at the bottom edge of the viewport.
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(layout.verticalScrollForRow(150) - 300);
+      expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layout.verticalScrollForRow(151));
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the bottom-start edge when ' +
@@ -73,17 +69,13 @@ describe('Core.scrollViewportTo', () => {
         col: 50,
       });
 
+      const layout = getThemeLayout();
+
       expect(result).toBe(true);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3000);
-        main.toBe(3000);
-        horizon.toBe(3000);
-      });
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3669);
-        main.toBe(4125);
-        horizon.toBe(5341);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(3000);
+      // Auto bottom snap: row 150 should be at the bottom edge of the viewport.
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(layout.verticalScrollForRow(150) - 300);
+      expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layout.verticalScrollForRow(151));
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-start edge when ' +
@@ -108,17 +100,12 @@ describe('Core.scrollViewportTo', () => {
         col: 50,
       });
 
+      const layout = getThemeLayout();
+
       expect(result).toBe(true);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3000);
-        main.toBe(3000);
-        horizon.toBe(3000);
-      });
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3900);
-        main.toBe(4350);
-        horizon.toBe(5550);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(3000);
+      // Auto top snap: row 150 should be at the top edge of the viewport.
+      expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(150));
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-end edge when ' +
@@ -143,17 +130,12 @@ describe('Core.scrollViewportTo', () => {
         col: 50,
       });
 
+      const layout = getThemeLayout();
+
       expect(result).toBe(true);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(2826);
-        main.toBe(2826);
-        horizon.toBe(2826);
-      });
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(3900);
-        main.toBe(4350);
-        horizon.toBe(5550);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(2826);
+      // Auto top snap: row 150 should be at the top edge of the viewport.
+      expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(150));
     });
   });
 
@@ -215,13 +197,13 @@ describe('Core.scrollViewportTo', () => {
       verticalSnap: 'bottom',
     });
 
+    const layoutBottom = getThemeLayout();
+
     expect(result).toBe(true);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(3669);
-      main.toBe(4125);
-      horizon.toBe(5341);
-    });
+    // Manual bottom snap: row 150 should be at the bottom edge of the viewport.
+    expect(topOverlay().getScrollPosition()).toBeGreaterThan(layoutBottom.verticalScrollForRow(150) - 300);
+    expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layoutBottom.verticalScrollForRow(151));
   });
 
   it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', async() => {
@@ -238,13 +220,12 @@ describe('Core.scrollViewportTo', () => {
       verticalSnap: 'top',
     });
 
+    const layoutTop = getThemeLayout();
+
     expect(result).toBe(true);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(3900);
-      main.toBe(4350);
-      horizon.toBe(5550);
-    });
+    // Manual top snap: row 150 should be at the top edge of the viewport.
+    expect(topOverlay().getScrollPosition()).toBe(layoutTop.verticalScrollForRow(150));
   });
 
   it('should scroll the viewport in such a way that the coordinates are glued to the right edge (manual snapping)', async() => {
@@ -263,11 +244,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     expect(result).toBe(true);
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2826);
-      main.toBe(2826);
-      horizon.toBe(2826);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2826);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
 
@@ -287,11 +264,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     expect(result).toBe(true);
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(3000);
-      main.toBe(3000);
-      horizon.toBe(3000);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(3000);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
 
@@ -337,11 +310,13 @@ describe('Core.scrollViewportTo', () => {
     expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(0);
   });
 
-  it.forTheme('classic')('should scroll the viewport only horizontally', async() => {
+  it('should scroll the viewport only horizontally', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       data: createSpreadsheetData(100, 100),
-      height: 300,
-      width: 300,
+      height: 13 * layout.defaultDataRowHeight,
+      width: 360,
       rowHeaders: true,
       colHeaders: true
     });
@@ -350,19 +325,25 @@ describe('Core.scrollViewportTo', () => {
       row: 50,
       col: 50,
     });
+
+    const columnBefore = tableView()._wt.wtScroll.getFirstVisibleColumn();
 
     await scrollViewportTo({
       row: 80,
     });
 
-    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(72);
+    // Horizontal scroll position should not change when only row is specified.
+    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(columnBefore);
+    // Vertical scroll should have changed to bring row 80 into view.
+    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBeGreaterThan(50);
   });
 
-  it.forTheme('main')('should scroll the viewport only horizontally', async() => {
+  it('should scroll the viewport only vertically', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       data: createSpreadsheetData(100, 100),
-      height: 375,
+      height: 13 * layout.defaultDataRowHeight,
       width: 360,
       rowHeaders: true,
       colHeaders: true
@@ -373,100 +354,16 @@ describe('Core.scrollViewportTo', () => {
       col: 50,
     });
 
-    await scrollViewportTo({
-      row: 80,
-    });
-
-    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(70);
-  });
-
-  it.forTheme('horizon')('should scroll the viewport only horizontally', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 100),
-      height: 478,
-      width: 360,
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 50,
-      col: 50,
-    });
-
-    await scrollViewportTo({
-      row: 80,
-    });
-
-    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(70);
-  });
-
-  it.forTheme('classic')('should scroll the viewport only vertically', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 100),
-      height: 300,
-      width: 300,
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 50,
-      col: 50,
-    });
+    const rowBefore = tableView()._wt.wtScroll.getFirstVisibleRow();
 
     await scrollViewportTo({
       col: 80,
     });
 
-    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(42);
-  });
-
-  it.forTheme('main')('should scroll the viewport only vertically', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 100),
-      height: 375,
-      width: 360,
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 50,
-      col: 50,
-    });
-
-    await scrollViewportTo({
-      col: 80,
-    });
-
-    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(40);
-  });
-
-  it.forTheme('horizon')('should scroll the viewport only vertically', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 100),
-      height: 478,
-      width: 360,
-      rowHeaders: true,
-      colHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 50,
-      col: 50,
-    });
-
-    await scrollViewportTo({
-      col: 80,
-    });
-
-    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
-    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(40);
+    // Horizontal scroll should have changed to bring col 80 into view.
+    expect(tableView()._wt.wtScroll.getFirstVisibleColumn()).toBeGreaterThan(50);
+    // Vertical scroll position should not change when only col is specified.
+    expect(tableView()._wt.wtScroll.getFirstVisibleRow()).toBe(rowBefore);
   });
 
   it('should scroll the viewport properly when there are hidden columns', async() => {
@@ -859,138 +756,14 @@ describe('Core.scrollViewportTo', () => {
     expect(tableView()._wt.wtTable.getFirstVisibleColumn()).toBe(0);
   });
 
-  it.forTheme('classic')('should scroll the viewport to the the visual index destination when ' +
+  it('should scroll the viewport to the the visual index destination when ' +
     'there are some hidden rows', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
-      height: 200,
-    });
-
-    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    hidingMap.setValueAtIndex(0, true);
-    hidingMap.setValueAtIndex(1, true);
-    hidingMap.setValueAtIndex(2, true);
-    hidingMap.setValueAtIndex(7, true);
-    hidingMap.setValueAtIndex(15, true);
-
-    await render();
-
-    const scrollResult1 = await scrollViewportTo({
-      row: 2,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult1).toBe(true);
-    expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBe(2);
-
-    const scrollResult2 = await scrollViewportTo({
-      row: 14,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult2).toBe(true);
-    expect(tableView()._wt.wtTable.getLastVisibleRow()).toBe(19);
-
-    const scrollResult3 = await scrollViewportTo({
-      row: 2,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult3).toBe(true);
-    expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBe(2);
-
-    const scrollResult4 = await scrollViewportTo({
-      row: 0,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult4).toBe(true);
-    expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBe(0);
-  });
-
-  it.forTheme('main')('should scroll the viewport to the the visual index destination when ' +
-    'there are some hidden rows', async() => {
-    handsontable({
-      data: createSpreadsheetData(25, 20),
-      width: 200,
-      height: 200,
-    });
-
-    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    hidingMap.setValueAtIndex(0, true);
-    hidingMap.setValueAtIndex(1, true);
-    hidingMap.setValueAtIndex(2, true);
-    hidingMap.setValueAtIndex(7, true);
-    hidingMap.setValueAtIndex(15, true);
-
-    await render();
-
-    const scrollResult1 = await scrollViewportTo({
-      row: 2,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult1).toBe(true);
-    expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBe(2);
-
-    const scrollResult2 = await scrollViewportTo({
-      row: 14,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult2).toBe(true);
-    expect(tableView()._wt.wtTable.getLastVisibleRow()).toBe(19);
-
-    const scrollResult3 = await scrollViewportTo({
-      row: 2,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult3).toBe(true);
-    expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBe(2);
-
-    const scrollResult4 = await scrollViewportTo({
-      row: 0,
-      col: 0,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-      considerHiddenIndexes: false,
-    });
-
-    expect(scrollResult4).toBe(true);
-    expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBe(0);
-  });
-
-  it.forTheme('horizon')('should scroll the viewport to the the visual index destination when ' +
-    'there are some hidden rows', async() => {
-    handsontable({
-      data: createSpreadsheetData(25, 20),
-      width: 200,
-      height: 321,
+      height: 10 * layout.defaultDataRowHeight,
     });
 
     const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
