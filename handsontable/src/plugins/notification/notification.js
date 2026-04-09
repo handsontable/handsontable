@@ -299,8 +299,9 @@ export class Notification extends BasePlugin {
     }
 
     if (this.hot.runHooks('beforeNotificationHide', id) === false) {
-      state.durationMs = 0;
-      state.remainingMs = 0;
+      if (state.durationMs > 0 && state.remainingMs <= 0) {
+        state.remainingMs = state.durationMs;
+      }
 
       return;
     }

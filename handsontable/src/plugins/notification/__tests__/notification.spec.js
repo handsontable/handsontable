@@ -114,6 +114,61 @@ describe('Notification', () => {
     expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
   });
 
+  it('should resume auto-dismiss after a blocked programmatic hide', async() => {
+    let blockHide = false;
+
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+      beforeNotificationHide: () => (blockHide ? false : undefined),
+    });
+
+    const plugin = getPlugin('notification');
+
+    const toastId = plugin.showMessage({ message: 'Timer resumes', duration: 600 });
+
+    await spec();
+
+    blockHide = true;
+    plugin.hide(toastId);
+    blockHide = false;
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(1);
+
+    await sleep(1100);
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
+    expect(plugin.isVisible()).toBe(false);
+  });
+
+  it('should restart countdown when beforeNotificationHide blocks a timer-triggered hide', async() => {
+    let hideCalls = 0;
+
+    await handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+      beforeNotificationHide: () => {
+        hideCalls += 1;
+
+        return hideCalls > 1;
+      },
+    });
+
+    const plugin = getPlugin('notification');
+
+    plugin.showMessage({ message: 'Two-phase dismiss', duration: 400 });
+    await spec();
+
+    await sleep(1500);
+    await spec();
+
+    expect(document.querySelectorAll('.ht-notification__toast').length).toBe(0);
+    expect(plugin.isVisible()).toBe(false);
+    expect(hideCalls).toBe(2);
+  });
+
   it('should disable via updateSettings', async() => {
     await handsontable({
       data: createSpreadsheetData(3, 3),

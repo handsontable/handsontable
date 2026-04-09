@@ -3464,6 +3464,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Notification} plugin before a toast is hidden. Return `false` to keep it visible.
+   * Timed toasts keep their auto-dismiss countdown; if the hide was triggered because the countdown
+   * reached zero, the countdown restarts from the configured duration.
    *
    * @since 17.1.0
    * @event Hooks#beforeNotificationHide
