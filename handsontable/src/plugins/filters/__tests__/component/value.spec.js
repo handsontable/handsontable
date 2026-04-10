@@ -438,32 +438,35 @@ describe('Filters UI Value component', () => {
 
     const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
 
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
     searchInput.focus();
 
-    const fullListCount = byValueMultipleSelect().element.querySelectorAll('.htCore td').length;
+    await sleep(208);
 
-    expect(fullListCount).toBeGreaterThan(0);
+    const getLabels = () =>
+      Array.from(byValueBoxRootElement().querySelectorAll('label')).map(el => el.textContent);
 
-    searchInput.value = '   ';
-    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    const fullListLabels = getLabels();
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(fullListCount);
+    expect(fullListLabels.length).toBeGreaterThan(0);
 
-    searchInput.value = 'zzzzznonmatching';
-    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    const triggerInput = (valueStr) => {
+      document.activeElement.value = valueStr;
+      document.activeElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    };
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(0);
+    triggerInput('   ');
+    expect(getLabels()).toEqual(fullListLabels);
 
-    searchInput.value = '  zzzzznonmatching  ';
-    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    triggerInput('zzzzznonmatching');
+    expect(getLabels().length).toBe(0);
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(0);
+    triggerInput('  zzzzznonmatching  ');
+    expect(getLabels().length).toBe(0);
 
-    searchInput.value = ' \n nannie \t ';
-    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(1);
-    expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toContain('Nannie');
+    triggerInput(' \n nannie \t ');
+    expect(getLabels().length).toBe(1);
+    expect(getLabels()[0]).toContain('Nannie');
   });
 
   it('should treat whitespace-only search as empty when searchMode is `apply` (#12290)', async() => {
@@ -483,16 +486,21 @@ describe('Filters UI Value component', () => {
 
     const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
 
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
     searchInput.focus();
 
-    const fullListCount = byValueMultipleSelect().element.querySelectorAll('.htCore td').length;
+    await sleep(208);
 
-    expect(fullListCount).toBeGreaterThan(0);
+    const countChecked = () => byValueMultipleSelect().getItems().filter(item => item.checked).length;
+    const startChecked = countChecked();
 
-    searchInput.value = ' \t ';
-    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(startChecked).toBeGreaterThan(0);
+    expect(startChecked).toBe(byValueMultipleSelect().getItems().length);
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(fullListCount);
+    document.activeElement.value = ' \t ';
+    document.activeElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+
+    expect(countChecked()).toBe(startChecked);
   });
 
   it('should disappear after hitting ESC key (focused items box)', async() => {
