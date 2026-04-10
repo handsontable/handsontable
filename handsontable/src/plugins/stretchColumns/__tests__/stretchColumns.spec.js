@@ -36,21 +36,21 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(67);
-      main.toBe(67);
-      horizon.toBe(62);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(67);
-      main.toBe(67);
-      horizon.toBe(62);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(66);
-      main.toBe(66);
-      horizon.toBe(61);
-    });
+    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
+      compact: 67,
+      defaultDensity: 67,
+      comfortable: 62,
+    }));
+    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
+      compact: 67,
+      defaultDensity: 67,
+      comfortable: 62,
+    }));
+    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
+      compact: 66,
+      defaultDensity: 66,
+      comfortable: 61,
+    }));
 
     await updateSettings({
       stretchH: 'last',
@@ -58,11 +58,11 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(100);
-      main.toBe(100);
-      horizon.toBe(85);
-    });
+    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
+      compact: 100,
+      defaultDensity: 100,
+      comfortable: 85,
+    }));
 
     await updateSettings({
       stretchH: 'none',
@@ -106,21 +106,21 @@ describe('StretchColumns', () => {
       width: 500,
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(150);
-      main.toBe(150);
-      horizon.toBe(145);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(150);
-      main.toBe(150);
-      horizon.toBe(145);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(150);
-      main.toBe(150);
-      horizon.toBe(145);
-    });
+    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
+      compact: 150,
+      defaultDensity: 150,
+      comfortable: 145,
+    }));
+    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
+      compact: 150,
+      defaultDensity: 150,
+      comfortable: 145,
+    }));
+    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
+      compact: 150,
+      defaultDensity: 150,
+      comfortable: 145,
+    }));
   });
 
   it.forTheme('classic')(`should correctly stretch columns after vertical scroll appears
@@ -320,16 +320,16 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(412);
-      main.toBe(418);
-      horizon.toBe(420);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(88);
-      main.toBe(82);
-      horizon.toBe(80);
-    });
+    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
+      compact: 412,
+      defaultDensity: 418,
+      comfortable: 420,
+    }));
+    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
+      compact: 88,
+      defaultDensity: 82,
+      comfortable: 80,
+    }));
   });
 
   it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', async() => {
@@ -435,11 +435,11 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(286);
-      main.toBe(311);
-      horizon.toBe(319);
-    });
+    expect(getColWidth(4)).toBe(getThemeLayout().pickByDensity({
+      compact: 286,
+      defaultDensity: 311,
+      comfortable: 319,
+    }));
 
     await setDataAtCell(0, 4, 'text');
 
@@ -447,11 +447,11 @@ describe('StretchColumns', () => {
 
     await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
-    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(286);
-      main.toBe(311);
-      horizon.toBe(319);
-    });
+    expect(getColWidth(4)).toBe(getThemeLayout().pickByDensity({
+      compact: 286,
+      defaultDensity: 311,
+      comfortable: 319,
+    }));
   });
 
   it('should stretch the table to the entirety of the container when autoRowSize is enabled', async() => {

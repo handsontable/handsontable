@@ -33,21 +33,21 @@ describe('StretchColumns', () => {
 
       const plugin = getPlugin('stretchColumns');
 
-      expect(plugin.getColumnWidth(0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(67);
-        horizon.toBe(62);
-      });
-      expect(plugin.getColumnWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(67);
-        horizon.toBe(62);
-      });
-      expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(66);
-        main.toBe(66);
-        horizon.toBe(61);
-      });
+      expect(plugin.getColumnWidth(0)).toBe(getThemeLayout().pickByDensity({
+        compact: 67,
+        defaultDensity: 67,
+        comfortable: 62,
+      }));
+      expect(plugin.getColumnWidth(1)).toBe(getThemeLayout().pickByDensity({
+        compact: 67,
+        defaultDensity: 67,
+        comfortable: 62,
+      }));
+      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().pickByDensity({
+        compact: 66,
+        defaultDensity: 66,
+        comfortable: 61,
+      }));
     });
 
     it('should return correct column widths when stretching "last" is enabled', async() => {
@@ -62,11 +62,11 @@ describe('StretchColumns', () => {
 
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
-      expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(100);
-        main.toBe(100);
-        horizon.toBe(85);
-      });
+      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().pickByDensity({
+        compact: 100,
+        defaultDensity: 100,
+        comfortable: 85,
+      }));
     });
   });
 });

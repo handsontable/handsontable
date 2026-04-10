@@ -54,41 +54,41 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(100);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(117);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(100);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(117);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 100,
+          defaultDensity: 110,
+          comfortable: 117,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 100,
+          defaultDensity: 110,
+          comfortable: 117,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 99,
+          defaultDensity: 110,
+          comfortable: 118,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 99,
+          defaultDensity: 110,
+          comfortable: 118,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 99,
+          defaultDensity: 110,
+          comfortable: 118,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 99,
+          defaultDensity: 110,
+          comfortable: 118,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 99,
+          defaultDensity: 110,
+          comfortable: 118,
+        }));
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
@@ -106,56 +106,56 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(24);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(21);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(33);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(102);
-          main.toBeAroundValue(111);
-          horizon.toBeAroundValue(114);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(98);
-          main.toBeAroundValue(108);
-          horizon.toBeAroundValue(112);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(9)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(25);
-          main.toBeAroundValue(30);
-          horizon.toBeAroundValue(38);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 23,
+          defaultDensity: 28,
+          comfortable: 36,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 24,
+          defaultDensity: 28,
+          comfortable: 36,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 26,
+          comfortable: 35,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 23,
+          defaultDensity: 27,
+          comfortable: 36,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 27,
+          comfortable: 35,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 26,
+          comfortable: 35,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 21,
+          defaultDensity: 26,
+          comfortable: 33,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 102,
+          defaultDensity: 111,
+          comfortable: 114,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 98,
+          defaultDensity: 108,
+          comfortable: 112,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 25,
+          defaultDensity: 30,
+          comfortable: 38,
+        }));
       });
 
       it('should container be removed after initialization', async() => {
@@ -192,11 +192,11 @@ describe('NestedHeaders', () => {
         const widthAfterUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
-        expect(widthAfterUpdate).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(135);
-          main.toBeAroundValue(150);
-          horizon.toBeAroundValue(158);
-        });
+        expect(widthAfterUpdate).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 135,
+          defaultDensity: 150,
+          comfortable: 158,
+        }));
       });
     });
 
@@ -219,42 +219,42 @@ describe('NestedHeaders', () => {
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(24);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 24,
+          defaultDensity: 28,
+          comfortable: 36,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(79);
-          main.toBeAroundValue(88);
-          horizon.toBeAroundValue(96);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(21);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(33);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(102);
-          main.toBeAroundValue(111);
-          horizon.toBeAroundValue(114);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(98);
-          main.toBeAroundValue(108);
-          horizon.toBeAroundValue(112);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 79,
+          defaultDensity: 88,
+          comfortable: 96,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 27,
+          comfortable: 35,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 26,
+          comfortable: 35,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 21,
+          defaultDensity: 26,
+          comfortable: 33,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 102,
+          defaultDensity: 111,
+          comfortable: 114,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 98,
+          defaultDensity: 108,
+          comfortable: 112,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
@@ -276,39 +276,39 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 23,
+          defaultDensity: 28,
+          comfortable: 36,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(79);
-          main.toBeAroundValue(88);
-          horizon.toBeAroundValue(96);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 79,
+          defaultDensity: 88,
+          comfortable: 96,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(34);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(21);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(34);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 27,
+          comfortable: 35,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 22,
+          defaultDensity: 26,
+          comfortable: 34,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 21,
+          defaultDensity: 26,
+          comfortable: 34,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(201);
-          main.toBeAroundValue(219);
-          horizon.toBeAroundValue(227);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 201,
+          defaultDensity: 219,
+          comfortable: 227,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
@@ -334,29 +334,29 @@ describe('NestedHeaders', () => {
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(79);
-          main.toBeAroundValue(88);
-          horizon.toBeAroundValue(96);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 79,
+          defaultDensity: 88,
+          comfortable: 96,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 23,
+          defaultDensity: 28,
+          comfortable: 36,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(102);
-          main.toBeAroundValue(111);
-          horizon.toBeAroundValue(114);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(98);
-          main.toBeAroundValue(108);
-          horizon.toBeAroundValue(112);
-        });
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 102,
+          defaultDensity: 111,
+          comfortable: 114,
+        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
+          compact: 98,
+          defaultDensity: 108,
+          comfortable: 112,
+        }));
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
     });

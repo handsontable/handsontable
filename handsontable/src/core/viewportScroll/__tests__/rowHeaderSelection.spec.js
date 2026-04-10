@@ -267,11 +267,9 @@ describe('Row header selection scroll', () => {
     await scrollViewportVertically(getDefaultRowHeight() * 6);
     await selectRows(19, 0);
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(226);
-      main.toBe(250);
-      horizon.toBe(314);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(
+      getThemeLayout().e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()
+    );
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(19, -1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',

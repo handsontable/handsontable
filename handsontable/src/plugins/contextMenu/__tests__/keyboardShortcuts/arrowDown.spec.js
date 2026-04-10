@@ -33,11 +33,8 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp('arrowdown');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(9);
-        main.toBe(9);
-        horizon.toBe(13);
-      });
+
+      expect(window.scrollY).toBe(getThemeLayout().e2eWindowScrollYContextMenuFirstSelectableItem());
     });
 
     it('should move the menu item selection to the next item (skipping `disabled` items)', async() => {

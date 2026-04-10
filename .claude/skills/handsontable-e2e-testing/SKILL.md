@@ -47,7 +47,14 @@ These are injected automatically. Do not import them manually.
 - **Selection:** `selectCell()`, `selectCells()`, `getSelected()`
 - **DOM:** `getCell()`, `spec()`, `hot()`
 - **Plugins:** `getPlugin()`
+- **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `.ai/TESTING.md`)
 - Full list in `test/helpers/common.js`.
+
+## Theme-specific expected values
+
+Use `const layout = getThemeLayout()` (token-backed, from `test/helpers/themeLayoutFromTokens.js`). Prefer primitives (`layout.defaultDataRowHeight`, `layout.overlayHeight()`, …), **`layout.pickByDensity({ compact, defaultDensity, comfortable })`** when the three standard themes need different literals or objects, and named **`layout.e2e*()`** helpers for fragile scroll/menu geometry.
+
+**Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Helpers use **`layout.densityLevel`** (`compact` / `default` / `comfortable`) inside `themeLayoutFromTokens.js`. Adding a theme registers `THEME_TOKENS` + `THEME_DENSITY` only; extend `e2e*` methods there if a new density needs different regression math. For mixed matchers (for example `toBeGreaterThan` on one density and `toEqual` on others), use **`layout.densityLevel`** in the spec or a small local helper.
 
 ## Event simulation
 

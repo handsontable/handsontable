@@ -988,11 +988,11 @@ describe('TextEditor', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('27px');
-      main.toBe('30px');
-      horizon.toBe('38px');
-    });
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '27px',
+      defaultDensity: '30px',
+      comfortable: '38px',
+    }));
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
@@ -1002,11 +1002,11 @@ describe('TextEditor', () => {
     await selectCell(1, 1);
     await keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('27px');
-      main.toBe('30px');
-      horizon.toBe('38px');
-    });
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '27px',
+      defaultDensity: '30px',
+      comfortable: '38px',
+    }));
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers', async() => {
@@ -1018,11 +1018,11 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('27px');
-      main.toBe('30px');
-      horizon.toBe('38px');
-    });
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '27px',
+      defaultDensity: '30px',
+      comfortable: '38px',
+    }));
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
@@ -1037,11 +1037,11 @@ describe('TextEditor', () => {
     await selectAll();
     await keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('27px');
-      main.toBe('30px');
-      horizon.toBe('38px');
-    });
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '27px',
+      defaultDensity: '30px',
+      comfortable: '38px',
+    }));
     expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
@@ -1066,21 +1066,21 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    expect(parseInt(getActiveEditor().TEXTAREA.style.width, 10)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(53, 1);
-      main.toBeAroundValue(60, 1);
-      horizon.toBeAroundValue(68, 1);
-    });
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('27px');
-      main.toBe('30px');
-      horizon.toBe('38px');
-    });
-    expect(getActiveEditor().textareaParentStyle.top).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('26px');
-      main.toBe('29px');
-      horizon.toBe('37px');
-    });
+    expect(parseInt(getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: 53,
+      defaultDensity: 60,
+      comfortable: 68,
+    }), 1);
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '27px',
+      defaultDensity: '30px',
+      comfortable: '38px',
+    }));
+    expect(getActiveEditor().textareaParentStyle.top).toBe(getThemeLayout().pickByDensity({
+      compact: '26px',
+      defaultDensity: '29px',
+      comfortable: '37px',
+    }));
   });
 
   it('should hide whole editor when it is higher then header and TD is not rendered anymore', async() => {
@@ -1121,16 +1121,16 @@ describe('TextEditor', () => {
     await scrollViewportHorizontally(100);
 
     expect(parseInt(getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
-    expect(parseInt(getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(-71);
-      main.toBeAroundValue(-62);
-      horizon.toBeAroundValue(-38);
-    });
-    expect(parseInt(getActiveEditor().textareaParentStyle.left, 10)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(50);
-      main.toBeAroundValue(50);
-      horizon.toBeAroundValue(52);
-    });
+    expect(parseInt(getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: -71,
+      defaultDensity: -62,
+      comfortable: -38,
+    }));
+    expect(parseInt(getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 50,
+      comfortable: 52,
+    }));
   });
 
   it('should hide editor when quick navigation by click scrollbar was triggered', async() => {
@@ -1158,11 +1158,11 @@ describe('TextEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('27px');
-      main.toBe('30px');
-      horizon.toBe('38px');
-    });
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '27px',
+      defaultDensity: '30px',
+      comfortable: '38px',
+    }));
   });
 
   it('should render textarea editor in specified height (multi line)', async() => {
@@ -1173,11 +1173,11 @@ describe('TextEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('69px');
-      main.toBe('70px');
-      horizon.toBe('78px');
-    });
+    expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().pickByDensity({
+      compact: '69px',
+      defaultDensity: '70px',
+      comfortable: '78px',
+    }));
   });
 
   it('should render number in textarea', async() => {
@@ -2265,11 +2265,11 @@ describe('TextEditor', () => {
 
     const $editorInput = $('.handsontableInput');
 
-    expect($editorInput.height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(104);
-      main.toBe(94);
-      horizon.toBe(61);
-    });
+    expect($editorInput.height()).toBe(getThemeLayout().pickByDensity({
+      compact: 104,
+      defaultDensity: 94,
+      comfortable: 61,
+    }));
   });
 
   it('allow scrolling the editor if its content exceeds the viewport height', async() => {

@@ -40,16 +40,16 @@ describe('DropdownMenu (RTL mode)', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(139);
-        main.toBe(155);
-        horizon.toBe(194);
-      });
-      expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(dropdownMenuOffset.left + 1);
-        main.toBe(dropdownMenuOffset.left + 1);
-        horizon.toBe(dropdownMenuOffset.left);
-      });
+      expect(tickItemOffset.top).toBe(getThemeLayout().pickByDensity({
+        compact: 139,
+        defaultDensity: 155,
+        comfortable: 194,
+      }));
+      expect(tickItemOffset.left).toBe(getThemeLayout().pickByDensity({
+        compact: dropdownMenuOffset.left + 1,
+        defaultDensity: dropdownMenuOffset.left + 1,
+        comfortable: dropdownMenuOffset.left,
+      }));
     });
   });
 });

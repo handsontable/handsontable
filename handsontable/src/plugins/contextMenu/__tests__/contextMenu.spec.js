@@ -98,11 +98,11 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(217);
-        main.toEqual(217);
-        horizon.toEqual(215);
-      });
+      expect($menu.width()).toEqual(getThemeLayout().pickByDensity({
+        compact: 217,
+        defaultDensity: 217,
+        comfortable: 215,
+      }));
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -1721,11 +1721,7 @@ describe('ContextMenu', () => {
         .simulate('mouseenter')
         .simulate('mouseover');
 
-      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).toEqual(undefined);
     });
   });
 
@@ -2553,20 +2549,12 @@ describe('ContextMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(3);
-      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).toEqual(undefined);
 
       await keyDownUp('arrowDown');
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(4);
-      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('col_right');
-        main.toEqual('col_right');
-        horizon.toEqual('col_right');
-      });
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).toEqual('col_right');
     });
   });
 

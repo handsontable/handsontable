@@ -44,37 +44,37 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(104);
-      main.toBe(115);
-      horizon.toBe(123);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(192);
-      main.toBe(210);
-      horizon.toBe(218);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 104,
+      defaultDensity: 115,
+      comfortable: 123,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 192,
+      defaultDensity: 210,
+      comfortable: 218,
+    }));
 
     await setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     await setDataAtRowProp(0, 'name', 'foo');
     await waitForNextAnimationFrames(2);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(143);
-      main.toBe(157);
-      horizon.toBe(165);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 143,
+      defaultDensity: 157,
+      comfortable: 165,
+    }));
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(192);
-      main.toBe(210);
-      horizon.toBe(218);
-    });
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 192,
+      defaultDensity: 210,
+      comfortable: 218,
+    }));
   });
 
   it('should correctly detect column widths with colHeaders', async() => {
@@ -88,11 +88,11 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 146,
+      comfortable: 154,
+    }));
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', async() => {
@@ -106,24 +106,24 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
 
     await updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(198);
-      main.toBeAroundValue(216);
-      horizon.toBeAroundValue(224);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 146,
+      comfortable: 154,
+    }));
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: 198,
+      defaultDensity: 216,
+      comfortable: 224,
+    }));
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a string', async() => {
@@ -137,24 +137,24 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
 
     await updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 146,
+      comfortable: 154,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 146,
+      comfortable: 154,
+    }));
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a function', async() => {
@@ -168,11 +168,11 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
 
     await updateSettings({
       colHeaders(index) {
@@ -180,16 +180,16 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(198);
-      main.toBeAroundValue(216);
-      horizon.toBeAroundValue(224);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 146,
+      comfortable: 154,
+    }));
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: 198,
+      defaultDensity: 216,
+      comfortable: 224,
+    }));
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', async() => {
@@ -218,11 +218,11 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(64);
-      main.toBeAroundValue(72);
-      horizon.toBeAroundValue(80);
-    });
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: 64,
+      defaultDensity: 72,
+      comfortable: 80,
+    }));
   });
 
   it('should correctly detect column widths after update columns.title', async() => {
@@ -240,11 +240,11 @@ describe('AutoColumnSize', () => {
       ],
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(155);
-      main.toBe(170);
-      horizon.toBe(178);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 155,
+      defaultDensity: 170,
+      comfortable: 178,
+    }));
   });
 
   it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
@@ -263,11 +263,11 @@ describe('AutoColumnSize', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(64);
-      main.toBeAroundValue(72);
-      horizon.toBeAroundValue(80);
-    });
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
+      compact: 64,
+      defaultDensity: 72,
+      comfortable: 80,
+    }));
   });
 
   it('should not change the column width after toggling the state of the checkbox cell type', async() => {
@@ -295,19 +295,19 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(151);
-      horizon.toBe(161);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 151,
+      comfortable: 161,
+    }));
 
     await setDataAtCell(0, 0, false);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(151);
-      horizon.toBe(161);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 133,
+      defaultDensity: 151,
+      comfortable: 161,
+    }));
   });
 
   it('should not wrap the cell values when the whole column has values with the same length', async() => {
@@ -337,36 +337,36 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(82);
-      main.toBe(91);
-      horizon.toBe(99);
-    });
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
-    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(rowHeight(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 82,
+      defaultDensity: 91,
+      comfortable: 99,
+    }));
+    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 27,
+      defaultDensity: 30,
+      comfortable: 38,
+    }));
+    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 26,
+      defaultDensity: 29,
+      comfortable: 37,
+    }));
+    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 26,
+      defaultDensity: 29,
+      comfortable: 37,
+    }));
+    expect(rowHeight(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
+      compact: 26,
+      defaultDensity: 29,
+      comfortable: 37,
+    }));
+    expect(rowHeight(spec().$container, 4)).toBe(getThemeLayout().pickByDensity({
+      compact: 26,
+      defaultDensity: 29,
+      comfortable: 37,
+    }));
   });
 
   it('should be possible to disable plugin using updateSettings', async() => {
@@ -655,20 +655,20 @@ describe('AutoColumnSize', () => {
 
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
 
-    expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(129);
-      main.toBe(138);
-      horizon.toBe(146);
-    });
+    expect(cloneTopHider.width()).toBe(getThemeLayout().pickByDensity({
+      compact: 129,
+      defaultDensity: 138,
+      comfortable: 146,
+    }));
 
     await selectCell(0, 0);
     await waitForNextAnimationFrames(2);
 
-    expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(129);
-      main.toBe(138);
-      horizon.toBe(146);
-    });
+    expect(cloneTopHider.width()).toBe(getThemeLayout().pickByDensity({
+      compact: 129,
+      defaultDensity: 138,
+      comfortable: 146,
+    }));
   });
 
   it('should not calculate any column widths, if there are no columns in the dataset', async() => {
@@ -713,82 +713,82 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
 
     await alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
+    expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
     expect(colWidth(spec().$container, 4)).toBe(50);
 
     await alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
     expect(colWidth(spec().$container, 3)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
     expect(colWidth(spec().$container, 5)).toBe(50);
 
     await alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
     expect(colWidth(spec().$container, 3)).toBe(50);
-    expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
     expect(colWidth(spec().$container, 5)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 6)).toBe(50);
   });
@@ -799,35 +799,35 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 50,
+      defaultDensity: 52,
+      comfortable: 60,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     await alter('remove_col', 0);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
 
@@ -840,30 +840,30 @@ describe('AutoColumnSize', () => {
     columnIndexMapper().moveIndexes(2, 1);
     await render();
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
 
     columnIndexMapper().moveIndexes(1, 2);
     await render();
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', async() => {
@@ -876,29 +876,29 @@ describe('AutoColumnSize', () => {
     columnIndexMapper().moveIndexes(2, 1);
     await render();
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
 
     await populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 127,
+      defaultDensity: 139,
+      comfortable: 147,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: 55,
+      defaultDensity: 62,
+      comfortable: 70,
+    }));
   });
 
   it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', async() => {
@@ -913,21 +913,21 @@ describe('AutoColumnSize', () => {
 
     await scrollViewportTo(0, 49);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2235);
-      main.toBe(2322);
-      horizon.toBe(2575);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: 2235,
+      defaultDensity: 2322,
+      comfortable: 2575,
+    }));
 
     await listen();
     await selectRows(2, 2);
     await keyDownUp('delete');
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2235);
-      main.toBe(2322);
-      horizon.toBe(2575);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: 2235,
+      defaultDensity: 2322,
+      comfortable: 2575,
+    }));
   });
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
@@ -941,85 +941,85 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       await alter('remove_col', 1);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').undo();
 
@@ -1027,34 +1027,34 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
     });
 
     it('when inserting single column', async() => {
@@ -1067,210 +1067,210 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       await alter('insert_col_start', 1);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
       expect(colWidth(spec().$container, 1)).toBe(50);
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       await alter('insert_col_start', 2);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
       expect(colWidth(spec().$container, 2)).toBe(50);
-      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       await alter('insert_col_start', 3);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 52,
+        comfortable: 60,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
       expect(colWidth(spec().$container, 3)).toBe(50);
     });
 
@@ -1285,41 +1285,41 @@ describe('AutoColumnSize', () => {
         ]
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeAroundValue(64);
-        main.toBeAroundValue(72);
-        horizon.toBeAroundValue(80);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
+        compact: 64,
+        defaultDensity: 72,
+        comfortable: 80,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
 
       await alter('remove_row', 0);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeAroundValue(64);
-        main.toBeAroundValue(72);
-        horizon.toBeAroundValue(80);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
+        compact: 64,
+        defaultDensity: 72,
+        comfortable: 80,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 104,
+        defaultDensity: 115,
+        comfortable: 123,
+      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+        compact: 192,
+        defaultDensity: 210,
+        comfortable: 218,
+      }));
     });
   });
 
@@ -1340,16 +1340,16 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(65);
-        main.toBe(67);
-        horizon.toBe(75);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(207);
-        main.toBe(225);
-        horizon.toBe(233);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 65,
+        defaultDensity: 67,
+        comfortable: 75,
+      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 207,
+        defaultDensity: 225,
+        comfortable: 233,
+      }));
     });
   });
 
@@ -1388,12 +1388,11 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeAroundValue(95, 10);
-        main.toBeAroundValue(95, 10);
-
-        horizon.toBeAroundValue(100, 10); // Not sure if this result is by design or a result of a Horizon-only bug.
-      });
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
+        compact: 95,
+        defaultDensity: 95,
+        comfortable: 100,
+      }), 10);
     });
   });
 
@@ -1418,11 +1417,11 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(162);
-        main.toBe(177);
-        horizon.toBe(185);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+        compact: 162,
+        defaultDensity: 177,
+        comfortable: 185,
+      }));
     });
   });
 
@@ -1468,20 +1467,20 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 50,
+        comfortable: 58,
+      }));
 
       await setDataAtCell(0, 0, 999999999999);
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(123);
-        main.toBe(135);
-        horizon.toBe(143);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 123,
+        defaultDensity: 135,
+        comfortable: 143,
+      }));
     });
 
     it('should decrease width if result become to be shorter', async() => {
@@ -1497,20 +1496,20 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(58);
-        main.toBe(65);
-        horizon.toBe(73);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 58,
+        defaultDensity: 65,
+        comfortable: 73,
+      }));
 
       await setDataAtCell(0, 0, 9);
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 50,
+        comfortable: 58,
+      }));
     });
 
     it('should change width if result become to be an error', async() => {
@@ -1526,20 +1525,20 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 50,
+        comfortable: 58,
+      }));
 
       await setDataAtCell(0, 0, 'not a number');
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(75);
-        horizon.toBe(83);
-      });
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+        compact: 67,
+        defaultDensity: 75,
+        comfortable: 83,
+      }));
     });
   });
 });

@@ -531,16 +531,16 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
-        main.toBe(118);
-        horizon.toBe(133);
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(131);
-        main.toBe(146);
-        horizon.toBe(148);
-      });
+      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
+        compact: 118,
+        defaultDensity: 118,
+        comfortable: 133,
+      }));
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 131,
+        defaultDensity: 146,
+        comfortable: 148,
+      }));
     });
 
     it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
@@ -562,16 +562,16 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55);
-        main.toBe(62);
-        horizon.toBe(85);
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(131);
-        main.toBe(146);
-        horizon.toBe(148);
-      });
+      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
+        compact: 55,
+        defaultDensity: 62,
+        comfortable: 85,
+      }));
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 131,
+        defaultDensity: 146,
+        comfortable: 148,
+      }));
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -592,16 +592,12 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
+      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 79,
+        defaultDensity: 88,
+        comfortable: 112,
+      }));
     });
 
     it('should open editor with the correct size when there is scrollbar on the list and table overflow is hidden', async() => {
@@ -623,16 +619,12 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(78);
-        main.toBe(87);
-        horizon.toBe(111);
-      });
+      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 78,
+        defaultDensity: 87,
+        comfortable: 111,
+      }));
     });
 
     it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
@@ -654,16 +646,16 @@ describe('AutocompleteEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(62 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(70 + Handsontable.dom.getScrollbarWidth());
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
+      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
+        compact: 55 + Handsontable.dom.getScrollbarWidth(),
+        defaultDensity: 62 + Handsontable.dom.getScrollbarWidth(),
+        comfortable: 70 + Handsontable.dom.getScrollbarWidth(),
+      }));
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 79,
+        defaultDensity: 88,
+        comfortable: 112,
+      }));
     });
 
     it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
@@ -695,11 +687,11 @@ describe('AutocompleteEditor', () => {
       const $editor = $('.autocompleteEditor').eq(0);
       const editorOpenTime = endTime - startTime;
 
-      expect(editorOpenTime).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(650);
-        main.toBeLessThan(650);
-        horizon.toBeLessThan(700);
-      });
+      expect(editorOpenTime).toBeLessThan(getThemeLayout().pickByDensity({
+        compact: 650,
+        defaultDensity: 650,
+        comfortable: 700,
+      }));
       expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });
@@ -978,11 +970,18 @@ describe('AutocompleteEditor', () => {
       // -2 for transparent borders
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
-      expect(editor.find('.autocompleteEditor .htCore td').width()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeGreaterThan(183);
-        main.toEqual(180);
-        horizon.toEqual(172);
-      });
+      {
+        const tdWidth = editor.find('.autocompleteEditor .htCore td').width();
+        const layout = getThemeLayout();
+
+        if (layout.densityLevel === 'compact') {
+          expect(tdWidth).toBeGreaterThan(183);
+        } else if (layout.densityLevel === 'default') {
+          expect(tdWidth).toEqual(180);
+        } else {
+          expect(tdWidth).toEqual(172);
+        }
+      }
     });
 
     it('should display the autocomplete list with correct dimensions, after updating the choice list from no match' +
@@ -1248,22 +1247,22 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 26, left: 0 });
-        main.toEqual({ top: 29, left: 0 });
-        horizon.toEqual({ top: 37, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 26, left: 0 },
+        defaultDensity: { top: 29, left: 0 },
+        comfortable: { top: 37, left: 0 },
+      }));
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 157, left: 0 });
-        main.toEqual({ top: 175, left: 0 });
-        horizon.toEqual({ top: 223, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 157, left: 0 },
+        defaultDensity: { top: 175, left: 0 },
+        comfortable: { top: 223, left: 0 },
+      }));
     });
 
     it('should limit the list to the space size left below the editor (table has defined size)', async() => {
@@ -1280,11 +1279,11 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(2, 0)));
       await waitForNextAnimationFrames(2);
 
-      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(132);
-        main.toEqual(147);
-        horizon.toEqual(185);
-      });
+      expect(getActiveEditor().htContainer.offsetHeight).toEqual(getThemeLayout().pickByDensity({
+        compact: 132,
+        defaultDensity: 147,
+        comfortable: 185,
+      }));
     });
 
     it('should limit the list to the space size left above the editor (table has defined size)', async() => {
@@ -1301,11 +1300,11 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(6, 0)));
       await waitForNextAnimationFrames(2);
 
-      expect(getActiveEditor().htContainer.offsetHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(132);
-        main.toEqual(147);
-        horizon.toEqual(185);
-      });
+      expect(getActiveEditor().htContainer.offsetHeight).toEqual(getThemeLayout().pickByDensity({
+        compact: 132,
+        defaultDensity: 147,
+        comfortable: 185,
+      }));
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
@@ -1328,11 +1327,11 @@ describe('AutocompleteEditor', () => {
 
       const container = $(getActiveEditor().htContainer);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 335, left: 0 });
-        main.toEqual({ top: 287, left: 0 });
-        horizon.toEqual({ top: 184, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 335, left: 0 },
+        defaultDensity: { top: 287, left: 0 },
+        comfortable: { top: 184, left: 0 },
+      }));
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size)', async() => {
@@ -1361,22 +1360,22 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 465, left: 0 });
-        main.toEqual({ top: 432, left: 0 });
-        horizon.toEqual({ top: 369, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 465, left: 0 },
+        defaultDensity: { top: 432, left: 0 },
+        comfortable: { top: 369, left: 0 },
+      }));
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 625, left: 0 });
-        main.toEqual({ top: 610, left: 0 });
-        horizon.toEqual({ top: 593, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 625, left: 0 },
+        defaultDensity: { top: 610, left: 0 },
+        comfortable: { top: 593, left: 0 },
+      }));
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size, scrolled viewport)', async() => {
@@ -1403,22 +1402,22 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 2363, left: 0 });
-        main.toEqual({ top: 2636, left: 0 });
-        horizon.toEqual({ top: 3366, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 2363, left: 0 },
+        defaultDensity: { top: 2636, left: 0 },
+        comfortable: { top: 3366, left: 0 },
+      }));
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 2523, left: 0 });
-        main.toEqual({ top: 2814, left: 0 });
-        horizon.toEqual({ top: 3590, left: 0 });
-      });
+      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
+        compact: { top: 2523, left: 0 },
+        defaultDensity: { top: 2814, left: 0 },
+        comfortable: { top: 3590, left: 0 },
+      }));
     });
 
     it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {

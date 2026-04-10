@@ -901,16 +901,16 @@ describe('HandsontableEditor', () => {
 
     const container = getActiveEditor().htContainer;
 
-    expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
-    });
-    expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
-    });
+    expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
+      compact: 324,
+      defaultDensity: 357,
+      comfortable: 381,
+    }));
+    expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+      compact: 188,
+      defaultDensity: 213,
+      comfortable: 273,
+    }));
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -942,15 +942,15 @@ describe('HandsontableEditor', () => {
 
     const container = getActiveEditor().htContainer;
 
-    expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
-    });
-    expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
-    });
+    expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
+      compact: 324,
+      defaultDensity: 357,
+      comfortable: 381,
+    }));
+    expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+      compact: 188,
+      defaultDensity: 213,
+      comfortable: 273,
+    }));
   });
 });

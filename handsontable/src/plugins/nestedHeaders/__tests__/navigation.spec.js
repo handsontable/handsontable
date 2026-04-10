@@ -1536,56 +1536,56 @@ describe('NestedHeaders', () => {
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       // 300 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(66);
-        main.toBe(66);
-        horizon.toBe(74);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 66,
+        defaultDensity: 66,
+        comfortable: 74,
+      }));
 
       await keyDownUp('arrowright'); // "D"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(266);
-        main.toBe(266);
-        horizon.toBe(279);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 266,
+        defaultDensity: 266,
+        comfortable: 279,
+      }));
 
       await keyDownUp('arrowright'); // "E"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(516);
-        main.toBe(516);
-        horizon.toBe(539);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 516,
+        defaultDensity: 516,
+        comfortable: 539,
+      }));
 
       await keyDownUp('arrowright'); // "F"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(866);
-        main.toBe(866);
-        horizon.toBe(900);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 866,
+        defaultDensity: 866,
+        comfortable: 900,
+      }));
 
       await keyDownUp('arrowright'); // "G"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1266);
-        main.toBe(1280);
-        horizon.toBe(1354);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 1266,
+        defaultDensity: 1280,
+        comfortable: 1354,
+      }));
 
       await keyDownUp('arrowright'); // "H"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1316);
-        main.toBe(1333);
-        horizon.toBe(1415);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 1316,
+        defaultDensity: 1333,
+        comfortable: 1415,
+      }));
     });
 
     it('should scroll the viewport correctly while navigating horizontally using arrows (from right to left)', async() => {

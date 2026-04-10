@@ -32,56 +32,56 @@ describe('Pagination integration with AutoColumnSize', () => {
 
     pagination.setPage(2);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 1);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(246);
-      main.toBe(268);
-      horizon.toBe(276);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 2);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 1,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 246,
+      defaultDensity: 268,
+      comfortable: 276,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 2,
+    }));
 
     pagination.setPage(3);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 1);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(149);
-      main.toBe(163);
-      horizon.toBe(171);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 2);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 1,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: 149,
+      defaultDensity: 163,
+      comfortable: 171,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 2,
+    }));
 
     pagination.setPage(4);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 1);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 1);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultColumnWidth());
-      main.toBe(getDefaultColumnWidth());
-      horizon.toBe(getDefaultColumnWidth() + 2);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 1,
+    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 1,
+    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
+      compact: getDefaultColumnWidth(),
+      defaultDensity: getDefaultColumnWidth(),
+      comfortable: getDefaultColumnWidth() + 2,
+    }));
   });
 });

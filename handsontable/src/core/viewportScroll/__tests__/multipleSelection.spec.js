@@ -418,11 +418,9 @@ describe('Multiple selection scroll', () => {
       await selectCell(10, -1);
       await keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(29);
-        main.toBe(65);
-        horizon.toBe(161);
-      });
+      expect(topOverlay().getScrollPosition()).toBe(
+        getThemeLayout().e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)
+      );
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -462,11 +460,9 @@ describe('Multiple selection scroll', () => {
       await scrollViewportVertically(5);
       await selectCells([[11, 0, 10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55);
-        main.toBe(94);
-        horizon.toBe(198);
-      });
+      expect(topOverlay().getScrollPosition()).toBe(
+        getThemeLayout().e2eViewportScrollAfterRectangularAdjacentDataRows(5)
+      );
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

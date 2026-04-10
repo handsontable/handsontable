@@ -43,16 +43,16 @@ describe('ContextMenu (RTL mode)', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(222);
-        main.toBe(246);
-        horizon.toBe(313);
-      });
-      expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(contextMenuOffset.left + 1);
-        main.toBe(contextMenuOffset.left + 1);
-        horizon.toBe(contextMenuOffset.left);
-      });
+      expect(tickItemOffset.top).toBe(getThemeLayout().pickByDensity({
+        compact: 222,
+        defaultDensity: 246,
+        comfortable: 313,
+      }));
+      expect(tickItemOffset.left).toBe(getThemeLayout().pickByDensity({
+        compact: contextMenuOffset.left + 1,
+        defaultDensity: contextMenuOffset.left + 1,
+        comfortable: contextMenuOffset.left,
+      }));
     });
   });
 });

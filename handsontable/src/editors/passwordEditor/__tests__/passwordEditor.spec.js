@@ -361,11 +361,12 @@ describe('PasswordEditor', () => {
     await keyDownUp('w'); // trigger editor autoresize
     await waitForNextAnimationFrames(1);
 
-    expect(editor.style.width).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('97px');
-      main.toBe('107px');
-      horizon.toBe('115px');
-    });
+    const layout = getThemeLayout();
+
+    expect(editor.style.width).toBe(
+      `${layout.defaultColumnWidth + (2 * layout.defaultDataRowHeight)
+        - layout.e2ePasswordEditorAutoresizeWidthTrimPx()}px`
+    );
   });
 
   it('should set passwordEditor using \'password\' alias', async() => {

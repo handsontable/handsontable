@@ -313,20 +313,12 @@ describe('DropdownMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(3);
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).toEqual(undefined);
 
       await keyDownUp('arrowDown');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(5);
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('clear_column');
-        main.toEqual('clear_column');
-        horizon.toEqual('clear_column');
-      });
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).toEqual('clear_column');
     });
   });
 
@@ -468,11 +460,7 @@ describe('DropdownMenu', () => {
         .simulate('mouseenter')
         .simulate('mouseover');
 
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).toEqual(undefined);
     });
   });
 
@@ -974,18 +962,10 @@ describe('DropdownMenu', () => {
 
     await scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(666);
-      main.toBe(666);
-      horizon.toBe(666);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(666);
 
     await dropdownMenu(6); // click on the column `G` header button
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(666);
-      main.toBe(666);
-      horizon.toBe(666);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(666);
   });
 });

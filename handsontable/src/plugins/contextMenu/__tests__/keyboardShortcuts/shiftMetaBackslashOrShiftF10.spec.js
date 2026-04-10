@@ -239,17 +239,17 @@ describe('ContextMenu keyboard shortcut', () => {
         above: -cellRect.height,
       });
       expect(inlineStartOverlay().getScrollPosition())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(1819);
-          main.toBe(1961);
-          horizon.toBe(2284);
-        });
+        .toBe(getThemeLayout().pickByDensity({
+          compact: 1819,
+          defaultDensity: 1961,
+          comfortable: 2284,
+        }));
       expect(topOverlay().getScrollPosition())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(10142);
-          main.toBe(11345);
-          horizon.toBe(14553);
-        });
+        .toBe(getThemeLayout().pickByDensity({
+          compact: 10142,
+          defaultDensity: 11345,
+          comfortable: 14553,
+        }));
     });
 
     it('should not close the menu after hitting the same shortcut many times', async() => {

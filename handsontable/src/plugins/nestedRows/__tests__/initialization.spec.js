@@ -121,11 +121,11 @@ describe('NestedRows', () => {
         nestedRows: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(77);
-        main.toBe(81);
-        horizon.toBe(89);
-      });
+      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().pickByDensity({
+        compact: 77,
+        defaultDensity: 81,
+        comfortable: 89,
+      }));
     });
   });
 });

@@ -165,6 +165,86 @@ describe('themeLayoutFromTokens', () => {
     });
   });
 
+  describe('E2E regression helpers (density-based, no theme name in specs)', () => {
+    it('e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst', () => {
+      expect(themeLayoutFromTokens('classic').e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()).toBe(226);
+      expect(themeLayoutFromTokens('main').e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()).toBe(250);
+      expect(themeLayoutFromTokens('horizon').e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()).toBe(314);
+    });
+
+    it('e2ePasswordEditorAutoresizeWidthTrimPx', () => {
+      expect(themeLayoutFromTokens('classic').e2ePasswordEditorAutoresizeWidthTrimPx()).toBe(5);
+      expect(themeLayoutFromTokens('main').e2ePasswordEditorAutoresizeWidthTrimPx()).toBe(1);
+      expect(themeLayoutFromTokens('horizon').e2ePasswordEditorAutoresizeWidthTrimPx()).toBe(9);
+    });
+
+    it('e2eCommentsShortcutVerticalScrollSubtract', () => {
+      expect(themeLayoutFromTokens('classic').e2eCommentsShortcutVerticalScrollSubtract()).toBe(231);
+      expect(themeLayoutFromTokens('main').e2eCommentsShortcutVerticalScrollSubtract()).toBe(225);
+      expect(themeLayoutFromTokens('horizon').e2eCommentsShortcutVerticalScrollSubtract()).toBe(209);
+    });
+
+    it('e2eWindowScrollYContextMenuFirstSelectableItem', () => {
+      expect(themeLayoutFromTokens('classic').e2eWindowScrollYContextMenuFirstSelectableItem()).toBe(9);
+      expect(themeLayoutFromTokens('main').e2eWindowScrollYContextMenuFirstSelectableItem()).toBe(9);
+      expect(themeLayoutFromTokens('horizon').e2eWindowScrollYContextMenuFirstSelectableItem()).toBe(13);
+    });
+
+    it('e2eWindowScrollYDropdownMenuFirstSelectableItem', () => {
+      expect(themeLayoutFromTokens('classic').e2eWindowScrollYDropdownMenuFirstSelectableItem()).toBe(31);
+      expect(themeLayoutFromTokens('main').e2eWindowScrollYDropdownMenuFirstSelectableItem()).toBe(35);
+      expect(themeLayoutFromTokens('horizon').e2eWindowScrollYDropdownMenuFirstSelectableItem()).toBe(43);
+    });
+
+    it('e2eFiltersConditionalSubmenuDocumentYSubtract', () => {
+      expect(themeLayoutFromTokens('classic').e2eFiltersConditionalSubmenuDocumentYSubtract()).toBe(419);
+      expect(themeLayoutFromTokens('main').e2eFiltersConditionalSubmenuDocumentYSubtract()).toBe(486);
+      expect(themeLayoutFromTokens('horizon').e2eFiltersConditionalSubmenuDocumentYSubtract()).toBe(584);
+    });
+
+    it('e2eNoncontiguousBottomEdgeScrollTop', () => {
+      expect(themeLayoutFromTokens('classic').e2eNoncontiguousBottomEdgeScrollTop(5)).toBe(5);
+      expect(themeLayoutFromTokens('main').e2eNoncontiguousBottomEdgeScrollTop(5)).toBe(36);
+      expect(themeLayoutFromTokens('horizon').e2eNoncontiguousBottomEdgeScrollTop(5)).toBe(124);
+    });
+
+    it('e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom', () => {
+      expect(themeLayoutFromTokens('classic').e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)).toBe(29);
+      expect(themeLayoutFromTokens('main').e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)).toBe(65);
+      expect(themeLayoutFromTokens('horizon').e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)).toBe(161);
+    });
+
+    it('e2eViewportScrollAfterRectangularAdjacentDataRows', () => {
+      expect(themeLayoutFromTokens('classic').e2eViewportScrollAfterRectangularAdjacentDataRows(5)).toBe(55);
+      expect(themeLayoutFromTokens('main').e2eViewportScrollAfterRectangularAdjacentDataRows(5)).toBe(94);
+      expect(themeLayoutFromTokens('horizon').e2eViewportScrollAfterRectangularAdjacentDataRows(5)).toBe(198);
+    });
+
+    it('pickByDensity', () => {
+      expect(themeLayoutFromTokens('classic').pickByDensity({
+        compact: 'a',
+        defaultDensity: 'b',
+        comfortable: 'c',
+      })).toBe('a');
+      expect(themeLayoutFromTokens('main').pickByDensity({
+        compact: 'a',
+        defaultDensity: 'b',
+        comfortable: 'c',
+      })).toBe('b');
+      expect(themeLayoutFromTokens('horizon').pickByDensity({
+        compact: 'a',
+        defaultDensity: 'b',
+        comfortable: 'c',
+      })).toBe('c');
+    });
+
+    it('exposes densityLevel for debugging', () => {
+      expect(themeLayoutFromTokens('classic').densityLevel).toBe('compact');
+      expect(themeLayoutFromTokens('main').densityLevel).toBe('default');
+      expect(themeLayoutFromTokens('horizon').densityLevel).toBe('comfortable');
+    });
+  });
+
   describe('error handling', () => {
     it('should throw for unknown theme name', () => {
       expect(() => themeLayoutFromTokens('nonexistent')).toThrow();

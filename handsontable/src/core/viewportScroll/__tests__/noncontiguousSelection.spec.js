@@ -277,11 +277,7 @@ describe('Non-contiguous selection scroll', () => {
       await scrollViewportVertically(5);
       await selectCells([[11, 0], [9, 0]]);
 
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(5);
-        main.toBe(36);
-        horizon.toBe(124);
-      });
+      expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNoncontiguousBottomEdgeScrollTop(5));
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(9, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

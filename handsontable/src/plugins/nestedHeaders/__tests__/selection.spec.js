@@ -1044,11 +1044,11 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(51);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 50,
+        comfortable: 51,
+      }));
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
@@ -1069,11 +1069,11 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(265);
-        main.toBe(265);
-        horizon.toBe(278);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 265,
+        defaultDensity: 265,
+        comfortable: 278,
+      }));
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
@@ -1093,11 +1093,11 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(65);
-        main.toBe(65);
-        horizon.toBe(72);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 65,
+        defaultDensity: 65,
+        comfortable: 72,
+      }));
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
@@ -1118,11 +1118,11 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(250);
-        main.toBe(250);
-        horizon.toBe(257);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 250,
+        defaultDensity: 250,
+        comfortable: 257,
+      }));
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
@@ -1143,11 +1143,11 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(51);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 50,
+        defaultDensity: 50,
+        comfortable: 51,
+      }));
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
@@ -1169,11 +1169,11 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(265);
-        main.toBe(265);
-        horizon.toBe(278);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 265,
+        defaultDensity: 265,
+        comfortable: 278,
+      }));
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
@@ -1194,11 +1194,11 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(65);
-        main.toBe(65);
-        horizon.toBe(72);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 65,
+        defaultDensity: 65,
+        comfortable: 72,
+      }));
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
@@ -1220,11 +1220,11 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
-      expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(250);
-        main.toBe(250);
-        horizon.toBe(257);
-      });
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+        compact: 250,
+        defaultDensity: 250,
+        comfortable: 257,
+      }));
     });
 
     it('should be possible to back to the single column selection, when it was modified by the SHIFT key', async() => {

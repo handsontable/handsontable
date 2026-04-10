@@ -94,11 +94,14 @@ describe('Filters UI Conditional component', () => {
 
     const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
-    expect(window.scrollY + rect.top).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(762, 1);
-      main.toBeAroundValue(716, 1);
-      horizon.toBeAroundValue(674, 1);
-    });
+    const layout = getThemeLayout();
+    const marginTop = 1000;
+    const gridChrome = (6 * layout.defaultDataRowHeight) + layout.defaultColumnHeaderHeight;
+
+    expect(window.scrollY + rect.top).toBeAroundValue(
+      marginTop + gridChrome - layout.e2eFiltersConditionalSubmenuDocumentYSubtract(),
+      1
+    );
     hot.rootElement.style.marginTop = '';
   });
 

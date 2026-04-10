@@ -117,11 +117,12 @@ describe('Comments keyboard shortcut', () => {
 
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(10169);
-        main.toBe(11375);
-        horizon.toBe(14591);
-      });
+
+      const layout = getThemeLayout();
+
+      expect(topOverlay().getScrollPosition()).toBe(
+        layout.verticalScrollForRow(400) - layout.e2eCommentsShortcutVerticalScrollSubtract()
+      );
     });
 
     it('should open and edit a comment, make it active, and ready for typing', async() => {

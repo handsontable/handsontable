@@ -335,26 +335,26 @@ describe('CheckboxRenderer', () => {
     // 2 x 6px padding + 1px border === 13px calculated by the `offsetWidth`
     expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 13);
     expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 1).offsetWidth - 13);
-    expect(getCell(0, 2).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 2).offsetWidth - 13);
-      main.toBe(getCell(0, 2).offsetWidth - 17);
-      horizon.toBe(getCell(0, 2).offsetWidth - 25);
-    });
-    expect(getCell(0, 3).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 3).offsetWidth - 13);
-      main.toBe(getCell(0, 3).offsetWidth - 17);
-      horizon.toBe(getCell(0, 3).offsetWidth - 25);
-    });
-    expect(getCell(0, 4).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 4).offsetWidth - 13);
-      main.toBe(getCell(0, 4).offsetWidth - 17);
-      horizon.toBe(getCell(0, 4).offsetWidth - 25);
-    });
-    expect(getCell(0, 5).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 5).offsetWidth - 13);
-      main.toBe(getCell(0, 5).offsetWidth - 17);
-      horizon.toBe(getCell(0, 5).offsetWidth - 25);
-    });
+    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(getThemeLayout().pickByDensity({
+      compact: getCell(0, 2).offsetWidth - 13,
+      defaultDensity: getCell(0, 2).offsetWidth - 17,
+      comfortable: getCell(0, 2).offsetWidth - 25,
+    }));
+    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(getThemeLayout().pickByDensity({
+      compact: getCell(0, 3).offsetWidth - 13,
+      defaultDensity: getCell(0, 3).offsetWidth - 17,
+      comfortable: getCell(0, 3).offsetWidth - 25,
+    }));
+    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(getThemeLayout().pickByDensity({
+      compact: getCell(0, 4).offsetWidth - 13,
+      defaultDensity: getCell(0, 4).offsetWidth - 17,
+      comfortable: getCell(0, 4).offsetWidth - 25,
+    }));
+    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(getThemeLayout().pickByDensity({
+      compact: getCell(0, 5).offsetWidth - 13,
+      defaultDensity: getCell(0, 5).offsetWidth - 17,
+      comfortable: getCell(0, 5).offsetWidth - 25,
+    }));
   });
 
   it('should add label on the beginning of a checkbox element where checkbox and label are separated', async() => {

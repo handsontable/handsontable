@@ -527,11 +527,11 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(134);
-        main.toBeLessThan(170); // not sure if the correct value
-        horizon.toBeLessThan(260);
-      });
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
+        compact: 134,
+        defaultDensity: 170,
+        comfortable: 260,
+      }));
     });
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is a row ' +
@@ -572,11 +572,11 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-        classic.toBeLessThan(134);
-        main.toBeLessThan(170); // not sure if the correct value
-        horizon.toBeLessThan(260); // not sure if the correct value
-      });
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
+        compact: 134,
+        defaultDensity: 170,
+        comfortable: 260,
+      }));
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first row ' +

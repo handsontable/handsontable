@@ -212,7 +212,9 @@ describe('settings', () => {
       expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 2 }));
       // header only (with data present, no first-row compensation)
       expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
-      expect(getTopInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopInlineStartClone().height()).toBe(
+        layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })
+      );
       expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 2 }));
       // bottom clone: 1 row
       expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
@@ -223,7 +225,9 @@ describe('settings', () => {
       // header + 2 data rows
       expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 3 }));
       expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
-      expect(getTopInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopInlineStartClone().height()).toBe(
+        layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })
+      );
       expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 3 }));
       // bottom clone: 2 rows
       expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 2 }));

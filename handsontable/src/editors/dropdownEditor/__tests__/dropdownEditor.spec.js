@@ -539,16 +539,16 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118);
-        main.toBe(118);
-        horizon.toBe(133);
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(131);
-        main.toBe(146);
-        horizon.toBe(148);
-      });
+      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
+        compact: 118,
+        defaultDensity: 118,
+        comfortable: 133,
+      }));
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 131,
+        defaultDensity: 146,
+        comfortable: 148,
+      }));
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -569,16 +569,12 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
+      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 79,
+        defaultDensity: 88,
+        comfortable: 112,
+      }));
     });
 
     it('should open editor with the correct size when there is scrollbar on the list and table', async() => {
@@ -600,16 +596,12 @@ describe('DropdownEditor', () => {
 
       const container = getActiveEditor().htContainer;
 
-      expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        main.toBe(118 + Handsontable.dom.getScrollbarWidth());
-        horizon.toBe(118 + Handsontable.dom.getScrollbarWidth());
-      });
-      expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(37);
-      });
+      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
+      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
+        compact: 52,
+        defaultDensity: 58,
+        comfortable: 37,
+      }));
     });
 
     it('should set textarea caret position at the end of the input, after moving scrollbar', async() => {

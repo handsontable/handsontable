@@ -1813,11 +1813,9 @@ describe('Selection', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('26px');
-        main.toEqual('29px');
-        horizon.toEqual('37px');
-      });
+      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).toEqual(
+        `${getThemeLayout().defaultDataRowHeight}px`
+      );
     });
   });
 });

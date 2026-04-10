@@ -389,10 +389,13 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 - `defaultColumnHeaderHeight` -- content height of column header (no border)
 - `firstRenderedRowDefaultHeight` -- first row in an overlay (extra 1px compensation)
 - `defaultColumnWidth` -- 50px (Walkontable constant)
-- `defaultRowHeaderWidth` -- 50px classic, 49px main/horizon (border-box correction)
+- `defaultRowHeaderWidth` -- 50px compact density, 49px default/comfortable (border-box correction)
 - `cellContentHeight` -- same as defaultColumnHeaderHeight (TD clientHeight)
+- `densityLevel` -- `'compact' | 'default' | 'comfortable'` from theme registration (see THEME_DENSITY in `themeLayoutFromTokens.js`)
+- `pickByDensity({ compact, defaultDensity, comfortable })` -- choose one of three literals (or objects) by density when expectations differ per density but do not need custom geometry math
 - `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
 - `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
+- **`e2e*()` helpers** -- regression geometry for specific E2E scenarios (menu scroll, filters submenu Y, etc.). They branch on **`densityLevel`**, not on theme name, so new themes only register tokens + density; specs stay unchanged.
 
 ### Preferred patterns
 
@@ -400,13 +403,13 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 - **Scroll to row:** `layout.verticalScrollForRow(rowIndex)`
 - **Overlay heights:** `layout.overlayHeight({ rows: N })`
 - **Cell clientHeight:** `layout.cellContentHeight`
+- **Named E2E expectations:** `layout.e2eWindowScrollYContextMenuFirstSelectableItem()`, `layout.e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(initialScroll)`, `layout.e2eViewportScrollAfterRectangularAdjacentDataRows(initialScroll)` (and other `e2e*` methods) instead of `if (getLoadedTheme() === '…')` in spec files
 
 ### Do not use
 
-- Hard-coded per-theme pixel numbers in `forThemes` blocks (deprecated)
+- Ad hoc per-theme pixel triplets in specs without `getThemeLayout()` (`pickByDensity`, primitives, or `e2e*()` helpers)
+- Per-theme `switch` / `getLoadedTheme()` comparisons in **spec files** for layout numbers -- add or extend an `e2e*` helper on `themeLayoutFromTokens` (density-based) instead
 - Per-theme `switch` statements in helpers for values derivable from tokens
-
-See `E2E_THEME_DATA_DRIVEN_SPEC.md` for the full specification.
 
 ## Coverage
 

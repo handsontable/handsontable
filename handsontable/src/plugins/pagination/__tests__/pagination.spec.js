@@ -227,29 +227,25 @@ describe('Pagination', () => {
 
     await scrollViewportTo({ row: 10, col: 10 });
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(101);
-      main.toBe(134);
-      horizon.toBe(222);
-    });
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(65);
-      main.toBe(65);
-      horizon.toBe(79);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: 101,
+      defaultDensity: 134,
+      comfortable: 222,
+    }));
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: 65,
+      defaultDensity: 65,
+      comfortable: 79,
+    }));
 
     getPlugin('pagination').setPage(2);
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(0);
-      main.toBe(0);
-      horizon.toBe(0);
-    });
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(65);
-      main.toBe(65);
-      horizon.toBe(79);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: 65,
+      defaultDensity: 65,
+      comfortable: 79,
+    }));
   });
 
   it('should update the internal cache after changing the page size to the state where there is only one page', async() => {

@@ -164,11 +164,11 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp('tab'); // E2
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(colWidths);
-      main.toBe(colWidths + 1); // +1 for border left
-      horizon.toBe(colWidths + 1); // +1 for border left
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: colWidths,
+      defaultDensity: colWidths + 1,
+      comfortable: colWidths + 1,
+    }));
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 4, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -179,11 +179,11 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp('tab'); // F2
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(colWidths * 2);
-      main.toBe((colWidths * 2) + 1); // +1 for border left
-      horizon.toBe((colWidths * 2) + 1); // +1 for border left
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: colWidths * 2,
+      defaultDensity: (colWidths * 2) + 1,
+      comfortable: (colWidths * 2) + 1,
+    }));
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 5, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
@@ -195,11 +195,11 @@ describe('Focus selection scroll', () => {
     await keyDownUp(['shift', 'tab']); // E2
     await keyDownUp(['shift', 'tab']); // D2
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(colWidths * 2);
-      main.toBe((colWidths * 2) + 1); // +1 for border left
-      horizon.toBe((colWidths * 2) + 1); // +1 for border left
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: colWidths * 2,
+      defaultDensity: (colWidths * 2) + 1,
+      comfortable: (colWidths * 2) + 1,
+    }));
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 4, true));
     expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(1, 3, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
@@ -235,11 +235,11 @@ describe('Focus selection scroll', () => {
 
     await keyDownUp(['shift', 'tab']); // AX2
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(colWidths * 46);
-      main.toBe((colWidths * 46) + 1); // +1 for border left
-      horizon.toBe((colWidths * 46) + 1); // +1 for border left
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
+      compact: colWidths * 46,
+      defaultDensity: (colWidths * 46) + 1,
+      comfortable: (colWidths * 46) + 1,
+    }));
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 49, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',
