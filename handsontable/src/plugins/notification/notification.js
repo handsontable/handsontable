@@ -743,7 +743,7 @@ export class Notification extends BasePlugin {
       callback: () => {
         this.#enterNotificationRegion();
       },
-      runOnlyIf: event => this.#shouldRunNotificationF6Shortcut(event),
+      runOnlyIf: () => this.#shouldRunNotificationF6Shortcut(),
       group: SHORTCUTS_GROUP,
     };
 
@@ -1067,22 +1067,12 @@ export class Notification extends BasePlugin {
 
   /**
    * `runOnlyIf` guard for **F6** shortcuts on the grid and `scope: 'global'` contexts (see {@link ShortcutManager}).
+   * The manager only calls this after the registered `[['f6']]` combo matches (exact pressed key set, no extra modifiers).
    *
-   * @param {KeyboardEvent} event Keydown event.
    * @returns {boolean}
    */
-  #shouldRunNotificationF6Shortcut(event) {
+  #shouldRunNotificationF6Shortcut() {
     if (!this.enabled || this.#toasts.size === 0) {
-      return false;
-    }
-
-    const key = typeof event.key === 'string' ? event.key.toLowerCase() : '';
-
-    if (key !== 'f6' && event.code !== 'F6') {
-      return false;
-    }
-
-    if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) {
       return false;
     }
 
