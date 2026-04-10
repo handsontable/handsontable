@@ -36,7 +36,7 @@ describe('Core.isEmpty*', () => {
       expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
 
-    it('should treat a row with only dataSchema default primitive values as empty', async() => {
+    it('should return true when all cells contain the dataSchema default primitive values (GH #671, GH #2409)', async() => {
       handsontable({
         data: [{ active: false, name: null }],
         dataSchema: { active: false, name: null },
@@ -50,7 +50,7 @@ describe('Core.isEmpty*', () => {
       expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
-    it('should treat a row with a non-default primitive value as non-empty', async() => {
+    it('should return false when a cell has a value different from the dataSchema default primitive value (GH #671)', async() => {
       handsontable({
         data: [{ active: true, name: null }],
         dataSchema: { active: false, name: null },
@@ -76,6 +76,25 @@ describe('Core.isEmpty*', () => {
       const hot = getInstance();
 
       expect(hot.isEmptyRow(0)).toEqual(true);
+    });
+
+    it('should return true when all array cells contain the dataSchema default values', async() => {
+      handsontable({
+        data: [[false, null]],
+        dataSchema: [false, null],
+      });
+      const hot = getInstance();
+
+      expect(hot.isEmptyRow(0)).toEqual(true);
+    });
+
+    it('should return false for a non-null value when no dataSchema is explicitly defined', async() => {
+      handsontable({
+        data: [[false, null]],
+      });
+      const hot = getInstance();
+
+      expect(hot.isEmptyRow(0)).toEqual(false);
     });
   });
 
@@ -103,7 +122,7 @@ describe('Core.isEmpty*', () => {
       expect(check(0)).toEqual(true); // this may be change in future when we switch to define isEmptyCol in prototype
     });
 
-    it('should treat a column containing only dataSchema default primitive values as empty', async() => {
+    it('should return true when all cells in a column contain the dataSchema default value (GH #671)', async() => {
       handsontable({
         data: [{ active: false }, { active: false }],
         dataSchema: { active: false },
@@ -116,7 +135,7 @@ describe('Core.isEmpty*', () => {
       expect(hot.isEmptyCol(0)).toEqual(true);
     });
 
-    it('should treat a column with a non-default primitive value as non-empty', async() => {
+    it('should return false when any cell in a column differs from the dataSchema default', async() => {
       handsontable({
         data: [{ active: false }, { active: true }],
         dataSchema: { active: false },
