@@ -15,6 +15,6 @@ export interface FocusScopeManager {
   getActiveScopeId(): string | null;
   registerScope(scopeId: string, container: HTMLElement, options?: FocusScopeOptions): void;
   unregisterScope(scopeId: string): void;
-  activateScope(scopeId: string): void;
+  activateScope(scopeId: string, focusSource?: FocusScopeActivationSource): void;
   deactivateScope(scopeId: string): void;
 }

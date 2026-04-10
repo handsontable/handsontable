@@ -4,6 +4,7 @@ import { isObject } from '../../helpers/object';
 import { randomString } from '../../helpers/string';
 import * as C from '../../i18n/constants';
 import { NotificationUI } from './ui';
+import { FOCUS_SOURCES } from '../../focusManager/constants';
 import { GRID_SCOPE } from '../../shortcutContexts/constants';
 import {
   NOTIFICATION_CLASS_NAME,
@@ -122,6 +123,13 @@ export class Notification extends BasePlugin {
   #focusScopeActive = false;
 
   /**
+   * When true, {@link Notification#registerFocusScope} `onDeactivate` restores `#focusBeforeRegion` after clearing tab order.
+   *
+   * @type {boolean}
+   */
+  #notificationDeactivateRestorePrior = false;
+
+  /**
    * Effective {@link Notification.DEFAULT_SETTINGS} after the last full enable or rebuild, used to skip tearing down
    * the UI when `updateSettings` includes `notification` but those options did not change (for example a spread of
    * `getSettings()` with unrelated keys).
@@ -140,8 +148,8 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * Installs the notification host, focus listeners, shortcuts (**F6** via grid + global shortcut contexts, Escape, Tab,
-   * Shift+Tab), and the focus scope.
+   * Installs the notification host, document `focusin` listener (tab order + prior-focus for click paths), shortcuts
+   * (**F6** via grid + global shortcut contexts, Escape, Tab, Shift+Tab), and the focus scope.
    */
   enablePlugin() {
     if (this.enabled) {
@@ -159,12 +167,6 @@ export class Notification extends BasePlugin {
     this.#ui.install();
     this.#registerFocusScope();
     this.#registerNotificationShortcuts();
-    const host = this.#ui.getHost();
-
-    if (host) {
-      this.eventManager.addEventListener(host, 'focusin', this.#onNotificationHostFocusIn, true);
-      this.eventManager.addEventListener(host, 'focusout', this.#onNotificationHostFocusOut, true);
-    }
 
     this.eventManager.addEventListener(
       this.hot.rootDocument,
@@ -487,6 +489,10 @@ export class Notification extends BasePlugin {
       const win = this.hot.rootWindow;
 
       win.requestAnimationFrame(() => {
+        if (!this.enabled) {
+          return;
+        }
+
         stack.scrollTop = stack.scrollHeight;
       });
     }
@@ -622,18 +628,42 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * Clears in-region tab order and moves focus back to the element stored when entering the region (same behavior as
-   * the **Escape** shortcut while toasts remain visible).
+   * If the grid focus scope is not already active, activates it so shortcut context matches the table after leaving
+   * the notification region. `FocusScopeManager#processScopes` usually does this when focus moves; this covers cases
+   * where there is no prior element or focus did not leave notification chrome.
+   */
+  #ensureGridScopeActiveForShortcuts() {
+    const fsm = this.hot.getFocusScopeManager();
+
+    if (fsm.getActiveScopeId() !== GRID_SCOPE) {
+      fsm.activateScope(GRID_SCOPE);
+    }
+  }
+
+  /**
+   * Deactivates the notification focus scope (runs `onDeactivate` tab-order cleanup) and restores `#focusBeforeRegion`
+   * when it is still connected (via `onDeactivate` when the scope was active).
    */
   #leaveNotificationRegionRestoringPriorFocus() {
-    this.#clearNotificationRegionTabOrder();
+    const fsm = this.hot.getFocusScopeManager();
 
-    const prev = this.#focusBeforeRegion;
+    this.#notificationDeactivateRestorePrior = true;
 
-    this.#focusBeforeRegion = null;
+    if (fsm.getActiveScopeId() === PLUGIN_KEY) {
+      fsm.deactivateScope(PLUGIN_KEY);
+    } else {
+      this.#notificationDeactivateRestorePrior = false;
+      this.#clearNotificationRegionTabOrder();
 
-    if (prev?.isConnected) {
-      prev.focus();
+      const prev = this.#focusBeforeRegion;
+
+      this.#focusBeforeRegion = null;
+
+      if (prev?.isConnected) {
+        this.hot.getFocusManager().focusElement(prev, { preventScroll: true });
+      }
+
+      this.#ensureGridScopeActiveForShortcuts();
     }
   }
 
@@ -673,6 +703,25 @@ export class Notification extends BasePlugin {
 
           this.#reapplySequentialTabOrderInNotificationHost();
           this.#focusFirstInNotificationRegionUnlessAlreadyFocused();
+        },
+        onDeactivate: () => {
+          this.#clearNotificationRegionTabOrder();
+
+          const restorePrior = this.#notificationDeactivateRestorePrior;
+
+          if (restorePrior) {
+            this.#notificationDeactivateRestorePrior = false;
+
+            const prev = this.#focusBeforeRegion;
+
+            this.#focusBeforeRegion = null;
+
+            if (prev?.isConnected) {
+              this.hot.getFocusManager().focusElement(prev, { preventScroll: true });
+            }
+
+            this.#ensureGridScopeActiveForShortcuts();
+          }
         },
       });
     this.#focusScopeActive = true;
@@ -740,8 +789,12 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * When focus lands outside the notification host, drop toast controls from the tab order. Host `focusout` alone
-   * misses moves through the grid (same wrapper) or to `document.body` and back.
+   * Document-level `focusin` (capture): (1) when focus moves **into** the notification host from elsewhere in the
+   * wrapper, stores `#focusBeforeRegion` using `FocusEvent.relatedTarget` so **Escape** can restore after a
+   * click-focused control. `FocusScopeManager` skips forwarding `focusin` while `mousedown` is down, and
+   * programmatic `onActivate` from `click` runs after `activeElement` already moved into the host, so neither path
+   * exposes `relatedTarget`. (2) when focus lands **outside** the host, clears sequential tab order (host `focusout`
+   * misses moves via the grid in the same wrapper).
    *
    * @param {FocusEvent} event Focusin event on the root document (capture phase).
    */
@@ -758,57 +811,20 @@ export class Notification extends BasePlugin {
     }
 
     if (host.contains(target)) {
-      return;
-    }
+      if (this.#focusBeforeRegion !== null) {
+        return;
+      }
 
-    this.#clearNotificationRegionTabOrder();
-  };
+      const related = event.relatedTarget;
 
-  /**
-   * Remembers the grid element left behind when focus moves into a toast without a prior F6 (e.g. mouse click).
-   *
-   * @param {FocusEvent} event Focusin event.
-   */
-  #onNotificationHostFocusIn = (event) => {
-    const host = this.#ui?.getHost();
+      if (
+        related instanceof this.hot.rootWindow.HTMLElement &&
+        this.hot.rootWrapperElement.contains(related) &&
+        !host.contains(related)
+      ) {
+        this.#focusBeforeRegion = related;
+      }
 
-    if (!host || !host.contains(event.target)) {
-      return;
-    }
-
-    if (this.#focusBeforeRegion !== null) {
-      return;
-    }
-
-    const related = event.relatedTarget;
-
-    if (
-      related instanceof this.hot.rootWindow.HTMLElement &&
-      this.hot.rootWrapperElement.contains(related) &&
-      !host.contains(related)
-    ) {
-      this.#focusBeforeRegion = related;
-    }
-  };
-
-  /**
-   * When focus leaves the notification host for the grid (or elsewhere), controls leave the tab order again.
-   *
-   * @param {FocusEvent} event Focusout event.
-   */
-  #onNotificationHostFocusOut = (event) => {
-    const host = this.#ui?.getHost();
-    const related = event.relatedTarget;
-
-    if (!host) {
-      return;
-    }
-
-    if (related instanceof this.hot.rootWindow.Node && host.contains(related)) {
-      return;
-    }
-
-    if (!host.contains(event.target)) {
       return;
     }
 
@@ -901,58 +917,25 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * @returns {boolean}
-   */
-  #hasActiveSelectionHighlight() {
-    const highlight = this.hot.getSelectedRangeActive()?.highlight;
-
-    return highlight !== undefined && highlight !== null;
-  }
-
-  /**
-   * Focuses `#focusBeforeRegion` when it is a safe fallback after leaving the notification region (still in the table, not inside the host).
-   *
-   * @returns {boolean} True if focus was moved to the prior element.
-   */
-  #tryFocusPriorElementBeforeNotificationRegion() {
-    const prior = this.#focusBeforeRegion;
-    const host = this.#ui?.getHost();
-
-    if (
-      !(prior instanceof this.hot.rootWindow.HTMLElement) ||
-      !prior.isConnected ||
-      !this.hot.rootWrapperElement.contains(prior) ||
-      host?.contains(prior)
-    ) {
-      return false;
-    }
-
-    prior.focus({ preventScroll: true });
-
-    return true;
-  }
-
-  /**
    * The notification host sits after the grid in the DOM; default **Tab** from the last control would leave the table.
+   * Deactivates the notification scope (so `onDeactivate` clears tab order), then activates the grid scope with
+   * `tab_from_above` so {@link focusGridScope} selects the cell, moves keyboard focus, and aligns shortcut context.
    *
-   * When the user clicks a toast control, `outsideClickDeselects` can clear the selection. In that case
-   * `focusOnHighlightedCell()` has no highlight to focus, so we fall back to `#focusBeforeRegion` (set when entering
-   * the region with **F6** or when focus moves from the grid into the host).
-   *
-   * Clears `#focusBeforeRegion` after moving focus so a later click into a toast stores a new prior for **Escape**.
+   * Clears `#focusBeforeRegion` after the transition so a later click into a toast stores a new prior for **Escape**.
    */
   #onTabForwardExitNotificationRegionToGrid() {
-    this.#clearNotificationRegionTabOrder();
-    this.hot.listen();
+    const fsm = this.hot.getFocusScopeManager();
 
-    const focusManager = this.hot.getFocusManager();
+    this.#notificationDeactivateRestorePrior = false;
 
-    if (this.#hasActiveSelectionHighlight()) {
-      focusManager.focusOnHighlightedCell();
-    } else if (!this.#tryFocusPriorElementBeforeNotificationRegion()) {
-      focusManager.focusOnHighlightedCell();
+    if (fsm.getActiveScopeId() === PLUGIN_KEY) {
+      fsm.deactivateScope(PLUGIN_KEY);
+    } else {
+      this.#clearNotificationRegionTabOrder();
     }
 
+    this.hot.listen();
+    fsm.activateScope(GRID_SCOPE, FOCUS_SOURCES.TAB_FROM_ABOVE);
     this.#focusBeforeRegion = null;
   }
 
@@ -1021,47 +1004,40 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * Re-applies tab order, focuses the first in-region control, and schedules a follow-up if focus lands on empty chrome.
+   * After a toast is removed while others remain: re-sync listening, toggle the notification focus scope so `onActivate`
+   * runs again (including first-focusable when focus is on empty host chrome).
    */
   #refocusFirstOpenToastAfterPartialHide() {
-    /* Removing a toast can move focus through `document.body`, which deactivates the notification focus scope and calls
-       `unlisten()`. Restore `listen()`, force the plugin shortcut context, re-run `activateScope` (it no-ops without
-       `onActivate` when the stale scope id still matches), then reapply tab order and focus so **Tab** / **Escape**
-       work on the remaining toast(s). */
     this.hot.listen();
-    this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-    this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
 
-    this.#reapplySequentialTabOrderInNotificationHost();
-    this.#focusFirstInNotificationRegionUnlessAlreadyFocused();
+    const fsm = this.hot.getFocusScopeManager();
 
-    this.#scheduleRefocusNotificationRegionIfFocusStranded();
+    if (fsm.getActiveScopeId() === PLUGIN_KEY) {
+      fsm.deactivateScope(PLUGIN_KEY);
+    }
+
+    fsm.activateScope(PLUGIN_KEY);
   }
 
   /**
-   * Focuses the first notification control when focus is not already inside a visible toast. Runs synchronously so
-   * keyboard helpers that re-focus `document.activeElement` after `keydown` still see the notification target;
-   * schedules one animation-frame retry for cases where `focusin` is deferred (for example while a mouse button is
-   * held down).
+   * Focuses the first notification control when focus is not already inside a visible toast.
    */
   #focusFirstInNotificationRegionUnlessAlreadyFocused() {
     const doc = this.hot.rootDocument;
-    const win = this.hot.rootWindow;
 
-    const tryFocus = () => {
-      if (!this.enabled || this.#toasts.size === 0) {
-        return;
-      }
+    if (!this.enabled || this.#toasts.size === 0) {
+      return;
+    }
 
-      if (this.#isActiveInsideAnyRemainingToast(doc.activeElement)) {
-        return;
-      }
+    if (this.#isActiveInsideAnyRemainingToast(doc.activeElement)) {
+      return;
+    }
 
-      this.#getFirstFocusableInNotificationRegion()?.focus();
-    };
+    const first = this.#getFirstFocusableInNotificationRegion();
 
-    tryFocus();
-    win.requestAnimationFrame(tryFocus);
+    if (first) {
+      this.hot.getFocusManager().focusElement(first);
+    }
   }
 
   /**
@@ -1126,59 +1102,11 @@ export class Notification extends BasePlugin {
   }
 
   /**
-   * If focus is still on notification chrome but not inside any remaining toast (for example an empty stack), moves it
-   * to the first in-region control. Used after the focused toast node is removed; some engines retarget focus on the
-   * next animation frame.
-   */
-  #scheduleRefocusNotificationRegionIfFocusStranded() {
-    const doc = this.hot.rootDocument;
-    const win = this.hot.rootWindow;
-
-    const refocusIfStranded = () => {
-      if (!this.enabled || this.#toasts.size === 0) {
-        return;
-      }
-
-      const active = doc.activeElement;
-
-      if (!this.#isElementInsideNotificationHost(active)) {
-        return;
-      }
-
-      if (!this.#isActiveInsideAnyRemainingToast(active)) {
-        this.#reapplySequentialTabOrderInNotificationHost();
-        this.#focusFirstInNotificationRegionUnlessAlreadyFocused();
-      }
-    };
-
-    refocusIfStranded();
-    win.requestAnimationFrame(refocusIfStranded);
-  }
-
-  /**
-   * When the last toast is removed: runs the same prior-focus restoration as **Escape**, deactivates the notification
-   * shortcut scope, and switches the shortcut context back to the grid. If focus remains on the empty notification
-   * host (for example `.ht-notification__stack`), moves it to the highlighted cell on the next animation frame.
+   * When the last toast is removed: same prior-focus restoration as **Escape** via the focus scope pipeline.
+   * Further focus alignment is left to `FocusScopeManager#processScopes` after the DOM update.
    */
   #restoreFocusAfterLastToastLikeEscape() {
-    const doc = this.hot.rootDocument;
-    const win = this.hot.rootWindow;
-
-    this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
-    this.hot.getShortcutManager().setActiveContextName(GRID_SCOPE);
     this.#leaveNotificationRegionRestoringPriorFocus();
-
-    win.requestAnimationFrame(() => {
-      if (!this.enabled || this.#toasts.size > 0) {
-        return;
-      }
-
-      const active = doc.activeElement;
-
-      if (this.#isElementInsideNotificationHost(active)) {
-        this.hot.getFocusManager().focusOnHighlightedCell();
-      }
-    });
   }
 
   /**

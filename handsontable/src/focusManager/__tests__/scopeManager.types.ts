@@ -33,4 +33,5 @@ focusScopeManager.registerScope('test', element, {
 
 focusScopeManager.unregisterScope('test');
 focusScopeManager.activateScope('test');
+focusScopeManager.activateScope('test', 'tab_from_above');
 focusScopeManager.deactivateScope('test');
