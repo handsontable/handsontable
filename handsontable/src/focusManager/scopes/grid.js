@@ -123,10 +123,9 @@ export function focusGridScope(hot) {
 
           if (result !== false) {
             hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+            hot.getFocusManager().focusOnHighlightedCell();
           }
         }
-
-        hot.getFocusManager().focusOnHighlightedCell();
       } else if (focusSource === 'tab_from_below') {
         const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
 
