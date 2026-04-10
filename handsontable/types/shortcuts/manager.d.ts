@@ -6,6 +6,7 @@ export interface ShortcutManager {
   getContext(contextName: string): Context | undefined;
   getOrCreateContext(contextName: string): Context;
   setActiveContextName(contextName: string): void;
+  hasEventShortcut(contextName: string, event: KeyboardEvent): boolean;
   isCtrlPressed(): boolean;
   destroy(): void;
 }

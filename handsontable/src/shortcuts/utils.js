@@ -119,3 +119,67 @@ export const normalizeEventKey = ({ which, key }) => {
 
   return key.toLowerCase();
 };
+
+const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
+
+/**
+ * Get the pressed modifier keys from a keyboard event.
+ *
+ * @param {KeyboardEvent} event The keyboard event.
+ * @param {boolean} [mergeMetaKeys=false] If `true`, the function returns "control" and "meta"
+ *                                        as the unified "control/meta" name.
+ * @returns {string[]}
+ */
+const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
+  const pressedModifierKeys = [];
+
+  if (event.altKey) {
+    pressedModifierKeys.push('alt');
+  }
+
+  if (mergeMetaKeys && (event.ctrlKey || event.metaKey)) {
+    pressedModifierKeys.push('control/meta');
+
+  } else {
+    if (event.ctrlKey) {
+      pressedModifierKeys.push('control');
+    }
+
+    if (event.metaKey) {
+      pressedModifierKeys.push('meta');
+    }
+  }
+
+  if (event.shiftKey) {
+    pressedModifierKeys.push('shift');
+  }
+
+  return pressedModifierKeys;
+};
+
+/**
+ * Get all key combinations that a keyboard event can match against registered shortcuts.
+ * Returns an array of key arrays: the literal form and (when Ctrl or Meta is pressed)
+ * the unified `control/meta` form. This mirrors the matching logic used by the
+ * shortcut recorder.
+ *
+ * @param {KeyboardEvent} event The keyboard event.
+ * @returns {Array<string[]>}
+ */
+export const getEventKeyCombinations = (event) => {
+  if (typeof event.key !== 'string') {
+    return [];
+  }
+
+  const pressedKey = normalizeEventKey(event);
+  const isModifier = MODIFIER_KEYS.includes(pressedKey);
+  const modifiers = isModifier ? [] : getPressedModifierKeys(event);
+  const literal = [pressedKey].concat(modifiers);
+  const combinations = [literal];
+
+  if (!isModifier && (event.ctrlKey || event.metaKey)) {
+    combinations.push([pressedKey].concat(getPressedModifierKeys(event, true)));
+  }
+
+  return combinations;
+};

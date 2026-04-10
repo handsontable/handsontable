@@ -13,7 +13,6 @@ import { deepClone, deepExtend } from '../../helpers/object';
 import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
-import { normalizeEventKey } from '../../shortcuts/utils';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorWidth } from './utils';
@@ -852,56 +851,9 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    if (!this.#isCommentsContextShortcut(event)) {
+    if (!this.hot.getShortcutManager().hasEventShortcut(SHORTCUTS_CONTEXT_NAME, event)) {
       event.stopPropagation();
     }
-  }
-
-  /**
-   * Checks whether the keyboard event matches any shortcut registered in the
-   * `plugin:comments` shortcut context. Uses the same key normalization logic
-   * as the shortcut recorder so this check stays in sync automatically.
-   *
-   * @param {KeyboardEvent} event The keyboard event to check.
-   * @returns {boolean}
-   */
-  #isCommentsContextShortcut(event) {
-    const shortcutContext = this.hot.getShortcutManager().getContext(SHORTCUTS_CONTEXT_NAME);
-
-    if (!shortcutContext || typeof event.key !== 'string') {
-      return false;
-    }
-
-    const key = normalizeEventKey(event);
-    const modifiers = [];
-
-    if (event.altKey) {
-      modifiers.push('alt');
-    }
-    if (event.ctrlKey) {
-      modifiers.push('control');
-    }
-    if (event.metaKey) {
-      modifiers.push('meta');
-    }
-    if (event.shiftKey) {
-      modifiers.push('shift');
-    }
-
-    if (shortcutContext.hasShortcut([key, ...modifiers])) {
-      return true;
-    }
-
-    if (event.ctrlKey || event.metaKey) {
-      const unified = modifiers
-        .filter(m => m !== 'control' && m !== 'meta');
-
-      unified.push('control/meta');
-
-      return shortcutContext.hasShortcut([key, ...unified]);
-    }
-
-    return false;
   }
 
   /**
