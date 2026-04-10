@@ -120,17 +120,30 @@ export const normalizeEventKey = ({ which, key }) => {
   return key.toLowerCase();
 };
 
-const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
+export const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
 
 /**
- * Get the pressed modifier keys from a keyboard event.
+ * Check if a pressed key is a modifier key.
  *
- * @param {KeyboardEvent} event The keyboard event.
+ * @param {string} pressedKey A pressed key.
+ * @returns {boolean}
+ */
+export const isModifierKey = (pressedKey) => {
+  return MODIFIER_KEYS.includes(pressedKey);
+};
+
+/**
+ * Get every pressed modifier key from the performed `KeyboardEvent`.
+ *
+ * @param {KeyboardEvent} event The event object.
  * @param {boolean} [mergeMetaKeys=false] If `true`, the function returns "control" and "meta"
- *                                        as the unified "control/meta" name.
+ *                                        modifiers keys as the "control/meta" name. This allows creating
+ *                                        keyboard shortcuts with modifier key that trigger the shortcut
+ *                                        actions depend on the OS keyboard layout (the Meta key for macOS
+ *                                        and Control for non macOS system).
  * @returns {string[]}
  */
-const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
+export const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
   const pressedModifierKeys = [];
 
   if (event.altKey) {
@@ -159,26 +172,33 @@ const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
 
 /**
  * Get all key combinations that a keyboard event can match against registered shortcuts.
- * Returns an array of key arrays: the literal form and (when Ctrl or Meta is pressed)
- * the unified `control/meta` form. This mirrors the matching logic used by the
- * shortcut recorder.
+ * Returns an array of key arrays: the literal form and -- when the OS-native modifier
+ * is pressed (Meta on macOS, Control on other systems) -- the unified `control/meta` form.
+ * This mirrors the matching logic used by the shortcut recorder.
  *
  * @param {KeyboardEvent} event The keyboard event.
+ * @param {Function} platformCheck A function that returns `true` on macOS.
+ *                                 Defaults to `isMacOS` from `helpers/browser`.
  * @returns {Array<string[]>}
  */
-export const getEventKeyCombinations = (event) => {
+export const getEventKeyCombinations = (event, platformCheck) => {
   if (typeof event.key !== 'string') {
     return [];
   }
 
   const pressedKey = normalizeEventKey(event);
-  const isModifier = MODIFIER_KEYS.includes(pressedKey);
-  const modifiers = isModifier ? [] : getPressedModifierKeys(event);
+  const modifier = isModifierKey(pressedKey);
+  const modifiers = modifier ? [] : getPressedModifierKeys(event);
   const literal = [pressedKey].concat(modifiers);
   const combinations = [literal];
 
-  if (!isModifier && (event.ctrlKey || event.metaKey)) {
-    combinations.push([pressedKey].concat(getPressedModifierKeys(event, true)));
+  if (!modifier) {
+    const isMac = typeof platformCheck === 'function' ? platformCheck() : false;
+    const hasOsNativeModifier = isMac ? modifiers.includes('meta') : modifiers.includes('control');
+
+    if (hasOsNativeModifier) {
+      combinations.push([pressedKey].concat(getPressedModifierKeys(event, true)));
+    }
   }
 
   return combinations;

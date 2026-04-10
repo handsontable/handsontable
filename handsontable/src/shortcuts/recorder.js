@@ -1,10 +1,9 @@
 import { createKeysObserver } from './keyObserver';
-import { normalizeEventKey } from './utils';
+import { normalizeEventKey, isModifierKey, getPressedModifierKeys } from './utils';
 import { isImmediatePropagationStopped } from '../helpers/dom/event';
 import { getParentWindow } from '../helpers/dom/element';
 import { isMacOS } from '../helpers/browser';
 
-const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
 const modifierKeysObserver = createKeysObserver();
 const modKeyListeners = [];
 let instanceCounter = 0;
@@ -22,55 +21,6 @@ let instanceCounter = 0;
  * @returns {object}
  */
 export function useRecorder(ownerWindow, handleEvent, beforeKeyDown, afterKeyDown, callback) {
-  /**
-   * Check if a pressed key is tracked or not.
-   *
-   * @param {string} pressedKey A pressed key
-   * @returns {boolean}
-   */
-  const isModifierKey = (pressedKey) => {
-    return MODIFIER_KEYS.includes(pressedKey);
-  };
-
-  /**
-   * Get every pressed modifier key from the performed `KeyboardEvent`.
-   *
-   * @private
-   * @param {KeyboardEvent} event The event object.
-   * @param {boolean} [mergeMetaKeys=false] If `true,` the function will return the "control" and "meta"
-   *                                        modifiers keys as the "control/meta" name. This allows creating
-   *                                        keyboard shortcuts with modifier key that trigger the shortcut
-   *                                        actions depend on the OS keyboard layout (the Meta key for macOS
-   *                                        and Control for non macOS system).
-   * @returns {string[]}
-   */
-  const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
-    const pressedModifierKeys = [];
-
-    if (event.altKey) {
-      pressedModifierKeys.push('alt');
-    }
-
-    if (mergeMetaKeys && (event.ctrlKey || event.metaKey)) {
-      pressedModifierKeys.push('control/meta');
-
-    } else {
-      if (event.ctrlKey) {
-        pressedModifierKeys.push('control');
-      }
-
-      if (event.metaKey) {
-        pressedModifierKeys.push('meta');
-      }
-    }
-
-    if (event.shiftKey) {
-      pressedModifierKeys.push('shift');
-    }
-
-    return pressedModifierKeys;
-  };
-
   /**
    * `KeyboardEvent`'s callback function
    *

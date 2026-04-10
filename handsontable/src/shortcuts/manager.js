@@ -1,6 +1,7 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
+import { isMacOS } from '../helpers/browser';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
 import { getEventKeyCombinations } from './utils';
@@ -214,7 +215,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
       return false;
     }
 
-    const combinations = getEventKeyCombinations(event);
+    const combinations = getEventKeyCombinations(event, isMacOS);
 
     return combinations.some(keys => context.hasShortcut(keys));
   };
