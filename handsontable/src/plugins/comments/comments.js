@@ -13,6 +13,7 @@ import { deepClone, deepExtend } from '../../helpers/object';
 import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
+import { normalizeEventKey } from '../../shortcuts/utils';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorWidth } from './utils';
@@ -840,9 +841,9 @@ export class Comments extends BasePlugin {
 
   /**
    * Stops keyboard events from propagating to the grid's shortcut system while the comment
-   * textarea is focused. Without this, keys like Ctrl+A trigger grid-level actions (e.g.
-   * "select all cells") instead of native textarea behavior. Shortcuts registered in the
-   * `plugin:comments` context (Escape, Ctrl+Enter, Tab) are allowed through.
+   * textarea is visible. Without this, keys like Ctrl+A trigger grid-level actions (e.g.
+   * "select all cells") instead of native textarea behavior. Events matching shortcuts
+   * registered in the `plugin:comments` context are allowed through.
    *
    * @param {KeyboardEvent} event The keydown event from the comment textarea.
    */
@@ -851,15 +852,56 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    const { key, ctrlKey, metaKey } = event;
-
-    const isEscape = key === 'Escape';
-    const isCtrlEnter = (ctrlKey || metaKey) && key === 'Enter';
-    const isTab = key === 'Tab';
-
-    if (!isEscape && !isCtrlEnter && !isTab) {
+    if (!this.#isCommentsContextShortcut(event)) {
       event.stopPropagation();
     }
+  }
+
+  /**
+   * Checks whether the keyboard event matches any shortcut registered in the
+   * `plugin:comments` shortcut context. Uses the same key normalization logic
+   * as the shortcut recorder so this check stays in sync automatically.
+   *
+   * @param {KeyboardEvent} event The keyboard event to check.
+   * @returns {boolean}
+   */
+  #isCommentsContextShortcut(event) {
+    const shortcutContext = this.hot.getShortcutManager().getContext(SHORTCUTS_CONTEXT_NAME);
+
+    if (!shortcutContext || typeof event.key !== 'string') {
+      return false;
+    }
+
+    const key = normalizeEventKey(event);
+    const modifiers = [];
+
+    if (event.altKey) {
+      modifiers.push('alt');
+    }
+    if (event.ctrlKey) {
+      modifiers.push('control');
+    }
+    if (event.metaKey) {
+      modifiers.push('meta');
+    }
+    if (event.shiftKey) {
+      modifiers.push('shift');
+    }
+
+    if (shortcutContext.hasShortcut([key, ...modifiers])) {
+      return true;
+    }
+
+    if (event.ctrlKey || event.metaKey) {
+      const unified = modifiers
+        .filter(m => m !== 'control' && m !== 'meta');
+
+      unified.push('control/meta');
+
+      return shortcutContext.hasShortcut([key, ...unified]);
+    }
+
+    return false;
   }
 
   /**
