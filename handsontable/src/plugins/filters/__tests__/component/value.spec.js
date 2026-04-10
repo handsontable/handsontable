@@ -422,7 +422,8 @@ describe('Filters UI Value component', () => {
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
 
-  it('should keep the menu open and not intercept Space key in the search input (#12227)', async() => {
+  it('should trim leading and trailing spaces for search, treat whitespace-only as empty, and filter on the' +
+    ' trimmed text (#12290)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -437,19 +438,35 @@ describe('Filters UI Value component', () => {
 
     const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
 
-    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
     searchInput.focus();
 
-    await sleep(208);
+    const fullListCount = byValueMultipleSelect().element.querySelectorAll('.htCore td').length;
 
-    await keyDownUp('space');
+    expect(fullListCount).toBeGreaterThan(0);
 
-    expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
-    expect(document.activeElement).toBe(searchInput);
+    searchInput.value = '   ';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(fullListCount);
+
+    searchInput.value = 'zzzzznonmatching';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(0);
+
+    searchInput.value = '  zzzzznonmatching  ';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(0);
+
+    searchInput.value = ' \n nannie \t ';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(1);
+    expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toContain('Nannie');
   });
 
-  it('should keep the menu open and not intercept Space key in the search input' +
-    ' with searchMode `apply` (#12227)', async() => {
+  it('should treat whitespace-only search as empty when searchMode is `apply` (#12290)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -466,15 +483,16 @@ describe('Filters UI Value component', () => {
 
     const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
 
-    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
     searchInput.focus();
 
-    await sleep(208);
+    const fullListCount = byValueMultipleSelect().element.querySelectorAll('.htCore td').length;
 
-    await keyDownUp('space');
+    expect(fullListCount).toBeGreaterThan(0);
 
-    expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
-    expect(document.activeElement).toBe(searchInput);
+    searchInput.value = ' \t ';
+    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(fullListCount);
   });
 
   it('should disappear after hitting ESC key (focused items box)', async() => {
