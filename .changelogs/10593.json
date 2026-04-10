@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed beforeColumnResize and beforeRowResize hook return value being ignored during drag resize",
+  "type": "fixed",
+  "issueOrPR": 10593,
+  "breaking": false,
+  "framework": "none"
+}
