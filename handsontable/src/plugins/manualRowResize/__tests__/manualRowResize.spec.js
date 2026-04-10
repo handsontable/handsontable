@@ -445,6 +445,19 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
+  it('should apply the return value of beforeRowResize when drag resizing', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: () => 150
+    });
+
+    await resizeRow(0, 100);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(150);
+  });
+
   it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),

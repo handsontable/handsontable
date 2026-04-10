@@ -619,6 +619,21 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
+  it('should apply the return value of beforeColumnResize when drag resizing', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      beforeColumnResize: () => 150
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    await resizeColumn(0, 100);
+
+    expect(colWidth(spec().$container, 0)).toEqual(150);
+  });
+
   it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),

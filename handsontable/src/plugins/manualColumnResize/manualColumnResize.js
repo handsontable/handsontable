@@ -525,7 +525,12 @@ export class ManualColumnResize extends BasePlugin {
       this.hot.render();
     };
     const resize = (column, forceRender) => {
-      this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
+      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
+
+      if (hookNewSize !== undefined) {
+        this.#newSize = hookNewSize;
+        this.setManualSize(column, this.#newSize);
+      }
 
       if (forceRender) {
         render();
