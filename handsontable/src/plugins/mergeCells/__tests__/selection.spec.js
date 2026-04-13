@@ -224,11 +224,9 @@ describe('MergeCells Selection', () => {
     await alter('insert_row_above', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
-    expect($borderTop.position().top).toBe(getThemeLayout().pickByDensity({
-      compact: topPositionBefore + 26,
-      defaultDensity: topPositionBefore + 29,
-      comfortable: topPositionBefore + 37,
-    }));
+    expect($borderTop.position().top).toBe(
+      getThemeLayout().e2eMergeCellsBorderTopAfterScroll(topPositionBefore),
+    );
   });
 
   it('should keep the selection on merged cells after inserting column to left to the merged cells', async() => {

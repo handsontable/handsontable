@@ -106,16 +106,8 @@ describe('ContextMenu', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(getThemeLayout().pickByDensity({
-        compact: 222,
-        defaultDensity: 246,
-        comfortable: 313,
-      }));
-      expect(tickItemOffset.left).toBe(getThemeLayout().pickByDensity({
-        compact: contextMenuOffset.left + 1,
-        defaultDensity: contextMenuOffset.left + 1,
-        comfortable: contextMenuOffset.left,
-      }));
+      expect(tickItemOffset.top).toBe(getThemeLayout().e2eDensity_2d086a6135());
+      expect(tickItemOffset.left).toBe(getThemeLayout().e2eMenuTickItemInlineStartFromRootLeft(contextMenuOffset.left));
     });
   });
 });

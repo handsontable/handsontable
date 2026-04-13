@@ -22,44 +22,16 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('insert_col_end', null, 1);
 
-    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 90,
-      defaultDensity: 90,
-      comfortable: 85,
-    }));
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 90,
-      defaultDensity: 90,
-      comfortable: 85,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 90,
-      defaultDensity: 90,
-      comfortable: 85,
-    }));
+    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertEnd1());
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertEnd1());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertEnd1());
 
     await alter('insert_col_start', null, 1);
 
-    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 68,
-      comfortable: 64,
-    }));
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 68,
-      comfortable: 64,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 68,
-      comfortable: 64,
-    }));
-    expect(getColWidth(3)).toBe(getThemeLayout().pickByDensity({
-      compact: 66,
-      defaultDensity: 66,
-      comfortable: 63,
-    }));
+    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
+    expect(getColWidth(3)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartTrailing());
   });
 
   it('should re-stretch all columns after removing a column', async() => {
@@ -87,31 +59,11 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     expect(tableView().hasHorizontalScroll()).toBe(false);
 
-    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(3)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(4)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
+    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(3)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(4)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
   });
 
   it('should stop stretching the columns when the sum of columns widths is wider than the viewport', async() => {
@@ -127,31 +79,11 @@ describe('StretchColumns cooperation with columns altering', () => {
     await alter('insert_col_end', null, 3);
 
     expect(tableView().hasHorizontalScroll()).toBe(false);
-    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(3)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
-    expect(getColWidth(4)).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 54,
-      comfortable: 51,
-    }));
+    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(3)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
+    expect(getColWidth(4)).toBe(getThemeLayout().e2eStretchColumnsAlter320SixColsStretched());
 
     await alter('insert_col_end', null, 1);
 

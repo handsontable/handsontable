@@ -26,41 +26,17 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     columnIndexMapper().setIndexesSequence([0, 2, 3, 1]);
     await render();
 
-    expect(getColWidth(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 79,
-      comfortable: 74,
-    }));
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 79,
-      comfortable: 74,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 79,
-      comfortable: 74,
-    }));
+    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
     expect(getColWidth(3)).toBe(33);
 
     columnIndexMapper().setIndexesSequence([1, 0, 2, 3]);
     await render();
 
     expect(getColWidth(0)).toBe(33);
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 79,
-      comfortable: 74,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 79,
-      comfortable: 74,
-    }));
-    expect(getColWidth(3)).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 79,
-      comfortable: 74,
-    }));
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
+    expect(getColWidth(3)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
   });
 });

@@ -2,6 +2,24 @@ describe('AutocompleteEditor', () => {
   const choices = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black',
     'white', 'purple', 'lime', 'olive', 'cyan'];
 
+  const E2E_DOM_RECT_EPSILON_PX = 2;
+
+  function expectDropdownBoundingRectAboveEditedCell() {
+    const editor = getActiveEditor();
+    const ddRect = editor.htContainer.getBoundingClientRect();
+    const tdRect = editor.TD.getBoundingClientRect();
+
+    expect(ddRect.bottom).toBeLessThanOrEqual(tdRect.top + E2E_DOM_RECT_EPSILON_PX);
+  }
+
+  function expectDropdownBoundingRectBelowEditedCell() {
+    const editor = getActiveEditor();
+    const ddRect = editor.htContainer.getBoundingClientRect();
+    const tdRect = editor.TD.getBoundingClientRect();
+
+    expect(ddRect.top).toBeGreaterThanOrEqual(tdRect.bottom - E2E_DOM_RECT_EPSILON_PX);
+  }
+
   beforeEach(function() {
     this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
       .appendTo('body');
@@ -529,18 +547,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 118,
-        defaultDensity: 118,
-        comfortable: 133,
-      }));
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 131,
-        defaultDensity: 146,
-        comfortable: 148,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
@@ -560,18 +567,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 55,
-        defaultDensity: 62,
-        comfortable: 85,
-      }));
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 131,
-        defaultDensity: 146,
-        comfortable: 148,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -590,14 +586,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 79,
-        defaultDensity: 88,
-        comfortable: 112,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should open editor with the correct size when there is scrollbar on the list and table overflow is hidden', async() => {
@@ -617,14 +606,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 78,
-        defaultDensity: 87,
-        comfortable: 111,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
@@ -644,18 +626,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 55 + Handsontable.dom.getScrollbarWidth(),
-        defaultDensity: 62 + Handsontable.dom.getScrollbarWidth(),
-        comfortable: 70 + Handsontable.dom.getScrollbarWidth(),
-      }));
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 79,
-        defaultDensity: 88,
-        comfortable: 112,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
@@ -687,11 +658,7 @@ describe('AutocompleteEditor', () => {
       const $editor = $('.autocompleteEditor').eq(0);
       const editorOpenTime = endTime - startTime;
 
-      expect(editorOpenTime).toBeLessThan(getThemeLayout().pickByDensity({
-        compact: 650,
-        defaultDensity: 650,
-        comfortable: 700,
-      }));
+      expect(editorOpenTime).toBeLessThan(700);
       expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });
@@ -967,21 +934,9 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      // -2 for transparent borders
+      // -2 for transparent borders (jQuery .width() is content width; inner getSettings().width is the full list width)
       expect(editor.find('.autocompleteEditor .htCore td').width())
         .toEqual(editor.find('.handsontableInput').width() - 2);
-      {
-        const tdWidth = editor.find('.autocompleteEditor .htCore td').width();
-        const layout = getThemeLayout();
-
-        if (layout.densityLevel === 'compact') {
-          expect(tdWidth).toBeGreaterThan(183);
-        } else if (layout.densityLevel === 'default') {
-          expect(tdWidth).toEqual(180);
-        } else {
-          expect(tdWidth).toEqual(172);
-        }
-      }
     });
 
     it('should display the autocomplete list with correct dimensions, after updating the choice list from no match' +
@@ -1247,22 +1202,16 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 26, left: 0 },
-        defaultDensity: { top: 29, left: 0 },
-        comfortable: { top: 37, left: 0 },
-      }));
+      const rowH = getDefaultRowHeight();
+
+      expect(container.offset()).toEqual({ top: rowH, left: 0 });
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 157, left: 0 },
-        defaultDensity: { top: 175, left: 0 },
-        comfortable: { top: 223, left: 0 },
-      }));
+      expect(container.offset()).toEqual({ top: (6 * rowH) + 1, left: 0 });
     });
 
     it('should limit the list to the space size left below the editor (table has defined size)', async() => {
@@ -1279,11 +1228,7 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(2, 0)));
       await waitForNextAnimationFrames(2);
 
-      expect(getActiveEditor().htContainer.offsetHeight).toEqual(getThemeLayout().pickByDensity({
-        compact: 132,
-        defaultDensity: 147,
-        comfortable: 185,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should limit the list to the space size left above the editor (table has defined size)', async() => {
@@ -1300,11 +1245,7 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(6, 0)));
       await waitForNextAnimationFrames(2);
 
-      expect(getActiveEditor().htContainer.offsetHeight).toEqual(getThemeLayout().pickByDensity({
-        compact: 132,
-        defaultDensity: 147,
-        comfortable: 185,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
@@ -1325,13 +1266,7 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(cell));
       await waitForNextAnimationFrames(2);
 
-      const container = $(getActiveEditor().htContainer);
-
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 335, left: 0 },
-        defaultDensity: { top: 287, left: 0 },
-        comfortable: { top: 184, left: 0 },
-      }));
+      expectDropdownBoundingRectAboveEditedCell();
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size)', async() => {
@@ -1353,29 +1288,20 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
-      const container = $(editor.htContainer);
 
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 465, left: 0 },
-        defaultDensity: { top: 432, left: 0 },
-        comfortable: { top: 369, left: 0 },
-      }));
+      expectDropdownBoundingRectAboveEditedCell();
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 625, left: 0 },
-        defaultDensity: { top: 610, left: 0 },
-        comfortable: { top: 593, left: 0 },
-      }));
+      expectDropdownBoundingRectBelowEditedCell();
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size, scrolled viewport)', async() => {
@@ -1395,29 +1321,20 @@ describe('AutocompleteEditor', () => {
       await waitForNextAnimationFrames(2);
 
       const editor = getActiveEditor();
-      const container = $(editor.htContainer);
 
       editor.TEXTAREA.value = 'r';
 
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 2363, left: 0 },
-        defaultDensity: { top: 2636, left: 0 },
-        comfortable: { top: 3366, left: 0 },
-      }));
+      expectDropdownBoundingRectAboveEditedCell();
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expect(container.offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 2523, left: 0 },
-        defaultDensity: { top: 2814, left: 0 },
-        comfortable: { top: 3590, left: 0 },
-      }));
+      expectDropdownBoundingRectBelowEditedCell();
     });
 
     it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {

@@ -114,11 +114,7 @@ describe('manualRowResize', () => {
       manualRowResize: [30, 80, 100]
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(getThemeLayout().pickByDensity({
-      compact: 30,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
+    expect(rowHeight(spec().$container, 0)).toEqual(Math.max(30, getThemeLayout().firstRenderedRowDefaultHeight));
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
   });
@@ -436,11 +432,7 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).toEqual(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
+    expect(rowHeight(spec().$container, 0)).toEqual(getThemeLayout().firstRenderedRowDefaultHeight);
 
     addHook('beforeRowResize', () => 100);
     addHook('beforeRowResize', () => 200);
@@ -767,11 +759,7 @@ describe('manualRowResize', () => {
       await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
       await waitForNextAnimationFrames(63);
 
-      expect($rowHeaders.eq(0).height()).toBe(getThemeLayout().pickByDensity({
-        compact: 25,
-        defaultDensity: 28,
-        comfortable: 36,
-      }));
+      expect($rowHeaders.eq(0).height()).toBe(getThemeLayout().cellContentHeight);
       expect($rowHeaders.eq(1).height()).toBe(119);
       expect($rowHeaders.eq(2).height()).toBe(159);
       expect($rowHeaders.eq(3).height()).toBe(59);
@@ -788,16 +776,9 @@ describe('manualRowResize', () => {
       await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
       await waitForNextAnimationFrames(63);
 
-      expect($rowHeaders.eq(0).height()).toBe(getThemeLayout().pickByDensity({
-        compact: 25,
-        defaultDensity: 28,
-        comfortable: 36,
-      }));
-      expect($rowHeaders.eq(1).height()).toBe(getThemeLayout().pickByDensity({
-        compact: 46,
-        defaultDensity: 48,
-        comfortable: 56,
-      }));
+      expect($rowHeaders.eq(0).height()).toBe(getThemeLayout().cellContentHeight);
+      expect($rowHeaders.eq(1).height())
+        .toBe(getThemeLayout().e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize());
       expect($rowHeaders.eq(2).height()).toBe(159);
       expect($rowHeaders.eq(3).height()).toBe(59);
       expect($rowHeaders.eq(4).height()).toBe(79);
@@ -899,11 +880,9 @@ describe('manualRowResize', () => {
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
     await waitForNextAnimationFrames(63);
 
-    expect(rowHeight(spec().$container, 2)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 23,
-      defaultDensity: 29,
-      comfortable: 37,
-    }), 3);
+    expect(rowHeight(spec().$container, 2)).toBeAroundValue(
+      getThemeLayout().e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300(),
+      3);
   });
 
   it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {
@@ -926,11 +905,7 @@ describe('manualRowResize', () => {
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
     await waitForNextAnimationFrames(63);
 
-    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }), 1);
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight, 1);
   });
 
   it('should autosize selected rows after double click on handler', async() => {
@@ -955,21 +930,9 @@ describe('manualRowResize', () => {
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
     await waitForNextAnimationFrames(63);
 
-    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(rowHeight(spec().$container, 2)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(rowHeight(spec().$container, 3)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should autosize selected rows after double click on handler and move mouse to the next row', async() => {
@@ -991,11 +954,7 @@ describe('manualRowResize', () => {
     getInlineStartClone().find('tr:eq(2) th:eq(0)').simulate('mouseover');
     await waitForNextAnimationFrames(38);
 
-    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should resize (expanding and narrowing) selected rows', async() => {
@@ -1036,21 +995,9 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).toEqual(getThemeLayout().pickByDensity({
-      compact: 35,
-      defaultDensity: 35,
-      comfortable: 36,
-    }));
-    expect($rowsHeaders.eq(2).height()).toEqual(getThemeLayout().pickByDensity({
-      compact: 35,
-      defaultDensity: 35,
-      comfortable: 36,
-    }));
-    expect($rowsHeaders.eq(3).height()).toEqual(getThemeLayout().pickByDensity({
-      compact: 35,
-      defaultDensity: 35,
-      comfortable: 36,
-    }));
+    expect($rowsHeaders.eq(1).height()).toEqual(Math.max(35, getThemeLayout().cellContentHeight));
+    expect($rowsHeaders.eq(2).height()).toEqual(Math.max(35, getThemeLayout().cellContentHeight));
+    expect($rowsHeaders.eq(3).height()).toEqual(Math.max(35, getThemeLayout().cellContentHeight));
   });
 
   it('should show resizer for fixed top rows', async() => {
@@ -1068,40 +1015,14 @@ describe('manualRowResize', () => {
 
     const $resizer = spec().$container.find('.manualRowResizer');
 
-    expect($resizer.position()).toEqual(getThemeLayout().pickByDensity({
-      compact: {
-        top: 125,
-        left: 0,
-      },
-      defaultDensity: {
-        top: 140,
-        left: 0,
-      },
-      comfortable: {
-        top: 180,
-        left: 0,
-      },
-    }));
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedTopMasterFourthRow());
 
     // after hovering over fixed row, resizer should be moved to the fixed row
     getTopInlineStartClone()
       .find('tbody tr:eq(1) th:eq(0)')
       .simulate('mouseover');
 
-    expect($resizer.position()).toEqual(getThemeLayout().pickByDensity({
-      compact: {
-        top: 73,
-        left: 0,
-      },
-      defaultDensity: {
-        top: 82,
-        left: 0,
-      },
-      comfortable: {
-        top: 106,
-        left: 0,
-      },
-    }));
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedTopOverlaySecondRow());
   });
 
   it('should show resizer for fixed bottom rows', async() => {
@@ -1119,40 +1040,14 @@ describe('manualRowResize', () => {
 
     const $resizer = spec().$container.find('.manualRowResizer');
 
-    expect($resizer.position()).toEqual(getThemeLayout().pickByDensity({
-      compact: {
-        top: 125,
-        left: 0,
-      },
-      defaultDensity: {
-        top: 140,
-        left: 0,
-      },
-      comfortable: {
-        top: 180,
-        left: 0,
-      },
-    }));
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedTopMasterFourthRow());
 
     // after hovering over fixed row, resizer should be moved to the fixed row
     getBottomInlineStartClone()
       .find('tbody tr:eq(0) th:eq(0)')
       .simulate('mouseover');
 
-    expect($resizer.position()).toEqual(getThemeLayout().pickByDensity({
-      compact: {
-        top: 21,
-        left: 0,
-      },
-      defaultDensity: {
-        top: 24,
-        left: 0,
-      },
-      comfortable: {
-        top: 32,
-        left: 0,
-      },
-    }));
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedBottomOverlayFirstRow());
   });
 
   it('should resize proper row after resizing element adjacent to a selection', async() => {
@@ -1173,21 +1068,12 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
-    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 58,
-      comfortable: 66,
-    }));
-    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 25,
-      defaultDensity: 28,
-      comfortable: 36,
-    }));
-    expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 25,
-      defaultDensity: 28,
-      comfortable: 36,
-    }));
+    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 29);
+    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(
+      getThemeLayout().cellContentHeight);
+    expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(
+      getThemeLayout().cellContentHeight);
   });
 
   it('should resize all rows after resize action when selected all cells', async() => {
@@ -1198,21 +1084,9 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 25,
-      defaultDensity: 28,
-      comfortable: 36,
-    }));
-    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 25,
-      defaultDensity: 28,
-      comfortable: 36,
-    }));
-    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 25,
-      defaultDensity: 28,
-      comfortable: 36,
-    }));
+    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(getThemeLayout().cellContentHeight);
+    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(getThemeLayout().cellContentHeight);
+    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(getThemeLayout().cellContentHeight);
 
     await selectAll();
 
@@ -1225,21 +1099,12 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
-    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 54,
-      defaultDensity: 57,
-      comfortable: 65,
-    }));
-    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 58,
-      comfortable: 66,
-    }));
-    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 58,
-      comfortable: 66,
-    }));
+    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 28);
+    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 29);
+    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 29);
   });
 
   it('should not throw any errors, when selecting headers partially outside of viewport, when the header renderer' +
@@ -1413,23 +1278,11 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
     });
 
     it('should resize (expanding) selected columns, with window as a scroll parent', async() => {
@@ -1456,23 +1309,11 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
     });
 
     it('should display the handle and resize by unscaled height when parent is scaled', async() => {
@@ -1530,35 +1371,15 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
     });
 
     it('should resize (expanding) height of selected non-contiguous rows', async() => {
@@ -1589,65 +1410,25 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(7) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(8) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(9) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 55,
-          defaultDensity: 58,
-          comfortable: 66,
-        }));
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(11) th:eq(0)').height())
-        .toBe(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        .toBe(getThemeLayout().cellContentHeight);
     });
 
     it('should not resize few rows when selected just single cells before resize action', async() => {
@@ -1668,16 +1449,10 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-        compact: 55,
-        defaultDensity: 58,
-        comfortable: 66,
-      }));
-      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(getThemeLayout().pickByDensity({
-        compact: 25,
-        defaultDensity: 28,
-        comfortable: 36,
-      }));
+      expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
+        getThemeLayout().defaultDataRowHeight + 29);
+      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(
+        getThemeLayout().cellContentHeight);
     });
   });
 
@@ -1982,16 +1757,16 @@ describe('manualRowResize', () => {
       await waitForNextAnimationFrames(32);
       await resizeRow(2, -10);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual(getThemeLayout().pickByDensity({
-        compact: [26, 2, false],
-        defaultDensity: [29, 2, false],
-        comfortable: [37, 2, false],
-      }));
-      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual(getThemeLayout().pickByDensity({
-        compact: [26, 2, false],
-        defaultDensity: [29, 2, false],
-        comfortable: [37, 2, false],
-      }));
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
 
       await waitForNextAnimationFrames(32);
       await resizeRow(2, 100);
@@ -2002,16 +1777,16 @@ describe('manualRowResize', () => {
       await waitForNextAnimationFrames(32);
       await resizeRow(2, 5);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual(getThemeLayout().pickByDensity({
-        compact: [26, 2, false],
-        defaultDensity: [29, 2, false],
-        comfortable: [37, 2, false],
-      }));
-      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual(getThemeLayout().pickByDensity({
-        compact: [26, 2, false],
-        defaultDensity: [29, 2, false],
-        comfortable: [37, 2, false],
-      }));
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
     });
 
     it.forTheme('classic')('should be able to get the last desired row height from the ' +

@@ -115,23 +115,11 @@ describe('GhostTable', () => {
 
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(heightSpy.calls.argsFor(0)[1]).toBe(getThemeLayout().pickByDensity({
-        compact: 26,
-        defaultDensity: 29,
-        comfortable: 37,
-      }));
+      expect(heightSpy.calls.argsFor(0)[1]).toBe(getThemeLayout().defaultDataRowHeight);
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(heightSpy.calls.argsFor(1)[1]).toBe(getThemeLayout().pickByDensity({
-        compact: 68,
-        defaultDensity: 69,
-        comfortable: 77,
-      }));
+      expect(heightSpy.calls.argsFor(1)[1]).toBe(getThemeLayout().e2eDensity_c1a868f9c9());
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(heightSpy.calls.argsFor(2)[1]).toBe(getThemeLayout().pickByDensity({
-        compact: 47,
-        defaultDensity: 49,
-        comfortable: 57,
-      }));
+      expect(heightSpy.calls.argsFor(2)[1]).toBe(getThemeLayout().e2eDensity_ed183d57c9());
     });
   });
 
@@ -233,23 +221,11 @@ describe('GhostTable', () => {
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBe(getThemeLayout().pickByDensity({
-        compact: 75,
-        defaultDensity: 84,
-        comfortable: 92,
-      }));
+      expect(widthSpy.calls.argsFor(0)[1]).toBe(getThemeLayout().e2eDensity_a738aa613c());
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBe(getThemeLayout().pickByDensity({
-        compact: 38,
-        defaultDensity: 43,
-        comfortable: 51,
-      }));
+      expect(widthSpy.calls.argsFor(1)[1]).toBe(getThemeLayout().e2eDensity_129ed1d57c());
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).toBe(getThemeLayout().pickByDensity({
-        compact: 61,
-        defaultDensity: 68,
-        comfortable: 76,
-      }));
+      expect(widthSpy.calls.argsFor(2)[1]).toBe(getThemeLayout().e2eDensity_cefdabf33b());
     });
 
     it('should get rounded up widths when the browser calculates the columns as a decimal values', async() => {

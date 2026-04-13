@@ -385,11 +385,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).toBe(getThemeLayout().pickByDensity({
-            compact: 26,
-            defaultDensity: 29,
-            comfortable: 37,
-          }));
+          expect($backlight.height()).toBe(getThemeLayout().defaultDataRowHeight);
         });
 
         it('should get correct position and size while grabing the multiple rows placed after hidden rows', async() => {
@@ -420,11 +416,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(getThemeLayout().pickByDensity({
-            compact: 78,
-            defaultDensity: 87,
-            comfortable: 111,
-          }));
+          expect($backlight.height()).toBe(getThemeLayout().e2eDensity_f0a5ff56db());
         });
 
         it('should get correct position and size while grabing the row placed before hidden rows', async() => {
@@ -447,11 +439,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).toBe(getThemeLayout().pickByDensity({
-            compact: 26,
-            defaultDensity: 29,
-            comfortable: 37,
-          }));
+          expect($backlight.height()).toBe(getThemeLayout().defaultDataRowHeight);
         });
 
         it('should get correct position and size while grabing the multiple rows placed before hidden rows', async() => {
@@ -482,11 +470,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(getThemeLayout().pickByDensity({
-            compact: 78,
-            defaultDensity: 87,
-            comfortable: 111,
-          }));
+          expect($backlight.height()).toBe(getThemeLayout().e2eDensity_f0a5ff56db());
         });
       });
 

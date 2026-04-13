@@ -135,11 +135,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - 1,
-          defaultDensity: cellOffset.left - 1,
-          comfortable: cellOffset.left - 1,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it('should display the comment editor on the right of the cell when the viewport is scrolled (the Window object is a scrollable element)', async() => {
@@ -171,11 +167,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - 1,
-          defaultDensity: cellOffset.left - 1,
-          comfortable: cellOffset.left - 1,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it.forTheme('classic')('should display the comment editor on the right of the cell when the ' +
@@ -361,11 +353,7 @@ describe('Comments', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - editorWidth - 2,
-          defaultDensity: cellOffset.left - editorWidth - 2,
-          comfortable: cellOffset.left - editorWidth - 2,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
       });
 
       it('should display the comment editor on the top-left of the cell when there is not enough space of the' +
@@ -404,11 +392,7 @@ describe('Comments', () => {
         let editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - editorWidth - 2,
-          defaultDensity: cellOffset.left - editorWidth - 2,
-          comfortable: cellOffset.left - editorWidth - 2,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
 
         // Set the comment editor height/width to 2 rows/columns + 5px, which should overlap the scrollbar by `5px`.
         // If the editor overlaps the scrollbar, it should be flipped.
@@ -427,11 +411,7 @@ describe('Comments', () => {
         editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - editorWidth - 2,
-          defaultDensity: cellOffset.left - editorWidth - 2,
-          comfortable: cellOffset.left - editorWidth - 2,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
       });
 
       it('should display the comment editor on the top-left of the cell when there is not enough space of the' +
@@ -479,11 +459,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left + cellWidth - 1,
-          defaultDensity: cellOffset.left + cellWidth - 1,
-          comfortable: cellOffset.left + cellWidth - 1,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
       });
 
       it('should display the comment editor on the top-right of the cell when on the bottom there is no left space', async() => {
@@ -518,11 +494,7 @@ describe('Comments', () => {
         const editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - 1,
-          defaultDensity: cellOffset.left - 1,
-          comfortable: cellOffset.left - 1,
-        }), 0);
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
     });
   });
@@ -631,20 +603,10 @@ describe('Comments', () => {
       expect({
         top: commentEditorOffset.top,
         left: commentEditorOffset.left - cell.outerWidth(),
-      }).toEqual(getThemeLayout().pickByDensity({
-        compact: {
-          top: cell.offset().top,
-          left: cell.offset().left - 1, // border compensation?
-        },
-        defaultDensity: {
-          top: cell.offset().top,
-          left: cell.offset().left - 1, // border compensation?
-        },
-        comfortable: {
-          top: cell.offset().top,
-          left: cell.offset().left - 1, // border compensation?
-        },
-      }));
+      }).toEqual({
+        top: cell.offset().top,
+        left: cell.offset().left - 1, // border compensation?
+      });
 
       hot.destroy();
     });
@@ -1199,11 +1161,7 @@ describe('Comments', () => {
       await waitForNextAnimationFrames(4);
 
       expect(afterSetCellMeta).toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
-        style: getThemeLayout().pickByDensity({
-          compact: { width: 314, height: 56 },
-          defaultDensity: { width: 318, height: 60 },
-          comfortable: { width: 326, height: 68 },
-        }),
+        style: getThemeLayout().e2eCommentTextareaStyleWithSize(300, 50),
       }));
     });
 

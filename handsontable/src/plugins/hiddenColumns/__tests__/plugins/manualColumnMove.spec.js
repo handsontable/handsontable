@@ -263,11 +263,7 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($headerTH.offset().left);
-          expect($backlight.width()).toBe(getThemeLayout().pickByDensity({
-            compact: 50,
-            defaultDensity: 50,
-            comfortable: 51,
-          }));
+          expect($backlight.width()).toBe(getThemeLayout().e2eDensity_d35d5683ec());
         });
 
         it('should get correct position and size while grabing the multiple columns placed after hidden columns', async() => {
@@ -298,11 +294,7 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($firstHeaderTH.offset().left);
-          expect($backlight.width()).toBe(getThemeLayout().pickByDensity({
-            compact: 150,
-            defaultDensity: 150,
-            comfortable: 155,
-          }));
+          expect($backlight.width()).toBe(getThemeLayout().e2eDensity_e9b95cfc26());
         });
 
         it('should get correct position and size while grabing the column placed before hidden columns', async() => {
@@ -325,11 +317,7 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($headerTH.offset().left);
-          expect($backlight.width()).toBe(getThemeLayout().pickByDensity({
-            compact: 50,
-            defaultDensity: 50,
-            comfortable: 52,
-          }));
+          expect($backlight.width()).toBe(getThemeLayout().e2eDensity_429cac7b61());
         });
 
         it('should get correct position and size while grabing the multiple columns placed before hidden columns', async() => {
@@ -360,11 +348,7 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($firstHeaderTH.offset().left);
-          expect($backlight.width()).toBe(getThemeLayout().pickByDensity({
-            compact: 150,
-            defaultDensity: 150,
-            comfortable: 155,
-          }));
+          expect($backlight.width()).toBe(getThemeLayout().e2eDensity_e9b95cfc26());
         });
       });
 

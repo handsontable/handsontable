@@ -31,29 +31,13 @@ describe('StretchColumns cooperation with hidden columns', () => {
     await render();
 
     expect(getColWidth(0)).toBe(50);
-    expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 68,
-      comfortable: 64,
-    }));
-    expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 68,
-      comfortable: 64,
-    }));
+    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
+    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
     expect(getColWidth(3)).toBe(50);
     expect(getColWidth(4)).toBe(50);
-    expect(getColWidth(5)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 68,
-      comfortable: 64,
-    }));
+    expect(getColWidth(5)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
     expect(getColWidth(6)).toBe(50);
-    expect(getColWidth(7)).toBe(getThemeLayout().pickByDensity({
-      compact: 66,
-      defaultDensity: 66,
-      comfortable: 63,
-    }));
+    expect(getColWidth(7)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartTrailing());
     expect(getColWidth(8)).toBe(50);
   });
 });

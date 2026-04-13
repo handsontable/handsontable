@@ -453,28 +453,8 @@ describe('Pagination `pageSize` option', () => {
       setCurrentHotInstance(hotInstance);
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A21',
-        defaultDensity: 'A18',
-        comfortable: 'A14',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 21 of 100',
-          '|< < Page 1 of 5 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 18 of 100',
-          '|< < Page 1 of 6 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 14 of 100',
-          '|< < Page 1 of 8 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_05e899e868());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_55a74b203e());
 
       hotInstance.updateSettings({
         pagination: {
@@ -508,82 +488,22 @@ describe('Pagination `pageSize` option', () => {
       await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A13',
-        defaultDensity: 'A11',
-        comfortable: 'A9',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 13 of 100',
-          '|< < Page 1 of 8 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 11 of 100',
-          '|< < Page 1 of 10 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 9 of 100',
-          '|< < Page 1 of 12 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_516fd776f5());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_14926c8296());
 
       iframe.css({ height: '200px' });
       await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A5',
-        defaultDensity: 'A4',
-        comfortable: 'A3',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 5 of 100',
-          '|< < Page 1 of 20 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 4 of 100',
-          '|< < Page 1 of 25 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 3 of 100',
-          '|< < Page 1 of 34 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_d7aa2fd7d8());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_974019229c());
 
       iframe.css({ height: '705px' });
       await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A25',
-        defaultDensity: 'A22',
-        comfortable: 'A17',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 25 of 100',
-          '|< < Page 1 of 4 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 22 of 100',
-          '|< < Page 1 of 5 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 17 of 100',
-          '|< < Page 1 of 6 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_763d67703a());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_72a0e755a3());
 
       hotInstance.destroy();
       iframe.remove();
@@ -606,142 +526,34 @@ describe('Pagination `pageSize` option', () => {
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
       expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 1 of 45',
-          '|< < Page 1 of 4 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 1 of 45',
-          '|< < Page 1 of 5 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 1 of 45',
-          '|< < Page 1 of 6 [>] [>|]',
-        ],
-      }));
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_066cd3067e());
 
       plugin.setPage(2);
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A2');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A8',
-        defaultDensity: 'A7',
-        comfortable: 'A5',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 8 of 45',
-          '[|<] [<] Page 2 of 4 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 7 of 45',
-          '[|<] [<] Page 2 of 5 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 5 of 45',
-          '[|<] [<] Page 2 of 6 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_837d6451b8());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_51b5ff37ca());
 
       plugin.setPage(3);
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A9',
-        defaultDensity: 'A8',
-        comfortable: 'A6',
-      }));
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A27',
-        defaultDensity: 'A23',
-        comfortable: 'A7',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '9 - 27 of 45',
-          '[|<] [<] Page 3 of 4 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '8 - 23 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '6 - 7 of 45',
-          '[|<] [<] Page 3 of 6 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().e2eDensity_d684162341());
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_6f54af4a25());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_eca9596399());
 
       const rowToChange = plugin.getPaginationData().firstVisibleRowIndex + 1;
 
       hotInstance
         .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A9',
-        defaultDensity: 'A8',
-        comfortable: 'A6',
-      }));
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A19',
-        defaultDensity: 'A18',
-        comfortable: 'A6',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '9 - 19 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '8 - 18 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '6 - 6 of 45',
-          '[|<] [<] Page 3 of 7 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().e2eDensity_d684162341());
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_e18c9a767b());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_be99672953());
 
       hotInstance.setDataAtCell(rowToChange, 1, 'value');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A9',
-        defaultDensity: 'A8',
-        comfortable: 'A6',
-      }));
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().pickByDensity({
-        compact: 'A27',
-        defaultDensity: 'A23',
-        comfortable: 'A7',
-      }));
-      expect(visualizePageSections()).toEqual(getThemeLayout().pickByDensity({
-        compact: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '9 - 27 of 45',
-          '[|<] [<] Page 3 of 4 [>] [>|]',
-        ],
-        defaultDensity: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '8 - 23 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ],
-        comfortable: [
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '6 - 7 of 45',
-          '[|<] [<] Page 3 of 6 [>] [>|]',
-        ],
-      }));
+      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().e2eDensity_d684162341());
+      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_6f54af4a25());
+      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_eca9596399());
 
       hotInstance.destroy();
       iframe.remove();

@@ -227,25 +227,16 @@ describe('Pagination', () => {
 
     await scrollViewportTo({ row: 10, col: 10 });
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 101,
-      defaultDensity: 134,
-      comfortable: 222,
-    }));
-    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 65,
-      defaultDensity: 65,
-      comfortable: 79,
-    }));
+    expect(topOverlay().getScrollPosition())
+      .toBe(getThemeLayout().e2ePaginationScrollTopAfterScrollViewportToRow10Col10());
+    expect(inlineStartOverlay().getScrollPosition())
+      .toBe(getThemeLayout().e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10());
 
     getPlugin('pagination').setPage(2);
 
     expect(topOverlay().getScrollPosition()).toBe(0);
-    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 65,
-      defaultDensity: 65,
-      comfortable: 79,
-    }));
+    expect(inlineStartOverlay().getScrollPosition())
+      .toBe(getThemeLayout().e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10());
   });
 
   it('should update the internal cache after changing the page size to the state where there is only one page', async() => {

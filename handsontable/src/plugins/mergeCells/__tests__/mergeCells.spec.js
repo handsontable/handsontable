@@ -1317,20 +1317,12 @@ describe('MergeCells', () => {
 
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 53,
-        defaultDensity: 59,
-        comfortable: 75,
-      }));
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().e2eDensity_9639197594());
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 52,
-        defaultDensity: 58,
-        comfortable: 74,
-      }));
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().e2eDensity_f464e90e18());
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
 
@@ -1343,38 +1335,22 @@ describe('MergeCells', () => {
 
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 53,
-        defaultDensity: 59,
-        comfortable: 75,
-      }));
+      expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().e2eDensity_9639197594());
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Previously populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 52,
-        defaultDensity: 58,
-        comfortable: 74,
-      }));
+      expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(getThemeLayout().e2eDensity_f464e90e18());
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetWidth).toBe(100);
-      expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 53,
-        defaultDensity: 59,
-        comfortable: 75,
-      }));
+      expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).toBe(getThemeLayout().e2eDensity_9639197594());
       expect(getCell(0, 3).innerText).toBe('A1');
       expect(getDataAtCell(0, 2)).toBe('A1');
 
       expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
-      expect($(getHtCore())[0].offsetHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 27 + (4 * 26),
-        defaultDensity: 30 + (4 * 29),
-        comfortable: 38 + (4 * 37),
-      }));
+      expect($(getHtCore())[0].offsetHeight).toBe(getThemeLayout().e2eDensity_f2d3fe1fc0());
     });
   });
 
@@ -1491,11 +1467,7 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 88,
-      comfortable: 112,
-    }));
+    expect(getCell(0, 0).offsetHeight).toBe(getThemeLayout().e2eDensity_9a971c3cfe());
   });
 
   it('should not collapse the left overlay height when the merge cell covers all overlay cells width', async() => {
@@ -1509,31 +1481,19 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 146,
-      comfortable: 186,
-    }));
+    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().e2eDensity_8992c845e6());
 
     await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 146,
-      comfortable: 186,
-    }));
+    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().e2eDensity_8992c845e6());
 
     await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 146,
-      comfortable: 186,
-    }));
+    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().e2eDensity_8992c845e6());
   });
 
   xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', async() => {
@@ -1576,16 +1536,8 @@ describe('MergeCells', () => {
       ],
     });
 
-    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 88,
-      comfortable: 112,
-    }));
-    expect(getTopClone().height()).toBe(getThemeLayout().pickByDensity({
-      compact: 79,
-      defaultDensity: 88,
-      comfortable: 112,
-    }));
+    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().e2eDensity_9a971c3cfe());
+    expect(getTopClone().height()).toBe(getThemeLayout().e2eDensity_9a971c3cfe());
     expect(getInlineStartClone().height()).toBe(400);
   });
 
@@ -1609,16 +1561,8 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     await keyDownUp('enter');
 
-    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().pickByDensity({
-      compact: 121,
-      defaultDensity: 128,
-      comfortable: 152,
-    }));
-    expect(getTopClone().height()).toBe(getThemeLayout().pickByDensity({
-      compact: 121,
-      defaultDensity: 128,
-      comfortable: 152,
-    }));
+    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().e2eDensity_0051ca7391());
+    expect(getTopClone().height()).toBe(getThemeLayout().e2eDensity_0051ca7391());
     expect(getInlineStartClone().height()).toBe(400);
   });
 

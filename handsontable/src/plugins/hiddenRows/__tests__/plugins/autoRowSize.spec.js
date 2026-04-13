@@ -25,11 +25,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 27,
-        defaultDensity: 30,
-        comfortable: 38,
-      }));
+      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     });
 
     it('should display proper row height (when indicator is enabled) #2', async() => {
@@ -44,11 +40,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 27,
-        defaultDensity: 30,
-        comfortable: 38,
-      }));
+      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     });
 
     it('should display proper row height (when indicator is enabled) #3', async() => {
@@ -63,11 +55,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 27,
-        defaultDensity: 30,
-        comfortable: 38,
-      }));
+      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     });
 
     it('should display proper row height (when indicator is disabled)', async() => {
@@ -81,11 +69,7 @@ describe('HiddenRows', () => {
         }
       });
 
-      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 27,
-        defaultDensity: 30,
-        comfortable: 38,
-      }));
+      expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     });
 
     it('should return proper values from the `getRowHeight` function (when indicator is enabled)', async() => {

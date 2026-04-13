@@ -44,37 +44,17 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 104,
-      defaultDensity: 115,
-      comfortable: 123,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 192,
-      defaultDensity: 210,
-      comfortable: 218,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
     await setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     await setDataAtRowProp(0, 'name', 'foo');
     await waitForNextAnimationFrames(2);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 143,
-      defaultDensity: 157,
-      comfortable: 165,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_143_157_165());
     expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 192,
-      defaultDensity: 210,
-      comfortable: 218,
-    }));
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
   });
 
   it('should correctly detect column widths with colHeaders', async() => {
@@ -88,11 +68,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 146,
-      comfortable: 154,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_133_146_154());
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', async() => {
@@ -106,24 +82,12 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
 
     await updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 146,
-      comfortable: 154,
-    }));
-    expect(colWidth(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 198,
-      defaultDensity: 216,
-      comfortable: 224,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_133_146_154());
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_198_216_224());
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a string', async() => {
@@ -137,24 +101,12 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
 
     await updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 146,
-      comfortable: 154,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 146,
-      comfortable: 154,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_133_146_154());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_133_146_154());
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a function', async() => {
@@ -168,11 +120,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
 
     await updateSettings({
       colHeaders(index) {
@@ -180,16 +128,8 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 146,
-      comfortable: 154,
-    }));
-    expect(colWidth(spec().$container, 1)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 198,
-      defaultDensity: 216,
-      comfortable: 224,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_133_146_154());
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_198_216_224());
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', async() => {
@@ -218,11 +158,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 64,
-      defaultDensity: 72,
-      comfortable: 80,
-    }));
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_64_72_80());
   });
 
   it('should correctly detect column widths after update columns.title', async() => {
@@ -240,11 +176,7 @@ describe('AutoColumnSize', () => {
       ],
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 155,
-      defaultDensity: 170,
-      comfortable: 178,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_155_170_178());
   });
 
   it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
@@ -263,11 +195,7 @@ describe('AutoColumnSize', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 64,
-      defaultDensity: 72,
-      comfortable: 80,
-    }));
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_64_72_80());
   });
 
   it('should not change the column width after toggling the state of the checkbox cell type', async() => {
@@ -295,19 +223,11 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 151,
-      comfortable: 161,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_133_151_161());
 
     await setDataAtCell(0, 0, false);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 133,
-      defaultDensity: 151,
-      comfortable: 161,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_133_151_161());
   });
 
   it('should not wrap the cell values when the whole column has values with the same length', async() => {
@@ -337,36 +257,12 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 82,
-      defaultDensity: 91,
-      comfortable: 99,
-    }));
-    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(rowHeight(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(rowHeight(spec().$container, 4)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_82_91_99());
+    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 4)).toBe(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should be possible to disable plugin using updateSettings', async() => {
@@ -655,20 +551,12 @@ describe('AutoColumnSize', () => {
 
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
 
-    expect(cloneTopHider.width()).toBe(getThemeLayout().pickByDensity({
-      compact: 129,
-      defaultDensity: 138,
-      comfortable: 146,
-    }));
+    expect(cloneTopHider.width()).toBe(getThemeLayout().e2eAutoColumnSize_129_138_146());
 
     await selectCell(0, 0);
     await waitForNextAnimationFrames(2);
 
-    expect(cloneTopHider.width()).toBe(getThemeLayout().pickByDensity({
-      compact: 129,
-      defaultDensity: 138,
-      comfortable: 146,
-    }));
+    expect(cloneTopHider.width()).toBe(getThemeLayout().e2eAutoColumnSize_129_138_146());
   });
 
   it('should not calculate any column widths, if there are no columns in the dataset', async() => {
@@ -713,82 +601,34 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
 
     await alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
-    expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
+    expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
     expect(colWidth(spec().$container, 4)).toBe(50);
 
     await alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
     expect(colWidth(spec().$container, 3)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
     expect(colWidth(spec().$container, 5)).toBe(50);
 
     await alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
     expect(colWidth(spec().$container, 3)).toBe(50);
-    expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
     expect(colWidth(spec().$container, 5)).toBe(50); // Added new column here.
     expect(colWidth(spec().$container, 6)).toBe(50);
   });
@@ -799,35 +639,15 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 50,
-      defaultDensity: 52,
-      comfortable: 60,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
     expect(colWidth(spec().$container, 3)).toBe(50);
 
     await alter('remove_col', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
 
@@ -840,30 +660,14 @@ describe('AutoColumnSize', () => {
     columnIndexMapper().moveIndexes(2, 1);
     await render();
 
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
 
     columnIndexMapper().moveIndexes(1, 2);
     await render();
 
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', async() => {
@@ -876,29 +680,13 @@ describe('AutoColumnSize', () => {
     columnIndexMapper().moveIndexes(2, 1);
     await render();
 
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
 
     await populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 127,
-      defaultDensity: 139,
-      comfortable: 147,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 55,
-      defaultDensity: 62,
-      comfortable: 70,
-    }));
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_127_139_147());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_55_62_70());
   });
 
   it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', async() => {
@@ -913,21 +701,13 @@ describe('AutoColumnSize', () => {
 
     await scrollViewportTo(0, 49);
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 2235,
-      defaultDensity: 2322,
-      comfortable: 2575,
-    }));
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eAutoColumnSize_2235_2322_2575());
 
     await listen();
     await selectRows(2, 2);
     await keyDownUp('delete');
 
-    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 2235,
-      defaultDensity: 2322,
-      comfortable: 2575,
-    }));
+    expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eAutoColumnSize_2235_2322_2575());
   });
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
@@ -941,85 +721,33 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       await alter('remove_col', 1);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').undo();
 
@@ -1027,34 +755,14 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
     });
 
     it('when inserting single column', async() => {
@@ -1067,210 +775,78 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
       expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       await alter('insert_col_start', 1);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
       expect(colWidth(spec().$container, 1)).toBe(50);
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       await alter('insert_col_start', 2);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
       expect(colWidth(spec().$container, 2)).toBe(50);
-      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       await alter('insert_col_start', 3);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 52,
-        comfortable: 60,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_50_52_60());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
       expect(colWidth(spec().$container, 3)).toBe(50);
     });
 
@@ -1285,41 +861,17 @@ describe('AutoColumnSize', () => {
         ]
       });
 
-      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
-        compact: 64,
-        defaultDensity: 72,
-        comfortable: 80,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_64_72_80());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
 
       await alter('remove_row', 0);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
-        compact: 64,
-        defaultDensity: 72,
-        comfortable: 80,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 104,
-        defaultDensity: 115,
-        comfortable: 123,
-      }));
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_64_72_80());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_104_115_123());
+      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eAutoColumnSize_192_210_218());
     });
   });
 
@@ -1340,16 +892,8 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 65,
-        defaultDensity: 67,
-        comfortable: 75,
-      }));
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 207,
-        defaultDensity: 225,
-        comfortable: 233,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_65_67_75());
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_207_225_233());
     });
   });
 
@@ -1388,11 +932,7 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().pickByDensity({
-        compact: 95,
-        defaultDensity: 95,
-        comfortable: 100,
-      }), 10);
+      expect(colWidth(spec().$container, 0)).toBeAroundValue(getThemeLayout().e2eAutoColumnSize_95_95_100(), 10);
     });
   });
 
@@ -1417,11 +957,7 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-        compact: 162,
-        defaultDensity: 177,
-        comfortable: 185,
-      }));
+      expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eAutoColumnSize_162_177_185());
     });
   });
 
@@ -1467,20 +1003,12 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 50,
-        comfortable: 58,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_50_58());
 
       await setDataAtCell(0, 0, 999999999999);
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 123,
-        defaultDensity: 135,
-        comfortable: 143,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_123_135_143());
     });
 
     it('should decrease width if result become to be shorter', async() => {
@@ -1496,20 +1024,12 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 58,
-        defaultDensity: 65,
-        comfortable: 73,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_58_65_73());
 
       await setDataAtCell(0, 0, 9);
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 50,
-        comfortable: 58,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_50_58());
     });
 
     it('should change width if result become to be an error', async() => {
@@ -1525,20 +1045,12 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 50,
-        comfortable: 58,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_50_50_58());
 
       await setDataAtCell(0, 0, 'not a number');
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 67,
-        defaultDensity: 75,
-        comfortable: 83,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eAutoColumnSize_67_75_83());
     });
   });
 });

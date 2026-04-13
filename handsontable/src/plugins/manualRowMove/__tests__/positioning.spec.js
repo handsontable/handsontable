@@ -403,11 +403,7 @@ describe('manualRowMove', () => {
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
-      expect(backlight.outerHeight()).toBe(getThemeLayout().pickByDensity({
-        compact: 52,
-        defaultDensity: 58,
-        comfortable: 74,
-      }));
+      expect(backlight.outerHeight()).toBe(getThemeLayout().e2eDensity_f464e90e18());
       expect(backlight.offset().top).toBe(TH.offset().top);
     });
   });

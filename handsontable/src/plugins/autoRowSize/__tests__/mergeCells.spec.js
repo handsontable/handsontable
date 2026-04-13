@@ -29,15 +29,7 @@ describe('MergeCells', () => {
       }],
     });
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(getRowHeight(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(getRowHeight(0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(getRowHeight(1)).toBe(getThemeLayout().defaultDataRowHeight);
   });
 });

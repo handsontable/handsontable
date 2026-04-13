@@ -222,11 +222,7 @@ describe('Pagination UI', () => {
       pagination: true,
     });
 
-    expect(tableView().getViewportHeight()).toBe(getThemeLayout().pickByDensity({
-      compact: 367,
-      defaultDensity: 356,
-      comfortable: 352,
-    }));
+    expect(tableView().getViewportHeight()).toBe(getThemeLayout().e2eDensity_a4793c32d9());
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are hidden)', async() => {

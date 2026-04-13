@@ -537,18 +537,7 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await sleep(64);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 118,
-        defaultDensity: 118,
-        comfortable: 133,
-      }));
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 131,
-        defaultDensity: 146,
-        comfortable: 148,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -567,14 +556,7 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await sleep(64);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 79,
-        defaultDensity: 88,
-        comfortable: 112,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should open editor with the correct size when there is scrollbar on the list and table', async() => {
@@ -594,14 +576,7 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const container = getActiveEditor().htContainer;
-
-      expect(container.clientWidth).toBe(118 + Handsontable.dom.getScrollbarWidth());
-      expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-        compact: 52,
-        defaultDensity: 58,
-        comfortable: 37,
-      }));
+      expectInnerHandsontableEditorListClientBoxMatchesSettings();
     });
 
     it('should set textarea caret position at the end of the input, after moving scrollbar', async() => {

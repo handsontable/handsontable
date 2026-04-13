@@ -307,11 +307,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const nextElement = $(document.body);
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().pickByDensity({
-        compact: 130,
-        defaultDensity: 185,
-        comfortable: 235,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().e2eDensity_6fb44e9a25());
 
       rowHeader
         .simulate('mousedown')
@@ -327,11 +323,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
-        compact: 140,
-        defaultDensity: 185,
-        comfortable: 240,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_73a19e226c());
     });
 
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to the top overlay', async() => {
@@ -357,11 +349,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().pickByDensity({
-        compact: 100,
-        defaultDensity: 100,
-        comfortable: 170,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().e2eDensity_7d7cc669b9());
 
       rowHeader
         .simulate('mousedown')
@@ -376,11 +364,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
-        compact: 100,
-        defaultDensity: 100,
-        comfortable: 170,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_7d7cc669b9());
     });
 
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +
@@ -410,11 +394,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().pickByDensity({
-        compact: 50,
-        defaultDensity: 50,
-        comfortable: 85,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().e2eDensity_a2f2c0beda());
 
       rowHeader
         .simulate('mousedown')
@@ -429,11 +409,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
-        compact: 100,
-        defaultDensity: 100,
-        comfortable: 170,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_7d7cc669b9());
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first row that belongs ' +

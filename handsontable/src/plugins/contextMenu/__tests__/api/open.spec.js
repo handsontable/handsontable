@@ -37,16 +37,8 @@ describe('ContextMenu', () => {
         const menuOffset = $contextMenu.offset();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.top + 1,
-          defaultDensity: cellOffset.top + 1,
-          comfortable: cellOffset.top + 1,
-        }), 0);
-        expect(menuOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left,
-          defaultDensity: cellOffset.left,
-          comfortable: cellOffset.left,
-        }), 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
       it('should open context menu by default on the right-bottom position (including offset)', async() => {
@@ -71,16 +63,8 @@ describe('ContextMenu', () => {
         const menuOffset = $contextMenu.offset();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.top + 1 + 40,
-          defaultDensity: cellOffset.top + 1 + 40,
-          comfortable: cellOffset.top + 1 + 40,
-        }), 0);
-        expect(menuOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left + 20,
-          defaultDensity: cellOffset.left + 20,
-          comfortable: cellOffset.left + 20,
-        }), 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1 + 40, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left + 20, 0);
       });
 
       it.forTheme('classic')('should open context menu on the right-top position if on the left and ' +
@@ -268,16 +252,8 @@ describe('ContextMenu', () => {
         const menuWidth = $contextMenu.outerWidth();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.top + 1,
-          defaultDensity: cellOffset.top + 1,
-          comfortable: cellOffset.top + 1,
-        }), 0);
-        expect(menuOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - menuWidth,
-          defaultDensity: cellOffset.left - menuWidth,
-          comfortable: cellOffset.left - menuWidth,
-        }), 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
       });
 
       it('should open context menu on the left-bottom position if on the right there is no space left (including offset)', async() => {
@@ -305,16 +281,8 @@ describe('ContextMenu', () => {
         const menuWidth = $contextMenu.outerWidth();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.top + 1 + 40,
-          defaultDensity: cellOffset.top + 1 + 40,
-          comfortable: cellOffset.top + 1 + 40,
-        }), 0);
-        expect(menuOffset.left).toBeCloseTo(getThemeLayout().pickByDensity({
-          compact: cellOffset.left - menuWidth + 10,
-          defaultDensity: cellOffset.left - menuWidth + 10,
-          comfortable: cellOffset.left - menuWidth + 10,
-        }), 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1 + 40, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + 10, 0);
       });
 
       it.forTheme('classic')('should open context menu on the left-top position if on the right and ' +

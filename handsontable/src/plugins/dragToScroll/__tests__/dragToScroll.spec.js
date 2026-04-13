@@ -527,11 +527,7 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
-        compact: 134,
-        defaultDensity: 170,
-        comfortable: 260,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_95d19e5e71());
     });
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is a row ' +
@@ -572,11 +568,7 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().pickByDensity({
-        compact: 134,
-        defaultDensity: 170,
-        comfortable: 260,
-      }));
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_95d19e5e71());
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first row ' +

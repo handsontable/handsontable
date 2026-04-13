@@ -32,56 +32,20 @@ describe('Pagination integration with AutoColumnSize', () => {
 
     pagination.setPage(2);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 1,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 246,
-      defaultDensity: 268,
-      comfortable: 276,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 2,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eDensity_fe455d5781());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_0308b1f949());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_8b9c83b3f3());
 
     pagination.setPage(3);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 1,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 149,
-      defaultDensity: 163,
-      comfortable: 171,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 2,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eDensity_fe455d5781());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_0bf6b512ac());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_8b9c83b3f3());
 
     pagination.setPage(4);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 1,
-    }));
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 1,
-    }));
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: getDefaultColumnWidth(),
-      defaultDensity: getDefaultColumnWidth(),
-      comfortable: getDefaultColumnWidth() + 2,
-    }));
+    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eDensity_fe455d5781());
+    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_fe455d5781());
+    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_8b9c83b3f3());
   });
 });

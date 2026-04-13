@@ -2056,22 +2056,14 @@ describe('CollapsibleColumns', () => {
 
       await setDataAtCell(0, 1, 'Longer value');
 
-      expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-        compact: 90,
-        defaultDensity: 99,
-        comfortable: 107,
-      }));
+      expect(getColWidth(1)).toBe(getThemeLayout().e2eDensity_5bbc262bb3());
 
       $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
 
-      expect(getColWidth(1)).toBe(getThemeLayout().pickByDensity({
-        compact: 90,
-        defaultDensity: 99,
-        comfortable: 107,
-      }));
+      expect(getColWidth(1)).toBe(getThemeLayout().e2eDensity_5bbc262bb3());
     });
 
     it('should not change the first child column width after collapsing a parent header (#dev-2151)', async() => {

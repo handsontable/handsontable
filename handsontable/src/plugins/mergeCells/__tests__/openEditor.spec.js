@@ -137,11 +137,9 @@ describe('MergeCells open editor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
-      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 52, left: 50 },
-        defaultDensity: { top: 58, left: 50 },
-        comfortable: { top: 74, left: 50 },
-      }));
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual(
+        getThemeLayout().e2eMergeCellsOpenEditorWideMergeTextareaParentOffset(),
+      );
     });
 
     it('should render the editor correctly after scroll for very high merged cell', async() => {
@@ -166,11 +164,9 @@ describe('MergeCells open editor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
-      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual(getThemeLayout().pickByDensity({
-        compact: { top: 27, left: 99 },
-        defaultDensity: { top: 30, left: 100 },
-        comfortable: { top: 38, left: 108 },
-      }));
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual(
+        getThemeLayout().e2eMergeCellsOpenEditorTallMergeTextareaParentOffset(),
+      );
     });
   });
 });

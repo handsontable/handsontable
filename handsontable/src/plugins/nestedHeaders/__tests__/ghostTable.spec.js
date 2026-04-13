@@ -53,42 +53,29 @@ describe('NestedHeaders', () => {
         });
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
+        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 100,
-          defaultDensity: 110,
-          comfortable: 117,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 100,
-          defaultDensity: 110,
-          comfortable: 117,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 99,
-          defaultDensity: 110,
-          comfortable: 118,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 99,
-          defaultDensity: 110,
-          comfortable: 118,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 99,
-          defaultDensity: 110,
-          comfortable: 118,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 99,
-          defaultDensity: 110,
-          comfortable: 118,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 99,
-          defaultDensity: 110,
-          comfortable: 118,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_100_110_117(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_100_110_117(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+        );
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
@@ -105,57 +92,38 @@ describe('NestedHeaders', () => {
         });
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
+        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 23,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 24,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 26,
-          comfortable: 35,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 23,
-          defaultDensity: 27,
-          comfortable: 36,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 27,
-          comfortable: 35,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 26,
-          comfortable: 35,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 21,
-          defaultDensity: 26,
-          comfortable: 33,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 102,
-          defaultDensity: 111,
-          comfortable: 114,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 98,
-          defaultDensity: 108,
-          comfortable: 112,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 25,
-          defaultDensity: 30,
-          comfortable: 38,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_23_28_36(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_24_28_36(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_26_35(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_23_27_36(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_27_35(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_26_35(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_21_26_33(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_102_111_114(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_98_108_112(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_25_30_38(),
+        );
       });
 
       it('should container be removed after initialization', async() => {
@@ -192,11 +160,9 @@ describe('NestedHeaders', () => {
         const widthAfterUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
-        expect(widthAfterUpdate).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 135,
-          defaultDensity: 150,
-          comfortable: 158,
-        }));
+        expect(widthAfterUpdate).toBeAroundValue(
+          getThemeLayout().e2eNestedHeadersGhostTable_135_150_158(),
+        );
       });
     });
 
@@ -217,44 +183,31 @@ describe('NestedHeaders', () => {
         });
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
+        const themeLayout = getThemeLayout();
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 24,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_24_28_36(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 79,
-          defaultDensity: 88,
-          comfortable: 96,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 27,
-          comfortable: 35,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 26,
-          comfortable: 35,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 21,
-          defaultDensity: 26,
-          comfortable: 33,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 102,
-          defaultDensity: 111,
-          comfortable: 114,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 98,
-          defaultDensity: 108,
-          comfortable: 112,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_79_88_96(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_27_35(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_26_35(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_21_26_33(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_102_111_114(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_98_108_112(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
@@ -275,40 +228,29 @@ describe('NestedHeaders', () => {
         await render();
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
+        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 23,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_23_28_36(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 79,
-          defaultDensity: 88,
-          comfortable: 96,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_79_88_96(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 27,
-          comfortable: 35,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 22,
-          defaultDensity: 26,
-          comfortable: 34,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 21,
-          defaultDensity: 26,
-          comfortable: 34,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_27_35(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_22_26_34(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_21_26_34(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 201,
-          defaultDensity: 219,
-          comfortable: 227,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_201_219_227(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
@@ -331,32 +273,25 @@ describe('NestedHeaders', () => {
         await render();
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
+        const themeLayout = getThemeLayout();
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 79,
-          defaultDensity: 88,
-          comfortable: 96,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_79_88_96(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 23,
-          defaultDensity: 28,
-          comfortable: 36,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_23_28_36(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 102,
-          defaultDensity: 111,
-          comfortable: 114,
-        }));
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(getThemeLayout().pickByDensity({
-          compact: 98,
-          defaultDensity: 108,
-          comfortable: 112,
-        }));
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_102_111_114(),
+        );
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
+          themeLayout.e2eNestedHeadersGhostTable_98_108_112(),
+        );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
     });

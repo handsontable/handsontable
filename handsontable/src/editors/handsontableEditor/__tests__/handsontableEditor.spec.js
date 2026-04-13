@@ -899,18 +899,7 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const container = getActiveEditor().htContainer;
-
-    expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
-      compact: 324,
-      defaultDensity: 357,
-      comfortable: 381,
-    }));
-    expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-      compact: 188,
-      defaultDensity: 213,
-      comfortable: 273,
-    }));
+    expectInnerHandsontableEditorListClientBoxMatchesSettings();
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -940,17 +929,6 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const container = getActiveEditor().htContainer;
-
-    expect(container.clientWidth).toBe(getThemeLayout().pickByDensity({
-      compact: 324,
-      defaultDensity: 357,
-      comfortable: 381,
-    }));
-    expect(container.clientHeight).toBe(getThemeLayout().pickByDensity({
-      compact: 188,
-      defaultDensity: 213,
-      comfortable: 273,
-    }));
+    expectInnerHandsontableEditorListClientBoxMatchesSettings();
   });
 });

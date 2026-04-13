@@ -33,21 +33,9 @@ describe('StretchColumns', () => {
 
       const plugin = getPlugin('stretchColumns');
 
-      expect(plugin.getColumnWidth(0)).toBe(getThemeLayout().pickByDensity({
-        compact: 67,
-        defaultDensity: 67,
-        comfortable: 62,
-      }));
-      expect(plugin.getColumnWidth(1)).toBe(getThemeLayout().pickByDensity({
-        compact: 67,
-        defaultDensity: 67,
-        comfortable: 62,
-      }));
-      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().pickByDensity({
-        compact: 66,
-        defaultDensity: 66,
-        comfortable: 61,
-      }));
+      expect(plugin.getColumnWidth(0)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllFirstTwo());
+      expect(plugin.getColumnWidth(1)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllFirstTwo());
+      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllLast());
     });
 
     it('should return correct column widths when stretching "last" is enabled', async() => {
@@ -62,11 +50,7 @@ describe('StretchColumns', () => {
 
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
-      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().pickByDensity({
-        compact: 100,
-        defaultDensity: 100,
-        comfortable: 85,
-      }));
+      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchLast());
     });
   });
 });

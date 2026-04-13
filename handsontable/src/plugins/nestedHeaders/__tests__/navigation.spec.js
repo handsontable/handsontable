@@ -1536,56 +1536,32 @@ describe('NestedHeaders', () => {
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       // 300 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-        compact: 66,
-        defaultDensity: 66,
-        comfortable: 74,
-      }));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterD());
 
       await keyDownUp('arrowright'); // "D"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-        compact: 266,
-        defaultDensity: 266,
-        comfortable: 279,
-      }));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterE());
 
       await keyDownUp('arrowright'); // "E"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-        compact: 516,
-        defaultDensity: 516,
-        comfortable: 539,
-      }));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterF());
 
       await keyDownUp('arrowright'); // "F"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-        compact: 866,
-        defaultDensity: 866,
-        comfortable: 900,
-      }));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterG());
 
       await keyDownUp('arrowright'); // "G"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-        compact: 1266,
-        defaultDensity: 1280,
-        comfortable: 1354,
-      }));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterH());
 
       await keyDownUp('arrowright'); // "H"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-        compact: 1316,
-        defaultDensity: 1333,
-        comfortable: 1415,
-      }));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterI());
     });
 
     it('should scroll the viewport correctly while navigating horizontally using arrows (from right to left)', async() => {

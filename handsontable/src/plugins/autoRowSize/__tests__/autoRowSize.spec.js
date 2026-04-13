@@ -227,22 +227,10 @@ describe('AutoRowSize', () => {
     spec().$container.css('display', 'block');
     await render();
 
-    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-      compact: 47,
-      defaultDensity: 49,
-      comfortable: 57,
-    }));
+    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
 
-    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 129,
-      comfortable: 137,
-    }));
+    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_5e8f2219da());
   });
 
   it('should be possible to disable plugin using updateSettings', async() => {
@@ -316,16 +304,8 @@ describe('AutoRowSize', () => {
     await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
-    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getThemeLayout().pickByDensity({
-      compact: 215,
-      defaultDensity: 216,
-      comfortable: 264,
-    }));
-    expect(getMaster().find('.wtHolder').scrollTop()).toBe(getThemeLayout().pickByDensity({
-      compact: 215,
-      defaultDensity: 216,
-      comfortable: 264,
-    }));
+    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getThemeLayout().e2eDensity_012c64941a());
+    expect(getMaster().find('.wtHolder').scrollTop()).toBe(getThemeLayout().e2eDensity_012c64941a());
   });
 
   it('should consider CSS style of each instance separately', async() => {
@@ -443,11 +423,7 @@ describe('AutoRowSize', () => {
       }
     });
 
-    expect(parseInt(getCell(1, 0).style.height || 0, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 243,
-      defaultDensity: 241,
-      comfortable: 241,
-    }));
+    expect(parseInt(getCell(1, 0).style.height || 0, 10)).toBe(getThemeLayout().e2eDensity_9d03a9eba0());
   });
 
   it('should destroy temporary element', async() => {
@@ -470,81 +446,33 @@ describe('AutoRowSize', () => {
 
     const manualColumnResizePlugin = getPlugin('manualColumnResize');
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
 
     await resizeColumn(1, 90);
 
     manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 47,
-      defaultDensity: 49,
-      comfortable: 57,
-    }));
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 68,
-      defaultDensity: 89,
-      comfortable: 97,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_73e2af5849());
 
     await resizeColumn(1, 50);
 
     manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 47,
-      defaultDensity: 49,
-      comfortable: 57,
-    }));
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 129,
-      comfortable: 137,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_5e8f2219da());
 
     await resizeColumn(1, 200);
 
     manualColumnResizePlugin.afterMouseDownTimeout();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 49,
-      comfortable: 57,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_a57d724d44());
   });
 
   it('should recalculate heights after column moved', async() => {
@@ -559,37 +487,17 @@ describe('AutoRowSize', () => {
 
     const plugin = getPlugin('manualColumnMove');
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 48,
-      defaultDensity: 50,
-      comfortable: 58,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 110,
-      defaultDensity: 109,
-      comfortable: 117,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_682da48dd2());
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_1369f821b5());
     expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
 
     plugin.moveColumn(0, 1);
 
     await render();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 47,
-      defaultDensity: 49,
-      comfortable: 57,
-    }));
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 129,
-      comfortable: 137,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_5e8f2219da());
   });
 
   it('should recalculate heights with manualRowResize when changing text to multiline', async() => {
@@ -602,26 +510,14 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
     expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
 
     await setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 110,
-      defaultDensity: 109,
-      comfortable: 117,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_1369f821b5());
     expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
   });
 
@@ -636,11 +532,7 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
     expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
 
@@ -651,11 +543,7 @@ describe('AutoRowSize', () => {
     await render();
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(50);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
     expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
   });
 
@@ -675,11 +563,7 @@ describe('AutoRowSize', () => {
       height: 300
     });
 
-    expect(rowHeight(spec().$container, -1)).toBeAroundValue(getThemeLayout().pickByDensity({
-      compact: 88,
-      defaultDensity: 88,
-      comfortable: 96,
-    }));
+    expect(rowHeight(spec().$container, -1)).toBeAroundValue(getThemeLayout().e2eDensity_9b92431d49());
   });
 
   it('should properly count height', async() => {
@@ -694,11 +578,7 @@ describe('AutoRowSize', () => {
 
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 
-    expect(cloneLeft.height()).toEqual(getThemeLayout().pickByDensity({
-      compact: 74,
-      defaultDensity: 79,
-      comfortable: 95,
-    }));
+    expect(cloneLeft.height()).toEqual(getThemeLayout().e2eDensity_a24230f0bc());
   });
 
   it('should not calculate any row heights, if there are no rows in the dataset', async() => {
@@ -733,21 +613,9 @@ describe('AutoRowSize', () => {
 
     await render();
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
-    expect(getRowHeight(1)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
-    expect(getRowHeight(2)).toBe(getThemeLayout().pickByDensity({
-      compact: 26,
-      defaultDensity: 29,
-      comfortable: 37,
-    }));
+    expect(getRowHeight(0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(getRowHeight(1)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(getRowHeight(2)).toBe(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should correctly apply the column widths to the measured row when the first column is hidden (#dev-569)', async() => {
@@ -770,11 +638,7 @@ describe('AutoRowSize', () => {
 
     await render();
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 27,
-      defaultDensity: 30,
-      comfortable: 38,
-    }));
+    expect(getRowHeight(0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
   });
 
   it('should not throw error while traversing header\'s DOM elements', async() => {
@@ -819,21 +683,13 @@ describe('AutoRowSize', () => {
 
     await scrollViewportTo(49, 0);
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 984,
-      defaultDensity: 1135,
-      comfortable: 1543,
-    }));
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_0077155d83());
 
     await listen();
     await selectColumns(2, 2);
     await keyDownUp('delete');
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 984,
-      defaultDensity: 1135,
-      comfortable: 1543,
-    }));
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_0077155d83());
   });
 
   it('should correctly calculate row heights for cell\'s content that produce ' +
@@ -873,31 +729,11 @@ describe('AutoRowSize', () => {
       ],
     });
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().pickByDensity({
-      compact: 31,
-      defaultDensity: 35,
-      comfortable: 43,
-    }));
-    expect(getRowHeight(4)).toBe(getThemeLayout().pickByDensity({
-      compact: 30,
-      defaultDensity: 34,
-      comfortable: 42,
-    }));
-    expect(getRowHeight(9)).toBe(getThemeLayout().pickByDensity({
-      compact: 30,
-      defaultDensity: 34,
-      comfortable: 42,
-    }));
-    expect(getRowHeight(14)).toBe(getThemeLayout().pickByDensity({
-      compact: 30,
-      defaultDensity: 34,
-      comfortable: 42,
-    }));
-    expect(getRowHeight(19)).toBe(getThemeLayout().pickByDensity({
-      compact: 30,
-      defaultDensity: 34,
-      comfortable: 42,
-    }));
+    expect(getRowHeight(0)).toBe(getThemeLayout().e2eDensity_315eed5b06());
+    expect(getRowHeight(4)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
+    expect(getRowHeight(9)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
+    expect(getRowHeight(14)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
+    expect(getRowHeight(19)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
 
     $(style).remove();
   });

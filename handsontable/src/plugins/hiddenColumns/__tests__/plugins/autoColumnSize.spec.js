@@ -93,11 +93,7 @@ describe('HiddenColumns', () => {
 
       expect(getColWidth(0)).toBe(0);
       expect(getColWidth(1)).toBe(0);
-      expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-        compact: 207,
-        defaultDensity: 225,
-        comfortable: 233,
-      }));
+      expect(getColWidth(2)).toBe(getThemeLayout().e2eDensity_3bcf74979c());
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', async() => {
@@ -118,11 +114,7 @@ describe('HiddenColumns', () => {
 
       expect(getColWidth(0)).toBe(0);
       expect(getColWidth(1)).toBe(0);
-      expect(getColWidth(2)).toBe(getThemeLayout().pickByDensity({
-        compact: 192,
-        defaultDensity: 210,
-        comfortable: 218,
-      }));
+      expect(getColWidth(2)).toBe(getThemeLayout().e2eDensity_dc11ccdb89());
     });
 
     it('should return proper values from the `getColHeader` function', async() => {

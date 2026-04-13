@@ -41,16 +41,8 @@ describe('DropdownMenu', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(getThemeLayout().pickByDensity({
-        compact: 139,
-        defaultDensity: 155,
-        comfortable: 194,
-      }));
-      expect(tickItemOffset.left).toBe(getThemeLayout().pickByDensity({
-        compact: dropdownMenuOffset.left + 1,
-        defaultDensity: dropdownMenuOffset.left + 1,
-        comfortable: dropdownMenuOffset.left,
-      }));
+      expect(tickItemOffset.top).toBe(getThemeLayout().e2eDensity_86a4cac668());
+      expect(tickItemOffset.left).toBe(getThemeLayout().e2eMenuTickItemInlineStartFromRootLeft(dropdownMenuOffset.left));
     });
   });
 });

@@ -141,11 +141,7 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().pickByDensity({
-        compact: 86,
-        defaultDensity: 93,
-        comfortable: 101,
-      }));
+      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_ff544a9b2b());
     });
   });
 });

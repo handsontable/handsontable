@@ -132,11 +132,7 @@ describe('NestedRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 57,
-        defaultDensity: 61,
-        comfortable: 69,
-      }));
+      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_e145a29131());
     });
 
     it('should take into account the `rowHeaderWidth` option when nested rows are enabled', async() => {
@@ -163,31 +159,19 @@ describe('NestedRows', () => {
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 70,
-        defaultDensity: 71,
-        comfortable: 79,
-      }));
+      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_9efbb642b5());
 
       await selectCell(3, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 77,
-        defaultDensity: 81,
-        comfortable: 89,
-      }));
+      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_10071d8a47());
 
       await selectCell(4, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().pickByDensity({
-        compact: 87,
-        defaultDensity: 91,
-        comfortable: 99,
-      }));
+      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_25c4d95d1f());
     });
   });
 

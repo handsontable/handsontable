@@ -44,32 +44,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: 285,
-                height: 27,
-                maxHeight: 185,
-              },
-              defaultDensity: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: 285,
-                height: 30,
-                maxHeight: 185,
-              },
-              comfortable: {
-                start: 0,
-                top: 0,
-                width: 51,
-                maxWidth: 285,
-                height: 38,
-                maxHeight: 185,
-              },
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -84,32 +59,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: document.documentElement.clientWidth,
-                height: 27,
-                maxHeight: document.documentElement.clientHeight,
-              },
-              defaultDensity: {
-                start: 0,
-                top: 0,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth,
-                height: 30,
-                maxHeight: document.documentElement.clientHeight,
-              },
-              comfortable: {
-                start: 0,
-                top: 0,
-                width: 59,
-                maxWidth: document.documentElement.clientWidth,
-                height: 38,
-                maxHeight: document.documentElement.clientHeight,
-              },
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -134,32 +84,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, countRows() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 234,
-                top: 26,
-                width: 51,
-                maxWidth: 51,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 234,
-                top: 29,
-                width: 51,
-                maxWidth: 51,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 234,
-                top: 37,
-                width: 51,
-                maxWidth: 51,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_8b522d5d5b());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -186,32 +111,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, countCols() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 55, // 55 - the width of the first cell
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 26,
-                width: 55,
-                maxWidth: 55,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 62,
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 29,
-                width: 62,
-                maxWidth: 62,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + document.documentElement.clientWidth - 70, // 51 - the width of the first cell
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 37,
-                width: 70,
-                maxWidth: 70,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_e5142224f2(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -231,32 +131,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: 285,
-                height: 27,
-                maxHeight: 185,
-              },
-              defaultDensity: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: 285,
-                height: 30,
-                maxHeight: 185,
-              },
-              comfortable: {
-                start: 0,
-                top: 0,
-                width: 51,
-                maxWidth: 285,
-                height: 38,
-                maxHeight: 185,
-              },
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -272,32 +147,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: document.documentElement.clientWidth,
-                height: 27,
-                maxHeight: document.documentElement.clientHeight,
-              },
-              defaultDensity: {
-                start: 0,
-                top: 0,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth,
-                height: 30,
-                maxHeight: document.documentElement.clientHeight,
-              },
-              comfortable: {
-                start: 0,
-                top: 0,
-                width: 59,
-                maxWidth: document.documentElement.clientWidth,
-                height: 38,
-                maxHeight: document.documentElement.clientHeight,
-              },
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -323,32 +173,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 49,
-                top: 26,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 49,
-                top: 29,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 50,
-                top: 37,
-                width: 52,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_d4ea38684b());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -370,32 +195,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 26,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 50,
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 29,
-                width: 52,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 58,
-                top: document.documentElement.offsetHeight - document.documentElement.clientHeight + 37,
-                width: 60,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_065fabb134(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -414,32 +214,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: 285,
-                height: 27,
-                maxHeight: 185,
-              },
-              defaultDensity: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: 285,
-                height: 30,
-                maxHeight: 185,
-              },
-              comfortable: {
-                start: 0,
-                top: 0,
-                width: 51,
-                maxWidth: 285,
-                height: 38,
-                maxHeight: 185,
-              },
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -454,32 +229,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: {
-                start: 0,
-                top: 0,
-                width: 50,
-                maxWidth: document.documentElement.clientWidth,
-                height: 27,
-                maxHeight: document.documentElement.clientHeight,
-              },
-              defaultDensity: {
-                start: 0,
-                top: 0,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth,
-                height: 30,
-                maxHeight: document.documentElement.clientHeight,
-              },
-              comfortable: {
-                start: 0,
-                top: 0,
-                width: 59,
-                maxWidth: document.documentElement.clientWidth,
-                height: 38,
-                maxHeight: document.documentElement.clientHeight,
-              },
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -504,32 +254,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 49,
-                top: 158,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 27,
-                maxHeight: 27,
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 49,
-                top: 155,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 30,
-                maxHeight: 30,
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 50,
-                top: 147,
-                width: 52,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 38,
-                maxHeight: 38,
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_b03e660972());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -550,32 +275,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 49, // 49 - the width of the first cell
-                top: document.documentElement.offsetHeight - 27, // 27 - the height of the last cell
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 27,
-                maxHeight: 27,
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 50,
-                top: document.documentElement.offsetHeight - 30,
-                width: 52,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 30,
-                maxHeight: 30,
-              }),
-              comfortable: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft) + 58,
-                top: document.documentElement.offsetHeight - 38,
-                width: 60,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 38,
-                maxHeight: 38,
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_3acc8a5880());
           });
         });
 
@@ -595,32 +295,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(8, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 0,
-                top: 132,
-                width: 50,
-                maxWidth: 285,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 0,
-                top: 126,
-                width: 50,
-                maxWidth: 285,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 0,
-                top: 110,
-                width: 51,
-                maxWidth: 285,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_62100eec40());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -636,32 +311,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 0,
-                top: document.documentElement.clientHeight - 53, // 53 - height of the 2 last rows,
-                width: 50,
-                maxWidth: document.documentElement.clientWidth,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 0,
-                top: document.documentElement.clientHeight - 59,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 0,
-                top: document.documentElement.clientHeight - 75,
-                width: 59,
-                maxWidth: document.documentElement.clientWidth,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_a7dd654d16(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -687,32 +337,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 0,
-                top: 132,
-                width: 50,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 0,
-                top: 126,
-                width: 50,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 0,
-                top: 110,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_3866422adb());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -734,32 +359,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft),
-                top: document.documentElement.offsetHeight - 54,
-                width: 50,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft),
-                top: document.documentElement.offsetHeight - 60,
-                width: 51,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: Math.abs(document.documentElement.scrollLeft),
-                top: document.documentElement.offsetHeight - 76,
-                width: 59,
-                // maxWidth: ?, // returns wrong value! it will be fixed within #9206
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_901bb6925b());
           });
         });
 
@@ -778,32 +378,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 0,
-                top: 132,
-                width: 50,
-                maxWidth: 285,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 0,
-                top: 126,
-                width: 50,
-                maxWidth: 285,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 0,
-                top: 110,
-                width: 51,
-                maxWidth: 285,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_62100eec40());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -818,32 +393,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 0,
-                top: document.documentElement.clientHeight - 53, // 53 - height of the 2 last rows
-                width: 50,
-                maxWidth: document.documentElement.clientWidth,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 0,
-                top: document.documentElement.clientHeight - 59,
-                width: 51,
-                maxWidth: document.documentElement.clientWidth,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 0,
-                top: document.documentElement.clientHeight - 75,
-                width: 59,
-                maxWidth: document.documentElement.clientWidth,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_69029d1636(document.documentElement.clientWidth, document.documentElement.clientHeight));
           });
         });
 
@@ -868,32 +418,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, countCols() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 234,
-                top: 158,
-                width: 51,
-                maxWidth: 51,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 234,
-                top: 155,
-                width: 51,
-                maxWidth: 51,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 234,
-                top: 147,
-                width: 51,
-                maxWidth: 51,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_230de5a9f7());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -923,32 +448,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, countCols() - 1);
 
-            expect(getActiveEditor().getEditedCellRect()).toEqual(getThemeLayout().pickByDensity({
-              compact: jasmine.objectContaining({
-                start: 4949,
-                top: document.documentElement.offsetHeight - 28,
-                width: 51,
-                maxWidth: 51,
-                height: 27,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              defaultDensity: jasmine.objectContaining({
-                start: 4949,
-                top: document.documentElement.offsetHeight - 31,
-                width: 51,
-                maxWidth: 51,
-                height: 30,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-              comfortable: jasmine.objectContaining({
-                start: 4949,
-                top: document.documentElement.offsetHeight - 39,
-                width: 51,
-                maxWidth: 51,
-                height: 38,
-                // maxHeight: ?, // returns wrong value! it will be fixed within #9206
-              }),
-            }));
+            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_3dc880f3f2());
           });
         });
       });

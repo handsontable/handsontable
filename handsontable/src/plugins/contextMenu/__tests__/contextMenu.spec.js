@@ -98,11 +98,7 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(getThemeLayout().pickByDensity({
-        compact: 217,
-        defaultDensity: 217,
-        comfortable: 215,
-      }));
+      expect($menu.width()).toEqual(getThemeLayout().e2eDensity_db9abac9c8());
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {

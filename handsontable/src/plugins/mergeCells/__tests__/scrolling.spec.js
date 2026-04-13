@@ -24,11 +24,7 @@ describe('MergeCells scrolling', () => {
     await render();
     await simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 130,
-      defaultDensity: 130,
-      comfortable: 160,
-    }));
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_d199d17b67());
 
     await scrollViewportVertically(0);
     await render();
@@ -81,11 +77,7 @@ describe('MergeCells scrolling', () => {
     await render();
     await simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().pickByDensity({
-      compact: 131,
-      defaultDensity: 146,
-      comfortable: 186,
-    }));
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_8992c845e6());
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked (virtualized is on)', async() => {

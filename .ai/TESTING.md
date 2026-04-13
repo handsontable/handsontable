@@ -389,13 +389,13 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 - `defaultColumnHeaderHeight` -- content height of column header (no border)
 - `firstRenderedRowDefaultHeight` -- first row in an overlay (extra 1px compensation)
 - `defaultColumnWidth` -- 50px (Walkontable constant)
-- `defaultRowHeaderWidth` -- 50px compact density, 49px default/comfortable (border-box correction)
+- `defaultRowHeaderWidth` -- 50px for every theme (Walkontable default row-header column width; used for E2E container width math so horizontal viewport matches across themes)
 - `cellContentHeight` -- same as defaultColumnHeaderHeight (TD clientHeight)
 - `densityLevel` -- `'compact' | 'default' | 'comfortable'` from theme registration (see THEME_DENSITY in `themeLayoutFromTokens.js`)
-- `pickByDensity({ compact, defaultDensity, comfortable })` -- choose one of three literals (or objects) by density when expectations differ per density but do not need custom geometry math
+- `pickByDensity({ compact, defaultDensity, comfortable })` -- internal / layout-only helper; **E2E specs** should call named `e2e*()` methods (or other formulas on the layout object) instead of `getThemeLayout().pickByDensity(...)`
 - `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
 - `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
-- **`e2e*()` helpers** -- regression geometry for specific E2E scenarios (menu scroll, filters submenu Y, etc.). They branch on **`densityLevel`**, not on theme name, so new themes only register tokens + density; specs stay unchanged.
+- **`e2e*()` helpers** -- regression geometry for specific E2E scenarios (menu scroll, filters submenu Y, pagination scroll after `scrollViewportTo`, manual row resize handle positions, stretch-columns widths, nested-headers keyboard scroll snapshots, etc.). They branch on **`densityLevel`** (or use token formulas), not on theme name in specs; new themes register tokens + density. Add new scenarios here when specs would otherwise call `pickByDensity` with fixed triplets; cover triplets in `test/helpers/__tests__/themeLayoutFromTokens.unit.js`.
 
 ### Preferred patterns
 
@@ -404,10 +404,12 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 - **Overlay heights:** `layout.overlayHeight({ rows: N })`
 - **Cell clientHeight:** `layout.cellContentHeight`
 - **Named E2E expectations:** `layout.e2eWindowScrollYContextMenuFirstSelectableItem()`, `layout.e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(initialScroll)`, `layout.e2eViewportScrollAfterRectangularAdjacentDataRows(initialScroll)` (and other `e2e*` methods) instead of `if (getLoadedTheme() === '…')` in spec files
+- **Inner Handsontable editor lists (dropdown / handsontable / autocomplete):** `expectInnerHandsontableEditorListClientBoxMatchesSettings()` in `test/helpers/common.js` (global in E2E) -- asserts list root client box matches `getActiveEditor().htEditor.getSettings()`.
+- **getEditedCellRect (E2E):** `expectGetEditedCellRectFromPartial((L) => L.e2eGcr_*())` (or with `document.documentElement.clientWidth` / `clientHeight` when needed) merges the returned partial with `activeEditorEditedCellRectWidthHeightFromTd()` so `width` / `height` always come from the live TD; `e2eGcr_*` helpers live on `themeLayoutFromTokens`.
 
 ### Do not use
 
-- Ad hoc per-theme pixel triplets in specs without `getThemeLayout()` (`pickByDensity`, primitives, or `e2e*()` helpers)
+- Ad hoc per-theme pixel triplets in specs without `getThemeLayout()` (or `getThemeLayout().pickByDensity(...)` in specs -- use `e2e*` / `e2eGcr_*` / token-backed formulas instead)
 - Per-theme `switch` / `getLoadedTheme()` comparisons in **spec files** for layout numbers -- add or extend an `e2e*` helper on `themeLayoutFromTokens` (density-based) instead
 - Per-theme `switch` statements in helpers for values derivable from tokens
 
