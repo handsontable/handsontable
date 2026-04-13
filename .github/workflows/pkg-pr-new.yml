@@ -74,12 +74,6 @@ jobs:
             npm i https://pkg.pr.new/@handsontable/angular-wrapper@${{ github.event.pull_request.number }}
             ```
 
-            ## 🚀 StackBlitz Templates
-
-            - [JavaScript Demo](https://pkg.pr.new/~/handsontable-pr-javascript-demo@${{ steps.vars.outputs.short_sha }})
-            - [React Demo](https://pkg.pr.new/~/handsontable-pr-react-demo@${{ steps.vars.outputs.short_sha }})
-            - [TypeScript Demo](https://pkg.pr.new/~/handsontable-ts-demo@${{ steps.vars.outputs.short_sha }})
-
             ## 📚 Examples
 
             | Framework | Link |
