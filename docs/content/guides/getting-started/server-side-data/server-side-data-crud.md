@@ -19,8 +19,6 @@ searchCategory: Guides
 category: Server-side data
 ---
 
-# Server-side CRUD
-
 With a complete [`dataProvider`](@/api/options.md#dataprovider) configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend. For loading and `fetchRows`, see [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md) and [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md).
 
 [[toc]]

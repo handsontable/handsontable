@@ -19,8 +19,6 @@ searchCategory: Guides
 category: Server-side data
 ---
 
-# Server-side configuration
-
 How to wire [`dataProvider`](@/api/options.md#dataprovider) with [`pagination`](@/api/options.md#pagination), sorting, and filters, and what `fetchRows` receives in each request. Start with [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md) if you need the overview or demo.
 
 [[toc]]
