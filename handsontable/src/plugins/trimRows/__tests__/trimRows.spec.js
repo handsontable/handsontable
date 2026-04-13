@@ -1245,7 +1245,7 @@ describe('TrimRows', () => {
   describe('regression check - headers resizing', () => {
     it('should resize container for headers properly after insertion (pixel perfect)', async() => {
       const insertedRows = 6;
-      const rowH = getThemeLayout().e2ePickForDensity({ compact: 23, default: 29, comfortable: 37 });
+      const rowH = getThemeLayout().defaultDataRowHeight;
 
       handsontable({
         rowHeaders: true,
@@ -1270,7 +1270,7 @@ describe('TrimRows', () => {
 
     it('should resize container for headers properly after removal (pixel perfect)', async() => {
       const removedRows = 6;
-      const rowH = getThemeLayout().e2ePickForDensity({ compact: 23, default: 29, comfortable: 37 });
+      const rowH = getThemeLayout().defaultDataRowHeight;
 
       handsontable({
         rowHeaders: true,
@@ -1295,7 +1295,7 @@ describe('TrimRows', () => {
 
     it('should resize container for headers properly after untrimming row ' +
       '(pixel perfect) #6276', async() => {
-      const rowH = getThemeLayout().e2ePickForDensity({ compact: 23, default: 29, comfortable: 37 });
+      const rowH = getThemeLayout().defaultDataRowHeight;
 
       handsontable({
         rowHeaders: true,

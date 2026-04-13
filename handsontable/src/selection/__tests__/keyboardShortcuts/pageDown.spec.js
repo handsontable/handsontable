@@ -32,16 +32,6 @@ describe('Selection navigation', () => {
       const compact = layout.densityLevel === 'compact';
       const expectedRows = compact ? [4, 7, 10, 13, 14] : [5, 9, 13, 14];
 
-      function viewportSelectionPattern(rowIndex) {
-        const lines = Array.from({ length: 15 }, (_, i) => {
-          const mid = i === rowIndex ? ' # ' : '   ';
-
-          return `        |   :${mid}:   |`;
-        });
-
-        return `\n${lines.join('\n')}\n      `;
-      }
-
       handsontable({
         width: 180,
         height,
@@ -51,14 +41,26 @@ describe('Selection navigation', () => {
         viewportColumnRenderingOffset: 10,
       });
 
+      function viewportSelectionPattern(rowIndex, rowCount) {
+        const lines = Array.from({ length: rowCount }, (_, i) => {
+          const mid = i === rowIndex ? ' # ' : '   ';
+
+          return `        |   :${mid}:   |`;
+        });
+
+        return `\n${lines.join('\n')}\n      `;
+      }
+
       await selectCell(1, 1);
 
       for (let i = 0; i < expectedRows.length; i++) {
         await keyDownUp('pagedown');
 
         const row = expectedRows[i];
+        const masterCore = hot().rootElement.querySelector('.ht_master .htCore');
+        const visibleRowCount = masterCore.rows.length;
 
-        expect(viewportSelectionPattern(row)).toBeMatchToSelectionPattern();
+        expect(viewportSelectionPattern(row, visibleRowCount)).toBeMatchToSelectionPattern();
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${row},1 from: ${row},1 to: ${row},1`]);
       }
     });
