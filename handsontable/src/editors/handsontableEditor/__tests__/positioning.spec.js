@@ -40,17 +40,11 @@ describe('HandsontableEditor positioning', () => {
       ...createEditorSettings(),
     });
 
-    const scrollEdgePositions = {
-      horizon: 149,
-      main: 151,
-      classic: 151,
-    };
-
-    const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
-
-    if (scrollPositionBase === undefined) {
-      throw new Error('Missing scroll position base for the current theme');
-    }
+    const scrollPositionBase = getThemeLayout().e2ePickForDensity({
+      compact: 151,
+      default: 151,
+      comfortable: 149,
+    });
 
     // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)
     await scrollViewportHorizontally(scrollPositionBase);
@@ -101,17 +95,11 @@ describe('HandsontableEditor positioning', () => {
       ...createEditorSettings(),
     });
 
-    const scrollEdgePositions = {
-      horizon: 132,
-      main: 71,
-      classic: 46,
-    };
-
-    const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
-
-    if (scrollPositionBase === undefined) {
-      throw new Error('Missing scroll position base for the current theme', { cause: { handsontable: true } });
-    }
+    const scrollPositionBase = getThemeLayout().e2ePickForDensity({
+      compact: 46,
+      default: 71,
+      comfortable: 132,
+    });
 
     // scroll the viewport to the point where the editor may be rendered on the bottom (there is enough space)
     await scrollViewportVertically(scrollPositionBase);

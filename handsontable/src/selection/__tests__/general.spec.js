@@ -1781,13 +1781,7 @@ describe('Selection', () => {
       const doc = this.$iframe[0].contentDocument;
 
       doc.open('text/html', 'replace');
-      doc.write(`
-        <!doctype html>
-        <head>
-          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
-        </head>`);
+      doc.write(`<!doctype html><html><head>${getE2eThemeStylesheetLinkTagsHtml()}</head><body></body></html>`);
       doc.close();
 
       this.$iframeContainer = $('<div/>').appendTo(doc.body);

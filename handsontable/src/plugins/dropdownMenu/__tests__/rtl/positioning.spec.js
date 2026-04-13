@@ -41,7 +41,9 @@ describe('DropdownMenu (RTL mode)', () => {
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
       expect(tickItemOffset.top).toBe(getThemeLayout().e2eDensity_86a4cac668());
-      expect(tickItemOffset.left).toBe(getThemeLayout().e2eMenuTickItemInlineStartFromRootLeft(dropdownMenuOffset.left));
+      expect(tickItemOffset.left).toBe(
+        getThemeLayout().e2eMenuTickItemInlineStartFromRootLeft(dropdownMenuOffset.left),
+      );
     });
   });
 });

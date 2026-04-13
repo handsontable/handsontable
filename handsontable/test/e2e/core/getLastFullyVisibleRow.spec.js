@@ -10,41 +10,29 @@ describe('Core.getLastFullyVisibleRow', () => {
     }
   });
 
-  it.forTheme('classic')('should return last partially visible row index', async() => {
+  it('should return last fully visible row index', async() => {
+    const layout = getThemeLayout();
+    const height = layout.e2ePickForDensity({ compact: 200, default: 250, comfortable: 319 });
+    const expected = layout.e2ePickForDensity({ compact: 6, default: 7, comfortable: 7 });
+
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 200,
+      height,
     });
 
-    expect(getLastFullyVisibleRow()).toBe(6);
+    expect(getLastFullyVisibleRow()).toBe(expected);
   });
 
-  it.forTheme('main')('should return last partially visible row index', async() => {
+  it('should return last fully visible and not hidden row index', async() => {
+    const layout = getThemeLayout();
+    const height = layout.e2ePickForDensity({ compact: 200, default: 250, comfortable: 319 });
+    const expected = layout.e2ePickForDensity({ compact: 8, default: 9, comfortable: 9 });
+
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 250,
-    });
-
-    expect(getLastFullyVisibleRow()).toBe(7);
-  });
-
-  it.forTheme('horizon')('should return last partially visible row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 319,
-    });
-
-    expect(getLastFullyVisibleRow()).toBe(7);
-  });
-
-  it.forTheme('classic')('should return last partially visible and not hidden row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 200,
+      height,
     });
 
     const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
@@ -53,77 +41,24 @@ describe('Core.getLastFullyVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     await render();
 
-    expect(getLastFullyVisibleRow()).toBe(8);
+    expect(getLastFullyVisibleRow()).toBe(expected);
   });
 
-  it.forTheme('main')('should return last partially visible and not hidden row index', async() => {
+  it('should return last fully visible row index (scrolled viewport)', async() => {
+    const layout = getThemeLayout();
+    const height = layout.e2ePickForDensity({ compact: 200, default: 250, comfortable: 319 });
+    const scrollY = layout.e2ePickForDensity({ compact: 355, default: 447, comfortable: 570 });
+    const expected = layout.e2ePickForDensity({ compact: 19, default: 22, comfortable: 22 });
+
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 250,
+      height,
     });
 
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
+    await scrollViewportVertically(scrollY); // row 23 (A24) is partially visible
     await render();
 
-    expect(getLastFullyVisibleRow()).toBe(9);
-  });
-
-  it.forTheme('horizon')('should return last partially visible and not hidden row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 319,
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    await render();
-
-    expect(getLastFullyVisibleRow()).toBe(9);
-  });
-
-  it.forTheme('classic')('should return last partially visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 200,
-    });
-
-    await scrollViewportVertically(355); // row 23 (A24) is partially visible
-    await render();
-
-    expect(getLastFullyVisibleRow()).toBe(19);
-  });
-
-  it.forTheme('main')('should return last partially visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 250,
-    });
-
-    await scrollViewportVertically(447); // row 23 (A24) is partially visible
-    await render();
-
-    expect(getLastFullyVisibleRow()).toBe(22);
-  });
-
-  it.forTheme('horizon')('should return last partially visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 319,
-    });
-
-    await scrollViewportVertically(570); // row 23 (A24) is partially visible
-    await render();
-
-    expect(getLastFullyVisibleRow()).toBe(22);
+    expect(getLastFullyVisibleRow()).toBe(expected);
   });
 });

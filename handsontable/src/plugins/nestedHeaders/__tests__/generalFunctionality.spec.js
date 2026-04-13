@@ -532,16 +532,19 @@ describe('NestedHeaders', () => {
       expect(levels[3][3]).toEqual(getCell(-1, 3));
     });
 
-    it.forTheme('classic')('should render the setup properly after the table being scrolled', async() => {
+    it('should render the setup properly after the table being scrolled', async() => {
+      const layout = getThemeLayout();
+      const width = layout.e2ePickForDensity({ compact: 400, default: 400, comfortable: 427 });
+
       handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 400,
+        width,
         height: 300,
       });
 
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+      const htmlCompactDefaultInitial = `
         <thead>
           <tr>
             <th class="">A1</th>
@@ -601,259 +604,9 @@ describe('NestedHeaders', () => {
             <td class="">I1</td>
           </tr>
         </tbody>
-        `);
+        `;
 
-      await scrollViewportTo({
-        col: 40,
-        verticalSnap: 'top',
-        horizontalSnap: 'start',
-      });
-
-      // scrolled
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="" colspan="8">AL1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT1</th>
-            <th class="" colspan="8">AU1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="" colspan="4">AL2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AP2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT2</th>
-            <th class="" colspan="4">AU2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="" colspan="2">AL3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AN3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AP3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AR3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT3</th>
-            <th class="" colspan="2">AU3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AW3</th>
-          </tr>
-          <tr>
-            <th class="">AL4</th>
-            <th class="">AM4</th>
-            <th class="">AN4</th>
-            <th class="">AO4</th>
-            <th class="">AP4</th>
-            <th class="">AQ4</th>
-            <th class="">AR4</th>
-            <th class="">AS4</th>
-            <th class="">AT4</th>
-            <th class="">AU4</th>
-            <th class="">AV4</th>
-            <th class="">AW4</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="ht__row_odd">
-            <td class="">AL1</td>
-            <td class="">AM1</td>
-            <td class="">AN1</td>
-            <td class="">AO1</td>
-            <td class="">AP1</td>
-            <td class="">AQ1</td>
-            <td class="">AR1</td>
-            <td class="">AS1</td>
-            <td class="">AT1</td>
-            <td class="">AU1</td>
-            <td class="">AV1</td>
-            <td class="">AW1</td>
-          </tr>
-        </tbody>
-        `);
-    });
-
-    it.forTheme('main')('should render the setup properly after the table being scrolled', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 90),
-        colHeaders: true,
-        nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 400,
-        height: 300,
-      });
-
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="">A1</th>
-            <th class="" colspan="8">B1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="">A2</th>
-            <th class="" colspan="4">B2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">F2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="">A3</th>
-            <th class="" colspan="2">B3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">D3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">F3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">H3</th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="">A4</th>
-            <th class="">B4</th>
-            <th class="">C4</th>
-            <th class="">D4</th>
-            <th class="">E4</th>
-            <th class="">F4</th>
-            <th class="">G4</th>
-            <th class="">H4</th>
-            <th class="">I4</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="ht__row_odd">
-            <td class="">A1</td>
-            <td class="">B1</td>
-            <td class="">C1</td>
-            <td class="">D1</td>
-            <td class="">E1</td>
-            <td class="">F1</td>
-            <td class="">G1</td>
-            <td class="">H1</td>
-            <td class="">I1</td>
-          </tr>
-        </tbody>
-        `);
-
-      await scrollViewportTo({
-        col: 40,
-        verticalSnap: 'top',
-        horizontalSnap: 'start',
-      });
-
-      // scrolled
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="" colspan="8">AL1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT1</th>
-            <th class="" colspan="8">AU1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="" colspan="4">AL2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AP2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT2</th>
-            <th class="" colspan="4">AU2</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="" colspan="2">AL3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AN3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AP3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AR3</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AT3</th>
-            <th class="" colspan="2">AU3</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AW3</th>
-          </tr>
-          <tr>
-            <th class="">AL4</th>
-            <th class="">AM4</th>
-            <th class="">AN4</th>
-            <th class="">AO4</th>
-            <th class="">AP4</th>
-            <th class="">AQ4</th>
-            <th class="">AR4</th>
-            <th class="">AS4</th>
-            <th class="">AT4</th>
-            <th class="">AU4</th>
-            <th class="">AV4</th>
-            <th class="">AW4</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="ht__row_odd">
-            <td class="">AL1</td>
-            <td class="">AM1</td>
-            <td class="">AN1</td>
-            <td class="">AO1</td>
-            <td class="">AP1</td>
-            <td class="">AQ1</td>
-            <td class="">AR1</td>
-            <td class="">AS1</td>
-            <td class="">AT1</td>
-            <td class="">AU1</td>
-            <td class="">AV1</td>
-            <td class="">AW1</td>
-          </tr>
-        </tbody>
-        `);
-    });
-
-    it.forTheme('horizon')('should render the setup properly after the table being scrolled', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 90),
-        colHeaders: true,
-        nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 427,
-        height: 300,
-      });
-
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+      const htmlComfortableInitial = `
         <thead>
           <tr>
             <th class="">A1</th>
@@ -918,7 +671,11 @@ describe('NestedHeaders', () => {
             <td class="">J1</td>
           </tr>
         </tbody>
-        `);
+        `;
+
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(
+        layout.densityLevel === 'comfortable' ? htmlComfortableInitial : htmlCompactDefaultInitial
+      );
 
       await scrollViewportTo({
         col: 40,
@@ -926,8 +683,84 @@ describe('NestedHeaders', () => {
         horizontalSnap: 'start',
       });
 
-      // scrolled
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+      const htmlCompactDefaultScrolled = `
+        <thead>
+          <tr>
+            <th class="" colspan="8">AL1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT1</th>
+            <th class="" colspan="8">AU1</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="" colspan="4">AL2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="4">AP2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT2</th>
+            <th class="" colspan="4">AU2</th>
+            <th class="hiddenHeader"></th>
+            <th class="hiddenHeader"></th>
+          </tr>
+          <tr>
+            <th class="" colspan="2">AL3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AN3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AP3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AR3</th>
+            <th class="hiddenHeader"></th>
+            <th class="">AT3</th>
+            <th class="" colspan="2">AU3</th>
+            <th class="hiddenHeader"></th>
+            <th class="" colspan="2">AW3</th>
+          </tr>
+          <tr>
+            <th class="">AL4</th>
+            <th class="">AM4</th>
+            <th class="">AN4</th>
+            <th class="">AO4</th>
+            <th class="">AP4</th>
+            <th class="">AQ4</th>
+            <th class="">AR4</th>
+            <th class="">AS4</th>
+            <th class="">AT4</th>
+            <th class="">AU4</th>
+            <th class="">AV4</th>
+            <th class="">AW4</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="ht__row_odd">
+            <td class="">AL1</td>
+            <td class="">AM1</td>
+            <td class="">AN1</td>
+            <td class="">AO1</td>
+            <td class="">AP1</td>
+            <td class="">AQ1</td>
+            <td class="">AR1</td>
+            <td class="">AS1</td>
+            <td class="">AT1</td>
+            <td class="">AU1</td>
+            <td class="">AV1</td>
+            <td class="">AW1</td>
+          </tr>
+        </tbody>
+        `;
+
+      const htmlComfortableScrolled = `
         <thead>
           <tr>
             <th class="" colspan="8">AL1</th>
@@ -997,7 +830,12 @@ describe('NestedHeaders', () => {
             <td class="">AV1</td>
           </tr>
         </tbody>
-        `);
+        `;
+
+      // scrolled
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(
+        layout.densityLevel === 'comfortable' ? htmlComfortableScrolled : htmlCompactDefaultScrolled
+      );
     });
 
     it('should correctly point cell coords for nested corners', async() => {

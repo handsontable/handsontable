@@ -36,42 +36,21 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     expect(getFirstRenderedVisibleRow()).toBe(2);
   });
 
-  it.forTheme('classic')('should return first rendered row index (scrolled viewport)', async() => {
+  it('should return first rendered row index (scrolled viewport)', async() => {
+    const layout = getThemeLayout();
+    const height = layout.e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 });
+    const scrollY = layout.e2ePickForDensity({ compact: 355, default: 447, comfortable: 570 });
+    const expected = layout.e2ePickForDensity({ compact: 12, default: 14, comfortable: 14 });
+
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 200,
+      height,
     });
 
-    await scrollViewportVertically(355); // row 15 (A16) is partially visible
+    await scrollViewportVertically(scrollY); // row 15 (A16) is partially visible
     await render();
 
-    expect(getFirstRenderedVisibleRow()).toBe(12);
-  });
-
-  it.forTheme('main')('should return first rendered row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 240,
-    });
-
-    await scrollViewportVertically(447); // row 15 (A16) is partially visible
-    await render();
-
-    expect(getFirstRenderedVisibleRow()).toBe(14);
-  });
-
-  it.forTheme('horizon')('should return first rendered row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 306,
-    });
-
-    await scrollViewportVertically(570); // row 15 (A16) is partially visible
-    await render();
-
-    expect(getFirstRenderedVisibleRow()).toBe(14);
+    expect(getFirstRenderedVisibleRow()).toBe(expected);
   });
 });

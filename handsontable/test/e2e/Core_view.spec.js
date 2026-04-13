@@ -347,11 +347,11 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
-  it.forTheme('classic')('should scroll the viewport vertically from the row header navigation', async() => {
+  it('should scroll the viewport vertically from the row header navigation', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 200,
+      height: getThemeLayout().e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 }),
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -374,66 +374,12 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
   });
 
-  it.forTheme('main')('should scroll the viewport vertically from the row header navigation', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 200,
-      height: 240,
-      colHeaders: true,
-      rowHeaders: true,
-      navigableHeaders: true,
-    });
-
-    const htCore = getHtCore();
-
-    await selectCell(10, -1);
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
-  });
-
-  it.forTheme('horizon')('should scroll the viewport vertically from the row header navigation', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 200,
-      height: 306,
-      colHeaders: true,
-      rowHeaders: true,
-      navigableHeaders: true,
-    });
-
-    const htCore = getHtCore();
-
-    await selectCell(10, -1);
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-    await keyDownUp('arrowup');
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
-  });
-
-  it.forTheme('classic')('should scroll the viewport to the first row when the highlight moves ' +
+  it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the cell from the column header', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 200,
+      height: getThemeLayout().e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 }),
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -451,104 +397,12 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
-  it.forTheme('main')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the cell from the column header', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 200,
-      height: 240,
-      colHeaders: true,
-      rowHeaders: true,
-      navigableHeaders: true,
-    });
-
-    const htCore = getHtCore();
-
-    await selectCell(40, 1);
-    await selectCell(-1, 1);
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
-
-    await keyDownUp('arrowdown');
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
-  });
-
-  it.forTheme('horizon')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the cell from the column header', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 200,
-      height: 306,
-      colHeaders: true,
-      rowHeaders: true,
-      navigableHeaders: true,
-    });
-
-    const htCore = getHtCore();
-
-    await selectCell(40, 1);
-    await selectCell(-1, 1);
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
-
-    await keyDownUp('arrowdown');
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
-  });
-
-  it.forTheme('classic')('should scroll the viewport to the first row when the highlight moves ' +
+  it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the row header from the corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 200,
-      colHeaders: true,
-      rowHeaders: true,
-      navigableHeaders: true,
-    });
-
-    const htCore = getHtCore();
-
-    await selectCell(40, 1);
-    await selectCell(-1, -1);
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
-
-    await keyDownUp('arrowdown');
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
-  });
-
-  it.forTheme('main')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the row header from the corner', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 200,
-      height: 240,
-      colHeaders: true,
-      rowHeaders: true,
-      navigableHeaders: true,
-    });
-
-    const htCore = getHtCore();
-
-    await selectCell(40, 1);
-    await selectCell(-1, -1);
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
-
-    await keyDownUp('arrowdown');
-
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
-  });
-
-  it.forTheme('horizon')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the row header from the corner', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 10),
-      width: 200,
-      height: 306,
+      height: getThemeLayout().e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 }),
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -606,45 +460,10 @@ describe('Core_view', () => {
     spec().$container.unwrap();
   });
 
-  it.forTheme('classic')('should fire beforeViewRender event after table has been scrolled', async() => {
+  it('should fire beforeViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
-    spec().$container[0].style.height = '60px';
-    spec().$container[0].style.overflow = 'hidden';
-
-    handsontable({
-      data: createSpreadsheetData(100, 3)
-    });
-
-    const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
-
-    await addHook('beforeViewRender', beforeRenderCallback);
-
-    await scrollViewportVertically(1000);
-
-    expect(beforeRenderCallback.calls.count()).toBe(1);
-  });
-
-  it.forTheme('main')('should fire beforeViewRender event after table has been scrolled', async() => {
-    spec().$container[0].style.width = '400px';
-    spec().$container[0].style.height = '60px';
-    spec().$container[0].style.overflow = 'hidden';
-
-    handsontable({
-      data: createSpreadsheetData(100, 3)
-    });
-
-    const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
-
-    await addHook('beforeViewRender', beforeRenderCallback);
-
-    await scrollViewportVertically(1000);
-
-    expect(beforeRenderCallback.calls.count()).toBe(1);
-  });
-
-  it.forTheme('horizon')('should fire beforeViewRender event after table has been scrolled', async() => {
-    spec().$container[0].style.width = '400px';
-    spec().$container[0].style.height = '97px';
+    spec().$container[0].style.height =
+      `${getThemeLayout().e2ePickForDensity({ compact: 60, default: 60, comfortable: 97 })}px`;
     spec().$container[0].style.overflow = 'hidden';
 
     handsontable({
@@ -728,32 +547,16 @@ describe('Core_view', () => {
     expect(getTopClone().width()).toBe(expectedWidth);
   });
 
-  it.forTheme('classic')('should not extend the selection to the cell under the mouse pointer ' +
-    'after the viewport is moved (#dev-1479)', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-    });
-
-    await simulateClick(getCell(0, 0));
-    await keyDownUp('enter');
-    getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
-
-    // emulates behavior that is similar to the one that is caused by the bug
-    $(getCell(1, 2))
-      .simulate('mousedown');
-    $(getCell(1, 0))
-      .simulate('mouseover', {
-        clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-        clientY: 24, // coordinates of the cell 1, 2 before the column is resized
-      })
-      .simulate('mouseup')
-      .simulate('click');
-
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,0']);
-  });
-
-  it.forTheme('main')('should not extend the selection to the cell under the mouse pointer after ' +
+  it('should not extend the selection to the cell under the mouse pointer after ' +
     'the viewport is moved (#dev-1479)', async() => {
+    const layout = getThemeLayout();
+    const clientY = layout.e2ePickForDensity({ compact: 24, default: 30, comfortable: 38 });
+    const expectedRange = layout.e2ePickForDensity({
+      compact: ['highlight: 1,2 from: 1,2 to: 1,0'],
+      default: ['highlight: 1,2 from: 1,2 to: 1,2'],
+      comfortable: ['highlight: 1,2 from: 1,2 to: 1,2'],
+    });
+
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -768,36 +571,12 @@ describe('Core_view', () => {
     $(getCell(1, 0))
       .simulate('mouseover', {
         clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-        clientY: 30, // coordinates of the cell 1, 2 before the column is resized
+        clientY, // coordinates of the cell 1, 2 before the column is resized
       })
       .simulate('mouseup')
       .simulate('click');
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
-  });
-
-  it.forTheme('horizon')('should not extend the selection to the cell under the mouse pointer after ' +
-    'the viewport is moved (#dev-1479)', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-    });
-
-    await simulateClick(getCell(0, 0));
-    await keyDownUp('enter');
-    getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
-
-    // emulates behavior that is similar to the one that is caused by the bug
-    $(getCell(1, 2))
-      .simulate('mousedown');
-    $(getCell(1, 0))
-      .simulate('mouseover', {
-        clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-        clientY: 38, // coordinates of the cell 1, 2 before the column is resized
-      })
-      .simulate('mouseup')
-      .simulate('click');
-
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
+    expect(getSelectedRange()).toEqualCellRange(expectedRange);
   });
 
   it('should update the `scrollableElement` value of the Overlays after changing the table view size settings', async() => {

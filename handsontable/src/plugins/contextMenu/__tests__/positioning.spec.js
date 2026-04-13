@@ -25,7 +25,8 @@ describe('ContextMenu', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
     describe('menu opening', () => {
-      it.forTheme('classic')('should open context menu in proper position in iframe', async() => {
+      it('should open context menu in proper position in iframe', async() => {
+        const themeLinkHtml = getE2eThemeStylesheetLinkTagHtml(getLoadedTheme());
         const iframeOutside = $('<iframe/>').css({ width: '500px', height: '500px' }).appendTo(spec().$container);
         const docOutside = iframeOutside[0].contentDocument;
 
@@ -33,7 +34,7 @@ describe('ContextMenu', () => {
         docOutside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+            ${themeLinkHtml}
           </head>`);
         docOutside.close();
 
@@ -45,7 +46,7 @@ describe('ContextMenu', () => {
         docInside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+            ${themeLinkHtml}
           </head>`);
         docInside.close();
 

@@ -146,10 +146,8 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="lib/normalize.css">
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+            ${getE2eNormalizeStylesheetLinkTagHtml()}
+            ${getE2eThemeStylesheetLinkTagsHtml()}
           </head>`);
         doc.close();
 

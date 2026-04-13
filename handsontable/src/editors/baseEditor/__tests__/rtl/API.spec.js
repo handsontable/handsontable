@@ -44,7 +44,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_9fd0838eca());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -59,7 +59,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_0c1f70547f(
+              document.documentElement.clientWidth,
+              document.documentElement.clientHeight,
+            ));
           });
         });
 
@@ -84,7 +87,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, countRows() - 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_8b522d5d5b());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_8b522d5d5b());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -111,7 +114,11 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, countCols() - 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_e5142224f2(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial((L) => {
+              const v = getE2eDocumentViewport();
+
+              return L.e2eGcr_e5142224f2(v.clientWidth, v.clientHeight, v);
+            });
           });
         });
 
@@ -131,7 +138,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_9fd0838eca());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -147,7 +154,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_0c1f70547f(
+              document.documentElement.clientWidth,
+              document.documentElement.clientHeight,
+            ));
           });
         });
 
@@ -173,7 +183,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_d4ea38684b());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_d4ea38684b());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -195,7 +205,11 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_065fabb134(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial((L) => {
+              const v = getE2eDocumentViewport();
+
+              return L.e2eGcr_065fabb134(v.clientWidth, v.clientHeight, v);
+            });
           });
         });
 
@@ -214,7 +228,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_9fd0838eca());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -229,7 +243,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_0c1f70547f(
+              document.documentElement.clientWidth,
+              document.documentElement.clientHeight,
+            ));
           });
         });
 
@@ -254,7 +271,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_b03e660972());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_b03e660972());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -275,7 +292,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_3acc8a5880());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_3acc8a5880(getE2eDocumentViewport()));
           });
         });
 
@@ -295,7 +312,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(8, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_62100eec40());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_62100eec40());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -311,7 +328,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_a7dd654d16(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_a7dd654d16(
+              document.documentElement.clientWidth,
+              document.documentElement.clientHeight,
+            ));
           });
         });
 
@@ -337,7 +357,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_3866422adb());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_3866422adb());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -359,7 +379,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_901bb6925b());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_901bb6925b(getE2eDocumentViewport()));
           });
         });
 
@@ -378,7 +398,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_62100eec40());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_62100eec40());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -393,7 +413,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_69029d1636(document.documentElement.clientWidth, document.documentElement.clientHeight));
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_69029d1636(
+              document.documentElement.clientWidth,
+              document.documentElement.clientHeight,
+            ));
           });
         });
 
@@ -418,7 +441,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, countCols() - 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_230de5a9f7());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_230de5a9f7());
           });
 
           it('and the scrollable element is the Window object', async() => {
@@ -448,7 +471,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(countRows() - 1, countCols() - 1);
 
-            expectGetEditedCellRectFromPartial((L) => L.e2eGcr_3dc880f3f2());
+            expectGetEditedCellRectFromPartial(L => L.e2eGcr_3dc880f3f2(getE2eDocumentViewport()));
           });
         });
       });

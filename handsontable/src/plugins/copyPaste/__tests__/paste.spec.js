@@ -598,53 +598,13 @@ describe('CopyPaste', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 9,9']);
     });
 
-    it.forTheme('classic')('should paste data without scrolling the viewport', async() => {
+    it('should paste data without scrolling the viewport', async() => {
+      const layout = getThemeLayout();
+
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
-        height: 200,
-      });
-
-      await selectCell(6, 2);
-      triggerPaste([
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-      ].join('\n'));
-
-      expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    });
-
-    it.forTheme('main')('should paste data without scrolling the viewport', async() => {
-      handsontable({
-        data: createSpreadsheetData(50, 50),
-        width: 200,
-        height: 250,
-      });
-
-      await selectCell(6, 2);
-      triggerPaste([
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-      ].join('\n'));
-
-      expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    });
-
-    it.forTheme('horizon')('should paste data without scrolling the viewport', async() => {
-      handsontable({
-        data: createSpreadsheetData(50, 50),
-        width: 200,
-        height: 319,
+        height: layout.e2ePickForDensity({ compact: 200, default: 250, comfortable: 319 }),
       });
 
       await selectCell(6, 2);

@@ -26,10 +26,25 @@ describe('Selection navigation', () => {
   }
 
   describe('"PageUp"', () => {
-    it.forTheme('classic')('should move the cell selection up by the height of the table viewport', async() => {
+    it('should move the cell selection up by the height of the table viewport', async() => {
+      const layout = getThemeLayout();
+      const height = layout.e2ePickForDensity({ compact: 100, default: 126, comfortable: 161 });
+      const compact = layout.densityLevel === 'compact';
+      const expectedRows = compact ? [10, 7, 4, 1, 0] : [9, 5, 1, 0];
+
+      function viewportSelectionPattern(rowIndex) {
+        const lines = Array.from({ length: 15 }, (_, i) => {
+          const mid = i === rowIndex ? ' # ' : '   ';
+
+          return `        |   :${mid}:   |`;
+        });
+
+        return `\n${lines.join('\n')}\n      `;
+      }
+
       handsontable({
         width: 180,
-        height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
+        height,
         startRows: 15,
         startCols: 3,
         viewportRowRenderingOffset: 10,
@@ -37,302 +52,15 @@ describe('Selection navigation', () => {
       });
 
       await selectCell(13, 1);
-      await keyDownUp('pageup');
 
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 10,1 from: 10,1 to: 10,1']);
+      for (let i = 0; i < expectedRows.length; i++) {
+        await keyDownUp('pageup');
 
-      await keyDownUp('pageup');
+        const row = expectedRows[i];
 
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 7,1 to: 7,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
-    });
-
-    it.forTheme('main')('should move the cell selection up by the height of the table viewport', async() => {
-      handsontable({
-        width: 180,
-        height: 126, // 126/29 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
-        startRows: 15,
-        startCols: 3,
-        viewportRowRenderingOffset: 10,
-        viewportColumnRenderingOffset: 10,
-      });
-
-      await selectCell(13, 1);
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
-    });
-
-    it.forTheme('horizon')('should move the cell selection up by the height of the table viewport', async() => {
-      handsontable({
-        width: 180,
-        height: 161, // 161/37 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
-        startRows: 15,
-        startCols: 3,
-        viewportRowRenderingOffset: 10,
-        viewportColumnRenderingOffset: 10,
-      });
-
-      await selectCell(13, 1);
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
-
-      await keyDownUp('pageup');
-
-      expect(`
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
+        expect(viewportSelectionPattern(row)).toBeMatchToSelectionPattern();
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${row},1 from: ${row},1 to: ${row},1`]);
+      }
     });
 
     it('should move the cell selection up to the first cell', async() => {
@@ -460,10 +188,15 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
     });
 
-    it.forTheme('classic')('should move the cell selection up to the first column header and scroll ' +
+    it('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
+      const layout = getThemeLayout();
+      const height = layout.e2ePickForDensity({ compact: 200, default: 252, comfortable: 322 });
+      const firstVisibleAfterSelect = layout.e2ePickForDensity({ compact: 10, default: 9, comfortable: 9 });
+      const firstVisibleAfterPage1 = layout.e2ePickForDensity({ compact: 6, default: 5, comfortable: 5 });
+
       handsontable({
-        height: 200,
+        height,
         rowHeaders: true,
         colHeaders: true,
         startRows: 15,
@@ -485,93 +218,13 @@ describe('Selection navigation', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(tableView().getFirstFullyVisibleRow()).toBe(10);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(firstVisibleAfterSelect);
 
       await keyDownUp('pageup');
 
       await waitForNextAnimationFrames(2);
 
-      expect(tableView().getFirstFullyVisibleRow()).toBe(6);
-
-      await keyDownUp('pageup');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(tableView().getFirstFullyVisibleRow()).toBe(0);
-    });
-
-    it.forTheme('main')('should move the cell selection up to the first column header and scroll ' +
-      'the viewport (navigableHeaders on)', async() => {
-      handsontable({
-        height: 252,
-        rowHeaders: true,
-        colHeaders: true,
-        startRows: 15,
-        startCols: 3,
-        autoWrapCol: true,
-        autoWrapRow: true,
-        navigableHeaders: true,
-        afterGetColumnHeaderRenderers(headerRenderers) {
-          headerRenderers.push(columnHeader.bind(this));
-          headerRenderers.push(columnHeader.bind(this));
-        },
-        afterGetRowHeaderRenderers(headerRenderers) {
-          headerRenderers.push(rowHeader.bind(this));
-          headerRenderers.push(rowHeader.bind(this));
-        },
-      });
-
-      await selectCell(13, 1);
-
-      await waitForNextAnimationFrames(2);
-
-      expect(tableView().getFirstFullyVisibleRow()).toBe(9);
-
-      await keyDownUp('pageup');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(tableView().getFirstFullyVisibleRow()).toBe(5);
-
-      await keyDownUp('pageup');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(tableView().getFirstFullyVisibleRow()).toBe(0);
-    });
-
-    it.forTheme('horizon')('should move the cell selection up to the first column header and scroll ' +
-      'the viewport (navigableHeaders on)', async() => {
-      handsontable({
-        height: 322,
-        rowHeaders: true,
-        colHeaders: true,
-        startRows: 15,
-        startCols: 3,
-        autoWrapCol: true,
-        autoWrapRow: true,
-        navigableHeaders: true,
-        afterGetColumnHeaderRenderers(headerRenderers) {
-          headerRenderers.push(columnHeader.bind(this));
-          headerRenderers.push(columnHeader.bind(this));
-        },
-        afterGetRowHeaderRenderers(headerRenderers) {
-          headerRenderers.push(rowHeader.bind(this));
-          headerRenderers.push(rowHeader.bind(this));
-        },
-      });
-
-      await selectCell(13, 1);
-
-      await waitForNextAnimationFrames(2);
-
-      expect(tableView().getFirstFullyVisibleRow()).toBe(9);
-
-      await keyDownUp('pageup');
-
-      await waitForNextAnimationFrames(2);
-
-      expect(tableView().getFirstFullyVisibleRow()).toBe(5);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(firstVisibleAfterPage1);
 
       await keyDownUp('pageup');
 

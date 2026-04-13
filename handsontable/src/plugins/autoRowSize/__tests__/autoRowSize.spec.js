@@ -747,7 +747,7 @@ describe('AutoRowSize', () => {
       colHeaders: true,
       rowHeaders: true,
       autoRowSize: true,
-      colWidths: getLoadedTheme() === 'classic' ? 85 : 100,
+      colWidths: getThemeLayout().e2ePickForDensity({ compact: 85, default: 100, comfortable: 100 }),
       wordWrap: true,
       height: 500,
       width: 300,
@@ -769,7 +769,7 @@ describe('AutoRowSize', () => {
       colHeaders: true,
       rowHeaders: true,
       autoRowSize: true,
-      colWidths: getLoadedTheme() === 'classic' ? 85 : 100,
+      colWidths: getThemeLayout().e2ePickForDensity({ compact: 85, default: 100, comfortable: 100 }),
       wordWrap: true,
       height: 500,
       width: 300,
@@ -785,7 +785,7 @@ describe('AutoRowSize', () => {
     expect(getCell(0, 1, true).offsetHeight).toBe(getCell(0, 2, true).offsetHeight);
   });
 
-  it.forTheme('classic')('should correctly render the fixed columns borders when ' +
+  it('should correctly render the fixed columns borders when ' +
     'scrolled horizontally (dev-2512)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 50),

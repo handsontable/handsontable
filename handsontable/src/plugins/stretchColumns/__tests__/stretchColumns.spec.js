@@ -95,14 +95,18 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth500ThreeCols());
   });
 
-  it.forTheme('classic')(`should correctly stretch columns after vertical scroll appears
+  it(`should correctly stretch columns after vertical scroll appears
  (defined table size)`, async() => {
+    const layout = getThemeLayout();
+    const heightFull = layout.e2ePickForDensity({ compact: 156, default: 179, comfortable: 228 });
+    const heightWithScroll = layout.e2ePickForDensity({ compact: 155, default: 165, comfortable: 211 });
+
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 156,
+      height: heightFull,
       stretchH: 'all',
     });
 
@@ -111,7 +115,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(90);
 
     await updateSettings({
-      height: 155,
+      height: heightWithScroll,
     });
 
     expect(getColWidth(0)).toBe(85);
@@ -119,71 +123,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(85);
 
     await updateSettings({
-      height: 156,
-    });
-
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
-  });
-
-  it.forTheme('main')(`should correctly stretch columns after vertical scroll appears
- (defined table size)`, async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 3),
-      colHeaders: true,
-      rowHeaders: true,
-      width: 320,
-      height: 179,
-      stretchH: 'all',
-    });
-
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
-
-    await updateSettings({
-      height: 165,
-    });
-
-    expect(getColWidth(0)).toBe(85);
-    expect(getColWidth(1)).toBe(85);
-    expect(getColWidth(2)).toBe(85);
-
-    await updateSettings({
-      height: 179,
-    });
-
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
-  });
-
-  it.forTheme('horizon')(`should correctly stretch columns after vertical scroll appears
- (defined table size)`, async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 3),
-      colHeaders: true,
-      rowHeaders: true,
-      width: 320,
-      height: 228,
-      stretchH: 'all',
-    });
-
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
-
-    await updateSettings({
-      height: 211,
-    });
-
-    expect(getColWidth(0)).toBe(85);
-    expect(getColWidth(1)).toBe(85);
-    expect(getColWidth(2)).toBe(85);
-
-    await updateSettings({
-      height: 228,
+      height: heightFull,
     });
 
     expect(getColWidth(0)).toBe(90);

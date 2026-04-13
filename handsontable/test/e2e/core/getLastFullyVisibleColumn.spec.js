@@ -36,40 +36,18 @@ describe('Core.getLastFullyVisibleColumn', () => {
     expect(getLastFullyVisibleColumn()).toBe(4);
   });
 
-  it.forTheme('classic')('should return last fully visible column index (scrolled viewport)', async() => {
+  it('should return last fully visible column index (scrolled viewport)', async() => {
+    const layout = getThemeLayout();
+    const height = layout.e2ePickForDensity({ compact: 200, default: 200, comfortable: 321 });
+    const scrollX = layout.e2ePickForDensity({ compact: 780, default: 780, comfortable: 820 });
+
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
-      height: 200,
+      height,
     });
 
-    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
-    await render();
-
-    expect(getLastFullyVisibleColumn()).toBe(18);
-  });
-
-  it.forTheme('main')('should return last fully visible column index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(10, 100),
-      width: 200,
-      height: 200,
-    });
-
-    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
-    await render();
-
-    expect(getLastFullyVisibleColumn()).toBe(18);
-  });
-
-  it.forTheme('horizon')('should return last fully visible column index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(10, 100),
-      width: 200,
-      height: 321,
-    });
-
-    await scrollViewportHorizontally(820); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(scrollX); // row 19 (T1) is partially visible
     await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);

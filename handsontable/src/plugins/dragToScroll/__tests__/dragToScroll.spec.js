@@ -214,73 +214,13 @@ describe('DragToScroll', () => {
       expect(getMaster().find('.wtHolder').scrollLeft()).toBe(50);
     });
 
-    it.forTheme('classic')('should not scroll the table to the right, when dragging the selection ' +
+    it('should not scroll the table to the right, when dragging the selection ' +
       'in that direction inside the table', async() => {
+      const width = getThemeLayout().e2ePickForDensity({ compact: 215, default: 215, comfortable: 227 });
+
       handsontable({
         data: createSpreadsheetData(10, 10),
-        width: 215,
-        height: 150,
-        rowHeaders: true,
-        colHeaders: true,
-      });
-
-      const $cell = $(getCell(0, 1));
-      const $nextCell = $(getCell(0, 2));
-
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
-
-      $cell
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('mousedown', {
-          clientX: $cell.offset().left,
-        });
-      $nextCell
-        .simulate('mouseover')
-        .simulate('mousemove', {
-          clientX: $nextCell.offset().left + ($nextCell.innerWidth() / 2)
-        })
-        .simulate('mouseup');
-
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
-    });
-
-    it.forTheme('main')('should not scroll the table to the right, when dragging the selection ' +
-      'in that direction inside the table', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 10),
-        width: 215,
-        height: 150,
-        rowHeaders: true,
-        colHeaders: true,
-      });
-
-      const $cell = $(getCell(0, 1));
-      const $nextCell = $(getCell(0, 2));
-
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
-
-      $cell
-        .simulate('mousedown')
-        .simulate('mouseup')
-        .simulate('mousedown', {
-          clientX: $cell.offset().left,
-        });
-      $nextCell
-        .simulate('mouseover')
-        .simulate('mousemove', {
-          clientX: $nextCell.offset().left + ($nextCell.innerWidth() / 2)
-        })
-        .simulate('mouseup');
-
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
-    });
-
-    it.forTheme('horizon')('should not scroll the table to the right, when dragging the selection ' +
-      'in that direction inside the table', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 10),
-        width: 227,
+        width,
         height: 150,
         rowHeaders: true,
         colHeaders: true,

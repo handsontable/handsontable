@@ -1,4 +1,21 @@
+import { E2E_REGISTERED_THEME_KEYS } from '../themeLayoutCore';
 import { themeLayoutFromTokens } from '../themeLayoutFromTokens';
+
+describe('E2E_REGISTERED_THEME_KEYS', () => {
+  it('matches THEME_TOKENS registration order (E2E styles/ht-theme-{key}.css)', () => {
+    expect(E2E_REGISTERED_THEME_KEYS).toEqual(['classic', 'main', 'horizon']);
+  });
+});
+
+describe('e2ePickForDensity', () => {
+  it('matches pickByDensity for classic, main, and horizon', () => {
+    const triplet = { compact: 1, default: 2, comfortable: 3 };
+
+    expect(themeLayoutFromTokens('classic').e2ePickForDensity(triplet)).toBe(1);
+    expect(themeLayoutFromTokens('main').e2ePickForDensity(triplet)).toBe(2);
+    expect(themeLayoutFromTokens('horizon').e2ePickForDensity(triplet)).toBe(3);
+  });
+});
 
 describe('themeLayoutFromTokens', () => {
   describe('classic theme (density: compact)', () => {
@@ -244,6 +261,20 @@ describe('themeLayoutFromTokens', () => {
       expect(themeLayoutFromTokens('horizon').e2eDensity_9639197594()).toBe(75);
     });
 
+    it('e2eGcr two-row helpers use the same pair height as e2eDensity_9639197594', () => {
+      ['classic', 'main', 'horizon'].forEach((theme) => {
+        const layout = themeLayoutFromTokens(theme);
+        const pair = layout.e2eDensity_9639197594();
+        const adjacent = (2 * layout.defaultDataRowHeight) + (2 * layout.cellBorderWidth);
+
+        expect(layout.e2eGcr_e9a5ab9a7a().maxHeight).toBe(pair);
+        expect(layout.e2eGcr_660b0bbbb1().maxHeight).toBe(pair);
+        expect(layout.e2eGcr_4ef37f8511(300, 500).top).toBe(500 - pair);
+        expect(layout.e2eGcr_4ef37f8511(300, 500).maxHeight).toBe(pair + 15);
+        expect(layout.e2eGcr_5ac91379aa(300, { scrollLeft: 0, offsetHeight: 500 }).top).toBe(500 - adjacent);
+      });
+    });
+
     it('e2eDensity_9a971c3cfe (3-row overlay outer height)', () => {
       expect(themeLayoutFromTokens('classic').e2eDensity_9a971c3cfe()).toBe(79);
       expect(themeLayoutFromTokens('main').e2eDensity_9a971c3cfe()).toBe(88);
@@ -265,17 +296,17 @@ describe('themeLayoutFromTokens', () => {
     it('pickByDensity', () => {
       expect(themeLayoutFromTokens('classic').pickByDensity({
         compact: 'a',
-        defaultDensity: 'b',
+        default: 'b',
         comfortable: 'c',
       })).toBe('a');
       expect(themeLayoutFromTokens('main').pickByDensity({
         compact: 'a',
-        defaultDensity: 'b',
+        default: 'b',
         comfortable: 'c',
       })).toBe('b');
       expect(themeLayoutFromTokens('horizon').pickByDensity({
         compact: 'a',
-        defaultDensity: 'b',
+        default: 'b',
         comfortable: 'c',
       })).toBe('c');
     });
@@ -365,96 +396,6 @@ describe('themeLayoutFromTokens', () => {
         .toEqual({ top: 0, left: 94 });
       expect(themeLayoutFromTokens('horizon').e2eManualColumnResizeResizerPositionTopCloneLeft94())
         .toEqual({ top: 0, left: 95 });
-    });
-
-    it('stretch columns and nested headers E2E helpers match density triplets', () => {
-      const cases = [
-        ['e2eStretchColumnsAlter320InsertEnd1', 90, 90, 85],
-        ['e2eStretchColumnsAlter320InsertStartVisible', 68, 68, 64],
-        ['e2eStretchColumnsAlter320InsertStartTrailing', 66, 66, 63],
-        ['e2eStretchColumnsAlter320SixColsStretched', 54, 54, 51],
-        ['e2eStretchColumnsWidth200StretchAllFirstTwo', 67, 67, 62],
-        ['e2eStretchColumnsWidth200StretchAllLast', 66, 66, 61],
-        ['e2eStretchColumnsWidth200StretchLast', 100, 100, 85],
-        ['e2eStretchColumnsWidth500ThreeCols', 150, 150, 145],
-        ['e2eStretchColumnsMultilineWidth500Col0', 412, 418, 420],
-        ['e2eStretchColumnsMultilineWidth500Col1', 88, 82, 80],
-        ['e2eStretchColumnsLongTextWidth400Col4', 286, 311, 319],
-        ['e2eNestedHeadersSelectionInlineScroll50', 50, 50, 51],
-        ['e2eNestedHeadersSelectionInlineScroll265', 265, 265, 278],
-        ['e2eNestedHeadersSelectionInlineScroll65', 65, 65, 72],
-        ['e2eNestedHeadersSelectionInlineScroll250', 250, 250, 257],
-        ['e2eNestedHeadersNavInlineScrollAfterD', 66, 66, 74],
-        ['e2eNestedHeadersNavInlineScrollAfterE', 266, 266, 279],
-        ['e2eNestedHeadersNavInlineScrollAfterF', 516, 516, 539],
-        ['e2eNestedHeadersNavInlineScrollAfterG', 866, 866, 900],
-        ['e2eNestedHeadersNavInlineScrollAfterH', 1266, 1280, 1354],
-        ['e2eNestedHeadersNavInlineScrollAfterI', 1316, 1333, 1415],
-        ['e2eNestedHeadersManualColumnResizeCol1AfterDrag50', 27, 36, 44],
-        ['e2eManualColumnResizeWidth155155156', 155, 155, 156],
-        ['e2eManualColumnResizeWidth222735', 22, 27, 35],
-        ['e2eManualColumnResizeWidth220218216', 220, 218, 216],
-        ['e2eManualColumnResizeWidth220219217', 220, 219, 217],
-        ['e2eManualColumnResizeWidth221220218', 221, 220, 218],
-        ['e2eManualColumnResizeWidth293543', 29, 35, 43],
-        ['e2eManualColumnResizeWidth293544', 29, 35, 44],
-        ['e2eManualColumnResizeWidth303644', 30, 36, 44],
-        ['e2eManualColumnResizeWidth313644', 31, 36, 44],
-        ['e2eManualColumnResizeWidth343435', 34, 34, 35],
-        ['e2eManualColumnResizeWidth505051', 50, 50, 51],
-        ['e2eManualColumnResizeWidth505052', 50, 50, 52],
-        ['e2eManualColumnResizeWidth505053', 50, 50, 53],
-        ['e2eManualColumnResizeWidth736730723', 736, 730, 723],
-        ['e2eManualColumnResizeWidth788795', 78, 87, 95],
-        ['e2eManualColumnResizeWidth797981', 79, 79, 81],
-        ['e2eManualColumnResizeWidth808081', 80, 80, 81],
-        ['e2eManualColumnResizeWidth808082', 80, 80, 82],
-        ['e2eManualColumnResizeRtlStretchedHeaderOuterWidth', 196, 196, 198],
-        ['e2eAutoColumnSize_104_115_123', 104, 115, 123],
-        ['e2eAutoColumnSize_123_135_143', 123, 135, 143],
-        ['e2eAutoColumnSize_127_139_147', 127, 139, 147],
-        ['e2eAutoColumnSize_129_138_146', 129, 138, 146],
-        ['e2eAutoColumnSize_133_146_154', 133, 146, 154],
-        ['e2eAutoColumnSize_133_151_161', 133, 151, 161],
-        ['e2eAutoColumnSize_143_157_165', 143, 157, 165],
-        ['e2eAutoColumnSize_155_170_178', 155, 170, 178],
-        ['e2eAutoColumnSize_162_177_185', 162, 177, 185],
-        ['e2eAutoColumnSize_192_210_218', 192, 210, 218],
-        ['e2eAutoColumnSize_198_216_224', 198, 216, 224],
-        ['e2eAutoColumnSize_207_225_233', 207, 225, 233],
-        ['e2eAutoColumnSize_2235_2322_2575', 2235, 2322, 2575],
-        ['e2eAutoColumnSize_50_50_58', 50, 50, 58],
-        ['e2eAutoColumnSize_50_52_60', 50, 52, 60],
-        ['e2eAutoColumnSize_55_62_70', 55, 62, 70],
-        ['e2eAutoColumnSize_58_65_73', 58, 65, 73],
-        ['e2eAutoColumnSize_64_72_80', 64, 72, 80],
-        ['e2eAutoColumnSize_65_67_75', 65, 67, 75],
-        ['e2eAutoColumnSize_67_75_83', 67, 75, 83],
-        ['e2eAutoColumnSize_82_91_99', 82, 91, 99],
-        ['e2eAutoColumnSize_95_95_100', 95, 95, 100],
-        ['e2eNestedHeadersGhostTable_100_110_117', 100, 110, 117],
-        ['e2eNestedHeadersGhostTable_102_111_114', 102, 111, 114],
-        ['e2eNestedHeadersGhostTable_135_150_158', 135, 150, 158],
-        ['e2eNestedHeadersGhostTable_201_219_227', 201, 219, 227],
-        ['e2eNestedHeadersGhostTable_21_26_33', 21, 26, 33],
-        ['e2eNestedHeadersGhostTable_21_26_34', 21, 26, 34],
-        ['e2eNestedHeadersGhostTable_22_26_34', 22, 26, 34],
-        ['e2eNestedHeadersGhostTable_22_26_35', 22, 26, 35],
-        ['e2eNestedHeadersGhostTable_22_27_35', 22, 27, 35],
-        ['e2eNestedHeadersGhostTable_23_27_36', 23, 27, 36],
-        ['e2eNestedHeadersGhostTable_23_28_36', 23, 28, 36],
-        ['e2eNestedHeadersGhostTable_24_28_36', 24, 28, 36],
-        ['e2eNestedHeadersGhostTable_25_30_38', 25, 30, 38],
-        ['e2eNestedHeadersGhostTable_79_88_96', 79, 88, 96],
-        ['e2eNestedHeadersGhostTable_98_108_112', 98, 108, 112],
-        ['e2eNestedHeadersGhostTable_99_110_118', 99, 110, 118],
-      ];
-
-      for (const [name, classicV, mainV, horizonV] of cases) {
-        expect(themeLayoutFromTokens('classic')[name]()).toBe(classicV);
-        expect(themeLayoutFromTokens('main')[name]()).toBe(mainV);
-        expect(themeLayoutFromTokens('horizon')[name]()).toBe(horizonV);
-      }
     });
 
     it('exposes densityLevel for debugging', () => {

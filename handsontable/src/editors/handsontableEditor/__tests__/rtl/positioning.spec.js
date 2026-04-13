@@ -49,17 +49,11 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
         ...createEditorSettings(),
       });
 
-      const scrollEdgePositions = {
-        horizon: 149,
-        main: 151,
-        classic: 151,
-      };
-
-      const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
-
-      if (scrollPositionBase === undefined) {
-        throw new Error('Missing scroll position base for the current theme', { cause: { handsontable: true } });
-      }
+      const scrollPositionBase = getThemeLayout().e2ePickForDensity({
+        compact: 151,
+        default: 151,
+        comfortable: 149,
+      });
 
       // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)
       await scrollViewportHorizontally(scrollPositionBase);

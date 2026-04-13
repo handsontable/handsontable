@@ -2321,10 +2321,6 @@ describe('AutoFill', () => {
     });
 
     it('should render corner hit area with a proper size', async() => {
-      if (getLoadedTheme() === 'classic') {
-        return;
-      }
-
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2343,10 +2339,6 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
-      if (getLoadedTheme() === 'classic') {
-        return;
-      }
-
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2363,10 +2355,6 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the right side of the table when the last column is selected', async() => {
-      if (getLoadedTheme() === 'classic') {
-        return;
-      }
-
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2384,10 +2372,6 @@ describe('AutoFill', () => {
   });
 
   it('should be possible to change the hit area size', async() => {
-    if (getLoadedTheme() === 'classic') {
-      return;
-    }
-
     const style = document.createElement('style');
     const styleText = `
       .handsontable {

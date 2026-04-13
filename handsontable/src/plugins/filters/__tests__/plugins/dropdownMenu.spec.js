@@ -10,7 +10,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     }
   });
 
-  it.forTheme('classic')('should scale text input showed after condition selection (pixel perfect)', async() => {
+  it('should scale text input showed after condition selection (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -36,86 +36,17 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
+    const layout = getThemeLayout();
     const bothInputBorders = 2;
-    const bothInputPaddings = 8;
-    const bothWrapperMargins = 20;
-    const bothCustomRendererPaddings = 12;
+    const bothInputPaddings = layout.e2ePickForDensity({ compact: 8, default: 24, comfortable: 32 });
+    const bothWrapperMargins = layout.e2ePickForDensity({ compact: 20, default: 16, comfortable: 24 });
+    const bothCustomRendererPaddings = layout.e2ePickForDensity({ compact: 12, default: 24, comfortable: 16 });
     const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale text input showed after condition selection (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    await openDropdownByConditionMenu();
-    await selectDropdownByConditionMenuOption('Begins with');
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
-    const bothInputBorders = 2;
-    const bothInputPaddings = 24;
-    const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 24;
-    const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
-  });
-
-  it.forTheme('horizon')('should scale text input showed after condition selection (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    await openDropdownByConditionMenu();
-    await selectDropdownByConditionMenuOption('Begins with');
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
-    const bothInputBorders = 2;
-    const bothInputPaddings = 32;
-    const bothWrapperMargins = 24;
-    const bothCustomRendererPaddings = 16;
-    const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
-  });
-
-  it.forTheme('classic')('should scale a condition select (pixel perfect)', async() => {
+  it('should scale a condition select (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -138,74 +69,15 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfSelect = $(conditionSelectRootElements().first).width();
+    const layout = getThemeLayout();
     const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 8;
+    const bothCustomRendererPaddings = layout.e2ePickForDensity({ compact: 8, default: 24, comfortable: 24 });
     const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale a condition select (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfSelect = $(conditionSelectRootElements().first).width();
-    const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 24;
-    const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
-  });
-
-  it.forTheme('horizon')('should scale a condition select (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfSelect = $(conditionSelectRootElements().first).width();
-    const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 24;
-    const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
-  });
-
-  it.forTheme('classic')('should scale search input of the value box (pixel perfect)', async() => {
+  it('should scale search input of the value box (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -228,144 +100,17 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
+    const layout = getThemeLayout();
     const bothInputBorders = 2;
-    const bothInputPaddings = 8;
-    const bothWrapperMargins = 20;
-    const bothCustomRendererPaddings = 12;
+    const bothInputPaddings = layout.e2ePickForDensity({ compact: 8, default: 24, comfortable: 32 });
+    const bothWrapperMargins = layout.e2ePickForDensity({ compact: 20, default: 16, comfortable: 24 });
+    const bothCustomRendererPaddings = layout.e2ePickForDensity({ compact: 12, default: 24, comfortable: 16 });
     const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale search input of the value box (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
-    const bothInputBorders = 2;
-    const bothInputPaddings = 24;
-    const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = 24;
-    const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
-  });
-
-  it.forTheme('horizon')('should scale search input of the value box (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
-    const bothInputBorders = 2;
-    const bothInputPaddings = 32;
-    const bothWrapperMargins = 24;
-    const bothCustomRendererPaddings = 16;
-    const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
-
-    expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
-  });
-
-  it.forTheme('classic')('should scale the value box element (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    await openDropdownByConditionMenu();
-    $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
-      .simulate('mousedown')
-      .simulate('mouseup');
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfValueBox = $(byValueBoxRootElement()).width();
-
-    expect(widthOfValueBox).toEqual(widthOfMenu);
-  });
-
-  it.forTheme('main')('should scale the value box element (pixel perfect)', async() => {
-    handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
-      colHeaders: true,
-      dropdownMenu: {
-        items: {
-          custom: {
-            name: 'This is very long text which should expand the drop-down menu...'
-          },
-          filter_by_condition: {},
-          filter_operators: {},
-          filter_by_condition2: {},
-          filter_by_value: {}
-        }
-      },
-      filters: true
-    });
-
-    await dropdownMenu(1);
-
-    await openDropdownByConditionMenu();
-    $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
-      .simulate('mousedown')
-      .simulate('mouseup');
-
-    const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfValueBox = $(byValueBoxRootElement()).width();
-
-    expect(widthOfValueBox).toEqual(widthOfMenu);
-  });
-
-  it.forTheme('horizon')('should scale the value box element (pixel perfect)', async() => {
+  it('should scale the value box element (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

@@ -42,63 +42,13 @@ describe('ContextMenu (RTL mode)', () => {
         expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
       });
 
-      it.forTheme('classic')('should open context menu on the left-top position if on the right and ' +
+      it('should open context menu on the left-top position if on the right and ' +
         'bottom there is no space left', async() => {
+        const rowDivisor = getThemeLayout().e2ePickForDensity({ compact: 27, default: 29, comfortable: 37 });
+
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 27), 4),
-          contextMenu: true,
-        });
-
-        // we have to be sure we will have no enough space on the bottom, select the last cell
-        await selectCell(countRows() - 1, 0);
-
-        const cell = getCell(countRows() - 1, 0);
-        const cellOffset = $(cell).offset();
-
-        getPlugin('contextMenu').open(cellOffset);
-
-        const $contextMenu = $(document.body).find('.htContextMenu:visible');
-        const menuOffset = $contextMenu.offset();
-        const menuHeight = $contextMenu.outerHeight();
-        const menuWidth = $contextMenu.outerWidth();
-
-        expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
-      });
-
-      it.forTheme('main')('should open context menu on the left-top position if on the right and ' +
-        'bottom there is no space left', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 29), 4),
-          contextMenu: true,
-        });
-
-        // we have to be sure we will have no enough space on the bottom, select the last cell
-        await selectCell(countRows() - 1, 0);
-
-        const cell = getCell(countRows() - 1, 0);
-        const cellOffset = $(cell).offset();
-
-        getPlugin('contextMenu').open(cellOffset);
-
-        const $contextMenu = $(document.body).find('.htContextMenu:visible');
-        const menuOffset = $contextMenu.offset();
-        const menuHeight = $contextMenu.outerHeight();
-        const menuWidth = $contextMenu.outerWidth();
-
-        expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
-      });
-
-      it.forTheme('horizon')('should open context menu on the left-top position if on the right and ' +
-        'bottom there is no space left', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 37), 4),
+          data: createSpreadsheetData(Math.floor(window.innerHeight / rowDivisor), 4),
           contextMenu: true,
         });
 
@@ -143,61 +93,18 @@ describe('ContextMenu (RTL mode)', () => {
         expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
-      it.forTheme('classic')('should open context menu on the right-top position if on the left and ' +
+      it('should open context menu on the right-top position if on the left and ' +
         'bottom there is no space left', async() => {
+        const layout = getThemeLayout();
+        const rowDivisor = layout.e2ePickForDensity({ compact: 27, default: 29, comfortable: 37 });
+        const colDivisor = layout.e2ePickForDensity({ compact: 50, default: 50, comfortable: 53 });
+
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 27), Math.floor(window.innerWidth / 50)),
-          contextMenu: true,
-        });
-
-        // we have to be sure we will have no enough space on the bottom and the right, select the last cell
-        await selectCell(countRows() - 1, countCols() - 1);
-
-        const cell = getCell(countRows() - 1, countCols() - 1);
-        const cellOffset = $(cell).offset();
-
-        getPlugin('contextMenu').open(cellOffset);
-
-        const $contextMenu = $(document.body).find('.htContextMenu:visible');
-        const menuOffset = $contextMenu.offset();
-        const menuHeight = $contextMenu.outerHeight();
-
-        expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
-      });
-
-      it.forTheme('main')('should open context menu on the right-top position if on the left and ' +
-        'bottom there is no space left', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 29), Math.floor(window.innerWidth / 50)),
-          contextMenu: true,
-        });
-
-        // we have to be sure we will have no enough space on the bottom and the right, select the last cell
-        await selectCell(countRows() - 1, countCols() - 1);
-
-        const cell = getCell(countRows() - 1, countCols() - 1);
-        const cellOffset = $(cell).offset();
-
-        getPlugin('contextMenu').open(cellOffset);
-
-        const $contextMenu = $(document.body).find('.htContextMenu:visible');
-        const menuOffset = $contextMenu.offset();
-        const menuHeight = $contextMenu.outerHeight();
-
-        expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
-      });
-
-      it.forTheme('horizon')('should open context menu on the right-top position if on the left and ' +
-        'bottom there is no space left', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(Math.floor(window.innerHeight / 37), Math.floor(window.innerWidth / 53)),
+          data: createSpreadsheetData(
+            Math.floor(window.innerHeight / rowDivisor),
+            Math.floor(window.innerWidth / colDivisor),
+          ),
           contextMenu: true,
         });
 

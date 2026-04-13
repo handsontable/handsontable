@@ -725,7 +725,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eManualColumnResizeWidth303644());
   });
 
-  it.forTheme('classic')('should adjust resize handles position after table size changed', async() => {
+  it('should adjust resize handles position after table size changed', async() => {
     let maxed = false;
 
     handsontable({
@@ -749,72 +749,6 @@ describe('manualColumnResize', () => {
     maxed = true;
 
     await render();
-    getTopClone().find('thead th:eq(0)').simulate('mouseover');
-
-    handleBox = handle[0].getBoundingClientRect();
-    thBox = th0[0].getBoundingClientRect();
-
-    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
-  });
-
-  it.forTheme('main')('should adjust resize handles position after table size changed', async() => {
-    let maxed = false;
-
-    handsontable({
-      colHeaders: true,
-      manualColumnResize: true,
-      stretchH: 'all',
-      width() {
-        return maxed ? 614 : 200;
-      }
-    });
-
-    getTopClone().find('thead th:eq(0)').simulate('mouseover');
-
-    const handle = spec().$container.find('.manualColumnResizer');
-    const th0 = getTopClone().find('thead th:eq(0)');
-    let handleBox = handle[0].getBoundingClientRect();
-    let thBox = th0[0].getBoundingClientRect();
-
-    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
-
-    maxed = true;
-
-    await render();
-
-    getTopClone().find('thead th:eq(0)').simulate('mouseover');
-
-    handleBox = handle[0].getBoundingClientRect();
-    thBox = th0[0].getBoundingClientRect();
-
-    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
-  });
-
-  it.forTheme('horizon')('should adjust resize handles position after table size changed', async() => {
-    let maxed = false;
-
-    handsontable({
-      colHeaders: true,
-      manualColumnResize: true,
-      stretchH: 'all',
-      width() {
-        return maxed ? 614 : 200;
-      }
-    });
-
-    getTopClone().find('thead th:eq(0)').simulate('mouseover');
-
-    const handle = spec().$container.find('.manualColumnResizer');
-    const th0 = getTopClone().find('thead th:eq(0)');
-    let handleBox = handle[0].getBoundingClientRect();
-    let thBox = th0[0].getBoundingClientRect();
-
-    expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
-
-    maxed = true;
-
-    await render();
-
     getTopClone().find('thead th:eq(0)').simulate('mouseover');
 
     handleBox = handle[0].getBoundingClientRect();
@@ -1071,9 +1005,15 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getTopClone().find('thead tr:eq(0) th:eq(5)').width()).toBe(getThemeLayout().e2eManualColumnResizeWidth797981());
-      expect(getTopClone().find('thead tr:eq(0) th:eq(6)').width()).toBe(getThemeLayout().e2eManualColumnResizeWidth797981());
-      expect(getTopClone().find('thead tr:eq(0) th:eq(7)').width()).toBe(getThemeLayout().e2eManualColumnResizeWidth797981());
+      expect(getTopClone().find('thead tr:eq(0) th:eq(5)').width()).toBe(
+        getThemeLayout().e2eManualColumnResizeWidth797981(),
+      );
+      expect(getTopClone().find('thead tr:eq(0) th:eq(6)').width()).toBe(
+        getThemeLayout().e2eManualColumnResizeWidth797981(),
+      );
+      expect(getTopClone().find('thead tr:eq(0) th:eq(7)').width()).toBe(
+        getThemeLayout().e2eManualColumnResizeWidth797981(),
+      );
     });
 
     it('should resize (expanding) selected columns, with window as a scroll parent', async() => {
@@ -1244,59 +1184,7 @@ describe('manualColumnResize', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')(`should display the resize handle in the proper position and with
- a proper size`, async() => {
-        handsontable({
-          layoutDirection,
-          data: [
-            { id: 1, name: 'Ted', lastName: 'Right' },
-            { id: 2, name: 'Frank', lastName: 'Honest' },
-            { id: 3, name: 'Joan', lastName: 'Well' },
-            { id: 4, name: 'Sid', lastName: 'Strong' },
-            { id: 5, name: 'Jane', lastName: 'Neat' }
-          ],
-          colHeaders: true,
-          manualColumnResize: true
-        });
-
-        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
-
-        $headerTH.simulate('mouseover');
-
-        const $handle = $('.manualColumnResizer');
-
-        expect($handle.offset().left)
-          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
-        expect($handle.height()).toEqual($headerTH.outerHeight());
-      });
-
-      it.forTheme('main')(`should display the resize handle in the proper position and with
- a proper size`, async() => {
-        handsontable({
-          layoutDirection,
-          data: [
-            { id: 1, name: 'Ted', lastName: 'Right' },
-            { id: 2, name: 'Frank', lastName: 'Honest' },
-            { id: 3, name: 'Joan', lastName: 'Well' },
-            { id: 4, name: 'Sid', lastName: 'Strong' },
-            { id: 5, name: 'Jane', lastName: 'Neat' }
-          ],
-          colHeaders: true,
-          manualColumnResize: true
-        });
-
-        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
-
-        $headerTH.simulate('mouseover');
-
-        const $handle = $('.manualColumnResizer');
-
-        expect($handle.offset().left)
-          .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
-        expect($handle.height()).toEqual($headerTH.outerHeight());
-      });
-
-      it.forTheme('horizon')(`should display the resize handle in the proper position and with
+      it(`should display the resize handle in the proper position and with
  a proper size`, async() => {
         handsontable({
           layoutDirection,
@@ -1372,57 +1260,7 @@ describe('manualColumnResize', () => {
       });
     });
 
-    it.forTheme('classic')('should remove resize handler when user clicks RMB', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        colHeaders: true,
-        manualColumnResize: true
-      });
-
-      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
-
-      $colHeader.simulate('mouseover');
-
-      const $handle = spec().$container.find('.manualColumnResizer');
-      const resizerPosition = $handle.position();
-
-      $handle.simulate('mousedown', { clientX: resizerPosition.left });
-
-      expect(getComputedStyle($handle[0]).opacity).toBe('1');
-
-      $handle.simulate('contextmenu');
-
-      await waitForNextAnimationFrames(0);
-
-      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
-    });
-
-    it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        colHeaders: true,
-        manualColumnResize: true
-      });
-
-      const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
-
-      $colHeader.simulate('mouseover');
-
-      const $handle = spec().$container.find('.manualColumnResizer');
-      const resizerPosition = $handle.position();
-
-      $handle.simulate('mousedown', { clientX: resizerPosition.left });
-
-      expect(getComputedStyle($handle[0]).opacity).toBe('1');
-
-      $handle.simulate('contextmenu');
-
-      await waitForNextAnimationFrames(0);
-
-      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
-    });
-
-    it.forTheme('horizon')('should remove resize handler when user clicks RMB', async() => {
+    it('should remove resize handler when user clicks RMB', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,

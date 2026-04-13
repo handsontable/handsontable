@@ -25,6 +25,8 @@ const allowedE2EModules = [
   './MemoryLeakTest',
   '../MemoryLeakTest',
   './themeLayoutFromTokens',
+  './themeLayoutCore',
+  './themeLayoutE2eHelpers',
   '../../src/themes/static/variables/sizing',
   '../../src/themes/static/variables/density',
   '../../src/themes/static/variables/tokens/*',

@@ -41,7 +41,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_9fd0838eca());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -54,7 +54,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_0c1f70547f(
+            document.documentElement.clientWidth,
+            document.documentElement.clientHeight,
+          ));
         });
       });
 
@@ -77,7 +80,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, countRows() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_654f08c592());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_654f08c592());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -102,7 +105,11 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_394b62538f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial((L) => {
+            const v = getE2eDocumentViewport();
+
+            return L.e2eGcr_394b62538f(v.clientWidth, v.clientHeight, v);
+          });
         });
       });
 
@@ -120,7 +127,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_9fd0838eca());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -134,7 +141,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_0c1f70547f(
+            document.documentElement.clientWidth,
+            document.documentElement.clientHeight,
+          ));
         });
       });
 
@@ -158,7 +168,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_1812746652());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_1812746652());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -178,7 +188,11 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_59a39f83a8(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial((L) => {
+            const v = getE2eDocumentViewport();
+
+            return L.e2eGcr_59a39f83a8(v.clientWidth, v.clientHeight, v);
+          });
         });
       });
 
@@ -195,7 +209,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_9fd0838eca());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_9fd0838eca());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -208,7 +222,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_0c1f70547f(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_0c1f70547f(
+            document.documentElement.clientWidth,
+            document.documentElement.clientHeight,
+          ));
         });
       });
 
@@ -231,7 +248,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_63d4e50227());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_63d4e50227());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -250,7 +267,11 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_f1418f56a2(document.documentElement.clientWidth));
+          expectGetEditedCellRectFromPartial((L) => {
+            const v = getE2eDocumentViewport();
+
+            return L.e2eGcr_f1418f56a2(v.clientWidth, v);
+          });
         });
       });
 
@@ -268,7 +289,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(8, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_e9a5ab9a7a());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_e9a5ab9a7a());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -282,7 +303,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_4ef37f8511(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_4ef37f8511(
+            document.documentElement.clientWidth,
+            document.documentElement.clientHeight,
+          ));
         });
       });
 
@@ -306,7 +330,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_e9a5ab9a7a());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_e9a5ab9a7a());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -326,7 +350,11 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_5ac91379aa(document.documentElement.clientWidth));
+          expectGetEditedCellRectFromPartial((L) => {
+            const v = getE2eDocumentViewport();
+
+            return L.e2eGcr_5ac91379aa(v.clientWidth, v);
+          });
         });
       });
 
@@ -343,7 +371,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_660b0bbbb1());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_660b0bbbb1());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -356,7 +384,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_578ee2338a(document.documentElement.clientWidth, document.documentElement.clientHeight));
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_578ee2338a(
+            document.documentElement.clientWidth,
+            document.documentElement.clientHeight,
+          ));
         });
       });
 
@@ -379,7 +410,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_be63e8af58());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_be63e8af58());
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -407,7 +438,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => L.e2eGcr_1e686ee3a6());
+          expectGetEditedCellRectFromPartial(L => L.e2eGcr_1e686ee3a6(getE2eDocumentViewport()));
         });
       });
     });

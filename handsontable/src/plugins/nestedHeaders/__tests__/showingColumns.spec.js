@@ -1004,13 +1004,15 @@ describe('NestedHeaders', () => {
       }
     });
 
-    it.forTheme('classic')('should render the setup properly after the table being scrolled', async() => {
+    it('should render the setup properly after the table being scrolled', async() => {
+      const layout = getThemeLayout();
+
       handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 400,
-        height: 300,
+        width: layout.e2ePickForDensity({ compact: 400, default: 400, comfortable: 450 }),
+        height: layout.e2ePickForDensity({ compact: 300, default: 300, comfortable: 615 }),
         viewportColumnRenderingOffset: 0,
       });
 
@@ -1140,8 +1142,8 @@ describe('NestedHeaders', () => {
         horizontalSnap: 'start',
       });
 
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(layout.e2ePickForDensity({
+        compact: `        <thead>
           <tr>
             <th class="" colspan="4">K1</th>
             <th class="hiddenHeader"></th>
@@ -1245,147 +1247,8 @@ describe('NestedHeaders', () => {
             <td class="">AL1</td>
           </tr>
         </tbody>
-        `);
-    });
-
-    it.forTheme('main')('should render the setup properly after the table being scrolled', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 90),
-        colHeaders: true,
-        nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 400,
-        height: 300,
-        viewportColumnRenderingOffset: 0,
-      });
-
-      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-
-      // Show every second column for range A to AT
-      for (let i = 0; i <= 45; i++) {
-        hidingMap.setValueAtIndex(i, i % 2 !== 0);
-      }
-
-      await scrollViewportTo({ // Scroll to column AA4
-        col: 25,
-        verticalSnap: 'top',
-        horizontalSnap: 'start',
-      });
-
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="" colspan="4">K1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">S1</th>
-            <th class="" colspan="4">T1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AC1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AK1</th>
-            <th class="" colspan="4">AL1</th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="" colspan="2">K2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">O2</th>
-            <th class="hiddenHeader"></th>
-            <th class="">S2</th>
-            <th class="" colspan="2">T2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">X2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AC2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AG2</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AK2</th>
-            <th class="" colspan="2">AL2</th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="">K3</th>
-            <th class="">M3</th>
-            <th class="">O3</th>
-            <th class="">Q3</th>
-            <th class="">S3</th>
-            <th class="">T3</th>
-            <th class="">V3</th>
-            <th class="">X3</th>
-            <th class="">Z3</th>
-            <th class="">AC3</th>
-            <th class="">AE3</th>
-            <th class="">AG3</th>
-            <th class="">AI3</th>
-            <th class="">AK3</th>
-            <th class="">AL3</th>
-            <th class="">AN3</th>
-          </tr>
-          <tr>
-            <th class="">K4</th>
-            <th class="">M4</th>
-            <th class="">O4</th>
-            <th class="">Q4</th>
-            <th class="">S4</th>
-            <th class="">U4</th>
-            <th class="">W4</th>
-            <th class="">Y4</th>
-            <th class="">AA4</th>
-            <th class="">AC4</th>
-            <th class="">AE4</th>
-            <th class="">AG4</th>
-            <th class="">AI4</th>
-            <th class="">AK4</th>
-            <th class="">AM4</th>
-            <th class="">AO4</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="ht__row_odd">
-            <td class="">K1</td>
-            <td class="">M1</td>
-            <td class="">O1</td>
-            <td class="">Q1</td>
-            <td class="">S1</td>
-            <td class="">U1</td>
-            <td class="">W1</td>
-            <td class="">Y1</td>
-            <td class="">AA1</td>
-            <td class="">AC1</td>
-            <td class="">AE1</td>
-            <td class="">AG1</td>
-            <td class="">AI1</td>
-            <td class="">AK1</td>
-            <td class="">AM1</td>
-            <td class="">AO1</td>
-          </tr>
-        </tbody>
-        `);
-
-      hidingMap.setValueAtIndex(31, false); // Show column that contains cells AF{n}
-      hidingMap.setValueAtIndex(33, false); // Show column that contains cells AH{n}
-      hidingMap.setValueAtIndex(35, false); // Show column that contains cells AJ{n}
-      hidingMap.setValueAtIndex(37, false); // Show column that contains cells AL{n}
-      hidingMap.setValueAtIndex(39, false); // Show column that contains cells AN{n}
-      hidingMap.setValueAtIndex(41, false); // Show column that contains cells AP{n}
-      hidingMap.setValueAtIndex(43, false); // Show column that contains cells AR{n}
-      hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
-      await render();
-
-      await scrollViewportTo({ // Scroll to column AM4
-        col: 38,
-        verticalSnap: 'top',
-        horizontalSnap: 'start',
-      });
-
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
+`,
+        default: `        <thead>
           <tr>
             <th class="" colspan="4">K1</th>
             <th class="hiddenHeader"></th>
@@ -1494,147 +1357,8 @@ describe('NestedHeaders', () => {
             <td class="">AM1</td>
           </tr>
         </tbody>
-        `);
-    });
-
-    it.forTheme('horizon')('should render the setup properly after the table being scrolled', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 90),
-        colHeaders: true,
-        nestedHeaders: generateComplexSetup(4, 70, true),
-        width: 450,
-        height: 615,
-        viewportColumnRenderingOffset: 0,
-      });
-
-      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-
-      // Show every second column for range A to AT
-      for (let i = 0; i <= 45; i++) {
-        hidingMap.setValueAtIndex(i, i % 2 !== 0);
-      }
-
-      await scrollViewportTo({ // Scroll to column AA4
-        col: 25,
-        verticalSnap: 'top',
-        horizontalSnap: 'start',
-      });
-
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
-          <tr>
-            <th class="" colspan="4">K1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">S1</th>
-            <th class="" colspan="4">T1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="4">AC1</th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="hiddenHeader"></th>
-            <th class="">AK1</th>
-            <th class="" colspan="4">AL1</th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="" colspan="2">K2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">O2</th>
-            <th class="hiddenHeader"></th>
-            <th class="">S2</th>
-            <th class="" colspan="2">T2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">X2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AC2</th>
-            <th class="hiddenHeader"></th>
-            <th class="" colspan="2">AG2</th>
-            <th class="hiddenHeader"></th>
-            <th class="">AK2</th>
-            <th class="" colspan="2">AL2</th>
-            <th class="hiddenHeader"></th>
-          </tr>
-          <tr>
-            <th class="">K3</th>
-            <th class="">M3</th>
-            <th class="">O3</th>
-            <th class="">Q3</th>
-            <th class="">S3</th>
-            <th class="">T3</th>
-            <th class="">V3</th>
-            <th class="">X3</th>
-            <th class="">Z3</th>
-            <th class="">AC3</th>
-            <th class="">AE3</th>
-            <th class="">AG3</th>
-            <th class="">AI3</th>
-            <th class="">AK3</th>
-            <th class="">AL3</th>
-            <th class="">AN3</th>
-          </tr>
-          <tr>
-            <th class="">K4</th>
-            <th class="">M4</th>
-            <th class="">O4</th>
-            <th class="">Q4</th>
-            <th class="">S4</th>
-            <th class="">U4</th>
-            <th class="">W4</th>
-            <th class="">Y4</th>
-            <th class="">AA4</th>
-            <th class="">AC4</th>
-            <th class="">AE4</th>
-            <th class="">AG4</th>
-            <th class="">AI4</th>
-            <th class="">AK4</th>
-            <th class="">AM4</th>
-            <th class="">AO4</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="ht__row_odd">
-            <td class="">K1</td>
-            <td class="">M1</td>
-            <td class="">O1</td>
-            <td class="">Q1</td>
-            <td class="">S1</td>
-            <td class="">U1</td>
-            <td class="">W1</td>
-            <td class="">Y1</td>
-            <td class="">AA1</td>
-            <td class="">AC1</td>
-            <td class="">AE1</td>
-            <td class="">AG1</td>
-            <td class="">AI1</td>
-            <td class="">AK1</td>
-            <td class="">AM1</td>
-            <td class="">AO1</td>
-          </tr>
-        </tbody>
-        `);
-
-      hidingMap.setValueAtIndex(31, false); // Show column that contains cells AF{n}
-      hidingMap.setValueAtIndex(33, false); // Show column that contains cells AH{n}
-      hidingMap.setValueAtIndex(35, false); // Show column that contains cells AJ{n}
-      hidingMap.setValueAtIndex(37, false); // Show column that contains cells AL{n}
-      hidingMap.setValueAtIndex(39, false); // Show column that contains cells AN{n}
-      hidingMap.setValueAtIndex(41, false); // Show column that contains cells AP{n}
-      hidingMap.setValueAtIndex(43, false); // Show column that contains cells AR{n}
-      hidingMap.setValueAtIndex(45, false); // Show column that contains cells AT{n}
-      await render();
-
-      await scrollViewportTo({ // Scroll to column AM4
-        col: 38,
-        verticalSnap: 'top',
-        horizontalSnap: 'start',
-      });
-
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
-        <thead>
+`,
+        comfortable: `        <thead>
           <tr>
             <th class="" colspan="4">T1</th>
             <th class="hiddenHeader"></th>
@@ -1753,7 +1477,8 @@ describe('NestedHeaders', () => {
             <td class="">AT1</td>
           </tr>
         </tbody>
-        `);
+`,
+      }));
     });
 
     it('should adjust headers correctly when the new maps are created and registered after Hot is running', async() => {

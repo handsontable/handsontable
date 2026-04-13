@@ -13,8 +13,8 @@ describe('Dialog - animation option', () => {
   });
 
   function getTableTransitionDuration() {
-    // the classic stylesheet has no animation duration, so we use 10ms as a fallback
-    return getLoadedTheme() !== 'classic' ?
+    // The compact (classic) stylesheet has no animation duration, so we use 10ms as a fallback.
+    return getThemeLayout().densityLevel !== 'compact' ?
       Number.parseFloat(getComputedStyle(hot().rootElement).getPropertyValue('--ht-table-transition')) * 1000 : 10;
   }
 

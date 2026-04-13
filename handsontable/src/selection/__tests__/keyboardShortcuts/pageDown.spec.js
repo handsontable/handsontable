@@ -26,10 +26,25 @@ describe('Selection navigation', () => {
   }
 
   describe('"PageDown"', () => {
-    it.forTheme('classic')('should move the cell selection down by the height of the table viewport', async() => {
+    it('should move the cell selection down by the height of the table viewport', async() => {
+      const layout = getThemeLayout();
+      const height = layout.e2ePickForDensity({ compact: 100, default: 126, comfortable: 161 });
+      const compact = layout.densityLevel === 'compact';
+      const expectedRows = compact ? [4, 7, 10, 13, 14] : [5, 9, 13, 14];
+
+      function viewportSelectionPattern(rowIndex) {
+        const lines = Array.from({ length: 15 }, (_, i) => {
+          const mid = i === rowIndex ? ' # ' : '   ';
+
+          return `        |   :${mid}:   |`;
+        });
+
+        return `\n${lines.join('\n')}\n      `;
+      }
+
       handsontable({
         width: 180,
-        height: 100, // 100/23 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
+        height,
         startRows: 15,
         startCols: 3,
         viewportRowRenderingOffset: 10,
@@ -37,299 +52,15 @@ describe('Selection navigation', () => {
       });
 
       await selectCell(1, 1);
-      await keyDownUp('pagedown');
 
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
+      for (let i = 0; i < expectedRows.length; i++) {
+        await keyDownUp('pagedown');
 
-      await keyDownUp('pagedown');
+        const row = expectedRows[i];
 
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 7,1 from: 7,1 to: 7,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 10,1 from: 10,1 to: 10,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
-    });
-
-    it.forTheme('main')('should move the cell selection down by the height of the table viewport', async() => {
-      handsontable({
-        width: 180,
-        height: 126, // 126/29 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
-        startRows: 15,
-        startCols: 3,
-        viewportRowRenderingOffset: 10,
-        viewportColumnRenderingOffset: 10,
-      });
-
-      await selectCell(1, 1);
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
-    });
-
-    it.forTheme('horizon')('should move the cell selection down by the height of the table viewport', async() => {
-      handsontable({
-        width: 180,
-        height: 161, // 161/37 (default cell height) rounding down is 4. So PageDown will move down one per 4 rows
-        startRows: 15,
-        startCols: 3,
-        viewportRowRenderingOffset: 10,
-        viewportColumnRenderingOffset: 10,
-      });
-
-      await selectCell(1, 1);
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 5,1 to: 5,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 9,1 from: 9,1 to: 9,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 13,1']);
-
-      await keyDownUp('pagedown');
-
-      expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : # :   |
-      `).toBeMatchToSelectionPattern();
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 14,1 from: 14,1 to: 14,1']);
+        expect(viewportSelectionPattern(row)).toBeMatchToSelectionPattern();
+        expect(getSelectedRange()).toEqualCellRange([`highlight: ${row},1 from: ${row},1 to: ${row},1`]);
+      }
     });
 
     it('should move the cell selection down to the last cell', async() => {

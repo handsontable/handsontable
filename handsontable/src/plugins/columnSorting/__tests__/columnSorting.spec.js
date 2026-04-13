@@ -200,7 +200,7 @@ describe('ColumnSorting', () => {
       $('html').attr('dir', 'ltr');
     });
 
-    it.forTheme('classic')('should display indicator properly after changing sorted column sequence', async() => {
+    it('should display the indicator properly after changing the sorted column sequence', async() => {
       handsontable({
         layoutDirection,
         data: [
@@ -222,6 +222,7 @@ describe('ColumnSorting', () => {
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
+      const layout = getThemeLayout();
 
       expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
@@ -232,77 +233,9 @@ describe('ColumnSorting', () => {
         expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
       }
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10.5px');
-    });
-
-    it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
-      handsontable({
-        layoutDirection,
-        data: [
-          [1, 9, 3, 4, 5, 6, 7, 8, 9],
-          [9, 8, 7, 6, 5, 4, 3, 2, 1],
-          [8, 7, 6, 5, 4, 3, 3, 1, 9],
-          [0, 3, 0, 5, 6, 7, 8, 9, 1]
-        ],
-        colHeaders: true,
-        columnSorting: {
-          indicator: true
-        }
-      });
-
-      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
-
-      // changing column sequence: 0 <-> 1
-      columnIndexMapper().moveIndexes([1], 0);
-      await render();
-
-      const sortedColumn = spec().$container.find('th span.columnSorting')[1];
-
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-      if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('2px');
-
-      } else {
-        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
-      }
-
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10px');
-    });
-
-    it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', async() => {
-      handsontable({
-        layoutDirection,
-        data: [
-          [1, 9, 3, 4, 5, 6, 7, 8, 9],
-          [9, 8, 7, 6, 5, 4, 3, 2, 1],
-          [8, 7, 6, 5, 4, 3, 3, 1, 9],
-          [0, 3, 0, 5, 6, 7, 8, 9, 1]
-        ],
-        colHeaders: true,
-        columnSorting: {
-          indicator: true
-        }
-      });
-
-      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
-
-      // changing column sequence: 0 <-> 1
-      columnIndexMapper().moveIndexes([1], 0);
-      await render();
-
-      const sortedColumn = spec().$container.find('th span.columnSorting')[1];
-
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-      if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('2px');
-
-      } else {
-        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
-      }
-
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10px');
+      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual(
+        layout.e2ePickForDensity({ compact: '10.5px', default: '10px', comfortable: '10px' })
+      );
     });
   });
 
@@ -2346,8 +2279,8 @@ describe('ColumnSorting', () => {
 
   });
 
-  it.forTheme('classic')('should add a sorting indicator to the column header after it\'s been ' +
-    'sorted, if `indicator` property is set to `true` (by default)', async() => {
+  it('should add a sorting indicator to the column header after it has been sorted when `indicator` is `true` ' +
+    '(default)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2404,124 +2337,7 @@ describe('ColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
   });
 
-  it.forTheme('main')('should add a sorting indicator to the column header after it\'s been sorted, ' +
-    'if `indicator` property is set to `true` (by default)', async() => {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columns(column) {
-        if (column === 2) {
-          return {
-            columnSorting: {
-              indicator: false,
-              headerAction: false,
-            }
-          };
-        }
-
-        return {};
-      },
-      columnSorting: true,
-    });
-
-    await spec().sortByClickOnColumnHeader(2);
-
-    let sortedColumn = spec().$container.find('th span.columnSorting')[2];
-
-    // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(2);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    // ascending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    // descending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-  });
-
-  it.forTheme('horizon')('should add a sorting indicator to the column header after it\'s been sorted, ' +
-    'if `indicator` property is set to `true` (by default)', async() => {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columns(column) {
-        if (column === 2) {
-          return {
-            columnSorting: {
-              indicator: false,
-              headerAction: false,
-            }
-          };
-        }
-
-        return {};
-      },
-      columnSorting: true,
-    });
-
-    await spec().sortByClickOnColumnHeader(2);
-
-    let sortedColumn = spec().$container.find('th span.columnSorting')[2];
-
-    // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(2);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    // ascending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    // descending
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    await spec().sortByClickOnColumnHeader(1);
-
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    // not sorted
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-  });
-
-  it.forTheme('classic')('should change sorting indicator state on every plugin API method ' +
-    '(calling for different columns)', async() => {
+  it('should change sorting indicator state on every plugin API method (calling for different columns)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2574,213 +2390,7 @@ describe('ColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
   });
 
-  it.forTheme('main')('should change sorting indicator state on every plugin API method ' +
-    '(calling for different columns)', async() => {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columnSorting: {
-        indicator: true
-      },
-    });
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
-
-    // ascending
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-  });
-
-  it.forTheme('horizon')('should change sorting indicator state on every plugin API method ' +
-    '(calling for different columns)', async() => {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columnSorting: {
-        indicator: true
-      },
-    });
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
-
-    // ascending
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' });
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[2];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-  });
-
-  it.forTheme('classic')('should change sorting indicator state when initial column sorting was provided', async() => {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columnSorting: {
-        indicator: true,
-        initialConfig: {
-          column: 1,
-          sortOrder: 'desc'
-        }
-      },
-    });
-
-    // descending
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort();
-
-    // default
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort();
-
-    // default
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-  });
-
-  it.forTheme('main')('should change sorting indicator state when initial column sorting was provided', async() => {
-    handsontable({
-      data: [
-        [1, 'Ted', 'Right'],
-        [2, '', 'Honest'],
-        [3, '', 'Well'],
-        [4, 'Sid', 'Strong'],
-        [5, 'Jane', 'Neat'],
-      ],
-      colHeaders: true,
-      columnSorting: {
-        indicator: true,
-        initialConfig: {
-          column: 1,
-          sortOrder: 'desc'
-        }
-      },
-    });
-
-    // descending
-    let sortedColumn = spec().$container.find('th span.columnSorting')[1];
-
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort();
-
-    // default
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
-
-    // ascending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-
-    // descending
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
-
-    getPlugin('columnSorting').sort();
-
-    // default
-    sortedColumn = spec().$container.find('th span.columnSorting')[1];
-    expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
-  });
-
-  it.forTheme('horizon')('should change sorting indicator state when initial column sorting was provided', async() => {
+  it('should change sorting indicator state when initial column sorting was provided', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],

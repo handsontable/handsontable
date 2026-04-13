@@ -15,11 +15,7 @@ describe('Pagination `pageSize` option', () => {
       .css({ width: '700px', height: '600px' })
       .appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
-    const styles = `
-      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
-    `;
+    const styles = getE2eThemeStylesheetLinkTagsHtml();
 
     doc.open('text/html', 'replace');
     doc.write(`

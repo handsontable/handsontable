@@ -1,4 +1,5 @@
 import { waitOnScroll } from './utils';
+import { E2E_REGISTERED_THEME_KEYS } from './themeLayoutCore';
 import { themeLayoutFromTokens } from './themeLayoutFromTokens';
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
@@ -187,6 +188,57 @@ export function getLoadedTheme() {
  */
 export function getThemeLayout() {
   return themeLayoutFromTokens(getLoadedTheme());
+}
+
+export { E2E_REGISTERED_THEME_KEYS };
+
+/**
+ * Absolute URL for `lib/normalize.css` (E2E iframe `doc.write` shells; `about:blank` needs this).
+ *
+ * @returns {string}
+ */
+export function getE2eNormalizeStylesheetHref() {
+  return new URL('lib/normalize.css', window.location.href).href;
+}
+
+/**
+ * `<link>` tag string for normalize.css (iframes).
+ *
+ * @returns {string}
+ */
+export function getE2eNormalizeStylesheetLinkTagHtml() {
+  return `<link type="text/css" rel="stylesheet" href="${getE2eNormalizeStylesheetHref()}">`;
+}
+
+/**
+ * Absolute URL for `styles/ht-theme-{themeKey}.css` (E2E iframe shells).
+ *
+ * @param {string} themeKey Key from {@link E2E_REGISTERED_THEME_KEYS}.
+ * @returns {string}
+ */
+export function getE2eThemeStylesheetHref(themeKey) {
+  return new URL(`../styles/ht-theme-${themeKey}.css`, window.location.href).href;
+}
+
+/**
+ * Concatenated `<link>` tags for every registered theme, in {@link E2E_REGISTERED_THEME_KEYS} order.
+ *
+ * @returns {string}
+ */
+export function getE2eThemeStylesheetLinkTagsHtml() {
+  return E2E_REGISTERED_THEME_KEYS.map(
+    key => `<link type="text/css" rel="stylesheet" href="${getE2eThemeStylesheetHref(key)}">`
+  ).join('');
+}
+
+/**
+ * Single theme `<link>` tag (iframes that load one theme only).
+ *
+ * @param {string} themeKey Key from {@link E2E_REGISTERED_THEME_KEYS}.
+ * @returns {string}
+ */
+export function getE2eThemeStylesheetLinkTagHtml(themeKey) {
+  return `<link type="text/css" rel="stylesheet" href="${getE2eThemeStylesheetHref(themeKey)}">`;
 }
 
 /**
@@ -411,11 +463,29 @@ export function activeEditorEditedCellRectWidthHeightFromTd() {
 }
 
 /**
+ * Snapshot of `document.documentElement` for `themeLayoutFromTokens` `e2eGcr_*` helpers that must stay
+ * free of direct DOM reads (E2E browser context only).
+ *
+ * @returns {{ scrollLeft: number, offsetHeight: number, clientWidth: number, clientHeight: number }}
+ */
+export function getE2eDocumentViewport() {
+  const de = document.documentElement;
+
+  return {
+    scrollLeft: de.scrollLeft,
+    offsetHeight: de.offsetHeight,
+    clientWidth: de.clientWidth,
+    clientHeight: de.clientHeight,
+  };
+}
+
+/**
  * Asserts BaseEditor#getEditedCellRect matches theme-specific partial rects from getThemeLayout(),
  * with `width` / `height` taken from the live TD (same approach as autocomplete inner-list vs getSettings checks).
  *
  * @param {function(object): object} buildExpected Receives the layout from getThemeLayout(); return the
- *   expected rect partial for the active theme (use layout.e2eGcr_* helpers).
+ *   expected rect partial for the active theme (use layout.e2eGcr_* helpers). Pass
+ *   `getE2eDocumentViewport()` into helpers that need `scrollLeft` / `offsetHeight`.
  */
 export function expectGetEditedCellRectFromPartial(buildExpected) {
   const base = buildExpected(getThemeLayout());
