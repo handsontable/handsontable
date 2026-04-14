@@ -1,0 +1,21 @@
+/* Scoped to the recipe preview container */
+#example1 .ht-demo-row-status-active td {
+  background-color: color-mix(
+    in srgb,
+    var(--ht-accent-color, #1a42e8) 12%,
+    var(--ht-background-color, #ffffff)
+  );
+}
+
+#example1 .ht-demo-row-status-pending td {
+  background-color: color-mix(
+    in srgb,
+    var(--ht-warn-color, #ca8a04) 14%,
+    var(--ht-background-color, #ffffff)
+  );
+}
+
+#example1 .ht-demo-row-status-inactive td {
+  background-color: var(--ht-background-secondary-color, #f3f4f6);
+  color: var(--ht-foreground-secondary-color, #6b7280);
+}
