@@ -42,3 +42,6 @@ Current recipes:
 </div>
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.
+
+- [Handsontable with shadcn/ui](/recipes/themes/custom-theme)
+- [Handsontable with Base Web](/recipes/themes/base-theme)
