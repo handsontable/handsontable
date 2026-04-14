@@ -34,7 +34,11 @@ Our recipes cover common use cases and demonstrate best practices for:
 
 Current recipes:
 
-- [Handsontable with shadcn/ui](/recipes/themes/custom-theme)
-- [Handsontable with MUI](/recipes/themes/mui-theme)
+<div class="boxes-list">
+
+- [Handsontable with shadcn/ui](@/content/recipes/themes/custom-theme/custom-theme.md)
+- [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md)
+
+</div>
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.

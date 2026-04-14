@@ -20,8 +20,6 @@ searchCategory: Guides
 category: Server-side data
 ---
 
-# Server-side fetching and examples
-
 Hooks around `fetchRows`, loading and error UI, and the DataProvider plugin API. For CRUD callbacks, see [Server-side CRUD](@/guides/getting-started/server-side-data/server-side-data-crud.md). For query fields passed into `fetchRows`, see [Server-side configuration](@/guides/getting-started/server-side-data/server-side-data-configuration.md).
 
 [[toc]]

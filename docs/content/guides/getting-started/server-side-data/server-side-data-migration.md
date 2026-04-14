@@ -19,8 +19,6 @@ searchCategory: Guides
 category: Server-side data
 ---
 
-# Migrate to server-side data
-
 Use this checklist when moving from a full in-memory `data` array and hooks such as [`afterChange`](@/api/hooks.md#afterchange) to `dataProvider`. For an overview and demo, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 
 [[toc]]

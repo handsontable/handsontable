@@ -1,7 +1,7 @@
 ---
 id: f2a7b9c1
 title: Handsontable with MUI
-metaTitle: Handsontable with MUI - React Data Grid | Handsontable
+metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
 description: Integrate Handsontable into a React app with MUI so your grid follows Material UI colors, typography, and spacing.
 permalink: /recipes/themes/mui-theme
 canonicalUrl: /recipes/themes/mui-theme
@@ -18,6 +18,9 @@ tags:
 react:
   id: d4e8a6f2
   metaTitle: Handsontable with MUI - React Data Grid | Handsontable
+angular:
+  id: a3b7c9e1
+  metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
 ---
@@ -212,6 +215,10 @@ export default function App() {
 
 ## Related
 
-- [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
-- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Theme Recipes](/recipes/themes) - Practical design-system recipes for Handsontable.
+<div class="boxes-list">
+
+- [Themes](@/guides/styling/themes/themes.md)
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md)
+- [Design system](@/guides/styling/design-system/design-system.md)
+
+</div>
