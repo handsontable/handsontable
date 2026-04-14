@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed pagination icon button colors not being changeable via theme builder icon button tokens.",
+  "type": "fixed",
+  "issueOrPR": 12317,
+  "breaking": false,
+  "framework": "none"
+}
