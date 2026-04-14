@@ -104,9 +104,9 @@
 
         &__button {
           font-size: inherit;
-          border: 1px solid var(--ht-pagination-bar-background-color);
-          color: var(--ht-secondary-button-foreground-color);
-          background-color: var(--ht-pagination-bar-background-color);
+          border: 1px solid var(--ht-icon-button-border-color);
+          color: var(--ht-icon-button-icon-color);
+          background-color: var(--ht-icon-button-background-color);
           border-radius: var(--ht-icon-button-large-border-radius);
           padding: var(--ht-icon-button-large-padding);
           cursor: pointer;
@@ -120,9 +120,11 @@
             pointer-events: none;
             color: var(--ht-secondary-button-disabled-foreground-color);
           }
- 
+
           &:hover:not(:disabled) {
-            background-color: var(--ht-secondary-button-hover-background-color);
+            border-color: var(--ht-icon-button-hover-border-color);
+            color: var(--ht-icon-button-hover-icon-color);
+            background-color: var(--ht-icon-button-hover-background-color);
           }
 
           &:focus {
