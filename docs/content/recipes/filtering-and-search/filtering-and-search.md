@@ -27,6 +27,16 @@ Before diving into recipes, read the [Searching values guide](@/guides/navigatio
 
 ## Available Recipes
 
-- [Highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md)
+::: only-for javascript
+- [Highlight search matches](/docs/javascript-data-grid/recipes/filtering-and-search/highlight-search-matches/)
+:::
+
+::: only-for react
+- [Highlight search matches](/docs/react-data-grid/recipes/filtering-and-search/highlight-search-matches/)
+:::
+
+::: only-for angular
+- [Highlight search matches](/docs/angular-data-grid/recipes/filtering-and-search/highlight-search-matches/)
+:::
 
 Each recipe includes complete code examples, configuration options, and practical implementation notes.
