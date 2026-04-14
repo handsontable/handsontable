@@ -236,9 +236,3 @@
 /docs/javascript-data-grid/angular-hot-reference/ /docs/angular-data-grid/api/core/
 
 /docs/next/:splat /docs/:splat
-
-# Catch-all: serve the Astro-generated styled 404 page for any unmatched URL.
-# The 404.html lives at /docs/404.html because the workflow copies dist/ into
-# deploy/docs/, so it is NOT at the publish-root where Netlify would pick it up
-# automatically.  This rule closes the gap.
-/* /docs/404.html 404
