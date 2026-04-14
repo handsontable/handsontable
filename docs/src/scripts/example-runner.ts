@@ -110,8 +110,6 @@ async function runExamples(): Promise<void> {
 
         const root = createRoot(container);
         root.render(createElement(Component));
-        if (!(el as any).__reactRoots) (el as any).__reactRoots = [];
-        (el as any).__reactRoots.push(root);
         markLoaded(el);
       } catch (err) {
         console.error('[hot-example] JSX failed:', src, err);
