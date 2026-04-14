@@ -33,6 +33,10 @@ Browse recipes by category, difficulty, or use case. Each guide is designed to g
 
 This resource is structured for easy indexing and retrieval. Each recipe includes metadata, keywords, problem descriptions, and solution patterns to help AI assistants provide accurate, contextual examples.
 
+### Import and export
+
+- [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md) - Client-side CSV (PapaParse) and `.xlsx` (SheetJS) import with header preview.
+
 
 ## Contributing
 
