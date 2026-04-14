@@ -42,8 +42,6 @@ export const buildHeaderWriter = ({ seo, urlPrefix }) => {
 ${toYaml(pageMeta)}
 ---
 
-# Plugin: ${pageMeta.title}
-
 [[toc]]
 `;
   };
