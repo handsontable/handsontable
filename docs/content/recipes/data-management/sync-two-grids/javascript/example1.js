@@ -26,6 +26,10 @@ const toDetailRow = (row) => ({
 
 const appContainer = document.querySelector('#example1');
 
+if (!appContainer) {
+  throw new Error('Missing #example1 container.');
+}
+
 appContainer.innerHTML = `
   <div class="sync-grids-layout">
     <section class="sync-grids-card">
@@ -72,6 +76,7 @@ const detailColumnMap = {
 const syncDetailRow = (rowIndex, rowData) => {
   const detailRow = toDetailRow(rowData);
 
+  // Update only mapped detail columns for the changed row.
   Object.entries(detailColumnMap).forEach(([prop, columnIndex]) => {
     detailHot.setDataAtCell(rowIndex, columnIndex, detailRow[prop], SOURCE_SYNC_FROM_MASTER);
   });
@@ -97,6 +102,7 @@ const masterHot = new Handsontable(masterContainer, {
   contextMenu: true,
   stretchH: 'all',
   afterChange: (changes, source) => {
+    // Ignore init/sync writes to prevent re-entrant updates.
     if (!changes || source === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
       return;
     }

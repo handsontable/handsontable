@@ -30,6 +30,12 @@ const masterData: MasterRow[] = [
   { firstName: 'Liam', lastName: 'Davis', plan: 'Enterprise', seats: 35, pricePerSeat: 19, lastActive: '2026-03-11' },
   { firstName: 'Emma', lastName: 'Wilson', plan: 'Team', seats: 9, pricePerSeat: 24, lastActive: '2026-03-06' },
   { firstName: 'Oliver', lastName: 'Khan', plan: 'Starter', seats: 4, pricePerSeat: 29, lastActive: '2026-03-07' },
+  { firstName: 'Sophia', lastName: 'Lee', plan: 'Business', seats: 22, pricePerSeat: 21, lastActive: '2026-03-05' },
+  { firstName: 'James', lastName: 'Patel', plan: 'Team', seats: 14, pricePerSeat: 24, lastActive: '2026-03-12' },
+  { firstName: 'Isabella', lastName: 'Rossi', plan: 'Starter', seats: 6, pricePerSeat: 29, lastActive: '2026-03-04' },
+  { firstName: 'Benjamin', lastName: 'Garcia', plan: 'Enterprise', seats: 41, pricePerSeat: 19, lastActive: '2026-03-03' },
+  { firstName: 'Charlotte', lastName: 'Nguyen', plan: 'Business', seats: 19, pricePerSeat: 21, lastActive: '2026-03-02' },
+  { firstName: 'Elijah', lastName: 'Brown', plan: 'Team', seats: 11, pricePerSeat: 24, lastActive: '2026-03-01' },
 ];
 /* end:skip-in-preview */
 
@@ -42,6 +48,10 @@ const toDetailRow = (row: MasterRow): DetailRow => ({
 });
 
 const appContainer = document.querySelector('#example1') as HTMLDivElement;
+
+if (!appContainer) {
+  throw new Error('Missing #example1 container.');
+}
 
 appContainer.innerHTML = `
   <div class="sync-grids-layout">
@@ -89,6 +99,7 @@ const detailColumnMap: Record<keyof DetailRow, number> = {
 const syncDetailRow = (rowIndex: number, rowData: MasterRow) => {
   const detailRow = toDetailRow(rowData);
 
+  // Update only mapped detail columns for the changed row.
   (Object.entries(detailColumnMap) as [keyof DetailRow, number][])
     .forEach(([prop, columnIndex]) => {
       detailHot.setDataAtCell(rowIndex, columnIndex, detailRow[prop], SOURCE_SYNC_FROM_MASTER);
@@ -115,6 +126,7 @@ const masterHot = new Handsontable(masterContainer, {
   contextMenu: true,
   stretchH: 'all',
   afterChange: (changes, source) => {
+    // Ignore init/sync writes to prevent re-entrant updates.
     if (!changes || source === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
       return;
     }
