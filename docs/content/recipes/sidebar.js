@@ -22,10 +22,25 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
+const editingValidationItems = [
+  {
+    path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
+    title: 'Row validation with error summary',
+    onlyFor: ['javascript'],
+  },
+];
+
 module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    {
+      title: 'Editing and Validation',
+      path: 'editing-validation',
+      children: editingValidationItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };

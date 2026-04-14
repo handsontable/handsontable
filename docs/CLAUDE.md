@@ -56,7 +56,7 @@ Content for React only
 
 ## Code Examples
 
-- TypeScript is primary. Generate JS: `npm run docs:code-examples:generate-js <path>`
+- TypeScript is primary. From the `docs/` directory, generate JS: `npm run docs:code-examples:generate-js -- <path-to-ts-file>` (path relative to `docs/`, for example `content/recipes/.../example1.ts`). Never hand-edit generated `.js` files.
 - Always include `licenseKey: 'non-commercial-and-evaluation'`
 - One concept per example, 25-60 lines
 
