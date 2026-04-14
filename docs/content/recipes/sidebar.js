@@ -16,18 +16,18 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
+const editingValidationItems = [
+  {
+    path: 'editing-validation/inline-flatpickr-datepicker/inline-flatpickr-datepicker',
+    title: 'Inline Flatpickr date editor',
+    onlyFor: ['javascript'],
+  },
+];
+
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
-];
-
-const renderingStylingItems = [
-  {
-    path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
-    title: 'Conditional row coloring',
-    onlyFor: ['javascript'],
-  },
 ];
 
 module.exports = {
@@ -35,9 +35,9 @@ module.exports = {
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {
-      title: 'Rendering and styling',
-      path: 'rendering-styling',
-      children: renderingStylingItems,
+      title: 'Editing and Validation',
+      path: 'editing-validation',
+      children: editingValidationItems,
       collapsable: false,
       onlyFor: ['javascript'],
     },

@@ -29,6 +29,10 @@ This is a collection of practical, production-ready recipes for common Handsonta
 
 Browse recipes by category, difficulty, or use case. Each guide is designed to get you from zero to working implementation in minutes.
 
+### Editing and validation
+
+- [Editing and validation recipes](@/content/recipes/editing-validation/editing-validation.md) - Custom editors, validation patterns, and dynamic cell configuration.
+
 ### For AI Agents
 
 This resource is structured for easy indexing and retrieval. Each recipe includes metadata, keywords, problem descriptions, and solution patterns to help AI assistants provide accurate, contextual examples.

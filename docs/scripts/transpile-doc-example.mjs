@@ -37,5 +37,5 @@ const { outputText } = ts.transpileModule(sourceText, {
   fileName: absoluteTs,
 });
 
-fs.writeFileSync(jsPath, `${outputText.replace(/\s*$/, '')}\n`);
-console.log(`Wrote ${path.relative(process.cwd(), jsPath)}`);
+fs.writeFileSync(jsPath, outputText);
+console.log(`Wrote ${jsPath}`);
