@@ -35,139 +35,6 @@ function markLoaded(el: Element): void {
   el.querySelector('.hot-example-preview')?.classList.remove('hot-example-preview--loading');
 }
 
-/** Store original preview HTML for reset. */
-const originalPreviews = new WeakMap<Element, string>();
-
-/** Saves the initial preview HTML so we can restore it on reset. */
-function savePreview(el: Element): void {
-  const preview = el.querySelector('.hot-example-preview');
-  if (preview && !originalPreviews.has(el)) {
-    originalPreviews.set(el, preview.innerHTML);
-  }
-}
-
-/** Destroys all Handsontable instances inside a container. */
-function destroyInstances(container: Element): void {
-  // @ts-expect-error — Handsontable is loaded globally by examples
-  const Handsontable = (window as any).Handsontable;
-  if (!Handsontable?.instances) return;
-
-  const instances = [...Handsontable.instances];
-  for (const hot of instances) {
-    try {
-      if (container.contains(hot.rootElement)) {
-        hot.destroy();
-      }
-    } catch { /* already destroyed */ }
-  }
-}
-
-// ── Reset handler ─────────────────────────────────────────────────────────
-
-function setupResetButtons(): void {
-  document.addEventListener('click', async (e) => {
-    const btn = (e.target as Element).closest('.hot-example-reset-btn');
-    if (!btn) return;
-
-    const wrapper = btn.closest('.hot-example') as HTMLElement | null;
-    if (!wrapper) return;
-
-    const preview = wrapper.querySelector('.hot-example-preview');
-    if (!preview) return;
-
-    // Destroy existing Handsontable instances
-    destroyInstances(preview);
-
-    // Unmount React roots
-    const reactRoots = (wrapper as any).__reactRoots as any[];
-    if (reactRoots) {
-      for (const root of reactRoots) {
-        try { root.unmount(); } catch { /* ok */ }
-      }
-      (wrapper as any).__reactRoots = [];
-    }
-
-    // Restore original preview HTML
-    const original = originalPreviews.get(wrapper);
-    if (original) {
-      preview.innerHTML = original;
-    }
-
-    // Re-run the example
-    const jsSrc = wrapper.dataset.exampleJs;
-    const jsxSrc = wrapper.dataset.exampleJsx;
-    const vueSrc = wrapper.dataset.exampleVue;
-    const ngSrc = wrapper.dataset.exampleAngular;
-    const id = wrapper.dataset.exampleId;
-    const cacheBust = `?t=${Date.now()}`;
-
-    if (jsSrc) {
-      try {
-        await import(/* @vite-ignore */ jsSrc + cacheBust);
-      } catch (err) {
-        console.error('[hot-example] Reset JS failed:', jsSrc, err);
-      }
-    } else if (jsxSrc && id) {
-      try {
-        const [{ createRoot }, { createElement }] = await Promise.all([
-          import('react-dom/client'),
-          import('react'),
-        ]);
-        const mod = await import(/* @vite-ignore */ jsxSrc + cacheBust) as { default: React.ComponentType };
-        const container = document.getElementById(id);
-        if (container) {
-          const root = createRoot(container);
-          root.render(createElement(mod.default));
-          if (!(wrapper as any).__reactRoots) (wrapper as any).__reactRoots = [];
-          (wrapper as any).__reactRoots.push(root);
-        }
-      } catch (err) {
-        console.error('[hot-example] Reset JSX failed:', jsxSrc, err);
-      }
-    } else if (vueSrc && id) {
-      try {
-        const { createApp } = await import('vue');
-        const htmlSrc = wrapper.dataset.exampleHtml;
-        const container = document.getElementById(id);
-        if (container && htmlSrc) {
-          const htmlLoader = htmlTemplates[htmlSrc];
-          if (htmlLoader) {
-            container.innerHTML = await htmlLoader() as string;
-          }
-        }
-        const mod = await import(/* @vite-ignore */ vueSrc + cacheBust) as { default: any };
-        if (container) {
-          createApp(mod.default).mount(container);
-        }
-      } catch (err) {
-        console.error('[hot-example] Reset Vue failed:', vueSrc, err);
-      }
-    } else if (ngSrc && id) {
-      try {
-        const htmlSrc = wrapper.dataset.exampleHtml;
-        const container = document.getElementById(id);
-        if (container && htmlSrc) {
-          const htmlLoader = htmlTemplates[htmlSrc];
-          if (htmlLoader) {
-            container.innerHTML = await htmlLoader() as string;
-          }
-        }
-        await ensureZone();
-        await import('@angular/compiler');
-        const { platformBrowserDynamic } = await import('@angular/platform-browser-dynamic');
-        const mod = await import(/* @vite-ignore */ ngSrc + cacheBust) as { AppModule: unknown };
-        if (mod.AppModule) {
-          await platformBrowserDynamic().bootstrapModule(mod.AppModule as never, {
-            ngZoneEventCoalescing: true,
-          });
-        }
-      } catch (err) {
-        console.error('[hot-example] Reset Angular failed:', ngSrc, err);
-      }
-    }
-  });
-}
-
 // ── Main runner ───────────────────────────────────────────────────────────
 
 async function runExamples(): Promise<void> {
@@ -191,7 +58,6 @@ async function runExamples(): Promise<void> {
 
   // ── Vanilla JS examples ────────────────────────────────────────────────
   for (const el of document.querySelectorAll('[data-example-js]')) {
-    savePreview(el);
     const src = (el as HTMLElement).dataset.exampleJs!;
     const loader = jsModules[src];
 
@@ -220,7 +86,6 @@ async function runExamples(): Promise<void> {
     ]);
 
     for (const el of jsxEls) {
-      savePreview(el);
       const src = el.dataset.exampleJsx!;
       const id  = el.dataset.exampleId;
       const loader = jsxModules[src];
@@ -262,7 +127,6 @@ async function runExamples(): Promise<void> {
     const { createApp } = await import('vue');
 
     for (const el of vueEls) {
-      savePreview(el);
       const src     = el.dataset.exampleVue!;
       const htmlSrc = el.dataset.exampleHtml;
       const id      = el.dataset.exampleId;
@@ -317,7 +181,6 @@ async function runExamples(): Promise<void> {
     const { platformBrowserDynamic } = await import('@angular/platform-browser-dynamic');
 
     for (const el of ngEls) {
-      savePreview(el);
       const src     = el.dataset.exampleAngular!;
       const htmlSrc = el.dataset.exampleHtml;
       const id      = el.dataset.exampleId;
@@ -366,8 +229,6 @@ async function runExamples(): Promise<void> {
     }
   }
 }
-
-setupResetButtons();
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', runExamples);
