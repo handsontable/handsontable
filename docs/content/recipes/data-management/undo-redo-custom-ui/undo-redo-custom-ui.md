@@ -43,7 +43,7 @@ This recipe shows how to connect external **Undo** and **Redo** buttons to Hands
 ## What You'll Build
 
 A grid with two custom buttons rendered outside the table that:
-- Call `hot.undo()` and `hot.redo()` on click.
+- Call `hot.getPlugin('undoRedo').undo()` and `hot.getPlugin('undoRedo').redo()` on click.
 - Read stack availability from `hot.getPlugin('undoRedo').isUndoAvailable()` and `hot.getPlugin('undoRedo').isRedoAvailable()`.
 - Toggle disabled state reactively after `afterChange`, `afterUndo`, and `afterRedo`.
 
@@ -92,11 +92,11 @@ Attach click listeners that call the core APIs.
 
 ```typescript
 undoButton.addEventListener('click', () => {
-  hot.undo();
+  hot.getPlugin('undoRedo').undo();
 });
 
 redoButton.addEventListener('click', () => {
-  hot.redo();
+  hot.getPlugin('undoRedo').redo();
 });
 ```
 
@@ -162,11 +162,11 @@ const syncHistoryButtons = () => {
 };
 
 undoButton.addEventListener('click', () => {
-  hot.undo();
+  hot.getPlugin('undoRedo').undo();
 });
 
 redoButton.addEventListener('click', () => {
-  hot.redo();
+  hot.getPlugin('undoRedo').redo();
 });
 
 hot.updateSettings({
@@ -183,8 +183,8 @@ syncHistoryButtons();
 1. The grid starts with `undoRedo: true`.
 2. Both buttons are disabled on load - the stack is empty.
 3. After any edit, `afterChange` runs and enables **Undo**.
-4. Clicking **Undo** calls `hot.undo()`, then `afterUndo` updates both buttons.
-5. Clicking **Redo** calls `hot.redo()`, then `afterRedo` updates both buttons.
+4. Clicking **Undo** calls `hot.getPlugin('undoRedo').undo()`, then `afterUndo` updates both buttons.
+5. Clicking **Redo** calls `hot.getPlugin('undoRedo').redo()`, then `afterRedo` updates both buttons.
 6. Button states always match the plugin stack.
 
 ## Related APIs

@@ -52,22 +52,19 @@ const hot = new Handsontable(container, {
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
+const undoRedoPlugin = hot.getPlugin('undoRedo');
 
 function updateButtonsState() {
-  const undoRedoPlugin = hot.getPlugin('undoRedo');
-
   undoButton.disabled = !undoRedoPlugin.isUndoAvailable();
   redoButton.disabled = !undoRedoPlugin.isRedoAvailable();
 }
 
 undoButton.addEventListener('click', () => {
-  hot.undo();
-  updateButtonsState();
+  undoRedoPlugin.undo();
 });
 
 redoButton.addEventListener('click', () => {
-  hot.redo();
-  updateButtonsState();
+  undoRedoPlugin.redo();
 });
 
 updateButtonsState();

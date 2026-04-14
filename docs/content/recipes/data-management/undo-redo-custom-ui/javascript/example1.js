@@ -61,12 +61,12 @@ function updateButtonsState() {
 }
 
 undoButton.addEventListener('click', () => {
-  hot.undo();
+  hot.getPlugin('undoRedo').undo();
   updateButtonsState();
 });
 
 redoButton.addEventListener('click', () => {
-  hot.redo();
+  hot.getPlugin('undoRedo').redo();
   updateButtonsState();
 });
 
