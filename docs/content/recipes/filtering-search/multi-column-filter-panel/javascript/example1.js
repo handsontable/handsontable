@@ -1,0 +1,125 @@
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
+
+/* start:skip-in-preview */
+const sourceData = [
+  { name: 'Trail Bike', category: 'Bikes', price: 1499, stock: 12 },
+  { name: 'Road Helmet', category: 'Safety', price: 89, stock: 42 },
+  { name: 'Flat Pedals', category: 'Components', price: 59, stock: 80 },
+  { name: 'Hydration Pack', category: 'Accessories', price: 129, stock: 23 },
+  { name: 'Brake Pads', category: 'Components', price: 25, stock: 150 },
+  { name: 'Cycling Glasses', category: 'Accessories', price: 79, stock: 33 },
+  { name: 'Chain Lube', category: 'Maintenance', price: 16, stock: 99 },
+  { name: 'Torque Wrench', category: 'Maintenance', price: 139, stock: 14 },
+  { name: 'Kids Helmet', category: 'Safety', price: 54, stock: 20 },
+  { name: 'Gravel Bike', category: 'Bikes', price: 2199, stock: 7 },
+];
+/* end:skip-in-preview */
+
+const rootContainer = document.querySelector('#example1');
+
+rootContainer.innerHTML = `
+  <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:12px;">
+    <label style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
+      Category
+      <select id="categoryFilter">
+        <option value="">All categories</option>
+        <option value="Bikes">Bikes</option>
+        <option value="Safety">Safety</option>
+        <option value="Components">Components</option>
+        <option value="Accessories">Accessories</option>
+        <option value="Maintenance">Maintenance</option>
+      </select>
+    </label>
+    <label style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
+      Product name
+      <input id="nameFilter" type="text" placeholder="Contains..." />
+    </label>
+    <label style="display:flex; flex-direction:column; gap:4px; width:120px;">
+      Min price
+      <input id="minPriceFilter" type="number" min="0" placeholder="0" />
+    </label>
+    <label style="display:flex; flex-direction:column; gap:4px; width:120px;">
+      Max price
+      <input id="maxPriceFilter" type="number" min="0" placeholder="2500" />
+    </label>
+    <button id="clearFilters" type="button" style="height:32px;">Clear all filters</button>
+  </div>
+  <div id="hot"></div>
+`;
+
+const container = rootContainer.querySelector('#hot');
+
+const hot = new Handsontable(container, {
+  data: sourceData,
+  columns: [
+    { data: 'name', type: 'text', title: 'Product' },
+    { data: 'category', type: 'text', title: 'Category' },
+    { data: 'price', type: 'numeric', title: 'Price' },
+    { data: 'stock', type: 'numeric', title: 'Stock' },
+  ],
+  colHeaders: ['Product', 'Category', 'Price', 'Stock'],
+  rowHeaders: true,
+  filters: true,
+  dropdownMenu: false,
+  width: '100%',
+  height: 320,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+const filtersPlugin = hot.getPlugin('filters');
+
+const categoryFilter = rootContainer.querySelector('#categoryFilter');
+const nameFilter = rootContainer.querySelector('#nameFilter');
+const minPriceFilter = rootContainer.querySelector('#minPriceFilter');
+const maxPriceFilter = rootContainer.querySelector('#maxPriceFilter');
+const clearFiltersButton = rootContainer.querySelector('#clearFilters');
+
+function applyFilters() {
+  const selectedCategory = categoryFilter.value;
+  const enteredName = nameFilter.value.trim();
+  const minPrice = minPriceFilter.value.trim();
+  const maxPrice = maxPriceFilter.value.trim();
+
+  filtersPlugin.clearConditions();
+
+  if (selectedCategory) {
+    filtersPlugin.addCondition(1, 'contains', [selectedCategory]);
+  }
+
+  if (enteredName) {
+    filtersPlugin.addCondition(0, 'contains', [enteredName]);
+  }
+
+  if (minPrice && maxPrice) {
+    const lowerBound = Number(minPrice);
+    const upperBound = Number(maxPrice);
+
+    if (Number.isFinite(lowerBound) && Number.isFinite(upperBound)) {
+      filtersPlugin.addCondition(2, 'between', [lowerBound, upperBound]);
+    }
+  }
+
+  filtersPlugin.filter();
+}
+
+function clearFilters() {
+  categoryFilter.value = '';
+  nameFilter.value = '';
+  minPriceFilter.value = '';
+  maxPriceFilter.value = '';
+
+  filtersPlugin.clearConditions();
+  filtersPlugin.filter();
+}
+
+categoryFilter.addEventListener('change', applyFilters);
+nameFilter.addEventListener('input', applyFilters);
+minPriceFilter.addEventListener('input', applyFilters);
+maxPriceFilter.addEventListener('input', applyFilters);
+clearFiltersButton.addEventListener('click', clearFilters);

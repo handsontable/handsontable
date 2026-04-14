@@ -22,10 +22,19 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
+const filteringSearchItems = [
+  {
+    path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel',
+    title: 'Multi-column filter panel',
+    onlyFor: ['react', 'javascript', 'angular']
+  },
+];
+
 module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Filtering and Search', path: 'filtering-search', children: filteringSearchItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
