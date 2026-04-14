@@ -13,6 +13,10 @@ on:
       - opened
       - reopened
       - synchronize
+    paths:
+      - 'handsontable/**'
+      - 'performance-tests/**'
+      - '.github/workflows/performance-tests.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
