@@ -120,6 +120,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '转到最后一页',
 
   [C.LOADING_TITLE]: '加载中...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '关闭',
 
   [C.EMPTY_DATA_STATE_TITLE]: '暂无数据',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '暂无内容可显示。',

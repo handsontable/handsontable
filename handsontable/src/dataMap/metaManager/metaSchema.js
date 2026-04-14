@@ -3659,6 +3659,41 @@ export default () => {
     loading: false,
 
     /**
+     * @description
+     * The `notification` option configures the [`Notification`](@/api/notification.md) plugin.
+     *
+     * You can set the `notification` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Notification`](@/api/notification.md) plugin                |
+     * | `true`    | Enable the plugin with default options                                      |
+     * | An object | Enable the plugin and set `stackLimit` and `animation`                      |
+     *
+     * ##### notification: Additional options
+     *
+     * | Option        | Type      | Default | Description |
+     * | ------------- | --------- | ------- | ----------- |
+     * | `stackLimit`  | `number`  | `10`    | Maximum visible toasts per corner. Extra requests are queued. |
+     * | `animation`   | `boolean` | `true`  | Fade and slide animation when toasts appear. |
+     *
+     * Read more:
+     * - [Plugins: `Notification`](@/api/notification.md)
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Notification
+     *
+     * @example
+     * ```js
+     * notification: true,
+     * ```
+     */
+    notification: false,
+
+    /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
      *
      * You can set the `manualColumnFreeze` option to one of the following:

@@ -36,6 +36,7 @@ import { TrimRows } from './trimRows';
 import { Dialog } from './dialog';
 import { EmptyDataState } from './emptyDataState';
 import { Loading } from './loading';
+import { Notification } from './notification';
 import { UndoRedo } from './undoRedo';
 
 export interface Plugins {
@@ -77,6 +78,7 @@ export interface Plugins {
   dialog: Dialog;
   emptyDataState: EmptyDataState;
   loading: Loading;
+  notification: Notification;
   undoRedo: UndoRedo;
 }
 
@@ -122,5 +124,6 @@ export {
   Dialog,
   EmptyDataState,
   Loading,
+  Notification,
   UndoRedo
 };

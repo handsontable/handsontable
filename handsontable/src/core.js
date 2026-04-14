@@ -5627,7 +5627,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   const shortcutManager = createShortcutManager({
-    handleEvent() {
+    handleEvent(_event, scope) {
+      if (scope === 'global') {
+        return true;
+      }
+
       return instance.isListening();
     },
     beforeKeyDown: (event) => {

@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Aller à la dernière page',
 
   [C.LOADING_TITLE]: 'Chargement...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Aucune donnée disponible',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Il n\'y a rien à afficher pour le moment.',

@@ -36,6 +36,7 @@ import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
 import { Dialog } from './dialog';
 import { Loading } from './loading';
+import { Notification } from './notification';
 import { EmptyDataState } from './emptyDataState';
 import {
   registerPlugin,
@@ -82,6 +83,7 @@ export function registerAllPlugins() {
   registerPlugin(UndoRedo);
   registerPlugin(Dialog);
   registerPlugin(Loading);
+  registerPlugin(Notification);
   registerPlugin(EmptyDataState);
 }
 
@@ -124,6 +126,7 @@ export {
   UndoRedo,
   Dialog,
   Loading,
+  Notification,
   EmptyDataState,
 };
 

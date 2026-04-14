@@ -123,6 +123,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 
   [C.LOADING_TITLE]: 'Laden...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Geen gegevens beschikbaar',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Er is nog niets te tonen.',

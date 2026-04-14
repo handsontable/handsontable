@@ -774,6 +774,19 @@ export default {
         metaTitle: 'Loading - Angular Data Grid | Handsontable',
       },
     },
+    'Notification.md': {
+      id: 'n9t2k4p1',
+      metaTitle: 'Notification - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Notification API.',
+      react: {
+        id: 'r4v8m2q6',
+        metaTitle: 'Notification - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'a3w7n5x9',
+        metaTitle: 'Notification - Angular Data Grid | Handsontable',
+      },
+    },
     'EmptyDataState.md': {
       id: '4k5m6n7o',
       metaTitle: 'EmptyDataState - JavaScript Data Grid | Handsontable',

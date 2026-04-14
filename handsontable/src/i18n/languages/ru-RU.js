@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
 
   [C.LOADING_TITLE]: 'Загрузка...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Данные недоступны',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Пока нечего отображать.',

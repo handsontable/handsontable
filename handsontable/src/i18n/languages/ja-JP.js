@@ -123,6 +123,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
 
   [C.LOADING_TITLE]: '読み込み中...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '閉じる',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'データがありません',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '表示するデータがまだありません。',

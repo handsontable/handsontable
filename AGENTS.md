@@ -237,6 +237,7 @@ Every code change **must** satisfy all of the following:
 - Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
 - Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
+- **Docs guide pages** (`docs/content/guides/`): do not put an H1 in the Markdown body; `title` in frontmatter is the only page heading (Starlight shows it once). See skill `writing-docs-pages`.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - **Merged cells -- read from meta, not DOM**: Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, not DOM attributes. The meta is authoritative regardless of viewport state.
 - **Filters plugin visual/physical column index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
