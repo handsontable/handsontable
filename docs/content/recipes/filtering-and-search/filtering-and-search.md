@@ -27,12 +27,6 @@ Before diving into recipes, read the [Searching values guide](@/guides/navigatio
 
 ## Available Recipes
 
-<div class="boxes-list">
-
-<a href="/docs/javascript-data-grid/recipes/filtering-and-search/highlight-search-matches/">
-  Highlight search matches
-</a>
-
-</div>
+- [Highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md)
 
 Each recipe includes complete code examples, configuration options, and practical implementation notes.
