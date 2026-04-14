@@ -1,0 +1,24 @@
+.recipe-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.recipe-toolbar button {
+  padding: 6px 12px;
+  border: 1px solid var(--ht-border-color, #d0d0d0);
+  border-radius: var(--ht-border-radius, 4px);
+  background: var(--ht-background-color, #ffffff);
+  color: var(--ht-foreground-color, #1f2937);
+  font: inherit;
+  cursor: pointer;
+}
+
+.recipe-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recipe-toolbar button:not(:disabled):hover {
+  background: var(--ht-cell-background-color, #f7f7f7);
+}
