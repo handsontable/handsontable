@@ -12,6 +12,7 @@ import { join, relative, dirname } from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
+import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
 
 // Read the current handsontable library version for StackBlitz package.json.
 const _require = createRequire(import.meta.url);
@@ -401,7 +402,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v28';
+const LOADER_VERSION = 'v29';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -1064,6 +1065,12 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
 
   // Fix {{$basePath}} → '' (VuePress versioned-base template variable)
   result = result.replace(/\{\{\s*\$basePath\s*\}\}/g, '');
+
+  // Fix {{$currentVersion}} → resolved Handsontable version string.
+  // Production builds use the package.json version (e.g. "17.0.1").
+  // Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
+  // CodeSandbox links resolve to the correct in-progress build artifact.
+  result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
 
   // Transform @/framework/path.md links to absolute Starlight URLs using permalinks.
   // When prefix/contentDir are available (framework pages), do full permalink resolution.
