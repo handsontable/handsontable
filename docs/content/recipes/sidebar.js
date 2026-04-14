@@ -16,13 +16,6 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
-const editingValidationItems = [
-  {
-    path: "editing-validation/inline-flatpickr-datepicker/inline-flatpickr-datepicker",
-    title: "Inline Flatpickr date editor",
-    onlyFor: ["javascript"],
-  },
-];
 
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
@@ -42,13 +35,6 @@ module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
-    {
-      title: 'Editing and Validation',
-      path: 'editing-validation',
-      children: editingValidationItems,
-      collapsable: false,
-      onlyFor: ['javascript'],
-    },
     {
       title: 'Rendering and styling',
       path: 'rendering-styling',
