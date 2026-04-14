@@ -20,4 +20,4 @@ licenseBody += `\nVersion: ${PACKAGE.version} (built at ${new Date().toString()}
 const SRC_MODULE = path.resolve(`./projects/hot-table/src/lib/hot-table.module.ts`);
 const MODULE_BODY = fse.readFileSync(SRC_MODULE, { encoding: 'utf-8' });
 
-fse.writeFileSync(SRC_MODULE, `${MODULE_BODY.replace(`${PACKAGE.version}';`, "0.0.0-VERSION';")}`, { encoding: 'utf-8' });
+fse.writeFileSync(SRC_MODULE, `${MODULE_BODY.replace(`${PACKAGE.version}';`, '0.0.0-VERSION\';')}`, { encoding: 'utf-8' });

@@ -26,4 +26,4 @@ fse.writeJsonSync(path.resolve(`./projects/hot-table/${PACKAGE}`), PACKAGE_BODY)
 const SRC_MODULE = path.resolve(`./projects/hot-table/src/lib/hot-table.module.ts`);
 const MODULE_BODY = fse.readFileSync(SRC_MODULE, { encoding: 'utf-8' });
 
-fse.writeFileSync(SRC_MODULE, `${MODULE_BODY.replace("0.0.0-VERSION';", `${PACKAGE_BODY.version}';`)}`, { encoding: 'utf-8' });
+fse.writeFileSync(SRC_MODULE, `${MODULE_BODY.replace('0.0.0-VERSION\';', `${PACKAGE_BODY.version}';`)}`, { encoding: 'utf-8' });

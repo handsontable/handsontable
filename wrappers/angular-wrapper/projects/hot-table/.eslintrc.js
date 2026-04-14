@@ -1,0 +1,67 @@
+const path = require('path');
+
+module.exports = {
+  'extends': '../../.eslintrc.js',
+  'ignorePatterns': ['projects/hot-table/coverage/**/*'],
+  'overrides': [
+    {
+      'files': [
+        '*.ts'
+      ],
+      'parserOptions': {
+        'tsconfigRootDir': path.resolve(__dirname, '../..'),
+        'project': [
+          'projects/hot-table/tsconfig.lib.json',
+          'projects/hot-table/tsconfig.spec.json'
+        ],
+        'createDefaultProgram': true
+      },
+      'rules': {
+        '@angular-eslint/directive-selector': [
+          'error',
+          {
+            'type': 'attribute',
+            'prefix': 'hot',
+            'style': 'camelCase'
+          }
+        ],
+        '@angular-eslint/component-selector': [
+          'warn',
+          {
+            'type': 'element',
+            'prefix': 'hot',
+            'style': 'kebab-case'
+          }
+        ],
+        'indent': [
+          'error',
+          2,
+          {
+            'SwitchCase': 1,
+            'FunctionDeclaration': { 'parameters': 'first' },
+            'FunctionExpression': { 'parameters': 'first' }
+          }
+        ]
+      }
+    },
+    {
+      'files': [
+        '*.html'
+      ],
+      'rules': {
+        'directive-selector': [
+          2,
+          'attribute',
+          'hot',
+          'camelCase'
+        ],
+        'component-selector': [
+          2,
+          'element',
+          'hot',
+          'kebab-case'
+        ]
+      }
+    }
+  ]
+};
