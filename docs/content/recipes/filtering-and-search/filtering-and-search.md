@@ -29,7 +29,9 @@ Before diving into recipes, read the [Searching values guide](@/guides/navigatio
 
 <div class="boxes-list">
 
-- [Highlight search matches](@/content/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md)
+<a href="/docs/javascript-data-grid/recipes/filtering-and-search/highlight-search-matches/">
+  Highlight search matches
+</a>
 
 </div>
 

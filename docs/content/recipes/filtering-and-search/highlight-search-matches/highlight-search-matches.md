@@ -100,8 +100,15 @@ const highlightRenderer = rendererFactory(({ td, value, cellProperties }) => {
 
   const escapedCellText = escapeHtml(cellText);
   const escapedQuery = escapeHtml(query);
-  const queryRegex = new RegExp(`(${escapeRegExp(escapedQuery)})`, 'gi');
-  const highlighted = escapedCellText.replace(queryRegex, '<mark>$1</mark>');
+  const splitter = new RegExp(`(${escapeRegExp(escapedQuery)})`, 'gi');
+  const highlighted = escapedCellText
+    .split(splitter)
+    .map(fragment => (
+      fragment.toLocaleLowerCase() === escapedQuery.toLocaleLowerCase()
+        ? `<mark>${fragment}</mark>`
+        : fragment
+    ))
+    .join('');
 
   td.innerHTML = highlighted;
 });
@@ -183,8 +190,15 @@ const highlightRenderer = rendererFactory(({ td, value, cellProperties }) => {
 
   const escapedCellText = escapeHtml(cellText);
   const escapedQuery = escapeHtml(query);
-  const queryRegex = new RegExp(`(${escapeRegExp(escapedQuery)})`, 'gi');
-  const highlighted = escapedCellText.replace(queryRegex, '<mark>$1</mark>');
+  const splitter = new RegExp(`(${escapeRegExp(escapedQuery)})`, 'gi');
+  const highlighted = escapedCellText
+    .split(splitter)
+    .map(fragment => (
+      fragment.toLocaleLowerCase() === escapedQuery.toLocaleLowerCase()
+        ? `<mark>${fragment}</mark>`
+        : fragment
+    ))
+    .join('');
 
   td.innerHTML = highlighted;
 });
