@@ -16,7 +16,7 @@ module.exports = {
     '\\.(css|less|scss|sass)$': '<rootDir>/src/__mocks__/styleMock.js'
   },
   transformIgnorePatterns: [
-    'node_modules/(?!.*\\.mjs$|zone\\.js|@angular|rxjs)'
+    'node_modules/(?!.*\\.mjs$|zone\\.js|@angular|rxjs|slash)'
   ],
   moduleDirectories: ['node_modules', '<rootDir>/../../node_modules'],
   testEnvironmentOptions: {

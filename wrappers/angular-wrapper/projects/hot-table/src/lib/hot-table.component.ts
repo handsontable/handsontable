@@ -142,6 +142,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       }
 
       this.hotInstance.destroy();
+      this.__hotInstance = null;
     });
 
     this.configSubscription.unsubscribe();

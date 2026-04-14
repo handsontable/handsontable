@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "rxjs": "^7.8.1",
+    "slash": "^3.0.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"
   },
@@ -90,9 +91,8 @@
     "@angular/service-worker": "^19.2.20",
     "@types/jest": "^29.5.4",
     "@types/node": "^20.17.57",
-    "@typescript-eslint/eslint-plugin": "7.3.1",
-    "@typescript-eslint/eslint-plugin-tslint": "^7.0.2",
-    "@typescript-eslint/parser": "7.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
     "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "fs-extra": "^4.0.2",
