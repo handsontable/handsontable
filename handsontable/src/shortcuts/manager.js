@@ -1,8 +1,10 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
+import { isMacOS } from '../helpers/browser';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
+import { getEventKeyCombinations } from './utils';
 import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -196,12 +198,35 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
 
   keyRecorder.mount();
 
+  /**
+   * Check if any shortcut in the given context matches the keyboard event.
+   * Uses the same key normalization as the shortcut recorder, including
+   * the unified `control/meta` form.
+   *
+   * @memberof ShortcutManager#
+   * @param {string} contextName The name of the shortcut context to check against.
+   * @param {KeyboardEvent} event The keyboard event to match.
+   * @returns {boolean}
+   */
+  const hasEventShortcut = (contextName, event) => {
+    const context = getContext(contextName);
+
+    if (!context) {
+      return false;
+    }
+
+    const combinations = getEventKeyCombinations(event, isMacOS);
+
+    return combinations.some(keys => context.hasShortcut(keys));
+  };
+
   return {
     addContext,
     getActiveContextName,
     getContext,
     getOrCreateContext,
     setActiveContextName,
+    hasEventShortcut,
     /**
      * Returns whether `control` or `meta` keys are pressed.
      *
