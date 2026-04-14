@@ -22,10 +22,15 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
+const dataManagementItems = [
+  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
+];
+
 module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
   ],
 };
