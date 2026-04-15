@@ -34,7 +34,7 @@ category: Rendering and styling
 
 ## Overview
 
-This recipe shows how to store a short series of numbers in a single cell (for example weekly sales) and render it as a mini bar chart with inline SVG. No charting library is required.
+This recipe shows how to edit weekly values in table cells and render a mini bar chart with inline SVG in a separate sparkline column. No charting library is required.
 
 **Difficulty:** Beginner  
 **Time:** ~10 minutes  
@@ -42,10 +42,11 @@ This recipe shows how to store a short series of numbers in a single cell (for e
 
 ## What you'll build
 
-- A registered renderer that reads an array value like `[4, 8, 2, 9, 5]`.
+- A registered renderer that reads each row's `w1` to `w5` values.
 - Bars scaled so the tallest bar uses the full SVG height (fixed viewBox, `preserveAspectRatio="none"` so the chart stretches with the cell).
 - Safe handling when the value is missing, not an array, empty, or all zeros.
 - Optional coloring: green when a value is at or above the row average, red when below.
+- Interactive behavior - when you edit W1-W5, Handsontable re-renders the sparkline SVG for that row.
 
 ## Step 1: Call the base renderer first
 
@@ -53,7 +54,7 @@ Always call `baseRenderer` before you change the cell content. That keeps read-o
 
 ## Step 2: Normalize the cell value
 
-Coerce each entry to a number and drop `NaN` values. If the result is empty, or if every number is zero, show an em dash and set `title` for a short tooltip instead of drawing bars.
+Coerce each `w1`-`w5` entry to a number and drop `NaN` values. If the result is empty, or if every number is zero, show an em dash and set `title` for a short tooltip instead of drawing bars.
 
 ## Step 3: Build the SVG
 
@@ -61,14 +62,14 @@ Use one `<rect>` per value. Bar height is `(abs(value) / maxAbs) * viewBoxHeight
 
 ## Step 4: Register and assign the renderer
 
-Use `registerRenderer('sparklineBar', sparklineRenderer)` and set `renderer: 'sparklineBar'` on the column that holds the arrays. The sample uses `readOnly: true` on that column because the demo focuses on display.
+Use `registerRenderer('sparklineBar', sparklineRenderer)` and set `renderer: 'sparklineBar'` on a dedicated sparkline column. Keep that sparkline column read-only, and keep W1-W5 editable so each edit triggers a fresh render.
 
 ## Edge cases covered
 
 | Case | Behavior |
 | --- | --- |
-| `null` / `undefined` / non-array | Treated as no data |
-| Empty array | Em dash, tooltip "No data" |
+| `null` / `undefined` / non-numeric week values | Treated as no data |
+| All week values missing | Em dash, tooltip "No data" |
 | All zeros | Em dash, tooltip "All values are zero" |
 | Mixed valid numbers | Bars scale to the maximum absolute value |
 
