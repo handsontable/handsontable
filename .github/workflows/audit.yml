@@ -41,11 +41,16 @@ jobs:
               'wrappers/angular-wrapper/package.json',
             ];
             const deps = {};
+            const optDeps = {};
             for (const p of pkgs) {
-              Object.assign(deps, JSON.parse(fs.readFileSync(p, 'utf8')).dependencies || {});
+              const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+              Object.assign(deps, pkg.dependencies || {});
+              Object.assign(optDeps, pkg.optionalDependencies || {});
             }
             fs.writeFileSync('$TMP/package.json', JSON.stringify({
-              name: 'audit-target', version: '1.0.0', dependencies: deps
+              name: 'audit-target', version: '1.0.0',
+              dependencies: deps,
+              optionalDependencies: optDeps,
             }));
           "
 
