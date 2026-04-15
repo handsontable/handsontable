@@ -21,14 +21,14 @@ searchCategory: Recipes
 category: Themes
 ---
 
-<iframe src="https://codesandbox.io/s/handsontable-fluent-ui-recipe-z89zf5?view=preview"
+<iframe src="https://codesandbox.io/s/zjtfff?view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with Fluent UI recipe"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
    ></iframe>
 
-[**Open in stackblitz.com**](https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?)
+[**Open in CodeSandbox**](https://codesandbox.io/s/zjtfff)
 
 ## Overview
 
@@ -41,7 +41,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Flue
 ## What You'll Get
 
 - A reusable Handsontable theme (`registerTheme('fluent-data-grid', { icons, colors, tokens })`) that maps to Fluent UI colors.
-- A React grid component that applies the custom theme and keeps Fluent typography and spacing.
+- A React grid component that applies Fluent-like typography (`Segoe UI`), neutral table colors, and roomier cell paddings.
 - A working baseline you can extend with dark mode and custom icon overrides.
 
 ## Prerequisites
@@ -129,7 +129,30 @@ export const fluentDataGridTheme = registerTheme('fluent-data-grid', {
 }).params({
   tokens: {
     fontFamily: "'Segoe UI', 'Segoe UI Web (West European)', system-ui, sans-serif",
-    wrapperBorderRadius: '4px',
+    fontSize: '14px',
+    lineHeight: '20px',
+    headerFontWeight: '600',
+    foregroundColor: '#242424',
+    foregroundSecondaryColor: '#616161',
+    backgroundColor: '#ffffff',
+    backgroundSecondaryColor: '#fafafa',
+    borderColor: '#e1dfdd',
+    cellVerticalBorderColor: '#e1dfdd',
+    headerBackgroundColor: '#f5f5f5',
+    headerForegroundColor: '#242424',
+    rowCellOddBackgroundColor: '#ffffff',
+    rowCellEvenBackgroundColor: '#ffffff',
+    rowHeaderOddBackgroundColor: '#ffffff',
+    rowHeaderEvenBackgroundColor: '#ffffff',
+    cellHorizontalPadding: '12px',
+    cellVerticalPadding: '10px',
+    barHorizontalPadding: '12px',
+    barVerticalPadding: '8px',
+    menuItemHorizontalPadding: '12px',
+    menuItemVerticalPadding: '8px',
+    wrapperBorderRadius: '8px',
+    cellSelectionBorderColor: '#0f6cbd',
+    cellSelectionBackgroundColor: '#deecf9',
   },
 });
 ```
