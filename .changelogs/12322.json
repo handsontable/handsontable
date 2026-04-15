@@ -1,5 +1,5 @@
 {
-  "issuesOrigin": "internal",
+  "issuesOrigin": "private",
   "title": "Fixed the `headerRowBackgroundColor` theme token having no visual effect on row headers. The `rowHeaderOddBackgroundColor` and `rowHeaderEvenBackgroundColor` tokens now derive from `headerRowBackgroundColor` by default, so customizing it properly cascades to all row headers.",
   "type": "fixed",
   "issueOrPR": "12322",
