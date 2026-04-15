@@ -182,6 +182,7 @@ Every code change **must** satisfy all of the following:
 - Release branches: `release/x.y.z`
 - LTS branches: `lts/[major].x`
 - **Never force-push** to `master`, `develop`, or PR-bound branches.
+- **Never commit directly to `develop` or `master`.** Always create a feature branch and open a PR. This applies to all changes, including skills, docs, and config files.
 - **SemVer**: Even-numbered majors (16, 18, 20) become LTS. No more than 4 major releases per year.
 - All PRs target **develop**. Cherry-picks to release/lts handled separately by maintainers.
 
@@ -190,8 +191,8 @@ Every code change **must** satisfy all of the following:
 ## Pull requests and changelog
 
 - Every PR must be connected to a GitHub issue.
-- Every PR that changes source code must include a changelog entry (`.changelogs/*.json`). See skill `changelog-creation`.
-- Use `[skip changelog]` only for non-source-code changes.
+- Every PR that changes **library source code** (`handsontable/` or `wrappers/` packages) must include a changelog entry (`.changelogs/*.json`). See skill `changelog-creation`.
+- Use `[skip changelog]` in the **PR body** for all other changes -- docs (`docs/`), config, CI, scripts, AGENTS.md. "Source code" here means library packages, not the docs site or tooling. This line must appear in the PR body, not in the commit message.
 - PRs are merged using **"Squash and merge"**. Commit messages: descriptive, max 80 characters.
 - If a task spans multiple days, create a draft PR and commit daily.
 - See skill `pr-creation` for the full workflow.
@@ -237,11 +238,13 @@ Every code change **must** satisfy all of the following:
 - Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
 - Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
+- **Docs guide pages** (`docs/content/guides/`): do not put an H1 in the Markdown body; `title` in frontmatter is the only page heading (Starlight shows it once). See skill `writing-docs-pages`.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - **Merged cells -- read from meta, not DOM**: Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, not DOM attributes. The meta is authoritative regardless of viewport state.
 - **Filters plugin visual/physical column index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
 - For hook signature/behavior fixes, add both a runtime regression and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` -- warnings about ignored build scripts (e.g., `less`) are expected.
+- **Never use raw `setTimeout` in core code.** Use `this.hot._registerTimeout(fn, delay)` instead -- it auto-clears all registered timeouts on `hot.destroy()`, preventing memory leaks and stale callbacks after the instance is destroyed.
 
 ---
 
@@ -267,15 +270,26 @@ For Cursor, set `CLICKUP_API_TOKEN` in Cursor Settings > MCP secrets, or export 
 3. **Set status to "in progress".** Check the task's current status. If it is **"to do"**, immediately update it to **"in progress"** using the ClickUp MCP tools before doing anything else (branching, coding, etc.).
 4. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
 
+### How GitHub activity is linked to ClickUp tasks
+
+ClickUp's GitHub integration **automatically** associates commits, branches, and pull requests with a task whenever a valid task ID appears anywhere in the branch name, commit message, PR title, or PR description. No manual comment or pasted URL is required.
+
+Accepted ID formats: `DEV-627`, `#DEV-627`, `CU-86c97jjb7`, `#86c97jjb7`.
+
+The branch naming convention `feature/DEV-627_Short-Title` already satisfies this -- every push to that branch is linked automatically.
+
+To update a task status directly from a commit or PR, append the target status in square brackets immediately after the task ID (no space): `DEV-627[code review]`.
+
 ### Workflow
 
 1. Parse task ID from ClickUp URL (e.g., `DEV-627`).
 2. Use ClickUp MCP to fetch task details.
 3. If the task status is **"to do"**, update it to **"in progress"** via ClickUp MCP before proceeding.
-4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
+4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`. The task ID in the branch name is what triggers automatic GitHub linking.
 5. Implement the fix/feature. Commit with the task ID in the message.
-6. Push and (when asked) open a PR whose title includes the task ID.
-7. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
-8. After PR is created, use ClickUp MCP to update task status to **"code review"**.
+6. Push. Immediately after pushing, use ClickUp MCP to add a comment to the task with the branch name and commit hash -- this links the task to the code even before a PR exists.
+7. (When asked) Open a PR whose title includes the task ID. The PR body **must** contain the ClickUp task URL on its own line (e.g., `ClickUp task: https://app.clickup.com/t/9015210959/DEV-627`). This is what attaches the PR to the ClickUp task.
+8. Apply changelog policy: put `[skip changelog]` in the **PR body** if the change does not touch library source code (`handsontable/` or `wrappers/`).
+9. After PR is created, use ClickUp MCP to update task status to **"code review"**.
 
 **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions. Do not call the ClickUp REST API directly.

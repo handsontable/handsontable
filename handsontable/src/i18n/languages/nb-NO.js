@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 
   [C.LOADING_TITLE]: 'Laster...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Ingen data tilgjengelig',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Det er ingenting å vise ennå.',

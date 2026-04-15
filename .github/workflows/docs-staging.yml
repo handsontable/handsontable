@@ -113,6 +113,10 @@ jobs:
 
           cp -r ../dist/. deploy/docs/
 
+          # Place 404.html at the publish root so Netlify serves it
+          # automatically for all unmatched routes (no redirect rule needed).
+          cp ../dist/404.html deploy/404.html
+
           cp _dev_headers deploy/_headers
           cp _redirects deploy/_redirects
 

@@ -326,7 +326,8 @@ export class MultipleSelectUI extends BaseUI {
    * @param {Event} event DOM event.
    */
   #onInput(event) {
-    const value = event.target.value.toLocaleLowerCase(this.getLocale());
+    const trimmed = event.target.value.trim();
+    const value = trimmed.toLocaleLowerCase(this.getLocale());
 
     if (this.options.searchMode === 'apply') {
       const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
