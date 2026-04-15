@@ -12,8 +12,9 @@
  */
 
 import { createRequire } from 'module';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -26,7 +27,14 @@ try {
   const pkg = require(join(__dirname, '../../..', 'handsontable', 'package.json'));
   rawVersion = pkg.version ?? 'next';
 } catch {
-  // Use 'next' fallback
+  // Vite may transform import.meta.url during SSG build, breaking require().
+  // Fall back to reading from process.cwd() which is the docs/ directory.
+  try {
+    const pkg = JSON.parse(readFileSync(resolve(process.cwd(), '..', 'handsontable', 'package.json'), 'utf-8'));
+    rawVersion = pkg.version ?? 'next';
+  } catch {
+    // Use 'next' fallback
+  }
 }
 
 // Convert patch version (e.g. "17.0.0") to minor version (e.g. "17.0").
@@ -43,11 +51,23 @@ interface DocsData {
 
 let docsData: DocsData | null = null;
 
+// Prefer locally-generated common.json (written by commonJsonIntegration at build
+// start) which merges GitHub release data with the local package version. This
+// ensures pre-release versions not yet on handsontable.com are reflected correctly.
 try {
-  const res = await fetch('https://handsontable.com/docs/data/common.json');
-  if (res.ok) docsData = await res.json();
+  const localJson = readFileSync(resolve(process.cwd(), 'public', 'data', 'common.json'), 'utf-8');
+  docsData = JSON.parse(localJson);
 } catch {
-  // Offline / network unavailable — render with minimal fallback.
+  // Local file not available -- fall back to remote.
+}
+
+if (!docsData) {
+  try {
+    const res = await fetch('https://handsontable.com/docs/data/common.json');
+    if (res.ok) docsData = await res.json();
+  } catch {
+    // Offline / network unavailable — render with minimal fallback.
+  }
 }
 
 const latestVersion = docsData?.latestVersion ?? currentMinor;
