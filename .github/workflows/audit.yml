@@ -28,4 +28,23 @@ jobs:
 
       - name: NPM audit
         run: |
-          pnpm audit --prod --ignore-unfixable
+          # pnpm audit uses retired npm endpoints. Generate a temporary lockfile
+          # so npm audit can use the new bulk advisory endpoint instead.
+          npm install --package-lock-only --ignore-scripts --no-fund --legacy-peer-deps
+          # Replicates --ignore-unfixable: only fail if fixable vulnerabilities exist.
+          AUDIT_EXIT=0
+          npm audit --omit=dev 2>&1 || AUDIT_EXIT=$?
+          if [ $AUDIT_EXIT -ne 0 ]; then
+            npm audit --omit=dev --json 2>/dev/null | node -e "
+              let d = '';
+              process.stdin.on('data', c => d += c);
+              process.stdin.on('end', () => {
+                try {
+                  const a = JSON.parse(d);
+                  const fixable = Object.values(a.vulnerabilities || {})
+                    .some(v => v.fixAvailable !== false);
+                  process.exit(fixable ? 1 : 0);
+                } catch(e) { process.exit(1); }
+              });
+            "
+          fi
