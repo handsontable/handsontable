@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
+import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
 
 export const PLUGIN_KEY = 'dragToScroll';
@@ -70,6 +71,29 @@ export class DragToScroll extends BasePlugin {
    * @type {boolean}
    */
   #isOutsideViewport = false;
+  /**
+   * Kind of drag currently active: `'cell'` for a regular mouse-drag selection,
+   * `'corner'` for an autofill fill-handle drag, or `null` when no drag is active.
+   * Used to route the auto-scroll-based selection extension only to regular drags
+   * (autofill manages its own extension via its `afterScroll` hook).
+   *
+   * @type {('cell' | 'corner' | null)}
+   */
+  #activeDragKind = null;
+  /**
+   * Last observed mouse X coordinate (client space). Cached so that the viewport
+   * can recompute the edge cell on each `afterScroll` tick even when the mouse
+   * stays stationary outside the viewport.
+   *
+   * @type {number | null}
+   */
+  #lastClientX = null;
+  /**
+   * Last observed mouse Y coordinate (client space).
+   *
+   * @type {number | null}
+   */
+  #lastClientY = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -97,9 +121,10 @@ export class DragToScroll extends BasePlugin {
       .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
       .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
 
-    this.addHook('beforeOnCellMouseDown', (...args) => this.#setupListening(...args));
-    this.addHook('afterOnCellCornerMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('beforeOnCellMouseDown', event => this.#setupListening('cell', event));
+    this.addHook('afterOnCellCornerMouseDown', event => this.#setupListening('corner', event));
     this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
+    this.addHook('afterScroll', () => this.#onAfterScroll());
 
     this.registerEvents();
 
@@ -203,6 +228,9 @@ export class DragToScroll extends BasePlugin {
    */
   unlisten() {
     this.listening = false;
+    this.#activeDragKind = null;
+    this.#lastClientX = null;
+    this.#lastClientY = null;
     this.#autoScroller.stop();
   }
 
@@ -226,13 +254,13 @@ export class DragToScroll extends BasePlugin {
 
     let frame = rootWindow;
 
-    // while (frame) {
-    //   this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
-    //   this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
-    //   this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
+    while (frame) {
+      this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
+      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
 
-    //   frame = getParentWindow(frame);
-    // }
+      frame = getParentWindow(frame);
+    }
   }
 
   /**
@@ -247,12 +275,22 @@ export class DragToScroll extends BasePlugin {
   /**
    * On after on cell/cellCorner mouse down listener.
    *
+   * @param {('cell' | 'corner')} kind Which drag started — a regular cell selection drag
+   *   (`'cell'`) or an autofill fill-handle drag (`'corner'`).
    * @param {MouseEvent} event The mouse event object.
    */
-  #setupListening(event) {
+  #setupListening(kind, event) {
     if (isRightClick(event)) {
       return;
     }
+
+    // Regular drag-select is a no-op when selectionMode is 'single'. Autofill
+    // drag is unaffected.
+    if (kind === 'cell' && this.hot.getSettings().selectionMode === 'single') {
+      return;
+    }
+
+    this.#activeDragKind = kind;
 
     const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
 
@@ -277,20 +315,34 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Scrolls the viewport horizontally by one column.
+   * Scrolls the viewport horizontally by one column. Stops the horizontal axis
+   * of the auto-scroller when `scrollViewportTo` reports that no scroll
+   * happened — meaning the viewport is already pegged against the first or
+   * last column.
+   *
+   * Under RTL, the screen-x → column-index mapping is visually inverted:
+   * a mouse past the screen-right edge wants to reveal LOWER column indexes
+   * (which are visually to the right of the current viewport), and past the
+   * screen-left edge wants HIGHER column indexes.
    *
    * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
    */
   #scrollHorizontal(distance) {
     const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
     const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
-    const scrollColumn = distance > 0 ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
+    const shouldAdvance = this.hot.isRtl() ? distance < 0 : distance > 0;
+    const scrollColumn = shouldAdvance ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
 
-    this.hot.scrollViewportTo({ col: scrollColumn });
+    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn });
+
+    if (!isScrolled) {
+      this.#autoScroller.stopHorizontal();
+    }
   }
 
   /**
-   * Scrolls the viewport vertically by one row.
+   * Scrolls the viewport vertically by one row. Stops the vertical axis of the
+   * auto-scroller when `scrollViewportTo` reports that no scroll happened.
    *
    * @param {number} distance Vertical distance from viewport edge (positive = down, negative = up).
    */
@@ -299,7 +351,11 @@ export class DragToScroll extends BasePlugin {
     const lastVisibleRow = this.hot.getLastFullyVisibleRow();
     const scrollRow = distance > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
 
-    this.hot.scrollViewportTo({ row: scrollRow });
+    const isScrolled = this.hot.scrollViewportTo({ row: scrollRow });
+
+    if (!isScrolled) {
+      this.#autoScroller.stopVertical();
+    }
   }
 
   /**
@@ -330,7 +386,50 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
+    this.#lastClientX = event.clientX;
+    this.#lastClientY = event.clientY;
+
     this.check(event.clientX, event.clientY);
+  }
+
+  /**
+   * Extends the regular drag-select selection to the cell at the clamped mouse position
+   * after each viewport auto-scroll tick. Autofill drags are skipped — the autofill plugin
+   * owns its own selection extension via its `afterScroll` hook.
+   */
+  #onAfterScroll() {
+    if (this.#activeDragKind !== 'cell') {
+      return;
+    }
+
+    if (!this.#isOutsideViewport) {
+      return;
+    }
+
+    if (this.#lastClientX === null || this.#lastClientY === null) {
+      return;
+    }
+
+    if (this.hot.getSettings().selectionMode === 'single') {
+      return;
+    }
+
+    const edgeCell = getCellCoordsFromMousePosition(this.hot, this.#lastClientX, this.#lastClientY);
+
+    if (!edgeCell) {
+      return;
+    }
+
+    const currentRange = this.hot.getSelectedRangeLast();
+
+    // Skip the setRangeEnd call when the edge cell matches the current
+    // selection end. Avoids a redundant `afterSelection` firing and re-render
+    // on each tick.
+    if (currentRange && currentRange.to.row === edgeCell.row && currentRange.to.col === edgeCell.col) {
+      return;
+    }
+
+    this.hot.selection.setRangeEnd(edgeCell);
   }
 
   /**

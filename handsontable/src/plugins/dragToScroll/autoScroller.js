@@ -43,6 +43,24 @@ export class AutoScroller {
   }
 
   /**
+   * Whether the horizontal axis is currently scrolling.
+   *
+   * @type {boolean}
+   */
+  get isHorizontalActive() {
+    return this.#horizontal.isActive;
+  }
+
+  /**
+   * Whether the vertical axis is currently scrolling.
+   *
+   * @type {boolean}
+   */
+  get isVerticalActive() {
+    return this.#vertical.isActive;
+  }
+
+  /**
    * Configures scroll timing settings for both axes.
    *
    * @param {object} settings Scroll settings.
@@ -71,6 +89,20 @@ export class AutoScroller {
    */
   stop() {
     this.#horizontal.stop();
+    this.#vertical.stop();
+  }
+
+  /**
+   * Stops the horizontal axis scrolling only.
+   */
+  stopHorizontal() {
+    this.#horizontal.stop();
+  }
+
+  /**
+   * Stops the vertical axis scrolling only.
+   */
+  stopVertical() {
     this.#vertical.stop();
   }
 

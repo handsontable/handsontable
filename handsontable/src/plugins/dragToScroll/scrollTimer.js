@@ -90,9 +90,18 @@ export class ScrollTimer {
 
   /**
    * Internal tick - fires hook and schedules next tick.
+   *
+   * If the hook calls `stop()` synchronously (for example, when the scroll
+   * axis hits the end of data), `stop()` sets `#distance` to `0`. We check
+   * that signal here and skip the reschedule; otherwise the stop would be
+   * silently undone by the reschedule below.
    */
   #tick = () => {
     this.runLocalHooks('tick', this.#distance);
+
+    if (this.#distance === 0) {
+      return;
+    }
 
     const interval = calculateInterval(
       this.#distance,

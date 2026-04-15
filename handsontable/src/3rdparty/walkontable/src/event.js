@@ -85,7 +85,11 @@ class Event {
     this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
 
     if (this.#wtTable.isMaster) {
-      this.#eventManager.addEventListener(this.#domBindings.rootDocument, 'mousemove', event => this.onMouseMove(event));
+      this.#eventManager.addEventListener(
+        this.#domBindings.rootDocument,
+        'mousemove',
+        event => this.onMouseMove(event)
+      );
     }
 
     const initTouchEvents = () => {
@@ -259,13 +263,21 @@ class Event {
     if (td && td !== parent.lastMouseOver && isChildOf(td, table)) {
       parent.lastMouseOver = td;
 
-      console.log('over');
-
       this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(td), td);
     }
   }
 
   onMouseMove(event) {
+    /**
+     * Finds which column the mouse is over within a given column range.
+     *
+     * @param {Walkontable} wotInstance The Walkontable instance.
+     * @param {number} row Row to use for measuring cell widths.
+     * @param {number} startColumn First column in the range.
+     * @param {number} endColumn Last column in the range (inclusive).
+     * @param {number} relativeX Mouse X position relative to the first cell's edge.
+     * @returns {number | null} Column index, or null if mouse is outside the range.
+     */
     function findColumnAtX(wotInstance, row, startColumn, endColumn, relativeX) {
       let accumulatedX = 0;
 
@@ -298,7 +310,7 @@ class Event {
     /**
      * Finds which row the mouse is over within a given row range.
      *
-     * @param {Handsontable} hotInstance The Handsontable instance.
+     * @param {Walkontable} wotInstance The Walkontable instance.
      * @param {number} column Column to use for measuring cell heights.
      * @param {number} startRow First row in the range.
      * @param {number} endRow Last row in the range (inclusive).
@@ -338,10 +350,9 @@ class Event {
      * Get the cell coordinates from the mouse position. When the mouse is outside of the table,
      * the nearest cell is returned.
      *
-     * @param {Handsontable} hotInstance The Handsontable instance.
      * @param {number} mouseX The x coordinate of the mouse.
      * @param {number} mouseY The y coordinate of the mouse.
-     * @returns {CellCoords} The cell coordinates.
+     * @returns {{ coords: CellCoords, isOutside: boolean }} The cell coordinates and whether the mouse is outside the viewport.
      */
     const getCellCoordsFromMousePosition = (mouseX, mouseY) => {
       const isRtl = this.#wtSettings.getSetting('rtlMode');
@@ -360,8 +371,10 @@ class Event {
 
       const tableViewportLeft = tableOffset.left;
       const tableViewportTop = tableOffset.top;
-      const columnHeaderHeight = this.#wtSettings.getSetting('columnHeaders').length > 0 ? wot.wtViewport.getColumnHeaderHeight() : 0;
-      const rowHeaderWidth = this.#wtSettings.getSetting('rowHeaders').length > 0 ? wot.wtViewport.getRowHeaderWidth() : 0;
+      const hasColHeaders = this.#wtSettings.getSetting('columnHeaders').length > 0;
+      const hasRowHeaders = this.#wtSettings.getSetting('rowHeaders').length > 0;
+      const columnHeaderHeight = hasColHeaders ? wot.wtViewport.getColumnHeaderHeight() : 0;
+      const rowHeaderWidth = hasRowHeaders ? wot.wtViewport.getRowHeaderWidth() : 0;
       const tableViewportRight = tableViewportLeft + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
       const tableViewportBottom = tableViewportTop + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
 
@@ -479,12 +492,11 @@ class Event {
                    mouseY < tableViewportTop ||
                    mouseY > tableViewportBottom,
       };
-    }
+    };
 
     const { coords, isOutside } = getCellCoordsFromMousePosition(event.clientX, event.clientY);
 
     if (isOutside) {
-      console.log(coords);
       this.callListener('onCellMouseOverOutside', event, coords, this.#wtTable.getCell(coords, true));
     }
   }

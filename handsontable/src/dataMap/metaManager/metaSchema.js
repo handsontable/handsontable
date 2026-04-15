@@ -2293,10 +2293,14 @@ export default () => {
      *
      * You can set the `dragToScroll` option to one of the following:
      *
-     * | Setting          | Description                                                                 |
-     * | ---------------- | --------------------------------------------------------------------------- |
-     * | `true` (default) | When selection reaches the edge of the grid's viewport, scroll the viewport |
-     * | `false`          | Don't scroll the viewport                                                   |
+     * | Setting          | Description                                                                                                                                 |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | When a selection drag reaches the edge of the grid's viewport, scroll the viewport and extend the selection to the newly-scrolled cells     |
+     * | `false`          | Don't scroll the viewport                                                                                                                   |
+     *
+     * The viewport scrolls periodically while the mouse pointer stays outside the
+     * viewport edge, and the active selection (regular drag-select or autofill
+     * drag) follows along with it.
      *
      * Read more:
      * - [Plugins: `DragToScroll`](@/api/dragToScroll.md)
@@ -2308,7 +2312,8 @@ export default () => {
      *
      * @example
      * ```js
-     * // when selection reaches the edge of the grid's viewport, scroll the viewport
+     * // when the selection drag reaches the edge of the grid's viewport,
+     * // scroll the viewport and extend the selection to the newly-scrolled cells
      * dragToScroll: true,
      * ```
      */

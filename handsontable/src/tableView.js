@@ -1065,7 +1065,6 @@ class TableView {
         }
 
         if (this.#mouseDown) {
-          console.log(11);
           handleMouseEvent(event, {
             coords: visualCoords,
             selection: this.hot.selection,

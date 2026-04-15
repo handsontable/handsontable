@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Dragging a selection past the viewport edge now scrolls the viewport and extends the selection to the newly-scrolled cells.",
+  "type": "changed",
+  "issueOrPR": "DEV-99",
+  "breaking": false,
+  "framework": "none"
+}

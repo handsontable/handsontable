@@ -4,10 +4,8 @@ import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { isObject } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
-import {
-  getDragDirectionAndRange,
-  getCellCoordsFromMousePosition,
-} from './utils';
+import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
+import { getDragDirectionAndRange } from './utils';
 import { DIRECTIONS } from './constants';
 
 Hooks.getSingleton().register('modifyAutofillRange');
