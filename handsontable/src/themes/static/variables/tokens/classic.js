@@ -257,7 +257,6 @@ export default {
   paginationButtonHoverBorderColor: 'tokens.paginationBarBackgroundColor',
   paginationButtonHoverForegroundColor: 'tokens.secondaryButtonForegroundColor',
   paginationButtonHoverBackgroundColor: 'tokens.secondaryButtonHoverBackgroundColor',
-  paginationButtonFocusBorderColor: 'tokens.accentColor',
   paginationButtonDisabledForegroundColor: 'tokens.secondaryButtonDisabledForegroundColor',
   dialogSemiTransparentBackgroundColor: ['colors.white', 'colors.palette.950'],
   dialogSemiTransparentBackgroundOpacity: '80%',

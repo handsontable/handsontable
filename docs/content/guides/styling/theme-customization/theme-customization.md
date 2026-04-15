@@ -751,7 +751,6 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverBorderColor` </div>   | Border color of pagination navigation button on hover |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverForegroundColor` </div>   | Icon color of pagination navigation button on hover |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverBackgroundColor` </div>   | Background color of pagination navigation button on hover |
-| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBorderColor` </div>   | Border color of pagination navigation button on focus |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledForegroundColor` </div>   | Icon color of pagination navigation button when disabled |
 
 </div>
