@@ -19,3 +19,9 @@
   background-color: var(--ht-background-secondary-color, #f3f4f6);
   color: var(--ht-foreground-secondary-color, #6b7280);
 }
+
+/* Flash feedback for rejected edits (allowInvalid: false) */
+#example1 td.ht-demo-invalid-flash {
+  background-color: var(--ht-cell-error-background-color, rgba(250, 77, 50, 0.2)) !important;
+  color: inherit;
+}

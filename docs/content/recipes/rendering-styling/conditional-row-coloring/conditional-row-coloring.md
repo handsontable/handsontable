@@ -197,6 +197,53 @@ Handsontable applies the `className` you return from `cells` directly to the `<t
 - `color-mix(in srgb, <color> 12%, <background>)` blends the accent color lightly into the background, creating a gentle tint rather than a solid block of color.
 - The percentage controls intensity: lower means a subtler tint.
 
+## Step 5: Flash feedback for rejected edits
+
+With `allowInvalid: false`, Handsontable cancels the change and immediately resets `valid` back to `true` within the same microtask - before any render can happen. This means Handsontable's built-in `.htInvalid` red background **never appears**: by the time the re-render runs, the cell is already valid again.
+
+To give the user some feedback that their edit was rejected, use the [`afterValidate`](@/api/hooks.md#aftervalidate) hook. It fires right after validation, while `isValid` is still `false`, giving you a brief window to add a temporary CSS class directly to the `<td>`:
+
+```javascript
+afterValidate(isValid, _value, row, prop) {
+  if (isValid) {
+    return;
+  }
+
+  const col = this.propToCol(prop);
+  const td = this.getCell(row, col);
+
+  if (!td) {
+    return;
+  }
+
+  td.classList.add('ht-demo-invalid-flash');
+  setTimeout(() => td.classList.remove('ht-demo-invalid-flash'), 800);
+},
+```
+
+**Key points:**
+
+- `this` is the Handsontable instance inside any hook defined in the settings object (use a regular function, not an arrow function).
+- `this.propToCol(prop)` converts the property name (`'status'`) to a visual column index.
+- `this.getCell(row, col)` returns the live `<td>` element at the visual row and column. It returns `null` if the row is outside the rendered viewport, so always guard with `if (!td)`.
+- The class is added directly to the DOM - no re-render is needed.
+- The `setTimeout` removes the class after 800 ms, returning the cell to its normal status color.
+
+**Why not use `.htInvalid` directly?**
+
+The `baseRenderer` adds `.htInvalid` only when `cellProperties.valid === false` at render time. With `allowInvalid: false`, Handsontable sets `valid` back to `true` before the render. The hook fires before that reset, so it is the only reliable place to catch the `isValid === false` signal.
+
+Add a matching CSS rule with `!important` so it overrides the status tint and `color` is preserved:
+
+```css
+#example1 td.ht-demo-invalid-flash {
+  background-color: var(--ht-cell-error-background-color, rgba(250, 77, 50, 0.2)) !important;
+  color: inherit;
+}
+```
+
+`--ht-cell-error-background-color` matches the same token used by `.htInvalid`, so the flash color is consistent with the theme.
+
 ## How It Works - Complete Flow
 
 1. **Initial load**: Handsontable calls `cells` for every cell. The callback reads the Status value and returns a class. Each `<td>` gets the matching CSS class applied to it.
@@ -204,6 +251,7 @@ Handsontable applies the `className` you return from `cells` directly to the `<t
 3. **User selects a new status**: The dropdown editor commits the value to the data source.
 4. **Handsontable re-renders**: The `cells` callback runs again. The new class replaces the old one on every cell in that row.
 5. **Colors update instantly**: No extra hooks, no manual re-renders needed.
+6. **User pastes or types an invalid value**: `afterValidate` fires with `isValid === false`. The hook adds `.ht-demo-invalid-flash` directly to the `<td>`. After 800 ms the class is removed and the status color returns. The invalid value is never committed.
 
 ## `cells` callback vs custom renderer
 

@@ -71,6 +71,27 @@ const hotOptions: Handsontable.GridSettings = {
 
     return { className: rowClass };
   },
+  afterValidate(
+    this: Handsontable,
+    isValid: boolean,
+    _value: Handsontable.CellValue,
+    row: number,
+    prop: string | number,
+  ): void {
+    if (isValid) {
+      return;
+    }
+
+    const col = this.propToCol(prop);
+    const td = this.getCell(row, col);
+
+    if (!td) {
+      return;
+    }
+
+    td.classList.add("ht-demo-invalid-flash");
+    setTimeout(() => td.classList.remove("ht-demo-invalid-flash"), 800);
+  },
 };
 
 // eslint-disable-next-line no-unused-vars
