@@ -36,15 +36,23 @@ category: Rendering and styling
 
 ## Overview
 
-This recipe shows how to tint every cell in a row based on a **status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, set that class through Handsontable metadata, and keep colors correct on first load and after the user edits **Status**.
+This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable metadata, and keep colors correct on first load and after the user edits **Status**.
 
 **Difficulty:** Beginner  
 **Time:** ~10 minutes  
 **Libraries:** None beyond Handsontable.
 
-## Map status values to row classes
+## What You'll Build
 
-Use a small lookup object so the mapping stays in one place.
+A grid that:
+- Tints active rows with a blue background
+- Tints pending rows with an amber background
+- Grays out inactive rows with muted text
+- Updates row colors instantly when the user changes the Status dropdown
+
+## Step 1: Define the status-to-class mapping
+
+Create a lookup object that maps each status string to a CSS class name. Keeping it in one place means you only touch one object if you add or rename statuses.
 
 ```typescript
 const STATUS_ROW_CLASSES: Record<string, string> = {
@@ -52,15 +60,27 @@ const STATUS_ROW_CLASSES: Record<string, string> = {
   pending: 'ht-demo-row-status-pending',
   inactive: 'ht-demo-row-status-inactive',
 };
+
+function statusToRowClass(status: unknown): string | undefined {
+  if (typeof status !== 'string') {
+    return undefined;
+  }
+  return STATUS_ROW_CLASSES[status];
+}
 ```
 
-Prefix custom classes (for example `ht-demo-`) so they do not clash with Handsontable internals.
+**Why a lookup object?**
+- All status-to-class rules live in one place.
+- Adding a new status (`archived`, `draft`, ...) requires one new entry -- no scattered `if/else` chains.
+- The helper function guards against non-string values (empty cells, `null`, numbers) and returns `undefined` so callers can skip the class safely.
 
-## Apply the class with the `cells` callback
+**Why prefix class names with `ht-demo-`?**
+- Avoids collisions with Handsontable's own internal CSS classes.
+- Makes it obvious in DevTools which classes come from your code.
 
-The [`cells`](@/api/options.md#cells) setting runs while cell metadata is built. Return a [`className`](@/api/options.md#classname) object for each cell so the same row class is applied to every column in that row.
+## Step 2: Wire up the `cells` callback
 
-The callback receives **physical** row and column indexes. Read the status from the dataset using the **visual** row so sorting and row moves still match what the user sees:
+The [`cells`](@/api/options.md#cells) callback runs while Handsontable builds cell metadata before each render. Return a `{ className }` object and Handsontable applies that class directly to the `<td>` element.
 
 ```typescript
 cells(
@@ -87,61 +107,115 @@ cells(
 },
 ```
 
-Handsontable runs a full render after typical data changes (including dropdown edits), which refreshes this metadata, so row colors stay in sync after edits without extra hooks.
+**Key points:**
 
-Use a regular `cells` function (not an arrow function) so `this` is the current [`CellProperties`](@/api/cellProperties.md) object and `this.instance` is the grid instance.
+- `cells` receives the **physical** row index. You must call `hot.toVisualRow(row)` to get the **visual** index before reading data. Without this, sorting or row moves would read data from the wrong row.
+- `hot.getDataAtRowProp(visualRow, 'status')` reads the Status value by property name, which works with object-based data (`[{ task, owner, status }]`).
+- Returning `{}` (no class) for unrecognized statuses leaves the cell unstyled rather than applying a stale class.
+- Use a regular `function` (not an arrow function) so `this` refers to the [`CellProperties`](@/api/cellProperties.md) object and `this.instance` gives you the grid.
 
-## Scoped CSS for row states
+**Why `cells` and not a custom renderer?**
 
-Keep rules under your preview root (here `#example1`) so they only affect this demo. Use theme tokens where possible so the table still fits light, dark, and custom themes.
+The `cells` callback applies metadata to every column in the row automatically. A custom renderer would require you to add the same logic to each column's renderer, or wrap the default renderer yourself. Use `cells` for row-level styling; use a renderer only when you need to change what is inside the cell.
 
-See `example1.css` in the demo tabs for full rules. They set row background tints for **active** and **pending**, and a muted background plus secondary text color for **inactive**.
+## Step 3: Configure columns and data
+
+Set up the grid with a dropdown for the Status column so the user can change values:
+
+```typescript
+const hotOptions: Handsontable.GridSettings = {
+  data,
+  licenseKey: 'non-commercial-and-evaluation',
+  rowHeaders: true,
+  colHeaders: ['Task', 'Owner', 'Status'],
+  height: 'auto',
+  width: '100%',
+  columns: [
+    { data: 'task', type: 'text', width: 220 },
+    { data: 'owner', type: 'text', width: 120 },
+    {
+      data: 'status',
+      type: 'dropdown',
+      width: 120,
+      source: ['active', 'pending', 'inactive'],
+      strict: true,
+      allowInvalid: false,
+    },
+  ],
+  cells(row, _column, _prop) { /* Step 2 */ },
+};
+
+const hot = new Handsontable(container, hotOptions);
+```
+
+**Why `strict: true` and `allowInvalid: false`?**
+- `strict: true` rejects any value that is not in the `source` list.
+- `allowInvalid: false` rolls back the edit instead of saving the invalid value.
+- Together they guarantee the Status column always holds a known value, so the class mapping always finds a match.
+
+Handsontable runs a full render after every data change (including dropdown edits), which re-runs the `cells` callback automatically. Row colors stay in sync without any extra hooks or manual re-renders.
+
+## Step 4: Write scoped CSS for each status
+
+The `cells` callback places the class on each `<td>` element. Target `td.ht-demo-row-status-*` and scope every rule under your container ID (`#example1`) to prevent styles leaking to other tables on the page.
+
+```css
+/* Blue tint for active rows */
+#example1 td.ht-demo-row-status-active {
+  background-color: color-mix(
+    in srgb,
+    var(--ht-accent-color, #1a42e8) 12%,
+    var(--ht-background-color, #ffffff)
+  );
+}
+
+/* Amber tint for pending rows */
+#example1 td.ht-demo-row-status-pending {
+  background-color: color-mix(
+    in srgb,
+    var(--ht-warn-color, #ca8a04) 14%,
+    var(--ht-background-color, #ffffff)
+  );
+}
+
+/* Gray background and muted text for inactive rows */
+#example1 td.ht-demo-row-status-inactive {
+  background-color: var(--ht-background-secondary-color, #f3f4f6);
+  color: var(--ht-foreground-secondary-color, #6b7280);
+}
+```
+
+**Why `td.ht-demo-row-status-*` and not `.ht-demo-row-status-* td`?**
+
+Handsontable applies the `className` you return from `cells` directly to the `<td>` element itself. The selector must therefore read as "a `<td>` that has this class", not "a `<td>` that is a child of something with this class".
+
+**Why CSS custom properties (`var(--ht-...)`) with fallbacks?**
+- Theme tokens (`--ht-accent-color`, `--ht-warn-color`, etc.) automatically adapt to light, dark, and custom Handsontable themes.
+- The fallback values (`#1a42e8`, `#ca8a04`, ...) ensure colors work in environments that do not load a Handsontable theme.
+
+**Why `color-mix()`?**
+- `color-mix(in srgb, <color> 12%, <background>)` blends the accent color lightly into the background, creating a gentle tint rather than a solid block of color.
+- The percentage controls intensity: lower means a subtler tint.
+
+## How It Works - Complete Flow
+
+1. **Initial load**: Handsontable calls `cells` for every cell. The callback reads the Status value and returns a class. Each `<td>` gets the matching CSS class applied to it.
+2. **CSS renders colors**: The scoped CSS rules tint each `<td>` according to its class.
+3. **User selects a new status**: The dropdown editor commits the value to the data source.
+4. **Handsontable re-renders**: The `cells` callback runs again. The new class replaces the old one on every cell in that row.
+5. **Colors update instantly**: No extra hooks, no manual re-renders needed.
 
 ## `cells` callback vs custom renderer
 
 | Approach | Pros | Trade-offs |
 | -------- | ---- | ---------- |
-| **`cells` + `className`** | Styling lives in CSS. Works with built-in cell types and editors. One place defines the row class for all columns. | You rely on Handsontable to merge `className` into the DOM. Very large grids should still profile render cost. |
-| **Custom [`renderer`](@/api/renderers.md)** | Full control of `innerHTML`, extra markup, and per-cell logic in one function. | If you only use a renderer to add classes, you duplicate logic across columns or wrap the default renderer yourself. Row-wide styling is usually easier with `cells`. |
+| **`cells` + `className`** | Styling lives in CSS. Works with all built-in cell types and editors. One callback covers all columns in the row. | You rely on Handsontable to merge `className` into the DOM. |
+| **Custom [`renderer`](@/api/renderers.md)** | Full control of `innerHTML`, extra markup, and per-cell logic. | Row-wide styling requires duplicating logic across columns or wrapping the default renderer. |
 
 You can combine both: use `cells` for row-level classes and a custom renderer only where cell content needs special HTML.
-
-### Renderer-only sketch
-
-If you prefer classes inside a renderer, read the row status and update `td.className` (and call the default text renderer if you still want standard cell output):
-
-```typescript
-import { textRenderer } from 'handsontable/renderers';
-
-function statusAwareRenderer(
-  hot: Handsontable.Core,
-  physicalRow: number,
-  ...args: Parameters<typeof textRenderer>
-) {
-  const visualRow = hot.toVisualRow(physicalRow);
-  const status =
-    visualRow !== null && visualRow >= 0
-      ? hot.getDataAtRowProp(visualRow, 'status')
-      : undefined;
-  const rowClass = statusToRowClass(status);
-
-  if (rowClass) {
-    args[0].className = rowClass;
-  }
-
-  textRenderer(...args);
-}
-```
-
-For a whole grid, you would register this renderer on each column (or set it in `cells` as `renderer`), which is why the `className`-only `cells` approach is often shorter for row coloring.
-
-## Acceptance checklist
-
-- **Correct on load and after edits:** Changing **Status** updates data, triggers a render, and rebuilds cell meta so classes match the new value.
-- **Scoped CSS:** Selectors are prefixed with `#example1` so styles do not leak globally.
-- **Clean code:** Status-to-class mapping is a single object; the `cells` callback stays small and uses `toVisualRow` for correct data reads.
 
 ## Related
 
 - [Configuration options: cell and row metadata](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
 - [`className` option](@/api/options.md#classname)
+- [`cells` option](@/api/options.md#cells)

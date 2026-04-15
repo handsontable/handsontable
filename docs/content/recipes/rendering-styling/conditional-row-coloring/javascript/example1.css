@@ -1,5 +1,5 @@
 /* Scoped to the recipe preview container */
-#example1 .ht-demo-row-status-active td {
+#example1 td.ht-demo-row-status-active {
   background-color: color-mix(
     in srgb,
     var(--ht-accent-color, #1a42e8) 12%,
@@ -7,7 +7,7 @@
   );
 }
 
-#example1 .ht-demo-row-status-pending td {
+#example1 td.ht-demo-row-status-pending {
   background-color: color-mix(
     in srgb,
     var(--ht-warn-color, #ca8a04) 14%,
@@ -15,7 +15,7 @@
   );
 }
 
-#example1 .ht-demo-row-status-inactive td {
+#example1 td.ht-demo-row-status-inactive {
   background-color: var(--ht-background-secondary-color, #f3f4f6);
   color: var(--ht-foreground-secondary-color, #6b7280);
 }
