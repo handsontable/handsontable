@@ -48,7 +48,6 @@ export class PartiallyVisibleRowsCalculationType {
     const {
       totalCalculatedHeight,
       zeroBasedScrollOffset,
-      viewportHeight,
       innerViewportHeight,
     } = viewportCalculator;
 
@@ -56,19 +55,11 @@ export class PartiallyVisibleRowsCalculationType {
       this.startRow = row;
     }
 
-    const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
-
-    // console.log('compensatedViewportHeight', zeroBasedScrollOffset, viewportHeight, compensatedViewportHeight);
-
-    // if (
-    //   totalCalculatedHeight >= zeroBasedScrollOffset &&
-    //   totalCalculatedHeight <= innerViewportHeight + compensatedViewportHeight
-    // ) {
     if (
       totalCalculatedHeight >= zeroBasedScrollOffset &&
-      totalCalculatedHeight <= zeroBasedScrollOffset + compensatedViewportHeight
+      totalCalculatedHeight <= innerViewportHeight
     ) {
-      if (this.startRow === null || this.startRow === undefined) {
+      if (this.startRow === null) {
         this.startRow = row;
       }
     }
@@ -85,10 +76,10 @@ export class PartiallyVisibleRowsCalculationType {
     const {
       scrollOffset,
       viewportHeight,
-      zeroBasedScrollOffset,
+      horizontalScrollbarHeight,
       totalRows,
       needReverse,
-      startPositions,
+      positionCache,
       rowHeight,
     } = viewportCalculator;
 
@@ -98,27 +89,26 @@ export class PartiallyVisibleRowsCalculationType {
       this.startRow = this.endRow;
 
       while (this.startRow > 0) {
-        const calculatedViewportHeight = startPositions[this.endRow] +
+        const calculatedViewportHeight = positionCache.getOffset(this.endRow) +
           rowHeight -
-          startPositions[this.startRow - 1];
+          positionCache.getOffset(this.startRow - 1);
 
         this.startRow -= 1;
 
-        if (calculatedViewportHeight >= viewportHeight) {
+        if (calculatedViewportHeight >= viewportHeight - horizontalScrollbarHeight) {
           break;
         }
       }
     }
 
-    console.log('startRow', this.startRow);
-    console.log('endRow', this.endRow);
+    this.startPosition = this.startRow !== null ? positionCache.getOffset(this.startRow) : null;
 
-    this.startPosition = startPositions[this.startRow] ?? null;
+    const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
 
-    const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
-    const mostBottomScrollOffset = scrollOffset + viewportHeight - compensatedViewportHeight;
-
-    if (mostBottomScrollOffset < 0 || scrollOffset > startPositions.at(-1) + rowHeight) {
+    if (
+      mostBottomScrollOffset < 0 ||
+      scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex) + rowHeight
+    ) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;
