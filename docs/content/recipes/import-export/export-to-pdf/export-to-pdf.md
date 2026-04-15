@@ -21,11 +21,12 @@ category: Import and Export
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps jspdf jspdf-autotable
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps jspdf jspdf-autotable
 
 @[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.js)
 @[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.ts)
 @[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.css)
+@[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.html)
 
 :::
 
