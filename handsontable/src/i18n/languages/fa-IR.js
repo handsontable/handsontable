@@ -124,6 +124,7 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
 
   [C.LOADING_TITLE]: 'در حال بارگذاری...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'بستن',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'هیچ داده‌ای در دسترس نیست',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'هنوز چیزی برای نمایش وجود ندارد.',

@@ -1824,7 +1824,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
    * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
-   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
+   * The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←**</kbd> when there's no further movement possible.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -3296,9 +3296,9 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} fullEditMode `true` if the editor is opened in full edit mode, `false` otherwise.
    * Editor opened in full edit mode does not close after pressing Arrow keys.
    * @returns {boolean | undefined} If the callback returns `false,` the editor won't be opened after
-   * the mouse double click or after pressing the Enter key. Returning `undefined` (or other value
+   * the mouse double click or after pressing the <kbd>**Enter**</kbd> key. Returning `undefined` (or other value
    * than boolean) will result in default behavior, which disallows opening an editor for non-contiguous
-   * selection (while pressing Ctrl/Cmd) and for multiple selected cells (while pressing SHIFT).
+   * selection (while pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) and for multiple selected cells (while pressing <kbd>**Shift**</kbd>).
    * Returning `true` removes those restrictions.
    */
   'beforeBeginEditing',
@@ -3440,6 +3440,49 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterEmptyDataStateHide
    */
   'afterEmptyDataStateHide',
+
+  /**
+   * Fired by {@link Notification} plugin before a toast is shown or enqueued. This hook is fired when {@link Options#notification}
+   * option is enabled. Return `false` to cancel {@link Notification#showMessage} (no id returned, nothing enqueued).
+   * Queued toasts already passed this hook once when {@link Notification#showMessage} ran; it is not fired again when a slot opens.
+   *
+   * @since 17.1.0
+   * @event Hooks#beforeNotificationShow
+   * @param {object} options Normalized toast options including `id`, `variant`, `message`, `duration`, `position`, `closable`, and `actions`.
+   * @returns {boolean | undefined} If returns `false`, the toast is not shown and not queued.
+   */
+  'beforeNotificationShow',
+
+  /**
+   * Fired by {@link Notification} plugin after a toast is shown.
+   *
+   * @since 17.1.0
+   * @event Hooks#afterNotificationShow
+   * @param {string} id Toast id.
+   * @param {object} options Normalized toast options.
+   */
+  'afterNotificationShow',
+
+  /**
+   * Fired by {@link Notification} plugin before a toast is hidden. Return `false` to keep it visible.
+   * Timed toasts keep their auto-dismiss countdown; if the hide was triggered because the countdown
+   * reached zero, the countdown restarts from the configured duration.
+   *
+   * @since 17.1.0
+   * @event Hooks#beforeNotificationHide
+   * @param {string} id Toast id.
+   * @returns {boolean | undefined} If returns `false`, the toast stays visible.
+   */
+  'beforeNotificationHide',
+
+  /**
+   * Fired by {@link Notification} plugin after a toast is hidden.
+   *
+   * @since 17.1.0
+   * @event Hooks#afterNotificationHide
+   * @param {string} id Toast id.
+   */
+  'afterNotificationHide',
 
   /**
    * Fired after the editor is opened and rendered.

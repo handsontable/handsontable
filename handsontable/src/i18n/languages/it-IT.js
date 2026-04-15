@@ -120,6 +120,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Vai all\'ultima pagina',
 
   [C.LOADING_TITLE]: 'Caricamento...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Chiudi',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nessun dato disponibile',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Non c\'è ancora nulla da visualizzare.',

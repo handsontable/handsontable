@@ -124,6 +124,7 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 
   [C.LOADING_TITLE]: 'Loading...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Close',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'No data available',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'There’s nothing to display yet.',

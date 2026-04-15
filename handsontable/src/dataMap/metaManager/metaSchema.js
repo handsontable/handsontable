@@ -3331,21 +3331,27 @@ export default () => {
       let row;
       let rowLen;
       let value;
-
+      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const schema = this.getSchema();
       const prop = this.colToProp(col);
-      const schemaDefault = this.getSchema()[prop];
 
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
+            if (isObjectEqual(schema[prop], value) === false) {
               return false;
             }
-          } else if (value !== schemaDefault) {
-            return false;
+
+            continue;
           }
+
+          if (hasExplicitSchema && schema[prop] === value) {
+            continue;
+          }
+
+          return false;
         }
       }
 
@@ -3381,22 +3387,28 @@ export default () => {
       let col;
       let colLen;
       let value;
-
+      const hasExplicitSchema = !!this.getSettings().dataSchema;
       const schema = this.getSchema();
 
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          const schemaDefault = schema[this.colToProp(col)];
+          const prop = this.colToProp(col);
 
           if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
+            if (isObjectEqual(schema[prop], value) === false) {
               return false;
             }
-          } else if (value !== schemaDefault) {
-            return false;
+
+            continue;
           }
+
+          if (hasExplicitSchema && schema[prop] === value) {
+            continue;
+          }
+
+          return false;
         }
       }
 
@@ -3645,6 +3657,41 @@ export default () => {
      * ```
      */
     loading: false,
+
+    /**
+     * @description
+     * The `notification` option configures the [`Notification`](@/api/notification.md) plugin.
+     *
+     * You can set the `notification` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Notification`](@/api/notification.md) plugin                |
+     * | `true`    | Enable the plugin with default options                                      |
+     * | An object | Enable the plugin and set `stackLimit` and `animation`                      |
+     *
+     * ##### notification: Additional options
+     *
+     * | Option        | Type      | Default | Description |
+     * | ------------- | --------- | ------- | ----------- |
+     * | `stackLimit`  | `number`  | `10`    | Maximum visible toasts per corner. Extra requests are queued. |
+     * | `animation`   | `boolean` | `true`  | Fade and slide animation when toasts appear. |
+     *
+     * Read more:
+     * - [Plugins: `Notification`](@/api/notification.md)
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Notification
+     *
+     * @example
+     * ```js
+     * notification: true,
+     * ```
+     */
+    notification: false,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.

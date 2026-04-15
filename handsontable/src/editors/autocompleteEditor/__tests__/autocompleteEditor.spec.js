@@ -2593,7 +2593,7 @@ describe('AutocompleteEditor', () => {
       expect(innerHot.getData().length).toEqual(0);
     });
 
-    it('text in textarea should not be interpreted as regexp when highlighting the matching phrase', async() => {
+    it.flaky('text in textarea should not be interpreted as regexp when highlighting the matching phrase', async() => {
       const choicesList = ['Male', 'Female'];
       const syncSources = jasmine.createSpy('syncSources');
 

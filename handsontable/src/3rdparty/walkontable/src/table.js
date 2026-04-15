@@ -366,6 +366,10 @@ class Table {
 
         this.adjustColumnHeaderHeights();
 
+        if (this.isMaster) {
+          this.syncOversizedColumnHeadersWithDOM();
+        }
+
         if (this.isMaster || this.is(CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
@@ -489,6 +493,33 @@ class Table {
           return;
         }
         children[i].childNodes[0].style.height = `${oversizedColumnHeaders[i]}px`;
+      }
+    }
+  }
+
+  /**
+   * After the master table applies `oversizedColumnHeaders` via `adjustColumnHeaderHeights`,
+   * the actual THEAD row heights may exceed the stored values when header content (e.g.,
+   * wrapping text) pushes cells taller than the configured `columnHeaderHeight`. This method
+   * re-reads the rendered THEAD row heights and updates `oversizedColumnHeaders` so that
+   * overlay tables receive the correct values during their own `adjustColumnHeaderHeights`.
+   */
+  syncOversizedColumnHeadersWithDOM() {
+    const { wtSettings } = this;
+    const children = this.THEAD.childNodes;
+    const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
+    const columnHeaders = wtSettings.getSetting('columnHeaders');
+    const borderCompensation = 1;
+
+    for (let i = 0, len = columnHeaders.length; i < len; i++) {
+      if (!children[i] || !oversizedColumnHeaders[i]) {
+        continue;
+      }
+
+      const actualRowHeight = innerHeight(children[i]);
+
+      if (actualRowHeight > oversizedColumnHeaders[i] + borderCompensation) {
+        oversizedColumnHeaders[i] = actualRowHeight;
       }
     }
   }

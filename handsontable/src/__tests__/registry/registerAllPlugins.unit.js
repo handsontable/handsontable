@@ -53,6 +53,7 @@ describe('`registerAllPlugins`', () => {
       'Loading',
       'Dialog',
       'EmptyDataState',
+      'Notification',
       'Pagination',
       'DataProvider',
       'UndoRedo',

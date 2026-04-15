@@ -1,6 +1,6 @@
 ---
 name: pr-creation
-description: Use when creating or updating a pull request for the Handsontable monorepo, or when asked to commit and push changes - covers branch naming conventions, pre-flight checks (lint and tests), changelog entry, and filling the PR template with context, test plan, and affected projects
+description: Use when creating, updating, or editing a pull request for the Handsontable monorepo, or when asked to commit and push changes, update PR description, or edit PR body. Also trigger when the user says "update the PR", "fix PR description", "update PR body", or references a PR URL and wants changes to its content. Covers branch naming conventions, pre-flight checks (lint and tests), changelog entry, and filling the PR template with context, test plan, and affected projects.
 ---
 
 ## 1. Branch Naming
@@ -61,10 +61,10 @@ All PRs target the **develop** branch. Cherry-picks to `release/*` or `lts/*` br
 
 ## 6. Create the PR
 
-Use the GitHub CLI to create the PR:
+Use the GitHub CLI to create the PR. **Always create PRs as drafts** -- the author marks it ready for review when appropriate.
 
 ```bash
-gh pr create --base develop --title "DEV-xxx: Short description" --body "..."
+gh pr create --draft --base develop --title "DEV-xxx: Short description" --body "..."
 ```
 
 - **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).

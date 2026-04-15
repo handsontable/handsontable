@@ -7,6 +7,7 @@ export interface GridFocusManager {
   setRefocusDelay(delay: number): void;
   setRefocusElementGetter(getterFn: () => HTMLElement): void;
   getRefocusElement(): HTMLElement | void;
+  focusElement(element: HTMLElement, focusOptions?: FocusOptions): boolean;
   focusOnHighlightedCell(): void;
   refocusToEditorTextarea(delay: number): void;
 }

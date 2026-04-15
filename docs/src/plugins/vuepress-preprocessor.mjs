@@ -10,9 +10,12 @@
  * - ::: example / ::: example-without-tabs  (strip markers, keep code blocks)
  * - ::: source-code-link URL  (convert to <a> tag)
  * - $withBase('/path') → /path
+ * - {{$currentVersion}} → resolved Handsontable version string
  * - @/framework/path links  → /path (cross-framework alias)
  * - <div class="boxes-list"> ... </div>  → Starlight-styled card grid HTML
  */
+
+import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
 
 /**
  * @param {{ framework?: string }} options
@@ -77,6 +80,12 @@ function preprocessMarkdown(content, framework) {
   //     base prefix is added automatically; dropping the placeholder preserves
   //     the correct root-relative path (e.g. /img/pages/... or /cert.pdf).
   result = result.replace(/\{\{\s*\$basePath\s*\}\}/g, '');
+
+  // 6c. Fix {{$currentVersion}} → resolved Handsontable version string.
+  //     Production builds use the package.json version (e.g. "17.0.1").
+  //     Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
+  //     CodeSandbox links resolve to the correct in-progress build artifact.
+  result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
 
   // 7. Transform @/framework/... cross-framework alias links to absolute paths.
   //    e.g. @/react/guides/foo/foo.md → /guides/foo/foo

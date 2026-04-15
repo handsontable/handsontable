@@ -119,6 +119,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
 
   [C.LOADING_TITLE]: 'جاري التحميل...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'لا توجد بيانات متاحة',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'لا يوجد شيء للعرض بعد.',

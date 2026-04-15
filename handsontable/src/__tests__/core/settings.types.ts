@@ -299,6 +299,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
     title: 'Loading...',
     description: 'Loading...',
   }),
+  notification: oneOf(true, {
+    stackLimit: 5,
+    animation: false,
+  }),
   emptyDataState: oneOf(true, {
     message: 'No data available',
   }, {
@@ -449,6 +453,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLoadingShow: () => {},
   beforeLoadingHide: () => {},
   afterLoadingHide: () => {},
+  afterNotificationHide: (_id) => {},
+  afterNotificationShow: (_id, _options) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;
@@ -600,6 +606,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDropdownMenuShow: (instance) => {},
   beforeEmptyDataStateShow: () => {},
   beforeEmptyDataStateHide: () => {},
+  beforeNotificationHide: (_id) => {},
+  beforeNotificationShow: (_options) => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {

@@ -86,6 +86,10 @@ export interface Events {
   afterEmptyDataStateShow?: () => void;
   beforeEmptyDataStateHide?: () => void;
   afterEmptyDataStateHide?: () => void;
+  beforeNotificationShow?: (options: import('../../plugins/notification/notification').NotificationNormalizedOptions) => boolean | void;
+  afterNotificationShow?: (id: string, options: import('../../plugins/notification/notification').NotificationNormalizedOptions) => void;
+  beforeNotificationHide?: (id: string) => boolean | void;
+  afterNotificationHide?: (id: string) => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;

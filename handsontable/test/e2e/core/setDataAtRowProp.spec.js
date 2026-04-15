@@ -197,4 +197,53 @@ describe('Core.setDataAtRowProp', () => {
     expect(getActiveEditor().getValue()).toBe('typed value');
     expect(getDataAtRowProp(0, 'b')).toBe(42);
   });
+
+  it('should pass the source argument to the `beforeChange` and `afterChange` hooks when called with' +
+  ' a single change', async() => {
+    const beforeChange = jasmine.createSpy('beforeChange');
+    const afterChange = jasmine.createSpy('afterChange');
+
+    handsontable({
+      data: spec().datasetAoO,
+      beforeChange,
+      afterChange,
+    });
+
+    beforeChange.calls.reset();
+    afterChange.calls.reset();
+
+    await setDataAtRowProp(0, 'a', 'changed!', 'my-source');
+
+    expect(beforeChange).toHaveBeenCalledWith([[0, 'a', 1, 'changed!']], 'my-source');
+    expect(afterChange).toHaveBeenCalledWith([[0, 'a', 1, 'changed!']], 'my-source');
+  });
+
+  it('should pass the source argument to the `beforeChange` and `afterChange` hooks when called with' +
+  ' an array of changes', async() => {
+    const beforeChange = jasmine.createSpy('beforeChange');
+    const afterChange = jasmine.createSpy('afterChange');
+
+    handsontable({
+      data: spec().datasetAoO,
+      beforeChange,
+      afterChange,
+    });
+
+    beforeChange.calls.reset();
+    afterChange.calls.reset();
+
+    await setDataAtRowProp([
+      [0, 'a', 'changed!'],
+      [0, 'b', 'changed too!']
+    ], 'my-source');
+
+    expect(beforeChange).toHaveBeenCalledWith([
+      [0, 'a', 1, 'changed!'],
+      [0, 'b', 2, 'changed too!']
+    ], 'my-source');
+    expect(afterChange).toHaveBeenCalledWith([
+      [0, 'a', 1, 'changed!'],
+      [0, 'b', 2, 'changed too!']
+    ], 'my-source');
+  });
 });

@@ -349,6 +349,13 @@ const VALID_TOKEN_KEYS = new Set([
   'dialogContentPaddingVertical',
   'dialogContentBorderRadius',
   'dialogContentBackgroundColor',
+  // Notification (toast)
+  'notificationForegroundColor',
+  'notificationBackgroundColor',
+  'notificationBorderColor',
+  'notificationSuccessAccent',
+  'notificationWarningAccent',
+  'notificationErrorAccent',
   // Pagination
   'paginationBarForegroundColor',
   'paginationBarBackgroundColor',

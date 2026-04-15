@@ -25,6 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
@@ -44,6 +47,13 @@ jobs:
       - name: Docker login into GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Update module size measurements
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          npm run build --prefix handsontable
+          npm run measure:module-sizes --prefix handsontable
 
       - name: Dependencies
         run: |

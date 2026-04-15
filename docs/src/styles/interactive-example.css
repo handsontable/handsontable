@@ -99,7 +99,7 @@
 
 .example-controls-container button,
 .example-controls-container .button,
-.hot-example-preview button {
+.hot-example-preview > button {
   appearance: none;
   display: inline-flex;
   align-items: center;
@@ -119,14 +119,14 @@
 
 .example-controls-container button:hover,
 .example-controls-container .button:hover,
-.hot-example-preview button:hover {
+.hot-example-preview > button:hover {
   background: var(--sl-color-gray-5);
   color: var(--sl-color-white);
 }
 
 .example-controls-container button:active,
 .example-controls-container .button:active,
-.hot-example-preview button:active {
+.hot-example-preview > button:active {
   background: var(--sl-color-gray-4);
 }
 
@@ -272,7 +272,6 @@
 }
 
 /* Icon-only action buttons (StackBlitz, GitHub) — merged as cells */
-.hot-example-reset-btn,
 .hot-example-stackblitz-btn,
 .hot-example-github-btn {
   appearance: none;
@@ -290,14 +289,12 @@
   transition: color 0.15s, background-color 0.15s;
 }
 
-.hot-example-reset-btn:hover,
 .hot-example-stackblitz-btn:hover,
 .hot-example-github-btn:hover {
   color: var(--sl-color-white);
   background: var(--sl-color-gray-6);
 }
 
-.hot-example-reset-btn:focus-visible,
 .hot-example-stackblitz-btn:focus-visible,
 .hot-example-github-btn:focus-visible {
   outline: none;

@@ -1,17 +1,18 @@
 ---
 name: node-scripts-dev
-description: Use when creating Node.js helper scripts, build scripts, or automation scripts for the Handsontable monorepo - covers .mjs conventions, native node: imports, top-level await, cross-platform compatibility, and fs/promises patterns
+description: Use when creating or modifying any .mjs file in the Handsontable monorepo - scripts, utilities, or library modules. Covers .mjs conventions, native node: imports, top-level await, cross-platform compatibility, and fs/promises async patterns. Trigger on any new .mjs file creation, not just files in scripts/ directories.
 ---
 
-# Writing Node.js Helper Scripts
+# Writing Node.js `.mjs` Modules
 
-All helper scripts in the monorepo are ESM modules (`.mjs`). Follow these conventions to keep scripts consistent, cross-platform, and maintainable.
+All Node.js-side code in the monorepo -- scripts, utilities, and library modules -- uses ESM (`.mjs`). Follow these conventions for any `.mjs` file, whether it lives in `scripts/`, `lib/`, or elsewhere.
 
 ## File conventions
 
-- **Extension:** Always `.mjs` (never `.js` or `.cjs` for scripts).
-- **Location:** `scripts/` at the repo root for monorepo-wide scripts. `scripts/` inside a package for package-specific scripts (e.g., `wrappers/react-wrapper/scripts/`).
+- **Extension:** Always `.mjs` (never `.js` or `.cjs` for Node.js-side code).
+- **Location:** `scripts/` for CLI-invoked scripts. `lib/` for shared utilities and library modules. Package-specific paths are fine (e.g., `performance-tests/lib/`, `wrappers/react-wrapper/scripts/`).
 - **Invocation:** `node scripts/your-script.mjs` from `package.json` scripts.
+- **Scope:** These conventions apply to all `.mjs` files -- standalone scripts, library modules, Playwright helpers, build tooling, etc.
 
 ## Native module imports
 
