@@ -48,17 +48,13 @@ export class FullyVisibleRowsCalculationType {
     const {
       totalCalculatedHeight,
       zeroBasedScrollOffset,
-      viewportHeight,
+      innerViewportHeight,
       rowHeight,
     } = viewportCalculator;
 
-    // const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight : viewportHeight;
-
-    console.log('compensatedViewportHeight', row, rowHeight, totalCalculatedHeight, viewportHeight);
-
     if (
       totalCalculatedHeight >= zeroBasedScrollOffset &&
-      totalCalculatedHeight + rowHeight <= zeroBasedScrollOffset + viewportHeight
+      totalCalculatedHeight + rowHeight <= innerViewportHeight
     ) {
       if (this.startRow === null) {
         this.startRow = row;
@@ -77,7 +73,7 @@ export class FullyVisibleRowsCalculationType {
     const {
       scrollOffset,
       viewportHeight,
-      zeroBasedScrollOffset,
+      horizontalScrollbarHeight,
       totalRows,
       needReverse,
       positionCache,
@@ -94,11 +90,11 @@ export class FullyVisibleRowsCalculationType {
           rowHeight -
           positionCache.getOffset(this.startRow - 1);
 
-        if (calculatedViewportHeight <= viewportHeight) {
+        if (calculatedViewportHeight <= viewportHeight - horizontalScrollbarHeight) {
           this.startRow -= 1;
         }
 
-        if (calculatedViewportHeight >= viewportHeight) {
+        if (calculatedViewportHeight >= viewportHeight - horizontalScrollbarHeight) {
           break;
         }
       }
@@ -106,8 +102,7 @@ export class FullyVisibleRowsCalculationType {
 
     this.startPosition = this.startRow !== null ? positionCache.getOffset(this.startRow) : null;
 
-    const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
-    const mostBottomScrollOffset = scrollOffset + viewportHeight - compensatedViewportHeight;
+    const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
     const topRowOffset = this.startRow === null ? 0 : viewportCalculator.getRowHeight(this.startRow);
 
     if (
