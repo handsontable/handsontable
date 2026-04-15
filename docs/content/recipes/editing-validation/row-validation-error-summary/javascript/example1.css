@@ -45,3 +45,7 @@
   margin-left: -1.25rem;
   color: #666;
 }
+
+.handsontable td.htInvalid {
+  background-color: #ffe4e4 !important;
+}
