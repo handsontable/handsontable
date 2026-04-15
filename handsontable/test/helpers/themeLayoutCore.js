@@ -1,35 +1,29 @@
 import sizing from '../../src/themes/static/variables/sizing';
 import density from '../../src/themes/static/variables/density';
-import classicTokens from '../../src/themes/static/variables/tokens/classic';
-import mainTokens from '../../src/themes/static/variables/tokens/main';
-import horizonTokens from '../../src/themes/static/variables/tokens/horizon';
+import * as themeModules from '../../src/themes/theme';
 
 /**
- * Maps theme name to its density level (from src/themes/theme/*.js).
+ * Build the theme registry by introspecting the theme modules. Theme identity (name,
+ * density, tokens) is owned by `src/themes/theme/*.js`; this helper is a pure consumer.
  */
-const THEME_DENSITY = {
-  classic: 'compact',
-  main: 'default',
-  horizon: 'comfortable',
-};
+const THEMES = Object.freeze(
+  Object.values(themeModules)
+    .filter(mod => mod && typeof mod === 'object' && typeof mod.name === 'string')
+    .reduce((acc, mod) => {
+      acc[mod.name] = mod;
+
+      return acc;
+    }, {})
+);
 
 /**
- * Maps theme name to its token module.
- */
-const THEME_TOKENS = {
-  classic: classicTokens,
-  main: mainTokens,
-  horizon: horizonTokens,
-};
-
-/**
- * Theme keys registered in {@link THEME_TOKENS}. The E2E bundle serves `styles/ht-theme-{key}.css`
- * for each. Add a key here (and a stylesheet) when introducing a theme; iframe `doc.write` shells
- * use `getE2eThemeStylesheetLinkTagsHtml()` in `test/helpers/common.js`.
+ * Theme keys registered by introspecting `src/themes/theme/*.js`. E2E bundle serves
+ * `styles/ht-theme-{key}.css` for each. Add a theme module under `src/themes/theme/`
+ * (and a stylesheet) to register a new theme -- no edit to this helper is required.
  *
  * @type {string[]}
  */
-export const E2E_REGISTERED_THEME_KEYS = Object.freeze(Object.keys(THEME_TOKENS));
+export const E2E_REGISTERED_THEME_KEYS = Object.freeze(Object.keys(THEMES));
 
 /**
  * Walkontable's default column width (from src/3rdparty/walkontable/src/settings.js:194).
@@ -60,37 +54,38 @@ function resolveSizingRef(ref) {
 }
 
 /**
- * Token-backed layout primitives for a theme (no `e2e*` regression helpers).
- * Use {@link themeLayoutFromTokens} from `themeLayoutFromTokens.js` for the merged API.
+ * Token-backed layout primitives for a theme. All values are numbers in pixels
+ * unless noted. Density is read from the theme module -- changing `density` in
+ * `src/themes/theme/<name>.js` propagates here automatically.
  *
- * All returned values are **numbers in pixels** unless noted.
- *
- * Box model note: `defaultDataRowHeight` and `firstRenderedRowDefaultHeight` represent the
- * **outer height** as measured by jQuery `.height()` (which returns `offsetHeight` for table
- * rows). `defaultColumnHeaderHeight` and `cellContentHeight` represent the **content height**
- * (equivalent to `clientHeight` on a TD, excluding the 1px bottom border).
- *
- * @param {string} themeName Theme key registered in THEME_TOKENS and THEME_DENSITY.
- * @returns {object} Core layout metrics and `pickByDensity` / `overlayHeight` helpers.
+ * @param {string} themeName Theme key discovered from `src/themes/theme/index.js`.
+ * @returns {object} Core layout metrics and `overlayHeight` / `verticalScrollForRow` helpers.
  */
 export function createThemeLayoutCore(themeName) {
   const resolvedName = themeName || 'main';
-  const tokens = THEME_TOKENS[resolvedName];
+  const themeModule = THEMES[resolvedName];
 
-  if (!tokens) {
+  if (!themeModule) {
     throw new Error(
-      `themeLayoutFromTokens: unknown theme "${themeName}". ` +
-      `Supported: ${Object.keys(THEME_TOKENS).join(', ')}`
+      `themeLayoutCore: unknown theme "${themeName}". ` +
+      `Supported (from src/themes/theme/index.js): ${Object.keys(THEMES).join(', ')}`
     );
   }
 
-  const densityLevel = THEME_DENSITY[resolvedName];
+  const densityLevel = themeModule.density;
   const densityConfig = density[densityLevel];
 
-  const lineHeight = parsePx(tokens.lineHeight);
+  if (!densityConfig) {
+    throw new Error(
+      `themeLayoutCore: theme "${resolvedName}" declares density "${densityLevel}" ` +
+      `but density module has no such entry`
+    );
+  }
+
+  const lineHeight = parsePx(themeModule.tokens.lineHeight);
   const cellVerticalPadding = resolveSizingRef(densityConfig.cellVertical);
   const cellHorizontalPadding = resolveSizingRef(densityConfig.cellHorizontal);
-  const cellBorderWidth = parsePx(sizing.size_0_25); // 1px
+  const cellBorderWidth = parsePx(sizing.size_0_25);
 
   const cellContentHeight = lineHeight + (2 * cellVerticalPadding);
   const defaultDataRowHeight = cellContentHeight + cellBorderWidth;
@@ -99,13 +94,10 @@ export function createThemeLayoutCore(themeName) {
   const defaultColumnWidth = WALKONTABLE_DEFAULT_COLUMN_WIDTH;
   const defaultRowHeaderWidth = WALKONTABLE_DEFAULT_COLUMN_WIDTH;
 
-  /**
-   * @param {'compact'|'default'|'comfortable'} level Density bucket to compare.
-   * @returns {boolean}
-   */
-  const isDensity = level => densityLevel === level;
-
   return {
+    themeName: resolvedName,
+    densityLevel,
+
     lineHeight,
     cellVerticalPadding,
     cellHorizontalPadding,
@@ -117,6 +109,8 @@ export function createThemeLayoutCore(themeName) {
     firstRenderedRowDefaultHeight,
     defaultColumnWidth,
     defaultRowHeaderWidth,
+
+    sizing,
 
     /**
      * Calculate overlay height for a section with the given row counts.
@@ -147,33 +141,6 @@ export function createThemeLayoutCore(themeName) {
      */
     verticalScrollForRow(rowIndex) {
       return rowIndex * defaultDataRowHeight;
-    },
-
-    /**
-     * Density preset for this theme (from THEME_DENSITY).
-     *
-     * @returns {'compact'|'default'|'comfortable'}
-     */
-    densityLevel,
-
-    /**
-     * Pick a theme-dependent value by density bucket (classic → compact, main → default,
-     * horizon → comfortable).
-     *
-     * @template T
-     * @param {{ compact: T, default: T, comfortable: T }} values Expectations per density.
-     * @returns {T}
-     */
-    pickByDensity(values) {
-      if (isDensity('compact')) {
-        return values.compact;
-      }
-
-      if (isDensity('default')) {
-        return values.default;
-      }
-
-      return values.comfortable;
     },
   };
 }
