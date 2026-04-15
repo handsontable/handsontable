@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Simple definition of custom editors using new `BaseEditor.factory`",
-  "type": "added",
-  "issueOrPR": 11899,
-  "breaking": false,
-  "framework": "none"
-}

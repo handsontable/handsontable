@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Deprecation policy
-
 Deprecation occurs when better alternatives emerge that offer improved performance, security, or usability compared to existing implementations. It also helps maintain API consistency by removing redundant or inconsistent functions, creating a cleaner overall design. As web standards and the JavaScript ecosystem evolve, certain approaches become obsolete or suboptimal, requiring updates to stay current. Additionally, deprecation reduces maintenance complexity by phasing out rarely-used or problematic features, while addressing potential security vulnerabilities in older implementations. Rather than introducing breaking changes, deprecation provides a gradual migration path that gives developers time to adapt while clearly signaling the library's future direction.
 
 After a Handsontable feature, a framework wrapper or any other part of the API is marked deprecated, we commit to a **grace period** **(at least 3 months)** during which the deprecated feature still works. We will not remove the feature immediately in the next minor or patch release. Instead, removal is deferred until a future **major release**, in accordance with semantic versioning.
@@ -56,6 +53,6 @@ Below is a list of current deprecations that are planned to be removed in the ne
 | **moment.js** | Parses, validates and displays dates. Needed for Excel compat. | [Migrate from 16.2 to 17.0 → Date/Time](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_4-migrate-from-moment-js-format-to-intl-datetimeformat) |
 | **DOMPurify** | An XSS sanitizer for HTML. Use the `sanitizer` option to keep a sanitizer, or convert content to plain text. | [Migrate from 16.2 to 17.0 → DOMPurify](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option) |
 | **core-js** | Polyfills for ECMAScript 5, ECMAScript 6, promises, symbols, collections. | [Migrate from 16.2 to 17.0 → core-js](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#_6-core-js-dependency-removed) |
-
+| **Built-in HyperFormula** | The Formulas plugin engine. Will be removed from package.json in 18.0. Import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. | [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) |
 
 

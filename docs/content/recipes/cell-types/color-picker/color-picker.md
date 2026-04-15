@@ -2,7 +2,7 @@
 id: 2d2b22ef
 title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom color picker cell using the Coloris library, supporting live preview, validation, and custom themes.
+description: Learn how to create a Handsontable custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
 permalink: /recipes/cell-types/color-picker
 canonicalUrl: /recipes/cell-types/color-picker
 tags:
@@ -19,46 +19,40 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell Type - Step-by-Step Guide
-
-[[toc]]
-
-## Overview
-
-This guide shows how to create a custom color picker cell using the [Coloris](https://github.com/melloware/coloris-npm) library. Users can click a cell to open a color picker, select a color, and see it rendered with a colored background.
-
-**Difficulty:** Beginner
-**Time:** ~15 minutes
-**Libraries:** `@melloware/coloris`
-
-## Complete Example
-
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @melloware/coloris
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
 
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.js)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
 
 :::
 
 :::
 
+## Overview
+
+This guide shows how to create a custom color picker cell using the [Pickr](https://github.com/Simonwep/pickr) library. Users can click a cell to open a color picker, select a color, and see it rendered with a colored background.
+
+**Difficulty:** Beginner
+**Time:** ~15 minutes
+**Libraries:** `@simonwep/pickr`
+
 ## What You'll Build
 
 A cell that:
 - Displays a colored circle swatch in the cell
-- Opens a color picker with dark mode support when edited
+- Opens a color picker when edited via an "Open color picker" button
 - Shows a styled editor input with Handsontable's native blue border
 - Validates hex color format
-- Saves the value when "Apply Colour" is clicked
+- Updates the value as you pick a color; closing the picker saves and finishes editing
 - Closes the picker on Tab or Escape
 
 ## Prerequisites
 
 ```bash
-npm install @melloware/coloris
+npm install @simonwep/pickr
 ```
 
 ## Step 1: Import Dependencies
@@ -68,17 +62,16 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
-import '@melloware/coloris/dist/coloris.css';
-import Coloris from '@melloware/coloris';
+import Pickr from '@simonwep/pickr';
+import '@simonwep/pickr/dist/themes/nano.min.css';
 
-Coloris.init();
 registerAllModules();
 ```
 
 **Why this matters:**
 - `editorFactory` and `rendererFactory` are Handsontable helpers for creating custom editors and renderers
-- Coloris needs to be initialized once globally
-- Import Coloris CSS for the color picker UI styling
+- Pickr is created per-editor in the `afterInit` hook and attached to a button
+- Import Pickr theme CSS (e.g. `nano.min.css`) for the color picker UI styling
 
 ## Step 2: Add CSS Styling
 
@@ -102,34 +95,27 @@ Create a separate CSS file for the cell and editor styles. This uses Handsontabl
 .color-picker-editor {
   width: 100%;
   height: 100%;
-  box-sizing: border-box !important;
   border: none;
-  border-radius: 0;
   outline: none;
-  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
-    var(--ht-cell-editor-border-color, #1a42e8),
-    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
-    var(--ht-cell-editor-shadow-color, transparent);
-  background-color: var(--ht-cell-editor-background-color, #ffffff);
-  color: var(--ht-cell-editor-foreground-color);
-  padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
+  box-sizing: border-box !important;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
 }
 
-.color-picker-editor:focus {
-  outline: none;
+.pickr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 ```
 
 **What's happening:**
 - `.color-picker-cell` centers the circle swatch inside the cell
 - `.color-picker-swatch` renders a small circle with `border-radius: 50%`
-- `.color-picker-editor` mirrors Handsontable's native text editor styling using CSS tokens like `--ht-cell-editor-border-color` and `--ht-cell-editor-border-width`, so the editor automatically adapts to custom themes
+- `.color-picker-editor` removes default input borders and appearance so the editor can be styled as needed
 
 ## Step 3: Create the Renderer
 
@@ -137,9 +123,7 @@ The renderer controls how the cell looks when not being edited. It displays a co
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `<span class="color-picker-cell">` +
-    `<span class="color-picker-swatch" style="background:${value}"></span>` +
-  `</span>`;
+  td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
 })
 ```
 
@@ -171,75 +155,112 @@ validator: (value, callback) => {
 
 ## Step 5: Editor - Initialize (`init`)
 
-Create the input element that Coloris will attach to, and apply the editor CSS class.
+Create the input element that will hold the hex value, and apply the editor CSS class. A separate button for opening the picker is added in `afterInit`.
 
 ```typescript
 init(editor) {
   editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
-  editor.input.setAttribute('data-coloris', '');
+  editor.input.setAttribute('aria-label', 'Open color picker');
   editor.input.classList.add('color-picker-editor');
 }
 ```
 
 **What's happening:**
 1. Create an `input` element using `editor.hot.rootDocument.createElement()`
-2. Set `data-coloris` attribute to tell Coloris to attach to this input
+2. Set an aria-label for accessibility
 3. Add the `color-picker-editor` CSS class for the blue border styling
 4. The `editorFactory` helper will handle container creation and DOM insertion
 
 **Key points:**
 - Use `editor.hot.rootDocument.createElement()` (not `document.createElement()`) for iframe/shadow DOM compatibility
-- `data-coloris` attribute tells Coloris to activate on this input
-- The CSS class applies Handsontable's native editor border style via CSS tokens
+- The input stores the current hex value; a button added in `afterInit` will open the Pickr popup
+- The CSS class styles the editor (no border, full size) so the picker button is the main control
 
 ## Step 6: Editor - After Init Hook (`afterInit`)
 
-Configure Coloris and set up the close event handler.
+Create a button, attach Pickr to it, and set up the `change` and `hide` event handlers. Setting `preventCloseElement` keeps the editor open when the user clicks inside the Pickr popup.
 
 ```typescript
 afterInit(editor) {
-  Coloris({
-    el: editor.input,
-    closeButton: true,
-    closeLabel: 'Apply Colour',
-    alpha: false,
-    wrap: false
+  const button = editor.hot.rootDocument.createElement('button');
+  button.textContent = 'Open color picker';
+  button.classList.add('color-picker-button');
+  editor.input.after(button);
+
+  editor.pickr = Pickr.create({
+    el: button,
+    theme: 'nano',
+    default: editor.input.value || '#000000',
+    autoReposition: false,
+    padding: 0,
+    components: {
+      preview: true,
+      hue: true,
+    }
   });
-  editor.input.addEventListener('close', () => {
+
+  // Collapse the Pickr trigger button so it doesn't add vertical space
+  // between the cell editor and the popup.
+  editor.pickr._root.root.style.height = '0';
+  editor.pickr._root.root.style.overflow = 'hidden';
+
+  editor.preventCloseElement = editor.pickr._root.app;
+
+  editor.pickr.on('change', (color) => {
+    if (color) {
+      const hex = color.toHEXA().toString();
+      editor.input.value = hex;
+    }
+  });
+
+  editor.pickr.on('hide', () => {
+    if (Date.now() - editor._openedAt < 400) {
+      editor.pickr.show();
+
+      return;
+    }
     editor.finishEditing();
   });
 }
 ```
 
 **What's happening:**
-1. Configure Coloris for the input element
-2. Enable close button with custom label "Apply Colour"
-3. Disable alpha channel (no transparency)
-4. Hide additional input UI wrapper
-5. Listen for `close` event to finish editing when user clicks "Apply Colour"
+1. Create a button and insert it after the input so users can open the picker
+2. Create a Pickr instance with theme `nano` and preview + hue components
+3. Set `editor.preventCloseElement` to the Pickr root so clicking inside the popup doesn't close the editor
+4. On `change`, update the input value from the selected color (using `color.toHEXA().toString()`)
+5. On `hide`, call `editor.finishEditing()` so closing the picker saves the value and closes the editor
 
 **Why `afterInit` instead of `init`?**
 - `afterInit` runs after the input is added to the DOM
-- Coloris needs the element to be in the DOM to attach properly
+- Pickr needs the button to be in the DOM to attach properly
 
 ## Step 7: Editor - After Open Hook (`afterOpen`)
 
-Trigger the color picker to open and detect dark mode.
+Set the current color and show the Pickr picker.
 
 ```typescript
 afterOpen(editor) {
-  const isDark = editor.hot.rootDocument.documentElement
-    .getAttribute('data-theme') === 'dark';
+  editor._openedAt = Date.now();
+  editor.pickr.setColor(editor.input.value || '#000000');
+  editor.pickr.show();
 
-  Coloris({ themeMode: isDark ? 'dark' : 'light' });
-  editor.input.click();
+  // Pickr positions its popup relative to the trigger button with an
+  // internal offset. Use double-rAF to ensure Pickr's own positioning
+  // is complete before overriding the top to sit flush below the cell.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const cellRect = editor.TD.getBoundingClientRect();
+
+      editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+    });
+  });
 }
 ```
 
 **What's happening:**
-- Detects the current theme by reading the `data-theme` attribute on `<html>`
-- Sets Coloris `themeMode` to `'dark'` or `'light'` accordingly
-- Programmatically clicks the input to trigger the Coloris picker
+- Sets the picker to the cell's current color
+- Calls `show()` to open the Pickr popup
 
 **Why `afterOpen` instead of `open`?**
 - `afterOpen` runs after positioning is complete
@@ -247,17 +268,18 @@ afterOpen(editor) {
 
 ## Step 8: Editor - After Close Hook (`afterClose`)
 
-Ensure the Coloris popup is hidden when the editor closes.
+Ensure the Pickr popup is hidden when the editor closes.
 
 ```typescript
-afterClose() {
-  Coloris.close();
+afterClose(editor) {
+  editor.pickr._root.app.classList.remove('visible');
+  editor.pickr.hide();
 }
 ```
 
 **What's happening:**
 - Called when the editor is closed (by Tab, Escape, clicking outside, etc.)
-- Programmatically closes the Coloris picker popup via `Coloris.close()`
+- Hides the Pickr picker via `editor.pickr.hide()`
 - Without this, the picker popup could remain visible after the editor closes
 
 ## Step 9: Editor - Get Value / Set Value
@@ -279,63 +301,104 @@ setValue(editor, value) {
 **What's happening:**
 - `getValue` returns the input's current value (hex color code) when Handsontable saves the cell
 - `setValue` initializes the editor with the cell's current color value
-- Coloris automatically updates `input.value` when a color is selected
+- On Pickr's `change` event we set `editor.input.value` from the selected color; when the user closes the picker, `hide` fires and we call `editor.finishEditing()`
 
 ## Step 10: Editor - Keyboard Shortcuts
 
-Add a Tab shortcut to close the editor.
+Add a Tab shortcut to hide the picker (which triggers the `hide` event and then `finishEditing()`).
 
 ```typescript
 shortcuts: [
   {
     keys: [['Tab']],
     callback: (editor) => {
-      editor.finishEditing();
+      editor.pickr.hide();
     },
   },
 ]
 ```
 
 **What's happening:**
-- Pressing Tab closes the editor and saves the current value
+- Pressing Tab hides the Pickr popup, which fires the `hide` event and calls `editor.finishEditing()`
 - Uses the `editorFactory` shortcuts API to register key bindings
-- Combined with `afterClose`, this also hides the Coloris picker popup
+- `afterClose` also calls `editor.pickr.hide()` when the editor closes by other means
 
 ## Step 11: Complete Cell Definition
 
-Put it all together:
+Put it all together. The editor uses a hidden input for the value and a button that opens the Pickr popup; color is updated on `change` and editing finishes when the picker is closed (`hide`).
 
 ```typescript
+type ColorPickerEditor = {
+  input: HTMLInputElement;
+  pickr: ReturnType<typeof Pickr.create>;
+  preventCloseElement: HTMLElement;
+};
+
 const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
-    td.innerHTML = `<span class="color-picker-cell">` +
-      `<span class="color-picker-swatch" style="background:${value}"></span>` +
-    `</span>`;
+    td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
   }),
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#');
   },
-  editor: editorFactory<{ input: HTMLInputElement }>({
+  editor: editorFactory<ColorPickerEditor>({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
-      editor.input.setAttribute('data-coloris', '');
+      editor.input.setAttribute('aria-label', 'Open color picker');
       editor.input.classList.add('color-picker-editor');
     },
     afterInit(editor) {
-      Coloris({ el: editor.input, closeButton: true, closeLabel: 'Apply Colour', alpha: false, wrap: false });
-      editor.input.addEventListener('close', () => {
+      const button = editor.hot.rootDocument.createElement('button');
+      button.textContent = 'Open color picker';
+      button.classList.add('color-picker-button');
+      editor.input.after(button);
+
+      editor.pickr = Pickr.create({
+        el: button,
+        theme: 'nano',
+        default: editor.input.value || '#000000',
+        autoReposition: false,
+        padding: 0,
+        components: { preview: true, hue: true },
+      });
+
+      // Collapse the Pickr trigger button so it doesn't add vertical space
+      // between the cell editor and the popup.
+      editor.pickr._root.root.style.height = '0';
+      editor.pickr._root.root.style.overflow = 'hidden';
+
+      editor.preventCloseElement = editor.pickr._root.app;
+
+      editor.pickr.on('change', (color) => {
+        if (color) editor.input.value = color.toHEXA().toString();
+      });
+      editor.pickr.on('hide', () => {
+        if (Date.now() - editor._openedAt < 400) {
+          editor.pickr.show();
+
+          return;
+        }
         editor.finishEditing();
       });
     },
     afterOpen(editor) {
-      const isDark = editor.hot.rootDocument.documentElement
-        .getAttribute('data-theme') === 'dark';
+      editor._openedAt = Date.now();
+      editor.pickr.setColor(editor.input.value || '#000000');
+      editor.pickr.show();
 
-      Coloris({ themeMode: isDark ? 'dark' : 'light' });
-      editor.input.click();
+      // Pickr positions its popup relative to the trigger button with an
+      // internal offset. Override the top to sit flush below the cell.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const cellRect = editor.TD.getBoundingClientRect();
+
+          editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+        });
+      });
     },
-    afterClose() {
-      Coloris.close();
+    afterClose(editor) {
+      editor.pickr._root.app.classList.remove('visible');
+      editor.pickr.hide();
     },
     getValue(editor) {
       return editor.input.value;
@@ -346,9 +409,7 @@ const cellDefinition = {
     shortcuts: [
       {
         keys: [['Tab']],
-        callback: (editor) => {
-          editor.finishEditing();
-        },
+        callback: (editor) => editor.pickr.hide(),
       },
     ],
   }),
@@ -359,12 +420,12 @@ const cellDefinition = {
 - **renderer**: Displays a colored circle swatch centered in the cell
 - **validator**: Ensures hex color format (# followed by 6 characters)
 - **editor**: Uses `editorFactory` helper with:
-  - `init`: Creates styled input element with `data-coloris` attribute
-  - `afterInit`: Configures Coloris and sets up close event handler
-  - `afterOpen`: Detects dark mode and triggers the color picker
-  - `afterClose`: Hides the Coloris popup when editor closes
-  - `shortcuts`: Tab key closes the editor
-  - `getValue` / `setValue`: Standard value management
+  - `init`: Creates styled input element and aria-label
+  - `afterInit`: Creates button, Pickr on the button (nano theme), `preventCloseElement`, and `change` / `hide` handlers
+  - `afterOpen`: Sets current color and shows the picker
+  - `afterClose`: Hides the Pickr popup when editor closes
+  - `shortcuts`: Tab key hides the picker (which triggers `hide` and then `finishEditing`)
+  - `getValue` / `setValue`: Standard value management via the input
 
 **Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
@@ -375,25 +436,22 @@ const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   data: [
-    { id: 1, itemName: 'Lunar Core', color: '#FF5733' },
-    { id: 2, itemName: 'Zero Thrusters', color: '#33FF57' },
-    { id: 3, itemName: 'EVA Suits', color: '#3357FF' },
+    { id: 1, itemName: 'Lunar Core', color: '#FF5733', itemNo: 'XJ-12', cost: 350000, valueStock: 700000 },
+    { id: 2, itemName: 'Zero Thrusters', color: '#33FF57', itemNo: 'QL-54', cost: 450000, valueStock: 0 },
+    { id: 3, itemName: 'EVA Suits', color: '#3357FF', itemNo: 'PM-67', cost: 150000, valueStock: 7500000 },
   ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Item Color',
-  ],
+  colHeaders: ['ID', 'Item Name', 'Item Color', 'Item No.', 'Cost', 'Value in Stock'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  width: '100%',
   columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
-    {
-      data: 'color',
-      ...cellDefinition,
-    }
+    { data: 'id', type: 'numeric', width: 80, headerClassName: 'htLeft' },
+    { data: 'itemName', type: 'text', width: 200, headerClassName: 'htLeft' },
+    { data: 'color', headerClassName: 'htLeft', ...cellDefinition },
+    { data: 'itemNo', type: 'text', width: 100, headerClassName: 'htLeft' },
+    { data: 'cost', type: 'numeric', width: 70, headerClassName: 'htLeft' },
+    { data: 'valueStock', type: 'numeric', width: 130, headerClassName: 'htRight' },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -402,20 +460,20 @@ const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
-- `...cellDefinition` - Spreads renderer, validator, and editor into the column config
+- `...cellDefinition` - Spreads renderer, validator, and editor into the color column config
 - The validator ensures only valid hex colors are saved
+- The live example uses more rows and random hex colors; you can use any data that includes a `color` field
 
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays a colored circle swatch
-2. **User Double-Clicks or F2**: Editor opens with a styled input (blue border), container positioned over cell
-3. **Dark Mode Detection**: `afterOpen` checks `data-theme` and sets Coloris theme accordingly
-4. **Color Picker Opens**: `afterOpen` triggers `input.click()`, Coloris picker appears
-5. **User Selects Color**: Coloris updates input value as user picks color
-6. **User Clicks "Apply Colour"**: `close` event fires, `finishEditing()` is called
-7. **Validation**: Validator checks hex format (# followed by 6 characters)
-8. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
-9. **Editor Closes**: `afterClose` calls `Coloris.close()` to hide the picker, cell renderer shows updated swatch
+2. **User Double-Clicks or F2**: Editor opens with a styled input and an "Open color picker" button
+3. **Color Picker Opens**: `afterOpen` sets the current color and calls `pickr.show()`
+4. **User Selects Color**: Pickr updates the preview; the `change` event updates `editor.input.value` with the hex from `color.toHEXA().toString()`
+5. **User Closes Picker (or presses Tab)**: The `hide` event fires (or Tab triggers `pickr.hide()`), we call `editor.finishEditing()`
+6. **Validation**: Validator checks hex format (# followed by 6 characters)
+7. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
+8. **Editor Closes**: `afterClose` calls `editor.pickr.hide()`, cell renderer shows updated swatch
 
 
 ## Enhancements
@@ -425,8 +483,9 @@ const hot = new Handsontable(container, hotOptions);
 Provide preset colors:
 
 ```typescript
-Coloris({
-  el: editor.input,
+editor.pickr = Pickr.create({
+  el: button,
+  // ...other options
   swatches: [
     '#ff0000',
     '#00ff00',
@@ -434,41 +493,44 @@ Coloris({
     '#ffff00',
     '#ff00ff',
     '#00ffff'
-  ]
+  ],
 });
 ```
 
 ### 2. Support Alpha Channel
 
-Allow transparency:
+Allow transparency by setting `lockOpacity: false` and enabling the opacity component:
 
 ```typescript
-Coloris({
-  el: editor.input,
-  alpha: true,
-  format: 'rgba'
+Pickr.create({
+  // ...
+  lockOpacity: false,
+  components: {
+    preview: true,
+    opacity: true,
+    hue: true,
+    // ...
+  },
 });
 
-// Update validator
+// Update validator for rgba
 validator: (value, callback) => {
   const rgbaRegex = /^rgba?\(\d+,\s*\d+,\s*\d+(?:,\s*[\d.]+)?\)$/;
   callback(rgbaRegex.test(value));
 }
 ```
 
-### 3. Custom Color Theme
+### 3. Use a Different Theme
 
-Change the Coloris visual theme:
+This recipe uses the `nano` theme. Pickr also offers `classic` and `monolith`. To switch, change the CSS import and the `theme` option:
 
 ```typescript
-Coloris({
-  theme: 'pill',
-  formatToggle: true
-});
-```
+import '@simonwep/pickr/dist/themes/classic.min.css';
 
-**Note:** Dark mode is already handled automatically by detecting the `data-theme` attribute in the `afterOpen` hook.
+// In Pickr.create():
+theme: 'classic',
+```
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell using the Coloris library with the `editorFactory` helper, featuring a circle swatch renderer, dark mode support, and native Handsontable editor styling!
+**Congratulations!** You've created a fully functional color picker cell using the Pickr library (nano theme) with the `editorFactory` helper, a button to open the picker, a circle swatch renderer, and native Handsontable editor styling!

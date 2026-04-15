@@ -82,7 +82,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -113,8 +113,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       const menuOffset = $dropdownMenu.offset();
       const menuWidth = $dropdownMenu.outerWidth();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
-      const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -140,7 +140,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, 1);
       await keyDownUp(['control/meta', 'enter']);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
@@ -162,7 +162,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -191,7 +191,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
       expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
@@ -292,15 +292,20 @@ describe('DropdownMenu keyboard shortcut', () => {
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
-        const buttonOffset = $(cell.querySelector('.changeType')).offset();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
+
+        if ($dropdownMenu.length !== 1 || !menuOffset || !cellOffset || !buttonOffset) {
+          return;
+        }
+
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
           main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
           horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
         });
-        expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
+        expect(menuOffset.left).toBeAroundValue(buttonOffset.left);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
       });
     });

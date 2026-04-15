@@ -1,8 +1,10 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
+import { isMacOS } from '../helpers/browser';
 import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
+import { getEventKeyCombinations } from './utils';
 import { toSingleLine } from '../helpers/templateLiteralTag';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -17,7 +19,9 @@ import { toSingleLine } from '../helpers/templateLiteralTag';
  * @class ShortcutManager
  * @param {object} options The manager's options
  * @param {EventTarget} options.ownerWindow A starting `window` element
- * @param {Function} options.handleEvent A condition on which `event` is handled.
+ * @param {Function} options.handleEvent `(event, scope) => boolean` -- whether the active context's shortcut pipeline
+ *   may run. `scope` is `'table'` or `'global'` from the active {@link ShortcutContext}. Global-scoped contexts are
+ *   also evaluated when this returns `false` (see `dispatchGlobalShortcutsWhenTableBlocked` in the recorder).
  * @param {Function} options.beforeKeyDown A hook fired before the `keydown` event is handled. You can use it to [block a keyboard shortcut's actions](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#block-a-keyboard-shortcut-s-actions).
  * @param {Function} options.afterKeyDown A hook fired after the `keydown` event is handled
  */
@@ -175,10 +179,35 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @returns {boolean}
    */
   const handleEventWithScope = (event) => {
-    const context = getActiveContextName();
-    const activeContext = isContextObject(context) ? context : getContext(context);
+    const contextName = getActiveContextName();
+    const activeContext = getContext(contextName);
 
-    return handleEvent(event, activeContext.scope);
+    return handleEvent(event, activeContext?.scope ?? 'table');
+  };
+
+  /**
+   * Runs shortcuts registered on `scope: 'global'` contexts when the table shortcut pipeline is blocked.
+   *
+   * @param {KeyboardEvent} event The keyboard event.
+   * @param {string[]} keys Normalized pressed keys.
+   * @returns {boolean} Whether a shortcut cancelled further handling.
+   */
+  const runGlobalScopedShortcuts = (event, keys) => {
+    const items = CONTEXTS.getItems();
+
+    for (let i = 0; i < items.length; i += 1) {
+      const [, context] = items[i];
+
+      if (context.scope !== 'global') {
+        continue;
+      }
+
+      if (recorderCallback(event, keys, context)) {
+        return true;
+      }
+    }
+
+    return false;
   };
 
   /**
@@ -192,9 +221,32 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     beforeKeyDown,
     afterKeyDown,
     recorderCallback,
+    runGlobalScopedShortcuts,
   );
 
   keyRecorder.mount();
+
+  /**
+   * Check if any shortcut in the given context matches the keyboard event.
+   * Uses the same key normalization as the shortcut recorder, including
+   * the unified `control/meta` form.
+   *
+   * @memberof ShortcutManager#
+   * @param {string} contextName The name of the shortcut context to check against.
+   * @param {KeyboardEvent} event The keyboard event to match.
+   * @returns {boolean}
+   */
+  const hasEventShortcut = (contextName, event) => {
+    const context = getContext(contextName);
+
+    if (!context) {
+      return false;
+    }
+
+    const combinations = getEventKeyCombinations(event, isMacOS);
+
+    return combinations.some(keys => context.hasShortcut(keys));
+  };
 
   return {
     addContext,
@@ -202,6 +254,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     getContext,
     getOrCreateContext,
     setActiveContextName,
+    hasEventShortcut,
     /**
      * Returns whether `control` or `meta` keys are pressed.
      *

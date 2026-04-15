@@ -240,6 +240,7 @@ export type TokenKey =
   | 'iconButtonBorderColor'
   | 'iconButtonBackgroundColor'
   | 'iconButtonIconColor'
+  | 'iconButtonHitAreaSize'
   | 'iconButtonHoverBorderColor'
   | 'iconButtonHoverBackgroundColor'
   | 'iconButtonHoverIconColor'
@@ -360,6 +361,13 @@ export type TokenKey =
   | 'dialogContentPaddingVertical'
   | 'dialogContentBorderRadius'
   | 'dialogContentBackgroundColor'
+  // Notification (toast)
+  | 'notificationForegroundColor'
+  | 'notificationBackgroundColor'
+  | 'notificationBorderColor'
+  | 'notificationSuccessAccent'
+  | 'notificationWarningAccent'
+  | 'notificationErrorAccent'
   // Pagination
   | 'paginationBarForegroundColor'
   | 'paginationBarBackgroundColor'

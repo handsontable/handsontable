@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix unwanted layout shifts caused by the editor",
-  "type": "fixed",
-  "issueOrPR": 11955,
-  "breaking": false,
-  "framework": "none"
-}

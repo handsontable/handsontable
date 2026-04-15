@@ -1,7 +1,7 @@
 {
   "name": "handsontable-visual-tests",
   "private": true,
-  "version": "16.2.0",
+  "version": "17.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "author": "Handsoncode <hello@handsontable.com>",
   "license": "CC BY 4.0",
   "devDependencies": {
-    "@argos-ci/cli": "^2.5.4",
+    "@argos-ci/core": "^5.1.1",
     "@playwright/test": "~1.58.2",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",

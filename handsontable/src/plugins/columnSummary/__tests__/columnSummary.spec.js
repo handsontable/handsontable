@@ -979,7 +979,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
     });
@@ -1009,7 +1009,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
     });
@@ -1048,7 +1048,7 @@ describe('ColumnSummarySpec', () => {
           }
         }
 
-        await sleep(300);
+        await waitForNextAnimationFrames(2);
 
         toggle(0);
 
@@ -1071,6 +1071,8 @@ describe('ColumnSummarySpec', () => {
         width: 200,
         rowHeaders: true,
         nestedRows: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
         columnSummary: columnSummaryFunction
       });
 

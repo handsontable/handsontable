@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Add a new `parsePastedValue` option - which fixes the issue with pasting object-based values",
-  "type": "changed",
-  "issueOrPR": 12020,
-  "breaking": false,
-  "framework": "none"
-}

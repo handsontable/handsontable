@@ -5,7 +5,6 @@
  */
 const TerserPlugin = require('terser-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const configFactory = require('./development');
 const { getClosest } = require('./helper/path');
@@ -36,74 +35,62 @@ module.exports.create = function create(envArgs) {
           patterns: [
             { // moment
               from: `${getClosest('node_modules/moment/')}@(moment.js|LICENSE)`,
-              to: 'moment',
-              flatten: true,
+              to: 'moment/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/moment/')}locale/*.js`,
-              to: 'moment/locale',
-              flatten: true,
+              to: 'moment/locale/[name].[ext]',
               force: true,
             },
             { // numbro
               from: `${getClosest('node_modules/numbro/')}@(LICENSE-Numeraljs|LICENSE)`,
-              to: 'numbro',
-              flatten: true,
+              to: 'numbro/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/numbro/')}dist/@(numbro.js|languages.min.js)`,
-              to: 'numbro',
-              flatten: true,
+              to: 'numbro/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/numbro/')}dist/languages/*.js`,
-              to: 'numbro/languages',
-              flatten: true,
+              to: 'numbro/languages/[name].[ext]',
               force: true,
             },
             { // pikaday
               from: `${getClosest('node_modules/@handsontable/pikaday/')}@(LICENSE|pikaday.js)`,
-              to: 'pikaday',
-              flatten: true,
+              to: 'pikaday/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/@handsontable/pikaday/')}css/pikaday.css`,
-              to: 'pikaday',
-              flatten: true,
+              to: 'pikaday/[name].[ext]',
               force: true,
             },
             { // dompurify
               from: `${getClosest('node_modules/dompurify/')}@(LICENSE)`,
-              to: 'dompurify',
-              flatten: true,
+              to: 'dompurify/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/dompurify/')}dist/@(purify.js|purify.js.map)`,
-              to: 'dompurify',
-              flatten: true,
+              to: 'dompurify/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/hyperformula/')}dist/hyperformula.full.min.js`,
-              to: 'hyperformula',
-              flatten: true,
+              to: 'hyperformula/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/hyperformula/')}dist/languages/*.js`,
-              to: 'hyperformula/languages',
-              flatten: true,
+              to: 'hyperformula/languages/[name].[ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/hyperformula/')}LICENSE.txt`,
-              to: 'hyperformula',
-              flatten: true,
+              to: 'hyperformula/[name].[ext]',
               force: true,
             },
           ]

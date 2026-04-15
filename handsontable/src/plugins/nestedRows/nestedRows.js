@@ -3,8 +3,8 @@ import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
+import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
-import { isArrayOfObjects } from '../../helpers/data';
 import { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
@@ -69,6 +69,12 @@ export class NestedRows extends BasePlugin {
    * @type {boolean}
    */
   #skipCoreAPIModifiers = false;
+  /**
+   * State of the first render.
+   *
+   * @type {boolean}
+   */
+  #isFirstRender = true;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -89,6 +95,7 @@ export class NestedRows extends BasePlugin {
     }
 
     this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap());
+    this.#isFirstRender = true;
 
     this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);
@@ -97,6 +104,7 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this);
 
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
+    this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('beforeViewRender', (...args) => this.#onBeforeViewRender(...args));
     this.addHook('modifyRowData', (...args) => this.onModifyRowData(...args));
     this.addHook('modifySourceLength', (...args) => this.onModifySourceLength(...args));
@@ -449,6 +457,22 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * `afterRender` hook callback.
+   * Recalculates table dimensions after the first render. Fixes the wtHider size being too small on initial display.
+   */
+  #onAfterRender() {
+    if (this.#isFirstRender && this.hot.view) {
+      this.#isFirstRender = false;
+
+      this.hot.rootWindow.requestAnimationFrame(() => {
+        if (this.hot && this.hot.view && !this.hot.isDestroyed) {
+          this.hot.view.adjustElementsSize(true);
+        }
+      });
+    }
+  }
+
+  /**
    * `beforeViewRender` hook callback.
    *
    * @param {boolean} force Indicates if the render call was triggered by a change of settings or data.
@@ -466,7 +490,7 @@ export class NestedRows extends BasePlugin {
    * @param {Array} data The source data.
    */
   #onBeforeLoadData(data) {
-    if (!isArrayOfObjects(data)) {
+    if (!isValidDataSource(data)) {
       error(WRONG_DATA_TYPE_ERROR);
 
       this.hot.getSettings()[PLUGIN_KEY] = false;

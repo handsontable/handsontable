@@ -7,7 +7,7 @@ import { registerCellType } from 'handsontable/cellTypes';
 registerAllModules();
 
 /* start:skip-in-preview */
-export const data = [
+const data = [
   { feature: 'Dark Mode', category: 'UI', priority: 'High', feedback: '👍', votes: 124, status: 'Planned' },
   { feature: 'Bulk Edit', category: 'Core', priority: 'High', feedback: '👍', votes: 98, status: 'In Progress' },
   { feature: 'AI Suggestions', category: 'Beta', priority: 'Medium', feedback: '🤷', votes: 45, status: 'Research' },
@@ -50,13 +50,22 @@ const cellDefinition = {
     init: (editor) => {
       editor.input = document.createElement('DIV');
       editor.input.classList.add('feedback-editor');
+      editor._openedAt = 0;
       editor.input.addEventListener('click', (event) => {
+        // Ignore synthetic click events that Android fires right after the editor
+        // opens — they land on the button that just appeared at the touch position.
+        if (Date.now() - editor._openedAt < 300) {
+          return;
+        }
         if (event.target instanceof HTMLButtonElement) {
           editor.setValue(event.target.innerText);
           editor.finishEditing();
         }
       });
       editor.render(editor);
+    },
+    afterOpen: (editor) => {
+      editor._openedAt = Date.now();
     },
     beforeOpen: (editor, { originalValue, cellProperties }) => {
       editor.setValue(originalValue);

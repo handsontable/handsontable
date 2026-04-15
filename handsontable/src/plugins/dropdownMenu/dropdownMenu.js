@@ -3,7 +3,7 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
-import { hasClass, setAttribute } from '../../helpers/dom/element';
+import { hasClass, isBottomMostColumnHeader, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
 import { Hooks } from '../../core/hooks';
@@ -270,20 +270,73 @@ export class DropdownMenu extends BasePlugin {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
       const { highlight } = this.hot.getSelectedRangeActive();
+      const highlightedHeaderElement = highlight.isHeader() ?
+        this.hot.getCell(highlight.row, highlight.col, true) :
+        null;
+      const isBottomMostHeaderSelected = highlight.isHeader() &&
+        highlight.col >= 0 &&
+        isBottomMostColumnHeader(highlightedHeaderElement);
+      const isHiddenNestedPlaceholderSelected = highlight.isHeader() &&
+        highlight.col >= 0 &&
+        highlightedHeaderElement &&
+        hasClass(highlightedHeaderElement, 'hiddenHeader');
 
-      if ((highlight.isHeader() && highlight.row === -1 || highlight.isCell()) && highlight.col >= 0) {
-        this.hot.selectColumns(highlight.col, highlight.col, -1);
+      const isValidSelection = isBottomMostHeaderSelected ||
+        isHiddenNestedPlaceholderSelected ||
+        highlight.isCell();
+
+      if (isValidSelection && highlight.col >= 0) {
+        let headerRow = isBottomMostHeaderSelected || isHiddenNestedPlaceholderSelected ? highlight.row : -1;
+
+        this.hot.selectColumns(highlight.col, highlight.col, headerRow);
 
         const { from } = this.hot.getSelectedRangeActive();
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-        const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`);
-        const rect = target.getBoundingClientRect();
+        let target = this.hot.getCell(headerRow, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+        if (!target) {
+          for (let row = -this.hot.view.getColumnHeadersCount(); row <= -1; row++) {
+            const candidate = this.hot.getCell(row, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+            if (candidate) {
+              target = candidate;
+              headerRow = row;
+
+              this.hot.selectColumns(highlight.col, highlight.col, headerRow);
+              break;
+            }
+          }
+        }
+
+        if (!target && isHiddenNestedPlaceholderSelected) {
+          for (let column = from.col - 1; column >= 0; column--) {
+            const candidateHeader = this.hot.getCell(headerRow, column, true);
+
+            if (!candidateHeader || hasClass(candidateHeader, 'hiddenHeader')) {
+              continue; // eslint-disable-line no-continue
+            }
+
+            const candidateButton = candidateHeader?.querySelector(`.${BUTTON_CLASS_NAME}`);
+
+            if (candidateButton) {
+              target = candidateButton;
+              this.hot.selectColumns(column, column, headerRow);
+            }
+            break;
+          }
+        }
+
+        if (!target) {
+          return;
+        }
+
+        const buttonRect = this.#getButtonRect(target);
 
         this.open({
-          left: rect.left + offset.left,
-          top: rect.top + target.offsetHeight + offset.top,
+          left: buttonRect.left + offset.left,
+          top: buttonRect.bottom + offset.top,
         }, {
-          left: rect.width,
+          left: buttonRect.width,
           right: 0,
           above: 0,
           below: 3,
@@ -299,9 +352,17 @@ export class DropdownMenu extends BasePlugin {
       callback,
       runOnlyIf: () => {
         const highlight = this.hot.getSelectedRangeActive()?.highlight;
+        const highlightedHeaderElement = highlight?.isHeader() ?
+          this.hot.getCell(highlight.row, highlight.col, true) :
+          null;
+        const isHiddenNestedPlaceholderSelected = highlight?.isHeader() &&
+          highlight.col >= 0 &&
+          highlightedHeaderElement &&
+          hasClass(highlightedHeaderElement, 'hiddenHeader');
 
-        return highlight && this.hot.selection.isCellVisible(highlight) &&
-          highlight.isHeader() && !this.menu.isOpened();
+        return highlight && !this.menu.isOpened() &&
+          highlight.isHeader() &&
+          (this.hot.selection.isCellVisible(highlight) || isHiddenNestedPlaceholderSelected);
       },
       captureCtrl: true,
       group: SHORTCUTS_GROUP,
@@ -349,6 +410,13 @@ export class DropdownMenu extends BasePlugin {
    * the offset to the menu position.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
+   * @example
+   * ```js
+   * const menu = hot.getPlugin('dropdownMenu');
+   *
+   * hot.selectCell(0, 0);
+   * menu.open({ top: 50, left: 50 });
+   * ```
    */
   open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
     if (this.menu?.isOpened()) {
@@ -440,21 +508,56 @@ export class DropdownMenu extends BasePlugin {
   #onTableClick(event) {
     if (hasClass(event.target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-      const rect = event.target.getBoundingClientRect();
+      const buttonRect = this.#getButtonRect(event.target);
 
       event.stopPropagation();
       this.#isButtonClicked = false;
 
       this.open({
-        left: rect.left + offset.left,
-        top: rect.top + event.target.offsetHeight + offset.top,
+        left: buttonRect.left + offset.left,
+        top: buttonRect.bottom + offset.top,
       }, {
-        left: rect.width,
+        left: buttonRect.width,
         right: 0,
         above: 0,
         below: 3,
       });
     }
+  }
+
+  /**
+   * Returns the bounding rect of the button's ignoring the hit area box.
+   *
+   * @param {HTMLElement} button The change-type button element.
+   * @returns {{ top: number, left: number, right: number, bottom: number, width: number, height: number }}
+   */
+  #getButtonRect(button) {
+    const rect = button.getBoundingClientRect();
+    const beforeStyle = this.hot.rootWindow.getComputedStyle(button, '::before');
+    const iconSize = Number.parseFloat(beforeStyle.width);
+
+    if (Number.isFinite(iconSize) && rect.width >= iconSize && rect.height >= iconSize) {
+      const left = rect.left + ((rect.width - iconSize) / 2);
+      const top = rect.top + ((rect.height - iconSize) / 2);
+
+      return {
+        top,
+        left,
+        right: left + iconSize,
+        bottom: top + iconSize,
+        width: iconSize,
+        height: iconSize,
+      };
+    }
+
+    return {
+      top: rect.top,
+      left: rect.left,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
   }
 
   /**
@@ -465,17 +568,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
   #onAfterGetColHeader(col, TH) {
-    // Corner or a higher-level header
-    const headerRow = TH.parentNode;
-
-    if (!headerRow) {
-      return;
-    }
-
-    const headerRowList = headerRow.parentNode.childNodes;
-    const level = Array.prototype.indexOf.call(headerRowList, headerRow);
-
-    if (col < 0 || level !== headerRowList.length - 1) {
+    if (col < 0 || !isBottomMostColumnHeader(TH)) {
       return;
     }
 
@@ -515,7 +608,19 @@ export class DropdownMenu extends BasePlugin {
       return false;
     };
 
-    TH.firstChild.insertBefore(button, TH.firstChild.firstChild);
+    const relativeContainer = TH.firstChild;
+
+    if (!relativeContainer) {
+      return;
+    }
+
+    const colHeaderSpan = relativeContainer.querySelector('.colHeader');
+
+    if (colHeaderSpan) {
+      relativeContainer.insertBefore(button, colHeaderSpan.nextSibling);
+    } else {
+      relativeContainer.appendChild(button);
+    }
   }
 
   /**

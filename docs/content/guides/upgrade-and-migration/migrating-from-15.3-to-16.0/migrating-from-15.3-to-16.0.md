@@ -2,7 +2,7 @@
 id: 1k7arh9z
 title: Migrating from 15.3 to 16.0
 metaTitle: Migrating from 15.3 to 16.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [09/07/2025].
+description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on July 9, 2025.
 permalink: /migration-from-15.3-to-16.0
 canonicalUrl: /migration-from-15.3-to-16.0
 pageClass: migration-guide
@@ -15,10 +15,7 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 15.3 to 16.0
-
-Migrate from Handsontable 15.3 to Handsontable 16.0, released on 09/07/2025.
+Migrate from Handsontable 15.3 to Handsontable 16.0, released on July 9, 2025.
 
 More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements).<br/>
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_16-0-0).
@@ -31,34 +28,50 @@ In Handsontable 16.0, we changed how the table is mounted in the DOM. Previously
 
 Here's a side-by-side comparison of the old and new DOM structures:
 
-Old DOM structure:
+**Old DOM structure:**
 
-```
-body
-├── #example.ht-wrapper.handsontable // Root Container/Element
-│   ├── .htFocusCatcher // Focus Catcher (top)
-│   ├── Data grid content
-│   └── .htFocusCatcher // Focus Catcher (down)
-├── .hot-display-license-info // License key notification bar
-└── Context menus, dropdowns, pop-ups, sidebars
-    (absolutely positioned elements)
-```
+<starlight-file-tree class="not-content">
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>#example.ht-wrapper.handsontable</span> <span class="comment">Root Container/Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (top)</span></span></li>
+<li class="file"><span class="tree-entry"><span>Data grid content</span></span></li>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (down)</span></span></li>
+</ul></details></li>
+<li class="file"><span class="tree-entry"><span>.hot-display-license-info</span> <span class="comment">License key notification bar</span></span></li>
+<li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
+</ul></details></li>
+</ul>
+</starlight-file-tree>
 
-New DOM structure:
+**New DOM structure:**
 
-```
-body
-├── #example // Root Wrapper
-│    └── .ht-root-wrapper // Root Element
-│        ├── .htFocusCatcher // Focus Catcher (top)
-│        ├── .ht-wrapper.handsontable // Root Container
-│        │   └── Data grid content
-│        ├── .htFocusCatcher // Focus Catcher (down)
-│        └── .hot-display-license-info // License key notification bar
-└── .ht-portal // Portal Element
-    └── Context menus, dropdowns, pop-ups, sidebars
-        (absolutely positioned elements)
-```
+<starlight-file-tree class="not-content">
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>#example</span> <span class="comment">Root Wrapper</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-root-wrapper</span> <span class="comment">Root Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (top)</span></span></li>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-wrapper.handsontable</span> <span class="comment">Root Container</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>Data grid content</span></span></li>
+</ul></details></li>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (down)</span></span></li>
+<li class="file"><span class="tree-entry"><span>.hot-display-license-info</span> <span class="comment">License key notification bar</span></span></li>
+</ul></details></li>
+</ul></details></li>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-portal</span> <span class="comment">Portal Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
+</ul></details></li>
+</ul></details></li>
+</ul>
+</starlight-file-tree>
 
 ### Key changes
 - Root Wrapper: User-provided div is now used as a container for the new DOM structure

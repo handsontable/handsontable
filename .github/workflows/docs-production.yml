@@ -23,16 +23,19 @@ jobs:
     if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
 
       - name: Use Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
           cache-dependency-path: docs/package-lock.json
 
-      - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         id: get-docs-version
         with:
           script: return context.ref.match(/^refs\/heads\/prod\-docs\/(\d+\.\d+)$/)[1] ?? '';
@@ -44,6 +47,13 @@ jobs:
       - name: Docker login into GHCR
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+
+      - name: Update module size measurements
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          npm run build --prefix handsontable
+          npm run measure:module-sizes --prefix handsontable
 
       - name: Dependencies
         run: |
@@ -77,7 +87,7 @@ jobs:
           ./build_current_version.sh
 
       - name: Publish production to Netlify
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
         with:
           timeout_seconds: 1600
           max_attempts: 3
@@ -92,8 +102,8 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
 
       - name: Algolia crawler start
-        env: 
-          crawler-name: Github Crawler 
+        env:
+          crawler-name: Github Crawler
           crawler-id: 8062e3d3-ea11-422a-a31a-3b8003bef6f6
           crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
           crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}

@@ -26,9 +26,6 @@ searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-
-# Theme Customization
-
 Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]
@@ -246,10 +243,10 @@ Handsontable provides a comprehensive set of JS and CSS variables that let you c
 Example: to override the `tokens.gapSize`, use the JS Option like this:
 
 ```js
-  myTheme.params({ 
-    tokens: { 
-      gapSize: 'sizing.size_1' 
-    } 
+  myTheme.params({
+    tokens: {
+      gapSize: 'sizing.size_1'
+    }
   })
 ```
 
@@ -577,6 +574,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverBorderColor` </div>     | Border color of hovered active icon buttons     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverBackgroundColor` </div> | Background color of hovered active icon buttons |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-active-hover-icon-color` </div><div class="variables-table__item"><span>JS:</span> `iconButtonActiveHoverIconColor` </div>       | Icon color of hovered active icon buttons       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-icon-button-hit-area-size` </div><div class="variables-table__item"><span>JS:</span> `iconButtonHitAreaSize` </div>               | Hit area size of icon buttons |
 
 #### Collapse Button Variables
 
@@ -738,6 +736,19 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-padding-vertical` </div><div class="variables-table__item"><span>JS:</span> `dialogContentPaddingVertical` </div>           | Vertical padding of dialog content                  |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-border-radius` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBorderRadius` </div>              | Border radius of dialog content                     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-background-color` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBackgroundColor` </div>           | Background color of dialog content                  |
+
+#### Notification Variables
+
+These variables style the [Notification](@/guides/dialog/notification/notification.md) plugin toasts. Shared layout tokens (for example `wrapperBorderRadius`, `tableTransition`, `gapSize`) and icon-button tokens still apply to the close control and spacing.
+
+| Variable | Description                                         |
+| -------- | --------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `notificationForegroundColor` </div>   | Text color of notification toasts                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-background-color` </div><div class="variables-table__item"><span>JS:</span> `notificationBackgroundColor` </div>   | Background color of notification toasts           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-border-color` </div><div class="variables-table__item"><span>JS:</span> `notificationBorderColor` </div>       | Border color of notification toasts                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-success-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationSuccessAccent` </div>       | Accent bar color for success toasts                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-warning-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationWarningAccent` </div>       | Accent bar color for warning toasts                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-error-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationErrorAccent` </div>         | Accent bar color for error toasts                   |
 
 #### Pagination Variables
 

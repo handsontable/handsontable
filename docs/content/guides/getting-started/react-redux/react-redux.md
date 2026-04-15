@@ -18,9 +18,6 @@ searchCategory: Guides
 onlyFor: react
 category: Getting started
 ---
-
-# Integration with Redux
-
 Maintain the data and configuration options of your grid by using the Redux state container.
 
 [[toc]]

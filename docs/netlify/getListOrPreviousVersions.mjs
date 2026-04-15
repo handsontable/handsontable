@@ -32,6 +32,7 @@ async function readFromGitHub() {
 
   releases.data
     .map(item => item.tag_name)
+    .filter(tag => !semver.prerelease(tag))
     .sort((a, b) => semver.rcompare(a, b))
     .forEach((tag) => {
       const minorVersion = `${semver.parse(tag).major}.${

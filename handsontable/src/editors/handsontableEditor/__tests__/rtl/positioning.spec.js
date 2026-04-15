@@ -55,7 +55,7 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
         classic: 151,
       };
 
-      const scrollPositionBase = scrollEdgePositions[spec().loadedTheme];
+      const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
 
       if (scrollPositionBase === undefined) {
         throw new Error('Missing scroll position base for the current theme', { cause: { handsontable: true } });

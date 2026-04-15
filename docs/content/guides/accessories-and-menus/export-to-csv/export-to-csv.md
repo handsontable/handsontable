@@ -17,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Export to CSV
-
 Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 
 [[toc]]
@@ -31,7 +28,6 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 ### Export to file
 
 ::: only-for javascript
-
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.html)
@@ -39,29 +35,24 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example1.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example1 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example1.jsx)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example1.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.html)
 
 :::
-
 :::
 
 ### Export as a JavaScript Blob object
@@ -69,7 +60,6 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 Open a console in browser developer tools to see the result for the below example.
 
 ::: only-for javascript
-
 ::: example #example2 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.html)
@@ -77,22 +67,18 @@ Open a console in browser developer tools to see the result for the below exampl
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example2.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example2.jsx)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example2.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example2 :angular --ts 1 --html 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.ts)
@@ -106,7 +92,6 @@ Open a console in browser developer tools to see the result for the below exampl
 Open a console in browser developer tools to see the result for the below example.
 
 ::: only-for javascript
-
 ::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.html)
@@ -114,29 +99,24 @@ Open a console in browser developer tools to see the result for the below exampl
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example3.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example3 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.jsx)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example3 :angular --ts 1 --html 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.html)
 
 :::
-
 :::
 
 ### Prevent CSV Injection attack
@@ -146,7 +126,6 @@ Open a console in browser developer tools to see the result for the below exampl
 To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
 
 ::: only-for javascript
-
 ::: example #example4 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.html)
@@ -154,30 +133,25 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.jsx)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.tsx)
 
 :::
-
 :::
 
 
 ::: only-for angular
-
 ::: example #example4 :angular --ts 1 --html 2
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
 
 :::
-
 :::
 
 ## Available methods
@@ -196,130 +170,36 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 The plugin exposes the following methods to export data.
 
-- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable file directly in the browser. Synchronous; supports text-based formats only (e.g. CSV). For XLSX, use [`downloadFileAsync`](@/api/exportFile.md#downloadfileasync).
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable file and returns a `Promise`. Supports all formats including XLSX.
 - [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string. Supports text-based formats only (e.g. CSV).
 
-All of them accept the same arguments:
-
-### format `String`
-
-This is required to prepare a predefined settings object. We currently allow for only `'csv'` to be used.
-
-### options `Object`
-
-This is an optional argument. It contains a set of supported options and extends the predefined CSV configuration. For the complete list of options that you can use, see [available options](#available-options-in-the-export-configuration).
+Each method takes two parameters. The first, `format`, is required. The second, `options`, is an optional object that overrides or extends the default export configuration. The table below lists all supported options for CSV export.
 
 ## Available options in the export configuration
 
-Below you can find all supported options:
-
-### bom `Boolean`
-
-Allows you to export data with a BOM signature.
-
-Note that this property will prepend content with the UTF-16BE BOM signature (_FE FF_). The browser will convert the signature to the UTF-8 value (_EF BB BF_) automatically.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `true`
-
-### columnDelimiter `String`
-
-Allows you to define the columns delimiter.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `','`
-
-### columnHeaders `Boolean`
-
-When set to `true`, includes column headers in the exported data.
-
-You can use this property in all of the [available methods](#available-methods).
-
-The `columnHeaders` option doesn't support the [`NestedHeaders` plugin](@/api/nestedHeaders.md).
-
-Default value: `false`
-
-### exportHiddenColumns `Boolean`
-
-Allows you to export data from hidden columns.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `false`
-
-### exportHiddenRows `Boolean`
-
-Allows you to export data from hidden rows.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `false`
-
-### fileExtension `String`
-
-Allows you to define the file extension.
-
-You can use this property in the `downloadFile()` method.
-
-Default value: `'csv'`
-
-### filename `String`
-
-Allows you to define the file name.
-
-You can use predefined placeholders, which will be replaced by the date.
-
-You can use this property in the `downloadFile()` method.
-
-Default value: `'Handsontable [YYYY]-[MM]-[DD]'`
-
-### mimeType `String`
-
-Allows you to define the MIME type.
-
-You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
-
-Default value: `'text/csv'`
-
-### sanitizeValues `Boolean|RegExp|Function`
-
-Controls the value sanitization during the CSV export
-
-- when `sanitizeValues` is `false`, `ExportPlugin` doesn't sanitize the values
-- when `sanitizeValues` is `true`, `ExportPlugin` sanitizes values according to [OWASP recommendations](https://owasp.org/www-community/attacks/CSV_Injection).
-- when `sanitizeValues` is a regexp, `ExportPlugin` escapes values that match the regexp
-- when `sanitizeValues` is a function, `ExportPlugin` replaces values with the return value of the function
-
-Default value: `false`
-
-### range `Array`
-
-Allows you to define a range of dataset to export. It's represented by an array of numeric, visual indexes `[startRow, startColumn, endRow, endColumn]`.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `'text/csv'`
-
-### rowDelimiter `String`
-
-Allows you to define rows delimiter.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `'\r\n'`
-
-### rowHeaders `Boolean`
-
-Allows you to export data with their row header.
-
-You can use this property in all of the [available methods](#available-methods).
-
-Default value: `false`
+| Property               | Type / Default                          | Description |
+| ---------------------- | --------------------------------------- | ----------- |
+| `bom`                  | `Boolean`, default `true`               | Prepend output with BOM (UTF-8). Browser uses _EF BB BF_. |
+| `columnDelimiter`      | `String`, default `','`                | Column delimiter. |
+| `columnHeaders`        | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
+| `exportHiddenColumns`  | `Boolean`, default `false`              | Include hidden columns. |
+| `exportHiddenRows`    | `Boolean`, default `false`              | Include hidden rows. |
+| `fileExtension`       | `String`, default `'csv'`               | File extension. Used by `downloadFile()`. |
+| `filename`             | `String`, default `'Handsontable [YYYY]-[MM]-[DD]'` | File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date. Used by `downloadFile()`. |
+| `mimeType`             | `String`, default `'text/csv'`          | MIME type. Used by `downloadFile()` and `exportAsBlob()`. |
+| `range`                | `Array`, default `[]`                   | Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes). |
+| `rowDelimiter`         | `String`, default `'\r\n'`              | Row delimiter. |
+| `rowHeaders`           | `Boolean`, default `false`              | Include row headers. |
+| `sanitizeValues`       | `Boolean` \| `RegExp` \| `Function`, default `false` | Value sanitization. `true` = [OWASP CSV injection](https://owasp.org/www-community/attacks/CSV_Injection) rules; `RegExp` = escape matching values; `Function` = replace with return value. |
 
 ## Related API reference
 
-- Plugins:
-  - [`ExportFile`](@/api/exportFile.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>

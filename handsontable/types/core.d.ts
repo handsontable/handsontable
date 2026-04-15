@@ -121,6 +121,7 @@ export default class Core {
   getTableHeight(): number;
   getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
   getValue(): CellValue;
+  guid: string;
   hasColHeaders(): boolean;
   hasHook(key: keyof Events): boolean;
   hasRowHeaders(): boolean;
@@ -145,9 +146,13 @@ export default class Core {
   render(): void;
   resumeExecution(): void;
   resumeRender(): void;
+  rootContainer: HTMLElement;
   rootDocument: Document;
   rootElement: HTMLElement;
+  rootGridElement: HTMLElement;
+  rootPortalElement: HTMLElement;
   rootWindow: Window;
+  rootWrapperElement: HTMLElement;
   rowIndexMapper: IndexMapper;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }, callback?: () => void): boolean;

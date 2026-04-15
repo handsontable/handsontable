@@ -31,7 +31,9 @@ describe('Selection navigation', () => {
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(13, 1);
@@ -146,7 +148,9 @@ describe('Selection navigation', () => {
         width: 180,
         height: 126, // 126/29 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(13, 1);
@@ -240,7 +244,9 @@ describe('Selection navigation', () => {
         width: 180,
         height: 161, // 161/37 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(13, 1);
@@ -477,19 +483,19 @@ describe('Selection navigation', () => {
 
       await selectCell(13, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(10);
 
       await keyDownUp('pageup');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(6);
 
       await keyDownUp('pageup');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
@@ -517,19 +523,19 @@ describe('Selection navigation', () => {
 
       await selectCell(13, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
@@ -557,19 +563,19 @@ describe('Selection navigation', () => {
 
       await selectCell(13, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });

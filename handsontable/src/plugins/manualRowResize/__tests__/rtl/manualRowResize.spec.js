@@ -37,7 +37,7 @@ describe('manualRowResize (RTL mode)', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
@@ -47,7 +47,7 @@ describe('manualRowResize (RTL mode)', () => {
     expect($rowsHeaders.eq(2).height()).toBe(80);
     expect($rowsHeaders.eq(3).height()).toBe(80);
 
-    await sleep(1200);
+    await waitForNextAnimationFrames(75);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
@@ -80,7 +80,9 @@ describe('manualRowResize (RTL mode)', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -180,7 +182,9 @@ describe('manualRowResize (RTL mode)', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');

@@ -2,16 +2,16 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { format, isDate } from 'date-fns';
 import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.css';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 
 registerAllModules();
-
 const DATE_FORMAT_US = 'MM/dd/yyyy';
 const DATE_FORMAT_EU = 'dd/MM/yyyy';
 
 /* start:skip-in-preview */
-export const data = [
+const data = [
   {
     product: 'Dashboard Pro',
     category: 'Analytics',
@@ -85,46 +85,32 @@ const cellDefinition = {
     callback(isDate(new Date(value)));
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
-    td.innerText = format(new Date(value), cellProperties.renderFormat);
+    td.innerText = value ? format(new Date(value), cellProperties.renderFormat) : '';
   }),
   editor: editorFactory({
     init(editor) {
-      editor._closing = false;
       editor.input = editor.hot.rootDocument.createElement('INPUT');
       editor.input.classList.add('flatpickr-editor');
+  
       editor.flatpickr = flatpickr(editor.input, {
         dateFormat: 'Y-m-d',
-        enableTime: false,
-        onChange: () => {
-          if (!editor._closing) {
-            editor.finishEditing();
-          }
-        },
+        disableMobile: true,
         onClose: () => {
-          if (!editor._closing) {
-            editor.finishEditing();
-          }
+          editor.finishEditing();
         },
       });
+
+      editor.preventCloseElement = editor.flatpickr.calendarContainer;
+
       /**
        * Prepare dark theme stylesheet for dynamic loading.
        */
       editor._darkThemeLink = editor.hot.rootDocument.createElement('LINK');
       editor._darkThemeLink.rel = 'stylesheet';
       editor._darkThemeLink.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css';
-      /**
-       * Prevent recognizing clicking on datepicker as clicking outside of table.
-       */
-      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-        if (editor.flatpickr.calendarContainer.contains(event.target)) {
-          event.stopPropagation();
-        }
-      });
     },
     afterClose(editor) {
-      editor._closing = true;
       editor.flatpickr.close();
-      editor._closing = false;
     },
     afterOpen(editor) {
       const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
@@ -139,9 +125,7 @@ const cellDefinition = {
 
       editor.flatpickr.open();
     },
-    beforeOpen(editor, { originalValue, cellProperties }) {
-      editor.setValue(originalValue);
-
+    beforeOpen(editor, { cellProperties }) {
       for (const key in cellProperties.flatpickrSettings) {
         editor.flatpickr.set(key, cellProperties.flatpickrSettings[key]);
       }
@@ -151,7 +135,7 @@ const cellDefinition = {
     },
     setValue(editor, value) {
       editor.input.value = value;
-      editor.flatpickr.setDate(new Date(value));
+      editor.flatpickr.setDate(value ? new Date(value) : new Date());
     },
   }),
 };

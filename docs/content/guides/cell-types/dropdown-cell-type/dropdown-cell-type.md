@@ -5,6 +5,11 @@ metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
 permalink: /dropdown-cell-type
 canonicalUrl: /dropdown-cell-type
+tags:
+  - dropdown
+  - select
+  - autocomplete
+  - key value
 react:
   id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
@@ -14,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Dropdown cell type
-
 Collect user input with a searchable list of choices, by using the dropdown cell type.
 
 [[toc]]
@@ -194,9 +196,9 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
@@ -204,26 +206,41 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`allowHtml`](@/api/options.md#allowhtml)
-  - [`source`](@/api/options.md#source)
-  - [`trimDropdown`](@/api/options.md#trimdropdown)
-  - [`type`](@/api/options.md#type)
-  - [`valueGetter`](@/api/options.md#valuegetter)
-  - [`valueSetter`](@/api/options.md#valueSetter)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+<div class="boxes-list">
+
+- [allowHtml](@/api/options.md#allowhtml)
+- [source](@/api/options.md#source)
+- [trimDropdown](@/api/options.md#trimdropdown)
+- [type](@/api/options.md#type)
+- [valueGetter](@/api/options.md#valuegetter)
+- [valueSetter](@/api/options.md#valueSetter)
+- [visibleRows](@/api/options.md#visiblerows)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

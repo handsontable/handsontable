@@ -2,7 +2,7 @@
 id: 7wh7yk48
 title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom color picker cell using the Coloris library, supporting live preview, validation, and custom themes.
+description: Learn how to create a Handsontable custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
 permalink: /recipes/color-picker-angular
 canonicalUrl: /recipes/color-picker-angular
 tags:
@@ -16,22 +16,8 @@ angular:
   id: tgb1xbxy
   metaTitle: Color Picker Cell - Angular Data Grid | Handsontable
 searchCategory: Recipes
-category: Cells
+category: Cell Types
 ---
-
-# Color Picker Cell - Step-by-Step Guide
-
-[[toc]]
-
-## Overview
-
-This guide shows how to create a custom color picker cell in Angular using the native HTML5 color input. Users can click a cell to open a color picker, select a color, and see it rendered with a colored background.
-
-**Difficulty:** Beginner
-**Time:** ~15 minutes
-**Libraries:** None (uses native HTML5 color input)
-
-## Complete Example
 
 ::: only-for angular
 
@@ -44,14 +30,22 @@ This guide shows how to create a custom color picker cell in Angular using the n
 
 :::
 
+## Overview
+
+This guide shows how to create a custom color picker cell in Angular using the native HTML5 color input. Users can click a cell to open a color picker, select a color, and see it rendered with a colored circle swatch. No external libraries are required.
+
+**Difficulty:** Beginner
+**Time:** ~15 minutes
+**Libraries:** None (uses native HTML5 `<input type="color">`)
+
 ## What You'll Build
 
 A cell that:
 
-- Displays the color value as text with a colored background
-- Opens a native HTML5 color picker when edited
+- Displays a colored circle swatch in the cell
+- Opens a native HTML5 color picker when the cell is edited
 - Validates hex color format
-- Saves the value when color is selected
+- Saves the value when a color is selected
 
 ## Prerequisites
 
@@ -63,54 +57,79 @@ No external libraries required. This example uses:
 ## Step 1: Import Dependencies
 
 ```typescript
-import { Component, ChangeDetectionStrategy } from "@angular/core";
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-} from "@handsontable/angular-wrapper";
-import { registerAllModules } from "handsontable/registry";
-
-// Register Handsontable's modules
-registerAllModules();
+} from '@handsontable/angular-wrapper';
 ```
 
-- `registerAllModules()` registers all Handsontable features
+- Handsontable's modules are registered in the Angular module (see Step 5) via `registerAllModules()`.
 
 ## Step 2: Create the Renderer Component
 
-The renderer component controls how the cell looks when not being edited.
+The renderer component controls how the cell looks when not being edited. It displays a colored circle swatch.
 
 ```typescript
 @Component({
-  selector: "app-color-renderer",
+  selector: 'example1-color-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div style="height: 100%; width: 100%;" [style.background]="value">
-    <b>{{ value }}</b>
-  </div>`,
+  template: `
+    <div class="color-picker-cell">
+      <span class="color-picker-swatch" [style.background]="value"></span>
+    </div>`,
   styles: `
-  :host{
+  :host {
     height: 100%;
     width: 100%;
   }
+  .color-picker-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .color-picker-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+  }
+  .color-picker-editor {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box !important;
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
   `,
+  standalone: false,
 })
 export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
 ```
 
-- The template uses Angular's `[style.background]="value"` binding to set the background color from the cell's value.
+- The template renders a circle swatch with the cell's color via `[style.background]="value"`.
+- `.color-picker-cell` and `.color-picker-swatch` center and style the swatch; `.color-picker-editor` styles the editor input.
 - `ChangeDetectionStrategy.OnPush` is used to optimize performance.
 
 ## Step 3: Create the Editor Component
 
-The editor component handles user input when the cell is being edited.
+The editor component uses the native HTML5 color input. When the user selects a color, the value is updated and `afterClose` calls `finishEdit.emit()` to save.
 
 ```typescript
 @Component({
-  selector: "app-color-picker-editor",
+  selector: 'example1-color-picker-editor',
   template: `
-    <input style="width: 100%; height: 100%;" type="color" [value]="value" (input)="onColorChange($event)" />
+    <input
+      class="color-picker-editor"
+      type="color"
+      [value]="value"
+      (input)="onColorChange($event)"
+    />
   `,
+  styleUrls: ['./example1.css'],
   standalone: false,
 })
 export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<string> {
@@ -128,30 +147,18 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
 **What's happening:**
 
 - Extends [`HotCellEditorAdvancedComponent<string>`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - provides editor lifecycle
-- `<input type="color">` is the native HTML5 color picker
-- `[value]="value"` binds the current cell value to the input
-- `(input)="onColorChange($event)"` updates value on every change
-- `setValue(input.value)` stores the new color value
-- `afterClose()` lifecycle hook calls `finishEdit.emit()` to save the value
-
-**Key points:**
-
-- The native color picker automatically validates and formats colors as hex
-- `afterClose()` is called when the editor is closed (e.g., clicking outside)
-- `finishEdit.emit()` tells Handsontable to save the value
-- No need for manual DOM manipulation - Angular handles it
+- `<input type="color">` is the native HTML5 color picker; no external library is required
+- `[value]="value"` binds the current cell value; `(input)="onColorChange($event)"` updates the value on change
+- `afterClose()` calls `finishEdit.emit()` so the value is saved when the editor closes
 
 **Lifecycle flow:**
 
 1. User opens editor (double-click or F2)
-2. Input shows current color value
-3. User selects a color
-4. `onColorChange()` updates the value
-5. User clicks outside or presses Enter
-6. `afterClose()` is called
-7. `finishEdit.emit()` saves the value
+2. Input shows the current color
+3. User selects a color → `onColorChange()` calls `setValue(input.value)`
+4. User closes the editor (e.g. click outside) → `afterClose()` runs → `finishEdit.emit()` saves the value
 
-## Step 4: Add Validator (Optional)
+## Step 4: Add Validator
 
 The validator ensures only valid hex colors are saved to the cell.
 
@@ -170,7 +177,6 @@ const colorValidator = (value: string): boolean => {
 
 **Why add validation:**
 
-- Prevents manual input of invalid colors (if using text input)
 - Ensures data consistency
 - Native color picker already outputs valid hex, but validation adds extra safety
 
@@ -178,9 +184,8 @@ const colorValidator = (value: string): boolean => {
 
 ```typescript
 // Support short format (#fff)
-const flexibleValidator = (value: string): boolean => {
-  return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value);
-};
+const flexibleValidator = (value: string): boolean =>
+  /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value);
 ```
 
 ## Step 5: Register Components in Module
@@ -188,13 +193,17 @@ const flexibleValidator = (value: string): boolean => {
 Register the custom components in your Angular module.
 
 ```typescript
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
-import { ColorPickerEditorComponent, ColorRendererComponent } from "./app.component";
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import {
+  Example1GuideColorPickerAngularComponent,
+  ColorPickerEditorComponent,
+  ColorRendererComponent,
+} from './app.component';
 
 // Register Handsontable's modules
 registerAllModules();
@@ -212,9 +221,9 @@ export const appConfig: ApplicationConfig = {
 
 @NgModule({
   imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [AppComponent, ColorPickerEditorComponent, ColorRendererComponent],
+  declarations: [Example1GuideColorPickerAngularComponent, ColorPickerEditorComponent, ColorRendererComponent],
   providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
+  bootstrap: [Example1GuideColorPickerAngularComponent],
 })
 export class AppModule {}
 ```
@@ -222,9 +231,10 @@ export class AppModule {}
 **What's happening:**
 
 - Import `HotTableModule` for Handsontable Angular integration
-- Declare custom components in `declarations` array
+- Declare custom components and the root example component in `declarations`
+- Call `registerAllModules()` to enable all Handsontable features
 - Configure global Handsontable settings via `HOT_GLOBAL_CONFIG`
-- Set theme and license key
+- Set license (e.g. `NON_COMMERCIAL_LICENSE`)
 
 **Key points:**
 
@@ -234,45 +244,73 @@ export class AppModule {}
 
 ## Step 6: Configure Handsontable
 
-Use the custom components in your Handsontable column configuration.
+Use the custom components in your Handsontable column configuration. The example adds a `color` property to each row (e.g. from `inputData`) and passes it to the grid.
 
 ```typescript
 @Component({
-  selector: "app-root",
+  selector: 'example1-guide-color-picker-angular',
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class AppComponent {
+export class Example1GuideColorPickerAngularComponent {
   readonly data = inputData.map((el) => ({
     ...el,
-    color: `#${Math.round(0x1000000 + 0xffffff * Math.random())
-      .toString(16)
-      .slice(1)
-      .toUpperCase()}`,
+    color: `#${
+      Math.round(0x1000000 + 0xffffff * Math.random())
+        .toString(16)
+        .slice(1)
+        .toUpperCase()
+    }`,
   }));
 
   readonly gridSettings: GridSettings = {
     autoRowSize: true,
     rowHeaders: true,
     autoWrapRow: true,
-    height: "auto",
+    height: 'auto',
+    width: '100%',
     manualColumnResize: true,
     manualRowResize: true,
-    colHeaders: ["ID", "Item Name", "Item color"],
+    colHeaders: ['ID', 'Item Name', 'Item Color', 'Item No.', 'Cost', 'Value in Stock'],
     columns: [
-      { data: "id", type: "numeric" },
       {
-        data: "itemName",
-        type: "text",
+        data: 'id',
+        type: 'numeric',
+        width: 80,
+        headerClassName: 'htLeft',
       },
       {
-        data: "color",
-        width: 150,
+        data: 'itemName',
+        type: 'text',
+        width: 200,
+        headerClassName: 'htLeft',
+      },
+      {
+        data: 'color',
+        headerClassName: 'htLeft',
         editor: ColorPickerEditorComponent,
         renderer: ColorRendererComponent,
-        validator: colorValidator, // Optional
+        validator: colorValidator,
+      },
+      {
+        data: 'itemNo',
+        type: 'text',
+        width: 100,
+        headerClassName: 'htLeft',
+      },
+      {
+        data: 'cost',
+        type: 'numeric',
+        width: 70,
+        headerClassName: 'htLeft',
+      },
+      {
+        data: 'valueStock',
+        type: 'numeric',
+        width: 130,
+        headerClassName: 'htRight',
       },
     ],
   };
@@ -281,18 +319,17 @@ export class AppComponent {
 
 **What's happening:**
 
-- `[data]="data"` - binds data array to Handsontable
+- `[data]="data"` - binds data array to Handsontable (with mapped `color` per row from `inputData`)
 - `[settings]="gridSettings"` - passes configuration object
 - `editor: ColorPickerEditorComponent` - uses custom editor class
-- `renderer: ColorRendererComponent` - uses custom renderer class
-- `validator: colorValidator` - optional validation function
+- `renderer: ColorRendererComponent` - uses custom renderer class (circle swatch)
+- `validator: colorValidator` - validates hex color format
 
 **Key configuration:**
 
 - Pass component classes directly (not instances)
 - Angular wrapper handles component creation automatically
-- Validator is optional but recommended for data integrity
-- `width: 150` gives enough space for color display
+- Column widths and `headerClassName` align with the table layout
 
 ## Enhancements
 
@@ -455,4 +492,4 @@ export class ColorRendererConfigurableComponent extends HotCellRendererAdvancedC
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell in Angular using native HTML5 color input, providing an intuitive color selection experience in your data grid!
+**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](/recipes/cell-types/color-picker).

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed column resizing being misaligned and calculating incorrect widths when the grid container has a CSS `transform: scale()` applied.",
+  "type": "fixed",
+  "issueOrPR": 11838,
+  "breaking": false,
+  "framework": "none"
+}

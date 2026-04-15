@@ -1,29 +1,24 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
-import { HotTable, HotColumn, EditorComponent, EditorContext } from '@handsontable/react-wrapper';
+import { useState, useEffect, useCallback } from 'react';
+import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
-// generate an array of arrays with dummy data
-const inputData = new Array(10) // number of rows
-  .fill(null)
-  .map((_, row) =>
-    new Array(10) // number of columns
-      .fill(null)
-      .map((_, column) => `${row}, ${column}`)
-  );
+/* start:skip-in-preview */
 
-export const data = inputData.map((el) => ({
-  ...el,
-  stars: Math.floor(Math.random() * 5) + 1,
-  feedback: Math.random() > 0.5 ? '👍' : '👎',
-}));
+export const data = [
+  { feature: 'Dark Mode', category: 'UI', priority: 'High', feedback: '👍', votes: 124, status: 'Planned' },
+  { feature: 'Bulk Edit', category: 'Core', priority: 'High', feedback: '👍', votes: 98, status: 'In Progress' },
+  { feature: 'AI Suggestions', category: 'Beta', priority: 'Medium', feedback: '🤷', votes: 45, status: 'Research' },
+  { feature: 'Offline Mode', category: 'Infra', priority: 'Low', feedback: '👎', votes: 12, status: 'Backlog' },
+];
+
+/* end:skip-in-preview */
 
 export const FeedbackEditor = () => {
-  const [config, setConfig] = useState(['👍', '👎', '🤷‍♂️']);
+  const [config, setConfig] = useState(['👍', '👎', '🤷']);
   const [shortcuts, setShortcuts] = useState([]);
-  const { hotCustomEditorInstanceRef } = useContext(EditorContext);
   const onPrepare = (_row, _column, _prop, _TD, _originalValue, cellProperties) => {
     setConfig(cellProperties.config);
   };
@@ -69,10 +64,10 @@ export const FeedbackEditor = () => {
     <EditorComponent onPrepare={onPrepare} shortcuts={shortcuts}>
       {({ value, setValue, finishEditing }) => (
         <>
-          <div className="editor">
+          <div className="feedback-editor">
             {config.map((item, _index, _array) => (
               <button
-                className={`button ${value === item ? 'active' : ''}`}
+                className={value === item ? 'active' : ''}
                 key={item}
                 onClick={() => {
                   setValue(item);
@@ -100,17 +95,17 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
+      width="100%"
       data={data}
-      colHeaders={true}
+      colHeaders={['Feature', 'Category', 'Priority', 'Feedback', 'Votes', 'Status']}
+      headerClassName="htLeft"
     >
-      <HotColumn width={250} editor={FeedbackEditor} config={['👍', '👎', '🤷‍♂️']} data="feedback" title="Feedback" />
-      <HotColumn
-        width={250}
-        editor={FeedbackEditor}
-        config={['1', '2', '3', '4', '5']}
-        data="stars"
-        title="Rating (1-5)"
-      />
+      <HotColumn data="feature" type="text" width={200} />
+      <HotColumn data="category" type="text" width={90} />
+      <HotColumn data="priority" type="text" width={100} />
+      <HotColumn data="feedback" type="text" width={100} editor={FeedbackEditor} config={['👍', '👎', '🤷']} />
+      <HotColumn data="votes" type="numeric" width={60} />
+      <HotColumn data="status" type="text" width={120} />
     </HotTable>
   );
 };

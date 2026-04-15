@@ -9,10 +9,19 @@ interface EmptyDataStateMessage {
     type: 'primary' | 'secondary';
     callback: () => void;
   }[];
+  /**
+   * When `true`, shows a loading spinner. Used for the `loading` message source (for example when DataProvider is fetching).
+   */
+  loading?: boolean;
 }
 
 export interface EmptyDataStateConfig {
-  message?: string | ((source: 'unknown' | 'filters') => EmptyDataStateMessage | undefined) | EmptyDataStateMessage;
+  message?:
+    | string
+    | ((
+        source: 'unknown' | 'filters' | 'loading'
+      ) => EmptyDataStateMessage | undefined)
+    | EmptyDataStateMessage;
 }
 
 export type Settings = boolean | EmptyDataStateConfig;

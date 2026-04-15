@@ -39,7 +39,7 @@ describe('TextEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -986,7 +986,7 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(getActiveEditor().TEXTAREA.style.height).forThemes(({ classic, main, horizon }) => {
       classic.toBe('27px');
@@ -1106,7 +1106,9 @@ describe('TextEditor', () => {
     handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
-      colHeaders: true
+      colHeaders: true,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await setDataAtCell(2, 2, 'string\nstring\nstring');
@@ -1568,10 +1570,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0));
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(getCell(0, 0));
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
 
@@ -1587,10 +1589,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0), 'MMB');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(getCell(0, 0), 'MMB');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
 
@@ -1606,10 +1608,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     await simulateClick(getCell(0, 0), 'RMB');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await simulateClick(getCell(0, 0), 'RMB');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
 
@@ -1860,7 +1862,9 @@ describe('TextEditor', () => {
     handsontable({
       data: createSpreadsheetData(16, 8),
       fixedColumnsStart: 2,
-      fixedRowsTop: 2
+      fixedRowsTop: 2,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     // corner
@@ -1956,7 +1960,7 @@ describe('TextEditor', () => {
     });
 
     await render();
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     // corner
     await scrollWindowBy(300, 300);
@@ -2219,7 +2223,7 @@ describe('TextEditor', () => {
     });
 
     await selectCell(1, 1);
-    await sleep(10); // for some reason the sleep is needed here
+    await waitForNextAnimationFrames(1); // for some reason the sleep is needed here
     await keyDownUp('enter');
 
     const $editorInput = $('.handsontableInput');
@@ -2324,7 +2328,7 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNextAnimationFrames(2);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -2336,7 +2340,7 @@ describe('TextEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -2385,7 +2389,7 @@ describe('TextEditor', () => {
     destroyEditor();
     document.activeElement.value = '999';
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     expect(isEditorVisible()).toBe(true);
@@ -2705,7 +2709,7 @@ describe('TextEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

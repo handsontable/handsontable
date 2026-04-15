@@ -6,7 +6,6 @@
 const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
-const fsExtra = require('fs-extra');
 const { getClosest }  = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
@@ -44,12 +43,11 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
-          ...((envArgs.HOT_THEME) ? [
-              `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
-              'helpers/common-themes.css',
-            ] : []
-          ),
+          'helpers/common-themes.css',
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
+        ],
+        hotCssFiles: [
+          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
         ],
         externalJsFiles: [
           'helpers/jasmine-progressbar-reporter.js',
@@ -61,9 +59,12 @@ module.exports.create = function create(envArgs) {
           `${getClosest('../node_modules/moment', true)}/moment.js`,
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/pikaday.js`,
           `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,
+        ],
+        hotJsFiles: [
           `../dist/handsontable.js`,
           `../dist/languages/all.js`,
         ],
+        hotTheme: envArgs.HOT_THEME,
       })
     );
 

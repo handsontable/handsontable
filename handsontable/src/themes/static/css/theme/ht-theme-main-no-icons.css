@@ -162,8 +162,9 @@
   --ht-icon-button-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-background-color: var(--ht-background-secondary-color);
   --ht-icon-button-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
-  --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-600));
-  --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-200), var(--ht-colors-palette-600));
+  --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
+  --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
+  --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-700));
   --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-400));
   --ht-icon-button-active-border-color: light-dark(var(--ht-colors-primary-400), var(--ht-colors-primary-200));
   --ht-icon-button-active-background-color: var(--ht-accent-color);
@@ -304,6 +305,12 @@
   --ht-dialog-content-padding-vertical: var(--ht-density-dialog-vertical);
   --ht-dialog-content-border-radius: var(--ht-sizing-size-2);
   --ht-dialog-content-background-color: var(--ht-background-secondary-color);
+  --ht-notification-foreground-color: var(--ht-foreground-color);
+  --ht-notification-background-color: var(--ht-background-color);
+  --ht-notification-border-color: var(--ht-background-color);
+  --ht-notification-success-accent: #37bc6cff;
+  --ht-notification-warning-accent: #fbe952ff;
+  --ht-notification-error-accent: #fa4d32ff;
   --ht-chip-background: var(--ht-background-secondary-color);
   --ht-chip-border-radius: var(--ht-sizing-size-0-5);
   --ht-chip-vertical-padding: var(--ht-sizing-size-0);

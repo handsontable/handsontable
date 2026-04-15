@@ -63,7 +63,6 @@ module.exports = {
       files: ['*.unit.js', '*.spec.js'],
       rules: {
         'no-undef': 'off',
-        'jsdoc/require-description-complete-sentence': 'off',
         'jsdoc/require-jsdoc': 'off',
         'jsdoc/require-param-description': 'off',
         'jsdoc/require-param-type': 'off',

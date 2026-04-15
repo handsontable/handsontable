@@ -15,16 +15,16 @@ concurrency:
 
 jobs:
   lint:
-    name: JS & CSS & VUE
+    name: JS & CSS & Astro
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
         name: Install pnpm
 
       - name: Use Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Documentation dependencies
         run: |
-          cd docs/ && npm ci --no-audit
+          cd docs/ && npm ci --no-audit --legacy-peer-deps
 
       - name: Install Handsontable dependencies
         run: |

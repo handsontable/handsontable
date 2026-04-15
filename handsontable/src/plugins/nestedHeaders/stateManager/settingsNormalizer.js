@@ -44,50 +44,131 @@ import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './
  */
 export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
   const normalizedSettings = [];
+  const rowspanCoverageMap = [];
 
   if (columnsLimit === 0) {
     return normalizedSettings;
   }
 
+  /**
+   * Checks whether the source header item is an explicit empty slot placeholder.
+   * That kind of placeholders can be used by the users to indicate positions
+   * covered by `rowspan`.
+   *
+   * @param {*} sourceHeaderSettings The source header settings.
+   * @returns {boolean}
+   */
+  const isExplicitEmptySlotPlaceholder = (sourceHeaderSettings) => {
+    if (sourceHeaderSettings === '') {
+      return true;
+    }
+
+    if (!isObject(sourceHeaderSettings)) {
+      return false;
+    }
+
+    const {
+      label,
+      colspan,
+      rowspan,
+      headerClassName,
+    } = sourceHeaderSettings;
+
+    return stringify(label) === '' &&
+      (colspan === undefined || colspan === 1) &&
+      (rowspan === undefined || rowspan === 1) &&
+      headerClassName === undefined;
+  };
+
+  /**
+   * Converts user-defined source settings to normalized shape.
+   *
+   * @param {*} sourceHeaderSettings The source header settings.
+   * @returns {DefaultHeaderSettings}
+   */
+  const normalizeHeaderSettings = (sourceHeaderSettings) => {
+    const headerSettings = createDefaultHeaderSettings();
+
+    if (isObject(sourceHeaderSettings)) {
+      const {
+        label,
+        colspan,
+        rowspan,
+        headerClassName,
+      } = sourceHeaderSettings;
+
+      headerSettings.label = stringify(label);
+
+      if (typeof colspan === 'number' && colspan > 1) {
+        headerSettings.colspan = colspan;
+        headerSettings.origColspan = colspan;
+      }
+
+      if (typeof rowspan === 'number' && rowspan > 1) {
+        headerSettings.rowspan = rowspan;
+        headerSettings.origRowspan = rowspan;
+      }
+
+      if (typeof headerClassName === 'string') {
+        headerSettings.headerClassNames = [...headerClassName.split(' ')];
+      }
+
+    } else {
+      headerSettings.label = stringify(sourceHeaderSettings);
+    }
+
+    return headerSettings;
+  };
+
   // Normalize array items (header settings) into one shape - literal object with default props.
-  arrayEach(sourceSettings, (headersSettings) => {
+  arrayEach(sourceSettings, (headersSettings = []) => {
     const columns = [];
-    let columnIndex = 0;
+    let sourceSettingsIndex = 0;
+    let visualColumnIndex = 0;
 
     normalizedSettings.push(columns);
 
-    arrayEach(headersSettings, (sourceHeaderSettings) => {
-      const headerSettings = createDefaultHeaderSettings();
-
-      if (isObject(sourceHeaderSettings)) {
-        const {
-          label, colspan, headerClassName
-        } = sourceHeaderSettings;
-
-        headerSettings.label = stringify(label);
-
-        if (typeof colspan === 'number' && colspan > 1) {
-          headerSettings.colspan = colspan;
-          headerSettings.origColspan = colspan;
-        }
-
-        if (typeof headerClassName === 'string') {
-          headerSettings.headerClassNames = [...headerClassName.split(' ')];
-        }
-
-      } else {
-        headerSettings.label = stringify(sourceHeaderSettings);
+    while (sourceSettingsIndex < headersSettings.length || rowspanCoverageMap[visualColumnIndex] > 0) {
+      if (visualColumnIndex >= columnsLimit) {
+        break;
       }
 
-      columnIndex += headerSettings.origColspan;
+      const sourceHeaderSettings = headersSettings[sourceSettingsIndex];
+      const isCoveredByRowspan = rowspanCoverageMap[visualColumnIndex] > 0;
 
-      let cancelProcessing = false;
+      if (isCoveredByRowspan) {
+        if (isExplicitEmptySlotPlaceholder(sourceHeaderSettings)) {
+          sourceSettingsIndex += 1;
+        }
 
-      if (columnIndex >= columnsLimit) {
+        columns.push(createDefaultHeaderSettings());
+        rowspanCoverageMap[visualColumnIndex] -= 1;
+        visualColumnIndex += 1;
+
+        continue; // eslint-disable-line no-continue
+      }
+
+      if (sourceSettingsIndex >= headersSettings.length) {
+        break;
+      }
+
+      const headerSettings = normalizeHeaderSettings(sourceHeaderSettings);
+      let headerWidth = headerSettings.origColspan;
+
+      if (visualColumnIndex + headerWidth >= columnsLimit) {
         // Adjust the colspan value to not overlap the columns limit.
-        headerSettings.colspan = headerSettings.origColspan - (columnIndex - columnsLimit);
-        headerSettings.origColspan = headerSettings.colspan;
-        cancelProcessing = true;
+        headerWidth -= (visualColumnIndex + headerWidth - columnsLimit);
+        headerSettings.colspan = headerWidth;
+        headerSettings.origColspan = headerWidth;
+      }
+
+      if (headerSettings.origRowspan > 1) {
+        for (let i = 0; i < headerWidth; i++) {
+          rowspanCoverageMap[visualColumnIndex + i] = Math.max(
+            rowspanCoverageMap[visualColumnIndex + i] ?? 0,
+            headerSettings.origRowspan - 1
+          );
+        }
       }
 
       columns.push(headerSettings);
@@ -98,8 +179,9 @@ export function normalizeSettings(sourceSettings, columnsLimit = Infinity) {
         }
       }
 
-      return !cancelProcessing;
-    });
+      visualColumnIndex += headerWidth;
+      sourceSettingsIndex += 1;
+    }
   });
 
   const columnsLength = Math.max(...arrayMap(normalizedSettings, (headersSettings => headersSettings.length)));

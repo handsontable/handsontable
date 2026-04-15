@@ -16,7 +16,9 @@ describe('Selection extending', () => {
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(13, 1);
@@ -131,7 +133,9 @@ describe('Selection extending', () => {
         width: 180,
         height: 120, // 120/28 (cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(13, 1);
@@ -225,7 +229,9 @@ describe('Selection extending', () => {
         width: 180,
         height: 153, // 153/37 (cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
         startRows: 15,
-        startCols: 3
+        startCols: 3,
+        viewportRowRenderingOffset: 10,
+        viewportColumnRenderingOffset: 10,
       });
 
       await selectCell(13, 1);

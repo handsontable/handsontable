@@ -70,7 +70,7 @@ describe('cellTypes', () => {
     });
 
     await setDataAtCell(1, 0, 10);
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0);
     expect(getCell(1, 0).innerHTML).toBe('--10--');
@@ -81,7 +81,7 @@ describe('cellTypes', () => {
     document.activeElement.value = 'hello';
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '**hello**', 0, 0, 'edit');
     expect(getCell(0, 0).innerHTML).toBe('--**hello**--');

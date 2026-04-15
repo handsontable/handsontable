@@ -1,13 +1,11 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import  { editorFactory }  from 'handsontable/editors';
-import  { rendererFactory }  from 'handsontable/renderers';
-// CSS must be imported for the color picker to work in production
-// import "@melloware/coloris/dist/coloris.css";
-import Coloris from '@melloware/coloris';
+import { editorFactory } from 'handsontable/editors';
+import { rendererFactory } from 'handsontable/renderers';
+import Pickr from '@simonwep/pickr';
+import '@simonwep/pickr/dist/themes/nano.min.css';
 import { CellProperties } from 'handsontable/settings';
 
-Coloris.init();
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -186,7 +184,7 @@ const inputData = [
   }
 ];
 
-export const data = inputData.map((el) => ({
+const data = inputData.map((el) => ({
   ...el,
   // eslint-disable-next-line no-mixed-operators
   color: `#${
@@ -202,6 +200,8 @@ export const data = inputData.map((el) => ({
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1')!;
 
+type ColorPickerEditor = { input: HTMLInputElement; pickr: ReturnType<typeof Pickr.create>; preventCloseElement: HTMLElement };
+
 const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> = {
   renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = `<span class="color-picker-cell"><span class="color-picker-swatch" style="background:${value}"></span></span>`;
@@ -209,26 +209,71 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#'); // validate color format
   },
-  editor: editorFactory<{ input: HTMLInputElement }>({
+  editor: editorFactory<ColorPickerEditor>({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
-      editor.input.setAttribute('data-coloris', '');
+      editor.input.setAttribute('aria-label', 'Open color picker');
       editor.input.classList.add('color-picker-editor');
     },
     afterInit(editor) {
-      Coloris({ el: editor.input, closeButton: true, closeLabel: 'Apply Colour', alpha: false, wrap: false });
-      editor.input.addEventListener('close', () => {
+      const button = editor.hot.rootDocument.createElement('button');
+      button.textContent = 'Open color picker';
+      button.classList.add('color-picker-button');
+      editor.input.after(button);
+
+      editor.pickr = Pickr.create({
+        el: button,
+        theme: 'nano',
+        default: editor.input.value || '#000000',
+        autoReposition: false,
+        padding: 0,
+        components: {
+          preview: true,
+          hue: true,
+        }
+      });
+
+      // Collapse the Pickr trigger button so it doesn't add vertical space
+      // between the cell editor and the popup.
+      editor.pickr._root.root.style.height = '0';
+      editor.pickr._root.root.style.overflow = 'hidden';
+
+      editor.preventCloseElement = editor.pickr._root.app;
+
+      editor.pickr.on('change', (color: { toHEXA: () => { toString: () => string } } | null) => {
+        if (color) {
+          const hex = color.toHEXA().toString();
+          editor.input.value = hex;
+        }
+      });
+
+      editor.pickr.on('hide', () => {
+        if (Date.now() - editor._openedAt < 400) {
+          editor.pickr.show();
+
+          return;
+        }
         editor.finishEditing();
       });
     },
     afterOpen(editor) {
-      const isDark = editor.hot.rootDocument.documentElement.getAttribute('data-theme') === 'dark';
+      editor._openedAt = Date.now();
+      editor.pickr.setColor(editor.input.value || '#000000');
+      editor.pickr.show();
 
-      Coloris({ themeMode: isDark ? 'dark' : 'light' });
-      editor.input.click();
+      // Pickr positions its popup relative to the trigger button with an
+      // internal offset. Override the top to sit flush below the cell.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const cellRect = editor.TD.getBoundingClientRect();
+
+          editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+        });
+      });
     },
-    afterClose() {
-      Coloris.close();
+    afterClose(editor) {
+      editor.pickr._root.app.classList.remove('visible');
+      editor.pickr.hide();
     },
     getValue(editor) {
       return editor.input.value;
@@ -240,7 +285,7 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
       {
         keys: [['Tab']],
         callback: (editor) => {
-          editor.finishEditing();
+          editor.pickr.hide();
         },
       },
     ],

@@ -15,9 +15,6 @@ searchCategory: Guides
 category: Cell functions
 menuTag: new
 ---
-
-# Simplified Custom Cell Definitions
-
 [[toc]]
 
 ## Overview
@@ -930,7 +927,7 @@ Just use the parameters you need.
 
 ---
 
-# Using `editorFactory`
+## Using `editorFactory`
 
 The `editorFactory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
 
@@ -1151,19 +1148,27 @@ By default, Handsontable will attempt to close a custom editor whenever the user
 
 Use this pattern for editors that display dropdowns, popovers, or similar UI elements that aren't direct children of the editor container. Without this, clicking the dropdown will be interpreted as clicking "outside," causing the editor to close unexpectedly.
 
+**Using `preventCloseElement`**
+
+Inside your `init` or `afterInit` callback, assign an **`HTMLElement`** to **`editor.preventCloseElement`** (for example, your dropdown or picker DOM node). The factory will attach a `mousedown` listener to that element that stops propagation, so clicks on it are not treated as "click-outside" and the editor stays open.
+
+Create the element in `init` or `afterInit`, assign it to `editor.preventCloseElement`, and append it to the editor container (or to the document if the dropdown is rendered outside the container).
+
 **Example:**
 ```typescript
-init(editor) {
-  editor.input = document.createElement('select') as HTMLSelectElement;
-  // ...dropdown setup, create dropdown DOM as needed
+const MyEditor = editorFactory({
+  init(editor) {
+    editor.input = document.createElement('input');
 
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-    // If the click occurs inside the dropdown, don't let Handsontable close the editor
-    if (editor.dropdown?.contains(event.target as Node)) {
-      event.stopPropagation(); // Prevents editor from closing
-    }
-  });
-}
+    const dropdownEl = document.createElement('div');
+    dropdownEl.className = 'my-picker-dropdown';
+
+    // Clicks on dropdownEl will not close the editor
+    editor.preventCloseElement = dropdownEl;
+  },
+  getValue(editor) { /* ... */ },
+  setValue(editor, value) { /* ... */ },
+});
 ```
 
 ### Pattern 4: Per-Cell Configuration
@@ -1227,7 +1232,7 @@ Handsontable has default keyboard behaviors that control how editors open, close
 - Clicking on another cell (saves changes)
 - Pressing <kbd>Enter</kbd> (saves changes and moves selection one cell down)
 - Pressing <kbd>Shift</kbd>+<kbd>Enter</kbd> (saves changes and moves selection one cell up)
-- Pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>Option</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
+- Pressing <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>⌥</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
 - Pressing <kbd>Escape</kbd> (aborts changes)
 - Pressing <kbd>Tab</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))
 - Pressing <kbd>Shift</kbd>+<kbd>Tab</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))

@@ -1,35 +1,41 @@
-.editor {
-    box-sizing: border-box;
+.feedback-editor {
     display: flex;
-    gap: 3px;
-    padding: 3px;
-    background: rgb(238, 238, 238);
-    border: 1px solid rgb(204, 204, 204);
-    border-radius: 4px;
-    height: 100%;
+    gap: var(--ht-gap, 4px);
     width: 100%;
-}
-
-.button.active:hover,
-.button.active {
-    background: #007bff;
-    color: white;
-}
-
-.button:hover {
-    background: #f0f0f0;
-}
-
-.button {
-    background: #fff;
-    color: black;
+    height: 100%;
+    box-sizing: border-box !important;
+    padding: var(--ht-cell-vertical-padding, 4px) var(--ht-cell-horizontal-padding, 8px);
+    background-color: var(--ht-cell-editor-background-color, #ffffff);
+    box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+      var(--ht-cell-editor-border-color, #1a42e8),
+      0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+      var(--ht-cell-editor-shadow-color, transparent);
     border: none;
+    border-radius: 0;
+  }
+  
+  .feedback-editor button {
+    background: var(--ht-background-color, #ffffff);
+    color: var(--ht-foreground-color, #000000);
+    border: 1px solid var(--ht-border-color, #e0e0e0);
+    border-radius: var(--ht-border-radius, 4px);
     padding: 0;
     margin: 0;
     height: 100%;
-    width: 100%;
-    font-size: 16px;
-    font-weight: bold;
+    width: 33%;
+    font-size: var(--ht-font-size, 14px);
     text-align: center;
     cursor: pointer;
-}
+  }
+  
+  .feedback-editor button:hover {
+    background: var(--ht-border-color, #e0e0e0);
+  }
+  
+  .feedback-editor button.active,
+  .feedback-editor button.active:hover {
+    background: var(--ht-accent-color, #1a42e8);
+    color: #ffffff;
+    border-color: var(--ht-accent-color, #1a42e8);
+  }
+  

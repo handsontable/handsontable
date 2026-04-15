@@ -8,7 +8,8 @@ const PORT = 8086;
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
-const [,, originalPath, flags] = process.argv;
+const [,, originalPath, ...flagArgs] = process.argv;
+const flags = flagArgs.join(' ');
 let htmlPath = originalPath;
 let verboseReporting = false;
 
@@ -21,6 +22,7 @@ if (!originalPath) {
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
   const random = flags.includes('random');
+  const hotVersionMatch = flags.match(/--hotVersion=([^\s,]+)/);
   const params = [];
 
   verboseReporting = flags.includes('verbose');
@@ -30,6 +32,9 @@ if (flags) {
   }
   if (seed || random) {
     params.push('random=true');
+  }
+  if (hotVersionMatch) {
+    params.push(`hotVersion=${hotVersionMatch[1]}`);
   }
 
   htmlPath = `${htmlPath}?${params.join('&')}`;
@@ -116,15 +121,15 @@ await page.exposeFunction('jasmineDone', async() => {
   await cleanup(errorCount === 0 ? 0 : 1);
 });
 
-await page.exposeFunction('getEventListeners', async (selector) => {
+await page.exposeFunction('getEventListeners', async(selector) => {
   const { root } = await cdpClient.send('DOM.getDocument');
   const { nodeId } = await cdpClient.send('DOM.querySelector', {
-      nodeId: root.nodeId,
-      selector,
+    nodeId: root.nodeId,
+    selector,
   });
   const resolvedNode = await cdpClient.send('DOM.resolveNode', { nodeId });
 
-  return await cdpClient.send('DOMDebugger.getEventListeners', {
+  return cdpClient.send('DOMDebugger.getEventListeners', {
     objectId: resolvedNode.object.objectId
   });
 });

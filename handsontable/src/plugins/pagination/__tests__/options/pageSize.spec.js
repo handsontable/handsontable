@@ -41,7 +41,7 @@ describe('Pagination `pageSize` option', () => {
 
     win.onload = () => {
       const container = $(doc.querySelector('#root'));
-      const themeName = `ht-theme-${spec().loadedTheme}`;
+      const themeName = `ht-theme-${getLoadedTheme()}`;
 
       if (themeName) {
         options.themeName = themeName;
@@ -509,7 +509,7 @@ describe('Pagination `pageSize` option', () => {
       setCurrentHotInstance(hotInstance);
 
       iframe.css({ height: '400px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A1');
@@ -540,7 +540,7 @@ describe('Pagination `pageSize` option', () => {
       });
 
       iframe.css({ height: '200px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A1');
@@ -571,7 +571,7 @@ describe('Pagination `pageSize` option', () => {
       });
 
       iframe.css({ height: '705px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A1');
@@ -786,7 +786,7 @@ describe('Pagination `pageSize` option', () => {
         }),
         width: 500,
         height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() +
-          (spec().loadedTheme === 'classic' ? 20 : 0),
+          (getLoadedTheme() === 'classic' ? 20 : 0),
         autoRowSize: true,
         pagination: {
           pageSizeList: ['auto', 10, 20, 50, 100],

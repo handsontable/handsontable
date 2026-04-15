@@ -357,6 +357,8 @@ describe('DragToScroll', () => {
         fixedColumnsStart: 1,
         rowHeaders: true,
         colHeaders: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({
@@ -541,6 +543,8 @@ describe('DragToScroll', () => {
         fixedRowsTop: 1,
         rowHeaders: true,
         colHeaders: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({

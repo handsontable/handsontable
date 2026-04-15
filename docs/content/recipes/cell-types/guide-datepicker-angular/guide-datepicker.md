@@ -1,7 +1,7 @@
 ---
 id: 0slrmsni
-title: "Recipe: Date picker"
-metaTitle: "Recipe: Date picker - JavaScript Data Grid | Handsontable"
+title: "Date picker"
+metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
 permalink: /recipes/datepicker-angular
 canonicalUrl: /recipes/datepicker-angular
@@ -11,17 +11,24 @@ tags:
   - recipes
 react:
   id: n4f2zp8e
-  metaTitle: Custom builds - React Data Grid | Handsontable
+  metaTitle: Date picker - React Data Grid | Handsontable
 angular:
   id: o1ijr8z3
-  metaTitle: Custom builds - Angular Data Grid | Handsontable
+  metaTitle: Date picker - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Cells
 ---
 
-# Native Date Picker Cell - Step-by-Step Guide
+::: only-for angular
 
-[[toc]]
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
+
+:::
+
+:::
 
 ## Overview
 
@@ -49,19 +56,6 @@ npm install date-fns
 ```
 
 Ensure you have `@handsontable/angular-wrapper` installed in your Angular project.
-
-## Complete Example
-
-::: only-for angular
-
-::: example #example1 :angular --ts 1 --html 2
-
-@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
-@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
-
-:::
-
-:::
 
 ## Step 1: Import Dependencies
 

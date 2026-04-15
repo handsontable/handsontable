@@ -7,14 +7,12 @@ const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const fsExtra = require('fs-extra');
 const { getClosest }  = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
-
     // Remove all 'JasmineHtml' instances
     c.plugins = c.plugins.filter(function(plugin) {
       return !(plugin instanceof HtmlWebpackPlugin);
@@ -26,12 +24,11 @@ module.exports.create = function create(envArgs) {
         baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
-          ...((envArgs.HOT_THEME) ? [
-              `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
-              'helpers/common-themes.css',
-            ] : []
-          ),
+          'helpers/common-themes.css',
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
+        ],
+        hotCssFiles: [
+          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
         ],
         externalJsFiles: [
           'helpers/jasmine-bridge-reporter.js',
@@ -42,9 +39,12 @@ module.exports.create = function create(envArgs) {
           `${getClosest('../node_modules/moment', true)}/moment.js`,
           `${getClosest('../node_modules/@handsontable/pikaday', true)}/pikaday.js`,
           `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,
+        ],
+        hotJsFiles: [
           `../dist/handsontable.js`,
           `../dist/languages/all.js`,
         ],
+        hotTheme: envArgs.HOT_THEME,
       })
     );
   });

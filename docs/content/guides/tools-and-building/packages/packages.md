@@ -9,9 +9,6 @@ searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Packages
-
 Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
 
 [[toc]]
@@ -120,7 +117,7 @@ If you want to build your own custom Handsontable package distribution check out
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Building](@/guides/tools-and-building/custom-builds/custom-builds.md)
 - [Testing](@/guides/tools-and-building/testing/testing.md)

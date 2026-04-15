@@ -29,6 +29,11 @@ import {
  */
 export class DropdownController {
   /**
+   * Handsontable instance id.
+   */
+  #instanceId = null;
+
+  /**
    * Element that wraps the dropdown list inside the editor UI.
    *
    * @private
@@ -112,10 +117,12 @@ export class DropdownController {
    * Creates a dropdown renderer attached to the provided container.
    *
    * @param {HTMLDivElement} containerElement Host element created by the editor.
+   * @param {string} instanceId Handsontable instance id.
    */
-  constructor(containerElement) {
+  constructor(containerElement, instanceId) {
     this.#containerElement = containerElement;
     this.#rootDocument = this.#containerElement.ownerDocument;
+    this.#instanceId = instanceId;
 
     this.init();
   }
@@ -195,7 +202,7 @@ export class DropdownController {
 
     entries.forEach((elem, indexWithinList) => {
       this.#addDropdownItem({
-        rootElement: this.#rootDocument,
+        rootDocument: this.#rootDocument,
         itemKey: elem?.key,
         itemValue: elem?.value ?? elem,
         indexWithinList,
@@ -488,16 +495,17 @@ export class DropdownController {
    * Adds a single row to the dropdown and optionally marks it as checked.
    *
    * @param {object} options Options object.
-   * @param {Document} options.rootElement Root document element.
+   * @param {Document} options.rootDocument Root document element.
    * @param {string} options.itemKey Key stored in the associated checkbox dataset.
    * @param {string} options.itemValue Text content rendered next to the checkbox.
    * @param {number} options.indexWithinList Index of the item within the list.
    * @param {boolean} [options.checked=false] Flag indicating whether the checkbox starts selected.
    * @param {boolean} [options.disabled=false] Flag indicating whether the checkbox starts disabled.
    */
-  #addDropdownItem({ rootElement, itemKey, itemValue, indexWithinList, checked = false, disabled = false }) {
+  #addDropdownItem({ rootDocument, itemKey, itemValue, indexWithinList, checked = false, disabled = false }) {
     const itemElement = createListItemElement({
-      rootElement,
+      rootDocument,
+      instanceId: this.#instanceId,
       itemKey,
       itemValue,
       indexWithinList,

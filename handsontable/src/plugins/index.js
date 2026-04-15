@@ -10,6 +10,7 @@ import { Comments } from './comments';
 import { ContextMenu } from './contextMenu';
 import { CopyPaste } from './copyPaste';
 import { CustomBorders } from './customBorders';
+import { DataProvider } from './dataProvider';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
@@ -35,6 +36,7 @@ import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
 import { Dialog } from './dialog';
 import { Loading } from './loading';
+import { Notification } from './notification';
 import { EmptyDataState } from './emptyDataState';
 import {
   registerPlugin,
@@ -55,6 +57,7 @@ export function registerAllPlugins() {
   registerPlugin(ContextMenu);
   registerPlugin(CopyPaste);
   registerPlugin(CustomBorders);
+  registerPlugin(DataProvider);
   registerPlugin(DragToScroll);
   registerPlugin(DropdownMenu);
   registerPlugin(ExportFile);
@@ -80,6 +83,7 @@ export function registerAllPlugins() {
   registerPlugin(UndoRedo);
   registerPlugin(Dialog);
   registerPlugin(Loading);
+  registerPlugin(Notification);
   registerPlugin(EmptyDataState);
 }
 
@@ -96,6 +100,7 @@ export {
   ContextMenu,
   CopyPaste,
   CustomBorders,
+  DataProvider,
   DragToScroll,
   DropdownMenu,
   ExportFile,
@@ -121,6 +126,7 @@ export {
   UndoRedo,
   Dialog,
   Loading,
+  Notification,
   EmptyDataState,
 };
 

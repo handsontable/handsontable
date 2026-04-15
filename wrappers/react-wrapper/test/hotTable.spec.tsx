@@ -123,8 +123,18 @@ describe('Updating the Handsontable settings', () => {
     expect(JSON.stringify(hotInstance.getSettings().data)).toEqual('[[2]]');
   });
 
-  it('should throw an error when trying to update init-only settings after inializing the component', async () => {
-    console.error = jest.fn();
+  it('should NOT throw an error when trying to update init-only settings after initializing the component', async () => {
+    const errorMock = jest.fn();
+    const originalError = console.error;
+
+    console.error = (...args: unknown[]) => {
+      const message = args[0];
+
+      if (typeof message === 'string' && message.includes('Could not parse CSS stylesheet')) {
+        return;
+      }
+      errorMock(...args);
+    };
 
     let updateState = null;
 
@@ -150,11 +160,11 @@ describe('Updating the Handsontable settings', () => {
 
     const updateStateAndRender = () => act(() => (updateState as any)(true));
 
-    await expect(updateStateAndRender).toThrowError(
-      'The `renderAllRows` option can not be updated after the Handsontable is initialized.'
-    );
+    await expect(updateStateAndRender).not.toThrowError();
 
-    expect(console.error).toHaveBeenCalled();
+    expect(errorMock).not.toHaveBeenCalled();
+
+    console.error = originalError;
   });
 
   it('should NOT throw an error when trying to update settings after inializing the component if the other settings' +
@@ -240,6 +250,87 @@ describe('Updating the Handsontable settings', () => {
     expect(errorMock).not.toHaveBeenCalled();
 
     console.error = originalError;
+  });
+
+  it('should not pass equivalent `dataSchema` and `columns` during paste-triggered rerender', async () => {
+    const afterValidate = jest.fn();
+    const hotTableRef = React.createRef<HotTableRef>();
+
+    function ExampleComponent() {
+      const [, setTotalAmount] = React.useState(0);
+
+      return (
+        <HotTable
+          ref={hotTableRef}
+          dataSchema={{
+            unit: 'EA',
+            paymentDivision: '',
+            unitQuantity: 0,
+            unitPrice: 0,
+            isSPV: 'false',
+            paymentTerms: 'Immediate Payment (V000)',
+          }}
+          columns={[
+            {
+              data: 'paymentDivision',
+              type: 'autocomplete',
+              source: ['Development / Investment / Legal (D)', 'EPC (C)', 'SPV CAPEX (S)'],
+              strict: true,
+              allowInvalid: true,
+            },
+            {
+              data: 'unitQuantity',
+              type: 'numeric',
+            },
+            {
+              data: 'unitPrice',
+              type: 'numeric',
+            },
+          ]}
+          afterValidate={afterValidate}
+          afterChange={() => {
+            const hotInstance = hotTableRef.current?.hotInstance;
+            const totalAmount = hotInstance
+              ?.getSourceData()
+              .map((row: any) => row.unitPrice * row.unitQuantity)
+              .reduce((a: number, b: number) => a + b, 0) || 0;
+
+            setTotalAmount(totalAmount);
+          }}
+          licenseKey="non-commercial-and-evaluation"
+        />
+      );
+    }
+
+    mountComponent(<ExampleComponent />);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+    const updateSettingsSpy = jest.spyOn(hotInstance, 'updateSettings');
+
+    await act(async() => {
+      hotInstance.populateFromArray(0, 0, [['INVALID DIVISION', '2', '10']], undefined, undefined, 'CopyPaste.paste');
+    });
+
+    for (let i = 0; i < 10 && updateSettingsSpy.mock.calls.length === 0; i++) {
+      await sleep(0);
+    }
+
+    expect(updateSettingsSpy).toHaveBeenCalled();
+
+    expect(afterValidate).toHaveBeenCalledWith(false, 'INVALID DIVISION', 0, 'paymentDivision', 'CopyPaste.paste');
+    expect(hotInstance.getDataAtCell(0, 0)).toBe('INVALID DIVISION');
+    expect(hotInstance.getCell(0, 0)!.className).toContain('htInvalid');
+
+    const callsFromWrapper = updateSettingsSpy.mock.calls
+      .filter(([, init]) => init === false);
+
+    expect(callsFromWrapper.length).toBeGreaterThan(0);
+    callsFromWrapper.forEach(([settings]) => {
+      expect(Object.prototype.hasOwnProperty.call(settings as object, 'dataSchema')).toBe(false);
+      expect(Object.prototype.hasOwnProperty.call(settings as object, 'columns')).toBe(false);
+    });
+
+    updateSettingsSpy.mockRestore();
   });
 });
 

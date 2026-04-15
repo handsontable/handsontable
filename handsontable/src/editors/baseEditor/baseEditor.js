@@ -362,9 +362,7 @@ export class BaseEditor {
       this._fireCallbacks(false);
 
     } else {
-      if (this.close() === false) {
-        return;
-      }
+      this.close();
 
       this._opened = false;
       this._fullEditMode = false;

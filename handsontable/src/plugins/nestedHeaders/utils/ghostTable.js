@@ -1,5 +1,3 @@
-import { fastInnerHTML } from '../../../helpers/dom/element';
-
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
  * each column. The hierarchy is built only for visible, non-hidden columns. Each time the
@@ -17,12 +15,12 @@ class GhostTable {
    */
   hot;
   /**
-   * The function for retrieving the nested headers settings.
+   * The state manager for the nested headers.
    *
    * @private
-   * @type {Function}
+   * @type {StateManager}
    */
-  nestedHeaderSettingsGetter;
+  headersStateManager;
   /**
    * The value that holds information about the number of the nested header layers (header rows).
    *
@@ -38,16 +36,16 @@ class GhostTable {
    */
   container;
   /**
-   * PhysicalIndexToValueMap to keep and track of the columns' widths.
+   * PhysicalIndexToValueMap to keep and track of the columns' widths (as rendered in the main table).
    *
    * @private
    * @type {PhysicalIndexToValueMap}
    */
   widthsMap;
 
-  constructor(hot, nestedHeaderSettingsGetter) {
+  constructor({ hot, headersStateManager }) {
     this.hot = hot;
-    this.nestedHeaderSettingsGetter = nestedHeaderSettingsGetter;
+    this.headersStateManager = headersStateManager;
     this.widthsMap = this.hot.columnIndexMapper
       .createAndRegisterIndexMap('nestedHeaders.widthsMap', 'physicalIndexToValue');
   }
@@ -65,7 +63,7 @@ class GhostTable {
   }
 
   /**
-   * Gets the column width based on the visual column index.
+   * Gets the column width based on the visual column index (as rendered in the main table).
    *
    * @param {number} visualColumn Visual column index.
    * @returns {number|null}
@@ -78,78 +76,253 @@ class GhostTable {
    * Build cache of the headers widths.
    */
   buildWidthsMap() {
+    const collapsedPhysicalColumns = this.#getCollapsedPhysicalColumns();
+    const hasCollapsedGroups = collapsedPhysicalColumns.size > 0;
     const currentThemeName = this.hot.getCurrentThemeName();
 
     this.container = this.hot.rootDocument.createElement('div');
-    this.container.classList.add('handsontable', 'htGhostTable', 'htAutoSize');
+    this.container.classList.add('handsontable', 'htGhostTable', 'htAutoSize', 'htNestedHeaders');
 
     if (currentThemeName) {
       this.container.classList.add(currentThemeName);
     }
 
-    this._buildGhostTable(this.container);
+    this.#buildGhostTable(this.container, hasCollapsedGroups);
+
     this.hot.rootDocument.body.appendChild(this.container);
 
-    const columns = this.container.querySelectorAll('tr:last-of-type th');
-    const maxColumns = columns.length;
+    const fullWidthByPhysical = hasCollapsedGroups
+      ? this.#measureFullTable()
+      : null;
+
+    const renderedTable = this.container.querySelector('[data-ghost-table="rendered"]');
+    const allColumns = renderedTable.querySelectorAll('th[data-column]');
+
+    // Build a map of visual column → last TH element with colspan=1. When rowspan is
+    // used, a column's TH may appear only in an upper row, so "tr:last-of-type th"
+    // would miss it. By iterating all THs and keeping the last colspan=1 entry per
+    // column, we ensure every individual column is measured at its own width.
+    const columnElementByVisual = new Map();
+
+    for (let i = 0; i < allColumns.length; i++) {
+      const th = allColumns[i];
+
+      if (th.colSpan > 1) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const visCol = Number.parseInt(th.dataset.column, 10);
+
+      columnElementByVisual.set(visCol, th);
+    }
 
     this.widthsMap.clear();
 
-    for (let column = 0; column < maxColumns; column++) {
-      const visualColumnsIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(column);
-      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnsIndex);
+    columnElementByVisual.forEach((thElement, visualColumnIndex) => {
+      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
-      this.widthsMap.setValueAtIndex(physicalColumnIndex, columns[column].offsetWidth);
-    }
+      if (this.hot.columnIndexMapper.isHidden(physicalColumnIndex)) {
+        return;
+      }
 
-    this.container.parentNode.removeChild(this.container);
+      let width;
+
+      if (hasCollapsedGroups && collapsedPhysicalColumns.has(physicalColumnIndex)) {
+        const fullWidth = fullWidthByPhysical.get(physicalColumnIndex);
+
+        if (fullWidth !== undefined) {
+          width = fullWidth;
+        }
+      }
+
+      if (width === undefined) {
+        width = thElement.getBoundingClientRect().width;
+      }
+
+      this.widthsMap.setValueAtIndex(physicalColumnIndex, width);
+    });
+
+    this.container.remove();
     this.container = null;
   }
 
   /**
-   * Build temporary table for getting minimal columns widths.
+   * Measure widths from the full (uncollapsed) ghost table.
    *
-   * @private
-   * @param {HTMLElement} container The element where the DOM nodes are injected.
+   * @returns {Map<number, number>} Map of physical column index to width.
    */
-  _buildGhostTable(container) {
-    const { rootDocument, columnIndexMapper } = this.hot;
-    const fragment = rootDocument.createDocumentFragment();
-    const table = rootDocument.createElement('table');
-    const isDropdownEnabled = !!this.hot.getSettings().dropdownMenu;
-    const maxRenderedCols = columnIndexMapper.getRenderableIndexesLength();
+  #measureFullTable() {
+    const fullTable = this.container.querySelector('[data-ghost-table="full"]');
+    const fullColumns = fullTable.querySelectorAll('tr:last-of-type th');
+    const fullWidthByPhysical = new Map();
+
+    for (let column = 0; column < fullColumns.length; column++) {
+      const visualColumnIndex = Number.parseInt(fullColumns[column].dataset.column, 10);
+      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
+
+      fullWidthByPhysical.set(physicalColumnIndex, fullColumns[column].getBoundingClientRect().width);
+    }
+
+    return fullWidthByPhysical;
+  }
+
+  /**
+   * Pre-compute the set of physical column indexes that have any collapsed ancestor.
+   * This avoids repeated walkUp() calls per column during measurement.
+   *
+   * @returns {Set<number>} Set of physical column indexes under collapsed ancestors.
+   */
+  #getCollapsedPhysicalColumns() {
+    const collapsedPhysicals = new Set();
+    const maxColumnsCount = this.hot.countCols();
+
+    for (let col = 0; col < maxColumnsCount; col++) {
+      const treeNode = this.headersStateManager.getHeaderTreeNode(-1, col);
+
+      if (!treeNode) {
+        continue;
+      }
+
+      let found = false;
+
+      treeNode.walkUp((node) => {
+        if (node.data.isCollapsed === true) {
+          found = true;
+
+          return false;
+        }
+      });
+
+      if (found) {
+        collapsedPhysicals.add(this.hot.toPhysicalColumn(col));
+      }
+    }
+
+    return collapsedPhysicals;
+  }
+
+  /**
+   * Build temporary tables for getting minimal columns widths. Builds two tables:
+   * - Full: one TH per column (no collapse/hidden), to store width of the first column of a collapsed
+   *   group and fix jump on collapse/uncollapse. Only built when collapsed groups exist.
+   * - Rendered: same structure as the main table (colspans, only visible roots), for width when a
+   *   column has children and one is hidden (parent gets the width of the visible one).
+   *
+   * @param {HTMLElement} container The element where the DOM nodes are injected.
+   * @param {boolean} hasCollapsedGroups Whether any collapsed groups exist.
+   */
+  #buildGhostTable(container, hasCollapsedGroups) {
+    const settings = this.hot.getSettings();
+    const isDropdownEnabled = !!settings.dropdownMenu;
+    const isCollapsibleEnabled = !!settings.collapsibleColumns;
+    const maxColumnsCount = this.hot.countCols();
+    const sanitizer = settings.sanitizer;
+
+    if (hasCollapsedGroups) {
+      container.innerHTML = this.#buildFullColumnsTableHTML(
+        maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
+      ) + this.#buildRenderedTableHTML(
+        maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
+      );
+    } else {
+      container.innerHTML = this.#buildRenderedTableHTML(
+        maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
+      );
+    }
+  }
+
+  /**
+   * Build HTML string for a table with one TH per column (colspan = origColspan),
+   * regardless of hidden/collapsed state.
+   *
+   * @param {number} maxColumnsCount Total column count.
+   * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
+   * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
+   * @param {Function|undefined} sanitizer The sanitizer function.
+   * @returns {string} HTML string for the full table.
+   */
+  #buildFullColumnsTableHTML(maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer) {
+    let rowsHTML = '';
 
     for (let row = 0; row < this.layersCount; row++) {
-      const tr = rootDocument.createElement('tr');
+      let cellsHTML = '';
 
-      for (let col = 0; col < maxRenderedCols; col++) {
-        let visualColumnsIndex = columnIndexMapper.getVisualFromRenderableIndex(col);
+      for (let col = 0; col < maxColumnsCount; col++) {
+        const headerSettings = this.headersStateManager.getHeaderTreeNodeData(row, col);
 
-        if (visualColumnsIndex === null) {
-          visualColumnsIndex = col;
-        }
-
-        const th = rootDocument.createElement('th');
-        const headerSettings = this.nestedHeaderSettingsGetter(row, visualColumnsIndex);
-
-        if (headerSettings && (!headerSettings.isPlaceholder || headerSettings.isHidden)) {
-          let label = headerSettings.label;
-
-          if (isDropdownEnabled) {
-            label += '<button class="changeType"></button>';
-          }
-
-          fastInnerHTML(th, label, this.hot.getSettings().sanitizer);
-          th.colSpan = headerSettings.colspan;
-          tr.appendChild(th);
+        if (headerSettings && headerSettings.isRoot) {
+          cellsHTML += `<th data-column="${col}" colspan="${headerSettings.origColspan}">${
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
+          }</th>`;
         }
       }
 
-      table.appendChild(tr);
+      rowsHTML += `<tr>${cellsHTML}</tr>`;
     }
 
-    fragment.appendChild(table);
-    container.appendChild(fragment);
+    return `<table data-ghost-table="full"><thead>${rowsHTML}</thead></table>`;
+  }
+
+  /**
+   * Build HTML string for a table that mirrors the main table (colspans, only visible roots).
+   *
+   * @param {number} maxColumnsCount Total column count.
+   * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
+   * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
+   * @param {Function|undefined} sanitizer The sanitizer function.
+   * @returns {string} HTML string for the rendered table.
+   */
+  #buildRenderedTableHTML(maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer) {
+    let rowsHTML = '';
+
+    for (let row = 0; row < this.layersCount; row++) {
+      let cellsHTML = '';
+
+      for (let col = 0; col < maxColumnsCount; col++) {
+        const headerSettings = this.headersStateManager.getHeaderSettings(row, col);
+
+        if (
+          headerSettings &&
+          !headerSettings.isPlaceholder && !headerSettings.isHidden &&
+          !headerSettings.isRowspanPlaceholder
+        ) {
+          const rowspanAttr = headerSettings.rowspan > 1
+            ? ` rowspan="${headerSettings.rowspan}"`
+            : '';
+
+          cellsHTML += `<th data-column="${col}" colspan="${headerSettings.colspan}"${rowspanAttr}>${
+            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
+          }</th>`;
+        }
+      }
+
+      rowsHTML += `<tr>${cellsHTML}</tr>`;
+    }
+
+    return `<table data-ghost-table="rendered"><thead>${rowsHTML}</thead></table>`;
+  }
+
+  /**
+   * Build header cell content HTML string.
+   *
+   * @param {object} headerSettings Header settings (label, colspan, etc).
+   * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
+   * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
+   * @param {Function|undefined} sanitizer The sanitizer function.
+   * @returns {string} HTML string for the header label.
+   */
+  #buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer) {
+    const label = typeof sanitizer === 'function'
+      ? sanitizer(headerSettings.label, 'innerHTML')
+      : headerSettings.label;
+    const dropdownHtml = isDropdownEnabled ? '<button class="changeType"></button>' : '';
+    const hasCollapsibleControl = isCollapsibleEnabled &&
+      (headerSettings.origColspan > 1 || headerSettings.colspan > 1);
+    const indicatorHtml = hasCollapsibleControl
+      ? '<div class="collapsibleIndicator expanded">-</div>'
+      : '';
+
+    return `<div class="relative"><span class="colHeader">${label}</span>${dropdownHtml}${indicatorHtml}</div>`;
   }
 
   /**

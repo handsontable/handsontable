@@ -4,7 +4,11 @@
 .vscode
 .cache
 .cursor
-.claude
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/settings.json
+.playwright-mcp
 dev*.html
 dev*.js
 npm-debug.log
@@ -18,3 +22,9 @@ docs/.env
 
 # Local Netlify folder
 .netlify
+
+*.nupkg
+
+# Playwright screenshots (created by Claude Code sessions)
+/*.png
+/docs/*.png

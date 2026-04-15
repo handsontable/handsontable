@@ -14,9 +14,6 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Custom ID, Class, and other attributes in Vue 3
-
 Pass a custom ID, class, and style to the "HotTable" component, to further customize your Vue 3 data grid.
 
 [[toc]]

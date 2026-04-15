@@ -1,5 +1,16 @@
 import HyperFormula from 'hyperformula';
 
+const fillHandleSelector = '.wtBorder.current.corner';
+
+const autofill = (endRow, endCol) => {
+  spec().$container.find(fillHandleSelector).simulate('mousedown');
+
+  spec().$container
+    .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
+    .simulate('mouseover')
+    .simulate('mouseup');
+};
+
 describe('Formulas general', () => {
   const debug = false;
 
@@ -1102,506 +1113,435 @@ describe('Formulas general', () => {
     });
   });
 
-  describe('undo/redo', () => {
-    it('should restore previous edited formula expression and recalculate table after that', async() => {
-      handsontable({
-        data: getDataSimpleExampleFormulas(),
-        formulas: {
-          engine: HyperFormula
-        },
-        width: 500,
-        height: 300
-      });
-
-      await setDataAtCell(0, 5, '=B5');
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtCell(0, 5)).toBe('=A$1');
-      expect(getDataAtCell(0, 5)).toBe(0);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtCell(0, 5)).toBe('=B5');
-      expect(getDataAtCell(0, 5)).toBe(8042);
-    });
-
-    it('should restore previous state after alter table (mixed insert operations)', async() => {
-      handsontable({
-        data: getDataSimpleExampleFormulas(),
-        formulas: {
-          engine: HyperFormula
-        },
-        width: 500,
-        height: 300,
-        contextMenu: true,
-      });
-
-      await alter('insert_row_above', 1, 3);
-      await alter('insert_col_start', 1);
-      await alter('insert_col_start', 4, 2);
-      await alter('insert_row_above', 5);
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0))
-        .toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, null, null, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, null, null, 2867, '=SUM(A7,2,3)', '=$C1']);
-      expect(getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, null, null, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(7))
-        .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$C$5', null, 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, 2867, '=SUM(A7,2,3)', '=$C1']);
-      expect(getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(7))
-        .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,F6)', '=A5/C5', 12, '\'=SUM(E5)']);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$5', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(4)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(5)).toEqual([2010, 5, 2905, 2867, '=SUM(A7,2,3)', '=$B1']);
-      expect(getSourceDataAtRow(6)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(7))
-        .toEqual([2012, '=SUM(A5:A8)', '=SUM(B8,E6)', '=A5/B5', 12, '\'=SUM(E5)']);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
-      expect(getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(4))
-        .toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
-    });
-
-    it('should redo into the next state after alter table (mixed insert operations)', async() => {
-      handsontable({
-        data: getDataSimpleExampleFormulas(),
-        formulas: {
-          engine: HyperFormula
-        },
-        width: 500,
-        height: 300,
-        contextMenu: true,
-      });
-
-      await alter('insert_row_above', 1, 3);
-      await alter('insert_col_start', 1);
-      await alter('insert_col_start', 4, 2);
-      await alter('insert_row_above', 5);
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
-      expect(getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(4)).toEqual([2012, '=SUM(A2:A5)', '=SUM(B5,E3)', '=A2/B2', 12, '\'=SUM(E5)']);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$5', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(4)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(5)).toEqual([2010, 5, 2905, 2867, '=SUM(A7,2,3)', '=$B1']);
-      expect(getSourceDataAtRow(6)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(7)).toEqual([2012, '=SUM(A5:A8)', '=SUM(B8,E6)', '=A5/B5', 12, '\'=SUM(E5)']);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$C$5', null, 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, 2867, '=SUM(A7,2,3)', '=$C1']);
-      expect(getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(7)).toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,F6)', '=A5/C5', 12, '\'=SUM(E5)']);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtRow(0))
-        .toEqual(['=$C$5', null, 'Maserati', 'Mazda', null, null, 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([null, null, null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(2)).toEqual([null, null, null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(3)).toEqual([null, null, null, null, null, null, null, null, null]);
-      expect(getSourceDataAtRow(4)).toEqual([2009, null, 0, 2941, null, null, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(5)).toEqual([2010, null, 5, 2905, null, null, 2867, '=SUM(A7,2,3)', '=$C1']);
-      expect(getSourceDataAtRow(6)).toEqual([2011, null, 4, 2517, null, null, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(7))
-        .toEqual([2012, null, '=SUM(A5:A8)', '=SUM(C8,H6)', null, null, '=A5/C5', 12, '\'=SUM(E5)']);
-    });
-
-    xit('should restore previous state after alter table (mixed remove operations)', async() => {
-      handsontable({
-        data: getDataSimpleExampleFormulas(),
-        formulas: {
-          engine: HyperFormula
-        },
-        width: 500,
-        height: 300,
-        contextMenu: true,
-      });
-
-      await alter('remove_row', 2);
-      await alter('remove_col', 2, 2);
-      await alter('remove_row', 0, 2);
-      await alter('remove_col', 3);
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
-      expect(getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2011, 4, 552, 6127]);
-      expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '=SUM(E5)']);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '=SUM(E5)']);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
-      expect(getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '=SUM(E5)']);
-    });
-
-    xit('should redo into the next state after alter table (mixed remove operations)', async() => {
-      handsontable({
-        data: getDataSimpleExampleFormulas(),
-        formulas: {
-          engine: HyperFormula
-        },
-        width: 500,
-        height: 300,
-        contextMenu: true,
-      });
-
-      await alter('remove_row', 2);
-      await alter('remove_col', 2, 2);
-      await alter('remove_row', 0, 2);
-      await alter('remove_col', 3);
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2010, 5, 2905, 2867, '=SUM(A4,2,3)', '=$B1']);
-      expect(getSourceDataAtRow(3)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(4)).toEqual([2012, '=Sum(a2:a5)', '=SUM(B5,E3)', '=A2/B2', 12, '=SUM(E5)']);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mazda', 'Mercedes', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2011, 4, 2517, 4822, 552, 6127]);
-      expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', '=SUM(B4,#REF!)', '=A2/B2', 12, '=SUM(E5)']);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtRow(0)).toEqual(['=$B$2', 'Maserati', 'Mini', '=A$1']);
-      expect(getSourceDataAtRow(1)).toEqual([2009, 0, 354, 5814]);
-      expect(getSourceDataAtRow(2)).toEqual([2011, 4, 552, 6127]);
-      expect(getSourceDataAtRow(3)).toEqual([2012, '=SUM(A2:A4)', 12, '=SUM(E5)']);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceDataAtRow(0)).toEqual([2011, 4, 552, 6127]);
-      expect(getSourceDataAtRow(1)).toEqual([2012, '=SUM(A1:A2)', 12, '=SUM(E5)']);
-    });
-
-    it('should work properly while doing cell used by some formula empty', async() => {
+  describe('Autofill', () => {
+    it('should not override result of simple autofill (populating one cell) #8050', async() => {
       handsontable({
         data: [
-          [5, '=A1+1', '=B1+1'],
+          { car: 'Mercedes A 160', year: 2017 },
+          { car: 'Citroen C4 Coupe', year: 2018 },
+          { car: 'Audi A4 Avant', year: 2019 },
+          { car: 'Opel Astra', year: 2020 },
+          { car: 'BMW 320i Coupe', year: 2021 }
         ],
-        contextMenu: true,
+        columns: [
+          {
+            data: 'car'
+          },
+          {
+            data: 'year',
+            type: 'numeric'
+          },
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await selectCell(0, 0);
+      autofill(0, 1);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getData()).toEqual([
+        ['Mercedes A 160', 'Mercedes A 160'],
+        ['Citroen C4 Coupe', 2018],
+        ['Audi A4 Avant', 2019],
+        ['Opel Astra', 2020],
+        ['BMW 320i Coupe', 2021],
+      ]);
+    });
+
+    it('should not override result of simple autofill (populating more cells) #8050', async() => {
+      handsontable({
+        data: [
+          [1, 2, 3, 5, 7],
+          [6, 7, 9, 7, 8],
+          [5, 7, 9, 0, 4],
+          [null],
+          [1, 2, 3, 5, 7],
+          [6, 7, 9, 7, 8],
+          [5, 7, 9, 0, 4]
+        ],
         colHeaders: true,
+        formulas: {
+          engine: HyperFormula
+        },
+      });
+
+      await selectCell(0, 0, 6, 1);
+      autofill(6, 4);
+
+      expect(getData()).toEqual([
+        [1, 2, 1, 2, 1],
+        [6, 7, 6, 7, 6],
+        [5, 7, 5, 7, 5],
+        [null, null, null, null, null],
+        [1, 2, 1, 2, 1],
+        [6, 7, 6, 7, 6],
+        [5, 7, 5, 7, 5]
+      ]);
+    });
+
+    it('should not autofill if `beforeAutofill` returned false', async() => {
+      handsontable({
+        data: [
+          ['=A1', 'x', 'x'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeAutofill: () => false
+      });
+
+      await selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(getSourceData()).toEqual([['=A1', 'x', 'x']]);
+    });
+
+    it('should not use the plugin\'s autofill if `beforeAutofill` returned values', async() => {
+      handsontable({
+        data: [
+          ['=A1', 'x', 'x'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        beforeAutofill: () => [['a']]
+      });
+
+      await selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(getSourceData()).toEqual([['=A1', 'a', 'a']]);
+    });
+
+    it('should autofill an array of objects correctly', async() => {
+      handsontable({
+        formulas: {
+          engine: HyperFormula
+        },
+        data: [
+          { num: 1, double: '=A1 * 2', target: 'x' },
+          { num: 2, double: '=A2 * 2', target: 'x' },
+          { num: 3, double: '=A3 * 2', target: 'x' },
+          { num: 4, double: '=A4 * 2', target: 'x' },
+          { num: 5, double: '=A5 * 2', target: 'x' },
+        ]
+      });
+
+      await selectCell(0, 1, 4, 1);
+      autofill(4, 2);
+
+      expect(getSourceDataArray()).toEqual([
+        [1, '=A1 * 2', '=B1 * 2'],
+        [2, '=A2 * 2', '=B2 * 2'],
+        [3, '=A3 * 2', '=B3 * 2'],
+        [4, '=A4 * 2', '=B4 * 2'],
+        [5, '=A5 * 2', '=B5 * 2']
+      ]);
+    });
+
+    // Most of these tests will produce invalid values (out of bound addresses,
+    // #CYCLE! errors), but we only care about the formula offsets.
+    //
+    // https://docs.google.com/spreadsheets/d/1ERI3YEe7GYWUKdKGPU4C97yUh1fOM6HILZY03AB8wwk/edit?usp=sharing
+    it('should correctly autofill - single cell, down', async() => {
+      handsontable({
+        data: [
+          ['=A1'],
+          ['x'],
+          ['x']
+        ],
         formulas: {
           engine: HyperFormula
         }
       });
 
-      await setDataAtCell(0, 0, null);
+      await selectCell(0, 0);
+      autofill(2, 0);
 
       expect(getSourceData()).toEqual([
-        [null, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [null, 1, 2],
-      ]);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceData()).toEqual([
-        [5, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [5, 6, 7],
-      ]);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceData()).toEqual([
-        [null, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [null, 1, 2],
+        ['=A1'],
+        ['=A2'],
+        ['=A3']
       ]);
     });
 
-    it('should cooperate properly with `setDataAtCell` action for multiple cells', async() => {
+    it('should correctly autofill - single cell, right', async() => {
       handsontable({
         data: [
-          [0, '=A1+1', '=B1+1'],
+          ['=A1', 'x', 'x']
         ],
-        contextMenu: true,
-        colHeaders: true,
         formulas: {
           engine: HyperFormula
         }
       });
 
-      await setDataAtCell([
-        [0, 0, '=B1+2'],
-        [0, 1, '=C1+2'],
-        [0, 2, 10],
-      ]);
-
-      getPlugin('undoRedo').undo();
+      await selectCell(0, 0);
+      autofill(0, 2);
 
       expect(getSourceData()).toEqual([
-        [0, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [0, 1, 2],
-      ]);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceData()).toEqual([
-        ['=B1+2', '=C1+2', 10],
-      ]);
-      expect(getData()).toEqual([
-        [14, 12, 10],
-      ]);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceData()).toEqual([
-        [0, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [0, 1, 2],
+        ['=A1', '=B1', '=C1']
       ]);
     });
 
-    it('should show proper values when doing undo/redo after moving rows', async() => {
+    it('should correctly autofill - range, down, partial', async() => {
       handsontable({
         data: [
-          [5],
-          ['=A1+1'],
-          ['=A2+1'],
+          ['=E6', '=E10'],
+          ['=G6', '=G10'],
+          ['=I6', '=I10'],
+          ['x', 'x'],
+          ['x', 'x'],
         ],
-        contextMenu: true,
-        colHeaders: true,
-        rowHeaders: true,
-        formulas: {
-          engine: HyperFormula
-        },
-        manualRowMove: true,
-      });
-
-      getPlugin('manualRowMove').moveRow(0, 1);
-
-      await render();
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceData()).toEqual([
-        [5],
-        ['=A1+1'],
-        ['=A2+1'],
-      ]);
-      expect(getData()).toEqual([
-        [5],
-        [6],
-        [7],
-      ]);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceData()).toEqual([
-        [5],
-        ['=A2+1'],
-        ['=A1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [6],
-        [5],
-        [7],
-      ]);
-    });
-
-    it('should show proper values when doing undo/redo after changing sheet size', async() => {
-      handsontable({
-        data: [
-          [0, '=A1+1', '=B1+1'],
-        ],
-        contextMenu: true,
-        colHeaders: true,
         formulas: {
           engine: HyperFormula
         }
       });
 
-      await alter('insert_col_start', 0);
-      await alter('remove_col', 0);
+      await selectCell(0, 0, 2, 1);
+      autofill(4, 1);
 
       expect(getSourceData()).toEqual([
-        [0, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [0, 1, 2],
-      ]);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceData()).toEqual([
-        [null, 0, '=B1+1', '=C1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [null, 0, 1, 2],
-      ]);
-
-      getPlugin('undoRedo').undo();
-
-      expect(getSourceData()).toEqual([
-        [0, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [0, 1, 2],
-      ]);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceData()).toEqual([
-        [null, 0, '=B1+1', '=C1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [null, 0, 1, 2],
-      ]);
-
-      getPlugin('undoRedo').redo();
-
-      expect(getSourceData()).toEqual([
-        [0, '=A1+1', '=B1+1'],
-      ]);
-      expect(getData()).toEqual([
-        [0, 1, 2],
+        ['=E6', '=E10'],
+        ['=G6', '=G10'],
+        ['=I6', '=I10'],
+        ['=E9', '=E13'],
+        ['=G9', '=G13'],
       ]);
     });
 
-    describe('should show proper value when doing undo/redo after reducing sheet size', () => {
-      it('(removing cell with value used by some formula)', async() => {
-        handsontable({
-          data: [
-            [2],
-            ['=A1*10']
-          ],
-          contextMenu: true,
-          colHeaders: true,
-          formulas: {
-            engine: HyperFormula
-          }
-        });
-
-        await alter('remove_row', 0);
-
-        getPlugin('undoRedo').undo();
-
-        expect(getSourceData()).toEqual([
-          [2],
-          ['=A1*10'],
-        ]);
-        expect(getData()).toEqual([
-          [2],
-          [20],
-        ]);
-
-        getPlugin('undoRedo').redo();
-
-        expect(getSourceData()).toEqual([
-          ['=#REF!*10'],
-        ]);
-        expect(getData()).toEqual([
-          ['#REF!'],
-        ]);
+    it('should correctly autofill - range, down, overflow', async() => {
+      handsontable({
+        data: [
+          ['=E6', '=E10'],
+          ['=G6', '=G10'],
+          ['=I6', '=I10'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['y', 'y'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
       });
 
-      it('(removing formula using value from some cell)', async() => {
-        handsontable({
-          data: [
-            [2],
-            ['=A1*10']
-          ],
-          contextMenu: true,
-          colHeaders: true,
-          formulas: {
-            engine: HyperFormula
-          }
-        });
+      await selectCell(0, 0, 2, 1);
+      autofill(8, 1);
 
-        await alter('remove_row', 1);
+      expect(getSourceData()).toEqual([
+        ['=E6', '=E10'],
+        ['=G6', '=G10'],
+        ['=I6', '=I10'],
+        ['=E9', '=E13'],
+        ['=G9', '=G13'],
+        ['=I9', '=I13'],
+        ['=E12', '=E16'],
+        ['=G12', '=G16'],
+        ['=I12', '=I16'],
+        ['y', 'y'],
+      ]);
+    });
 
-        getPlugin('undoRedo').undo();
-
-        expect(getSourceData()).toEqual([
-          [2],
-          ['=A1*10'],
-        ]);
-        expect(getData()).toEqual([
-          [2],
-          [20],
-        ]);
-
-        getPlugin('undoRedo').redo();
-
-        expect(getSourceData()).toEqual([
-          [2],
-        ]);
-        expect(getData()).toEqual([
-          [2],
-        ]);
+    it('should correctly autofill - range, right, partial', async() => {
+      handsontable({
+        data: [
+          ['=E6', '=E10', 'x', 'y'],
+          ['=G6', '=G10', 'x', 'y'],
+          ['=I6', '=I10', 'x', 'y'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
       });
+
+      await selectCell(0, 0, 2, 1);
+      autofill(2, 2);
+
+      expect(getSourceData()).toEqual([
+        ['=E6', '=E10', '=G6', 'y'],
+        ['=G6', '=G10', '=I6', 'y'],
+        ['=I6', '=I10', '=K6', 'y'],
+      ]);
+    });
+
+    it('should correctly autofill - range, right, overflow', async() => {
+      handsontable({
+        data: [
+          ['=E6', '=E10', 'x', 'x', 'x', 'y'],
+          ['=G6', '=G10', 'x', 'x', 'x', 'y'],
+          ['=I6', '=I10', 'x', 'x', 'x', 'y']
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(0, 0, 2, 1);
+      autofill(2, 4);
+
+      expect(getSourceData()).toEqual([
+        ['=E6', '=E10', '=G6', '=G10', '=I6', 'y'],
+        ['=G6', '=G10', '=I6', '=I10', '=K6', 'y'],
+        ['=I6', '=I10', '=K6', '=K10', '=M6', 'y']
+      ]);
+    });
+
+    it('should correctly autofill - range, left, partial', async() => {
+      handsontable({
+        data: [
+          ['y', 'x', '=E6', '=E10'],
+          ['y', 'x', '=G6', '=G10'],
+          ['y', 'x', '=I6', '=I10'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(0, 2, 2, 3);
+      autofill(2, 1);
+
+      expect(getSourceData()).toEqual([
+        ['y', '=C10', '=E6', '=E10'],
+        ['y', '=E10', '=G6', '=G10'],
+        ['y', '=G10', '=I6', '=I10'],
+      ]);
+    });
+
+    it('should correctly autofill - range, left, overflow', async() => {
+      handsontable({
+        data: [
+          ['y', 'x', 'x', 'x', '=E6', '=E10'],
+          ['y', 'x', 'x', 'x', '=G6', '=G10'],
+          ['y', 'x', 'x', 'x', '=I6', '=I10'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(0, 4, 2, 5);
+      autofill(2, 1);
+
+      expect(getSourceData()).toEqual([
+        ['y', '=A10', '=C6', '=C10', '=E6', '=E10'],
+        ['y', '=C10', '=E6', '=E10', '=G6', '=G10'],
+        ['y', '=E10', '=G6', '=G10', '=I6', '=I10'],
+      ]);
+    });
+
+    it('should correctly autofill - range, left, odd', async() => {
+      handsontable({
+        data: [['y', 'x', 'x', 'x', 'x', 'x', 'x', '=Z3', '=Z5', '=Z8']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(0, 7, 0, 9);
+      autofill(0, 1);
+
+      expect(getSourceData()).toEqual([
+        ['y', '=T3', '=T5', '=T8', '=W3', '=W5', '=W8', '=Z3', '=Z5', '=Z8']
+      ]);
+    });
+
+    it('should correctly autofill - range, up, partial', async() => {
+      handsontable({
+        data: [
+          ['x', 'x'],
+          ['=E7', '=E10'],
+          ['=G7', '=G10'],
+          ['=I7', '=I10']
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(1, 0, 3, 1);
+      autofill(0, 1);
+
+      expect(getSourceData()).toEqual([
+        ['=I4', '=I7'],
+        ['=E7', '=E10'],
+        ['=G7', '=G10'],
+        ['=I7', '=I10']
+      ]);
+    });
+
+    it('should correctly autofill - range, up, overflow', async() => {
+      handsontable({
+        data: [
+          ['y', 'y'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['x', 'x'],
+          ['=E7', '=E10'],
+          ['=G7', '=G10'],
+          ['=I7', '=I10'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(6, 0, 8, 1);
+      autofill(1, 1);
+
+      expect(getSourceData()).toEqual([
+        ['y', 'y'],
+        ['=G1', '=G4'],
+        ['=I1', '=I4'],
+        ['=E4', '=E7'],
+        ['=G4', '=G7'],
+        ['=I4', '=I7'],
+        ['=E7', '=E10'],
+        ['=G7', '=G10'],
+        ['=I7', '=I10'],
+      ]);
+    });
+
+    it('should correctly autofill - range, up, even', async() => {
+      handsontable({
+        data: [['y'], ['x'], ['x'], ['x'], ['x'], ['x'], ['x'], ['=A9'], ['=A12']],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      await selectCell(7, 0, 8, 0);
+      autofill(1, 0);
+
+      expect(getSourceData()).toEqual([
+        ['y'], ['=A3'], ['=A6'], ['=A5'], ['=A8'], ['=A7'], ['=A10'], ['=A9'], ['=A12']
+      ]);
+    });
+
+    it('should allow for mutating autofill results when using formulas (#8107)', async() => {
+      handsontable({
+        data: [
+          ['2016', 1, 1, 2, 3],
+        ],
+        formulas: {
+          engine: HyperFormula
+        }
+      });
+
+      addHook('beforeChange', (changes) => { changes[0] = null; });
+
+      await selectCell(0, 0);
+      autofill(0, 2);
+
+      expect(getData()).toEqual([['2016', 1, '2016', 2, 3]]);
     });
   });
 
@@ -2528,7 +2468,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -2573,7 +2513,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -2618,7 +2558,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -2643,7 +2583,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '13/12/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)
@@ -2667,14 +2607,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '12/11/2022');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44906], // 11 Dec 2022
@@ -2698,7 +2638,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -2743,14 +2683,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
 
       await setDataAtCell(0, 0, '12/13/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['12/13/2022'], // Not converted - improper date (we treat it as a string)
@@ -2774,14 +2714,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '13/11/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44878], // 13 Nov 2022
@@ -2805,7 +2745,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -2986,7 +2926,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '11,8');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         [11.8, 60, 118038.11164],
@@ -3032,7 +2972,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3077,7 +3017,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3122,7 +3062,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3147,7 +3087,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '13/12/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)
@@ -3171,14 +3111,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '12/11/2022');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44906], // 11 Dec 2022
@@ -3202,7 +3142,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3247,14 +3187,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
 
       await setDataAtCell(0, 0, '12/13/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['12/13/2022'], // Not converted - improper date (we treat it as a string)
@@ -3278,14 +3218,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '13/11/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44878], // 13 Nov 2022
@@ -3309,7 +3249,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);

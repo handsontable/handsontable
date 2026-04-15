@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Star Rating Cell Type - Step-by-Step Guide (React)
+::: only-for react
 
-[[toc]]
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-star-rating-component
+
+@[code](@/content/recipes/cell-types/react-rating/react/example1.css)
+@[code](@/content/recipes/cell-types/react-rating/react/example1.jsx)
+@[code](@/content/recipes/cell-types/react-rating/react/example1.tsx)
+
+:::
+
+:::
 
 ## Overview
 
@@ -35,25 +43,12 @@ This guide shows how to create a star rating editor cell using `react-star-ratin
 
 A cell that:
 - Displays interactive star rating when editing
-- Shows the selected rating when viewing
+- Shows stars in view mode via a custom React renderer
 - Supports hover preview before selection
 - Stores values as numbers (1–5)
+- Validates rating range (e.g., 0–100)
 - Provides click-to-select functionality
 - Works with React's component-based architecture
-
-## Complete Example
-
-::: only-for react
-
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps react-star-rating-component
-
-@[code](@/content/recipes/cell-types/react-rating/react/example1.css)
-@[code](@/content/recipes/cell-types/react-rating/react/example1.jsx)
-@[code](@/content/recipes/cell-types/react-rating/react/example1.tsx)
-
-:::
-
-:::
 
 ## Prerequisites
 
@@ -80,8 +75,8 @@ registerAllModules();
 **What we're importing:**
 - `EditorComponent` - React component for creating custom editors
 - `HotTable` and `HotColumn` - React wrapper components
-- `StarRatingComponent` - Star rating UI from react-star-rating-component
-- Handsontable styles
+- `StarRatingComponent` - Star rating UI from `react-star-rating-component`
+- `registerAllModules()` - Registers Handsontable modules (required when using the wrapper)
 
 ## Step 2: Create the Editor Component
 
@@ -90,128 +85,186 @@ Create a React component that uses `EditorComponent` with the render prop patter
 ```tsx
 export const RatingEditor = () => {
   return (
-    <div className="rating-editor">
-      <EditorComponent<number>>
-        {({ value, setValue, finishEditing }) => (
+    <EditorComponent<number>>
+      {({ value, setValue, finishEditing }) => (
+        <div className="rating-editor">
           <StarRatingComponent
             name="rating"
             value={Number(value) || 0}
-            onStarHover={(nextValue) => setValue(nextValue)}
-            onStarClick={(nextValue) => {
+            onStarHover={(nextValue: number) => setValue(nextValue)}
+            onStarClick={(nextValue: number) => {
               setValue(nextValue);
               finishEditing();
             }}
           />
-        )}
-      </EditorComponent>
-    </div>
+        </div>
+      )}
+    </EditorComponent>
   );
 };
 ```
 
 **What's happening:**
-1. `EditorComponent` wraps your editor UI
-2. The `children` prop is a function that receives editor state
-3. `value` - Current cell value (numeric rating)
-4. `setValue` - Function to update the value
-5. `finishEditing` - Function to save and close the editor
-6. `onStarHover` - Updates preview as user hovers over stars
-7. `onStarClick` - Saves the selected rating and closes the editor
+1. `EditorComponent` wraps your editor UI; the `children` prop is a function that receives editor state.
+2. `value` - Current cell value (numeric rating)
+3. `setValue` - Function to update the value
+4. `finishEditing` - Function to save and close the editor
+5. `onStarHover` - Updates preview as user hovers over stars
+6. `onStarClick` - Saves the selected rating and closes the editor
+7. The `rating-editor` div is inside the render prop so styling applies to the visible editor area.
 
 **Key concepts:**
 - **Render prop pattern**: `EditorComponent` uses a function as children
 - **Hover preview**: `onStarHover` lets users preview before committing
-- **Click to confirm**: `onStarClick` saves and closes (similar to feedback buttons)
+- **Click to confirm**: `onStarClick` saves and closes the editor
 
-## Step 3: Add Styling
+## Step 3: Add a Custom Renderer for View Mode
 
-Style the editor container to fit within the cell.
+Use a React component as the cell renderer so stars are shown when not editing.
+
+```tsx
+const RatingCellRenderer = ({ value }: { value: unknown }) => (
+  <div className="rating-cell">
+    <StarRatingComponent
+      name="rating-cell"
+      value={Number(value) || 0}
+      editing={false}
+    />
+  </div>
+);
+```
+
+**What's happening:**
+- The renderer receives `value` and displays it with `StarRatingComponent`
+- `editing={false}` keeps the stars non-interactive in view mode
+- Use a unique `name` (e.g. `"rating-cell"`) to avoid conflicts with the editor instance
+
+## Step 4: Add a Validator (Optional)
+
+Validate that the rating is within an allowed range (e.g., 0–100):
+
+```tsx
+const ratingValidator = (value: string | number, callback: (valid: boolean) => void) => {
+  const parsed = parseInt(String(value));
+  callback(parsed >= 0 && parsed <= 100);
+};
+```
+
+For a strict 1–5 star scale, use `parsed >= 1 && parsed <= 5` instead.
+
+## Step 5: Add Styling
+
+Style the cell and editor so the star rating fits and matches the grid.
 
 ```css
-.rating-editor > div {
-  box-sizing: border-box;
-  padding: 3px !important;
-  border: 1px solid #e7e7e9 !important;
-  margin-left: 1px;
+.rating-cell {
+  display: flex;
+  align-items: center;
+  margin: 3px 0 0 -1px;
+}
+
+.rating-editor {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  box-sizing: border-box !important;
+  border: none;
+  border-radius: 0;
+  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+    var(--ht-cell-editor-border-color, #1a42e8),
+    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+    var(--ht-cell-editor-shadow-color, transparent);
+  background-color: var(--ht-cell-editor-background-color, #ffffff);
+  padding: var(--ht-cell-vertical-padding, 4px)
+    var(--ht-cell-horizontal-padding, 8px);
+  font-family: var(--ht-font-family, inherit);
+  font-size: var(--ht-font-size, 14px);
+  line-height: var(--ht-line-height, 1.5);
 }
 ```
 
 **What's happening:**
-- Targets the inner div rendered by `EditorComponent`
-- Adds padding and border for visual separation
-- `!important` may be needed to override Handsontable's default styles
+- `.rating-cell` aligns the stars in the cell when not editing
+- `.rating-editor` uses Handsontable CSS variables for focus border, background, and padding so the editor matches the grid theme
 
-## Step 4: Prepare Sample Data
+## Step 6: Prepare Sample Data
 
-Create data with numeric rating values for the rating column.
+Use data with a `rating` property (and any other columns you need). Example for a product table:
 
 ```tsx
-const inputData = new Array(10)
-  .fill(null)
-  .map((_, row) =>
-    new Array(10)
-      .fill(null)
-      .map((_, column) => `${row}, ${column}`)
-  );
-
-export const data = inputData.map((el) => ({
-  ...el,
-  rating: Math.floor(Math.random() * 5) + 1,
-}));
+export const data = [
+  { product: "Dashboard Pro", category: "Analytics", rating: 5, reviews: 342, price: 49 },
+  { product: "Form Builder", category: "Tools", rating: 4, reviews: 218, price: 29 },
+  { product: "Chart Engine", category: "Analytics", rating: 3, reviews: 156, price: 39 },
+  { product: "Auth Module", category: "Security", rating: 5, reviews: 89, price: 19 },
+  { product: "File Manager", category: "Storage", rating: 2, reviews: 64, price: 15 },
+  { product: "Email Service", category: "Communication", rating: 4, reviews: 275, price: 25 },
+  { product: "Search Index", category: "Tools", rating: 1, reviews: 31, price: 35 },
+  { product: "Cache Layer", category: "Infra", rating: 4, reviews: 112, price: 20 },
+];
 ```
 
 **What's happening:**
-- Generates a 10×10 grid with random ratings 1–5
-- Each row has a `rating` property (number)
+- Each row has `product`, `category`, `rating`, `reviews`, and `price`
+- The `rating` column uses the star editor and renderer; other columns can be text or numeric
 
-## Step 5: Use in Handsontable
+## Step 7: Use in Handsontable
 
-Use the editor component in your `HotTable`:
+Wire the editor, renderer, and validator to the rating column:
 
 ```tsx
 const ExampleComponent = () => {
   return (
     <HotTable
+      data={data}
+      colHeaders={["Product", "Category", "Rating", "Reviews", "Price"]}
       autoRowSize={true}
       rowHeaders={true}
-      autoWrapRow={true}
-      licenseKey="non-commercial-and-evaluation"
       height="auto"
-      data={data}
-      colHeaders={true}
+      width="100%"
+      autoWrapRow={true}
+      headerClassName="htLeft"
+      licenseKey="non-commercial-and-evaluation"
     >
+      <HotColumn data="product" type="text" width={240} />
+      <HotColumn data="category" type="text" width={120} />
       <HotColumn
-        width={250}
-        editor={RatingEditor}
         data="rating"
-        title="Rating"
+        width={150}
+        editor={RatingEditor}
+        renderer={RatingCellRenderer}
+        validator={ratingValidator}
       />
+      <HotColumn data="reviews" type="numeric" width={80} />
+      <HotColumn data="price" type="numeric" width={80} />
     </HotTable>
   );
 };
 ```
 
 **What's happening:**
-- `editor={RatingEditor}` - Assigns the star rating editor to the column
-- `data="rating"` - Binds to the rating property in each row
-- Column displays numeric values; double-click opens the star picker
+- `editor={RatingEditor}` - Star rating editor when the cell is active
+- `renderer={RatingCellRenderer}` - Shows stars in view mode
+- `validator={ratingValidator}` - Ensures rating is within the allowed range (e.g., 0–100)
+- `data="rating"` - Binds to the `rating` property in each row
 
 **Key features:**
-- Intuitive star-based selection
+- Stars in both view and edit mode
 - Values stored as numbers (1–5)
-- Type-safe with TypeScript
+- Validation and type-safe setup with TypeScript
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays the numeric rating (e.g., `3`)
-2. **User Double-Clicks or Enter**: Editor opens
-3. **Editor Opens**: `EditorComponent` positions container over cell
-4. **Star Rating Display**: Stars show current value, empty stars show remaining
+1. **Initial Render**: `RatingCellRenderer` displays stars for the current rating (e.g., 3 filled stars).
+2. **User Double-Clicks or Enter**: Editor opens.
+3. **Editor Opens**: `EditorComponent` shows the star picker in the cell.
+4. **Star Rating Display**: Stars show current value; empty stars show remaining.
 5. **User Interaction**:
    - Hover over stars → `onStarHover` updates preview via `setValue`
    - Click a star → `onStarClick` saves value and calls `finishEditing()`
-6. **Save**: Numeric value saved to cell
-7. **Editor Closes**: Cell shows the rating number
+6. **Validation**: `ratingValidator` runs (e.g., value must be 0–100).
+7. **Save**: Numeric value is saved to the cell.
+8. **Editor Closes**: `RatingCellRenderer` shows the updated stars in view mode.
 
 ## Enhancements
 
@@ -250,9 +303,9 @@ Customize the appearance:
 />
 ```
 
-### 3. Custom Renderer for Star Display
+### 3. Alternative: HTML-Based Renderer
 
-Add a custom renderer to show stars in view mode:
+The main example uses a React component (`RatingCellRenderer`) for view mode. If you prefer a non-React renderer, you can use `rendererFactory`:
 
 ```tsx
 import { rendererFactory } from 'handsontable/renderers';
@@ -271,15 +324,14 @@ const starRenderer = rendererFactory(({ td, value }) => {
 
 // Use in HotColumn
 <HotColumn
-  width={250}
+  data="rating"
+  width={150}
   editor={RatingEditor}
   renderer={starRenderer}
-  data="rating"
-  title="Rating"
 />
 ```
 
-### 4. Read Config from Cell Properties
+### 4. Read Config from Cell Properties (Advanced)
 
 Use `onPrepare` for per-column configuration (e.g., star count):
 
@@ -386,11 +438,12 @@ The `StarRatingComponent` uses radio inputs. Enhance with ARIA:
 
 ## Best Practices
 
-1. **Coerce value to number** - Use `Number(value) || 0` since cell values may be strings
-2. **Provide `name` prop** - Required by react-star-rating-component for radio inputs
-3. **Call `finishEditing()` on click** - Star click confirms the selection
-4. **Use `onStarHover` for preview** - Improves UX by showing selection before commit
-5. **Consider custom renderer** - Display stars in view mode for consistency
+1. **Coerce value to number** - Use `Number(value) || 0` since cell values may be strings.
+2. **Provide `name` prop** - Required by `react-star-rating-component` for radio inputs; use different names for editor and renderer (e.g. `"rating"` and `"rating-cell"`) to avoid conflicts.
+3. **Call `finishEditing()` on click** - Star click confirms the selection and closes the editor.
+4. **Use `onStarHover` for preview** - Improves UX by showing the selection before commit.
+5. **Use a custom renderer** - `RatingCellRenderer` with `editing={false}` shows stars in view mode and keeps the UI consistent.
+6. **Add a validator** - Use `ratingValidator` to restrict values (e.g., 0–100 or 1–5) and give immediate feedback.
 
 ---
 

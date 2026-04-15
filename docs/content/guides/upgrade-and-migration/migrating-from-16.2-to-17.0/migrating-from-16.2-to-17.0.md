@@ -2,7 +2,7 @@
 id: 9w5zs3t2
 title: Migrating from 16.2 to 17.0
 metaTitle: Migrating from 16.2 to 17.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 16.2 to Handsontable 17.0, released on [TODO].
+description: Migrate from Handsontable 16.2 to Handsontable 17.0, released on released on March 09, 2025.
 permalink: /migration-from-16.2-to-17.0
 canonicalUrl: /migration-from-16.2-to-17.0
 pageClass: migration-guide
@@ -16,12 +16,9 @@ searchCategory: Guides
 category: Upgrade and migration
 menuTag: new
 ---
+Migrate from Handsontable 16.2 to Handsontable 17.0, released on March 09, 2025.
 
-# Migrate from 16.2 to 17.0
-
-Migrate from Handsontable 16.2 to Handsontable 17.0, released on [TODO].
-
-More information about this release can be found in the [`17.0.0` release blog post](TODO).<br/>
+More information about this release can be found in the [`17.0.0` release blog post](https://handsontable.com/blog/handsontable-17.0.0-multiselect-cell-type-simpler-custom-cells-and-a-new-themes-api).<br/>
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_17-0-0).
 
 [[toc]]
@@ -48,13 +45,19 @@ If you were using the legacy styles, migrate to the Classic theme using one of t
 
 The Theme API allows you to register and configure themes programmatically with runtime features like density modes and color schemes.
 
-**Step 1: Update your CSS imports**
+<ol class="sl-steps">
+<li>
+
+**Update your CSS imports**
 
 ```diff
 - import 'handsontable/dist/handsontable.full.min.css';
 ```
 
-**Step 2: Import and register the Classic theme**
+</li>
+<li>
+
+**Import and register the Classic theme**
 
 ::: only-for javascript
 
@@ -106,11 +109,17 @@ export class AppComponent {
 
 :::
 
+</li>
+</ol>
+
 #### Option 2: Using CSS files with theme as string
 
 Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
 
-**Step 1: Update your CSS imports**
+<ol class="sl-steps">
+<li>
+
+**Update your CSS imports**
 
 ```diff
 - @import 'handsontable/dist/handsontable.full.min.css';
@@ -141,7 +150,10 @@ Or in `angular.json`:
 
 :::
 
-**Step 2: Set the theme in Handsontable configuration**
+</li>
+<li>
+
+**Set the theme in Handsontable configuration**
 
 ::: only-for javascript
 
@@ -175,6 +187,9 @@ const hot = new Handsontable(container, {
 ```
 
 :::
+
+</li>
+</ol>
 
 ### Why Migrate to Classic?
 
@@ -408,7 +423,10 @@ The numbro.js library added unnecessary bundle size and maintenance overhead. Th
 
 ### How to Migrate
 
-#### Step 1: Update numericFormat Configuration
+<ol class="sl-steps">
+<li>
+
+**Update numericFormat Configuration**
 
 Replace `pattern` and `culture` properties with `Intl.NumberFormat` options.
 
@@ -522,7 +540,10 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 2: Common Migration Patterns
+</li>
+<li>
+
+**Common Migration Patterns**
 
 **Currency Formatting:**
 
@@ -579,9 +600,15 @@ numericFormat: {
 }
 ```
 
-#### Step 3: Using Numbro After Migration
+</li>
+<li>
+
+**Using Numbro After Migration**
 
 If you need numbro.js-specific formatting features that aren't available in `Intl.NumberFormat`, you can create a custom cell type using the numbro library. See the [Numbro cell type recipe](@/recipes/cell-types/numbro/numbro.md) for a complete implementation guide.
+
+</li>
+</ol>
 
 ### What to Expect
 
@@ -616,7 +643,10 @@ Moment.js is in maintenance mode and the legacy `date`/`time` cell types depend 
 
 ### How to Migrate
 
-#### Step 1: Update Date Columns
+<ol class="sl-steps">
+<li>
+
+**Update Date Columns**
 
 Replace the `date` cell type and string `dateFormat` with `intl-date` and an `Intl.DateTimeFormat` options object.
 
@@ -721,7 +751,10 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 2: Update Time Columns
+</li>
+<li>
+
+**Update Time Columns**
 
 Replace the `time` cell type and string `timeFormat` with `intl-time` and an `Intl.DateTimeFormat` options object.
 
@@ -829,7 +862,10 @@ const hot = new Handsontable(container, {
 
 :::
 
-#### Step 3: Common Migration Patterns
+</li>
+<li>
+
+**Common Migration Patterns**
 
 **Short date (e.g. DD/MM/YYYY → locale short):**
 
@@ -888,9 +924,15 @@ locale: 'en-US',
 timeFormat: { timeStyle: 'medium' }
 ```
 
-#### Step 4: Custom Cell Types Using Moment.js
+</li>
+<li>
+
+**Custom Cell Types Using Moment.js**
 
 If you use custom cell types that rely on Moment.js for formatting or parsing (e.g. recipes like the Moment.js date or time cell type), replace Moment formatting with `Intl.DateTimeFormat` in your renderer and editor logic. For a full custom implementation that still uses Moment, see the [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) and [Moment.js time](@/recipes/cell-types/moment-time/moment-time.md) recipes; consider migrating those implementations to Intl to avoid the deprecated path.
+
+</li>
+</ol>
 
 ### What to Expect
 
@@ -1096,6 +1138,22 @@ If you only target modern browsers and runtimes, no action is needed.
 - [Browser support](@/guides/technical-specification/supported-browsers/supported-browsers.md) - Supported browsers and runtimes
 - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md) - Dependencies and licenses
 
+## 7. Built-in HyperFormula (deprecation notice)
+
+The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.com/) as its calculation engine. Currently, HyperFormula is bundled with Handsontable. In **version 18.0**, it will be removed from `package.json`.
+
+### What to Expect
+
+- **Version 17.x**: Built-in HyperFormula remains available, no change required yet.
+- **Version 18.0**: HyperFormula is removed from Handsontable dependencies. You must add it as your own dependency and configure the Formulas plugin to use your instance.
+
+### How to Prepare
+
+1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
+2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.
+
+See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
+
 ## Summary of breaking changes
 
 | Change                                            | Action Required                                                            |
@@ -1104,6 +1162,7 @@ If you only target modern browsers and runtimes, no action is needed.
 | `handsontable.full.min.css` no longer available   | Use Theme API or import a theme CSS file (e.g. `ht-theme-classic.min.css`) |
 | CSS-based themes (optional migration)             | Consider migrating to Theme API for runtime features                       |
 | `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
+| Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'` |
 
 ## Related resources
 

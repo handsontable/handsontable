@@ -7,7 +7,7 @@ import { rendererFactory } from 'handsontable/renderers';
 registerAllModules();
 
 /* start:skip-in-preview */
-export const data = [
+const data = [
   { product: 'Dashboard Pro', category: 'Analytics', rating: 5, reviews: 342, price: 49 },
   { product: 'Form Builder', category: 'Tools', rating: 4, reviews: 218, price: 29 },
   { product: 'Chart Engine', category: 'Analytics', rating: 3, reviews: 156, price: 39 },

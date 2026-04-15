@@ -10,57 +10,85 @@
     .changeType {
       position: relative;
       box-sizing: border-box;
-      width: var(--ht-icon-size);
-      height: var(--ht-icon-size);
-      border-radius: var(--ht-icon-button-border-radius);
-      box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
+      width: var(--ht-icon-button-hit-area-size);
+      height: var(--ht-icon-button-hit-area-size);
+      margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2 + 1px);
       border: none;
+      outline: none;
+      box-shadow: none;
+      background: none;
+      background-color: transparent;
       color: inherit;
       padding: 0;
-      margin: 0;
-      background-color: var(--ht-icon-button-background-color);
-      order: 1;
       z-index: 1;
-      float: right;
-      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-      margin-inline-start: var(--ht-gap-size);
-      margin-inline-end: 1px;
+      flex-shrink: 0;
+      overflow: visible;
 
+      /* Icon: mask + currentColor from ht-icons-main.css; keep ::before for icon only */
       &::before {
         @include mixins.pseudo;
 
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 50%;
+        left: 50%;
+        width: var(--ht-icon-size);
+        height: var(--ht-icon-size);
+        margin-top: calc(-0.5 * var(--ht-icon-size));
+        margin-left: calc(-0.5 * var(--ht-icon-size));
         color: var(--ht-icon-button-icon-color);
+        z-index: 1;
+      }
+
+      /* Button background and border (behind icon so mask stays visible) */
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ht-icon-size);
+        height: var(--ht-icon-size);
+        margin-top: calc(-0.5 * var(--ht-icon-size));
+        margin-left: calc(-0.5 * var(--ht-icon-size));
+        border-radius: var(--ht-icon-button-border-radius);
+        box-shadow: 0 0 0 1px var(--ht-icon-button-border-color);
+        background-color: var(--ht-icon-button-background-color);
+        z-index: 0;
       }
 
       &:hover {
         cursor: pointer;
-        box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
-        background-color: var(--ht-icon-button-hover-background-color);
 
         &::before {
           color: var(--ht-icon-button-hover-icon-color);
+        }
+
+        &::after {
+          box-shadow: 0 0 0 1px var(--ht-icon-button-hover-border-color);
+          background-color: var(--ht-icon-button-hover-background-color);
         }
       }
     }
 
     .ht__active_highlight {
       .changeType {
-        box-shadow: 0 0 0 1px var(--ht-icon-button-active-border-color, var(--ht-icon-active-button-border-color));
-        background-color: var(--ht-icon-button-active-background-color, var(--ht-icon-active-button-background-color));
-
         &::before {
           color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));
         }
 
-        &:hover {
-          box-shadow: 0 0 0 1px var(--ht-icon-button-active-hover-border-color, var(--ht-icon-active-button-hover-border-color));
-          background-color: var(--ht-icon-button-active-hover-background-color, var(--ht-icon-active-button-hover-background-color));
+        &::after {
+          box-shadow: 0 0 0 1px var(--ht-icon-button-active-border-color, var(--ht-icon-active-button-border-color));
+          background-color: var(--ht-icon-button-active-background-color, var(--ht-icon-active-button-background-color));
+        }
 
+        &:hover {
           &::before {
             color: var(--ht-icon-button-active-hover-icon-color, var(--ht-icon-active-button-hover-icon-color));
+          }
+
+          &::after {
+            box-shadow: 0 0 0 1px var(--ht-icon-button-active-hover-border-color, var(--ht-icon-active-button-hover-border-color));
+            background-color: var(--ht-icon-button-active-hover-background-color, var(--ht-icon-active-button-hover-background-color));
           }
         }
       }
@@ -76,12 +104,6 @@
             var(--ht-header-active-background-color),
             var(--ht-header-filter-background-color) 20%
           );
-
-          .changeType {
-            &::after {
-              background-color: var(--ht-header-active-foreground-color);
-            }
-          }
         }
       }
     }
@@ -306,8 +328,5 @@
       }
     }
 
-    .changeType {
-      float: left;
-    }
   }
 }

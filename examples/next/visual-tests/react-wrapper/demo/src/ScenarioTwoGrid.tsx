@@ -1,3 +1,4 @@
+import "./styles.css";
 import { HotTable } from "@handsontable/react-wrapper";
 import { scenarioDataTop, scenarioDataBottom } from "./constants";
 import { getThemeName } from "./utils";
