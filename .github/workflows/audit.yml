@@ -18,10 +18,5 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: PNPM audit
-        run: |
-          npm install -g pnpm@11.0.0-rc.0
-          npm pkg set packageManager=pnpm@11.0.0-rc.0
-          rm pnpm-lock.yaml
-          pnpm install --lockfile-only --ignore-scripts
-          pnpm audit --prod --ignore-unfixable
+      - name: Audit production dependencies
+        run: node .github/scripts/audit.mjs
