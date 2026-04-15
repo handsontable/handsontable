@@ -58,6 +58,11 @@ function resolveSizingRef(ref) {
  * unless noted. Density is read from the theme module -- changing `density` in
  * `src/themes/theme/<name>.js` propagates here automatically.
  *
+ * Box model note: `defaultDataRowHeight` and `firstRenderedRowDefaultHeight` represent the
+ * **outer height** as measured by jQuery `.height()` (which returns `offsetHeight` for table
+ * rows). `defaultColumnHeaderHeight` and `cellContentHeight` represent the **content height**
+ * (equivalent to `clientHeight` on a TD, excluding the 1px bottom border).
+ *
  * @param {string} themeName Theme key discovered from `src/themes/theme/index.js`.
  * @returns {object} Core layout metrics and `overlayHeight` / `verticalScrollForRow` helpers.
  */
