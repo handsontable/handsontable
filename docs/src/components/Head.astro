@@ -54,3 +54,55 @@ import Default from '@astrojs/starlight/components/Head.astro';
     p.remove();
   });
 </script>
+
+<script is:inline>
+  /**
+   * Algolia crawler compatibility shim.
+   *
+   * The Algolia crawler config targets legacy VuePress CSS selectors. This
+   * script patches the rendered DOM so those selectors match the equivalent
+   * Astro Starlight elements without requiring any changes to the crawler config.
+   *
+   * Selector mapping (VuePress → Astro Starlight):
+   *   .content__default              → .sl-markdown-content (class added below)
+   *   .sidebar-links .active         → .sidebar-pane a[aria-current="page"]
+   *   p.sidebar-heading.open         → .sidebar-pane details[open] summary .large
+   */
+  document.addEventListener('DOMContentLoaded', function () {
+    // 1. Add content__default to the main markdown content wrapper so the
+    //    Algolia selectors ".content__default p", ".content__default h2", etc. match.
+    var content = document.querySelector('.sl-markdown-content');
+    if (content) {
+      content.classList.add('content__default');
+    }
+
+    // 2. Mark the active sidebar link with the legacy "active" class and its
+    //    parent <ul> with the legacy "sidebar-links" class.
+    var sidebarPane = document.querySelector('.sidebar-pane');
+    if (sidebarPane) {
+      var activeLink = sidebarPane.querySelector('a[aria-current="page"]');
+      if (activeLink) {
+        activeLink.classList.add('active');
+        var parentUl = activeLink.closest('ul');
+        if (parentUl) {
+          parentUl.classList.add('sidebar-links');
+        }
+      }
+
+      // 3. Inject a visually-hidden <p class="sidebar-heading open"> containing
+      //    the current section title so the Algolia lvl0 selector matches.
+      //    Starlight marks expanded groups with the HTML "open" attribute on
+      //    <details>, so we read the heading text from the open group that
+      //    contains the active page.
+      var openSummaryText = sidebarPane.querySelector('details[open] summary .large');
+      if (openSummaryText) {
+        var p = document.createElement('p');
+        p.className = 'sidebar-heading open';
+        p.textContent = (openSummaryText.textContent || '').trim();
+        p.setAttribute('aria-hidden', 'true');
+        p.style.cssText = 'position:absolute;left:-9999px;width:0;height:0;overflow:hidden;';
+        sidebarPane.insertBefore(p, sidebarPane.firstChild);
+      }
+    }
+  });
+</script>
