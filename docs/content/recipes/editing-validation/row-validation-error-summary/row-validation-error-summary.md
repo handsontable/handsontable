@@ -22,8 +22,9 @@ category: Editing and Validation
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+::: example #example1 :hot-recipe --html 1 --js 2 --ts 3 --css 4
 
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.html)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.js)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.ts)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.css)
