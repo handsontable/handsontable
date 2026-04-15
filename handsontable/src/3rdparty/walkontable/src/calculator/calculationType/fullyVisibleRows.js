@@ -80,7 +80,7 @@ export class FullyVisibleRowsCalculationType {
       zeroBasedScrollOffset,
       totalRows,
       needReverse,
-      positionCache,
+      startPositions,
       rowHeight,
     } = viewportCalculator;
 
@@ -90,9 +90,9 @@ export class FullyVisibleRowsCalculationType {
       this.startRow = this.endRow;
 
       while (this.startRow > 0) {
-        const calculatedViewportHeight = positionCache.getOffset(this.endRow) +
+        const calculatedViewportHeight = startPositions[this.endRow] +
           rowHeight -
-          positionCache.getOffset(this.startRow - 1);
+          startPositions[this.startRow - 1];
 
         if (calculatedViewportHeight <= viewportHeight) {
           this.startRow -= 1;
@@ -104,16 +104,13 @@ export class FullyVisibleRowsCalculationType {
       }
     }
 
-    this.startPosition = this.startRow !== null ? positionCache.getOffset(this.startRow) : null;
+    this.startPosition = startPositions[this.startRow] ?? null;
 
     const compensatedViewportHeight = zeroBasedScrollOffset > 0 ? viewportHeight + 1 : viewportHeight;
     const mostBottomScrollOffset = scrollOffset + viewportHeight - compensatedViewportHeight;
     const topRowOffset = this.startRow === null ? 0 : viewportCalculator.getRowHeight(this.startRow);
 
-    if (
-      mostBottomScrollOffset < topRowOffset ||
-      scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex)
-    ) {
+    if (mostBottomScrollOffset < topRowOffset || scrollOffset > startPositions.at(-1)) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;
