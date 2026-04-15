@@ -18,53 +18,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: NPM audit
+      - name: Install pnpm 11 RC
+        run: npm install -g pnpm@11.0.0-rc.0
+
+      - name: PNPM audit
         run: |
-          # pnpm audit uses retired npm endpoints (HTTP 410). npm audit (Node 22
-          # ships with npm 10.x) uses the new bulk advisory endpoint.
-          #
-          # npm requires a lockfile and fails inside the pnpm workspace because
-          # it walks up to the monorepo root and chokes on Angular peer-dep
-          # conflicts. Fix: build a synthetic package.json that merges all
-          # workspace production deps, run everything in an isolated temp dir.
-          TMP=$(mktemp -d)
-          trap "rm -rf $TMP" EXIT
-
-          node -e "
-            const fs = require('fs');
-            const pkgs = [
-              'handsontable/package.json',
-              'wrappers/react-wrapper/package.json',
-              'wrappers/vue3/package.json',
-              'wrappers/angular-wrapper/package.json',
-            ];
-            const deps = {};
-            for (const p of pkgs) {
-              Object.assign(deps, JSON.parse(fs.readFileSync(p, 'utf8')).dependencies || {});
-            }
-            fs.writeFileSync('$TMP/package.json', JSON.stringify({
-              name: 'audit-target', version: '1.0.0', dependencies: deps
-            }));
-          "
-
-          cd $TMP
-          npm install --package-lock-only --ignore-scripts --no-fund
-
-          # Replicates pnpm's --ignore-unfixable: only fail if fixable
-          # vulnerabilities exist.
-          AUDIT_EXIT=0
-          npm audit --omit=dev 2>&1 || AUDIT_EXIT=$?
-          if [ $AUDIT_EXIT -ne 0 ]; then
-            npm audit --omit=dev --json 2>/dev/null | node -e "
-              let d = '';
-              process.stdin.on('data', c => d += c);
-              process.stdin.on('end', () => {
-                try {
-                  const a = JSON.parse(d);
-                  const fixable = Object.values(a.vulnerabilities || {})
-                    .some(v => v.fixAvailable !== false);
-                  process.exit(fixable ? 1 : 0);
-                } catch(e) { process.exit(1); }
-              });
-            "
-          fi
+          # pnpm enforces that the running version matches packageManager in
+          # package.json. Disable that check so pnpm 11 RC can audit while the
+          # project's packageManager field still declares 10.x.
+          echo "manage-package-manager-versions=false" >> .npmrc
+          pnpm audit --prod --ignore-unfixable
