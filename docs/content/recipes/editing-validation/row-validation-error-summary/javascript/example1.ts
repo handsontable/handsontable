@@ -96,8 +96,10 @@ const hot = new Handsontable(container, {
   height: "auto",
   width: "100%",
   licenseKey: "non-commercial-and-evaluation",
-  cells(row, col) {
-    return invalidCells.has(cellKey(row, col)) ? { className: "htInvalid" } : {};
+  afterRenderer(TD, row, col) {
+    TD.style.backgroundColor = invalidCells.has(cellKey(row, col))
+      ? "#ffe4e4"
+      : "";
   },
   afterChange(changes, source) {
     if (source === "loadData" || !changes) {
