@@ -69,6 +69,9 @@ function CodeBlock({ lang, source }: CodeBlockProps) {
           <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
       </div>
+      {/* Shiki output is HTML-escaped token spans. The fallback path (render
+          failure) also escapes via escapeHtml above, so no user-controlled
+          HTML ever reaches this node. */}
       <div className="da-code-body" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );

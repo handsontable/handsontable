@@ -1,3 +1,16 @@
+/**
+ * Docs assistant widget root.
+ *
+ * Renders a floating action button (FAB) and a right-side panel. The panel
+ * is *non-modal* (`aria-modal="false"`) on purpose: readers can keep
+ * interacting with the docs while the assistant is open. ESC and the close
+ * button both return focus to the FAB; opening the panel moves focus to
+ * the composer so keyboard users can start typing immediately.
+ *
+ * Open state, thread, and panel width are persisted to localStorage
+ * (see `STORAGE_KEYS`) so navigation between docs pages does not reset
+ * the conversation.
+ */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS, WIDTH } from './constants';
 import { IconChat, IconClose, IconNew } from './icons';
