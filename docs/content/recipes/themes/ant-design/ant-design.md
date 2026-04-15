@@ -45,7 +45,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Ant 
 
 - A Handsontable grid with a custom theme registered through `registerTheme('ant-data-grid', { icons, colors, tokens })`.
 - Theme colors based on Handsontable's built-in Ant palette (`colors/ant`) with token-based overrides.
-- Spacing, typography, and border radius aligned with Ant Design tokens.
+- Zebra rows, typography, spacing, and colors aligned with Ant Design table tokens.
 
 ## Prerequisites
 
@@ -116,20 +116,27 @@ export function useAntHandsontableTheme() {
       backgroundColor: token.colorBgContainer,
       backgroundSecondaryColor: token.colorFillAlter,
       foregroundColor: token.colorText,
+      foregroundSecondaryColor: token.colorTextDescription,
       borderColor: token.colorBorder,
       accentColor: token.colorPrimary,
       headerBackgroundColor: token.colorFillAlter,
       headerForegroundColor: token.colorTextHeading,
       cellHorizontalBorderColor: token.colorBorderSecondary,
       cellVerticalBorderColor: token.colorBorderSecondary,
-      rowCellOddBackgroundColor: token.colorBgContainer,
+      // Zebra rows like Ant Design tables.
+      rowCellOddBackgroundColor: token.colorFillAlter,
       rowCellEvenBackgroundColor: token.colorBgContainer,
-      rowHeaderOddBackgroundColor: token.colorBgContainer,
+      rowHeaderOddBackgroundColor: token.colorFillAlter,
       rowHeaderEvenBackgroundColor: token.colorBgContainer,
+      // Ant-like compact spacing.
+      cellHorizontalPadding: `${token.paddingSM}px`,
+      cellVerticalPadding: `${token.paddingXS}px`,
       wrapperBorderRadius: `${token.borderRadiusLG}px`,
       wrapperBorderWidth: '1px',
+      wrapperBorderColor: token.colorBorderSecondary,
       fontFamily: token.fontFamily,
       fontSize: `${token.fontSize}px`,
+      lineHeight: `${token.lineHeight}px`,
       headerFontWeight: `${token.fontWeightStrong}`,
     },
   });
