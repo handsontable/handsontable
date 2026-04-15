@@ -57,7 +57,7 @@ const hot = new Handsontable(container, {
       }
       const next = optionsForCategory(String(newVal));
       this.setCellMeta(row, SUBCATEGORY_COL, "source", next);
-      this.setDataAtCell(row, SUBCATEGORY_COL, "");
+      this.setDataAtCell(row, SUBCATEGORY_COL, next[0] ?? "");
     }
     this.render();
   },
