@@ -366,6 +366,13 @@ export type TokenKey =
   | 'paginationBarBackgroundColor'
   | 'paginationBarHorizontalPadding'
   | 'paginationBarVerticalPadding'
+  | 'paginationButtonBorderColor'
+  | 'paginationButtonForegroundColor'
+  | 'paginationButtonBackgroundColor'
+  | 'paginationButtonHoverBorderColor'
+  | 'paginationButtonHoverForegroundColor'
+  | 'paginationButtonHoverBackgroundColor'
+  | 'paginationButtonDisabledForegroundColor'
   // Multiselect
   | 'chipBackground'
   | 'chipBorderRadius'
