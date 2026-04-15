@@ -22,31 +22,33 @@ const sourceData = [
 const rootContainer = document.querySelector('#example1');
 
 rootContainer.innerHTML = `
-  <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:12px;">
-    <label style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
-      Category
-      <select id="categoryFilter">
-        <option value="">All categories</option>
-        <option value="Bikes">Bikes</option>
-        <option value="Safety">Safety</option>
-        <option value="Components">Components</option>
-        <option value="Accessories">Accessories</option>
-        <option value="Maintenance">Maintenance</option>
-      </select>
-    </label>
-    <label style="display:flex; flex-direction:column; gap:4px; min-width:160px;">
-      Product name
-      <input id="nameFilter" type="text" placeholder="Contains..." />
-    </label>
-    <label style="display:flex; flex-direction:column; gap:4px; width:120px;">
-      Min price
-      <input id="minPriceFilter" type="number" min="0" placeholder="0" />
-    </label>
-    <label style="display:flex; flex-direction:column; gap:4px; width:120px;">
-      Max price
-      <input id="maxPriceFilter" type="number" min="0" placeholder="2500" />
-    </label>
-    <button id="clearFilters" type="button" style="height:32px;">Clear all filters</button>
+  <div class="example-controls-container">
+    <div class="filter-panel">
+      <label class="filter-label filter-label--wide">
+        Category
+        <select id="categoryFilter">
+          <option value="">All categories</option>
+          <option value="Bikes">Bikes</option>
+          <option value="Safety">Safety</option>
+          <option value="Components">Components</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Maintenance">Maintenance</option>
+        </select>
+      </label>
+      <label class="filter-label filter-label--wide">
+        Product name
+        <input id="nameFilter" type="text" placeholder="Contains..." />
+      </label>
+      <label class="filter-label">
+        Min price
+        <input id="minPriceFilter" type="number" min="0" placeholder="0" />
+      </label>
+      <label class="filter-label">
+        Max price
+        <input id="maxPriceFilter" type="number" min="0" placeholder="2500" />
+      </label>
+      <button id="clearFilters" type="button">Clear all filters</button>
+    </div>
   </div>
   <div id="hot"></div>
 `;

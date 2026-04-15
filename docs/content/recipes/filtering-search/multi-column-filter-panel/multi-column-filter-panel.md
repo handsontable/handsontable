@@ -24,9 +24,10 @@ category: Filtering and Search
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 @[code](@/content/recipes/filtering-search/multi-column-filter-panel/javascript/example1.js)
 @[code](@/content/recipes/filtering-search/multi-column-filter-panel/javascript/example1.ts)
+@[code](@/content/recipes/filtering-search/multi-column-filter-panel/javascript/example1.css)
 :::
 
 :::
