@@ -138,7 +138,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'No se pudieron actualizar las filas',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'No se pudieron eliminar las filas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La solicitud falló',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Cerrar',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Volver a cargar',
 };
 
 export default dictionary;

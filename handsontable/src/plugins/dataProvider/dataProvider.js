@@ -111,7 +111,7 @@ export {
  * When the object is a **complete** server-backed configuration (all of those keys present and valid), Handsontable loads rows via `fetchRows`, runs mutations through the callbacks, and the [[Hooks#hasExternalDataSource]] hook returns `true` so plugins such as Filters and Pagination can treat the grid as server-driven.
  * If required callbacks are missing or invalid, `fetchRows` and the affected mutation paths no-op until the configuration is valid.
  * Valid edits apply to the grid immediately; if `onRowsUpdate` fails, if validation fails later, or if `beforeRowsMutation` cancels, those cells revert to their previous values.
- * When the [[Options#dialog]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) open an alert dialog with the error message.
+ * When the [[Options#notification]] plugin is enabled, failed `fetchRows`, `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` requests (including a refetch after a successful mutation) show an error notification toast with the same translated titles and description text as before.
  *
  * If `trimRows`, `manualRowMove`, `manualColumnMove`, or `multiColumnSorting` is enabled, the DataProvider plugin does not enable. Handsontable logs a console warning when you still set a complete `dataProvider` configuration.
  * Use [[Options#columnSorting]] for server-driven sort (single column). Query `sort` uses `prop` (column data key).
@@ -337,7 +337,7 @@ export class DataProvider extends BasePlugin {
       }
 
       this.hot.runHooks('afterDataProviderFetchError', err, this.#snapshotQueryParameters(params));
-      this.#showDataProviderRequestErrorDialog('fetch', err);
+      this.#showDataProviderRequestErrorNotification('fetch', err);
 
       throw err;
     } finally {
@@ -616,16 +616,17 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Shows an alert in the [[Options#dialog]] plugin when it is enabled.
+   * Shows an error toast in the [[Options#notification]] plugin when it is enabled.
+   * For `fetch` failures only, the toast includes a primary **Refetch** action (`duration: 0` until dismissed) that hides the toast and calls [[DataProvider#fetchData]] again.
    *
    * @param {'fetch'|'create'|'update'|'remove'} kind Which request failed.
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
    * @returns {void}
    */
-  #showDataProviderRequestErrorDialog(kind, err) {
-    const dialogPlugin = this.hot.getPlugin('dialog');
+  #showDataProviderRequestErrorNotification(kind, err) {
+    const notificationPlugin = this.hot.getPlugin('notification');
 
-    if (!dialogPlugin?.enabled) {
+    if (!notificationPlugin?.enabled) {
       return;
     }
 
@@ -638,25 +639,33 @@ export class DataProvider extends BasePlugin {
     const title = this.hot.getTranslatedPhrase(
       titleKeys[kind] ?? I18nC.DATA_PROVIDER_ERRORS_REQUEST_FAILED
     );
-    const description = getDataProviderRequestErrorDescription(err);
+    const message = getDataProviderRequestErrorDescription(err);
 
-    dialogPlugin.show({
-      template: {
-        type: 'confirm',
-        title,
-        description,
-        buttons: [
-          {
-            text: this.hot.getTranslatedPhrase(I18nC.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE),
-            type: 'secondary',
-            callback: () => {
-              dialogPlugin.hide();
-            },
+    let toastId = '';
+    const options = {
+      variant: 'error',
+      title,
+      message,
+    };
+
+    if (kind === 'fetch') {
+      options.duration = 0;
+      options.actions = [
+        {
+          label: this.hot.getTranslatedPhrase(I18nC.DATA_PROVIDER_BUTTONS_REFETCH),
+          type: 'primary',
+          callback: () => {
+            if (toastId) {
+              notificationPlugin.hide(toastId);
+            }
+
+            void this.fetchData();
           },
-        ],
-      },
-      closable: true,
-    });
+        },
+      ];
+    }
+
+    toastId = notificationPlugin.showMessage(options);
   }
 
   /**
@@ -672,7 +681,7 @@ export class DataProvider extends BasePlugin {
       getOnRowsUpdate: () => this.#getOnRowsUpdate(),
       fetchData: () => this.fetchData({ skipLoading: true }),
       logError,
-      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorDialog(kind, err),
+      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind, err),
     }, rowPayloads, options);
   }
 
@@ -693,7 +702,7 @@ export class DataProvider extends BasePlugin {
         runAfterRowsMutation: (op, p) => runAfterRowsMutation(this.hot, op, p),
         runAfterRowsMutationError: (op, err, p) => runAfterRowsMutationError(this.hot, op, err, p),
         logError,
-        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorDialog(kind, err),
+        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind, err),
       },
       operation,
       payload,
