@@ -24,8 +24,8 @@ const themesItems = [
 
 const editingValidationItems = [
   {
-    path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
-    title: 'Row validation with error summary',
+    path: 'editing-validation/dependent-dropdowns/dependent-dropdowns',
+    title: 'Dependent dropdowns',
     onlyFor: ['javascript'],
   },
 ];
