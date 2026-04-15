@@ -36,7 +36,7 @@ const hot = new Handsontable(container, {
     { type: "dropdown", source: optionsForCategory(String(data[0][CATEGORY_COL])) },
   ],
   rowHeaders: true,
-  height: "auto",
+  height: 200,
   width: "100%",
   licenseKey: "non-commercial-and-evaluation",
   afterInit() {
