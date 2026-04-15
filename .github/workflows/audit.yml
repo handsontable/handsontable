@@ -28,9 +28,34 @@ jobs:
 
       - name: NPM audit
         run: |
-          # pnpm audit uses retired npm endpoints. Generate a temporary lockfile
-          # so npm audit can use the new bulk advisory endpoint instead.
-          npm install --package-lock-only --ignore-scripts --no-fund --legacy-peer-deps
+          # pnpm audit calls retired npm endpoints. npm audit uses the new bulk
+          # advisory endpoint but requires a lockfile and fails when run inside a
+          # pnpm workspace (npm walks up to the workspace root and chokes on
+          # Angular peer-dep conflicts). Work around both issues by building a
+          # synthetic package.json from all workspace production deps in an
+          # isolated temp directory, then auditing that.
+          TMP=$(mktemp -d)
+          trap "rm -rf $TMP" EXIT
+
+          # Collect production dependencies from every workspace package.
+          node -e "
+            const fs = require('fs');
+            const pkgs = [
+              'handsontable/package.json',
+              'wrappers/react-wrapper/package.json',
+              'wrappers/vue3/package.json',
+              'wrappers/angular-wrapper/package.json',
+            ];
+            const deps = {};
+            for (const p of pkgs) {
+              Object.assign(deps, JSON.parse(fs.readFileSync(p, 'utf8')).dependencies || {});
+            }
+            fs.writeFileSync('$TMP/package.json', JSON.stringify({ name: 'audit-target', version: '1.0.0', dependencies: deps }));
+          "
+
+          cd $TMP
+          npm install --package-lock-only --ignore-scripts --no-fund
+
           # Replicates --ignore-unfixable: only fail if fixable vulnerabilities exist.
           AUDIT_EXIT=0
           npm audit --omit=dev 2>&1 || AUDIT_EXIT=$?
