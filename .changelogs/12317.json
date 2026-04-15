@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed pagination icon button colors not being changeable via theme builder icon button tokens.",
-  "type": "fixed",
+  "title": "Added dedicated `paginationButton*` theme tokens so pagination navigation button colors can be customized independently via the theme builder.",
+  "type": "added",
   "issueOrPR": 12317,
   "breaking": false,
   "framework": "none"
