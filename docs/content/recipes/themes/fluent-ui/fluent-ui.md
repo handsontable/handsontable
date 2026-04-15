@@ -21,12 +21,12 @@ searchCategory: Recipes
 category: Themes
 ---
 
-[<iframe src="https://codesandbox.io/s/handsontable-fluent-ui-recipe-z89zf5?view=preview"
+<iframe src="https://codesandbox.io/s/handsontable-fluent-ui-recipe-z89zf5?view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
      title="Handsontable with Fluent UI recipe"
      allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
      sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-   ></iframe>](https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?embed=1&file=src%2Fstyles.css&view=preview)
+   ></iframe>
 
 [**Open in stackblitz.com**](https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?)
 
