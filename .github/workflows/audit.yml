@@ -18,60 +18,10 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: NPM audit
+      - name: PNPM audit
         run: |
-          # pnpm audit uses retired npm registry endpoints (HTTP 410).
-          # pnpm 11 RC was investigated but cannot read the project's pnpm 10
-          # lockfile (lockfileVersion 9 vs 10 incompatibility).
-          #
-          # Use npm audit instead — Node 22 ships with npm 10.x which uses the
-          # new bulk advisory endpoint. npm requires a lockfile and fails inside
-          # the pnpm workspace (npm walks up and chokes on Angular peer-dep
-          # conflicts), so run in an isolated temp dir with a synthetic
-          # package.json merging all workspace production deps.
-          TMP=$(mktemp -d)
-          trap "rm -rf $TMP" EXIT
-
-          node -e "
-            const fs = require('fs');
-            const pkgs = [
-              'handsontable/package.json',
-              'wrappers/react-wrapper/package.json',
-              'wrappers/vue3/package.json',
-              'wrappers/angular-wrapper/package.json',
-            ];
-            const deps = {};
-            const optDeps = {};
-            for (const p of pkgs) {
-              const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-              Object.assign(deps, pkg.dependencies || {});
-              Object.assign(optDeps, pkg.optionalDependencies || {});
-            }
-            fs.writeFileSync('$TMP/package.json', JSON.stringify({
-              name: 'audit-target', version: '1.0.0',
-              dependencies: deps,
-              optionalDependencies: optDeps,
-            }));
-          "
-
-          cd $TMP
-          npm install --package-lock-only --ignore-scripts --no-fund
-
-          # Replicates pnpm's --ignore-unfixable: only fail if fixable
-          # vulnerabilities exist.
-          AUDIT_EXIT=0
-          npm audit --omit=dev 2>&1 || AUDIT_EXIT=$?
-          if [ $AUDIT_EXIT -ne 0 ]; then
-            npm audit --omit=dev --json 2>/dev/null | node -e "
-              let d = '';
-              process.stdin.on('data', c => d += c);
-              process.stdin.on('end', () => {
-                try {
-                  const a = JSON.parse(d);
-                  const fixable = Object.values(a.vulnerabilities || {})
-                    .some(v => v.fixAvailable !== false);
-                  process.exit(fixable ? 1 : 0);
-                } catch(e) { process.exit(1); }
-              });
-            "
-          fi
+          npm install -g pnpm@11.0.0-rc.0
+          npm pkg set packageManager=pnpm@11.0.0-rc.0
+          rm pnpm-lock.yaml
+          pnpm install --lockfile-only --ignore-scripts
+          pnpm audit --prod --ignore-unfixable
