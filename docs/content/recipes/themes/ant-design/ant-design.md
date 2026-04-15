@@ -57,7 +57,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Ant 
 In your project root:
 
 ```bash
-npm install handsontable@0.0.0-next-deba76c-20260408 @handsontable/react-wrapper@0.0.0-next-deba76c-20260408 antd
+npm install handsontable @handsontable/react-wrapper antd
 ```
 
 (or `npm install` / `yarn add`).
@@ -70,18 +70,20 @@ Create a shared theme module, and register all Handsontable modules.
 import { registerAllModules } from 'handsontable/registry';
 import { registerTheme } from 'handsontable/themes';
 import colorsAnt from 'handsontable/themes/static/variables/colors/ant';
-import iconsHorizon from 'handsontable/themes/static/variables/icons/horizon';
-import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
+import iconsMain from 'handsontable/themes/static/variables/icons/main';
+import tokensMain from 'handsontable/themes/static/variables/tokens/main';
 
 registerAllModules();
 
 export const antDataGridTheme = registerTheme('ant-data-grid', {
-  icons: iconsHorizon,
+  icons: iconsMain,
   colors: colorsAnt,
-  tokens: tokensHorizon,
+  tokens: tokensMain,
 }).params({
   tokens: {
     wrapperBorderRadius: '8px',
+    wrapperBorderWidth: '1px',
+    wrapperBorderColor: 'tokens.borderColor',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
 });
@@ -112,12 +114,23 @@ export function useAntHandsontableTheme() {
     },
     tokens: {
       backgroundColor: token.colorBgContainer,
+      backgroundSecondaryColor: token.colorFillAlter,
       foregroundColor: token.colorText,
       borderColor: token.colorBorder,
       accentColor: token.colorPrimary,
-      wrapperBorderRadius: `${token.borderRadius}px`,
+      headerBackgroundColor: token.colorFillAlter,
+      headerForegroundColor: token.colorTextHeading,
+      cellHorizontalBorderColor: token.colorBorderSecondary,
+      cellVerticalBorderColor: token.colorBorderSecondary,
+      rowCellOddBackgroundColor: token.colorBgContainer,
+      rowCellEvenBackgroundColor: token.colorBgContainer,
+      rowHeaderOddBackgroundColor: token.colorBgContainer,
+      rowHeaderEvenBackgroundColor: token.colorBgContainer,
+      wrapperBorderRadius: `${token.borderRadiusLG}px`,
+      wrapperBorderWidth: '1px',
       fontFamily: token.fontFamily,
       fontSize: `${token.fontSize}px`,
+      headerFontWeight: `${token.fontWeightStrong}`,
     },
   });
 }
