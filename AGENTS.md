@@ -182,6 +182,7 @@ Every code change **must** satisfy all of the following:
 - Release branches: `release/x.y.z`
 - LTS branches: `lts/[major].x`
 - **Never force-push** to `master`, `develop`, or PR-bound branches.
+- **Never commit directly to `develop` or `master`.** Always create a feature branch and open a PR. This applies to all changes, including skills, docs, and config files.
 - **SemVer**: Even-numbered majors (16, 18, 20) become LTS. No more than 4 major releases per year.
 - All PRs target **develop**. Cherry-picks to release/lts handled separately by maintainers.
 
@@ -243,6 +244,7 @@ Every code change **must** satisfy all of the following:
 - **Filters plugin visual/physical column index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
 - For hook signature/behavior fixes, add both a runtime regression and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` -- warnings about ignored build scripts (e.g., `less`) are expected.
+- **Never use raw `setTimeout` in core code.** Use `this.hot._registerTimeout(fn, delay)` instead -- it auto-clears all registered timeouts on `hot.destroy()`, preventing memory leaks and stale callbacks after the instance is destroyed.
 
 ---
 

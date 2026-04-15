@@ -135,8 +135,14 @@ Create the DOM structure with emoji buttons, this function will be called only o
 init(editor) {
   editor.input = document.createElement('DIV') as HTMLDivElement;
   editor.input.classList.add('feedback-editor');
+  editor._openedAt = 0;
 
   editor.input.addEventListener('click', (event) => {
+    // Ignore synthetic click events that Android fires right after the editor
+    // opens — they land on the button that just appeared at the touch position.
+    if (Date.now() - editor._openedAt < 300) {
+      return;
+    }
     if (event.target instanceof HTMLButtonElement) {
       editor.setValue(event.target.innerText);
       editor.finishEditing();
@@ -297,13 +303,20 @@ const cellDefinition = {
     init: (editor) => {
       editor.input = document.createElement('DIV') as HTMLDivElement;
       editor.input.classList.add('feedback-editor');
+      editor._openedAt = 0;
       editor.input.addEventListener('click', (event) => {
+        if (Date.now() - editor._openedAt < 300) {
+          return;
+        }
         if (event.target instanceof HTMLButtonElement) {
           editor.setValue(event.target.innerText);
           editor.finishEditing();
         }
       });
       editor.render(editor);
+    },
+    afterOpen: (editor) => {
+      editor._openedAt = Date.now();
     },
     beforeOpen: (editor, { originalValue, cellProperties }) => {
       editor.setValue(originalValue);
