@@ -15,6 +15,10 @@ jobs:
 
       - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
         name: Install pnpm
+        with:
+          # pnpm <=10 audit uses retired npm endpoints; 11 RC fixes this.
+          # Pin to the RC only for this audit job so the rest of CI is unaffected.
+          version: 11.0.0-rc.0
 
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
@@ -26,50 +30,6 @@ jobs:
         run: |
           pnpm install
 
-      - name: NPM audit
+      - name: PNPM audit
         run: |
-          # pnpm audit calls retired npm endpoints. npm audit uses the new bulk
-          # advisory endpoint but requires a lockfile and fails when run inside a
-          # pnpm workspace (npm walks up to the workspace root and chokes on
-          # Angular peer-dep conflicts). Work around both issues by building a
-          # synthetic package.json from all workspace production deps in an
-          # isolated temp directory, then auditing that.
-          TMP=$(mktemp -d)
-          trap "rm -rf $TMP" EXIT
-
-          # Collect production dependencies from every workspace package.
-          node -e "
-            const fs = require('fs');
-            const pkgs = [
-              'handsontable/package.json',
-              'wrappers/react-wrapper/package.json',
-              'wrappers/vue3/package.json',
-              'wrappers/angular-wrapper/package.json',
-            ];
-            const deps = {};
-            for (const p of pkgs) {
-              Object.assign(deps, JSON.parse(fs.readFileSync(p, 'utf8')).dependencies || {});
-            }
-            fs.writeFileSync('$TMP/package.json', JSON.stringify({ name: 'audit-target', version: '1.0.0', dependencies: deps }));
-          "
-
-          cd $TMP
-          npm install --package-lock-only --ignore-scripts --no-fund
-
-          # Replicates --ignore-unfixable: only fail if fixable vulnerabilities exist.
-          AUDIT_EXIT=0
-          npm audit --omit=dev 2>&1 || AUDIT_EXIT=$?
-          if [ $AUDIT_EXIT -ne 0 ]; then
-            npm audit --omit=dev --json 2>/dev/null | node -e "
-              let d = '';
-              process.stdin.on('data', c => d += c);
-              process.stdin.on('end', () => {
-                try {
-                  const a = JSON.parse(d);
-                  const fixable = Object.values(a.vulnerabilities || {})
-                    .some(v => v.fixAvailable !== false);
-                  process.exit(fixable ? 1 : 0);
-                } catch(e) { process.exit(1); }
-              });
-            "
-          fi
+          pnpm audit --prod --ignore-unfixable
