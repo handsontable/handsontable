@@ -19,5 +19,5 @@ import Default from '@astrojs/starlight/components/MarkdownContent.astro';
 ---
 
 <div class="content__default">
-  <Default {...Astro.props} />
+  <Default {...Astro.props}><slot /></Default>
 </div>
