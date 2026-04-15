@@ -659,7 +659,7 @@ export class DataProvider extends BasePlugin {
               notificationPlugin.hide(toastId);
             }
 
-           this.fetchData();
+            this.fetchData();
           },
         },
       ];
