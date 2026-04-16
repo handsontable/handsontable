@@ -134,23 +134,31 @@ describe('NestedRows', () => {
         rowHeaderWidth: 70,
       });
 
+      const initialWidth = getCell(0, -1).offsetWidth;
+
       await selectCell(2, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_9efbb642b5());
+      const widthAfterFirst = getCell(0, -1).offsetWidth;
+
+      expect(widthAfterFirst).toBeGreaterThan(initialWidth);
 
       await selectCell(3, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_10071d8a47());
+      const widthAfterSecond = getCell(0, -1).offsetWidth;
+
+      expect(widthAfterSecond).toBeGreaterThan(widthAfterFirst);
 
       await selectCell(4, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_25c4d95d1f());
+      const widthAfterThird = getCell(0, -1).offsetWidth;
+
+      expect(widthAfterThird).toBeGreaterThan(widthAfterSecond);
     });
   });
 

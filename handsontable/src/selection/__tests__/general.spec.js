@@ -921,6 +921,7 @@ describe('Selection', () => {
       handsontable({
         startRows: 21,
         startCols: 30,
+        height: (getDefaultRowHeight() * 21) + getDefaultColumnHeaderHeight(),
         selectionMode: 'multiple',
         afterSelection: hooks.afterSelection,
         afterSelectionEnd: hooks.afterSelectionEnd,
@@ -1075,6 +1076,7 @@ describe('Selection', () => {
 
       handsontable({
         data: createSpreadsheetObjectData(21, 30),
+        height: (getDefaultRowHeight() * 21) + getDefaultColumnHeaderHeight(),
         selectionMode: 'multiple',
         afterSelectionByProp: hooks.afterSelection,
         afterSelectionEndByProp: hooks.afterSelectionEnd,
