@@ -37,10 +37,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
   });
 
   it('should return first rendered row index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

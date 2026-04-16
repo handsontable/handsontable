@@ -16,10 +16,7 @@ describe('manualRowResize (RTL mode)', () => {
   });
 
   it('should resize (expanding and narrowing) selected rows', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

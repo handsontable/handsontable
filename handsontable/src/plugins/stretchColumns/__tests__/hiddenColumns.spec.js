@@ -11,10 +11,7 @@ describe('StretchColumns cooperation with hidden columns', () => {
   });
 
   it('should stretch only visible columns (ignore hidden ones)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

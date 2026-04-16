@@ -255,10 +255,7 @@ describe('Row header selection scroll', () => {
   });
 
   it('should scroll the viewport to the focused cell when the selection is higher than table\'s viewport (last to first)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

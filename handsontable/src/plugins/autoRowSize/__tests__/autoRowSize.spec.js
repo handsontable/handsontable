@@ -282,10 +282,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should sync inline start overlay with the main table after updating the last cell with new value (#7102)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -441,10 +438,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column resize', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -684,10 +678,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -757,10 +748,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (dev-2512)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -785,10 +773,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

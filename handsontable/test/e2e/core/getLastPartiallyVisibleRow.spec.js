@@ -11,10 +11,7 @@ describe('Core.getLastPartiallyVisibleRow', () => {
   });
 
   it('should return last partially visible row index', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -27,10 +24,7 @@ describe('Core.getLastPartiallyVisibleRow', () => {
   });
 
   it('should return last partially visible and not hidden row index', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -49,10 +43,7 @@ describe('Core.getLastPartiallyVisibleRow', () => {
   });
 
   it('should return last partially visible row index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

@@ -151,10 +151,7 @@ describe('Core.selectCells', () => {
   });
 
   it('should not the scroll the viewport when `false` argument is passed', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

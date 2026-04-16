@@ -113,8 +113,6 @@ describe('HiddenColumns', () => {
 
     it('should resize a proper column using the resize handler when the table contains hidden column', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

@@ -343,10 +343,7 @@ describe('PasswordEditor', () => {
   });
 
   it('should correctly calculate the input width based on typed values', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

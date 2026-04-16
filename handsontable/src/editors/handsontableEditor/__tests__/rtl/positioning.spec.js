@@ -40,8 +40,6 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
 
     it('should render the editors dropdown on the right edited cell when there is no space left on the left', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

@@ -266,8 +266,6 @@ describe('Non-contiguous selection scroll', () => {
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

@@ -37,10 +37,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
   });
 
   it('should return first partially visible row index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

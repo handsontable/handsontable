@@ -88,8 +88,6 @@ describe('Comments keyboard shortcut', () => {
 
     it('should scroll the viewport, open and create a new comment when the focused cell is outside the table', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

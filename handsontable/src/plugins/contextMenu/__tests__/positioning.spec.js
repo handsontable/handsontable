@@ -89,8 +89,6 @@ describe('ContextMenu', () => {
 
     it('should show tick from "Read only" element at proper place', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

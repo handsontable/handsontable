@@ -71,10 +71,8 @@ describe('DropdownMenu', () => {
       it('should open dropdown menu on the right-top position if on the left ' +
         'and bottom there is no space left', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         const rowDivisor = 29;
 
@@ -104,10 +102,8 @@ describe('DropdownMenu', () => {
       it('should open dropdown menu on the right-top position if on the left ' +
         'and bottom there is no space left (including offset)', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         const rowDivisor = 29;
 
@@ -195,10 +191,8 @@ describe('DropdownMenu', () => {
       it('should open dropdown menu on the left-top position if on the right and' +
         ' bottom there is no space left', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         const layout = getThemeLayout();
         const rowDivisor = 29;
@@ -234,10 +228,8 @@ describe('DropdownMenu', () => {
       it('should open dropdown menu on the left-top position if on the right ' +
         'and bottom there is no space left (including offset)', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         const layout = getThemeLayout();
         const rowDivisor = 29;

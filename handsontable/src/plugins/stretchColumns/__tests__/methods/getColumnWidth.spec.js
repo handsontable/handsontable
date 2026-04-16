@@ -25,8 +25,6 @@ describe('StretchColumns', () => {
 
     it('should return correct column widths when stretching "all" is enabled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -46,8 +44,6 @@ describe('StretchColumns', () => {
 
     it('should return correct column widths when stretching "last" is enabled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

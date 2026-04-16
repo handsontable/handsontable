@@ -1635,8 +1635,6 @@ describe('CollapsibleColumns', () => {
 
     it('should maintain the collapse functionality, when the table has been scrolled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1852,8 +1850,6 @@ describe('CollapsibleColumns', () => {
 
     it('should calculate the column width on the longest cell value, not the header text size (#dev-2151)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -2587,8 +2583,6 @@ describe('CollapsibleColumns', () => {
 
     it('should maintain the expand functionality, when the table has been scrolled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

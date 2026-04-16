@@ -348,10 +348,7 @@ describe('Core_view', () => {
   });
 
   it('should scroll the viewport vertically from the row header navigation', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -382,10 +379,7 @@ describe('Core_view', () => {
 
   it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the cell from the column header', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -411,10 +405,7 @@ describe('Core_view', () => {
 
   it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the row header from the corner', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -479,10 +470,7 @@ describe('Core_view', () => {
   });
 
   it('should fire beforeViewRender event after table has been scrolled', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     spec().$container[0].style.width = '400px';
@@ -572,10 +560,7 @@ describe('Core_view', () => {
 
   it('should not extend the selection to the cell under the mouse pointer after ' +
     'the viewport is moved (#dev-1479)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

@@ -31,10 +31,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for top overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -59,10 +57,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -87,10 +83,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for top overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -121,10 +115,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
           // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
@@ -165,10 +157,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for top-left corner overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -194,10 +184,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -223,10 +211,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for top-left corner overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -258,10 +244,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -297,10 +281,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for left overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -325,10 +307,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -353,10 +333,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for left overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -387,10 +365,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -425,10 +401,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for bottom-left corner overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -454,10 +428,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -483,10 +455,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for bottom-left corner overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -518,10 +488,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -557,10 +525,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for bottom overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -585,10 +551,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -613,10 +577,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
       describe('for bottom overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           handsontable({
             layoutDirection,
@@ -647,10 +609,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
         it('and the scrollable element is the Window object', async() => {
           if (getLoadedTheme() !== 'main') {
-            pending();
-
-            return;
-          }
+        return;
+      }
 
           // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
           // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.

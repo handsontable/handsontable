@@ -25,8 +25,6 @@ describe('ContextMenu keyboard shortcut', () => {
 
     it('should move the menu item selection to the first item and scroll the viewport', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

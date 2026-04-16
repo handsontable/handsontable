@@ -14,8 +14,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     it('should move the menu item selection to the first item that is visible in the browser viewport ' +
        'when there is no initial selection', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

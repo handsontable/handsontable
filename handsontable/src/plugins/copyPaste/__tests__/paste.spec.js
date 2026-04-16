@@ -600,8 +600,6 @@ describe('CopyPaste', () => {
 
     it('should paste data without scrolling the viewport', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

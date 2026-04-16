@@ -344,10 +344,7 @@ describe('MergeCells Selection', () => {
 
   it('should keep the highlight (area selection) on the virtualized merged cell ' +
     'after vertical scroll', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
 
@@ -383,10 +380,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep focus selection on the wide virtualized merged cell that intersects the left overlay', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -437,10 +431,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep area selection on the wide virtualized merged cell that intersects the left overlay', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -471,10 +462,7 @@ describe('MergeCells Selection', () => {
 
   it('should keep focus selection on the high virtualized merged cell that ' +
     'intersects the top overlay', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
 
@@ -552,10 +540,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep area selection on the high virtualized merged cell that intersects the top overlay', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

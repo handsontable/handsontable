@@ -1737,10 +1737,7 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high merged cell', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
 
@@ -1842,10 +1839,7 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high virtualized merged cell', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
 

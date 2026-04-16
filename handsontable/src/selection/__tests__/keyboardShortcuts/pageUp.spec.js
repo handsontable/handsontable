@@ -28,8 +28,6 @@ describe('Selection navigation', () => {
   describe('"PageUp"', () => {
     it('should move the cell selection up by the height of the table viewport', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -197,8 +195,6 @@ describe('Selection navigation', () => {
     it('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

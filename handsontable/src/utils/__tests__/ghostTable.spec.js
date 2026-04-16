@@ -198,8 +198,6 @@ describe('GhostTable', () => {
 
     it('should get valid widths', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

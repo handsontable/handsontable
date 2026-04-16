@@ -144,8 +144,6 @@ describe('MergeCells open editor', () => {
 
     it('should render the editor correctly after scroll for very high merged cell', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

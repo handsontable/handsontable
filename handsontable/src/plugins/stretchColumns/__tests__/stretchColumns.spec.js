@@ -22,10 +22,7 @@ describe('StretchColumns', () => {
   });
 
   it('should be possible to change the stretch strategy via `updateSettings`', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -79,10 +76,7 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns after table size change', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -109,10 +103,7 @@ describe('StretchColumns', () => {
 
   it(`should correctly stretch columns after vertical scroll appears
  (defined table size)`, async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     const layout = getThemeLayout();
@@ -235,10 +226,7 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns when there are some rows with multi-line text', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     const data = createSpreadsheetData(5, 2);
@@ -352,10 +340,7 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch the column after changing the cell value (#dev-1727)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     const data = createSpreadsheetData(1, 5);

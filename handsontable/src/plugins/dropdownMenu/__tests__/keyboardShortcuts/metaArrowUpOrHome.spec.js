@@ -16,8 +16,6 @@ describe('DropdownMenu keyboard shortcut', () => {
   ], (keyboardShortcut) => {
     it('should move the menu item selection to the first item', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

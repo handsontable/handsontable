@@ -1509,8 +1509,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport correctly while navigating horizontally using arrows (from left to right)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

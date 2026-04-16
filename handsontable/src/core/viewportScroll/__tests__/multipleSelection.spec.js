@@ -405,8 +405,6 @@ describe('Multiple selection scroll', () => {
 
     it('should not scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -453,8 +451,6 @@ describe('Multiple selection scroll', () => {
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

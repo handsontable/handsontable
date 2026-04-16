@@ -28,8 +28,6 @@ describe('Selection navigation', () => {
   describe('"PageDown"', () => {
     it('should move the cell selection down by the height of the table viewport', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

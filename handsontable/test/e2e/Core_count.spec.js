@@ -13,8 +13,6 @@ describe('Core_count', () => {
   describe('countVisibleRows', () => {
     it('should return number of visible rows', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -41,8 +39,6 @@ describe('Core_count', () => {
   describe('countRenderedRows', () => {
     it('should return number of rendered rows', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -58,8 +54,6 @@ describe('Core_count', () => {
     it('should return number of rendered rows, including rows rendered ' +
       'because of viewportRowRenderingOffset', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

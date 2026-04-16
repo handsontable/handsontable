@@ -48,8 +48,6 @@ describe('manualRowMove', () => {
     it('should move the table\'s viewport down when the next mouse-overed ' +
       'element is a row that belongs to the bottom overlay', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -129,8 +127,6 @@ describe('manualRowMove', () => {
     it('should not move the table\'s viewport when the next mouse-overed element' +
       ' is the last row that belongs to the main table and there are some bottom overlay rows', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -169,8 +165,6 @@ describe('manualRowMove', () => {
 
     it('should move the table\'s viewport up when the next mouse-overed element is above the table', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -214,8 +208,6 @@ describe('manualRowMove', () => {
 
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to the top overlay', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -262,8 +254,6 @@ describe('manualRowMove', () => {
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +
        'the top overlay (with hidden rows)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

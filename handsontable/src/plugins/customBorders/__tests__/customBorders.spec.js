@@ -1134,8 +1134,6 @@ describe('CustomBorders', () => {
 
     it('should render borders only for rendered rows', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1156,8 +1154,6 @@ describe('CustomBorders', () => {
 
     it('should render borders only for rendered rows, after scrolling', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

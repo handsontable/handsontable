@@ -11,10 +11,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
   });
 
   it('should follow the columns order when they are moved', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

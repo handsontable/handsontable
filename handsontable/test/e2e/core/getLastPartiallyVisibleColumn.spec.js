@@ -37,10 +37,7 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
   });
 
   it('should return last partially visible column index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

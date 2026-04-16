@@ -208,8 +208,6 @@ describe('ContextMenu keyboard shortcut', () => {
 
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

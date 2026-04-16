@@ -76,8 +76,6 @@ describe('HiddenColumns', () => {
 
     it('should return proper values from the `getColWidth` function (when indicator is enabled)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -104,8 +102,6 @@ describe('HiddenColumns', () => {
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

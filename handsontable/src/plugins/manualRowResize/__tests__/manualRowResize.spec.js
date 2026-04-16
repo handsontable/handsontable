@@ -386,10 +386,7 @@ describe('manualRowResize', () => {
   });
 
   it('should autosize row after double click (when initial height is not defined)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -1213,8 +1210,6 @@ describe('manualRowResize', () => {
     it('should be able to get the last desired row height from the ' +
       '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1255,8 +1250,6 @@ describe('manualRowResize', () => {
     it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
       'after autoRowSize initialization', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

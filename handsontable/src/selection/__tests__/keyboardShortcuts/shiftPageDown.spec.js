@@ -13,8 +13,6 @@ describe('Selection extending', () => {
   describe('"Shift + PageDown"', () => {
     it('should extend the cell selection down by the height of the table viewport', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

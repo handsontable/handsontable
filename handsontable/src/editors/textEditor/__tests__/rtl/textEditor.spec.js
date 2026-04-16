@@ -78,8 +78,6 @@ describe('TextEditor (RTL mode)', () => {
 
     it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -207,8 +205,6 @@ describe('TextEditor (RTL mode)', () => {
     it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays ' +
       'and the first row of each overlay is hidden', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

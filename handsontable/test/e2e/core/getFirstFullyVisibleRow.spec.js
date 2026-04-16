@@ -37,10 +37,7 @@ describe('Core.getFirstFullyVisibleRow', () => {
   });
 
   it('should return first fully visible row index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

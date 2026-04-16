@@ -37,10 +37,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
   });
 
   it('should return last fully visible column index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

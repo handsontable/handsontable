@@ -32,10 +32,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for top overlay when viewport is scrolled to the top-right edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -62,10 +60,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -92,10 +88,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for top overlay when viewport is scrolled to the bottom-left edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -121,10 +115,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
             // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
@@ -167,10 +159,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for top-right corner overlay when viewport is scrolled to the top-right edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -198,10 +188,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -229,10 +217,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for top-right corner overlay when viewport is scrolled to the bottom-left edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -264,10 +250,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -304,10 +288,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for right overlay when viewport is scrolled to the top-right edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -334,10 +316,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -364,10 +344,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for right overlay when viewport is scrolled to the bottom-left edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -399,10 +377,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -439,10 +415,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for bottom-right corner overlay when viewport is scrolled to the top-right edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -469,10 +443,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -499,10 +471,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for bottom-right corner overlay when viewport is scrolled to the bottom-left edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -534,10 +504,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -574,10 +542,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for bottom overlay when viewport is scrolled to the top-right edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -603,10 +569,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -632,10 +596,8 @@ describe('BaseEditor API (RTL mode)', () => {
         describe('for bottom overlay when viewport is scrolled to the bottom-left edge', () => {
           it('and the scrollable element is not the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             handsontable({
               layoutDirection,
@@ -667,10 +629,8 @@ describe('BaseEditor API (RTL mode)', () => {
 
           it('and the scrollable element is the Window object', async() => {
             if (getLoadedTheme() !== 'main') {
-              pending();
-
-              return;
-            }
+        return;
+      }
 
             // For this configuration object "{ htmlDir: 'ltr', layoutDirection: 'rtl' }" it's necessary to force
             // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.

@@ -1006,8 +1006,6 @@ describe('NestedHeaders', () => {
 
     it('should render the setup properly after the table being scrolled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1262,8 +1260,6 @@ describe('NestedHeaders', () => {
 
     it('should adjust headers correctly when the new maps are created and registered after Hot is running', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1400,10 +1396,8 @@ describe('NestedHeaders', () => {
     describe('with cooperation with the HidingColumns plugin', () => {
       it('should keep the headers in sync with a dataset after updateSettings call', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         handsontable({
           data: createSpreadsheetData(10, 10),

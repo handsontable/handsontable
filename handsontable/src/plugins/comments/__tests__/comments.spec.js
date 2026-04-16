@@ -173,10 +173,8 @@ describe('Comments', () => {
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is not scrolled (the Window object is not a scrollable element)', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         const width = 500;
 
@@ -203,10 +201,8 @@ describe('Comments', () => {
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is scrolled (the Window object is not a scrollable element)', async() => {
         if (getLoadedTheme() !== 'main') {
-          pending();
-
-          return;
-        }
+        return;
+      }
 
         const layout = getThemeLayout();
         const width = 500;

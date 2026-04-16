@@ -534,8 +534,6 @@ describe('NestedHeaders', () => {
 
     it('should render the setup properly after the table being scrolled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

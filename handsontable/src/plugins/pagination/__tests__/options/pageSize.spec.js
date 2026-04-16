@@ -439,8 +439,6 @@ describe('Pagination `pageSize` option', () => {
 
     it('should render elements after changing the value from "auto" to a number and vice versa (table without defined size)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -482,8 +480,6 @@ describe('Pagination `pageSize` option', () => {
 
     it('should render elements after changing the window height (table without defined size)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -535,8 +531,6 @@ describe('Pagination `pageSize` option', () => {
 
     it('should render elements after changing the row heights (table without defined size)', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -611,8 +605,6 @@ describe('Pagination `pageSize` option', () => {
 
     it('should correctly calculate all pages when rows are rendered with different height', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

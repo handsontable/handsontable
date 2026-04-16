@@ -34,10 +34,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should update column width after update value in cell (array of objects)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -64,10 +61,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column widths with colHeaders', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -84,10 +78,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -109,10 +100,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a string', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -134,10 +122,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a function', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -180,10 +165,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column width with columns.title', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -198,10 +180,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column widths after update columns.title', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -222,10 +201,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     spec().$container.css('display', 'none');
@@ -247,10 +223,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should not change the column width after toggling the state of the checkbox cell type', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -285,10 +258,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should not wrap the cell values when the whole column has values with the same length', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -594,10 +564,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should not change width after select/click cell', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -662,10 +629,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep proper column widths after inserting column', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -706,10 +670,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep proper column widths after removing column', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -730,10 +691,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep appropriate column size when columns order is changed', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -755,10 +713,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -780,10 +735,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -809,8 +761,6 @@ describe('AutoColumnSize', () => {
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
     it('when removing single column', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -869,8 +819,6 @@ describe('AutoColumnSize', () => {
 
     it('when inserting single column', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -960,8 +908,6 @@ describe('AutoColumnSize', () => {
 
     it('when removing all rows', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -992,8 +938,6 @@ describe('AutoColumnSize', () => {
   describe('should cooperate with the HiddenColumns plugin properly', () => {
     it('should display proper sizes for columns', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1038,8 +982,6 @@ describe('AutoColumnSize', () => {
   describe('allowSampleDuplicates', () => {
     it('should add duplicated values', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1065,8 +1007,6 @@ describe('AutoColumnSize', () => {
   describe('modifyAutoColumnSizeSeed', () => {
     it('should overwrite native seed generation', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1124,8 +1064,6 @@ describe('AutoColumnSize', () => {
 
     it('should increase width if result become to be longer', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1151,8 +1089,6 @@ describe('AutoColumnSize', () => {
 
     it('should decrease width if result become to be shorter', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -1178,8 +1114,6 @@ describe('AutoColumnSize', () => {
 
     it('should change width if result become to be an error', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

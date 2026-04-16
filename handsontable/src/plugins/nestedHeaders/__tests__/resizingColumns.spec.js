@@ -15,8 +15,6 @@ describe('NestedHeaders', () => {
   describe('resizing columns', () => {
     it('should be possible to resize a column manually when both `manualColumnResize` and `nestedHeaders` plugins are enabled', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

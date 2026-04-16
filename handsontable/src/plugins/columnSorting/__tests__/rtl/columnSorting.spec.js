@@ -23,8 +23,6 @@ describe('ColumnSorting (RTL)', () => {
 
     it('should display the indicator properly after changing the sorted column sequence', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

@@ -2115,10 +2115,7 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   it('should display properly high merged cell containing hidden columns', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
 
@@ -2217,10 +2214,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
   it('should display properly high merged cell containing ' +
     'hidden columns (virtualized)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
@@ -2289,8 +2283,6 @@ describe('MergeCells cooperation with hidden rows', () => {
   describe('Hooks', () => {
     it('should trigger the `beforeOnCellMouseDown` hook with proper coords', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -2326,8 +2318,6 @@ describe('MergeCells cooperation with hidden rows', () => {
 
     it('should trigger the `afterOnCellMouseDown` hook with proper coords', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

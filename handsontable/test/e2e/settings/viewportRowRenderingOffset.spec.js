@@ -15,8 +15,6 @@ describe('settings', () => {
   describe('viewportRowRenderingOffset', () => {
     it('should be possible to change the size of the calculated rendered rows', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

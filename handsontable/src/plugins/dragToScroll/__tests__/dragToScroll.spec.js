@@ -217,8 +217,6 @@ describe('DragToScroll', () => {
     it('should not scroll the table to the right, when dragging the selection ' +
       'in that direction inside the table', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -438,8 +436,6 @@ describe('DragToScroll', () => {
     it('should move the table\'s viewport upwards when the next mouse-overed element is above' +
       ' of the table', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -485,8 +481,6 @@ describe('DragToScroll', () => {
     it('should move the table\'s viewport upwards when the next mouse-overed element is a row ' +
       'that belongs to the top overlay', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

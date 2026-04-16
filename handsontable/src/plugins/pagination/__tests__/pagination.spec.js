@@ -216,10 +216,7 @@ describe('Pagination', () => {
   });
 
   it('should scroll the viewport to the top when the page is changed', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

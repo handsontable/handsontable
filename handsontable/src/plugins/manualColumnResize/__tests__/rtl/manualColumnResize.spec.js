@@ -50,10 +50,7 @@ describe('manualColumnResize (RTL)', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

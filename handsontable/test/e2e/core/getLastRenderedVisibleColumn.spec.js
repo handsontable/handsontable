@@ -37,10 +37,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
   });
 
   it('should return last rendered column index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({

@@ -13,8 +13,6 @@ describe('Selection extending', () => {
   describe('"Shift + PageUp"', () => {
     it('should extend the cell selection up by the height of the table viewport', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 
@@ -294,8 +292,6 @@ describe('Selection extending', () => {
     it('should scroll the viewport repeatedly by the same number of pixels with ' +
       'keeping the initial selection viewport offset', async() => {
       if (getLoadedTheme() !== 'main') {
-        pending();
-
         return;
       }
 

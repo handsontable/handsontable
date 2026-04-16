@@ -11,10 +11,7 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should re-stretch all columns after adding a new column', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -41,10 +38,7 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should re-stretch all columns after removing a column', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
@@ -79,10 +73,7 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should stop stretching the columns when the sum of columns widths is wider than the viewport', async() => {
-    if (getLoadedTheme() !== 'main') {
-      pending();
-
-      return;
+    if (getLoadedTheme() !== 'main') {      return;
     }
 
     handsontable({
