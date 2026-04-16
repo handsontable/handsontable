@@ -3112,19 +3112,39 @@ export default () => {
     /**
      * The `height` option configures the height of your grid.
      *
-     * You can set `height` option to one of the following:
+     * You can set the `height` option to one of the following:
      *
      * | Setting                                                                    | Example                    |
      * | -------------------------------------------------------------------------- | -------------------------- |
      * | A number of pixels                                                         | `height: 500`              |
      * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`           |
+     * | `'auto'`                                                                   | `height: 'auto'`           |
      * | A function that returns a valid number or string                           | `height() { return 500; }` |
+     *
+     * ### How `'auto'` differs from leaving `height` unset
+     *
+     * When you set `height: 'auto'`, Handsontable writes `height: auto; overflow: clip;`
+     * as inline styles on the root element. The grid then grows to match its content height.
+     * No internal vertical scrollbar is created, so the page itself scrolls when the grid
+     * exceeds the viewport.
+     *
+     * When you leave `height` unset, Handsontable does not touch the root element's inline
+     * styles. Sizing is governed by your CSS, and the nearest ancestor with `overflow: auto`
+     * or `overflow: hidden` becomes the scroll parent. If no such ancestor exists, the window
+     * scrolls. See the [Grid size](@/guides/getting-started/grid-size/grid-size.md) guide for
+     * details.
+     *
+     * ::: tip
+     * With `height: 'auto'`, every row is laid out in the DOM at once. Row-level
+     * virtualization is effectively disabled. Avoid `'auto'` for large datasets and set a
+     * numeric `height` instead, so Handsontable can virtualize off-screen rows.
+     * :::
      *
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
      * @memberof Options#
-     * @type {number|string|Function}
+     * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
      *
@@ -3135,6 +3155,9 @@ export default () => {
      *
      * // set the grid's height to 75vh
      * height: '75vh',
+     *
+     * // let the grid grow to fit all its rows (no internal vertical scroll)
+     * height: 'auto',
      *
      * // set the grid's height to 500px, using a function
      * height() {
@@ -6537,7 +6560,13 @@ export default () => {
      * | -------------------------------------------------------------------------- | ------------------------- |
      * | A number of pixels                                                         | `width: 500`              |
      * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`           |
+     * | `'auto'`                                                                   | `width: 'auto'`           |
      * | A function that returns a valid number or string                           | `width() { return 500; }` |
+     *
+     * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
+     * element. The grid then follows the width of its parent container. Use this value when
+     * you want the grid to stay flexible horizontally while still setting an explicit
+     * [`height`](#height).
      *
      * ::: tip
      * For horizontal scrolling to work, you must also set the [`height`](#height) option in Handsontable's configuration.
@@ -6549,7 +6578,7 @@ export default () => {
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
      * @memberof Options#
-     * @type {number|string|Function}
+     * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
      *
@@ -6560,6 +6589,9 @@ export default () => {
      *
      * // set the grid's width to 75vw
      * width: '75vw',
+     *
+     * // let the grid follow its parent container's width
+     * width: 'auto',
      *
      * // set the grid's width to 500px, using a function
      * width() {
