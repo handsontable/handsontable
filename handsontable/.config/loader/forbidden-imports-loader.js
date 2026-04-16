@@ -13,23 +13,30 @@ module.exports = function forbiddenImportsLoader(source) {
   const allowedModules = options.allowedModules || [];
   const resourcePath = this.resourcePath;
 
-  // Match import declarations and require() calls
-  const importRegex = /(?:import\s+[\s\S]*?from\s+['"]([^'"]+)['"]|require\(\s*['"]([^'"]+)['"]\s*\))/g;
-  let match;
+  // Match side-effect imports: import 'module';
+  const sideEffectImportRegex = /import\s+['"]([^'"]+)['"]/g;
+  // Match named/default imports: import X from 'module'; import { X } from 'module';
+  const namedImportRegex = /import\s+[^'"]+\s+from\s+['"]([^'"]+)['"]/g;
+  // Match require() calls: require('module')
+  const requireRegex = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
 
-  while ((match = importRegex.exec(source)) !== null) { // eslint-disable-line no-cond-assign
-    const moduleName = match[1] || match[2];
+  [sideEffectImportRegex, namedImportRegex, requireRegex].forEach((regex) => {
+    let match;
 
-    if (!isAllowed(allowedModules, moduleName)) {
-      this.emitError(
-        new Error(
-          `Forbidden import: "${moduleName}" is not allowed in E2E test builds.\n`
-          + `  File: ${resourcePath}\n`
-          + `  Allowed modules: ${allowedModules.join(', ')}`
-        )
-      );
+    while ((match = regex.exec(source)) !== null) { // eslint-disable-line no-cond-assign
+      const moduleName = match[1];
+
+      if (!isAllowed(allowedModules, moduleName)) {
+        this.emitError(
+          new Error(
+            `Forbidden import: "${moduleName}" is not allowed in E2E test builds.\n`
+            + `  File: ${resourcePath}\n`
+            + `  Allowed modules: ${allowedModules.join(', ')}`
+          )
+        );
+      }
     }
-  }
+  });
 
   return source;
 };
@@ -37,13 +44,19 @@ module.exports = function forbiddenImportsLoader(source) {
 /**
  * Check if a module name matches any pattern in the allowlist.
  * Patterns support trailing '*' as a glob wildcard.
- * Local relative imports (starting with '.') that are not explicitly listed are always allowed.
+ * Local relative imports (starting with '.' or '..') are always allowed -- only external
+ * (non-relative) modules are checked against the allowlist.
  *
  * @param {string[]} patterns Array of allowed module patterns.
  * @param {string} moduleName The import path to check.
  * @returns {boolean} True if the import is allowed.
  */
 function isAllowed(patterns, moduleName) {
+  // Local relative imports are always allowed (resolved by the bundler)
+  if (moduleName.startsWith('.')) {
+    return true;
+  }
+
   return patterns.some((pattern) => {
     if (pattern.indexOf('*') > -1) {
       return moduleName.startsWith(pattern.split('*')[0]);

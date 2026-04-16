@@ -36,7 +36,7 @@ const srcDir = args.includes('--src-dir')
   : resolve(ROOT, 'src');
 const langRegistration = args.includes('--lang-registration');
 
-const IGNORE_PATTERNS = [/__tests__/, /\/test\//, /\/dist\//];
+const IGNORE_PATTERNS = [/__tests__/, /[/\\]test[/\\]/, /[/\\]dist[/\\]/];
 const CSS_IMPORT_RE =
   /^(?:import\s+['"][^'"]*\.(?:css|scss)['"];?\s*$)|(?:require\(['"][^'"]*\.(?:css|scss)['"]\);?\s*$)/gm;
 
