@@ -103,6 +103,7 @@ class Event {
         this.momentumScrolling = {};
       }
       this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => {
+        this.#cancelLongPressTimer();
         clearTimeout(this.momentumScrolling._timeout);
 
         if (!this.momentumScrolling.ongoing) {
