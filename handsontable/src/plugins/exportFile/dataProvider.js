@@ -26,6 +26,12 @@ class DataProvider {
    * @param {object} options Object with specified options.
    */
   setOptions(options) {
+    if (options && 'columnHeaders' in options && !('colHeaders' in options)) {
+      this.options = { ...options, colHeaders: options.columnHeaders };
+
+      return;
+    }
+
     this.options = options;
   }
 

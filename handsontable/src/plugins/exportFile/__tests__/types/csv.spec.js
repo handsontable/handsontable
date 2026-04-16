@@ -208,6 +208,19 @@ describe('exportFile CSV type', () => {
       expect('\ufeff"A","B"\r\nA1,B1\r\nA2,B2').toBe(csv);
     });
 
+    it('should export regarding to deprecated `columnHeaders` alias option', async() => {
+      handsontable({
+        data: data(2, 2),
+        height: 396,
+        colHeaders: true,
+        rowHeaders: true
+      });
+
+      const csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnHeaders: true }).export();
+
+      expect('\ufeff"A","B"\r\nA1,B1\r\nA2,B2').toBe(csv);
+    });
+
     // rowHeaders
     it('should export with `false` as the default rowHeaders', async() => {
       handsontable({
