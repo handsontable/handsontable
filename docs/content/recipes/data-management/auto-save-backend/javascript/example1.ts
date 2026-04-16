@@ -83,7 +83,11 @@ if (container instanceof HTMLElement) {
 
       changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
         if (oldValue !== newValue) {
-          dirtyRows.add(visualRow as number);
+          const physicalRow = hot.toPhysicalRow(visualRow as number);
+
+          if (physicalRow >= 0) {
+            dirtyRows.add(physicalRow);
+          }
         }
       });
 
@@ -92,15 +96,15 @@ if (container instanceof HTMLElement) {
       }
 
       saveTimeout = setTimeout(async () => {
-        const rowIndexes = Array.from(dirtyRows);
+        const physicalRows = Array.from(dirtyRows);
 
-        if (rowIndexes.length === 0) {
+        if (physicalRows.length === 0) {
           return;
         }
 
         const requestId = ++saveRequestCounter;
-        const rowsToSave = rowIndexes
-          .map((visualRow) => hot.getSourceDataAtRow(visualRow))
+        const rowsToSave = physicalRows
+          .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
           .filter((row): row is RowData => row !== undefined && row !== null);
 
         dirtyRows.clear();
@@ -113,7 +117,7 @@ if (container instanceof HTMLElement) {
             setSaveStatus('saved');
           }
         } catch (_error) {
-          rowIndexes.forEach((visualRow) => dirtyRows.add(visualRow));
+          physicalRows.forEach((physicalRow) => dirtyRows.add(physicalRow));
 
           if (requestId === saveRequestCounter) {
             setSaveStatus('error');

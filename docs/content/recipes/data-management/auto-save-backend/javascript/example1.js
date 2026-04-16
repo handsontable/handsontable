@@ -92,7 +92,8 @@ if (container instanceof HTMLElement) {
 
         const requestId = ++saveRequestCounter;
         const rowsToSave = rowIndexes
-          .map((visualRow) => hot.getSourceDataAtRow(visualRow))
+          .map((visualRow) => hot.toPhysicalRow(visualRow))
+          .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
           .filter((row) => row !== undefined && row !== null);
 
         dirtyRows.clear();

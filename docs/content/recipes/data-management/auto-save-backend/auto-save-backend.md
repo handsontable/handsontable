@@ -126,7 +126,7 @@ function queueSave() {
 
     const requestId = ++saveRequestCounter;
     const rowsToSave = rowIndexes
-      .map((visualRow) => hot.getSourceDataAtRow(visualRow))
+      .map((visualRow) => hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)))
       .filter((row): row is RowData => row !== undefined && row !== null);
 
     dirtyRows.clear();
@@ -262,7 +262,7 @@ if (container instanceof HTMLElement) {
 
         const requestId = ++saveRequestCounter;
         const rowsToSave = rowIndexes
-          .map((visualRow) => hot.getSourceDataAtRow(visualRow))
+          .map((visualRow) => hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)))
           .filter((row): row is RowData => row !== undefined && row !== null);
 
         dirtyRows.clear();
