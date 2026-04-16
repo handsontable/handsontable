@@ -15,6 +15,15 @@ export interface UpdateTicketDto extends Partial<CreateTicketDto> {
 }
 
 /**
+ * Monotonically incrementing counter for ID generation.
+ *
+ * Using a counter instead of Date.now() avoids duplicate IDs when
+ * onRowsCreate sends a batch of rows and the controller maps them
+ * synchronously -- all calls happen within the same millisecond.
+ */
+let nextId = ticketsStore.length + 1;
+
+/**
  * TicketsService encapsulates all data-access logic.
  *
  * This example uses an in-memory array (ticketsStore). To switch to TypeORM +
@@ -89,7 +98,7 @@ export class TicketsService {
 
   create(dto: CreateTicketDto): Ticket {
     const ticket: Ticket = {
-      id: String(Date.now()),
+      id: String(nextId++),
       subject: dto.subject,
       status: dto.status as Ticket['status'],
       priority: dto.priority as Ticket['priority'],
