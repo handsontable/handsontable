@@ -1,419 +1,335 @@
+import { mainTheme } from '../../../src/themes/theme';
+import * as themeModules from '../../../src/themes/theme';
+import sizing from '../../../src/themes/static/variables/sizing';
+import density from '../../../src/themes/static/variables/density';
 import { E2E_REGISTERED_THEME_KEYS } from '../themeLayoutCore';
 import { themeLayoutFromTokens } from '../themeLayoutFromTokens';
 
-describe('E2E_REGISTERED_THEME_KEYS', () => {
-  it('matches THEME_TOKENS registration order (E2E styles/ht-theme-{key}.css)', () => {
-    expect(E2E_REGISTERED_THEME_KEYS).toEqual(['classic', 'main', 'horizon']);
-  });
-});
+const ALL_THEMES = Object.values(themeModules).filter(m => m && m.name);
 
-describe('e2ePickForDensity', () => {
-  it('matches pickByDensity for classic, main, and horizon', () => {
-    const triplet = { compact: 1, default: 2, comfortable: 3 };
+describe('themeLayoutFromTokens reads from src/themes/theme modules', () => {
+  it('E2E_REGISTERED_THEME_KEYS contains all theme modules from src/themes/theme/index.js', () => {
+    const expected = ALL_THEMES.map(m => m.name);
 
-    expect(themeLayoutFromTokens('classic').e2ePickForDensity(triplet)).toBe(1);
-    expect(themeLayoutFromTokens('main').e2ePickForDensity(triplet)).toBe(2);
-    expect(themeLayoutFromTokens('horizon').e2ePickForDensity(triplet)).toBe(3);
-  });
-});
-
-describe('themeLayoutFromTokens', () => {
-  describe('classic theme (density: compact)', () => {
-    let layout;
-
-    beforeEach(() => {
-      layout = themeLayoutFromTokens('classic');
-    });
-
-    it('should resolve lineHeight from tokens', () => {
-      expect(layout.lineHeight).toBe(21);
-    });
-
-    it('should resolve cellVerticalPadding from compact density', () => {
-      expect(layout.cellVerticalPadding).toBe(2);
-    });
-
-    it('should resolve cellHorizontalPadding from compact density', () => {
-      expect(layout.cellHorizontalPadding).toBe(6);
-    });
-
-    it('should compute cellContentHeight as lineHeight + 2 * padding', () => {
-      expect(layout.cellContentHeight).toBe(25);
-    });
-
-    it('should compute defaultDataRowHeight as cellContentHeight + 1px border', () => {
-      expect(layout.defaultDataRowHeight).toBe(26);
-    });
-
-    it('should compute defaultColumnHeaderHeight as cellContentHeight', () => {
-      expect(layout.defaultColumnHeaderHeight).toBe(25);
-    });
-
-    it('should compute firstRenderedRowDefaultHeight as rowHeight + 1px', () => {
-      expect(layout.firstRenderedRowDefaultHeight).toBe(27);
-    });
-
-    it('should return defaultColumnWidth as 50', () => {
-      expect(layout.defaultColumnWidth).toBe(50);
-    });
-
-    it('should return defaultRowHeaderWidth as 50 (Walkontable row-header col width)', () => {
-      expect(layout.defaultRowHeaderWidth).toBe(50);
-    });
-
-    it('should return cellBorderWidth as 1', () => {
-      expect(layout.cellBorderWidth).toBe(1);
-    });
+    expect(E2E_REGISTERED_THEME_KEYS).toEqual(expect.arrayContaining(expected));
+    expect(E2E_REGISTERED_THEME_KEYS.length).toBeGreaterThanOrEqual(expected.length);
   });
 
-  describe('main theme (density: default)', () => {
-    let layout;
+  ALL_THEMES.forEach((theme) => {
+    describe(`theme "${theme.name}" (density: ${theme.density})`, () => {
+      let layout;
 
-    beforeEach(() => {
-      layout = themeLayoutFromTokens('main');
-    });
+      beforeEach(() => {
+        layout = themeLayoutFromTokens(theme.name);
+      });
 
-    it('should resolve lineHeight from tokens', () => {
-      expect(layout.lineHeight).toBe(20);
-    });
+      it('densityLevel is read from the theme module', () => {
+        expect(layout.densityLevel).toBe(theme.density);
+      });
 
-    it('should resolve cellVerticalPadding from default density', () => {
-      expect(layout.cellVerticalPadding).toBe(4);
-    });
+      it('lineHeight is parsed from the theme module tokens', () => {
+        expect(layout.lineHeight).toBe(parseInt(theme.tokens.lineHeight, 10));
+      });
 
-    it('should resolve cellHorizontalPadding from default density', () => {
-      expect(layout.cellHorizontalPadding).toBe(8);
-    });
+      it('cellVerticalPadding is resolved from density[theme.density].cellVertical', () => {
+        const key = density[theme.density].cellVertical.replace('sizing.', '');
 
-    it('should compute cellContentHeight as lineHeight + 2 * padding', () => {
-      expect(layout.cellContentHeight).toBe(28);
-    });
+        expect(layout.cellVerticalPadding).toBe(parseInt(sizing[key], 10));
+      });
 
-    it('should compute defaultDataRowHeight as cellContentHeight + 1px border', () => {
-      expect(layout.defaultDataRowHeight).toBe(29);
-    });
+      it('cellHorizontalPadding is resolved from density[theme.density].cellHorizontal', () => {
+        const key = density[theme.density].cellHorizontal.replace('sizing.', '');
 
-    it('should compute defaultColumnHeaderHeight as cellContentHeight', () => {
-      expect(layout.defaultColumnHeaderHeight).toBe(28);
-    });
+        expect(layout.cellHorizontalPadding).toBe(parseInt(sizing[key], 10));
+      });
 
-    it('should compute firstRenderedRowDefaultHeight as rowHeight + 1px', () => {
-      expect(layout.firstRenderedRowDefaultHeight).toBe(30);
-    });
+      it('cellContentHeight == lineHeight + 2 * cellVerticalPadding', () => {
+        expect(layout.cellContentHeight)
+          .toBe(layout.lineHeight + (2 * layout.cellVerticalPadding));
+      });
 
-    it('should return defaultRowHeaderWidth as 50 (same for all themes)', () => {
-      expect(layout.defaultRowHeaderWidth).toBe(50);
-    });
-  });
+      it('defaultDataRowHeight == cellContentHeight + cellBorderWidth', () => {
+        expect(layout.defaultDataRowHeight)
+          .toBe(layout.cellContentHeight + layout.cellBorderWidth);
+      });
 
-  describe('horizon theme (density: comfortable)', () => {
-    let layout;
+      it('defaultColumnHeaderHeight == cellContentHeight', () => {
+        expect(layout.defaultColumnHeaderHeight).toBe(layout.cellContentHeight);
+      });
 
-    beforeEach(() => {
-      layout = themeLayoutFromTokens('horizon');
-    });
+      it('firstRenderedRowDefaultHeight == defaultDataRowHeight + cellBorderWidth', () => {
+        expect(layout.firstRenderedRowDefaultHeight)
+          .toBe(layout.defaultDataRowHeight + layout.cellBorderWidth);
+      });
 
-    it('should resolve lineHeight from tokens', () => {
-      expect(layout.lineHeight).toBe(20);
-    });
+      it('overlayHeight({ rows: 0 }) == 0', () => {
+        expect(layout.overlayHeight({ rows: 0 })).toBe(0);
+      });
 
-    it('should resolve cellVerticalPadding from comfortable density', () => {
-      expect(layout.cellVerticalPadding).toBe(8);
-    });
+      it('overlayHeight({ rows: 3 }) == firstRenderedRowDefaultHeight + 2 * defaultDataRowHeight', () => {
+        expect(layout.overlayHeight({ rows: 3 }))
+          .toBe(layout.firstRenderedRowDefaultHeight + (2 * layout.defaultDataRowHeight));
+      });
 
-    it('should resolve cellHorizontalPadding from comfortable density', () => {
-      expect(layout.cellHorizontalPadding).toBe(12);
-    });
+      it('overlayHeight({ rows: 3, includeFirstRowCompensation: false }) == 3 * defaultDataRowHeight', () => {
+        expect(layout.overlayHeight({ rows: 3, includeFirstRowCompensation: false }))
+          .toBe(3 * layout.defaultDataRowHeight);
+      });
 
-    it('should compute cellContentHeight as lineHeight + 2 * padding', () => {
-      expect(layout.cellContentHeight).toBe(36);
-    });
+      it('verticalScrollForRow(n) == n * defaultDataRowHeight', () => {
+        expect(layout.verticalScrollForRow(7)).toBe(7 * layout.defaultDataRowHeight);
+      });
 
-    it('should compute defaultDataRowHeight as cellContentHeight + 1px border', () => {
-      expect(layout.defaultDataRowHeight).toBe(37);
-    });
+      it('defaultColumnWidth is the Walkontable constant 50', () => {
+        expect(layout.defaultColumnWidth).toBe(50);
+      });
 
-    it('should compute defaultColumnHeaderHeight as cellContentHeight', () => {
-      expect(layout.defaultColumnHeaderHeight).toBe(36);
-    });
-
-    it('should compute firstRenderedRowDefaultHeight as rowHeight + 1px', () => {
-      expect(layout.firstRenderedRowDefaultHeight).toBe(38);
-    });
-
-    it('should return defaultRowHeaderWidth as 50 (same for all themes)', () => {
-      expect(layout.defaultRowHeaderWidth).toBe(50);
-    });
-  });
-
-  describe('overlayHeight()', () => {
-    let layout;
-
-    beforeEach(() => {
-      layout = themeLayoutFromTokens('classic');
-    });
-
-    it('should return 0 for 0 rows', () => {
-      expect(layout.overlayHeight({ rows: 0 })).toBe(0);
-    });
-
-    it('should return firstRenderedRowDefaultHeight for 1 row', () => {
-      expect(layout.overlayHeight({ rows: 1 })).toBe(27);
-    });
-
-    it('should return firstRenderedRowDefaultHeight + rowHeight for 2 rows', () => {
-      expect(layout.overlayHeight({ rows: 2 })).toBe(53);
-    });
-
-    it('should skip compensation when includeFirstRowCompensation is false', () => {
-      expect(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })).toBe(26);
-    });
-
-    it('should compute 3-row overlay height correctly', () => {
-      expect(layout.overlayHeight({ rows: 3 })).toBe(79);
-    });
-  });
-
-  describe('verticalScrollForRow()', () => {
-    it('should compute scroll position as rowIndex * defaultDataRowHeight (classic)', () => {
-      const layout = themeLayoutFromTokens('classic');
-
-      expect(layout.verticalScrollForRow(250)).toBe(6500);
-    });
-
-    it('should compute scroll position as rowIndex * defaultDataRowHeight (main)', () => {
-      const layout = themeLayoutFromTokens('main');
-
-      expect(layout.verticalScrollForRow(250)).toBe(7250);
-    });
-
-    it('should compute scroll position as rowIndex * defaultDataRowHeight (horizon)', () => {
-      const layout = themeLayoutFromTokens('horizon');
-
-      expect(layout.verticalScrollForRow(250)).toBe(9250);
-    });
-  });
-
-  describe('E2E regression helpers (density-based, no theme name in specs)', () => {
-    it('e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst', () => {
-      expect(themeLayoutFromTokens('classic').e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()).toBe(226);
-      expect(themeLayoutFromTokens('main').e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()).toBe(250);
-      expect(themeLayoutFromTokens('horizon').e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()).toBe(314);
-    });
-
-    it('e2ePasswordEditorAutoresizeWidthTrimPx', () => {
-      expect(themeLayoutFromTokens('classic').e2ePasswordEditorAutoresizeWidthTrimPx()).toBe(5);
-      expect(themeLayoutFromTokens('main').e2ePasswordEditorAutoresizeWidthTrimPx()).toBe(1);
-      expect(themeLayoutFromTokens('horizon').e2ePasswordEditorAutoresizeWidthTrimPx()).toBe(9);
-    });
-
-    it('e2eCommentsShortcutVerticalScrollSubtract', () => {
-      expect(themeLayoutFromTokens('classic').e2eCommentsShortcutVerticalScrollSubtract()).toBe(231);
-      expect(themeLayoutFromTokens('main').e2eCommentsShortcutVerticalScrollSubtract()).toBe(225);
-      expect(themeLayoutFromTokens('horizon').e2eCommentsShortcutVerticalScrollSubtract()).toBe(209);
-    });
-
-    it('e2eWindowScrollYContextMenuFirstSelectableItem', () => {
-      expect(themeLayoutFromTokens('classic').e2eWindowScrollYContextMenuFirstSelectableItem()).toBe(9);
-      expect(themeLayoutFromTokens('main').e2eWindowScrollYContextMenuFirstSelectableItem()).toBe(9);
-      expect(themeLayoutFromTokens('horizon').e2eWindowScrollYContextMenuFirstSelectableItem()).toBe(13);
-    });
-
-    it('e2eWindowScrollYDropdownMenuFirstSelectableItem', () => {
-      expect(themeLayoutFromTokens('classic').e2eWindowScrollYDropdownMenuFirstSelectableItem()).toBe(31);
-      expect(themeLayoutFromTokens('main').e2eWindowScrollYDropdownMenuFirstSelectableItem()).toBe(35);
-      expect(themeLayoutFromTokens('horizon').e2eWindowScrollYDropdownMenuFirstSelectableItem()).toBe(43);
-    });
-
-    it('e2eFiltersConditionalSubmenuDocumentYSubtract', () => {
-      expect(themeLayoutFromTokens('classic').e2eFiltersConditionalSubmenuDocumentYSubtract()).toBe(419);
-      expect(themeLayoutFromTokens('main').e2eFiltersConditionalSubmenuDocumentYSubtract()).toBe(486);
-      expect(themeLayoutFromTokens('horizon').e2eFiltersConditionalSubmenuDocumentYSubtract()).toBe(584);
-    });
-
-    it('e2eNoncontiguousBottomEdgeScrollTop', () => {
-      expect(themeLayoutFromTokens('classic').e2eNoncontiguousBottomEdgeScrollTop(5)).toBe(5);
-      expect(themeLayoutFromTokens('main').e2eNoncontiguousBottomEdgeScrollTop(5)).toBe(36);
-      expect(themeLayoutFromTokens('horizon').e2eNoncontiguousBottomEdgeScrollTop(5)).toBe(124);
-    });
-
-    it('e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom', () => {
-      expect(themeLayoutFromTokens('classic').e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)).toBe(29);
-      expect(themeLayoutFromTokens('main').e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)).toBe(65);
-      expect(themeLayoutFromTokens('horizon').e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)).toBe(161);
-    });
-
-    it('e2eViewportScrollAfterRectangularAdjacentDataRows', () => {
-      expect(themeLayoutFromTokens('classic').e2eViewportScrollAfterRectangularAdjacentDataRows(5)).toBe(55);
-      expect(themeLayoutFromTokens('main').e2eViewportScrollAfterRectangularAdjacentDataRows(5)).toBe(94);
-      expect(themeLayoutFromTokens('horizon').e2eViewportScrollAfterRectangularAdjacentDataRows(5)).toBe(198);
-    });
-
-    it('e2eDensity_f464e90e18 (two default data row outer heights)', () => {
-      expect(themeLayoutFromTokens('classic').e2eDensity_f464e90e18()).toBe(52);
-      expect(themeLayoutFromTokens('main').e2eDensity_f464e90e18()).toBe(58);
-      expect(themeLayoutFromTokens('horizon').e2eDensity_f464e90e18()).toBe(74);
-    });
-
-    it('e2eDensity_9639197594 (two rows + 1px border)', () => {
-      expect(themeLayoutFromTokens('classic').e2eDensity_9639197594()).toBe(53);
-      expect(themeLayoutFromTokens('main').e2eDensity_9639197594()).toBe(59);
-      expect(themeLayoutFromTokens('horizon').e2eDensity_9639197594()).toBe(75);
-    });
-
-    it('e2eGcr two-row helpers use the same pair height as e2eDensity_9639197594', () => {
-      ['classic', 'main', 'horizon'].forEach((theme) => {
-        const layout = themeLayoutFromTokens(theme);
-        const pair = layout.e2eDensity_9639197594();
-        const adjacent = (2 * layout.defaultDataRowHeight) + (2 * layout.cellBorderWidth);
-
-        expect(layout.e2eGcr_e9a5ab9a7a().maxHeight).toBe(pair);
-        expect(layout.e2eGcr_660b0bbbb1().maxHeight).toBe(pair);
-        expect(layout.e2eGcr_4ef37f8511(300, 500).top).toBe(500 - pair);
-        expect(layout.e2eGcr_4ef37f8511(300, 500).maxHeight).toBe(pair + 15);
-        expect(layout.e2eGcr_5ac91379aa(300, { scrollLeft: 0, offsetHeight: 500 }).top).toBe(500 - adjacent);
+      it('defaultRowHeaderWidth is the Walkontable constant 50', () => {
+        expect(layout.defaultRowHeaderWidth).toBe(50);
       });
     });
+  });
+});
 
-    it('e2eDensity_9a971c3cfe (3-row overlay outer height)', () => {
-      expect(themeLayoutFromTokens('classic').e2eDensity_9a971c3cfe()).toBe(79);
-      expect(themeLayoutFromTokens('main').e2eDensity_9a971c3cfe()).toBe(88);
-      expect(themeLayoutFromTokens('horizon').e2eDensity_9a971c3cfe()).toBe(112);
-    });
+describe('themeLayoutFromTokens E2E helpers are token-derived', () => {
+  ALL_THEMES.forEach((theme) => {
+    describe(`helpers for "${theme.name}"`, () => {
+      let l;
 
-    it('e2eDensity_0051ca7391 (3-row overlay + 2 line heights)', () => {
-      expect(themeLayoutFromTokens('classic').e2eDensity_0051ca7391()).toBe(121);
-      expect(themeLayoutFromTokens('main').e2eDensity_0051ca7391()).toBe(128);
-      expect(themeLayoutFromTokens('horizon').e2eDensity_0051ca7391()).toBe(152);
-    });
+      beforeEach(() => {
+        l = themeLayoutFromTokens(theme.name);
+      });
 
-    it('e2eDensity_8992c845e6 (5-row overlay outer height)', () => {
-      expect(themeLayoutFromTokens('classic').e2eDensity_8992c845e6()).toBe(131);
-      expect(themeLayoutFromTokens('main').e2eDensity_8992c845e6()).toBe(146);
-      expect(themeLayoutFromTokens('horizon').e2eDensity_8992c845e6()).toBe(186);
-    });
+      it('e2eGcrEditedCellOuterHeight == cellContentHeight + 2 * cellBorderWidth', () => {
+        expect(l.e2eGcrEditedCellOuterHeight())
+          .toBe(l.cellContentHeight + (2 * l.cellBorderWidth));
+      });
 
-    it('pickByDensity', () => {
-      expect(themeLayoutFromTokens('classic').pickByDensity({
-        compact: 'a',
-        default: 'b',
-        comfortable: 'c',
-      })).toBe('a');
-      expect(themeLayoutFromTokens('main').pickByDensity({
-        compact: 'a',
-        default: 'b',
-        comfortable: 'c',
-      })).toBe('b');
-      expect(themeLayoutFromTokens('horizon').pickByDensity({
-        compact: 'a',
-        default: 'b',
-        comfortable: 'c',
-      })).toBe('c');
-    });
+      it('e2eManualRowResizerPositionFixedTopMasterFourthRow matches formula', () => {
+        expect(l.e2eManualRowResizerPositionFixedTopMasterFourthRow())
+          .toEqual({ top: l.defaultColumnHeaderHeight + (4 * l.cellContentHeight), left: 0 });
+      });
 
-    it('e2ePaginationScrollTopAfterScrollViewportToRow10Col10', () => {
-      expect(themeLayoutFromTokens('classic').e2ePaginationScrollTopAfterScrollViewportToRow10Col10())
-        .toBe(101);
-      expect(themeLayoutFromTokens('main').e2ePaginationScrollTopAfterScrollViewportToRow10Col10())
-        .toBe(134);
-      expect(themeLayoutFromTokens('horizon').e2ePaginationScrollTopAfterScrollViewportToRow10Col10())
-        .toBe(222);
-    });
+      it('e2eManualRowResizerPositionFixedBottomOverlayFirstRow matches formula', () => {
+        expect(l.e2eManualRowResizerPositionFixedBottomOverlayFirstRow())
+          .toEqual({ top: l.defaultDataRowHeight - 5, left: 0 });
+      });
 
-    it('e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10', () => {
-      expect(themeLayoutFromTokens('classic').e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10())
-        .toBe(65);
-      expect(themeLayoutFromTokens('main').e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10())
-        .toBe(65);
-      expect(themeLayoutFromTokens('horizon').e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10())
-        .toBe(79);
-    });
+      it('e2eTextEditorTextareaHeightSingleLinePx matches formula', () => {
+        expect(l.e2eTextEditorTextareaHeightSingleLinePx())
+          .toBe(`${l.firstRenderedRowDefaultHeight}px`);
+      });
 
-    it('e2eStretchColumnsIndexOrderStretchedWidth', () => {
-      expect(themeLayoutFromTokens('classic').e2eStretchColumnsIndexOrderStretchedWidth()).toBe(79);
-      expect(themeLayoutFromTokens('main').e2eStretchColumnsIndexOrderStretchedWidth()).toBe(79);
-      expect(themeLayoutFromTokens('horizon').e2eStretchColumnsIndexOrderStretchedWidth()).toBe(74);
-    });
+      it('e2eTextEditorTextareaParentTopPx matches formula', () => {
+        expect(l.e2eTextEditorTextareaParentTopPx())
+          .toBe(`${l.defaultDataRowHeight}px`);
+      });
 
-    it('e2eManualRowResizerPositionFixedTopMasterFourthRow', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualRowResizerPositionFixedTopMasterFourthRow())
-        .toEqual({ top: 125, left: 0 });
-      expect(themeLayoutFromTokens('main').e2eManualRowResizerPositionFixedTopMasterFourthRow())
-        .toEqual({ top: 140, left: 0 });
-      expect(themeLayoutFromTokens('horizon').e2eManualRowResizerPositionFixedTopMasterFourthRow())
-        .toEqual({ top: 180, left: 0 });
-    });
+      it('e2eTextEditorTextareaHeightThreeLinesPx matches formula', () => {
+        expect(l.e2eTextEditorTextareaHeightThreeLinesPx())
+          .toBe(`${(3 * l.lineHeight) + (2 * l.cellVerticalPadding) + (2 * l.cellBorderWidth)}px`);
+      });
 
-    it('e2eManualRowResizerPositionFixedTopOverlaySecondRow', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualRowResizerPositionFixedTopOverlaySecondRow())
-        .toEqual({ top: 73, left: 0 });
-      expect(themeLayoutFromTokens('main').e2eManualRowResizerPositionFixedTopOverlaySecondRow())
-        .toEqual({ top: 82, left: 0 });
-      expect(themeLayoutFromTokens('horizon').e2eManualRowResizerPositionFixedTopOverlaySecondRow())
-        .toEqual({ top: 106, left: 0 });
-    });
+      it('e2eMergeCellsBorderTopAfterScroll(x) == x + defaultDataRowHeight', () => {
+        expect(l.e2eMergeCellsBorderTopAfterScroll(100))
+          .toBe(100 + l.defaultDataRowHeight);
+      });
 
-    it('e2eManualRowResizerPositionFixedBottomOverlayFirstRow', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualRowResizerPositionFixedBottomOverlayFirstRow())
-        .toEqual({ top: 21, left: 0 });
-      expect(themeLayoutFromTokens('main').e2eManualRowResizerPositionFixedBottomOverlayFirstRow())
-        .toEqual({ top: 24, left: 0 });
-      expect(themeLayoutFromTokens('horizon').e2eManualRowResizerPositionFixedBottomOverlayFirstRow())
-        .toEqual({ top: 32, left: 0 });
-    });
+      it('e2eMergeCellsOpenEditorWideMergeTextareaParentOffset matches formula', () => {
+        expect(l.e2eMergeCellsOpenEditorWideMergeTextareaParentOffset())
+          .toEqual({ top: 2 * l.defaultDataRowHeight, left: l.defaultRowHeaderWidth });
+      });
 
-    it('e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize())
-        .toBe(46);
-      expect(themeLayoutFromTokens('main').e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize())
-        .toBe(48);
-      expect(themeLayoutFromTokens('horizon').e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize())
-        .toBe(56);
-    });
+      it('e2eCommentTextareaStyleWithSize(w,h) matches formula', () => {
+        const r = l.e2eCommentTextareaStyleWithSize(100, 50);
 
-    it('e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300())
-        .toBe(23);
-      expect(themeLayoutFromTokens('main').e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300())
-        .toBe(29);
-      expect(themeLayoutFromTokens('horizon').e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300())
-        .toBe(37);
-    });
+        expect(r.width).toBe(100 + (2 * l.cellHorizontalPadding) + (2 * l.cellBorderWidth));
+        expect(r.height).toBe(50 + (2 * l.cellVerticalPadding) + (2 * l.cellBorderWidth));
+      });
 
-    it('e2eManualColumnResizeResizerPositionTopCloneLeft194', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualColumnResizeResizerPositionTopCloneLeft194())
-        .toEqual({ top: 0, left: 194 });
-      expect(themeLayoutFromTokens('main').e2eManualColumnResizeResizerPositionTopCloneLeft194())
-        .toEqual({ top: 0, left: 194 });
-      expect(themeLayoutFromTokens('horizon').e2eManualColumnResizeResizerPositionTopCloneLeft194())
-        .toEqual({ top: 0, left: 198 });
-    });
+      // Density helpers (bucket A)
+      it('e2eDensity_0051ca7391 == overlayHeight({rows:3}) + 2 * lineHeight', () => {
+        expect(l.e2eDensity_0051ca7391())
+          .toBe(l.overlayHeight({ rows: 3 }) + (2 * l.lineHeight));
+      });
 
-    it('e2eManualColumnResizeResizerPositionTopCloneLeft94', () => {
-      expect(themeLayoutFromTokens('classic').e2eManualColumnResizeResizerPositionTopCloneLeft94())
-        .toEqual({ top: 0, left: 94 });
-      expect(themeLayoutFromTokens('main').e2eManualColumnResizeResizerPositionTopCloneLeft94())
-        .toEqual({ top: 0, left: 94 });
-      expect(themeLayoutFromTokens('horizon').e2eManualColumnResizeResizerPositionTopCloneLeft94())
-        .toEqual({ top: 0, left: 95 });
-    });
+      it('e2eDensity_8992c845e6 == overlayHeight({rows:5})', () => {
+        expect(l.e2eDensity_8992c845e6()).toBe(l.overlayHeight({ rows: 5 }));
+      });
 
-    it('exposes densityLevel for debugging', () => {
-      expect(themeLayoutFromTokens('classic').densityLevel).toBe('compact');
-      expect(themeLayoutFromTokens('main').densityLevel).toBe('default');
-      expect(themeLayoutFromTokens('horizon').densityLevel).toBe('comfortable');
+      it('e2eDensity_f2d3fe1fc0 == firstRenderedRowDefaultHeight + 4 * defaultDataRowHeight', () => {
+        expect(l.e2eDensity_f2d3fe1fc0())
+          .toBe(l.firstRenderedRowDefaultHeight + (4 * l.defaultDataRowHeight));
+      });
+
+      it('e2eDensity_f464e90e18 == 2 * defaultDataRowHeight', () => {
+        expect(l.e2eDensity_f464e90e18()).toBe(2 * l.defaultDataRowHeight);
+      });
+
+      it('e2eDensity_9639197594 == 2 * defaultDataRowHeight + cellBorderWidth', () => {
+        expect(l.e2eDensity_9639197594()).toBe((2 * l.defaultDataRowHeight) + l.cellBorderWidth);
+      });
+
+      it('e2eDensity_9a971c3cfe == overlayHeight({rows:3})', () => {
+        expect(l.e2eDensity_9a971c3cfe()).toBe(l.overlayHeight({ rows: 3 }));
+      });
+
+      // GCR helpers
+      it('e2eGcr_8b522d5d5b returns pure primitive formula', () => {
+        const r = l.e2eGcr_8b522d5d5b();
+        const colOuter = l.defaultColumnWidth + l.cellBorderWidth;
+
+        expect(r.start).toBe(234);
+        expect(r.top).toBe(l.defaultDataRowHeight);
+        expect(r.width).toBe(colOuter);
+        expect(r.maxWidth).toBe(colOuter);
+        expect(r.height).toBe(l.cellContentHeight + (2 * l.cellBorderWidth));
+      });
+
+      it('e2eGcr_3dc880f3f2 returns pure primitive formula', () => {
+        const viewport = { offsetHeight: 600 };
+        const r = l.e2eGcr_3dc880f3f2(viewport);
+        const topSnap = l.defaultDataRowHeight + (2 * l.cellBorderWidth);
+        const colOuter = l.defaultColumnWidth + l.cellBorderWidth;
+
+        expect(r.start).toBe(4949);
+        expect(r.top).toBe(600 - topSnap);
+        expect(r.width).toBe(colOuter);
+        expect(r.maxWidth).toBe(colOuter);
+        expect(r.height).toBe(l.cellContentHeight + (2 * l.cellBorderWidth));
+      });
+
+      // Bucket B helpers
+      it('e2eManualRowResizerPositionFixedTopOverlaySecondRow matches formula', () => {
+        expect(l.e2eManualRowResizerPositionFixedTopOverlaySecondRow())
+          .toEqual({ top: (3 * l.defaultDataRowHeight) - 5, left: 0 });
+      });
+
+      it('e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize == lineHeight + cellContentHeight', () => {
+        expect(l.e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize())
+          .toBe(l.lineHeight + l.cellContentHeight);
+      });
+
+      it('e2eCheckboxRendererMergedLabelInnerWidth(w) == w - (2*chp + cbw)', () => {
+        expect(l.e2eCheckboxRendererMergedLabelInnerWidth(100))
+          .toBe(100 - ((2 * l.cellHorizontalPadding) + l.cellBorderWidth));
+      });
+
+      it('e2eDensity_dcb53105f5 == overlayHeight({rows:3}) - 3 * defaultColumnWidth', () => {
+        expect(l.e2eDensity_dcb53105f5())
+          .toBe(l.overlayHeight({ rows: 3 }) - (3 * l.defaultColumnWidth));
+      });
+
+      it('e2eDensity_1369f821b5 == defaultDataRowHeight + 4 * lineHeight', () => {
+        expect(l.e2eDensity_1369f821b5()).toBe(l.defaultDataRowHeight + (4 * l.lineHeight));
+      });
+
+      it('e2eDensity_5e8f2219da == defaultDataRowHeight + 5 * lineHeight', () => {
+        expect(l.e2eDensity_5e8f2219da()).toBe(l.defaultDataRowHeight + (5 * l.lineHeight));
+      });
+
+      it('e2eDensity_9d03a9eba0 == 2 * lineHeight + 201', () => {
+        expect(l.e2eDensity_9d03a9eba0()).toBe((2 * l.lineHeight) + 201);
+      });
+
+      it('e2eDensity_9d8bccd1c7 == 2 * cellVerticalPadding + 26', () => {
+        expect(l.e2eDensity_9d8bccd1c7()).toBe((2 * l.cellVerticalPadding) + 26);
+      });
+
+      it('e2eDensity_315eed5b06 == 2 * cellVerticalPadding + 27', () => {
+        expect(l.e2eDensity_315eed5b06()).toBe((2 * l.cellVerticalPadding) + 27);
+      });
+
+      it('e2eDensity_ed183d57c9 == lineHeight + defaultDataRowHeight', () => {
+        expect(l.e2eDensity_ed183d57c9()).toBe(l.lineHeight + l.defaultDataRowHeight);
+      });
+
+      it('e2eDensity_682da48dd2 == lineHeight + firstRenderedRowDefaultHeight', () => {
+        expect(l.e2eDensity_682da48dd2()).toBe(l.lineHeight + l.firstRenderedRowDefaultHeight);
+      });
+
+      it('e2eDensity_e145a29131 == 2 * cellHorizontalPadding + 45', () => {
+        expect(l.e2eDensity_e145a29131()).toBe((2 * l.cellHorizontalPadding) + 45);
+      });
+
+      it('e2eDensity_c1a868f9c9 == defaultDataRowHeight + 2 * lineHeight', () => {
+        expect(l.e2eDensity_c1a868f9c9()).toBe(l.defaultDataRowHeight + (2 * l.lineHeight));
+      });
+
+      it('e2eDensity_9efbb642b5 == 3 * defaultDataRowHeight - 4 * cellVerticalPadding', () => {
+        expect(l.e2eDensity_9efbb642b5())
+          .toBe((3 * l.defaultDataRowHeight) - (4 * l.cellVerticalPadding));
+      });
+
+      it('e2eDensity_a24230f0bc == 3 * defaultDataRowHeight - 2 * cellVerticalPadding', () => {
+        expect(l.e2eDensity_a24230f0bc())
+          .toBe((3 * l.defaultDataRowHeight) - (2 * l.cellVerticalPadding));
+      });
+
+      it('e2eDensity_10071d8a47 == 2 * cellHorizontalPadding + 65', () => {
+        expect(l.e2eDensity_10071d8a47()).toBe((2 * l.cellHorizontalPadding) + 65);
+      });
+
+      it('e2eDensity_f0a5ff56db == 3 * defaultDataRowHeight', () => {
+        expect(l.e2eDensity_f0a5ff56db()).toBe(3 * l.defaultDataRowHeight);
+      });
+
+      it('e2eDensity_25c4d95d1f == 2 * cellVerticalPadding + 83', () => {
+        expect(l.e2eDensity_25c4d95d1f()).toBe((2 * l.cellVerticalPadding) + 83);
+      });
+
+      it('e2eDensity_9b92431d49 == cellContentHeight + 3 * lineHeight', () => {
+        expect(l.e2eDensity_9b92431d49()).toBe(l.cellContentHeight + (3 * l.lineHeight));
+      });
     });
   });
+});
 
-  describe('error handling', () => {
-    it('should throw for unknown theme name', () => {
-      expect(() => themeLayoutFromTokens('nonexistent')).toThrow();
+describe('removed helpers are no longer on the API surface', () => {
+  const REMOVED_HELPERS = [
+    'e2ePickForDensity',
+    'pickByDensity',
+    'e2ePasswordEditorAutoresizeWidthTrimPx',
+    'e2eCommentsShortcutVerticalScrollSubtract',
+    'e2eWindowScrollYContextMenuFirstSelectableItem',
+    'e2eWindowScrollYDropdownMenuFirstSelectableItem',
+    'e2eFiltersConditionalSubmenuDocumentYSubtract',
+    'e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst',
+    'e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300',
+    'e2eStretchColumnsIndexOrderStretchedWidth',
+    'e2eAutoColumnSize_104_115_123',
+    'e2eNestedHeadersGhostTable_100_110_117',
+    'e2eManualColumnResizeWidth155155156',
+    'e2eManualColumnResizeResizerPositionTopCloneLeft194',
+    'e2eManualColumnResizeResizerPositionTopCloneLeft94',
+    'e2ePaginationScrollTopAfterScrollViewportToRow10Col10',
+    'e2ePaginationInlineStartScrollAfterScrollViewportToRow10Col10',
+    'e2eNoncontiguousBottomEdgeScrollTop',
+    'e2eViewportScrollAfterRectangularAdjacentDataRows',
+    'e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom',
+    'e2eGcr_e9a5ab9a7a',
+    'e2eGcr_660b0bbbb1',
+    'e2eGcr_4ef37f8511',
+    'e2eGcr_5ac91379aa',
+  ];
+
+  it('removed helpers are not on the API surface', () => {
+    const layout = themeLayoutFromTokens(mainTheme.name);
+
+    REMOVED_HELPERS.forEach((name) => {
+      expect(layout[name]).toBeUndefined();
     });
+  });
+});
 
-    it('should default to main when theme name is falsy', () => {
-      const layout = themeLayoutFromTokens('');
+describe('error handling', () => {
+  it('throws for unknown theme name', () => {
+    expect(() => themeLayoutFromTokens('nonexistent')).toThrow();
+  });
 
-      expect(layout.defaultDataRowHeight).toBe(29);
-    });
+  it('defaults to main when theme name is falsy', () => {
+    const layout = themeLayoutFromTokens('');
+
+    expect(layout.themeName).toBe(mainTheme.name);
   });
 });
