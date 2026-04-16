@@ -1,3 +1,11 @@
+const dataManagementItems = [
+  {
+    path: 'data-management/server-side-django/server-side-django',
+    title: 'Server-side data with Django',
+    onlyFor: ['javascript'],
+  },
+];
+
 const cellTypesItems = [
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript'] },
   { path: 'cell-types/feedback-react/feedback-react', title: 'Simple Feedback', onlyFor: ['react'] },
@@ -25,6 +33,7 @@ const themesItems = [
 module.exports = {
   sidebar: [
     'introduction',
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
