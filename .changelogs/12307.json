@@ -2,7 +2,7 @@
   "issuesOrigin": "public",
   "title": "Fixed `disableVisualSelection` treating `undefined` as `true` instead of falling back to the default (`false`).",
   "type": "fixed",
-  "issueOrPR": 12304,
+  "issueOrPR": 12307,
   "breaking": false,
   "framework": "none"
 }
