@@ -8,25 +8,13 @@ const fs = require('fs');
 const rspack = require('@rspack/core');
 const compilationDoneMarker = require('./plugin/rspack/compilation-done-marker');
 const { BROWSERS_LIST } = require('../../browser-targets.js');
+const { getLicenseBody } = require('./helper/license');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 const NEW_LINE_CHAR = '\n';
 const SOURCE_THEMES_DIRECTORY = 'src/themes/theme';
 const SOURCE_VARIABLES_DIRECTORY = 'src/themes/static/variables';
 const OUTPUT_THEMES_DIRECTORY = 'themes';
-
-/**
- * Generate the license body text with version and date info.
- *
- * @returns {string} The formatted license text.
- */
-function getLicenseBody() {
-  const license = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
-  const version = `Version: ${process.env.HOT_VERSION}`;
-  const releaseDate = `Release date: ${process.env.HOT_RELEASE_DATE} (built at ${process.env.HOT_BUILD_DATE})`;
-
-  return [license, version, releaseDate].join(NEW_LINE_CHAR);
-}
 
 /**
  * Create the Handsontable import statement.

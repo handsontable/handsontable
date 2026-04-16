@@ -3,16 +3,12 @@
  *  - dist/themes/*.min.js (theme files)
  *  - dist/themes/static/variables/*.min.js (variable files)
  */
-const path = require('path');
-const fs = require('fs');
 const rspack = require('@rspack/core');
 const configFactory = require('./themes-umd-development');
+const { getLicenseBody } = require('./helper/license');
 const postBuildBanner = require('./plugin/rspack/post-build-banner');
 
-let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
-
-licenseBody += '\nVersion: ' + process.env.HOT_VERSION;
-licenseBody += '\nRelease date: ' + process.env.HOT_RELEASE_DATE + ' (built at ' + process.env.HOT_BUILD_DATE + ')';
+const licenseBody = getLicenseBody();
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
