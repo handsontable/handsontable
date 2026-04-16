@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: yfus6qpz
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
@@ -162,3 +163,7 @@ The Classic theme provides the same visual appearance as the legacy style, but w
 - [Themes](@/guides/styling/themes/themes.md)
 
 </div>
+
+## Result
+
+Your grid now uses the legacy stylesheet. The visual style matches pre-14.0 Handsontable.
