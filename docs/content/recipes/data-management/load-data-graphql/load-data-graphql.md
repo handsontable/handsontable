@@ -24,7 +24,7 @@ category: Data Management
 
 ## Overview
 
-This recipe shows how to query a GraphQL API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
+This recipe shows two GraphQL approaches for Handsontable. The first approach loads data on the client with `fetch`, `loadData()`, and `updateData()`. The second approach uses the new server-side DataProvider architecture for paging, sorting, filtering, and CRUD callbacks.
 
 ::: only-for javascript vue
 
@@ -37,9 +37,9 @@ This recipe shows how to query a GraphQL API and populate Handsontable after ini
 
 :::
 
-## What this recipe covers
+## Approach 1 - Client-side fetch with `loadData()` and `updateData()`
 
-- Sending a GraphQL POST request to `https://graphqlzero.almansi.me/api`.
+- Sending a GraphQL POST request to `https://graphqlzero.almansi.me/api` from the browser.
 - Initializing Handsontable with an empty dataset.
 - Filling the table with `hot.loadData()` when the response arrives.
 - Showing loading, success, and error states in the interface.
@@ -87,6 +87,73 @@ Both methods replace the grid's dataset. The difference is what they reset:
 |---|---|---|---|---|
 | `loadData()` | Yes | Yes | Yes | Initial load, schema change, or hard reset |
 | `updateData()` | No | No | No | Periodic refresh or live-data feed |
+
+## Approach 2 - Server-side GraphQL with `dataProvider`
+
+Use this approach when your dataset is large, or when you need server-driven pagination, sorting, filtering, and CRUD. Instead of downloading all rows in one browser request, Handsontable requests only the current page through `dataProvider.fetchRows`.
+
+```javascript
+const hot = new Handsontable(container, {
+  dataProvider: {
+    rowId: 'id',
+    fetchRows: async (queryParameters, { signal }) => {
+      const response = await fetch('/graphql', {
+        method: 'POST',
+        signal,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: buildUsersQuery(queryParameters),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status: ${response.status}`);
+      }
+
+      const payload = await response.json();
+
+      if (payload.errors?.length) {
+        throw new Error(payload.errors[0]?.message ?? 'GraphQL request failed.');
+      }
+
+      return {
+        rows: payload.data.users.data,
+        totalRows: payload.data.users.meta.totalCount,
+      };
+    },
+    onRowsCreate: async (rowsCreatePayload) => {
+      await createRowsMutation(rowsCreatePayload);
+    },
+    onRowsUpdate: async (rows) => {
+      await updateRowsMutation(rows);
+    },
+    onRowsRemove: async (rowIds) => {
+      await removeRowsMutation(rowIds);
+    },
+  },
+  pagination: { pageSize: 10 },
+  columnSorting: true,
+  filters: true,
+  emptyDataState: true,
+  notification: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+The example above maps directly to the latest server-side data guides and APIs:
+
+- Overview and plugin behavior: [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
+- Required settings and query fields: [Server-side configuration](@/guides/getting-started/server-side-data/server-side-data-configuration.md)
+- Fetch lifecycle, hooks, and REST/GraphQL examples: [Server-side fetching and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md)
+- Mutation callbacks and rollback behavior: [Server-side CRUD](@/guides/getting-started/server-side-data/server-side-data-crud.md)
+- Upgrade checklist from client-only loading: [Migrate to server-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md)
+
+## Client-side recipe vs server-side DataProvider
+
+| Approach | Where data lives | Sorting/filtering | Pagination | CRUD | Use when |
+|---|---|---|---|---|---|
+| Client-side `fetch` + `loadData()` / `updateData()` | Browser memory | Client-side | Manual, if you build it | Manual | Small/medium datasets, quick integration |
+| `dataProvider` + GraphQL backend | Backend + paged slices in browser | Server-side via query parameters | Built in with `pagination` | Built in via callbacks | Large datasets, production server-driven flows |
 
 ## GraphQL request specifics
 
