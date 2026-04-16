@@ -37,16 +37,13 @@ describe('Core.getLastRenderedVisibleColumn', () => {
   });
 
   it('should return last rendered column index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
       height: 200,
     });
 
-    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(780); // column 15 (P1) is partially visible
     await render();
 
     expect(getLastRenderedVisibleColumn()).toBe(20);

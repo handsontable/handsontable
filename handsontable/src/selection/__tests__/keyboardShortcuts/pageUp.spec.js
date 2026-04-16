@@ -27,15 +27,20 @@ describe('Selection navigation', () => {
 
   describe('"PageUp"', () => {
     it('should move the cell selection up by the height of the table viewport', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
+      const height = 126;
+      const pageSize = expectedVisibleRows(height, 0);
+      const totalRows = 15;
+      const startRow = 13;
+      const expectedRows = [];
+      let currentRow = startRow;
+
+      for (let i = 0; i < 4; i++) {
+        currentRow = Math.max(currentRow - pageSize, 0);
+        expectedRows.push(currentRow);
       }
 
-      const height = 126;
-      const expectedRows = [9, 5, 1, 0];
-
       function viewportSelectionPattern(rowIndex) {
-        const lines = Array.from({ length: 15 }, (_, i) => {
+        const lines = Array.from({ length: totalRows }, (_, i) => {
           const mid = i === rowIndex ? ' # ' : '   ';
 
           return `        |   :${mid}:   |`;
@@ -47,13 +52,13 @@ describe('Selection navigation', () => {
       handsontable({
         width: 180,
         height,
-        startRows: 15,
+        startRows: totalRows,
         startCols: 3,
         viewportRowRenderingOffset: 10,
         viewportColumnRenderingOffset: 10,
       });
 
-      await selectCell(13, 1);
+      await selectCell(startRow, 1);
 
       for (let i = 0; i < expectedRows.length; i++) {
         await keyDownUp('pageup');
@@ -192,13 +197,12 @@ describe('Selection navigation', () => {
 
     it('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const height = 252;
-      const firstVisibleAfterSelect = 9;
-      const firstVisibleAfterPage1 = 5;
+      const layout = getThemeLayout();
+      const colHeaderRows = 3; // 1 default + 2 from afterGetColumnHeaderRenderers
+      const headerHeight = colHeaderRows * (layout.defaultColumnHeaderHeight + layout.cellBorderWidth);
+      const dataArea = height - headerHeight;
+      const pageSize = Math.floor((dataArea - layout.cellBorderWidth) / layout.defaultDataRowHeight);
 
       handsontable({
         height,
@@ -223,13 +227,19 @@ describe('Selection navigation', () => {
 
       await waitForNextAnimationFrames(2);
 
+      // after selecting row 13, the first fully visible row is computed from the viewport size
+      const firstVisibleAfterSelect = 13 - pageSize + 1;
+
       expect(tableView().getFirstFullyVisibleRow()).toBe(firstVisibleAfterSelect);
 
       await keyDownUp('pageup');
 
       await waitForNextAnimationFrames(2);
 
-      expect(tableView().getFirstFullyVisibleRow()).toBe(firstVisibleAfterPage1);
+      // pageUp moves the cursor by pageSize + colHeaderRows, viewport follows
+      const cursorAfterPage1 = 13 - (pageSize + colHeaderRows);
+
+      expect(tableView().getFirstFullyVisibleRow()).toBe(Math.max(0, cursorAfterPage1));
 
       await keyDownUp('pageup');
 

@@ -27,17 +27,22 @@ describe('Selection navigation', () => {
 
   describe('"PageDown"', () => {
     it('should move the cell selection down by the height of the table viewport', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const height = 126;
-      const expectedRows = [5, 9, 13, 14];
+      const pageSize = expectedVisibleRows(height, 0);
+      const totalRows = 15;
+      const startRow = 1;
+      const expectedRows = [];
+      let currentRow = startRow;
+
+      for (let i = 0; i < 4; i++) {
+        currentRow = Math.min(currentRow + pageSize, totalRows - 1);
+        expectedRows.push(currentRow);
+      }
 
       handsontable({
         width: 180,
         height,
-        startRows: 15,
+        startRows: totalRows,
         startCols: 3,
         viewportRowRenderingOffset: 10,
         viewportColumnRenderingOffset: 10,
@@ -53,7 +58,7 @@ describe('Selection navigation', () => {
         return `\n${lines.join('\n')}\n      `;
       }
 
-      await selectCell(1, 1);
+      await selectCell(startRow, 1);
 
       for (let i = 0; i < expectedRows.length; i++) {
         await keyDownUp('pagedown');

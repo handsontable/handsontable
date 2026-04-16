@@ -441,6 +441,48 @@ export function getDefaultRowHeaderWidth() {
 }
 
 /**
+ * Compute the number of fully visible data rows for a given container height.
+ * Use this instead of hardcoding row counts in assertions -- works for any theme.
+ *
+ * @param {number} containerHeight Total container height in px.
+ * @param {number} [colHeaderRows=1] Number of column header rows.
+ * @returns {number}
+ */
+export function expectedVisibleRows(containerHeight, colHeaderRows = 1) {
+  const layout = getThemeLayout();
+  const headerHeight = colHeaderRows * (layout.defaultColumnHeaderHeight + layout.cellBorderWidth);
+  const dataAreaHeight = containerHeight - headerHeight;
+
+  return Math.floor(dataAreaHeight / layout.defaultDataRowHeight);
+}
+
+/**
+ * Compute the 0-based index of the last fully visible data row for a given container height.
+ *
+ * @param {number} containerHeight Total container height in px.
+ * @param {number} [colHeaderRows=1] Number of column header rows.
+ * @returns {number}
+ */
+export function expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1) {
+  return expectedVisibleRows(containerHeight, colHeaderRows) - 1;
+}
+
+/**
+ * Compute a container height that guarantees exactly `rowCount` fully visible data rows.
+ * Use this to set `height:` in test config instead of hardcoding pixel values.
+ *
+ * @param {number} rowCount Desired number of fully visible data rows.
+ * @param {number} [colHeaderRows=1] Number of column header rows.
+ * @returns {number}
+ */
+export function containerHeightForRows(rowCount, colHeaderRows = 1) {
+  const layout = getThemeLayout();
+  const headerHeight = colHeaderRows * (layout.defaultColumnHeaderHeight + layout.cellBorderWidth);
+
+  return headerHeight + (rowCount * layout.defaultDataRowHeight);
+}
+
+/**
  * Width and height for {@link BaseEditor#getEditedCellRect} (outer box + border compensation), derived from the
  * active editor TD. Matches BaseEditor#getEditedCellRect math for any theme.
  *

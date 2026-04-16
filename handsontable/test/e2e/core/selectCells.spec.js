@@ -151,12 +151,13 @@ describe('Core.selectCells', () => {
   });
 
   it('should not the scroll the viewport when `false` argument is passed', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
+    // Use a height that shows fewer than 15 rows so row 15 is outside the initial viewport
+    const layout = getThemeLayout();
+    const height = layout.overlayHeight({ rows: 12 });
 
     handsontable({
       data: createSpreadsheetObjectData(20, 20),
-      height: 378,
+      height,
       width: 300,
       viewportRowRenderingOffset: 10,
       viewportColumnRenderingOffset: 10,

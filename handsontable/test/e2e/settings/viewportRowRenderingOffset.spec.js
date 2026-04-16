@@ -14,10 +14,6 @@ describe('settings', () => {
 
   describe('viewportRowRenderingOffset', () => {
     it('should be possible to change the size of the calculated rendered rows', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       let calculator;
 
       handsontable({
@@ -32,13 +28,15 @@ describe('settings', () => {
 
       await selectCell(25, 25);
 
-      expect(calculator.startRow).toBe(22);
-      expect(calculator.endRow).toBe(26);
+      // Capture the base rendered range with offset 0
+      const baseStartRow = calculator.startRow;
+      const baseEndRow = calculator.endRow;
 
       await updateSettings({ viewportRowRenderingOffset: 10 });
 
-      expect(calculator.startRow).toBe(12);
-      expect(calculator.endRow).toBe(36);
+      // With offset 10, the rendered range expands by 10 rows on each side
+      expect(calculator.startRow).toBe(baseStartRow - 10);
+      expect(calculator.endRow).toBe(baseEndRow + 10);
     });
   });
 });

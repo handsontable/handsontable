@@ -11,21 +11,18 @@ describe('Core.getLastRenderedVisibleRow', () => {
   });
 
   it('should return last rendered row index', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 250,
     });
 
-    expect(getLastRenderedVisibleRow()).toBe(9);
+    // last rendered = last fully visible + 2 buffer rows
+    expect(getLastRenderedVisibleRow()).toBe(expectedLastFullyVisibleRow(250, 0) + 2);
   });
 
   it('should return last rendered and not hidden row index', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
+    const hiddenCount = 2;
 
     handsontable({
       data: createSpreadsheetData(100, 10),
@@ -39,22 +36,21 @@ describe('Core.getLastRenderedVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     await render();
 
-    expect(getLastRenderedVisibleRow()).toBe(11);
+    expect(getLastRenderedVisibleRow()).toBe(expectedLastFullyVisibleRow(250, 0) + hiddenCount + 2);
   });
 
   it('should return last rendered row index (scrolled viewport)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 250,
     });
 
-    await scrollViewportVertically(447); // row 23 (A24) is partially visible
+    // scroll so that row 15 is at the top of the viewport
+    await scrollViewportTo({ row: 15, col: 0, verticalSnap: 'top', horizontalSnap: 'start' });
     await render();
 
-    expect(getLastRenderedVisibleRow()).toBe(24);
+    // last rendered = start row + fully visible count + buffer
+    expect(getLastRenderedVisibleRow()).toBe(15 + expectedLastFullyVisibleRow(250, 0) + 2);
   });
 });

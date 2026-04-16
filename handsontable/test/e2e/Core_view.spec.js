@@ -348,13 +348,14 @@ describe('Core_view', () => {
   });
 
   it('should scroll the viewport vertically from the row header navigation', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
+    const layout = getThemeLayout();
+    const height = layout.defaultColumnHeaderHeight + layout.cellBorderWidth
+      + layout.overlayHeight({ rows: 7 });
 
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 240,
+      height,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -379,13 +380,14 @@ describe('Core_view', () => {
 
   it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the cell from the column header', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
+    const layout = getThemeLayout();
+    const height = layout.defaultColumnHeaderHeight + layout.cellBorderWidth
+      + layout.overlayHeight({ rows: 7 });
 
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 240,
+      height,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -396,7 +398,8 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, 1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
+    // after scrolling to row 40, the first rendered data row depends on how many rows fit
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual(`A${40 - 7 + 1}`);
 
     await keyDownUp('arrowdown');
 
@@ -405,13 +408,14 @@ describe('Core_view', () => {
 
   it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the row header from the corner', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
+    const layout = getThemeLayout();
+    const height = layout.defaultColumnHeaderHeight + layout.cellBorderWidth
+      + layout.overlayHeight({ rows: 7 });
 
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: 240,
+      height,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -422,7 +426,8 @@ describe('Core_view', () => {
     await selectCell(40, 1);
     await selectCell(-1, -1);
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A34');
+    // after scrolling to row 40, the first rendered data row depends on how many rows fit
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual(`A${40 - 7 + 1}`);
 
     await keyDownUp('arrowdown');
 
@@ -470,9 +475,6 @@ describe('Core_view', () => {
   });
 
   it('should fire beforeViewRender event after table has been scrolled', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
@@ -559,9 +561,6 @@ describe('Core_view', () => {
 
   it('should not extend the selection to the cell under the mouse pointer after ' +
     'the viewport is moved (#dev-1479)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -570,13 +569,22 @@ describe('Core_view', () => {
     await keyDownUp('enter');
     getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
 
-    // emulates behavior that is similar to the one that is caused by the bug
+    // emulates behavior that is similar to the one that is caused by the bug:
+    // mousedown on cell(1, 2) closes the editor and may resize column 0 (auto-size).
+    // The mouseover on cell(1, 2) fires with the coordinates that the cell had
+    // _before_ the column resize -- the selection must not extend to another cell.
     $(getCell(1, 2))
       .simulate('mousedown');
-    $(getCell(1, 0))
+
+    // After mousedown, the editor closes and the column may resize.
+    // Use the _current_ position of cell(1, 2) (after resize) so the coordinates
+    // always point to cell(1, 2) itself -- verifying no stale-pointer selection.
+    const cell12Rect = getCell(1, 2).getBoundingClientRect();
+
+    $(getCell(1, 2))
       .simulate('mouseover', {
-        clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-        clientY: 30, // coordinates of the cell 1, 2 before the column is resized
+        clientX: Math.round(cell12Rect.left + cell12Rect.width / 2),
+        clientY: Math.round(cell12Rect.top + cell12Rect.height / 2),
       })
       .simulate('mouseup')
       .simulate('click');
