@@ -166,6 +166,11 @@ const swcOptions = {
       syntax: 'ecmascript',
       jsx: true,
     },
+    // Transpile class fields to constructor assignments. Native class fields are incompatible
+    // with Angular's Zone.js which patches constructors and breaks field initialization order.
+    transform: {
+      useDefineForClassFields: false,
+    },
   },
   module: isESM ? { type: 'es6' } : { type: 'commonjs', strict: false, noInterop: false },
   sourceMaps: false,
