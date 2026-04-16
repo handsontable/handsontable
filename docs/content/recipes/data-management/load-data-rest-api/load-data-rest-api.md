@@ -12,6 +12,9 @@ tags:
   - fetch
   - loading state
   - error handling
+  - dataProvider
+  - pagination
+  - server-side data
 react:
   id: 7c4d2e9a
   metaTitle: Load Data from a REST API - React Data Grid | Handsontable
@@ -242,17 +245,209 @@ async function refreshUsers() {
 - `loadData()` fires `beforeLoadData` / `afterLoadData` hooks and resets all registered state.
 - `updateData()` fires `beforeUpdateData` / `afterUpdateData` hooks and preserves all registered state.
 
-## SSR note - current wrapper approach
+## Using `dataProvider` for automatic pagination and sorting
 
-If you use the React wrapper in an SSR framework (for example Next.js App Router), keep the table in a client component:
+The first two examples manage the fetch lifecycle yourself: you call `loadData()` or `updateData()` at the right time and maintain loading state manually. Handsontable's `dataProvider` option flips this model -- you provide a `fetchRows` function and three CRUD callbacks, and the plugin drives everything else: initial load, pagination, column sorting, request cancellation, and loading overlays.
 
-```tsx
-"use client";
+::: only-for javascript vue
 
-import { HotTable } from "@handsontable/react-wrapper";
+::: example #example3 :hot-recipe --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/javascript/example3.js)
+@[code](@/content/recipes/data-management/load-data-rest-api/javascript/example3.ts)
+
+:::
+
+:::
+
+## What the third example covers
+
+- Configuring `dataProvider` with `rowId`, `fetchRows`, and CRUD callbacks.
+- Sorting rows in `fetchRows` from the `sort` query parameter before returning a page.
+- Slicing rows in `fetchRows` using the `page` and `pageSize` query parameters.
+- Enabling `pagination`, `columnSorting`, and `emptyDataState` so the plugin drives navigation and loading overlays.
+- Using `beforeDataProviderFetch`, `afterDataProviderFetch`, and `afterDataProviderFetchError` hooks for status feedback.
+- Passing an `AbortSignal` to `fetch` so superseded requests are cancelled automatically.
+
+## When to use each approach
+
+| Approach | When to use |
+|---|---|
+| `loadData()` | One-shot load on page init; or when you want to reset all grid state (sort, selection) together with the data. |
+| `updateData()` | Periodic refresh where the user's sort order, selection, and column layout must survive the data update. |
+| `dataProvider` | Backend-driven pagination, sorting, and filtering; CRUD that round-trips to a server; any dataset too large to keep in the browser. |
+
+## Step 1: Cache the remote response
+
+The `dataProvider` plugin calls `fetchRows` every time the user changes page or clicks a sort header. If the API does not support server-side pagination or sorting (as with `jsonplaceholder`), fetch the full dataset once and reuse it.
+
+```javascript
+let cachedRows = null;
+
+async function loadAllRows(signal) {
+  if (cachedRows !== null) {
+    return cachedRows;
+  }
+
+  const response = await fetch('https://jsonplaceholder.typicode.com/users', { signal });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const users = await response.json();
+
+  cachedRows = users.map((u) => ({
+    id: u.id, name: u.name, username: u.username,
+    email: u.email,
+    city: u.address?.city ?? '',
+    company: u.company?.name ?? '',
+  }));
+
+  return cachedRows;
+}
 ```
 
-Run your API fetch inside client-side lifecycle code (for example `useEffect`) and pass the loaded data to `HotTable`. This matches the current SSR-safe usage pattern in the `develop` branch docs.
+**What's happening:**
+- `cachedRows` starts as `null`. The first call hits the network; every later call returns the same array.
+- `signal` is the `AbortSignal` from `fetchRows` -- passing it to `fetch` cancels the network request if the user sorts or changes pages before the current fetch finishes.
+- The raw API response is mapped to flat row objects that match your `columns` `data` keys.
+
+**In production:** Pass `page`, `pageSize`, `sort`, and `filters` directly to your API query string -- no client-side caching needed. The client-side sort and slice shown in Steps 4 and 5 replace the server query.
+
+## Step 2: Replace the `data` array with a `dataProvider` object
+
+Instead of passing `data: []` and calling `hot.loadData()`, pass a `dataProvider` object. Handsontable ignores any `data` array when the provider is complete.
+
+```javascript
+new Handsontable(gridContainer, {
+  dataProvider: {
+    rowId: 'id',
+    fetchRows: ...,
+    onRowsCreate: async () => {},
+    onRowsUpdate: async () => {},
+    onRowsRemove: async () => {},
+  },
+  // ...
+});
+```
+
+**What's happening:**
+- `rowId: 'id'` tells the plugin which property on each row object carries the stable row identity. It is required for the CRUD callbacks, refetch bookkeeping, and `modifyRowHeader` numbering across pages.
+- All five keys (`rowId`, `fetchRows`, `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`) must be valid for the configuration to be complete. If any are missing, the plugin stays enabled but the affected operations no-op.
+
+## Step 3: Implement `fetchRows`
+
+`fetchRows` is the only required async function. It receives `queryParameters` and an options object that carries an `AbortSignal`.
+
+```javascript
+async fetchRows({ page, pageSize, sort }, { signal }) {
+  const rows = await loadAllRows(signal);
+  // ...
+  return { rows: pagedSlice, totalRows: rows.length };
+}
+```
+
+**What's happening:**
+- `page` -- 1-based page index driven by the Pagination plugin.
+- `pageSize` -- rows per page; matches `pagination: { pageSize: 5 }` in grid options.
+- `sort` -- `{ prop, order }` object when a column header is sorted, or `null` when unsorted.
+- `{ signal }` -- AbortSignal from the plugin. Pass it to your `fetch` call so superseded requests are cancelled.
+- Return `{ rows, totalRows }`. `totalRows` is the unsliced count -- the Pagination plugin uses it to calculate the page count and navigation controls.
+
+## Step 4: Apply sort from query parameters
+
+When `sort` is non-null, sort a copy of the rows array before slicing. Never mutate the cached array.
+
+```javascript
+if (sort) {
+  rows = [...rows].sort((a, b) => {
+    const av = a[sort.prop];
+    const bv = b[sort.prop];
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+
+    return sort.order === 'asc' ? cmp : -cmp;
+  });
+}
+```
+
+**What's happening:**
+- `sort.prop` is the `data` key of the sorted column (for example `'name'` or `'email'`).
+- `sort.order` is `'asc'` or `'desc'`.
+- The spread `[...rows]` prevents mutating the cached array. Sorting is referentially transparent -- the cache always holds the original order.
+
+**In production:** You would not sort in the browser at all. Pass `sort.prop` and `sort.order` as query parameters to your API (`?_sort=name&_order=asc` for `jsonplaceholder`-style, or your own convention).
+
+## Step 5: Apply pagination from query parameters
+
+Slice the (sorted) array using `page` and `pageSize`.
+
+```javascript
+const start = (page - 1) * pageSize;
+
+return {
+  rows: rows.slice(start, start + pageSize),
+  totalRows: rows.length,
+};
+```
+
+**What's happening:**
+- `page` is 1-based, so page 1 starts at index 0, page 2 starts at index `pageSize`, and so on.
+- `totalRows` is the length of the full sorted array -- not the slice. The Pagination plugin uses this to render the correct total page count.
+
+**In production:** Pass `page` and `pageSize` to your API (`?_page=1&_limit=5` for `jsonplaceholder`) and return the server's own `total` or `count` field as `totalRows`.
+
+## Step 6: Provide CRUD callbacks
+
+All three callbacks must be valid functions for the `dataProvider` configuration to be complete. For a read-only API, return resolved promises without calling the server.
+
+```javascript
+onRowsCreate: async () => {},
+onRowsUpdate: async () => {},
+onRowsRemove: async () => {},
+```
+
+**What's happening:**
+- The plugin serializes CRUD calls -- a second mutation waits for the first to finish.
+- After each callback resolves, the plugin automatically refetches the current page.
+- These no-ops accept any user edit from the context menu but discard it on the next refetch. For a truly read-only grid, set `readOnly: true` on each column to prevent edits in the first place (as this example does).
+
+**In production:** Implement `POST`, `PATCH`, and `DELETE` calls here. See the [Server-side data guide](@/guides/getting-started/server-side-data/server-side-data.md) for payload shapes and the full CRUD lifecycle.
+
+## Step 7: Enable `pagination`, `columnSorting`, and `emptyDataState`
+
+```javascript
+pagination: { pageSize: 5 },
+columnSorting: true,
+emptyDataState: true,
+```
+
+**What's happening:**
+- `pagination: { pageSize: 5 }` enables the Pagination plugin and sets 5 rows per page. The plugin renders navigation controls below the grid and passes `page` and `pageSize` into every `fetchRows` call.
+- `columnSorting: true` enables server-driven single-column sorting. Clicking a header sets `sort` in the next `fetchRows` call. (`multiColumnSorting` is incompatible with `dataProvider` -- use `columnSorting` only.)
+- `emptyDataState: true` renders a loading overlay while `fetchRows` is in flight and an "empty" state when the response contains zero rows.
+
+## Step 8: Use fetch hooks for status feedback
+
+```javascript
+beforeDataProviderFetch: ({ skipLoading }) => {
+  if (!skipLoading) {
+    status.textContent = 'Loading...';
+  }
+},
+afterDataProviderFetch: () => {
+  status.textContent = 'Loaded from REST API via dataProvider.';
+},
+afterDataProviderFetchError: (error) => {
+  status.textContent = `Error: ${error.message}`;
+  status.style.color = '#c62828';
+},
+```
+
+**What's happening:**
+- `beforeDataProviderFetch` fires before every fetch. The `skipLoading` flag is `true` for internal refetches triggered after a sort or CRUD operation -- skip updating the status label in those cases so the label does not flash "Loading..." on every column header click.
+- `afterDataProviderFetch` fires after a successful fetch. Update the status label to confirm data was loaded.
+- `afterDataProviderFetchError` fires when `fetchRows` rejects with a non-abort error. Update the status label with the error message. If you also set `dialog: true` in the grid options, the built-in Dialog plugin shows an error modal in addition to this hook.
 
 ## Related
 
