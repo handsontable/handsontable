@@ -36,10 +36,10 @@ const tasks = {
     deps: [],
   },
 
-  // Independent builds (no deps)
+  // Transpilation builds (commonjs needs styles for handsontableStyles.js)
   'commonjs': { // eslint-disable-line quote-props
     cmd: 'env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp',
-    deps: [],
+    deps: ['styles'],
   },
   'languages': { // eslint-disable-line quote-props
     cmd: 'cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ../hot.config.js rspack',
@@ -89,10 +89,11 @@ const tasks = {
 function runTask(name) {
   return new Promise((taskResolve, taskReject) => {
     const start = performance.now();
-    const child = spawn('sh', ['-c', tasks[name].cmd], {
+    const child = spawn(tasks[name].cmd, [], {
       cwd: ROOT,
       env: { ...process.env, PATH: envPATH },
       stdio: ['pipe', 'pipe', 'pipe'],
+      shell: true,
     });
 
     let stderr = '';
