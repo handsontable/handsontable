@@ -47,9 +47,7 @@ describe('DropdownMenu (RTL mode)', () => {
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
       expect(tickItemOffset.top).toBe(155);
-      expect(tickItemOffset.left).toBe(
-        1,
-      );
+      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 1);
     });
   });
 });

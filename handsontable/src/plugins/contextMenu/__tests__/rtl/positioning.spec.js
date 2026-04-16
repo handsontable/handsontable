@@ -50,7 +50,7 @@ describe('ContextMenu (RTL mode)', () => {
       const contextMenuOffset = $contextMenuRoot.offset();
 
       expect(tickItemOffset.top).toBe(246);
-      expect(tickItemOffset.left).toBe(1);
+      expect(tickItemOffset.left).toBe(contextMenuOffset.left + 1);
     });
   });
 });
