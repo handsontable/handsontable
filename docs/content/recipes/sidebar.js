@@ -31,6 +31,6 @@ module.exports = {
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
-    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
   ],
 };

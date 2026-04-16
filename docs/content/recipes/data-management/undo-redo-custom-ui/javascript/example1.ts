@@ -61,10 +61,12 @@ function updateButtonsState() {
 
 undoButton.addEventListener('click', () => {
   undoRedoPlugin.undo();
+  updateButtonsState();
 });
 
 redoButton.addEventListener('click', () => {
   undoRedoPlugin.redo();
+  updateButtonsState();
 });
 
 updateButtonsState();
