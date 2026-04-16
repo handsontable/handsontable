@@ -617,8 +617,7 @@ describe('Pagination `pageSize` option', () => {
           return row;
         }),
         width: 500,
-        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() +
-          (getThemeLayout().densityLevel === 'compact' ? 20 : 0),
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight(),
         autoRowSize: true,
         pagination: {
           pageSizeList: ['auto', 10, 20, 50, 100],

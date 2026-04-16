@@ -31,10 +31,8 @@ describe('Selection navigation', () => {
         return;
       }
 
-      const layout = getThemeLayout();
       const height = 126;
-      const compact = layout.densityLevel === 'compact';
-      const expectedRows = compact ? [4, 7, 10, 13, 14] : [5, 9, 13, 14];
+      const expectedRows = [5, 9, 13, 14];
 
       handsontable({
         width: 180,

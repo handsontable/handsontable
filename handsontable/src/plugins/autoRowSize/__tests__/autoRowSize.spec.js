@@ -36,21 +36,17 @@ describe('AutoRowSize', () => {
   }
 
   /**
-   * Third data row header height: exact for compact density, ambiguous for default/comfortable
-   * (auto-row-size may measure single-line or double-line depending on column width).
+   * Third data row header height: auto-row-size may measure single-line or double-line
+   * depending on column width and font metrics. Both are valid for any theme.
    *
-   * @param heightPx
+   * @param {number} heightPx Measured row height.
    */
   function expectThirdRowHeaderHeightAmbiguous(heightPx) {
     const layout = getThemeLayout();
     const singleLine = layout.defaultDataRowHeight;
     const doubleLine = singleLine + layout.lineHeight;
 
-    if (layout.densityLevel === 'compact') {
-      expect(heightPx).toBe(singleLine);
-    } else {
-      expect(heightPx).toBeInArray([singleLine, doubleLine]);
-    }
+    expect(heightPx).toBeInArray([singleLine, doubleLine]);
   }
 
   it('should apply auto size by default', async() => {

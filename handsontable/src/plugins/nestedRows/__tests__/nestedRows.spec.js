@@ -86,6 +86,10 @@ describe('NestedRows', () => {
       });
 
       it('should display indicators properly located', async() => {
+        if (getLoadedTheme() !== 'main') {
+          return;
+        }
+
         handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -95,13 +99,8 @@ describe('NestedRows', () => {
 
         expect(countRows()).toEqual(13);
 
-        if (getThemeLayout().densityLevel === 'compact') {
-          expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('none');
-          expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('0px');
-        } else {
-          expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
-          expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
-        }
+        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
+        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
     });
 

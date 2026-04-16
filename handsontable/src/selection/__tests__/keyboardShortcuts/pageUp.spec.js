@@ -31,10 +31,8 @@ describe('Selection navigation', () => {
         return;
       }
 
-      const layout = getThemeLayout();
       const height = 126;
-      const compact = layout.densityLevel === 'compact';
-      const expectedRows = compact ? [10, 7, 4, 1, 0] : [9, 5, 1, 0];
+      const expectedRows = [9, 5, 1, 0];
 
       function viewportSelectionPattern(rowIndex) {
         const lines = Array.from({ length: 15 }, (_, i) => {
@@ -198,7 +196,6 @@ describe('Selection navigation', () => {
         return;
       }
 
-      const layout = getThemeLayout();
       const height = 252;
       const firstVisibleAfterSelect = 9;
       const firstVisibleAfterPage1 = 5;

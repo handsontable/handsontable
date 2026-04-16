@@ -16,7 +16,6 @@ describe('Selection extending', () => {
         return;
       }
 
-      const layout = getThemeLayout();
       const height = 120;
 
       handsontable({
@@ -28,117 +27,10 @@ describe('Selection extending', () => {
         viewportColumnRenderingOffset: 10,
       });
 
-      if (layout.densityLevel === 'compact') {
-        await selectCell(13, 1);
-        await keyDownUp(['shift', 'pageup']);
+      await selectCell(13, 1);
+      await keyDownUp(['shift', 'pageup']);
 
-        expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : A :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 10,1']);
-
-        await keyDownUp(['shift', 'pageup']);
-
-        expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : A :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 7,1']);
-
-        await keyDownUp(['shift', 'pageup']);
-
-        expect(`
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   :   :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : A :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 4,1']);
-
-        await keyDownUp(['shift', 'pageup']);
-
-        expect(`
-        |   :   :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : A :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 1,1']);
-
-        await keyDownUp(['shift', 'pageup']);
-
-        expect(`
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : 0 :   |
-        |   : A :   |
-        |   :   :   |
-      `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 0,1']);
-      } else {
-        await selectCell(13, 1);
-        await keyDownUp(['shift', 'pageup']);
-
-        expect(`
+      expect(`
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -155,11 +47,11 @@ describe('Selection extending', () => {
         |   : A :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 9,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 9,1']);
 
-        await keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
-        expect(`
+      expect(`
         |   :   :   |
         |   :   :   |
         |   :   :   |
@@ -176,11 +68,11 @@ describe('Selection extending', () => {
         |   : A :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 5,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 5,1']);
 
-        await keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
-        expect(`
+      expect(`
         |   :   :   |
         |   : 0 :   |
         |   : 0 :   |
@@ -197,11 +89,11 @@ describe('Selection extending', () => {
         |   : A :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 1,1']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 1,1']);
 
-        await keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
-        expect(`
+      expect(`
         |   : 0 :   |
         |   : 0 :   |
         |   : 0 :   |
@@ -218,8 +110,7 @@ describe('Selection extending', () => {
         |   : A :   |
         |   :   :   |
       `).toBeMatchToSelectionPattern();
-        expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 0,1']);
-      }
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 0,1']);
     });
 
     it('should extend the cell selection up only for active selection layer', async() => {
@@ -295,7 +186,6 @@ describe('Selection extending', () => {
         return;
       }
 
-      const layout = getThemeLayout();
       const height = 252;
       const rowOffset = 3;
 

@@ -537,7 +537,6 @@ describe('NestedHeaders', () => {
         return;
       }
 
-      const layout = getThemeLayout();
       const width = 400;
 
       handsontable({
@@ -677,9 +676,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `;
 
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(
-        layout.densityLevel === 'comfortable' ? htmlComfortableInitial : htmlCompactDefaultInitial
-      );
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(htmlCompactDefaultInitial);
 
       await scrollViewportTo({
         col: 40,
@@ -837,9 +834,7 @@ describe('NestedHeaders', () => {
         `;
 
       // scrolled
-      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(
-        layout.densityLevel === 'comfortable' ? htmlComfortableScrolled : htmlCompactDefaultScrolled
-      );
+      expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(htmlCompactDefaultScrolled);
     });
 
     it('should correctly point cell coords for nested corners', async() => {
