@@ -185,4 +185,43 @@ describe('DragToScroll selection — down direction', () => {
 
     expect(selectedAfter[2]).toBe(7);
   });
+
+  it('should not extend the selection past the last row (off-by-one guard)', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 5),
+      width: 250,
+      height: 150,
+      rowHeaders: true,
+      colHeaders: true,
+      dragToScroll: true,
+    });
+
+    const $cell = $(getCell(0, 0));
+    const tableRect = getMaster()[0].getBoundingClientRect();
+
+    $cell.simulate('mousedown', {
+      clientX: $cell.offset().left + 2,
+      clientY: $cell.offset().top + 2,
+    });
+
+    // Move the mouse far below the viewport to trigger sustained scrolling.
+    $(document.body)
+      .simulate('mouseover')
+      .simulate('mousemove', {
+        clientX: tableRect.left + 20,
+        clientY: tableRect.bottom + 300,
+      });
+
+    // Wait long enough for the viewport to scroll all the way down.
+    await waitForNextAnimationFrames(30);
+
+    $(document.body).simulate('mouseup');
+
+    const selectedAfter = getSelectedLast();
+
+    // The selection end row must be exactly the last data row, not one row beyond it.
+    expect(selectedAfter[2]).toBe(countRows() - 1);
+    // The selection end column must be within valid bounds.
+    expect(selectedAfter[3]).toBeLessThan(countCols());
+  });
 });

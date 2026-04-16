@@ -128,4 +128,42 @@ describe('DragToScroll selection — right direction', () => {
 
     expect(selectedAfter[3]).toBe(5);
   });
+
+  it('should not extend the selection past the last column (off-by-one guard)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 10),
+      width: 250,
+      height: 200,
+      rowHeaders: true,
+      colHeaders: true,
+      dragToScroll: true,
+    });
+
+    const $cell = $(getCell(0, 0));
+    const tableRect = getMaster()[0].getBoundingClientRect();
+
+    $cell.simulate('mousedown', {
+      clientX: $cell.offset().left + 2,
+      clientY: $cell.offset().top + 2,
+    });
+
+    // Move the mouse far to the right to trigger sustained scrolling.
+    $(document.body)
+      .simulate('mouseover')
+      .simulate('mousemove', {
+        clientX: tableRect.right + 300,
+        clientY: tableRect.top + 20,
+      });
+
+    await waitForNextAnimationFrames(30);
+
+    $(document.body).simulate('mouseup');
+
+    const selectedAfter = getSelectedLast();
+
+    // The selection end column must be exactly the last data column, not one beyond it.
+    expect(selectedAfter[3]).toBe(countCols() - 1);
+    // The selection end row must be within valid bounds.
+    expect(selectedAfter[2]).toBeLessThan(countRows());
+  });
 });

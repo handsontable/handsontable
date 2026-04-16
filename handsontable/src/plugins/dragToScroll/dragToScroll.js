@@ -74,8 +74,7 @@ export class DragToScroll extends BasePlugin {
   /**
    * Kind of drag currently active: `'cell'` for a regular mouse-drag selection,
    * `'corner'` for an autofill fill-handle drag, or `null` when no drag is active.
-   * Used to route the auto-scroll-based selection extension only to regular drags
-   * (autofill manages its own extension via its `afterScroll` hook).
+   * Only `'cell'` drags extend the selection via `#onAfterScroll`.
    *
    * @type {('cell' | 'corner' | null)}
    */
@@ -94,6 +93,14 @@ export class DragToScroll extends BasePlugin {
    * @type {number | null}
    */
   #lastClientY = null;
+  /**
+   * Reference to the controller object from `beforeOnCellMouseDown`. The
+   * object is mutated in-place by all hook handlers, so by the time
+   * `#onAfterScroll` reads it the flags are fully set.
+   *
+   * @type {object | null}
+   */
+  #mouseDownController = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -121,7 +128,8 @@ export class DragToScroll extends BasePlugin {
       .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
       .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
 
-    this.addHook('beforeOnCellMouseDown', event => this.#setupListening('cell', event));
+    this.addHook('beforeOnCellMouseDown',
+      (event, coords, TD, controller) => this.#setupListening('cell', event, controller));
     this.addHook('afterOnCellCornerMouseDown', event => this.#setupListening('corner', event));
     this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
     this.addHook('afterScroll', () => this.#onAfterScroll());
@@ -231,6 +239,8 @@ export class DragToScroll extends BasePlugin {
     this.#activeDragKind = null;
     this.#lastClientX = null;
     this.#lastClientY = null;
+    this.#isOutsideViewport = false;
+    this.#mouseDownController = null;
     this.#autoScroller.stop();
   }
 
@@ -278,8 +288,9 @@ export class DragToScroll extends BasePlugin {
    * @param {('cell' | 'corner')} kind Which drag started — a regular cell selection drag
    *   (`'cell'`) or an autofill fill-handle drag (`'corner'`).
    * @param {MouseEvent} event The mouse event object.
+   * @param {object} [controller] The controller object from `beforeOnCellMouseDown`.
    */
-  #setupListening(kind, event) {
+  #setupListening(kind, event, controller = null) {
     if (isRightClick(event)) {
       return;
     }
@@ -291,6 +302,7 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#activeDragKind = kind;
+    this.#mouseDownController = controller;
 
     const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
 
@@ -308,7 +320,15 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.setCallback((diffX, diffY) => {
-      this.#autoScroller.update({ x: diffX, y: diffY });
+      const { selection } = this.hot;
+
+      // Suppress the irrelevant scroll axis for header-based selections.
+      // Column header drags should only scroll horizontally (not vertically),
+      // and row header drags should only scroll vertically (not horizontally).
+      const x = selection.isSelectedByRowHeader() ? 0 : diffX;
+      const y = selection.isSelectedByColumnHeader() ? 0 : diffY;
+
+      this.#autoScroller.update({ x, y });
     });
 
     this.listen();
@@ -359,7 +379,9 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Prevents viewport scroll when the cursor is outside the viewport.
+   * Prevents viewport scroll when the cursor is outside the viewport during
+   * an active drag-scroll. Limited to the active-drag window so that ordinary
+   * `selectCell` / mouse-click selections still scroll-into-view normally.
    *
    * @param {number} row Selection start visual row index.
    * @param {number} column Selection start visual column index.
@@ -370,7 +392,7 @@ export class DragToScroll extends BasePlugin {
    *                                  Handsontable uses to control scroll behavior after selection.
    */
   #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
-    if (this.#isOutsideViewport) {
+    if (this.listening && this.#isOutsideViewport) {
       preventScrolling.value = true;
     }
   }
@@ -414,22 +436,65 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
+    // When another plugin claimed the drag via the controller (e.g. manualRowMove
+    // sets controller.row = true), skip selection extension. The controller object
+    // is captured by reference in #setupListening and mutated in-place by later
+    // handlers, so by now the flags reflect the final state.
+    if (this.#mouseDownController?.row || this.#mouseDownController?.column) {
+      return;
+    }
+
+    const { selection, view } = this.hot;
     const edgeCell = getCellCoordsFromMousePosition(this.hot, this.#lastClientX, this.#lastClientY);
 
     if (!edgeCell) {
       return;
     }
 
+    let targetRow = edgeCell.row;
+    let targetCol = edgeCell.col;
+
+    // Clamp the target to the last fully visible row/column so that the
+    // selection border stays inside the viewport. Without this, the target
+    // could land on a partially visible row/column whose border is clipped
+    // by the viewport edge.
+    const firstFullyVisibleRow = view.getFirstFullyVisibleRow();
+    const lastFullyVisibleRow = view.getLastFullyVisibleRow();
+    const firstFullyVisibleColumn = view.getFirstFullyVisibleColumn();
+    const lastFullyVisibleColumn = view.getLastFullyVisibleColumn();
+
+    if (targetRow > lastFullyVisibleRow) {
+      targetRow = lastFullyVisibleRow;
+    } else if (targetRow < firstFullyVisibleRow) {
+      targetRow = firstFullyVisibleRow;
+    }
+
+    if (targetCol > lastFullyVisibleColumn) {
+      targetCol = lastFullyVisibleColumn;
+    } else if (targetCol < firstFullyVisibleColumn) {
+      targetCol = firstFullyVisibleColumn;
+    }
+
+    // Preserve "whole row" / "whole column" semantics for header-based selections.
+    // This mirrors the logic in mouseEventHandler.js mouseOver().
+    if (selection.isSelectedByRowHeader()) {
+      targetCol = this.hot.countCols() - 1;
+    }
+    if (selection.isSelectedByColumnHeader()) {
+      targetRow = this.hot.countRows() - 1;
+    }
+
+    const target = this.hot._createCellCoords(targetRow, targetCol);
     const currentRange = this.hot.getSelectedRangeLast();
 
     // Skip the setRangeEnd call when the edge cell matches the current
     // selection end. Avoids a redundant `afterSelection` firing and re-render
     // on each tick.
-    if (currentRange && currentRange.to.row === edgeCell.row && currentRange.to.col === edgeCell.col) {
+    if (currentRange && currentRange.to.row === target.row && currentRange.to.col === target.col) {
       return;
     }
 
-    this.hot.selection.setRangeEnd(edgeCell);
+    selection.setRangeEnd(target);
   }
 
   /**

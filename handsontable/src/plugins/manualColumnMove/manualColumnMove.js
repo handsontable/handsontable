@@ -122,6 +122,8 @@ export class ManualColumnMove extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.#onBeforeOnCellMouseOver(...args));
+    this.addHook('beforeOnCellMouseOverOutside',
+      (event, coords, TD, controller) => this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
 
@@ -603,6 +605,22 @@ export class ManualColumnMove extends BasePlugin {
     controller.cell = true;
     this.#hoveredColumn = coords.col;
     this.#target.TD = TD;
+  }
+
+  /**
+   * Suppresses selection changes during a column move drag when the mouse
+   * is outside the data viewport (e.g. over column headers during scroll).
+   *
+   * @param {object} controller The controller object.
+   */
+  #onBeforeOnCellMouseOverOutside(controller) {
+    if (!this.#pressed) {
+      return;
+    }
+
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
   }
 
   /**
