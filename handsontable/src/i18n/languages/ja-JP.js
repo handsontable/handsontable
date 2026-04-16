@@ -138,7 +138,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '行を更新できませんでした',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '行を削除できませんでした',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'リクエストに失敗しました',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '閉じる',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
 };
 
 export default dictionary;

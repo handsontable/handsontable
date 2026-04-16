@@ -139,7 +139,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Could not update rows',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Close',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
 };
 
 export default dictionary;
