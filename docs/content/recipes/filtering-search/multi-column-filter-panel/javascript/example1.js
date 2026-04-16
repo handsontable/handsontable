@@ -25,6 +25,10 @@ rootContainer.innerHTML = `
   <div class="example-controls-container">
     <div class="filter-panel">
       <label class="filter-label filter-label--wide">
+        Product name
+        <input id="nameFilter" type="text" placeholder="Contains..." />
+      </label>
+      <label class="filter-label filter-label--wide">
         Category
         <select id="categoryFilter">
           <option value="">All categories</option>
@@ -34,10 +38,6 @@ rootContainer.innerHTML = `
           <option value="Accessories">Accessories</option>
           <option value="Maintenance">Maintenance</option>
         </select>
-      </label>
-      <label class="filter-label filter-label--wide">
-        Product name
-        <input id="nameFilter" type="text" placeholder="Contains..." />
       </label>
       <label class="filter-label">
         Min price
@@ -104,6 +104,18 @@ function applyFilters() {
 
     if (Number.isFinite(lowerBound) && Number.isFinite(upperBound)) {
       filtersPlugin.addCondition(2, 'between', [lowerBound, upperBound]);
+    }
+  } else if (minPrice) {
+    const lowerBound = Number(minPrice);
+
+    if (Number.isFinite(lowerBound)) {
+      filtersPlugin.addCondition(2, 'gte', [lowerBound]);
+    }
+  } else if (maxPrice) {
+    const upperBound = Number(maxPrice);
+
+    if (Number.isFinite(upperBound)) {
+      filtersPlugin.addCondition(2, 'lte', [upperBound]);
     }
   }
 

@@ -34,7 +34,7 @@ category: Filtering and Search
 
 ## Overview
 
-This recipe shows how to control the Filters plugin from a filter panel outside of the grid. The panel includes a category dropdown and a price range, and it applies both filters together with AND logic.
+This recipe shows how to control the Filters plugin from a filter panel outside of the grid. The panel includes controls aligned with the grid columns, and it applies all active filters together with AND logic.
 
 **Difficulty:** Intermediate
 **Time:** ~20 minutes
@@ -82,12 +82,20 @@ const filtersPlugin = hot.getPlugin('filters');
 const applyFilters = () => {
   filtersPlugin.clearConditions();
 
-  if (selectedCategory !== 'all') {
+  if (enteredName) {
+    filtersPlugin.addCondition(0, 'contains', [enteredName]);
+  }
+
+  if (selectedCategory) {
     filtersPlugin.addCondition(1, 'contains', [selectedCategory]);
   }
 
-  if (minPrice !== null && maxPrice !== null) {
-    filtersPlugin.addCondition(2, 'between', [minPrice, maxPrice]);
+  if (minPrice && maxPrice) {
+    filtersPlugin.addCondition(2, 'between', [Number(minPrice), Number(maxPrice)]);
+  } else if (minPrice) {
+    filtersPlugin.addCondition(2, 'gte', [Number(minPrice)]);
+  } else if (maxPrice) {
+    filtersPlugin.addCondition(2, 'lte', [Number(maxPrice)]);
   }
 
   filtersPlugin.filter();
@@ -102,7 +110,8 @@ Add a button that clears control values, removes all conditions, and shows all r
 
 ```typescript
 clearAllButton.addEventListener('click', () => {
-  categorySelect.value = 'all';
+  nameInput.value = '';
+  categorySelect.value = '';
   minPriceInput.value = '';
   maxPriceInput.value = '';
   filtersPlugin.clearConditions();
@@ -114,7 +123,7 @@ clearAllButton.addEventListener('click', () => {
 
 1. User changes one or more controls in the external panel.
 2. The code clears previously applied conditions.
-3. The code re-applies current conditions for category and price.
+3. The code re-applies current conditions for product name, category, and price.
 4. `filtersPlugin.filter()` updates the visible rows.
 5. **Clear all filters** resets controls and restores the full dataset.
 
