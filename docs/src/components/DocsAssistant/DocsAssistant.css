@@ -95,6 +95,13 @@
   font-size: 0.95rem;
   color: var(--sl-color-text, inherit);
 }
+.da-logo {
+  display: none;
+}
+:root[data-theme='light'] .da-logo-light,
+:root[data-theme='dark'] .da-logo-dark {
+  display: block;
+}
 .da-header-actions {
   display: flex;
   gap: 0.25rem;
@@ -429,4 +436,31 @@
 }
 .da-send.is-stop:hover {
   background: var(--sl-color-gray-2, #4b5563);
+}
+
+/* ── Typing / thinking indicator ────────────────────────────────────── */
+
+.da-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5rem 0;
+}
+.da-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #185ccc;
+  opacity: 0.35;
+  animation: da-pulse 1.2s ease-in-out infinite;
+}
+.da-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.da-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes da-pulse {
+  0%, 60%, 100% { opacity: 0.35; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.15); }
 }

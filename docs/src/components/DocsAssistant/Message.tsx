@@ -33,13 +33,22 @@ export function Message({ message, isLastAssistant, streaming, onRetry, onFeedba
   }
 
   const isStreaming = streaming && isLastAssistant;
+  const showTyping = isStreaming && !message.content;
   return (
     <div className="da-msg da-msg-assistant">
       <div
         className="da-assistant-body"
         aria-live={isStreaming ? 'polite' : undefined}
       >
-        <MarkdownRenderer content={message.content || (isStreaming ? '…' : '')} />
+        {showTyping ? (
+          <div className="da-typing" aria-label="Assistant is thinking">
+            <span className="da-dot" />
+            <span className="da-dot" />
+            <span className="da-dot" />
+          </div>
+        ) : (
+          <MarkdownRenderer content={message.content} />
+        )}
       </div>
       {!isStreaming && message.content && (
         <div className="da-msg-actions">

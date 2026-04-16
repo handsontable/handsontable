@@ -14,7 +14,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS, WIDTH } from './constants';
 import { IconChat, IconClose, IconNew } from './icons';
-import { LogoMark } from './icons';
 import { Thread } from './Thread';
 import { useAssistant } from './useAssistant';
 import './DocsAssistant.css';
@@ -131,7 +130,8 @@ export function DocsAssistantWidget() {
         />
         <header className="da-header">
           <div className="da-title">
-            <LogoMark />
+            <img className="da-logo da-logo-light" src="/docs/img/favicon.png" alt="" width="28" height="28" />
+            <img className="da-logo da-logo-dark" src="/docs/img/favicon-dark.png" alt="" width="28" height="28" />
             <span>Docs assistant</span>
           </div>
           <div className="da-header-actions">
