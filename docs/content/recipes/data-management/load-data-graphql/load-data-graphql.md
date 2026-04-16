@@ -1,0 +1,180 @@
+---
+id: 2a7d9f1c
+title: Load data from a GraphQL API
+metaTitle: Load Data from a GraphQL API - JavaScript Data Grid | Handsontable
+description: Learn how to fetch data from a GraphQL API and load it into Handsontable with loading and error states.
+permalink: /recipes/data-management/load-data-graphql
+canonicalUrl: /recipes/data-management/load-data-graphql
+tags:
+  - recipes
+  - data management
+  - GraphQL
+  - fetch
+  - loading state
+  - error handling
+react:
+  id: 8c3e5b7a
+  metaTitle: Load Data from a GraphQL API - React Data Grid | Handsontable
+angular:
+  id: f1d4a6c9
+  metaTitle: Load Data from a GraphQL API - Angular Data Grid | Handsontable
+searchCategory: Recipes
+category: Data Management
+---
+
+## Overview
+
+This recipe shows how to query a GraphQL API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/load-data-graphql/javascript/example1.js)
+@[code](@/content/recipes/data-management/load-data-graphql/javascript/example1.ts)
+
+:::
+
+:::
+
+## What this recipe covers
+
+- Sending a GraphQL POST request to `https://graphqlzero.almansi.me/api`.
+- Initializing Handsontable with an empty dataset.
+- Filling the table with `hot.loadData()` when the response arrives.
+- Showing loading, success, and error states in the interface.
+- Defining a column configuration that matches API fields.
+
+## How it works
+
+1. Create Handsontable with `data: []`.
+2. Create a status element and retry button above the grid.
+3. Start `loadUsers()` and set status to loading.
+4. Send a GraphQL query and map nested fields (`company.name`, `address.city`) to flat row objects.
+5. Call `hot.loadData(rows)` and show a success message.
+6. If the request fails, show an error message and keep the table empty.
+
+## Using `updateData()` to preserve sorting and other states
+
+The first example resets all grid state on every data load - column sort order, selection, and column order all go back to defaults. This is fine when no user state exists yet, but it creates a jarring experience in a running app where the user has already sorted or filtered the data.
+
+`hot.updateData()` replaces the dataset while keeping every registered grid state intact. The second example demonstrates this: sort any column by clicking its header, then click **Refresh**. The sort order survives the data update.
+
+::: only-for javascript vue
+
+::: example #example2 :hot-recipe --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/load-data-graphql/javascript/example2.js)
+@[code](@/content/recipes/data-management/load-data-graphql/javascript/example2.ts)
+
+:::
+
+:::
+
+## What the second example covers
+
+- Enabling `columnSorting` so the user can sort by any column header.
+- Using `hot.loadData()` for the first query - there is no existing state to preserve.
+- Using `hot.updateData()` for every subsequent refresh to keep column sort order, selection, and column order intact.
+- Extracting a shared `fetchUsers()` helper that both functions call.
+- Keeping the "Refresh" button hidden until the grid has data, and the "Retry" button visible only on error.
+
+## `loadData()` vs `updateData()`
+
+Both methods replace the grid's dataset. The difference is what they reset:
+
+| Method | Resets sort order | Resets selection | Resets column order | Use when |
+|---|---|---|---|---|
+| `loadData()` | Yes | Yes | Yes | Initial load, schema change, or hard reset |
+| `updateData()` | No | No | No | Periodic refresh or live-data feed |
+
+## GraphQL request specifics
+
+GraphQL requires one extra check compared to REST:
+
+- Send requests with `method: 'POST'`.
+- Use `Content-Type: application/json`.
+- Put your operation in `body: JSON.stringify({ query: '...' })`.
+- Check `errors` in the JSON response body, even when HTTP status is `200`.
+
+For basic scenarios, `fetch` is sufficient. In larger applications, a dedicated GraphQL client such as `graphql-request` or Apollo Client can simplify caching, retries, and schema-aware tooling.
+
+## Step 1: Define the GraphQL query
+
+Keep the user fields aligned with your Handsontable columns:
+
+```javascript
+const USERS_QUERY = `
+  query {
+    users {
+      data {
+        id
+        name
+        username
+        email
+        address { city }
+        company { name }
+      }
+    }
+  }
+`;
+```
+
+**What's happening:**
+- The query requests the same user dataset shape used by the REST recipe.
+- Nested GraphQL fields (`address.city`, `company.name`) are flattened later by `mapUsersToGridRows()`.
+
+## Step 2: Send a GraphQL POST request
+
+Use `fetch` with a JSON payload that contains the query string.
+
+```javascript
+const response = await fetch('https://graphqlzero.almansi.me/api', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ query: USERS_QUERY }),
+});
+```
+
+**What's happening:**
+- GraphQL APIs typically use POST for operations.
+- The payload format is always JSON with a `query` field.
+
+## Step 3: Validate both HTTP status and GraphQL errors
+
+GraphQL APIs can return HTTP 200 while still reporting operation errors.
+
+```javascript
+const payload = await response.json();
+
+if (payload.errors?.length) {
+  throw new Error(payload.errors[0]?.message ?? 'GraphQL request failed.');
+}
+```
+
+**What's happening:**
+- HTTP status validation catches transport-level failures.
+- `payload.errors` catches GraphQL execution and validation failures.
+- The same `catch` block handles both cases and updates the recipe UI consistently.
+
+## Step 4: Use `loadData()` for initial query and `updateData()` for refreshes
+
+`loadData()` is used once for initial population, and `updateData()` is used for subsequent refreshes to preserve state.
+
+```javascript
+hot.loadData(mapUsersToGridRows(users)); // initial query
+hot.updateData(mapUsersToGridRows(users)); // refresh query
+```
+
+**What's happening:**
+- `loadData()` resets state - ideal for first render.
+- `updateData()` preserves state - ideal after users have interacted with the grid.
+
+## Related
+
+<div class="boxes-list">
+
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md)
+- [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
+
+</div>
