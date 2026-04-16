@@ -1,24 +1,36 @@
-.recipe-toolbar {
+.undo-redo-controls {
   display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
-.recipe-toolbar button {
-  padding: 6px 12px;
-  border: 1px solid var(--ht-border-color, #d0d0d0);
-  border-radius: var(--ht-border-radius, 4px);
-  background: var(--ht-background-color, #ffffff);
-  color: var(--ht-foreground-color, #1f2937);
-  font: inherit;
+.undo-redo-controls button {
+  border: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-text);
+  font-size: var(--sl-text-sm);
+  line-height: 1.2;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0;
   cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
 }
 
-.recipe-toolbar button:disabled {
-  opacity: 0.5;
+.undo-redo-controls button:not(:disabled):hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6);
+}
+
+.undo-redo-controls button:focus-visible {
+  outline: 1px solid var(--sl-color-accent);
+  outline-offset: 1px;
+}
+
+.undo-redo-controls button:disabled {
+  color: var(--sl-color-gray-3);
+  border-color: var(--sl-color-gray-5);
+  background: var(--sl-color-gray-7);
+  opacity: 0.8;
   cursor: not-allowed;
-}
-
-.recipe-toolbar button:not(:disabled):hover {
-  background: var(--ht-cell-background-color, #f7f7f7);
 }
