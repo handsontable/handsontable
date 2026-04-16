@@ -23,7 +23,7 @@ const themesItems = [
 ];
 
 const dataManagementItems = [
-  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
 ];
 
 module.exports = {

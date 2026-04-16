@@ -99,11 +99,11 @@ const detailColumnMap: Record<keyof DetailRow, number> = {
 const syncDetailRow = (rowIndex: number, rowData: MasterRow) => {
   const detailRow = toDetailRow(rowData);
 
-  // Update only mapped detail columns for the changed row.
-  (Object.entries(detailColumnMap) as [keyof DetailRow, number][])
-    .forEach(([prop, columnIndex]) => {
-      detailHot.setDataAtCell(rowIndex, columnIndex, detailRow[prop], SOURCE_SYNC_FROM_MASTER);
-    });
+  // Batch updates into one call to avoid multiple render passes.
+  const updates = (Object.entries(detailColumnMap) as [keyof DetailRow, number][])
+    .map(([prop, columnIndex]) => [rowIndex, columnIndex, detailRow[prop]] as [number, number, DetailRow[keyof DetailRow]]);
+
+  detailHot.setDataAtCell(updates, SOURCE_SYNC_FROM_MASTER);
 };
 
 const masterHot = new Handsontable(masterContainer, {
@@ -123,7 +123,6 @@ const masterHot = new Handsontable(masterContainer, {
   autoWrapRow: true,
   manualColumnResize: true,
   dropdownMenu: true,
-  contextMenu: true,
   stretchH: 'all',
   afterChange: (changes, source) => {
     // Ignore init/sync writes to prevent re-entrant updates.

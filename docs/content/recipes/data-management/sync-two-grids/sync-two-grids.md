@@ -20,7 +20,7 @@ searchCategory: Recipes
 category: Data Management
 ---
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
@@ -36,7 +36,7 @@ category: Data Management
 
 This recipe shows how to keep two Handsontable instances in sync on the same page. You edit data in the master grid, and the detail grid updates immediately.
 
-The implementation uses `afterChange` and `setDataAtCell()`, plus a source guard to avoid infinite update loops.
+The implementation uses `afterChange` and batched `setDataAtCell()` updates, plus a source guard to avoid infinite update loops.
 
 **Difficulty:** Beginner
 **Time:** ~10 minutes
@@ -99,7 +99,7 @@ const detailHot = new Handsontable(detailContainer, {
 
 ## Step 4: Sync updates with `afterChange`
 
-Use `afterChange` on the master instance. For each changed cell, update only the matching cells in the detail table with `setDataAtCell()`.
+Use `afterChange` on the master instance. For each changed row, map the detail values and apply them in a single batched `setDataAtCell()` call.
 
 ```typescript
 afterChange: (changes, source) => {
@@ -113,7 +113,7 @@ afterChange: (changes, source) => {
 }
 ```
 
-The source check prevents re-entrant updates if synced writes trigger hooks.
+The source check prevents re-entrant updates if synced writes trigger hooks, and batching keeps each row sync to one render pass.
 
 ## How it works - complete flow
 
