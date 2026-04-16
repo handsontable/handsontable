@@ -46,3 +46,7 @@
   color: currentColor;
   opacity: 0.8;
 }
+
+.row-validation-demo #example1 .handsontable td.htInvalid {
+  background-color: var(--ht-cell-error-background-color, #ffe4e4) !important;
+}
