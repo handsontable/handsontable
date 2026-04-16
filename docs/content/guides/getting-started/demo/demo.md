@@ -52,11 +52,11 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 <div class="boxes-list gray">
 
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/js/demo/`">JavaScript demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/ts/demo/`">TypeScript demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular-wrapper/demo/`">Angular demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react-wrapper/demo/`">React demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/vue3/demo/`">Vue demo app</Link>
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/angular-wrapper/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/react-wrapper/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/vue3/demo/)
 
 </div>
 
