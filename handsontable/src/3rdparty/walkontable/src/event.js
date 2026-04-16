@@ -416,6 +416,11 @@ class Event {
       this.#longPressTimeout = null;
       this.#touchStartCoords = null;
 
+      this.#dblClickOrigin[0] = null;
+      this.#dblClickOrigin[1] = null;
+      clearTimeout(this.#dblClickTimeout[0]);
+      clearTimeout(this.#dblClickTimeout[1]);
+
       const target = event.target;
       const contextMenuEvent = new MouseEvent('contextmenu', {
         bubbles: true,
