@@ -68,6 +68,13 @@ module.exports.create = function create(envArgs) {
       })
     );
 
+    // Disable side effects optimization for test builds. Test helpers like custom-matchers.js
+    // have no exports but register Jasmine matchers via beforeEach (side effects only).
+    // Without this, Rspack tree-shakes them away based on the package.json sideEffects field.
+    c.optimization = {
+      sideEffects: false,
+    };
+
     c.node = {
       global: true,
     }

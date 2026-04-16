@@ -5,8 +5,9 @@
  */
 const path = require('path');
 const fs = require('fs');
-const webpack = require('webpack');
-const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
+const rspack = require('@rspack/core');
+const compilationDoneMarker = require('./plugin/rspack/compilation-done-marker');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 const NEW_LINE_CHAR = '\n';
@@ -319,6 +320,7 @@ function createConfig({
 
   return {
     mode: 'none',
+    devtool: false,
     entry: { [entryName]: entryPath },
     output: {
       filename: `${OUTPUT_THEMES_DIRECTORY}/${entryName}.js`,
@@ -331,16 +333,26 @@ function createConfig({
       rules: [
         {
           test: /\.js$/,
-          loader: 'babel-loader',
+          loader: 'builtin:swc-loader',
           exclude: /node_modules/,
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'ecmascript',
+              },
+            },
+          },
         },
         registrationRule,
       ],
     },
     externals: createHandsontableExternals(),
     plugins: [
-      new webpack.BannerPlugin(getLicenseBody()),
-      new webpack.DefinePlugin({
+      new rspack.BannerPlugin({ banner: getLicenseBody() }),
+      new rspack.DefinePlugin({
         __ENV_ARGS__: JSON.stringify(envArgs),
       }),
       compilationDoneMarker(),

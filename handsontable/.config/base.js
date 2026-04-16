@@ -1,7 +1,8 @@
 const path = require('path');
 const fs = require('fs');
-const webpack = require('webpack');
-const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
+const rspack = require('@rspack/core');
+const compilationDoneMarker = require('./plugin/rspack/compilation-done-marker');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
 
 let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
 
@@ -40,20 +41,34 @@ module.exports.create = function create(envArgs) {
         },
         {
           test: /\.js$/,
-          loader: 'babel-loader',
+          loader: 'builtin:swc-loader',
           exclude: [
             /node_modules/,
           ],
           options: {
-            cacheDirectory: false, // Disable cache. Necessary for injected variables into source code via hot.config.js
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'ecmascript',
+                jsx: true,
+              },
+            },
           },
         },
       ]
     },
     plugins: [
-      new webpack.BannerPlugin(licenseBody),
-      new webpack.DefinePlugin({
+      new rspack.BannerPlugin({ banner: licenseBody }),
+      new rspack.DefinePlugin({
         '__ENV_ARGS__': JSON.stringify(envArgs),
+        'process.env.HOT_VERSION': JSON.stringify(process.env.HOT_VERSION),
+        'process.env.HOT_BUILD_DATE': JSON.stringify(process.env.HOT_BUILD_DATE),
+        'process.env.HOT_RELEASE_DATE': JSON.stringify(process.env.HOT_RELEASE_DATE),
+        'process.env.HOT_FILENAME': JSON.stringify(process.env.HOT_FILENAME),
+        'process.env.HOT_PACKAGE_NAME': JSON.stringify(process.env.HOT_PACKAGE_NAME),
+        'process.env.JEST_WORKER_ID': JSON.stringify(''),
       }),
       compilationDoneMarker(),
     ],

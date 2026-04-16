@@ -6,16 +6,15 @@
 const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { getClosest }  = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
   config.forEach(function(c) {
-    // Remove all 'JasmineHtml' instances
+    // Remove all 'JasmineHtmlPlugin' instances
     c.plugins = c.plugins.filter(function(plugin) {
-      return !(plugin instanceof HtmlWebpackPlugin);
+      return !(plugin.apply && plugin.apply.toString().includes('JasmineHtmlPlugin'));
     });
 
     c.plugins.push(
