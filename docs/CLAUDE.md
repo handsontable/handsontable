@@ -1,5 +1,7 @@
 # Documentation Standards
 
+These standards apply to both human authors and AI agents contributing to the documentation.
+
 Astro Starlight-based documentation site. **Requires Node 20** (separate from core's Node 22).
 
 For detailed authoring guidance, use skills `writing-docs-pages` and `creating-docs-examples`.
