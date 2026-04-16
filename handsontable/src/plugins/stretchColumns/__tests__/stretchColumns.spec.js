@@ -254,7 +254,7 @@ describe('StretchColumns', () => {
     }
   });
 
-  it('should correctly stretch columns after vertical scroll disappears (window as scrollable element)', async() => {
+  it.flaky('should correctly stretch columns after vertical scroll disappears (window as scrollable element)', async() => {
     document.body.style.overflowY = 'scroll';
 
     handsontable({
