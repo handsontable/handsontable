@@ -178,18 +178,43 @@ export function getPaginationPagePageSizeSelect() {
   return getPaginationContainerElement().querySelector('.ht-page-size-section select');
 }
 
+let cachedPaginationHeight = null;
+
 /**
- * Returns the pagination container height.
+ * Returns the pagination container height by measuring it from the DOM. On first call,
+ * a temporary Handsontable instance with pagination is created inside the live test
+ * container (`#testContainer`), measured, and destroyed. Subsequent calls return the
+ * cached value. This makes the helper independent of theme name, density level, and
+ * token values -- it always reflects the real rendered height for the current theme.
  *
  * @returns {number}
  */
 export function getPaginationContainerHeight() {
-  switch (getLoadedTheme()) {
-    case 'main':
-      return 45;
-    case 'horizon':
-      return 49;
-    default:
-      return 34;
+  if (cachedPaginationHeight !== null) {
+    return cachedPaginationHeight;
   }
+
+  const testContainer = document.getElementById('testContainer');
+  const data = Array.from({ length: 20 }, (_, i) => [`Row${i + 1}`]);
+  const $container = $(testContainer);
+
+  $container.handsontable({
+    data,
+    pagination: true,
+    autoRowSize: true,
+    width: 600,
+    height: 400,
+  });
+
+  const paginationEl = testContainer.querySelector('.ht-pagination');
+
+  // Add 1px to account for `.ht-pagination--bordered` border-top-color transition
+  // that may differ between the measurement instance and the real spec instance.
+  cachedPaginationHeight = paginationEl ? paginationEl.offsetHeight + 1 : 0;
+
+  $container.handsontable('destroy');
+  $container.removeData();
+  testContainer.innerHTML = '';
+
+  return cachedPaginationHeight;
 }
