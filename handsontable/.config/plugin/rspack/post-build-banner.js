@@ -7,10 +7,14 @@ const path = require('path');
  * ADDITIONS stage which is BEFORE the OPTIMIZE_SIZE stage where minimizers run,
  * causing the banner to be corrupted by the SWC minifier.
  *
+ * Only applies the banner to files matching the provided test pattern, so third-party
+ * files copied by CopyRspackPlugin are not affected.
+ *
  * @param {string} bannerText The license text (will be wrapped in a comment block).
+ * @param {RegExp} test Pattern to match filenames that should receive the banner.
  * @returns {object} Rspack plugin instance.
  */
-module.exports = function postBuildBanner(bannerText) {
+module.exports = function postBuildBanner(bannerText, test) {
   const comment = `/*!\n * ${bannerText.replace(/\n/g, '\n * ')}\n */\n`;
 
   return {
@@ -23,20 +27,17 @@ module.exports = function postBuildBanner(bannerText) {
             return;
           }
 
+          if (test && !test.test(assetName)) {
+            return;
+          }
+
           const filePath = path.join(outputPath, assetName);
 
           if (!fs.existsSync(filePath)) {
             return;
           }
 
-          const content = fs.readFileSync(filePath, 'utf8');
-
-          // Skip files that already have the banner
-          if (content.startsWith('/*!')) {
-            return;
-          }
-
-          fs.writeFileSync(filePath, comment + content);
+          fs.writeFileSync(filePath, comment + fs.readFileSync(filePath, 'utf8'));
         });
       });
     }

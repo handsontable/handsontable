@@ -40,7 +40,7 @@ module.exports.create = function create(envArgs) {
     // Remove dev BannerPlugin (runs before minimization, gets corrupted by SWC)
     // and add a post-build banner that writes after all processing.
     c.plugins = c.plugins.filter(p => !(p instanceof rspack.BannerPlugin));
-    c.plugins.push(postBuildBanner(licenseBody));
+    c.plugins.push(postBuildBanner(licenseBody, /\.min\.js$/));
   });
 
   return config;
