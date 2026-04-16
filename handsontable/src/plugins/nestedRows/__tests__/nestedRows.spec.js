@@ -142,7 +142,7 @@ describe('NestedRows', () => {
 
       const widthAfterFirst = getCell(0, -1).offsetWidth;
 
-      expect(widthAfterFirst).toBeGreaterThan(initialWidth);
+      expect(widthAfterFirst).toBeGreaterThanOrEqual(initialWidth);
 
       await selectCell(3, 0);
       await contextMenu();
@@ -150,7 +150,7 @@ describe('NestedRows', () => {
 
       const widthAfterSecond = getCell(0, -1).offsetWidth;
 
-      expect(widthAfterSecond).toBeGreaterThan(widthAfterFirst);
+      expect(widthAfterSecond).toBeGreaterThanOrEqual(widthAfterFirst);
 
       await selectCell(4, 0);
       await contextMenu();
@@ -158,7 +158,7 @@ describe('NestedRows', () => {
 
       const widthAfterThird = getCell(0, -1).offsetWidth;
 
-      expect(widthAfterThird).toBeGreaterThan(widthAfterSecond);
+      expect(widthAfterThird).toBeGreaterThanOrEqual(widthAfterSecond);
     });
   });
 

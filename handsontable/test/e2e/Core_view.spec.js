@@ -530,11 +530,16 @@ describe('Core_view', () => {
   });
 
   it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', async() => {
+    const layout = getThemeLayout();
+    // Container tall enough that after trimming 4 of 10 rows, 6 remaining rows fit
+    // without a scrollbar. Use token-derived height to work for any theme.
+    const containerHeight = layout.defaultColumnHeaderHeight + layout.overlayHeight({ rows: 7 });
+
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,
       width: 200,
-      height: 200,
+      height: containerHeight,
     });
 
     await selectColumns(1);
@@ -547,15 +552,9 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(3, true);
     await render();
 
-    const layout = getThemeLayout();
-    // After trimming 4 of 10 rows, 6 remain. If the content fits within the 200px
-    // container the vertical scrollbar disappears and the top overlay uses the full
-    // container width; otherwise the scrollbar takes some space.
-    const contentHeight = layout.defaultColumnHeaderHeight + layout.overlayHeight({ rows: 6 });
-    const scrollbarSize = tableView()._wt.wtOverlays.scrollbarSize;
-    const expectedWidth = contentHeight <= 200 ? 200 : 200 - scrollbarSize;
-
-    expect(getTopClone().width()).toBe(expectedWidth);
+    // After trimming, 6 rows remain. The container fits 7 rows worth of height,
+    // so the scrollbar should disappear and the top overlay uses the full width.
+    expect(getTopClone().width()).toBe(200);
   });
 
   it('should not extend the selection to the cell under the mouse pointer after ' +
