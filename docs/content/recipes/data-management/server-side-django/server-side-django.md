@@ -16,17 +16,6 @@ category: Data Management
 type: tutorial
 ---
 
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2
-
-@[code](@/content/recipes/data-management/server-side-django/javascript/example1.js)
-@[code](@/content/recipes/data-management/server-side-django/javascript/example1.ts)
-
-:::
-
-:::
-
 ## Overview
 
 This recipe shows how to wire Handsontable's `dataProvider` plugin to a [Django REST Framework](https://www.django-rest-framework.org/) (DRF) backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends all edits back to the API.

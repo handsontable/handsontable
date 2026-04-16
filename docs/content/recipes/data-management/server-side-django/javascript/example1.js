@@ -4,7 +4,7 @@ import {
   DataProvider,
   Filters,
   ColumnSorting,
-  PaginationPlugin,
+  Pagination,
   EmptyDataState,
   Notification,
 } from 'handsontable/plugins';
@@ -13,7 +13,7 @@ import { registerAllCellTypes } from 'handsontable/cellTypes';
 registerPlugin(DataProvider);
 registerPlugin(Filters);
 registerPlugin(ColumnSorting);
-registerPlugin(PaginationPlugin);
+registerPlugin(Pagination);
 registerPlugin(EmptyDataState);
 registerPlugin(Notification);
 registerAllCellTypes();
