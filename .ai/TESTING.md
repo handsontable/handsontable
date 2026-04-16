@@ -372,13 +372,41 @@ Theme-dependent expected values in E2E tests come from a composed resolver:
 
 | File | Role |
 | --- | --- |
-| `test/helpers/themeLayoutCore.js` | Token-backed primitives (`defaultDataRowHeight`, `pickByDensity`, `overlayHeight`, …) |
-| `test/helpers/themeLayoutE2eHelpers.js` | Hashed `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers |
-| `test/helpers/themeLayoutFromTokens.js` | Public entry: merges core + E2E helpers (same import path as before) |
+| `test/helpers/themeLayoutCore.js` | Token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …); auto-discovers themes from `src/themes/theme/index.js` |
+| `test/helpers/themeLayoutE2eHelpers.js` | Hashed `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers (pure token formulas) |
+| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- merges core + E2E helpers; call via global `getThemeLayout()` in specs |
 
-`themeLayoutCore.js` imports the same static theme token/sizing/density modules used by production themes and resolves them to pixel numbers.
+### Entry point
 
-**Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml('classic')` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. When you add a theme, register it in `THEME_TOKENS` in `themeLayoutCore.js` (which updates `E2E_REGISTERED_THEME_KEYS`) and add `styles/ht-theme-{key}.css` to the E2E build.
+`themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.js`.
+Changing a theme's `density` in that module propagates to all tests automatically -- no edits to test helpers are needed.
+
+### Fundamental rule
+
+All expectations must be **pure expressions over tokens + density tokens + sizing tokens**.
+Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are **forbidden** in every file.
+This is enforced by the ESLint rule `handsontable/no-pick-by-density-in-spec` (`no-pick-by-density-in-spec.js`), which flags:
+
+- `.pickByDensity()` calls in `*.spec.js` files
+- `.e2ePickForDensity()` calls in `*.spec.js` files
+- Object expressions containing all three keys (`compact`, `default`, `comfortable`) with literal values -- in **any** file
+
+### Non-token-derivable values
+
+When a value cannot be derived from tokens (text shaping, autosize widths, pixel rounding), the spec uses:
+
+- `pending()` for non-main themes -- the test is skipped for that theme run
+- A hardcoded main-theme literal for the `main` theme run
+
+### Adding a new theme -- checklist
+
+1. Create `handsontable/src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`.
+2. Re-export from `src/themes/theme/index.js`.
+3. Ensure the theme build produces `styles/ht-theme-<name>.css`.
+4. Add E2E matrix jobs in `.github/workflows/test.yml`.
+5. No edits needed to: `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
+
+**Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml(key)` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. `E2E_REGISTERED_THEME_KEYS` is derived automatically from `src/themes/theme/index.js` -- no manual registration required.
 
 ### Usage in specs
 
@@ -398,11 +426,10 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 - `defaultColumnWidth` -- 50px (Walkontable constant)
 - `defaultRowHeaderWidth` -- 50px for every theme (Walkontable default row-header column width; used for E2E container width math so horizontal viewport matches across themes)
 - `cellContentHeight` -- same as defaultColumnHeaderHeight (TD clientHeight)
-- `densityLevel` -- `'compact' | 'default' | 'comfortable'` from theme registration (see `THEME_DENSITY` in `themeLayoutCore.js`)
-- `pickByDensity({ compact, default, comfortable })` -- internal / layout-only helper; **E2E specs** must not call it (ESLint: `handsontable/no-pick-by-density-in-spec` on `*.spec.js`); use named `e2e*()` methods or other formulas on the layout object instead
+- `densityLevel` -- `'compact' | 'default' | 'comfortable'` read from the theme module; drives all density-branching inside helpers
 - `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
 - `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
-- **`e2e*()` helpers** -- regression geometry for specific E2E scenarios (menu scroll, filters submenu Y, pagination scroll after `scrollViewportTo`, manual row resize handle positions, stretch-columns widths, nested-headers keyboard scroll snapshots, etc.). They live in `themeLayoutE2eHelpers.js`, branch on **`densityLevel`** (or use token formulas), not on theme name in specs; new themes register tokens + density in `themeLayoutCore.js`. Add new scenarios in `themeLayoutE2eHelpers.js` when specs would otherwise call `pickByDensity` with fixed triplets. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
+- **`e2e*()` helpers** -- regression geometry for specific E2E scenarios (menu scroll, filters submenu Y, manual row resize handle positions, stretch-columns widths, nested-headers keyboard scroll snapshots, etc.). They live in `themeLayoutE2eHelpers.js` and branch on `densityLevel` (or use token formulas), never on theme name. Add new scenarios in `themeLayoutE2eHelpers.js` when specs would otherwise embed numeric literals. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
 
 ### Preferred patterns
 
@@ -410,13 +437,14 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 - **Scroll to row:** `layout.verticalScrollForRow(rowIndex)`
 - **Overlay heights:** `layout.overlayHeight({ rows: N })`
 - **Cell clientHeight:** `layout.cellContentHeight`
-- **Named E2E expectations:** `layout.e2eWindowScrollYContextMenuFirstSelectableItem()`, `layout.e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(initialScroll)`, `layout.e2eViewportScrollAfterRectangularAdjacentDataRows(initialScroll)` (and other `e2e*` methods) instead of `if (getLoadedTheme() === '…')` in spec files
+- **Named E2E expectations:** `layout.e2e*()` / `layout.e2eGcr_*()` helpers instead of `if (getLoadedTheme() === '…')` branches in spec files
 - **Inner Handsontable editor lists (dropdown / handsontable / autocomplete):** `expectInnerHandsontableEditorListClientBoxMatchesSettings()` in `test/helpers/common.js` (global in E2E) -- asserts list root client box matches `getActiveEditor().htEditor.getSettings()`.
 - **getEditedCellRect (E2E):** `expectGetEditedCellRectFromPartial((L) => L.e2eGcr_*())` merges the returned partial with `activeEditorEditedCellRectWidthHeightFromTd()` so `width` / `height` always come from the live TD. Helpers that need layout viewport metrics take a snapshot from **`getE2eDocumentViewport()`** in the spec (for example `const v = getE2eDocumentViewport(); return L.e2eGcr_*(v.clientWidth, v.clientHeight, v)`) so `themeLayoutFromTokens` stays free of `document.documentElement` reads.
 
 ### Do not use
 
-- Ad hoc per-theme pixel triplets in specs without `getThemeLayout()` (or `getThemeLayout().pickByDensity(...)` in specs -- use `e2e*` / `e2eGcr_*` / token-backed formulas instead)
+- Numeric density triplets `{ compact: N, default: N, comfortable: N }` -- in any file (ESLint enforced)
+- `.pickByDensity()` or `.e2ePickForDensity()` in `*.spec.js` files (ESLint enforced)
 - Per-theme `switch` / `getLoadedTheme()` comparisons in **spec files** for layout numbers -- add or extend an `e2e*` helper in `themeLayoutE2eHelpers.js` (density-based) instead
 - Per-theme `switch` statements in helpers for values derivable from tokens
 
