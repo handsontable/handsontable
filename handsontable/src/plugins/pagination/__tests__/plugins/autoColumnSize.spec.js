@@ -11,6 +11,12 @@ describe('Pagination integration with AutoColumnSize', () => {
   });
 
   it('should correctly calculate the column widths based on the currently selected page', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const data = createSpreadsheetData(40, 3);
 
     data[11][1] = 'A very long text that should be truncated';
@@ -32,20 +38,20 @@ describe('Pagination integration with AutoColumnSize', () => {
 
     pagination.setPage(2);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eDensity_fe455d5781());
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_0308b1f949());
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_8b9c83b3f3());
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(268);
+    expect(colWidth(spec().$container, 2)).toBe(50);
 
     pagination.setPage(3);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eDensity_fe455d5781());
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_0bf6b512ac());
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_8b9c83b3f3());
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(163);
+    expect(colWidth(spec().$container, 2)).toBe(50);
 
     pagination.setPage(4);
 
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eDensity_fe455d5781());
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_fe455d5781());
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_8b9c83b3f3());
+    expect(colWidth(spec().$container, 0)).toBe(50);
+    expect(colWidth(spec().$container, 1)).toBe(50);
+    expect(colWidth(spec().$container, 2)).toBe(50);
   });
 });

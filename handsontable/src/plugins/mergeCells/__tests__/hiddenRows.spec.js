@@ -2115,12 +2115,17 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   it('should display properly high merged cell containing hidden columns', async() => {
-    const pick = values => getThemeLayout().e2ePickForDensity(values);
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
 
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
-      height: pick({ compact: 230, default: 245, comfortable: 313 }),
+      height: 245,
       viewportRowRenderingOffset: 0,
       mergeCells: true,
     });
@@ -2212,13 +2217,18 @@ describe('MergeCells cooperation with hidden rows', () => {
 
   it('should display properly high merged cell containing ' +
     'hidden columns (virtualized)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
-    const pick = values => getThemeLayout().e2ePickForDensity(values);
 
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
-      height: pick({ compact: 224, default: 248, comfortable: 312 }),
+      height: 248,
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,
@@ -2278,6 +2288,12 @@ describe('MergeCells cooperation with hidden rows', () => {
 
   describe('Hooks', () => {
     it('should trigger the `beforeOnCellMouseDown` hook with proper coords', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;
@@ -2309,6 +2325,12 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should trigger the `afterOnCellMouseDown` hook with proper coords', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;

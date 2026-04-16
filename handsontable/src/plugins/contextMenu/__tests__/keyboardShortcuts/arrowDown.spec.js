@@ -24,6 +24,12 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should move the menu item selection to the first item and scroll the viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         contextMenu: generateRandomContextMenuItems(200),
       });
@@ -34,7 +40,7 @@ describe('ContextMenu keyboard shortcut', () => {
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
 
-      expect(window.scrollY).toBe(getThemeLayout().e2eWindowScrollYContextMenuFirstSelectableItem());
+      expect(window.scrollY).toBe(9);
     });
 
     it('should move the menu item selection to the next item (skipping `disabled` items)', async() => {

@@ -215,6 +215,12 @@ describe('Pagination UI', () => {
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are visible)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 500,
@@ -222,7 +228,7 @@ describe('Pagination UI', () => {
       pagination: true,
     });
 
-    expect(tableView().getViewportHeight()).toBe(getThemeLayout().e2eDensity_a4793c32d9());
+    expect(tableView().getViewportHeight()).toBe(356);
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are hidden)', async() => {

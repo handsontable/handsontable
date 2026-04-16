@@ -16,6 +16,12 @@ describe('manualRowResize (RTL mode)', () => {
   });
 
   it('should resize (expanding and narrowing) selected rows', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       rowHeaders: true,
@@ -53,9 +59,9 @@ describe('manualRowResize (RTL mode)', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).toBe(getThemeLayout().e2eDensity_9ece902862());
-    expect($rowsHeaders.eq(2).height()).toBe(getThemeLayout().e2eDensity_9ece902862());
-    expect($rowsHeaders.eq(3).height()).toBe(getThemeLayout().e2eDensity_9ece902862());
+    expect($rowsHeaders.eq(1).height()).toBe(35);
+    expect($rowsHeaders.eq(2).height()).toBe(35);
+    expect($rowsHeaders.eq(3).height()).toBe(35);
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {

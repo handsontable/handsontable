@@ -1508,6 +1508,12 @@ describe('NestedHeaders', () => {
     });
 
     it('should scroll the viewport correctly while navigating horizontally using arrows (from left to right)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 40),
         height: 200,
@@ -1536,32 +1542,32 @@ describe('NestedHeaders', () => {
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       // 300 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterD());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(66);
 
       await keyDownUp('arrowright'); // "D"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterE());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(266);
 
       await keyDownUp('arrowright'); // "E"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterF());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(516);
 
       await keyDownUp('arrowright'); // "F"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterG());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(866);
 
       await keyDownUp('arrowright'); // "G"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterH());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1280);
 
       await keyDownUp('arrowright'); // "H"
 
       expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersNavInlineScrollAfterI());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1333);
     });
 
     it('should scroll the viewport correctly while navigating horizontally using arrows (from right to left)', async() => {

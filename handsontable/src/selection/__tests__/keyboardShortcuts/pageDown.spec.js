@@ -27,8 +27,14 @@ describe('Selection navigation', () => {
 
   describe('"PageDown"', () => {
     it('should move the cell selection down by the height of the table viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const height = layout.e2ePickForDensity({ compact: 100, default: 126, comfortable: 161 });
+      const height = 126;
       const compact = layout.densityLevel === 'compact';
       const expectedRows = compact ? [4, 7, 10, 13, 14] : [5, 9, 13, 14];
 

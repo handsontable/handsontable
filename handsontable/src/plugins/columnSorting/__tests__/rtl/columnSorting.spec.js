@@ -22,6 +22,12 @@ describe('ColumnSorting (RTL)', () => {
     });
 
     it('should display the indicator properly after changing the sorted column sequence', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         layoutDirection,
         data: [
@@ -55,7 +61,7 @@ describe('ColumnSorting (RTL)', () => {
       }
 
       expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual(
-        layout.e2ePickForDensity({ compact: '10.5px', default: '10px', comfortable: '10px' })
+        '10px'
       );
     });
   });

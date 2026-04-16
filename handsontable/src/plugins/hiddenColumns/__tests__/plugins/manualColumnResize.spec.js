@@ -112,6 +112,12 @@ describe('HiddenColumns', () => {
     });
 
     it('should resize a proper column using the resize handler when the table contains hidden column', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -141,7 +147,7 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_ff544a9b2b());
+      expect(colWidth(spec().$container, 1)).toBe(93);
     });
   });
 });

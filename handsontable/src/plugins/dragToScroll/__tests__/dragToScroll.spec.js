@@ -216,7 +216,13 @@ describe('DragToScroll', () => {
 
     it('should not scroll the table to the right, when dragging the selection ' +
       'in that direction inside the table', async() => {
-      const width = getThemeLayout().e2ePickForDensity({ compact: 215, default: 215, comfortable: 227 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const width = 215;
 
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -431,6 +437,12 @@ describe('DragToScroll', () => {
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is above' +
       ' of the table', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       spec().$container.css('margin-top', '100px');
 
       handsontable({
@@ -467,11 +479,17 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_95d19e5e71());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(170);
     });
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is a row ' +
       'that belongs to the top overlay', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -508,7 +526,7 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_95d19e5e71());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(170);
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first row ' +

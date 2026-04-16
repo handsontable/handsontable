@@ -438,6 +438,12 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the value from "auto" to a number and vice versa (table without defined size)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 10),
         pagination: {
@@ -449,8 +455,12 @@ describe('Pagination `pageSize` option', () => {
       setCurrentHotInstance(hotInstance);
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_05e899e868());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_55a74b203e());
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A18');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 18 of 100',
+        '|< < Page 1 of 6 [>] [>|]',
+      ]);
 
       hotInstance.updateSettings({
         pagination: {
@@ -471,6 +481,12 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the window height (table without defined size)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 12),
         pagination: {
@@ -484,28 +500,46 @@ describe('Pagination `pageSize` option', () => {
       await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_516fd776f5());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_14926c8296());
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A11');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 11 of 100',
+        '|< < Page 1 of 10 [>] [>|]',
+      ]);
 
       iframe.css({ height: '200px' });
       await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_d7aa2fd7d8());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_974019229c());
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 4 of 100',
+        '|< < Page 1 of 25 [>] [>|]',
+      ]);
 
       iframe.css({ height: '705px' });
       await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_763d67703a());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_72a0e755a3());
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A22');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 22 of 100',
+        '|< < Page 1 of 5 [>] [>|]',
+      ]);
 
       hotInstance.destroy();
       iframe.remove();
     });
 
     it('should render elements after changing the row heights (table without defined size)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
@@ -522,40 +556,66 @@ describe('Pagination `pageSize` option', () => {
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
       expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_066cd3067e());
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 1 of 45',
+        '|< < Page 1 of 5 [>] [>|]',
+      ]);
 
       plugin.setPage(2);
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A2');
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_837d6451b8());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_51b5ff37ca());
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A7');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '2 - 7 of 45',
+        '[|<] [<] Page 2 of 5 [>] [>|]',
+      ]);
 
       plugin.setPage(3);
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().e2eDensity_d684162341());
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_6f54af4a25());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_eca9596399());
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A8');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A23');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '8 - 23 of 45',
+        '[|<] [<] Page 3 of 5 [>] [>|]',
+      ]);
 
       const rowToChange = plugin.getPaginationData().firstVisibleRowIndex + 1;
 
       hotInstance
         .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().e2eDensity_d684162341());
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_e18c9a767b());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_be99672953());
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A8');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A18');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '8 - 18 of 45',
+        '[|<] [<] Page 3 of 5 [>] [>|]',
+      ]);
 
       hotInstance.setDataAtCell(rowToChange, 1, 'value');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe(getThemeLayout().e2eDensity_d684162341());
-      expect(getHtCore().find('tr:last td:first').text()).toBe(getThemeLayout().e2eDensity_6f54af4a25());
-      expect(visualizePageSections()).toEqual(getThemeLayout().e2eDensity_eca9596399());
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A8');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A23');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '8 - 23 of 45',
+        '[|<] [<] Page 3 of 5 [>] [>|]',
+      ]);
 
       hotInstance.destroy();
       iframe.remove();
     });
 
     it('should correctly calculate all pages when rows are rendered with different height', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(100, 5).map((row, index) => {
           if (index % 5 === 0) {

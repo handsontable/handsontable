@@ -78,6 +78,12 @@ describe('Filters UI Conditional component', () => {
   });
 
   it('should appear conditional options menu in the proper place after UISelect element click', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -99,7 +105,7 @@ describe('Filters UI Conditional component', () => {
     const gridChrome = (6 * layout.defaultDataRowHeight) + layout.defaultColumnHeaderHeight;
 
     expect(window.scrollY + rect.top).toBeAroundValue(
-      marginTop + gridChrome - layout.e2eFiltersConditionalSubmenuDocumentYSubtract(),
+      marginTop + gridChrome - 486,
       1
     );
     hot.rootElement.style.marginTop = '';

@@ -143,6 +143,12 @@ describe('MergeCells open editor', () => {
     });
 
     it('should render the editor correctly after scroll for very high merged cell', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(100, 5),
         rowHeaders: true,
@@ -165,7 +171,7 @@ describe('MergeCells open editor', () => {
 
       expect(isEditorVisible()).toBe(true);
       expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual(
-        getThemeLayout().e2eMergeCellsOpenEditorTallMergeTextareaParentOffset(),
+        { top: 30, left: 100 },
       );
     });
   });

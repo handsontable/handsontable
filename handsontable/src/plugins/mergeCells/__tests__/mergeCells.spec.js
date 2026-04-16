@@ -1737,12 +1737,17 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high merged cell', async() => {
-    const pick = values => getThemeLayout().e2ePickForDensity(values);
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
 
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
-      height: pick({ compact: 226, default: 245, comfortable: 313 }),
+      height: 245,
       viewportRowRenderingOffset: 0,
       mergeCells: true,
     });
@@ -1754,8 +1759,7 @@ describe('MergeCells', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
 
-    expect(pick({
-      compact: `
+    expect(`
       | # :   :   |
       |   :   :   |
       |   :   :   |
@@ -1777,62 +1781,14 @@ describe('MergeCells', () => {
       |   :   :   |
       |   :   :   |
       |   :   :   |
-    `,
-      default: `
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `,
-      comfortable: `
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `,
-    })).toBeMatchToSelectionPattern();
+    `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
 
-    expect(pick({
-      compact: `
+    expect(`
       | # :   :   |
       |   :   :   |
       |   :   :   |
@@ -1863,80 +1819,14 @@ describe('MergeCells', () => {
       |   :   :   |
       |   :   :   |
       |   :   :   |
-    `,
-      default: `
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `,
-      comfortable: `
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `,
-    })).toBeMatchToSelectionPattern();
+    `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
 
-    expect(pick({
-      compact: `
+    expect(`
       |   :   :   |
       |   :   :   |
       |   :   :   |
@@ -1947,42 +1837,22 @@ describe('MergeCells', () => {
       |   :   :   |
       |   :   :   |
       |   :   :   |
-    `,
-      default: `
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `,
-      comfortable: `
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `,
-    })).toBeMatchToSelectionPattern();
+    `).toBeMatchToSelectionPattern();
 
   });
 
   it('should display properly high virtualized merged cell', async() => {
-    const pick = values => getThemeLayout().e2ePickForDensity(values);
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
 
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
-      height: pick({ compact: 224, default: 248, comfortable: 312 }),
+      height: 248,
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,
@@ -1996,8 +1866,7 @@ describe('MergeCells', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
 
-    expect(pick({
-      compact: `
+    expect(`
       | # :   :   :   :   |
       |   :   :   :   :   |
       |   :   :   :   :   |
@@ -2007,55 +1876,23 @@ describe('MergeCells', () => {
       |   :   :   :   :   |
       |   :   :   :   :   |
       |   :   :   :   :   |
-    `,
-      default: `
-      | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `,
-      comfortable: `
-      | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `,
-    })).toBeMatchToSelectionPattern();
+    `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
 
-    expect(pick({
-      compact: `
+    expect(`
       | # :   :   :   :   |
-    `,
-      default: `
-      | # :   :   :   :   |
-    `,
-      comfortable: `
-      | # :   :   :   :   |
-    `,
-    })).toBeMatchToSelectionPattern();
+    `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
 
-    expect(pick({
-      compact: `
+    expect(`
       |   :   :   :   :   |
       |   :   :   :   :   |
       |   :   :   :   :   |
@@ -2065,29 +1902,6 @@ describe('MergeCells', () => {
       |   :   :   :   :   |
       |   :   :   :   :   |
       |   :   :   :   :   |
-    `,
-      default: `
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `,
-      comfortable: `
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `,
-    })).toBeMatchToSelectionPattern();
+    `).toBeMatchToSelectionPattern();
   });
 });

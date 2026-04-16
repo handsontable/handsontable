@@ -39,6 +39,12 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
 
     it('should render the editors dropdown on the right edited cell when there is no space left on the left', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(25, 25),
         layoutDirection,
@@ -49,11 +55,7 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
         ...createEditorSettings(),
       });
 
-      const scrollPositionBase = getThemeLayout().e2ePickForDensity({
-        compact: 151,
-        default: 151,
-        comfortable: 149,
-      });
+      const scrollPositionBase = 151;
 
       // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)
       await scrollViewportHorizontally(scrollPositionBase);

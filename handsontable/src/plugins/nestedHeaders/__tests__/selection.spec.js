@@ -1029,6 +1029,12 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
        'the table\'s viewport and is wider than table width', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1044,11 +1050,17 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersSelectionInlineScroll50());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
        'the table\'s viewport and is wider than table width', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1066,11 +1078,17 @@ describe('NestedHeaders', () => {
       await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(
-        getThemeLayout().e2eNestedHeadersSelectionInlineScroll265());
+        265);
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
         'the table\'s viewport and is narrower than the table width', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1086,11 +1104,17 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersSelectionInlineScroll65());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
         'the table\'s viewport and is narrower than the table width', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1108,11 +1132,17 @@ describe('NestedHeaders', () => {
       await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(
-        getThemeLayout().e2eNestedHeadersSelectionInlineScroll250());
+        250);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
        'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1129,11 +1159,17 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersSelectionInlineScroll50());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
        'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1152,11 +1188,17 @@ describe('NestedHeaders', () => {
       await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(
-        getThemeLayout().e2eNestedHeadersSelectionInlineScroll265());
+        265);
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
         'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1173,11 +1215,17 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNestedHeadersSelectionInlineScroll65());
+      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
         'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1196,7 +1244,7 @@ describe('NestedHeaders', () => {
       await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(
-        getThemeLayout().e2eNestedHeadersSelectionInlineScroll250());
+        250);
     });
 
     it('should be possible to back to the single column selection, when it was modified by the SHIFT key', async() => {

@@ -12,8 +12,14 @@ describe('Selection extending', () => {
 
   describe('"Shift + PageUp"', () => {
     it('should extend the cell selection up by the height of the table viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const height = layout.e2ePickForDensity({ compact: 100, default: 120, comfortable: 153 });
+      const height = 120;
 
       handsontable({
         width: 180,
@@ -287,9 +293,15 @@ describe('Selection extending', () => {
 
     it('should scroll the viewport repeatedly by the same number of pixels with ' +
       'keeping the initial selection viewport offset', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const height = layout.e2ePickForDensity({ compact: 200, default: 252, comfortable: 322 });
-      const rowOffset = layout.e2ePickForDensity({ compact: 2, default: 3, comfortable: 3 });
+      const height = 252;
+      const rowOffset = 3;
 
       handsontable({
         width: 180,

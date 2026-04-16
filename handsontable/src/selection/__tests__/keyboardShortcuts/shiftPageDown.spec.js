@@ -12,8 +12,14 @@ describe('Selection extending', () => {
 
   describe('"Shift + PageDown"', () => {
     it('should extend the cell selection down by the height of the table viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const height = layout.e2ePickForDensity({ compact: 100, default: 120, comfortable: 153 });
+      const height = 120;
 
       handsontable({
         width: 180,

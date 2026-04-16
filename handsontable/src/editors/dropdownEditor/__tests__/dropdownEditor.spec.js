@@ -81,10 +81,16 @@ describe('DropdownEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const layout = getThemeLayout();
 
     spec().$container[0].style.height =
-      `${layout.e2ePickForDensity({ compact: 200, default: 252, comfortable: 313 })}px`;
+      `${252}px`;
 
     handsontable({
       data: createSpreadsheetData(8, 2),

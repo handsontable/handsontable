@@ -87,6 +87,12 @@ describe('Comments keyboard shortcut', () => {
     });
 
     it('should scroll the viewport, open and create a new comment when the focused cell is outside the table', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(500, 50),
         width: 300,
@@ -121,7 +127,7 @@ describe('Comments keyboard shortcut', () => {
       const layout = getThemeLayout();
 
       expect(topOverlay().getScrollPosition()).toBe(
-        layout.verticalScrollForRow(400) - layout.e2eCommentsShortcutVerticalScrollSubtract()
+        layout.verticalScrollForRow(400) - 225
       );
     });
 

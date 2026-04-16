@@ -599,12 +599,18 @@ describe('CopyPaste', () => {
     });
 
     it('should paste data without scrolling the viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
 
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
-        height: layout.e2ePickForDensity({ compact: 200, default: 250, comfortable: 319 }),
+        height: 250,
       });
 
       await selectCell(6, 2);

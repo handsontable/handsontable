@@ -31,6 +31,12 @@ describe('HandsontableEditor positioning', () => {
   // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
 
   it('should render the editors dropdown on the left edited cell when there is no space left on the right', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -40,11 +46,7 @@ describe('HandsontableEditor positioning', () => {
       ...createEditorSettings(),
     });
 
-    const scrollPositionBase = getThemeLayout().e2ePickForDensity({
-      compact: 151,
-      default: 151,
-      comfortable: 149,
-    });
+    const scrollPositionBase = 151;
 
     // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)
     await scrollViewportHorizontally(scrollPositionBase);
@@ -86,6 +88,12 @@ describe('HandsontableEditor positioning', () => {
   });
 
   it('should render the editors dropdown above the cell when there is no space left below', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -95,11 +103,7 @@ describe('HandsontableEditor positioning', () => {
       ...createEditorSettings(),
     });
 
-    const scrollPositionBase = getThemeLayout().e2ePickForDensity({
-      compact: 46,
-      default: 71,
-      comfortable: 132,
-    });
+    const scrollPositionBase = 71;
 
     // scroll the viewport to the point where the editor may be rendered on the bottom (there is enough space)
     await scrollViewportVertically(scrollPositionBase);

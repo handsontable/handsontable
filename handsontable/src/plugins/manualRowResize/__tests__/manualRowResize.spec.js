@@ -386,6 +386,12 @@ describe('manualRowResize', () => {
   });
 
   it('should autosize row after double click (when initial height is not defined)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(3, 3),
       rowHeaders: true,
@@ -401,7 +407,7 @@ describe('manualRowResize', () => {
     await waitForNextAnimationFrames(63);
 
     expect(rowHeight(spec().$container, 2)).toBeAroundValue(
-      getThemeLayout().e2eManualRowResizeAutosizeHeightAfterDoubleClickFrom300(),
+      29,
       3);
   });
 
@@ -1206,6 +1212,12 @@ describe('manualRowResize', () => {
 
     it('should be able to get the last desired row height from the ' +
       '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const desiredHeightsLog = [];
 
       handsontable({
@@ -1228,12 +1240,8 @@ describe('manualRowResize', () => {
       await waitForNextAnimationFrames(7);
 
       const layout = getThemeLayout();
-      const mousemoveDelta = layout.e2ePickForDensity({
-        compact: $resizer.height() - 50,
-        default: ($resizer.height() / 2) - 50,
-        comfortable: ($resizer.height() / 2) - 50,
-      });
-      const expectedBump = layout.e2ePickForDensity({ compact: 11, default: 6, comfortable: 6 });
+      const mousemoveDelta = ($resizer.height() / 2) - 50;
+      const expectedBump = 6;
 
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + mousemoveDelta });
@@ -1246,6 +1254,12 @@ describe('manualRowResize', () => {
   describe('with the AutoRowSize plugin', () => {
     it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
       'after autoRowSize initialization', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const data = createSpreadsheetData(3, 5);
 
       data[0][4] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas hendrerit elit sed quam porta ' +

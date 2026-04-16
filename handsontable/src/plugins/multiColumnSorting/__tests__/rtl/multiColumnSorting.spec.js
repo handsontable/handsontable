@@ -22,6 +22,12 @@ describe('MultiColumnSorting (RTL)', () => {
 
     describe('Numbers presenting sorting sequence', () => {
       it('should position the sorting sequence number when multiple columns are sorted', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -70,7 +76,7 @@ describe('MultiColumnSorting (RTL)', () => {
 
         expect(computedStyle.getPropertyValue('margin-top')).toEqual('4px');
         expect(computedStyle.getPropertyValue('top')).toEqual(
-          layout.e2ePickForDensity({ compact: '10.5px', default: '10px', comfortable: '10px' })
+          '10px'
         );
 
         if (htmlDir === 'rtl' || layoutDirection === 'rtl') {

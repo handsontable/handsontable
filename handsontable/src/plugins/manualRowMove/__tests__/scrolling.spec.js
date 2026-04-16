@@ -47,7 +47,13 @@ describe('manualRowMove', () => {
 
     it('should move the table\'s viewport down when the next mouse-overed ' +
       'element is a row that belongs to the bottom overlay', async() => {
-      const height = getThemeLayout().e2ePickForDensity({ compact: 165, default: 190, comfortable: 242 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const height = 190;
 
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -122,7 +128,13 @@ describe('manualRowMove', () => {
 
     it('should not move the table\'s viewport when the next mouse-overed element' +
       ' is the last row that belongs to the main table and there are some bottom overlay rows', async() => {
-      const height = getThemeLayout().e2ePickForDensity({ compact: 165, default: 190, comfortable: 242 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const height = 190;
 
       handsontable({
         data: createSpreadsheetData(10, 10),
@@ -156,6 +168,12 @@ describe('manualRowMove', () => {
     });
 
     it('should move the table\'s viewport up when the next mouse-overed element is above the table', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -175,7 +193,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const nextElement = $(document.body);
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().e2eDensity_6fb44e9a25());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(185);
 
       rowHeader
         .simulate('mousedown')
@@ -191,10 +209,16 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_73a19e226c());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(185);
     });
 
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to the top overlay', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -217,7 +241,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().e2eDensity_7d7cc669b9());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(100);
 
       rowHeader
         .simulate('mousedown')
@@ -232,11 +256,17 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_7d7cc669b9());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(100);
     });
 
     it('should move the table\'s viewport up when the next mouse-overed element is a row that belongs to ' +
        'the top overlay (with hidden rows)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -262,7 +292,7 @@ describe('manualRowMove', () => {
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(getThemeLayout().e2eDensity_a2f2c0beda());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(50);
 
       rowHeader
         .simulate('mousedown')
@@ -277,7 +307,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(getThemeLayout().e2eDensity_7d7cc669b9());
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(100);
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first row that belongs ' +

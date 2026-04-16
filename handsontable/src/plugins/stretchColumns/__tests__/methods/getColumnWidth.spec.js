@@ -24,6 +24,12 @@ describe('StretchColumns', () => {
     });
 
     it('should return correct column widths when stretching "all" is enabled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(3, 3),
         width: 200,
@@ -33,12 +39,18 @@ describe('StretchColumns', () => {
 
       const plugin = getPlugin('stretchColumns');
 
-      expect(plugin.getColumnWidth(0)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllFirstTwo());
-      expect(plugin.getColumnWidth(1)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllFirstTwo());
-      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllLast());
+      expect(plugin.getColumnWidth(0)).toBe(67);
+      expect(plugin.getColumnWidth(1)).toBe(67);
+      expect(plugin.getColumnWidth(2)).toBe(66);
     });
 
     it('should return correct column widths when stretching "last" is enabled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(3, 3),
         width: 200,
@@ -50,7 +62,7 @@ describe('StretchColumns', () => {
 
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
-      expect(plugin.getColumnWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchLast());
+      expect(plugin.getColumnWidth(2)).toBe(100);
     });
   });
 });

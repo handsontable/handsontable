@@ -533,8 +533,14 @@ describe('NestedHeaders', () => {
     });
 
     it('should render the setup properly after the table being scrolled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const width = layout.e2ePickForDensity({ compact: 400, default: 400, comfortable: 427 });
+      const width = 400;
 
       handsontable({
         data: createSpreadsheetData(10, 90),

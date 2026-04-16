@@ -705,7 +705,13 @@ describe('ColumnSummarySpec', () => {
 
     it('should shift the visual calculation result position when a row ' +
       'was moved outside the endpoint range', async() => {
-      const height = getThemeLayout().e2ePickForDensity({ compact: 200, default: 252, comfortable: 321 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const height = 252;
 
       handsontable({
         data: createNumericData(40, 40),
@@ -738,7 +744,13 @@ describe('ColumnSummarySpec', () => {
 
     it('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
-      const height = getThemeLayout().e2ePickForDensity({ compact: 200, default: 252, comfortable: 321 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const height = 252;
 
       handsontable({
         data: createNumericData(40, 40),

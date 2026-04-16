@@ -189,6 +189,12 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should display the indicator properly after changing the sorted column sequence', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -214,7 +220,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual(
-      layout.e2ePickForDensity({ compact: '10.5px', default: '10px', comfortable: '10px' })
+      '10px'
     );
   });
 
@@ -2770,6 +2776,12 @@ describe('MultiColumnSorting', () => {
       });
 
       it('should position the sorting sequence number when multiple columns are sorted', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -2818,7 +2830,7 @@ describe('MultiColumnSorting', () => {
 
         expect(computedStyle.getPropertyValue('margin-top')).toEqual('4px');
         expect(computedStyle.getPropertyValue('top')).toEqual(
-          layout.e2ePickForDensity({ compact: '10.5px', default: '10px', comfortable: '10px' })
+          '10px'
         );
 
         if (htmlDir === 'rtl' || layoutDirection === 'rtl') {

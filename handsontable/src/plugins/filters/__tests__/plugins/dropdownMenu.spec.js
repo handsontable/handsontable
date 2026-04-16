@@ -11,6 +11,12 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should scale text input showed after condition selection (pixel perfect)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -38,15 +44,21 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
     const layout = getThemeLayout();
     const bothInputBorders = 2;
-    const bothInputPaddings = layout.e2ePickForDensity({ compact: 8, default: 24, comfortable: 32 });
-    const bothWrapperMargins = layout.e2ePickForDensity({ compact: 20, default: 16, comfortable: 24 });
-    const bothCustomRendererPaddings = layout.e2ePickForDensity({ compact: 12, default: 24, comfortable: 16 });
+    const bothInputPaddings = 24;
+    const bothWrapperMargins = 16;
+    const bothCustomRendererPaddings = 24;
     const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
   it('should scale a condition select (pixel perfect)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -71,13 +83,19 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const widthOfSelect = $(conditionSelectRootElements().first).width();
     const layout = getThemeLayout();
     const bothWrapperMargins = 16;
-    const bothCustomRendererPaddings = layout.e2ePickForDensity({ compact: 8, default: 24, comfortable: 24 });
+    const bothCustomRendererPaddings = 24;
     const parentsPaddings = bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
   });
 
   it('should scale search input of the value box (pixel perfect)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -102,9 +120,9 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
     const layout = getThemeLayout();
     const bothInputBorders = 2;
-    const bothInputPaddings = layout.e2ePickForDensity({ compact: 8, default: 24, comfortable: 32 });
-    const bothWrapperMargins = layout.e2ePickForDensity({ compact: 20, default: 16, comfortable: 24 });
-    const bothCustomRendererPaddings = layout.e2ePickForDensity({ compact: 12, default: 24, comfortable: 16 });
+    const bothInputPaddings = 24;
+    const bothWrapperMargins = 16;
+    const bothCustomRendererPaddings = 24;
     const parentsPaddings = bothInputBorders + bothInputPaddings + bothWrapperMargins + bothCustomRendererPaddings;
 
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);

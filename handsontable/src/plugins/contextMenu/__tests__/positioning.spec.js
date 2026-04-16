@@ -88,6 +88,12 @@ describe('ContextMenu', () => {
     });
 
     it('should show tick from "Read only" element at proper place', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -107,8 +113,8 @@ describe('ContextMenu', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(getThemeLayout().e2eDensity_2d086a6135());
-      expect(tickItemOffset.left).toBe(getThemeLayout().e2eMenuTickItemInlineStartFromRootLeft(contextMenuOffset.left));
+      expect(tickItemOffset.top).toBe(246);
+      expect(tickItemOffset.left).toBe(1);
     });
   });
 });

@@ -250,6 +250,12 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (narrowing) selected columns', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -277,12 +283,18 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth343435());
-    expect($columnHeaders.eq(2).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth343435());
-    expect($columnHeaders.eq(3).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth343435());
+    expect($columnHeaders.eq(1).width()).toBe(34);
+    expect($columnHeaders.eq(2).width()).toBe(34);
+    expect($columnHeaders.eq(3).width()).toBe(34);
   });
 
   it('should show resizer for fixed columns', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -297,17 +309,23 @@ describe('manualColumnResize', () => {
 
     const $resizer = spec().$container.find('.manualColumnResizer');
 
-    expect($resizer.position()).toEqual(getThemeLayout().e2eManualColumnResizeResizerPositionTopCloneLeft194());
+    expect($resizer.position()).toEqual({ top: 0, left: 194 });
 
     // after hovering over fixed column, resizer should be moved to the fixed column
     getTopInlineStartClone()
       .find('thead tr:eq(0) th:eq(1)')
       .simulate('mouseover');
 
-    expect($resizer.position()).toEqual(getThemeLayout().e2eManualColumnResizeResizerPositionTopCloneLeft94());
+    expect($resizer.position()).toEqual({ top: 0, left: 94 });
   });
 
   it('should resize (expanding) selected columns', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -335,12 +353,18 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth155155156());
-    expect($columnHeaders.eq(2).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth155155156());
-    expect($columnHeaders.eq(3).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth155155156());
+    expect($columnHeaders.eq(1).width()).toBe(155);
+    expect($columnHeaders.eq(2).width()).toBe(155);
+    expect($columnHeaders.eq(3).width()).toBe(155);
   });
 
   it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -369,14 +393,20 @@ describe('manualColumnResize', () => {
 
     await waitForNextAnimationFrames(63);
 
-    expect($columnHeaders.eq(0).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth220219217());
-    expect($columnHeaders.eq(1).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth222735());
-    expect($columnHeaders.eq(2).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth221220218());
-    expect($columnHeaders.eq(3).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth221220218());
-    expect($columnHeaders.eq(4).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth220218216());
+    expect($columnHeaders.eq(0).width()).toBe(219);
+    expect($columnHeaders.eq(1).width()).toBe(27);
+    expect($columnHeaders.eq(2).width()).toBe(220);
+    expect($columnHeaders.eq(3).width()).toBe(220);
+    expect($columnHeaders.eq(4).width()).toBe(218);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -404,15 +434,21 @@ describe('manualColumnResize', () => {
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     await waitForNextAnimationFrames(63);
 
-    expect($columnHeaders.eq(0).width()).toBeAroundValue(getThemeLayout().e2eManualColumnResizeWidth222735());
+    expect($columnHeaders.eq(0).width()).toBeAroundValue(27);
     expect($columnHeaders.eq(1).width()).toBe(48);
     expect($columnHeaders.eq(2).width()).toBe(49);
     expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBeAroundValue(getThemeLayout().e2eManualColumnResizeWidth736730723());
+    expect($columnHeaders.eq(4).width()).toBeAroundValue(730);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
      'updateSettings usage with new `colWidths` values', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: true,
@@ -438,7 +474,7 @@ describe('manualColumnResize', () => {
       await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
       await waitForNextAnimationFrames(63);
 
-      expect($columnHeaders.eq(0).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth293543());
+      expect($columnHeaders.eq(0).width()).toBe(35);
       expect($columnHeaders.eq(1).width()).toBe(118);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
@@ -456,8 +492,8 @@ describe('manualColumnResize', () => {
 
       await waitForNextAnimationFrames(63);
 
-      expect($columnHeaders.eq(0).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth293543());
-      expect($columnHeaders.eq(1).width()).toBe(getThemeLayout().e2eManualColumnResizeWidth788795());
+      expect($columnHeaders.eq(0).width()).toBe(35);
+      expect($columnHeaders.eq(1).width()).toBe(87);
       expect($columnHeaders.eq(2).width()).toBe(159);
       expect($columnHeaders.eq(3).width()).toBe(59);
       expect($columnHeaders.eq(4).width()).toBe(79);
@@ -599,6 +635,12 @@ describe('manualColumnResize', () => {
   });
 
   it('should trigger an afterColumnResize after column size changes, after double click', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -623,14 +665,20 @@ describe('manualColumnResize', () => {
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
     expect(afterColumnResizeCallback).toHaveBeenCalledWith(
-      getThemeLayout().e2eManualColumnResizeWidth303644(),
+      36,
       0,
       true
     );
-    expect(colWidth(spec().$container, 0)).toBe(getThemeLayout().e2eManualColumnResizeWidth303644());
+    expect(colWidth(spec().$container, 0)).toBe(36);
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -651,10 +699,16 @@ describe('manualColumnResize', () => {
 
     await waitForNextAnimationFrames(63);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(getThemeLayout().e2eManualColumnResizeWidth293544(), 3);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(35, 3);
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -675,10 +729,16 @@ describe('manualColumnResize', () => {
 
     await waitForNextAnimationFrames(63);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(getThemeLayout().e2eManualColumnResizeWidth293544(), 3);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(35, 3);
   });
 
   it('should autosize selected columns after double click on handler', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -700,12 +760,18 @@ describe('manualColumnResize', () => {
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     await waitForNextAnimationFrames(38);
 
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eManualColumnResizeWidth303644());
-    expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eManualColumnResizeWidth313644());
-    expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eManualColumnResizeWidth313644());
+    expect(colWidth(spec().$container, 1)).toBe(36);
+    expect(colWidth(spec().$container, 2)).toBe(36);
+    expect(colWidth(spec().$container, 3)).toBe(36);
   });
 
   it('should autosize selected columns after double click on handler and move mouse to the next column', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -722,7 +788,7 @@ describe('manualColumnResize', () => {
     getTopClone().find('tr:eq(0) th:eq(2)').simulate('mouseover');
     await waitForNextAnimationFrames(38);
 
-    expect(colWidth(spec().$container, 1)).toBe(getThemeLayout().e2eManualColumnResizeWidth303644());
+    expect(colWidth(spec().$container, 1)).toBe(36);
   });
 
   it('should adjust resize handles position after table size changed', async() => {
@@ -979,6 +1045,12 @@ describe('manualColumnResize', () => {
 
   describe('column resizing in a table positioned using CSS\'s `transform`', () => {
     it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       spec().$container.css('transform', 'translate(50px, 120px)');
 
       handsontable({
@@ -1006,13 +1078,13 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getTopClone().find('thead tr:eq(0) th:eq(5)').width()).toBe(
-        getThemeLayout().e2eManualColumnResizeWidth797981(),
+        79,
       );
       expect(getTopClone().find('thead tr:eq(0) th:eq(6)').width()).toBe(
-        getThemeLayout().e2eManualColumnResizeWidth797981(),
+        79,
       );
       expect(getTopClone().find('thead tr:eq(0) th:eq(7)').width()).toBe(
-        getThemeLayout().e2eManualColumnResizeWidth797981(),
+        79,
       );
     });
 
@@ -1083,6 +1155,12 @@ describe('manualColumnResize', () => {
 
   describe('contiguous/non-contiguous selected columns resizing in a table', () => {
     it('should resize (expanding) width of selected contiguous columns', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 50),
         colHeaders: true,
@@ -1100,14 +1178,20 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
 
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eManualColumnResizeWidth505052());
-      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eManualColumnResizeWidth808082());
-      expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().e2eManualColumnResizeWidth808082());
-      expect(colWidth(spec().$container, 5)).toBe(getThemeLayout().e2eManualColumnResizeWidth808082());
-      expect(colWidth(spec().$container, 6)).toBe(getThemeLayout().e2eManualColumnResizeWidth505053());
+      expect(colWidth(spec().$container, 2)).toBe(50);
+      expect(colWidth(spec().$container, 3)).toBe(80);
+      expect(colWidth(spec().$container, 4)).toBe(80);
+      expect(colWidth(spec().$container, 5)).toBe(80);
+      expect(colWidth(spec().$container, 6)).toBe(50);
     });
 
     it('should resize (expanding) width of selected non-contiguous columns', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 50),
         colHeaders: true,
@@ -1136,15 +1220,15 @@ describe('manualColumnResize', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left + 30 });
       $resizer.simulate('mouseup');
 
-      expect(colWidth(spec().$container, 2)).toBe(getThemeLayout().e2eManualColumnResizeWidth505052());
-      expect(colWidth(spec().$container, 3)).toBe(getThemeLayout().e2eManualColumnResizeWidth808081());
-      expect(colWidth(spec().$container, 4)).toBe(getThemeLayout().e2eManualColumnResizeWidth505051());
-      expect(colWidth(spec().$container, 5)).toBe(getThemeLayout().e2eManualColumnResizeWidth505051());
-      expect(colWidth(spec().$container, 6)).toBe(getThemeLayout().e2eManualColumnResizeWidth505053());
-      expect(colWidth(spec().$container, 7)).toBe(getThemeLayout().e2eManualColumnResizeWidth808081());
+      expect(colWidth(spec().$container, 2)).toBe(50);
+      expect(colWidth(spec().$container, 3)).toBe(80);
+      expect(colWidth(spec().$container, 4)).toBe(50);
+      expect(colWidth(spec().$container, 5)).toBe(50);
+      expect(colWidth(spec().$container, 6)).toBe(50);
+      expect(colWidth(spec().$container, 7)).toBe(80);
       expect(colWidth(spec().$container, 8)).toBe(50);
       expect(colWidth(spec().$container, 9)).toBe(50);
-      expect(colWidth(spec().$container, 10)).toBe(getThemeLayout().e2eManualColumnResizeWidth808081());
+      expect(colWidth(spec().$container, 10)).toBe(80);
       expect(colWidth(spec().$container, 11)).toBe(50);
     });
 

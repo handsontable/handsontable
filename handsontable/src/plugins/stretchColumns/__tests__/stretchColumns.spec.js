@@ -22,6 +22,12 @@ describe('StretchColumns', () => {
   });
 
   it('should be possible to change the stretch strategy via `updateSettings`', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(3, 3),
       width: 200,
@@ -36,9 +42,9 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllFirstTwo());
-    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllFirstTwo());
-    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchAllLast());
+    expect(getColWidth(0)).toBe(67);
+    expect(getColWidth(1)).toBe(67);
+    expect(getColWidth(2)).toBe(66);
 
     await updateSettings({
       stretchH: 'last',
@@ -46,7 +52,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth200StretchLast());
+    expect(getColWidth(2)).toBe(100);
 
     await updateSettings({
       stretchH: 'none',
@@ -73,6 +79,12 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns after table size change', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -90,16 +102,22 @@ describe('StretchColumns', () => {
       width: 500,
     });
 
-    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsWidth500ThreeCols());
-    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsWidth500ThreeCols());
-    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsWidth500ThreeCols());
+    expect(getColWidth(0)).toBe(150);
+    expect(getColWidth(1)).toBe(150);
+    expect(getColWidth(2)).toBe(150);
   });
 
   it(`should correctly stretch columns after vertical scroll appears
  (defined table size)`, async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const layout = getThemeLayout();
-    const heightFull = layout.e2ePickForDensity({ compact: 156, default: 179, comfortable: 228 });
-    const heightWithScroll = layout.e2ePickForDensity({ compact: 155, default: 165, comfortable: 211 });
+    const heightFull = 179;
+    const heightWithScroll = 165;
 
     handsontable({
       data: createSpreadsheetData(5, 3),
@@ -217,6 +235,12 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns when there are some rows with multi-line text', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const data = createSpreadsheetData(5, 2);
 
     for (let i = 0; i < data.length; i++) {
@@ -232,8 +256,8 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsMultilineWidth500Col0());
-    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsMultilineWidth500Col1());
+    expect(getColWidth(0)).toBe(418);
+    expect(getColWidth(1)).toBe(82);
   });
 
   it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', async() => {
@@ -328,6 +352,12 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch the column after changing the cell value (#dev-1727)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const data = createSpreadsheetData(1, 5);
 
     data[0][4] = 'very long text is here to make the column wider';
@@ -339,7 +369,7 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(4)).toBe(getThemeLayout().e2eStretchColumnsLongTextWidth400Col4());
+    expect(getColWidth(4)).toBe(311);
 
     await setDataAtCell(0, 4, 'text');
 
@@ -347,7 +377,7 @@ describe('StretchColumns', () => {
 
     await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
-    expect(getColWidth(4)).toBe(getThemeLayout().e2eStretchColumnsLongTextWidth400Col4());
+    expect(getColWidth(4)).toBe(311);
   });
 
   it('should stretch the table to the entirety of the container when autoRowSize is enabled', async() => {

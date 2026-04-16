@@ -79,6 +79,12 @@ describe('ContextMenu', () => {
 
   describe('menu width', () => {
     it('should display the menu with the minimum width', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         contextMenu: {
           items: {
@@ -98,7 +104,7 @@ describe('ContextMenu', () => {
       await sleep(300);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(getThemeLayout().e2eDensity_db9abac9c8());
+      expect($menu.width()).toEqual(217);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {

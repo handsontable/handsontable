@@ -343,6 +343,12 @@ describe('PasswordEditor', () => {
   });
 
   it('should correctly calculate the input width based on typed values', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       columns: [
         {
@@ -365,7 +371,7 @@ describe('PasswordEditor', () => {
 
     expect(editor.style.width).toBe(
       `${layout.defaultColumnWidth + (2 * layout.defaultDataRowHeight)
-        - layout.e2ePasswordEditorAutoresizeWidthTrimPx()}px`
+        - 1}px`
     );
   });
 

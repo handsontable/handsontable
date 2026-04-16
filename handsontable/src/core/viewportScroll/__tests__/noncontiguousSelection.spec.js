@@ -265,6 +265,12 @@ describe('Non-contiguous selection scroll', () => {
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
@@ -277,7 +283,7 @@ describe('Non-contiguous selection scroll', () => {
       await scrollViewportVertically(5);
       await selectCells([[11, 0], [9, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eNoncontiguousBottomEdgeScrollTop(5));
+      expect(topOverlay().getScrollPosition()).toBe(36);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(9, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',

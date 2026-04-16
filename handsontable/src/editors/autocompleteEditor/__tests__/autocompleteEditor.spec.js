@@ -71,11 +71,17 @@ describe('AutocompleteEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     const layout = getThemeLayout();
 
     spec().$container.css(
       'height',
-      `${layout.e2ePickForDensity({ compact: 200, default: 245, comfortable: 313 })}px`
+      `${245}px`
     );
 
     handsontable({

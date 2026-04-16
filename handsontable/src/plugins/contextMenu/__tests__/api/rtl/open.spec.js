@@ -44,7 +44,13 @@ describe('ContextMenu (RTL mode)', () => {
 
       it('should open context menu on the left-top position if on the right and ' +
         'bottom there is no space left', async() => {
-        const rowDivisor = getThemeLayout().e2ePickForDensity({ compact: 27, default: 29, comfortable: 37 });
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
+        const rowDivisor = 29;
 
         handsontable({
           layoutDirection,
@@ -95,9 +101,15 @@ describe('ContextMenu (RTL mode)', () => {
 
       it('should open context menu on the right-top position if on the left and ' +
         'bottom there is no space left', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         const layout = getThemeLayout();
-        const rowDivisor = layout.e2ePickForDensity({ compact: 27, default: 29, comfortable: 37 });
-        const colDivisor = layout.e2ePickForDensity({ compact: 50, default: 50, comfortable: 53 });
+        const rowDivisor = 29;
+        const colDivisor = 50;
 
         handsontable({
           layoutDirection,

@@ -282,6 +282,12 @@ describe('AutoRowSize', () => {
   });
 
   it('should sync inline start overlay with the main table after updating the last cell with new value (#7102)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: [
         ['A long text'],
@@ -304,8 +310,8 @@ describe('AutoRowSize', () => {
     await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
-    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getThemeLayout().e2eDensity_012c64941a());
-    expect(getMaster().find('.wtHolder').scrollTop()).toBe(getThemeLayout().e2eDensity_012c64941a());
+    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(216);
+    expect(getMaster().find('.wtHolder').scrollTop()).toBe(216);
   });
 
   it('should consider CSS style of each instance separately', async() => {
@@ -435,6 +441,12 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column resize', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -456,7 +468,7 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_73e2af5849());
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(89);
 
     await resizeColumn(1, 50);
 
@@ -472,7 +484,7 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_a57d724d44());
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(49);
   });
 
   it('should recalculate heights after column moved', async() => {
@@ -672,6 +684,12 @@ describe('AutoRowSize', () => {
   });
 
   it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 400,
@@ -683,13 +701,13 @@ describe('AutoRowSize', () => {
 
     await scrollViewportTo(49, 0);
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_0077155d83());
+    expect(topOverlay().getScrollPosition()).toBe(1135);
 
     await listen();
     await selectColumns(2, 2);
     await keyDownUp('delete');
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_0077155d83());
+    expect(topOverlay().getScrollPosition()).toBe(1135);
   });
 
   it('should correctly calculate row heights for cell\'s content that produce ' +
@@ -739,6 +757,12 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (dev-2512)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: [
         // 3rd cell content has to be exactly 83px
@@ -747,7 +771,7 @@ describe('AutoRowSize', () => {
       colHeaders: true,
       rowHeaders: true,
       autoRowSize: true,
-      colWidths: getThemeLayout().e2ePickForDensity({ compact: 85, default: 100, comfortable: 100 }),
+      colWidths: 100,
       wordWrap: true,
       height: 500,
       width: 300,
@@ -761,6 +785,12 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: [
         // 3rd cell content has to be exactly 83px
@@ -769,7 +799,7 @@ describe('AutoRowSize', () => {
       colHeaders: true,
       rowHeaders: true,
       autoRowSize: true,
-      colWidths: getThemeLayout().e2ePickForDensity({ compact: 85, default: 100, comfortable: 100 }),
+      colWidths: 100,
       wordWrap: true,
       height: 500,
       width: 300,

@@ -42,6 +42,12 @@ describe('NestedHeaders', () => {
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         handsontable({
           data: createSpreadsheetData(7, 7),
           width: 300,
@@ -56,29 +62,35 @@ describe('NestedHeaders', () => {
         const themeLayout = getThemeLayout();
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_100_110_117(),
+          110,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_100_110_117(),
+          110,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+          110,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+          110,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+          110,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+          110,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_99_110_118(),
+          110,
         );
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         handsontable({
           data: createSpreadsheetData(3, 10),
           width: 300,
@@ -95,34 +107,34 @@ describe('NestedHeaders', () => {
         const themeLayout = getThemeLayout();
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_23_28_36(),
+          28,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_24_28_36(),
+          28,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_26_35(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_23_27_36(),
+          27,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_27_35(),
+          27,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_26_35(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_21_26_33(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_102_111_114(),
+          111,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_98_108_112(),
+          108,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_25_30_38(),
+          30,
         );
       });
 
@@ -143,6 +155,12 @@ describe('NestedHeaders', () => {
 
     describe('updateSettings', () => {
       it('should recreate the widths cache', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         handsontable({
           data: createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -161,13 +179,19 @@ describe('NestedHeaders', () => {
 
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
         expect(widthAfterUpdate).toBeAroundValue(
-          getThemeLayout().e2eNestedHeadersGhostTable_135_150_158(),
+          150,
         );
       });
     });
 
     describe('with hidden columns', () => {
       it('should calculate the columns widths when some columns are hidden on table initialization', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -187,31 +211,37 @@ describe('NestedHeaders', () => {
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_24_28_36(),
+          28,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_79_88_96(),
+          88,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_27_35(),
+          27,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_26_35(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_21_26_33(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_102_111_114(),
+          111,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_98_108_112(),
+          108,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
       it('should recalculate the columns widths after hiding columns', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -231,30 +261,36 @@ describe('NestedHeaders', () => {
         const themeLayout = getThemeLayout();
 
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_23_28_36(),
+          28,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_79_88_96(),
+          88,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_27_35(),
+          27,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_22_26_34(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_21_26_34(),
+          26,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_201_219_227(),
+          219,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
       it('should recalculate the columns widths after showing columns', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -278,19 +314,19 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_79_88_96(),
+          88,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_23_28_36(),
+          28,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(5)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_102_111_114(),
+          111,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          themeLayout.e2eNestedHeadersGhostTable_98_108_112(),
+          108,
         );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });

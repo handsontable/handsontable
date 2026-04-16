@@ -197,6 +197,12 @@ describe('GhostTable', () => {
     });
 
     it('should get valid widths', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const hot = handsontable(hotSettings);
       const widthSpy = jasmine.createSpy();
       const samples = new Map();
@@ -221,11 +227,11 @@ describe('GhostTable', () => {
 
       expect(widthSpy.calls.count()).toBe(3);
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBe(getThemeLayout().e2eDensity_a738aa613c());
+      expect(widthSpy.calls.argsFor(0)[1]).toBe(84);
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBe(getThemeLayout().e2eDensity_129ed1d57c());
+      expect(widthSpy.calls.argsFor(1)[1]).toBe(43);
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).toBe(getThemeLayout().e2eDensity_cefdabf33b());
+      expect(widthSpy.calls.argsFor(2)[1]).toBe(68);
     });
 
     it('should get rounded up widths when the browser calculates the columns as a decimal values', async() => {

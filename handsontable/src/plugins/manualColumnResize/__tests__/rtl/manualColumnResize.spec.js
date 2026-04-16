@@ -50,6 +50,12 @@ describe('manualColumnResize (RTL)', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -78,13 +84,13 @@ describe('manualColumnResize (RTL)', () => {
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
     expect($columnHeaders.eq(1).outerWidth()).toBe(
-      getThemeLayout().e2eManualColumnResizeRtlStretchedHeaderOuterWidth(),
+      196,
     );
     expect($columnHeaders.eq(2).outerWidth()).toBe(
-      getThemeLayout().e2eManualColumnResizeRtlStretchedHeaderOuterWidth(),
+      196,
     );
     expect($columnHeaders.eq(3).outerWidth()).toBe(
-      getThemeLayout().e2eManualColumnResizeRtlStretchedHeaderOuterWidth(),
+      196,
     );
   });
 

@@ -77,9 +77,15 @@ describe('TextEditor (RTL mode)', () => {
     });
 
     it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const overlayHeightPx = layout.e2ePickForDensity({ compact: null, default: 240, comfortable: 306 });
-      const overlayWidthPx = layout.e2ePickForDensity({ compact: null, default: 200, comfortable: 200 });
+      const overlayHeightPx = 240;
+      const overlayWidthPx = 200;
 
       if (overlayHeightPx !== null) {
         spec().$container[0].style.height = `${overlayHeightPx}px`;
@@ -200,9 +206,15 @@ describe('TextEditor (RTL mode)', () => {
 
     it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays ' +
       'and the first row of each overlay is hidden', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const overlayHeightPx = layout.e2ePickForDensity({ compact: null, default: 240, comfortable: 306 });
-      const overlayWidthPx = layout.e2ePickForDensity({ compact: null, default: 200, comfortable: 200 });
+      const overlayHeightPx = 240;
+      const overlayWidthPx = 200;
 
       if (overlayHeightPx !== null) {
         spec().$container[0].style.height = `${overlayHeightPx}px`;

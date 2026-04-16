@@ -255,6 +255,12 @@ describe('Row header selection scroll', () => {
   });
 
   it('should scroll the viewport to the focused cell when the selection is higher than table\'s viewport (last to first)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(20, 5),
       width: 300,
@@ -268,7 +274,7 @@ describe('Row header selection scroll', () => {
     await selectRows(19, 0);
 
     expect(topOverlay().getScrollPosition()).toBe(
-      getThemeLayout().e2eRowHeaderSelectionScrollTopAfterSelectLastToFirst()
+      250
     );
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(19, -1, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({

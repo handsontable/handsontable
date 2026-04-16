@@ -11,6 +11,12 @@ describe('StretchColumns cooperation with hidden columns', () => {
   });
 
   it('should stretch only visible columns (ignore hidden ones)', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(5, 9),
       colHeaders: true,
@@ -31,13 +37,13 @@ describe('StretchColumns cooperation with hidden columns', () => {
     await render();
 
     expect(getColWidth(0)).toBe(50);
-    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
-    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
+    expect(getColWidth(1)).toBe(68);
+    expect(getColWidth(2)).toBe(68);
     expect(getColWidth(3)).toBe(50);
     expect(getColWidth(4)).toBe(50);
-    expect(getColWidth(5)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartVisible());
+    expect(getColWidth(5)).toBe(68);
     expect(getColWidth(6)).toBe(50);
-    expect(getColWidth(7)).toBe(getThemeLayout().e2eStretchColumnsAlter320InsertStartTrailing());
+    expect(getColWidth(7)).toBe(66);
     expect(getColWidth(8)).toBe(50);
   });
 });

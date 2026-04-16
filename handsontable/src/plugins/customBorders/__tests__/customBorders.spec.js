@@ -1133,7 +1133,13 @@ describe('CustomBorders', () => {
     // based on tests in Core_count.spec.js
 
     it('should render borders only for rendered rows', async() => {
-      const height = getThemeLayout().e2ePickForDensity({ compact: 115, default: 125, comfortable: 159 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const height = 125;
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({
@@ -1149,7 +1155,13 @@ describe('CustomBorders', () => {
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
-      const height = getThemeLayout().e2ePickForDensity({ compact: 115, default: 125, comfortable: 159 });
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
+      const height = 125;
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({

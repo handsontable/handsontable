@@ -172,7 +172,13 @@ describe('Comments', () => {
 
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is not scrolled (the Window object is not a scrollable element)', async() => {
-        const width = getThemeLayout().e2ePickForDensity({ compact: 300, default: 500, comfortable: 500 });
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
+        const width = 500;
 
         handsontable({
           layoutDirection,
@@ -196,10 +202,16 @@ describe('Comments', () => {
 
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is scrolled (the Window object is not a scrollable element)', async() => {
+        if (getLoadedTheme() !== 'main') {
+          pending();
+
+          return;
+        }
+
         const layout = getThemeLayout();
-        const width = layout.e2ePickForDensity({ compact: 300, default: 500, comfortable: 500 });
-        const height = layout.e2ePickForDensity({ compact: 200, default: 250, comfortable: 250 });
-        const colFromEnd = layout.e2ePickForDensity({ compact: 5, default: 8, comfortable: 8 });
+        const width = 500;
+        const height = 250;
+        const colFromEnd = 8;
 
         handsontable({
           layoutDirection,

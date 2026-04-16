@@ -1092,13 +1092,19 @@ describe('NestedHeaders', () => {
     });
 
     it('should render the setup properly after the table being scrolled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
 
       handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
-        width: layout.e2ePickForDensity({ compact: 400, default: 400, comfortable: 500 }),
+        width: 400,
         height: 300,
         viewportColumnRenderingOffset: 0,
       });

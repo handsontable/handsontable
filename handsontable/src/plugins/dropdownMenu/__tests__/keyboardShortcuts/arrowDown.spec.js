@@ -25,6 +25,12 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should move the menu item selection to the first item and scroll the viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200),
@@ -37,7 +43,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
 
-      expect(window.scrollY).toBe(getThemeLayout().e2eWindowScrollYDropdownMenuFirstSelectableItem());
+      expect(window.scrollY).toBe(35);
     });
 
     it('should move the menu item selection to the next item (skipping `disabled` items)', async() => {

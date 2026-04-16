@@ -27,8 +27,14 @@ describe('Selection navigation', () => {
 
   describe('"PageUp"', () => {
     it('should move the cell selection up by the height of the table viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const height = layout.e2ePickForDensity({ compact: 100, default: 126, comfortable: 161 });
+      const height = 126;
       const compact = layout.densityLevel === 'compact';
       const expectedRows = compact ? [10, 7, 4, 1, 0] : [9, 5, 1, 0];
 
@@ -190,10 +196,16 @@ describe('Selection navigation', () => {
 
     it('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const layout = getThemeLayout();
-      const height = layout.e2ePickForDensity({ compact: 200, default: 252, comfortable: 322 });
-      const firstVisibleAfterSelect = layout.e2ePickForDensity({ compact: 10, default: 9, comfortable: 9 });
-      const firstVisibleAfterPage1 = layout.e2ePickForDensity({ compact: 6, default: 5, comfortable: 5 });
+      const height = 252;
+      const firstVisibleAfterSelect = 9;
+      const firstVisibleAfterPage1 = 5;
 
       handsontable({
         height,

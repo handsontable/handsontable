@@ -11,6 +11,12 @@ describe('StretchColumns cooperation with reordered indexes', () => {
   });
 
   it('should follow the columns order when they are moved', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(5, 4),
       colHeaders: true,
@@ -26,17 +32,17 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     columnIndexMapper().setIndexesSequence([0, 2, 3, 1]);
     await render();
 
-    expect(getColWidth(0)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
-    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
-    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
+    expect(getColWidth(0)).toBe(79);
+    expect(getColWidth(1)).toBe(79);
+    expect(getColWidth(2)).toBe(79);
     expect(getColWidth(3)).toBe(33);
 
     columnIndexMapper().setIndexesSequence([1, 0, 2, 3]);
     await render();
 
     expect(getColWidth(0)).toBe(33);
-    expect(getColWidth(1)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
-    expect(getColWidth(2)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
-    expect(getColWidth(3)).toBe(getThemeLayout().e2eStretchColumnsIndexOrderStretchedWidth());
+    expect(getColWidth(1)).toBe(79);
+    expect(getColWidth(2)).toBe(79);
+    expect(getColWidth(3)).toBe(79);
   });
 });

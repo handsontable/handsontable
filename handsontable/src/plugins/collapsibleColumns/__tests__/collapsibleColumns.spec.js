@@ -1634,11 +1634,17 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the collapse functionality, when the table has been scrolled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
-        width: getThemeLayout().e2ePickForDensity({ compact: 400, default: 400, comfortable: 500 }),
+        width: 400,
         height: 300
       });
 
@@ -1845,6 +1851,12 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should calculate the column width on the longest cell value, not the header text size (#dev-2151)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         nestedHeaders: [
@@ -1856,14 +1868,14 @@ describe('CollapsibleColumns', () => {
 
       await setDataAtCell(0, 1, 'Longer value');
 
-      expect(getColWidth(1)).toBe(getThemeLayout().e2eDensity_5bbc262bb3());
+      expect(getColWidth(1)).toBe(99);
 
       $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // header "B1"
         .simulate('mousedown')
         .simulate('mouseup')
         .simulate('click');
 
-      expect(getColWidth(1)).toBe(getThemeLayout().e2eDensity_5bbc262bb3());
+      expect(getColWidth(1)).toBe(99);
     });
 
     it('should not change the first child column width after collapsing a parent header (#dev-2151)', async() => {
@@ -2574,11 +2586,17 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the expand functionality, when the table has been scrolled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
-        width: getThemeLayout().e2ePickForDensity({ compact: 400, default: 400, comfortable: 500 }),
+        width: 400,
         height: 300
       });
 

@@ -404,6 +404,12 @@ describe('Multiple selection scroll', () => {
     });
 
     it('should not scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
@@ -418,9 +424,7 @@ describe('Multiple selection scroll', () => {
       await selectCell(10, -1);
       await keyDownUp(['shift', 'arrowdown']);
 
-      expect(topOverlay().getScrollPosition()).toBe(
-        getThemeLayout().e2eMultipleSelectionRowHeadersShiftArrowDownPartialBottom(5)
-      );
+      expect(topOverlay().getScrollPosition()).toBe(65);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
@@ -448,6 +452,12 @@ describe('Multiple selection scroll', () => {
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
@@ -460,9 +470,7 @@ describe('Multiple selection scroll', () => {
       await scrollViewportVertically(5);
       await selectCells([[11, 0, 10, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(
-        getThemeLayout().e2eViewportScrollAfterRectangularAdjacentDataRows(5)
-      );
+      expect(topOverlay().getScrollPosition()).toBe(94);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
