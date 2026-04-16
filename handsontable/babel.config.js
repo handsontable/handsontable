@@ -41,7 +41,6 @@ const allowedE2EModules = [
   './classic',
   './main',
   './horizon',
-  './starlight',
 ];
 
 module.exports = {
