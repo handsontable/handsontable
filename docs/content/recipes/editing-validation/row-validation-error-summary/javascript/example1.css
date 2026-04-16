@@ -36,12 +36,13 @@
   margin: 0;
   padding-left: 1.25rem;
   font-size: var(--ht-font-size, 14px);
-  color: var(--ht-foreground-color, #222);
+  color: var(--ht-foreground-color, currentColor);
 }
 
 .row-validation-demo__summary-list:empty::before {
   content: 'No issues. Click Submit orders to validate.';
   display: block;
   margin-left: -1.25rem;
-  color: #666;
+  color: currentColor;
+  opacity: 0.8;
 }

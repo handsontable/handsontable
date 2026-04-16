@@ -66,6 +66,7 @@ function clearHighlights(instance: Handsontable): void {
   invalidCells.forEach((key) => {
     const [r, c] = key.split(":").map(Number);
 
+    instance.removeCellMeta(r, c, "className");
     instance.removeCellMeta(r, c, "title");
   });
   invalidCells.clear();
@@ -73,6 +74,7 @@ function clearHighlights(instance: Handsontable): void {
 
 function applyHighlights(instance: Handsontable, issues: ValidationIssue[]): void {
   issues.forEach((issue) => {
+    instance.setCellMeta(issue.row, issue.col, "className", "htInvalid");
     instance.setCellMeta(issue.row, issue.col, "title", issue.message);
     invalidCells.add(cellKey(issue.row, issue.col));
   });
@@ -90,17 +92,12 @@ const hot = new Handsontable(container, {
   columns: [
     { data: "item", type: "text", width: 180 },
     { data: "qty", type: "numeric", width: 100 },
-    { data: "price", type: "numeric", format: "0.00", width: 110 },
+    { data: "price", type: "numeric", numericFormat: { pattern: "0.00" }, width: 110 },
   ],
   rowHeaders: true,
   height: "auto",
   width: "100%",
   licenseKey: "non-commercial-and-evaluation",
-  afterRenderer(TD, row, col) {
-    TD.style.backgroundColor = invalidCells.has(cellKey(row, col))
-      ? "#ffe4e4"
-      : "";
-  },
   afterChange(changes, source) {
     if (source === "loadData" || !changes) {
       return;
@@ -118,6 +115,7 @@ const hot = new Handsontable(container, {
         continue;
       }
 
+      this.removeCellMeta(row, col, "className");
       this.removeCellMeta(row, col, "title");
       invalidCells.delete(key);
       lastIssues = lastIssues.filter((i) => !(i.row === row && i.col === col));
