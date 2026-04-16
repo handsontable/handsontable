@@ -78,7 +78,7 @@ export default {
   headerRowHighlightedBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
   headerRowActiveForegroundColor: 'tokens.backgroundColor',
   headerRowActiveBackgroundColor: ['colors.palette.950', 'colors.primary.200'],
-  rowHeaderOddBackgroundColor: 'tokens.backgroundColor',
+  rowHeaderOddBackgroundColor: 'tokens.headerRowBackgroundColor',
   rowHeaderEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
   rowCellOddBackgroundColor: 'tokens.backgroundColor',
   rowCellEvenBackgroundColor: 'tokens.backgroundSecondaryColor',

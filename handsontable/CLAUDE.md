@@ -35,6 +35,10 @@ Gold standard: `src/plugins/pagination/pagination.js`
 Translate with `hot.rowIndexMapper` / `hot.columnIndexMapper`.
 Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual.
 
+## DataProvider and Notification
+
+For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), enable **`notification`** if you want built-in error toasts on failed fetches or mutations. **`dialog: true` alone does not** show those errors. Failed **fetch** toasts include a **Refetch** button that calls `fetchData()` again (`duration: 0` until dismissed or Refetch). Use **`afterDataProviderFetchError`** and **`afterRowsMutationError`** for custom UI when Notification is disabled. See `src/plugins/dataProvider/dataProvider.js` and AGENTS.md Gotchas.
+
 ## Testing
 
 | Type | Pattern | Framework | Run |

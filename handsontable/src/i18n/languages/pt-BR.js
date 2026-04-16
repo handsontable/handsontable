@@ -132,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Não foi possível atualizar as linhas',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Não foi possível remover as linhas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Falha na solicitação',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Fechar',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recarregar',
 };
 
 export default dictionary;

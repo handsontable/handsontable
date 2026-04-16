@@ -13,6 +13,70 @@ describe('Selection', () => {
   });
 
   describe('`isDisabledCellSelection` option', () => {
+    it('should not disable any selection when set as `undefined` (should fall back to default `false`) (#12304)', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        navigableHeaders: true,
+        disableVisualSelection: undefined,
+      });
+
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: -1,1 from: -1,1 to: 4,1',
+        'highlight: 1,-1 from: 1,-1 to: 1,4',
+      ]);
+      expect(`
+        |   ║ - : * : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║   : 0 :   :   :   |
+        | # ║ 0 : 1 : 0 : 0 : 0 |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
+    it('should not disable any selection when updated via `updateSettings` to `undefined` (#12304)', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+        navigableHeaders: true,
+        disableVisualSelection: true,
+      });
+
+      await updateSettings({
+        disableVisualSelection: undefined,
+      });
+
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: -1,1 from: -1,1 to: 4,1',
+        'highlight: 1,-1 from: 1,-1 to: 1,4',
+      ]);
+      expect(`
+        |   ║ - : * : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║   : 0 :   :   :   |
+        | # ║ 0 : 1 : 0 : 0 : 0 |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        | - ║   : 0 :   :   :   |
+        `).toBeMatchToSelectionPattern();
+    });
+
     it('should disable any kind of selection when set as `true` on table settings layer', async() => {
       handsontable({
         rowHeaders: true,

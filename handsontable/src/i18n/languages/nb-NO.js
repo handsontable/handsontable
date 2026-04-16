@@ -132,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Kunne ikke oppdatere rader',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Lukk',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
 };
 
 export default dictionary;
