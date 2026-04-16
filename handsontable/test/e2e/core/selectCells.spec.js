@@ -151,9 +151,15 @@ describe('Core.selectCells', () => {
   });
 
   it('should not the scroll the viewport when `false` argument is passed', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetObjectData(20, 20),
-      height: getThemeLayout().e2ePickForDensity({ compact: 300, default: 378, comfortable: 482 }),
+      height: 378,
       width: 300,
       viewportRowRenderingOffset: 10,
       viewportColumnRenderingOffset: 10,

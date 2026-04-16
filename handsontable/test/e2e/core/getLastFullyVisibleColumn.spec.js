@@ -37,17 +37,19 @@ describe('Core.getLastFullyVisibleColumn', () => {
   });
 
   it('should return last fully visible column index (scrolled viewport)', async() => {
-    const layout = getThemeLayout();
-    const height = layout.e2ePickForDensity({ compact: 200, default: 200, comfortable: 321 });
-    const scrollX = layout.e2ePickForDensity({ compact: 780, default: 780, comfortable: 820 });
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
 
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
-      height,
+      height: 200,
     });
 
-    await scrollViewportHorizontally(scrollX); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
     await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);

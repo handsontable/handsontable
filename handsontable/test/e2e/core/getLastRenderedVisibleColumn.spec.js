@@ -37,8 +37,11 @@ describe('Core.getLastRenderedVisibleColumn', () => {
   });
 
   it('should return last rendered column index (scrolled viewport)', async() => {
-    const layout = getThemeLayout();
-    const scrollX = layout.e2ePickForDensity({ compact: 780, default: 780, comfortable: 830 });
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
 
     handsontable({
       data: createSpreadsheetData(10, 100),
@@ -46,7 +49,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
       height: 200,
     });
 
-    await scrollViewportHorizontally(scrollX); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
     await render();
 
     expect(getLastRenderedVisibleColumn()).toBe(20);

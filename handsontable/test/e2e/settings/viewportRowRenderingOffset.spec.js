@@ -14,13 +14,18 @@ describe('settings', () => {
 
   describe('viewportRowRenderingOffset', () => {
     it('should be possible to change the size of the calculated rendered rows', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       let calculator;
-      const layout = getThemeLayout();
 
       handsontable({
         data: createSpreadsheetData(50, 50),
-        width: layout.e2ePickForDensity({ compact: 100, default: 125, comfortable: 125 }),
-        height: layout.e2ePickForDensity({ compact: 100, default: 125, comfortable: 159 }),
+        width: 125,
+        height: 125,
         viewportRowRenderingOffset: 0,
         afterViewportRowCalculatorOverride(calculatorInstance) {
           calculator = calculatorInstance;

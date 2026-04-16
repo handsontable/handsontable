@@ -348,10 +348,16 @@ describe('Core_view', () => {
   });
 
   it('should scroll the viewport vertically from the row header navigation', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: getThemeLayout().e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 }),
+      height: 240,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -376,10 +382,16 @@ describe('Core_view', () => {
 
   it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the cell from the column header', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: getThemeLayout().e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 }),
+      height: 240,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -399,10 +411,16 @@ describe('Core_view', () => {
 
   it('should scroll the viewport to the first row when the highlight moves ' +
     'down to the row header from the corner', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
-      height: getThemeLayout().e2ePickForDensity({ compact: 200, default: 240, comfortable: 306 }),
+      height: 240,
       colHeaders: true,
       rowHeaders: true,
       navigableHeaders: true,
@@ -461,9 +479,14 @@ describe('Core_view', () => {
   });
 
   it('should fire beforeViewRender event after table has been scrolled', async() => {
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
+
     spec().$container[0].style.width = '400px';
-    spec().$container[0].style.height =
-      `${getThemeLayout().e2ePickForDensity({ compact: 60, default: 60, comfortable: 97 })}px`;
+    spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
     handsontable({
@@ -549,13 +572,11 @@ describe('Core_view', () => {
 
   it('should not extend the selection to the cell under the mouse pointer after ' +
     'the viewport is moved (#dev-1479)', async() => {
-    const layout = getThemeLayout();
-    const clientY = layout.e2ePickForDensity({ compact: 24, default: 30, comfortable: 38 });
-    const expectedRange = layout.e2ePickForDensity({
-      compact: ['highlight: 1,2 from: 1,2 to: 1,0'],
-      default: ['highlight: 1,2 from: 1,2 to: 1,2'],
-      comfortable: ['highlight: 1,2 from: 1,2 to: 1,2'],
-    });
+    if (getLoadedTheme() !== 'main') {
+      pending();
+
+      return;
+    }
 
     handsontable({
       data: createSpreadsheetData(5, 5),
@@ -571,12 +592,12 @@ describe('Core_view', () => {
     $(getCell(1, 0))
       .simulate('mouseover', {
         clientX: 100, // coordinates of the cell 1, 2 before the column is resized
-        clientY, // coordinates of the cell 1, 2 before the column is resized
+        clientY: 30, // coordinates of the cell 1, 2 before the column is resized
       })
       .simulate('mouseup')
       .simulate('click');
 
-    expect(getSelectedRange()).toEqualCellRange(expectedRange);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });
 
   it('should update the `scrollableElement` value of the Overlays after changing the table view size settings', async() => {

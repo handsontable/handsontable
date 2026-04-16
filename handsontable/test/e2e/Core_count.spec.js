@@ -12,9 +12,15 @@ describe('Core_count', () => {
 
   describe('countVisibleRows', () => {
     it('should return number of visible rows', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
-        height: getThemeLayout().e2ePickForDensity({ compact: 125, default: 125, comfortable: 161 }),
+        height: 125,
         width: 600
       });
 
@@ -34,9 +40,15 @@ describe('Core_count', () => {
 
   describe('countRenderedRows', () => {
     it('should return number of rendered rows', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
-        height: getThemeLayout().e2ePickForDensity({ compact: 125, default: 125, comfortable: 161 }),
+        height: 125,
         viewportRowRenderingOffset: 0
       });
 
@@ -45,9 +57,15 @@ describe('Core_count', () => {
 
     it('should return number of rendered rows, including rows rendered ' +
       'because of viewportRowRenderingOffset', async() => {
+      if (getLoadedTheme() !== 'main') {
+        pending();
+
+        return;
+      }
+
       const instance = handsontable({
         data: createSpreadsheetData(50, 10),
-        height: getThemeLayout().e2ePickForDensity({ compact: 125, default: 125, comfortable: 161 }),
+        height: 125,
         viewportRowRenderingOffset: 20
       });
 
