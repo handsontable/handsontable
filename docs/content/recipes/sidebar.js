@@ -5,6 +5,7 @@ const realTimeItems = [
 
 const columnManagementItems = [
   { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'column-management/freeze-columns/freeze-columns', title: 'Freeze columns at runtime', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 
 const contextMenuItems = [
