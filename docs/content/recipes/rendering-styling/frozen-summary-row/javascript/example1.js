@@ -40,9 +40,11 @@ function formatSummary(prop) {
     return `Sum: ${sum.toFixed(2)} · Avg: ${avg.toFixed(2)} · Count: ${numbers.length}`;
 }
 function refreshSummary(hot) {
-    hot.setDataAtRowProp(summaryRowIndex, 'item', 'Totals', SUMMARY_SOURCE);
-    numericProps.forEach((prop) => {
-        hot.setDataAtRowProp(summaryRowIndex, prop, formatSummary(prop), SUMMARY_SOURCE);
+    hot.batch(() => {
+        hot.setDataAtRowProp(summaryRowIndex, 'item', 'Totals', SUMMARY_SOURCE);
+        numericProps.forEach((prop) => {
+            hot.setDataAtRowProp(summaryRowIndex, prop, formatSummary(prop), SUMMARY_SOURCE);
+        });
     });
 }
 const container = document.querySelector('#example1');
@@ -86,5 +88,10 @@ const hot = new Handsontable(container, {
             return;
         }
         refreshSummary(this);
+    },
+    beforeUndoStackChange(_doneActions, source) {
+        if (source === SUMMARY_SOURCE) {
+            return false;
+        }
     },
 });

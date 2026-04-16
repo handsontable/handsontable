@@ -62,10 +62,12 @@ function formatSummary(prop: keyof Row): string {
 }
 
 function refreshSummary(hot: Handsontable) {
-  hot.setDataAtRowProp(summaryRowIndex, 'item', 'Totals', SUMMARY_SOURCE);
+  hot.batch(() => {
+    hot.setDataAtRowProp(summaryRowIndex, 'item', 'Totals', SUMMARY_SOURCE);
 
-  numericProps.forEach((prop) => {
-    hot.setDataAtRowProp(summaryRowIndex, prop, formatSummary(prop), SUMMARY_SOURCE);
+    numericProps.forEach((prop) => {
+      hot.setDataAtRowProp(summaryRowIndex, prop, formatSummary(prop), SUMMARY_SOURCE);
+    });
   });
 }
 
@@ -116,5 +118,10 @@ const hot = new Handsontable(container, {
     }
 
     refreshSummary(this);
+  },
+  beforeUndoStackChange(_doneActions, source) {
+    if (source === SUMMARY_SOURCE) {
+      return false;
+    }
   },
 });
