@@ -66,6 +66,7 @@ These are the most frequent mistakes. Read this section first.
 | Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
 | Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
 | Confusing the context menu with the column (dropdown) menu | These are two separate plugins. See [Context menu vs column menu](#context-menu-vs-column-menu). |
+| Expecting built-in DataProvider error UI from `dialog: true` alone | Enable `notification: true` (or a `notification` config object). DataProvider uses the Notification plugin for fetch/CRUD failures. Dialog stays for blocking modals (for example Loading plugin, ExportFile binary export overlay, custom `show` content). |
 
 ---
 
@@ -223,6 +224,7 @@ Every code change **must** satisfy all of the following:
 | Index translations | `handsontable/src/translations/` |
 | Walkontable engine | `handsontable/src/3rdparty/walkontable/src/` |
 | Hooks system | `handsontable/src/core/hooks/` |
+| DataProvider plugin (server-backed data) | `handsontable/src/plugins/dataProvider/dataProvider.js` |
 | Error helpers | `handsontable/src/helpers/errors.js` |
 | i18n | `handsontable/src/i18n/constants.js`, `src/i18n/languages/` |
 | TypeScript definitions | `handsontable/types/` |
@@ -245,6 +247,7 @@ Every code change **must** satisfy all of the following:
 - For hook signature/behavior fixes, add both a runtime regression and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` -- warnings about ignored build scripts (e.g., `less`) are expected.
 - **Never use raw `setTimeout` in core code.** Use `this.hot._registerTimeout(fn, delay)` instead -- it auto-clears all registered timeouts on `hot.destroy()`, preventing memory leaks and stale callbacks after the instance is destroyed.
+- **DataProvider built-in errors** -- When `notification` is enabled, failed `fetchRows` or mutation callbacks show an error toast via the Notification plugin. **Fetch** failures add a **Refetch** action (`duration: 0` until dismissed or Refetch) that calls `fetchData()` again. Hooks `afterDataProviderFetchError` and `afterRowsMutationError` still fire; use them for custom UI when Notification is off. See `.ai/ARCHITECTURE.md` (Plugin system) and skill `handsontable-plugin-dev`.
 
 ---
 

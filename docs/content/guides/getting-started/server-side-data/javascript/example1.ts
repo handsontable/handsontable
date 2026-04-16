@@ -516,9 +516,7 @@ const hot = new Handsontable(container, {
   filters: true,
   contextMenu: true,
   emptyDataState: true,
-  dialog: {
-    animation: false,
-  },
+  notification: true,
   beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => {
     if (statusEl) {
       statusEl.textContent = params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…';

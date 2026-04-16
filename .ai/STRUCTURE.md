@@ -76,6 +76,7 @@ handsontable/src/
 │   ├── contextMenu/            # Right-click context menu
 │   ├── copyPaste/              # Copy/paste support
 │   ├── customBorders/          # Custom cell borders
+│   ├── dataProvider/           # Server-backed fetchRows + CRUD
 │   ├── dialog/                 # Dialog/modal support
 │   ├── dragToScroll/           # Drag-to-scroll viewport
 │   ├── dropdownMenu/           # Column header dropdown menus
@@ -96,6 +97,7 @@ handsontable/src/
 │   ├── multipleSelectionHandles/ # Mobile selection handles
 │   ├── nestedHeaders/          # Multi-level column headers
 │   ├── nestedRows/             # Hierarchical row data
+│   ├── notification/           # Toast notifications
 │   ├── pagination/             # Data pagination
 │   ├── search/                 # Cell search
 │   ├── stretchColumns/         # Column stretching strategies
