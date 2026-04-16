@@ -2,6 +2,7 @@ import Handsontable from 'handsontable/base';
 import {
   registerPlugin,
   DataProvider,
+  DropdownMenu,
   Filters,
   ColumnSorting,
   Pagination,
@@ -11,6 +12,7 @@ import {
 import { registerAllCellTypes } from 'handsontable/cellTypes';
 
 registerPlugin(DataProvider);
+registerPlugin(DropdownMenu);
 registerPlugin(Filters);
 registerPlugin(ColumnSorting);
 registerPlugin(Pagination);
