@@ -16,6 +16,10 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
+const dataManagementItems = [
+  { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript'] },
+];
+
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -26,6 +30,7 @@ module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
