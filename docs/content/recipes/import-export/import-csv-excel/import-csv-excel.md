@@ -187,29 +187,12 @@ async function parseCsvFile(file, PapaRef) {
   return new Promise((resolve, reject) => {
     PapaRef.parse(file, {
       header: true,
+      dynamicTyping: true,
       skipEmptyLines: 'greedy',
       transformHeader: (h) => h.trim(),
       complete: (results) => {
         try {
-          if (results.errors.length > 0) {
-            throw new Error(results.errors[0].message || 'CSV parse error.');
-          }
-          const fields = results.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
-          if (fields.length === 0) throw new Error('No header row found in the CSV.');
-
-          const rows = results.data.map((row) => {
-            const out = {};
-            for (const key of fields) {
-              const v = row[key];
-              if (v === null || v === undefined || v === '') out[key] = null;
-              else if (typeof v === 'number' || typeof v === 'boolean') out[key] = v;
-              else out[key] = String(v);
-            }
-            return out;
-          });
-
-          if (rows.length === 0) throw new Error('No data rows after the header.');
-          resolve({ headers: fields, rows });
+          resolve(processPapaResults(results));
         } catch (e) {
           reject(e instanceof Error ? e : new Error(String(e)));
         }
@@ -225,7 +208,8 @@ async function parseCsvFile(file, PapaRef) {
 - `skipEmptyLines: 'greedy'` drops rows that are entirely whitespace -- handy for files with trailing newlines.
 - `transformHeader: (h) => h.trim()` removes accidental leading/trailing spaces from column names.
 - After parsing, empty or missing cell values are normalized to `null` so Handsontable displays a blank cell rather than the string `"undefined"` or `"null"`.
-- Numeric and boolean values returned by PapaParse are preserved as-is; everything else is coerced to a string.
+- `dynamicTyping: true` lets PapaParse return native numbers and booleans where possible.
+- Numeric and boolean values are preserved as-is; string values are trimmed, and empty strings are normalized to `null`.
 
 ### Parse a CSV text string (for the sample textarea)
 
@@ -236,11 +220,11 @@ function parseCsvText(text, PapaRef) {
 
   const parsed = PapaRef.parse(trimmed, {
     header: true,
+    dynamicTyping: true,
     skipEmptyLines: 'greedy',
     transformHeader: (h) => h.trim(),
   });
-  // ... same validation and normalization as parseCsvFile
-  return { headers: fields, rows };
+  return processPapaResults(parsed);
 }
 ```
 
@@ -279,7 +263,11 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
   if (!sheetName) throw new Error('The workbook has no sheets.');
 
   const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
+    header: 1,
+    defval: null,
+    raw: true,
+  });
   if (!matrix.length) throw new Error('The sheet is empty.');
 
   const rawHeader = matrix[0].map((cell) => String(cell ?? '').trim());
@@ -298,8 +286,14 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
     const obj = {};
     for (let c = 0; c < keys.length; c++) {
       const raw = line[c];
-      const s = raw === undefined || raw === null ? '' : String(raw).trim();
-      obj[keys[c]] = s === '' ? null : s;
+      if (raw === null || raw === undefined) {
+        obj[keys[c]] = null;
+      } else if (typeof raw === 'number' || typeof raw === 'boolean') {
+        obj[keys[c]] = raw;
+      } else {
+        const s = String(raw).trim();
+        obj[keys[c]] = s === '' ? null : s;
+      }
     }
     rows.push(obj);
   }
@@ -313,10 +307,10 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
 1. `file.arrayBuffer()` reads the binary content; `XLSX.read(buf, { type: 'array' })` parses the workbook. The call is wrapped in a `try/catch` to surface corrupted file errors.
 2. `workbook.SheetNames[0]` picks the first sheet. Multi-sheet workbooks are supported -- extend this if you need a sheet picker.
 3. `sheet_to_json(sheet, { header: 1 })` returns a two-dimensional array (matrix) instead of objects, so row 0 is the raw header line and rows 1+ are data.
-4. `defval: ''` fills missing cells with an empty string, preventing gaps in sparse sheets.
+4. `defval: null` marks missing cells explicitly, while `raw: true` keeps native SheetJS value types.
 5. Empty header cells get a fallback name (`Column 1`, `Column 2`, ...) to avoid unnamed keys.
 6. Rows that are entirely empty (all cells blank) are skipped -- common in Excel files with trailing blank rows.
-7. Non-empty cell values are coerced to strings and trimmed; empty strings become `null` for display consistency with the CSV parser.
+7. Native numbers and booleans are preserved, strings are trimmed, and blank cells become `null` for consistency with the CSV parser.
 
 ### Route to the right parser
 
@@ -384,13 +378,25 @@ function renderHeaderPreview(listEl, headers) {
 
 ```javascript
 function columnsFromHeaders(headers) {
-  return headers.map((data) => ({ data, type: 'text' }));
+  return headers.map((data) => {
+    const values = pending.rows
+      .map((row) => row[data])
+      .filter((v) => v !== null);
+
+    if (values.length > 0 && values.every((v) => typeof v === 'number')) {
+      return { data, type: 'numeric' };
+    }
+    if (values.length > 0 && values.every((v) => typeof v === 'boolean')) {
+      return { data, type: 'checkbox' };
+    }
+    return { data, type: 'text' };
+  });
 }
 ```
 
 **What's happening:**
 - Handsontable's `columns` option expects an array of column descriptors. Each descriptor's `data` property is the key used to read from the row objects.
-- All columns are typed as `'text'` here. You can extend this to detect numeric or date columns before calling `columnsFromHeaders`.
+- The helper infers `numeric` and `checkbox` columns when all non-empty values in that column are numbers or booleans. Mixed columns stay as `'text'`.
 
 ### Load the grid
 
@@ -482,6 +488,7 @@ async function handleFile(file) {
 - `file.size === 0` is checked before any async work to give an instant response for empty files.
 - Any error thrown by the parsers bubbles up here and is shown to the user.
 - On error, `pending` is cleared and the preview panel is hidden so the user cannot accidentally load stale data.
+- Apply the same stale-state reset for the sample textarea parser, so failed sample parsing cannot leave old data queued for **Load into grid**.
 
 ## Try it quickly
 
@@ -493,11 +500,11 @@ Use the **Sample CSV** textarea in the example and click **Parse sample CSV**, o
 2. **File size check** -- zero-byte files are rejected immediately.
 3. **Extension routing** -- `parseFile` reads the extension and loads the right parser library on demand.
 4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel is read via SheetJS with `sheet_to_json` and row-0 as the header line.
-5. **Normalization** -- empty cells become `null`; values are coerced to strings (or kept as numbers/booleans).
+5. **Normalization** -- empty cells become `null`, and native numbers/booleans are preserved for CSV and Excel.
 6. **Header preview** -- `setPending` stores the result and shows the detected column names in a list.
 7. **User confirms** -- clicking **Load into grid** calls `hot.updateSettings` followed by `hot.loadData`.
 8. **Grid renders** -- Handsontable re-renders with the new columns and data.
-9. **Errors at any step** -- caught by `handleFile` (or the apply-button guard) and shown in the error panel.
+9. **Errors at any step** -- caught by `handleFile` or the sample-parse path (plus the apply-button guard), then shown in the error panel while pending preview state is cleared.
 
 ## Related guides
 

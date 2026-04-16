@@ -71,6 +71,37 @@ function clearError(el) {
     el.textContent = '';
     el.hidden = true;
 }
+function normalizeCellValue(value) {
+    if (value === null || value === undefined) {
+        return null;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return value;
+    }
+    const text = String(value).trim();
+    return text === '' ? null : text;
+}
+function mapRowByHeaders(row, headers) {
+    const out = {};
+    for (const key of headers) {
+        out[key] = normalizeCellValue(row[key]);
+    }
+    return out;
+}
+function processPapaResults(results) {
+    if (results.errors.length > 0) {
+        throw new Error(results.errors[0].message || 'CSV parse error.');
+    }
+    const fields = results.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
+    if (fields.length === 0) {
+        throw new Error('No header row found in the CSV.');
+    }
+    const rows = results.data.map((row) => mapRowByHeaders(row, fields));
+    if (rows.length === 0) {
+        throw new Error('No data rows after the header.');
+    }
+    return { headers: fields, rows };
+}
 function parseCsvText(text, PapaRef) {
     const trimmed = text.trim();
     if (!trimmed) {
@@ -78,73 +109,22 @@ function parseCsvText(text, PapaRef) {
     }
     const parsed = PapaRef.parse(trimmed, {
         header: true,
+        dynamicTyping: true,
         skipEmptyLines: 'greedy',
         transformHeader: (h) => h.trim(),
     });
-    if (parsed.errors.length > 0) {
-        const first = parsed.errors[0];
-        throw new Error(first.message || 'CSV parse error.');
-    }
-    const fields = parsed.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
-    if (fields.length === 0) {
-        throw new Error('No header row found in the CSV.');
-    }
-    const rows = parsed.data.map((row) => {
-        const out = {};
-        for (const key of fields) {
-            const v = row[key];
-            if (v === null || v === undefined || v === '') {
-                out[key] = null;
-            }
-            else if (typeof v === 'number' || typeof v === 'boolean') {
-                out[key] = v;
-            }
-            else {
-                out[key] = String(v);
-            }
-        }
-        return out;
-    });
-    if (rows.length === 0) {
-        throw new Error('No data rows after the header.');
-    }
-    return { headers: fields, rows };
+    return processPapaResults(parsed);
 }
 async function parseCsvFile(file, PapaRef) {
     return new Promise((resolve, reject) => {
         PapaRef.parse(file, {
             header: true,
+            dynamicTyping: true,
             skipEmptyLines: 'greedy',
             transformHeader: (h) => h.trim(),
             complete: (results) => {
                 try {
-                    if (results.errors.length > 0) {
-                        throw new Error(results.errors[0].message || 'CSV parse error.');
-                    }
-                    const fields = results.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
-                    if (fields.length === 0) {
-                        throw new Error('No header row found in the CSV.');
-                    }
-                    const rows = results.data.map((row) => {
-                        const out = {};
-                        for (const key of fields) {
-                            const v = row[key];
-                            if (v === null || v === undefined || v === '') {
-                                out[key] = null;
-                            }
-                            else if (typeof v === 'number' || typeof v === 'boolean') {
-                                out[key] = v;
-                            }
-                            else {
-                                out[key] = String(v);
-                            }
-                        }
-                        return out;
-                    });
-                    if (rows.length === 0) {
-                        throw new Error('No data rows after the header.');
-                    }
-                    resolve({ headers: fields, rows });
+                    resolve(processPapaResults(results));
                 }
                 catch (e) {
                     reject(e instanceof Error ? e : new Error(String(e)));
@@ -167,7 +147,11 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
         throw new Error('The workbook has no sheets.');
     }
     const sheet = workbook.Sheets[sheetName];
-    const matrix = XLSXRef.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    const matrix = XLSXRef.utils.sheet_to_json(sheet, {
+        header: 1,
+        defval: null,
+        raw: true,
+    });
     if (!matrix.length) {
         throw new Error('The sheet is empty.');
     }
@@ -179,7 +163,7 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
     const rows = [];
     for (let r = 1; r < matrix.length; r++) {
         const line = matrix[r];
-        const allEmpty = !line || line.every((c) => String(c ?? '').trim() === '');
+        const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
         if (allEmpty) {
             continue;
         }
@@ -187,8 +171,7 @@ function parseXlsxArrayBuffer(buf, XLSXRef) {
         for (let c = 0; c < keys.length; c++) {
             const key = keys[c];
             const raw = line[c];
-            const s = raw === undefined || raw === null ? '' : String(raw).trim();
-            obj[key] = s === '' ? null : s;
+            obj[key] = normalizeCellValue(raw);
         }
         rows.push(obj);
     }
@@ -220,7 +203,21 @@ function renderHeaderPreview(listEl, headers) {
     }
 }
 function columnsFromHeaders(headers) {
-    return headers.map((data) => ({ data, type: 'text' }));
+    if (!pending) {
+        return headers.map((data) => ({ data, type: 'text' }));
+    }
+    return headers.map((data) => {
+        const values = pending?.rows
+            .map((row) => row[data])
+            .filter((v) => v !== null);
+        if (values.length > 0 && values.every((v) => typeof v === 'number')) {
+            return { data, type: 'numeric' };
+        }
+        if (values.length > 0 && values.every((v) => typeof v === 'boolean')) {
+            return { data, type: 'checkbox' };
+        }
+        return { data, type: 'text' };
+    });
 }
 const gridContainer = document.querySelector('#example1');
 const errEl = document.querySelector('#import-error');
@@ -241,6 +238,12 @@ const initialSettings = {
     licenseKey: 'non-commercial-and-evaluation',
 };
 const hot = new Handsontable(gridContainer, initialSettings);
+function clearPendingPreview() {
+    pending = null;
+    if (previewEl) {
+        previewEl.hidden = true;
+    }
+}
 function setPending(payload) {
     pending = payload;
     clearError(errEl);
@@ -263,10 +266,7 @@ async function handleFile(file) {
         setPending(payload);
     }
     catch (e) {
-        pending = null;
-        if (previewEl) {
-            previewEl.hidden = true;
-        }
+        clearPendingPreview();
         showError(errEl, e instanceof Error ? e.message : String(e));
     }
 }
@@ -314,6 +314,7 @@ sampleBtn?.addEventListener('click', async () => {
         setPending(payload);
     }
     catch (e) {
+        clearPendingPreview();
         showError(errEl, e instanceof Error ? e.message : String(e));
     }
 });

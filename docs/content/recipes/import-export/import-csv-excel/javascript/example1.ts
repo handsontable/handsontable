@@ -11,6 +11,9 @@ type ParsedPayload = {
   rows: Record<string, string | number | boolean | null>[];
 };
 
+type ParsedCellValue = string | number | boolean | null;
+type ParsedRow = Record<string, ParsedCellValue>;
+
 const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
 const CDN_XLSX = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 
@@ -117,48 +120,42 @@ function clearError(el: HTMLElement | null): void {
   el.hidden = true;
 }
 
-function parseCsvText(text: string, PapaRef: typeof Papa): ParsedPayload {
-  const trimmed = text.trim();
-
-  if (!trimmed) {
-    throw new Error('The file is empty.');
+function normalizeCellValue(value: unknown): ParsedCellValue {
+  if (value === null || value === undefined) {
+    return null;
   }
 
-  const parsed = PapaRef.parse<string[]>(trimmed, {
-    header: true,
-    skipEmptyLines: 'greedy',
-    transformHeader: (h) => h.trim(),
-  });
-
-  if (parsed.errors.length > 0) {
-    const first = parsed.errors[0];
-
-    throw new Error(first.message || 'CSV parse error.');
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return value;
   }
 
-  const fields = parsed.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
+  const text = String(value).trim();
+
+  return text === '' ? null : text;
+}
+
+function mapRowByHeaders(row: Record<string, unknown>, headers: string[]): ParsedRow {
+  const out: ParsedRow = {};
+
+  for (const key of headers) {
+    out[key] = normalizeCellValue(row[key]);
+  }
+
+  return out;
+}
+
+function processPapaResults(results: Papa.ParseResult<Record<string, unknown>>): ParsedPayload {
+  if (results.errors.length > 0) {
+    throw new Error(results.errors[0].message || 'CSV parse error.');
+  }
+
+  const fields = results.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
 
   if (fields.length === 0) {
     throw new Error('No header row found in the CSV.');
   }
 
-  const rows = (parsed.data as Record<string, unknown>[]).map((row) => {
-    const out: Record<string, string | number | boolean | null> = {};
-
-    for (const key of fields) {
-      const v = row[key];
-
-      if (v === null || v === undefined || v === '') {
-        out[key] = null;
-      } else if (typeof v === 'number' || typeof v === 'boolean') {
-        out[key] = v;
-      } else {
-        out[key] = String(v);
-      }
-    }
-
-    return out;
-  });
+  const rows = (results.data as Record<string, unknown>[]).map((row) => mapRowByHeaders(row, fields));
 
   if (rows.length === 0) {
     throw new Error('No data rows after the header.');
@@ -167,47 +164,33 @@ function parseCsvText(text: string, PapaRef: typeof Papa): ParsedPayload {
   return { headers: fields, rows };
 }
 
+function parseCsvText(text: string, PapaRef: typeof Papa): ParsedPayload {
+  const trimmed = text.trim();
+
+  if (!trimmed) {
+    throw new Error('The file is empty.');
+  }
+
+  const parsed = PapaRef.parse<Record<string, unknown>>(trimmed, {
+    header: true,
+    dynamicTyping: true,
+    skipEmptyLines: 'greedy',
+    transformHeader: (h) => h.trim(),
+  });
+
+  return processPapaResults(parsed);
+}
+
 async function parseCsvFile(file: File, PapaRef: typeof Papa): Promise<ParsedPayload> {
   return new Promise((resolve, reject) => {
     PapaRef.parse<Record<string, unknown>>(file, {
       header: true,
+      dynamicTyping: true,
       skipEmptyLines: 'greedy',
       transformHeader: (h) => h.trim(),
       complete: (results) => {
         try {
-          if (results.errors.length > 0) {
-            throw new Error(results.errors[0].message || 'CSV parse error.');
-          }
-
-          const fields = results.meta.fields?.filter((f) => f !== undefined && f !== '') ?? [];
-
-          if (fields.length === 0) {
-            throw new Error('No header row found in the CSV.');
-          }
-
-          const rows = (results.data as Record<string, unknown>[]).map((row) => {
-            const out: Record<string, string | number | boolean | null> = {};
-
-            for (const key of fields) {
-              const v = row[key];
-
-              if (v === null || v === undefined || v === '') {
-                out[key] = null;
-              } else if (typeof v === 'number' || typeof v === 'boolean') {
-                out[key] = v;
-              } else {
-                out[key] = String(v);
-              }
-            }
-
-            return out;
-          });
-
-          if (rows.length === 0) {
-            throw new Error('No data rows after the header.');
-          }
-
-          resolve({ headers: fields, rows });
+          resolve(processPapaResults(results));
         } catch (e) {
           reject(e instanceof Error ? e : new Error(String(e)));
         }
@@ -233,7 +216,11 @@ function parseXlsxArrayBuffer(buf: ArrayBuffer, XLSXRef: typeof XLSX): ParsedPay
   }
 
   const sheet = workbook.Sheets[sheetName];
-  const matrix = XLSXRef.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' }) as string[][];
+  const matrix = XLSXRef.utils.sheet_to_json(sheet, {
+    header: 1,
+    defval: null,
+    raw: true,
+  }) as unknown[][];
 
   if (!matrix.length) {
     throw new Error('The sheet is empty.');
@@ -251,20 +238,19 @@ function parseXlsxArrayBuffer(buf: ArrayBuffer, XLSXRef: typeof XLSX): ParsedPay
 
   for (let r = 1; r < matrix.length; r++) {
     const line = matrix[r];
-    const allEmpty = !line || line.every((c) => String(c ?? '').trim() === '');
+    const allEmpty = !line || line.every((c) => normalizeCellValue(c) === null);
 
     if (allEmpty) {
       continue;
     }
 
-    const obj: Record<string, string | number | boolean | null> = {};
+    const obj: ParsedRow = {};
 
     for (let c = 0; c < keys.length; c++) {
       const key = keys[c];
       const raw = line[c];
-      const s = raw === undefined || raw === null ? '' : String(raw).trim();
 
-      obj[key] = s === '' ? null : s;
+      obj[key] = normalizeCellValue(raw);
     }
 
     rows.push(obj);
@@ -309,7 +295,25 @@ function renderHeaderPreview(listEl: HTMLElement, headers: string[]): void {
 }
 
 function columnsFromHeaders(headers: string[]): GridSettings['columns'] {
-  return headers.map((data) => ({ data, type: 'text' as const }));
+  if (!pending) {
+    return headers.map((data) => ({ data, type: 'text' as const }));
+  }
+
+  return headers.map((data) => {
+    const values = pending?.rows
+      .map((row) => row[data])
+      .filter((v): v is string | number | boolean => v !== null);
+
+    if (values.length > 0 && values.every((v) => typeof v === 'number')) {
+      return { data, type: 'numeric' as const };
+    }
+
+    if (values.length > 0 && values.every((v) => typeof v === 'boolean')) {
+      return { data, type: 'checkbox' as const };
+    }
+
+    return { data, type: 'text' as const };
+  });
 }
 
 const gridContainer = document.querySelector<HTMLElement>('#example1')!;
@@ -333,6 +337,14 @@ const initialSettings: GridSettings = {
 };
 
 const hot = new Handsontable(gridContainer, initialSettings);
+
+function clearPendingPreview(): void {
+  pending = null;
+
+  if (previewEl) {
+    previewEl.hidden = true;
+  }
+}
 
 function setPending(payload: ParsedPayload): void {
   pending = payload;
@@ -362,10 +374,7 @@ async function handleFile(file: File | null | undefined): Promise<void> {
 
     setPending(payload);
   } catch (e) {
-    pending = null;
-    if (previewEl) {
-      previewEl.hidden = true;
-    }
+    clearPendingPreview();
 
     showError(errEl, e instanceof Error ? e.message : String(e));
   }
@@ -429,6 +438,7 @@ sampleBtn?.addEventListener('click', async () => {
 
     setPending(payload);
   } catch (e) {
+    clearPendingPreview();
     showError(errEl, e instanceof Error ? e.message : String(e));
   }
 });
