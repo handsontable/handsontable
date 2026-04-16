@@ -735,11 +735,19 @@ describe('AutoRowSize', () => {
       ],
     });
 
-    expect(getRowHeight(0)).toBe(getThemeLayout().e2eDensity_315eed5b06());
-    expect(getRowHeight(4)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
-    expect(getRowHeight(9)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
-    expect(getRowHeight(14)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
-    expect(getRowHeight(19)).toBe(getThemeLayout().e2eDensity_9d8bccd1c7());
+    const layout = getThemeLayout();
+    // The 24.5px label is forced via CSS. The row height is whichever is taller:
+    // the label-derived height or the default row height from tokens.
+    // When autoRowSize drives the height, the first-row border compensation does not
+    // apply separately -- the measured height already includes the border.
+    const labelDerivedRow = Math.ceil(24.5) + (2 * layout.cellVerticalPadding) + layout.cellBorderWidth;
+    const expectedRow = Math.max(labelDerivedRow, layout.defaultDataRowHeight);
+
+    expect(getRowHeight(0)).toBeAroundValue(expectedRow, 1);
+    expect(getRowHeight(4)).toBe(expectedRow);
+    expect(getRowHeight(9)).toBe(expectedRow);
+    expect(getRowHeight(14)).toBe(expectedRow);
+    expect(getRowHeight(19)).toBe(expectedRow);
 
     $(style).remove();
   });

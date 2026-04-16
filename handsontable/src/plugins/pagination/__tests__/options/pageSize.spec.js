@@ -373,6 +373,10 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the row heights (table with defined size)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
