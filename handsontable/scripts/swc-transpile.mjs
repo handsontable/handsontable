@@ -154,20 +154,17 @@ const start = performance.now();
 const files = collectFiles(srcDir);
 const isESM = format === 'esm';
 
-// Read browser targets from the shared config
-const { BROWSERS_LIST } = await import('../../browser-targets.js');
-
 const swcOptions = {
-  env: {
-    targets: BROWSERS_LIST.join(', '),
-  },
   jsc: {
     parser: {
       syntax: 'ecmascript',
       jsx: true,
     },
-    // Transpile class fields to constructor assignments. Native class fields are incompatible
-    // with Angular's Zone.js which patches constructors and breaks field initialization order.
+    // Target ES2021 (before private class fields in ES2022) so both public and private
+    // class fields get transpiled to constructor assignments. This is required because
+    // Angular's Zone.js patches constructors and breaks native field initialization order.
+    // Consumer bundlers (webpack, Rspack, Vite) handle final browser targeting.
+    target: 'es2021',
     transform: {
       useDefineForClassFields: false,
     },
