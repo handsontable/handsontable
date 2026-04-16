@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: d2in9k81
 title: Row moving
 metaTitle: Row moving - JavaScript Data Grid | Handsontable
@@ -74,7 +75,9 @@ This renders the rows in the following order:
 
 The array must contain all physical row indexes (its length must equal the total number of rows). After the initial render, users can still drag rows to change the order further.
 
-## Drag and move actions of `manualRowMove` plugin
+## API reference
+
+### dragRows vs moveRows
 
 There are significant differences between the plugin's [`dragRows`](@/api/manualRowMove.md#dragrows) and [`moveRows`](@/api/manualRowMove.md#moverows) API functions. Both of them change the order of rows, but they rely on different kinds of indexes. The differences between them are shown in the diagrams below.
 
@@ -99,7 +102,7 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
 
-## Related API reference
+### Related API reference
 
 **Configuration options**
 
@@ -133,3 +136,7 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some a
 - [ManualRowMove](@/api/manualRowMove.md)
 
 </div>
+
+## Result
+
+After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.
