@@ -38,7 +38,7 @@ const tasks = {
 
   // Independent builds (no deps)
   'commonjs': { // eslint-disable-line quote-props
-    cmd: 'cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ../hot.config.js babel src --out-dir tmp',
+    cmd: 'env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp',
     deps: [],
   },
   'languages': { // eslint-disable-line quote-props
@@ -75,7 +75,7 @@ const tasks = {
 
   // ES module build (needs styles for CSS-to-JS export)
   'es': { // eslint-disable-line quote-props
-    cmd: 'cross-env-shell BABEL_ENV=es env-cmd -f ../hot.config.js babel src --out-file-extension .mjs --out-dir tmp',
+    cmd: 'env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs',
     deps: ['styles'],
   },
 };
