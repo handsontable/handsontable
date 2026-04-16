@@ -104,12 +104,14 @@ function addImportExtensions(code, filePath, ext) {
 
 /**
  * Inline process.env.HOT_* variables with their actual values.
+ * Only HOT_-prefixed variables are replaced to match DefinePlugin behavior
+ * and prevent leaking CI/build machine env vars into published artifacts.
  *
  * @param {string} code Source code.
  * @returns {string} Code with inlined env values.
  */
 function inlineEnvVars(code) {
-  return code.replace(/process\.env\.(\w+)/g, (match, varName) => {
+  return code.replace(/process\.env\.(HOT_\w+)/g, (match, varName) => {
     const value = process.env[varName];
 
     if (value !== undefined) {
