@@ -17,10 +17,12 @@ module.exports = function forbiddenImportsLoader(source) {
   const sideEffectImportRegex = /import\s+['"]([^'"]+)['"]/g;
   // Match named/default imports: import X from 'module'; import { X } from 'module';
   const namedImportRegex = /import\s+[^'"]+\s+from\s+['"]([^'"]+)['"]/g;
+  // Match export-from re-exports: export { X } from 'module'; export * from 'module';
+  const exportFromRegex = /export\s+[^'"]+\s+from\s+['"]([^'"]+)['"]/g;
   // Match require() calls: require('module')
   const requireRegex = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
 
-  [sideEffectImportRegex, namedImportRegex, requireRegex].forEach((regex) => {
+  [sideEffectImportRegex, namedImportRegex, exportFromRegex, requireRegex].forEach((regex) => {
     let match;
 
     while ((match = regex.exec(source)) !== null) { // eslint-disable-line no-cond-assign
