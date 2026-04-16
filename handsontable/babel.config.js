@@ -30,9 +30,17 @@ const allowedE2EModules = [
   '../../src/themes/static/variables/sizing',
   '../../src/themes/static/variables/density',
   '../../src/themes/static/variables/tokens/*',
+  '../../src/themes/theme',
+  '../../src/themes/theme/*',
   '../../../src/themes/static/variables/icons/*',
   '../../../src/themes/static/variables/colors/*',
   '../../../src/themes/static/variables/tokens/*',
+  '../static/variables/icons/*',
+  '../static/variables/colors/*',
+  '../static/variables/tokens/*',
+  './classic',
+  './main',
+  './horizon',
 ];
 
 module.exports = {
