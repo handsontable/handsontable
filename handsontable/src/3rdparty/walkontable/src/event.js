@@ -240,6 +240,8 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
+    this.#cancelLongPressTimer();
+
     if (this.#wtSettings.has('onCellContextMenu')) {
       const cell = this.parentCell(event.target);
 
