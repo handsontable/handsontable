@@ -1588,7 +1588,7 @@ describe('AutoColumnSize', () => {
       }).not.toThrow();
     });
 
-    it('should only refresh columns belonging to the current sheet after formula values update (#12301)', async() => {
+    it('should not queue column refresh for changes belonging to another sheet (#12301)', async() => {
       spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
 
       const hot1 = handsontable({
@@ -1600,22 +1600,24 @@ describe('AutoColumnSize', () => {
         },
       });
 
-      spec().$container2.handsontable({
-        data: [['c'], ['d'], ['e']],
+      const hot2Instance = spec().$container2.handsontable({
+        data: [['=Sheet1!A1'], ['d'], ['e']],
         autoColumnSize: true,
         formulas: {
           engine: hot1.getPlugin('formulas').engine,
           sheetName: 'Sheet2',
         },
-      });
+      }).data('handsontable');
 
-      const hot2 = spec().$container2.handsontable('getInstance');
+      const sheet2Id = hot2Instance.getPlugin('formulas').sheetId;
+      const toVisualColumnSpy = spyOn(hot1, 'toVisualColumn').and.callThrough();
 
-      const addColumnSpy = spyOn(hot1.getPlugin('autoColumnSize').ghostTable, 'addColumn').and.callThrough();
+      hot1.runHooks('afterFormulasValuesUpdate', [
+        { address: { sheet: sheet2Id, row: 0, col: 0 }, newValue: 'test' },
+        { address: { sheet: sheet2Id, row: 2, col: 0 }, newValue: 'test2' },
+      ]);
 
-      hot2.setDataAtCell(2, 0, 'new value');
-
-      expect(addColumnSpy).not.toHaveBeenCalled();
+      expect(toVisualColumnSpy).not.toHaveBeenCalled();
     });
   });
 });

@@ -1103,7 +1103,7 @@ describe('AutoRowSize', () => {
       }).not.toThrow();
     });
 
-    it('should only refresh rows belonging to the current sheet after formula values update (#12301)', async() => {
+    it('should not queue row refresh for changes belonging to another sheet (#12301)', async() => {
       spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
 
       const hot1 = handsontable({
@@ -1115,22 +1115,24 @@ describe('AutoRowSize', () => {
         },
       });
 
-      spec().$container2.handsontable({
-        data: [['c'], ['d'], ['e']],
+      const hot2Instance = spec().$container2.handsontable({
+        data: [['=Sheet1!A1'], ['d'], ['e']],
         autoRowSize: true,
         formulas: {
           engine: hot1.getPlugin('formulas').engine,
           sheetName: 'Sheet2',
         },
-      });
+      }).data('handsontable');
 
-      const hot2 = spec().$container2.handsontable('getInstance');
+      const sheet2Id = hot2Instance.getPlugin('formulas').sheetId;
+      const toVisualRowSpy = spyOn(hot1, 'toVisualRow').and.callThrough();
 
-      const addRowSpy = spyOn(hot1.getPlugin('autoRowSize').ghostTable, 'addRow').and.callThrough();
+      hot1.runHooks('afterFormulasValuesUpdate', [
+        { address: { sheet: sheet2Id, row: 0, col: 0 }, newValue: 'test' },
+        { address: { sheet: sheet2Id, row: 2, col: 0 }, newValue: 'test2' },
+      ]);
 
-      hot2.setDataAtCell(2, 0, 'new value');
-
-      expect(addRowSpy).not.toHaveBeenCalled();
+      expect(toVisualRowSpy).not.toHaveBeenCalled();
     });
   });
 });
