@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: svu0391b
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
@@ -362,3 +363,7 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 - [beforeRefreshDimensions](@/api/hooks.md#beforerefreshdimensions)
 
 </div>
+
+## Result
+
+Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.
