@@ -14,7 +14,7 @@ module.exports.create = function create(envArgs) {
   config.forEach(function(c) {
     // Remove all 'JasmineHtmlPlugin' instances
     c.plugins = c.plugins.filter(function(plugin) {
-      return !(plugin.apply && plugin.apply.toString().includes('JasmineHtmlPlugin'));
+      return !plugin.__isJasmineHtmlPlugin;
     });
 
     c.plugins.push(

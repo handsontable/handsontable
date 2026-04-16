@@ -31,6 +31,7 @@ function JasmineHtmlPlugin(options) {
   };
 
   return {
+    __isJasmineHtmlPlugin: true,
     apply(compiler) {
       compiler.hooks.afterEmit.tapAsync('JasmineHtmlPlugin', (compilation, callback) => {
         const jsAssets = [];
