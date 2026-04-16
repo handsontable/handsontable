@@ -8,6 +8,38 @@ const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const { getClosest }  = require('./helper/path');
 
+const ALLOWED_E2E_MODULES = [
+  'window',
+  'hyperformula*',
+  'exceljs',
+  'jasmine-co',
+  'jest-matcher-utils',
+  'html-parse-stringify',
+  'regenerator-runtime/runtime*',
+  '@babel/runtime/*',
+  '@swc/helpers/*',
+  './htmlNormalize',
+  './focusNavigator',
+  './common',
+  './utils',
+  './jasmine-helpers',
+  './mouseEvents',
+  './keyboardEvents',
+  './../bootstrap',
+  './helpers/custom-matchers',
+  './custom-matchers',
+  './helpers/jasmine-helpers',
+  '../helpers/it-themes-extension',
+  './asciiTable',
+  '../../../../../test/helpers/asciiTable',
+  './__mocks__/*',
+  './MemoryLeakTest',
+  '../MemoryLeakTest',
+  '../../../src/themes/static/variables/icons/*',
+  '../../../src/themes/static/variables/colors/*',
+  '../../../src/themes/static/variables/tokens/*',
+];
+
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
@@ -29,6 +61,19 @@ module.exports.create = function create(envArgs) {
         /pikaday\/css/,
       ],
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
+    });
+
+    // Enforce allowed imports in test files (prevents importing unauthorized modules)
+    c.module.rules.push({
+      test: /\.js$/,
+      include: [
+        path.resolve(__dirname, '../test'),
+      ],
+      enforce: 'pre',
+      loader: path.resolve(__dirname, 'loader/forbidden-imports-loader.js'),
+      options: {
+        allowedModules: ALLOWED_E2E_MODULES,
+      },
     });
 
     c.externals = [

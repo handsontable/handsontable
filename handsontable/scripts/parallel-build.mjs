@@ -25,7 +25,7 @@ const tasks = {
   },
   'styles.min': {
     cmd: 'cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-production env-cmd -f ../hot.config.js rspack',
-    deps: [],
+    deps: ['styles'], // must run after styles to avoid race on src/styles/handsontableStyles.js
   },
   'themes-css': {
     cmd: 'cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-development env-cmd -f ../hot.config.js rspack',
@@ -36,18 +36,18 @@ const tasks = {
     deps: [],
   },
 
-  // Transpilation builds (commonjs needs styles for handsontableStyles.js)
+  // Transpilation builds (need styles.min to finalize handsontableStyles.js before reading src/)
   'commonjs': { // eslint-disable-line quote-props
     cmd: 'env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp',
-    deps: ['styles'],
+    deps: ['styles.min'],
   },
   'languages': { // eslint-disable-line quote-props
     cmd: 'cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ../hot.config.js rspack',
     deps: [],
   },
   'languages.es': {
-    cmd: 'cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages'
-      + ' --out-file-extension .mjs --out-dir languages',
+    cmd: 'env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm'
+      + ' --src-dir src/i18n/languages --out-dir languages --out-ext .mjs --lang-registration',
     deps: [],
   },
   'languages.min': {
@@ -73,10 +73,10 @@ const tasks = {
     deps: ['styles.min', 'themes-css.min'],
   },
 
-  // ES module build (needs styles for CSS-to-JS export)
+  // ES module build (needs styles.min to finalize handsontableStyles.js)
   'es': { // eslint-disable-line quote-props
     cmd: 'env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs',
-    deps: ['styles'],
+    deps: ['styles.min'],
   },
 };
 

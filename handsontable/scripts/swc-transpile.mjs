@@ -1,17 +1,21 @@
 /**
- * SWC-based file-per-file transpiler. Replaces Babel CLI for build:commonjs and build:es.
+ * SWC-based file-per-file transpiler. Replaces Babel CLI for build:commonjs, build:es,
+ * and build:languages.es.
  *
  * Usage:
  *   node scripts/swc-transpile.mjs --format commonjs --out-dir tmp
  *   node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs
+ *   node scripts/swc-transpile.mjs --format esm --out-dir languages --out-ext .mjs \
+ *        --src-dir src/i18n/languages --lang-registration
  *
  * What it does:
- * 1. Finds all .js files in src/ (excluding __tests__, test/, dist/)
+ * 1. Finds all .js files in --src-dir (default: src/) excluding __tests__, test/, dist/
  * 2. Transpiles each file with SWC (matching browser-targets.js)
  * 3. Strips CSS/SCSS import statements
- * 4. For ESM: rewrites local import paths to add the .mjs extension
+ * 4. For ESM: rewrites local import paths to add the target extension
  * 5. Inlines process.env.HOT_* variables
- * 6. Writes output to --out-dir preserving directory structure
+ * 6. With --lang-registration: injects Handsontable language dictionary registration
+ * 7. Writes output to --out-dir preserving directory structure
  */
 import { transformFileSync } from '@swc/core';
 import { writeFileSync, mkdirSync, existsSync, lstatSync, readdirSync } from 'node:fs';
@@ -19,15 +23,18 @@ import { resolve, dirname, relative, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { performance } from 'node:perf_hooks';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(__dirname, '..');
-const SRC = resolve(ROOT, 'src');
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(currentDir, '..');
 
 // Parse CLI args
 const args = process.argv.slice(2);
-const format = args[args.indexOf('--format') + 1] || 'commonjs'; // 'commonjs' or 'esm'
+const format = args[args.indexOf('--format') + 1] || 'commonjs';
 const outDir = resolve(ROOT, args[args.indexOf('--out-dir') + 1] || 'tmp');
 const outExt = args.includes('--out-ext') ? args[args.indexOf('--out-ext') + 1] : '.js';
+const srcDir = args.includes('--src-dir')
+  ? resolve(ROOT, args[args.indexOf('--src-dir') + 1])
+  : resolve(ROOT, 'src');
+const langRegistration = args.includes('--lang-registration');
 
 const IGNORE_PATTERNS = [/__tests__/, /\/test\//, /\/dist\//];
 const CSS_IMPORT_RE =
@@ -75,7 +82,6 @@ function collectFiles(dir) {
  */
 function addImportExtensions(code, filePath, ext) {
   return code.replace(LOCAL_IMPORT_RE, (match, keyword, quote, importPath) => {
-    // If it already has an extension, leave it
     if (extname(importPath)) {
       return match;
     }
@@ -84,10 +90,8 @@ function addImportExtensions(code, filePath, ext) {
 
     let newPath;
 
-    // Check if it resolves to a file (e.g. ./plugins.js exists)
     if (existsSync(`${absPath}.js`)) {
       newPath = `${importPath}.${ext}`;
-    // Check if it's a directory with an index file
     } else if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
       newPath = `${importPath}/index.${ext}`;
     } else {
@@ -116,19 +120,52 @@ function inlineEnvVars(code) {
   });
 }
 
+/**
+ * Apply language registration transformations for ESM language files.
+ * Mirrors the Babel add-language-registration.js plugin:
+ * 1. Replace `import * as C from '../constants'` with Handsontable import + dictionaryKeys
+ * 2. Insert `Handsontable.languages.registerLanguageDictionary(dictionary)` before default export
+ *
+ * @param {string} code Source code.
+ * @returns {string} Transformed code.
+ */
+function applyLanguageRegistration(code) {
+  const hotName = process.env.HOT_FILENAME || 'handsontable';
+
+  // Replace: import * as C from '../constants' (or '../constants.mjs')
+  // With: import Handsontable from 'handsontable'; const C = Handsontable.languages.dictionaryKeys;
+  code = code.replace(
+    /import\s+\*\s+as\s+C\s+from\s+['"][^'"]*constants[^'"]*['"];?/,
+    `import Handsontable from '${hotName}';\n\nconst C = Handsontable.languages.dictionaryKeys;`
+  );
+
+  // Before: export default dictionary;
+  // Insert: Handsontable.languages.registerLanguageDictionary(dictionary);
+  code = code.replace(
+    /(export\s+default\s+dictionary\s*;?)/,
+    'Handsontable.languages.registerLanguageDictionary(dictionary);\n\n$1'
+  );
+
+  return code;
+}
+
 // Main
 const start = performance.now();
-const files = collectFiles(SRC);
-
+const files = collectFiles(srcDir);
 const isESM = format === 'esm';
 
+// Read browser targets from the shared config
+const { BROWSERS_LIST } = await import('../../browser-targets.js');
+
 const swcOptions = {
+  env: {
+    targets: BROWSERS_LIST.join(', '),
+  },
   jsc: {
     parser: {
       syntax: 'ecmascript',
       jsx: true,
     },
-    target: 'es2020',
   },
   module: isESM ? { type: 'es6' } : { type: 'commonjs', strict: false, noInterop: false },
   sourceMaps: false,
@@ -137,10 +174,9 @@ const swcOptions = {
 let count = 0;
 
 files.forEach((filePath) => {
-  const relPath = relative(SRC, filePath);
+  const relPath = relative(srcDir, filePath);
   const outPath = resolve(outDir, relPath.replace(/\.js$/, outExt));
 
-  // Transpile with SWC
   const result = transformFileSync(filePath, swcOptions);
   let { code } = result;
 
@@ -150,12 +186,16 @@ files.forEach((filePath) => {
   // Inline environment variables
   code = inlineEnvVars(code);
 
-  // For ESM: add .mjs extension to local imports
+  // For ESM: add target extension to local imports
   if (isESM) {
-    code = addImportExtensions(code, filePath, 'mjs');
+    code = addImportExtensions(code, filePath, outExt.replace('.', ''));
   }
 
-  // Write output
+  // Language registration: rewrite constants import and inject registerLanguageDictionary
+  if (langRegistration) {
+    code = applyLanguageRegistration(code);
+  }
+
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, code);
   count += 1;
