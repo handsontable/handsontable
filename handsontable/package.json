@@ -40,7 +40,7 @@
     "test:e2e": "npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer",
     "test:e2e.random": "npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --random",
     "test:e2e.verbose": "npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --verbose",
-    "test:e2e.watch": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run watch\" --cmdToListen \"npm run test:e2e.dump -- --watch\" --runnerFile \"test/E2ERunner.html\"",
+    "test:e2e.watch": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run watch\" --cmdToListen \"npm run test:e2e.dump -- --watch\"",
     "test:e2e.dump": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
     "test:e2e.dump.esm-cjs": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e-esm-cjs env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
     "test:e2e.puppeteer": "node test/scripts/run-puppeteer.mjs",
