@@ -55,6 +55,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript'],
   },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript'] },
 ];
 
 const filteringAndSearchItems = [
