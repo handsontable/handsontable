@@ -34,4 +34,4 @@ const { outputText } = ts.transpileModule(sourceText, {
 });
 
 fs.writeFileSync(jsPath, outputText);
-console.log(`Wrote ${jsPath}`);
+console.log(`Wrote ${path.relative(process.cwd(), jsPath)}`);

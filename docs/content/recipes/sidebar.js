@@ -47,6 +47,14 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
+const renderingStylingItems = [
+  {
+    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
+    title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
+];
+
 const editingValidationItems = [
   {
     path: 'editing-validation/dependent-dropdowns/dependent-dropdowns',
@@ -87,6 +95,13 @@ module.exports = {
         ...filteringAndSearchItems,
         { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
       ],
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Rendering and styling',
+      path: 'rendering-styling',
+      children: renderingStylingItems,
       collapsable: false,
       onlyFor: ['javascript'],
     },
