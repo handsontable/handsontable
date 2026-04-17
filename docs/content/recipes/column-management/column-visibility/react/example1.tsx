@@ -108,7 +108,6 @@ const ExampleComponent = () => {
         ))}
       </div>
       <HotTable
-        ref={hotRef}
         data={data}
         columns={columns}
         colHeaders={colHeaders}
