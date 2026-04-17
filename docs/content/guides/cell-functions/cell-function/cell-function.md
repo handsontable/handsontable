@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: neoo8dhv
 title: Cell functions
 metaTitle: Cell functions - JavaScript Data Grid | Handsontable
@@ -16,9 +17,7 @@ category: Cell functions
 menuTag: updated
 ---
 
-# Cell functions
-
-Render, edit, and validate cell contents using Handsontable's three independent cell functions.
+A cell function is one of three components -- renderer, editor, or validator -- that controls how a cell displays, accepts, and validates data.
 
 [[toc]]
 
@@ -375,3 +374,9 @@ export class AppComponent implements AfterViewInit {
   - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
   - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
   - [`beforeValidate`](@/api/hooks.md#beforevalidate)
+
+## Related
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) -- how to control cell display using renderer functions
+- [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) -- how to control cell editing using editor classes
+- [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) -- how to enforce data rules using validator functions

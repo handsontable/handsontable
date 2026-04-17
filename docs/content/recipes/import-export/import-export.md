@@ -6,21 +6,27 @@ canonicalUrl: /recipes/import-export
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-id: k3m9n2p7
-description: Practical recipes for loading and exporting data with Handsontable.
+<<<<<<< HEAD
+id: c4e8a91f
+description: Practical recipes for moving data in and out of Handsontable.
 react:
-  id: q8r4s1t6
+  id: d5f9b02a
   metaTitle: Import and Export Recipes - React Data Grid | Handsontable
 angular:
-  id: u2v5w8x1
+  id: e6f0c13b
   metaTitle: Import and Export Recipes - Angular Data Grid | Handsontable
 ---
 [[toc]]
 
 ## Overview
 
-This section covers patterns for bringing data into Handsontable from common file formats. Each recipe focuses on client-side parsing so you can try it without a backend.
+This section collects recipes for exporting grid data to common formats and for integrating import workflows. Each recipe includes runnable examples you can adapt to your app.
 
-## Available recipes
+## Available Recipes
 
-- [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md) - Drag-and-drop or file input, [PapaParse](https://www.papaparse.com/) for CSV, [SheetJS](https://sheetjs.com/) (`xlsx`) for `.xlsx`, header preview, and error handling.
+<div class="boxes-list">
+
+- [Export to PDF](@/content/recipes/import-export/export-to-pdf/export-to-pdf.md)
+- [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md)
+
+</div>
