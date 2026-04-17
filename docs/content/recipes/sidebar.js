@@ -30,6 +30,11 @@ const editingValidationItems = [
     title: 'Dependent dropdowns',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
+    title: 'Row validation with error summary',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const importExportItems = [
@@ -50,6 +55,7 @@ const filteringAndSearchItems = [
 ];
 
 const dataManagementItems = [
+  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
 ];
@@ -66,9 +72,30 @@ module.exports = {
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Rendering and styling', path: 'rendering-styling', children: renderingStylingItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Editing and Validation', path: 'editing-validation', children: editingValidationItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Import and Export', path: 'import-export', children: importExportItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Filtering and Search', path: 'filtering-and-search', children: filteringAndSearchItems, collapsable: false, onlyFor: ['javascript'] },
+    {
+      title: 'Editing and Validation',
+      path: 'editing-validation',
+      children: editingValidationItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Import and Export',
+      path: 'import-export',
+      children: importExportItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Filtering and Search',
+      path: 'filtering-and-search',
+      children: [
+        ...filteringAndSearchItems,
+        { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+      ],
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],

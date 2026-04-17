@@ -19,7 +19,7 @@ angular:
 
 ## Overview
 
-This section provides practical recipes for building external filtering and search workflows with Handsontable. Each recipe includes a working example with step-by-step implementation details.
+This section provides practical recipes for building external filtering and search workflows with Handsontable. Each recipe includes complete working examples with step-by-step implementation details.
 
 ## Getting Started
 
@@ -27,8 +27,10 @@ Before exploring these recipes, read the [Column filter guide](@/guides/columns/
 
 ## Available Recipes
 
-Use these recipes to build custom filter and search controls outside of the grid.
+Use these recipes to build custom filter controls outside of the grid and apply multiple conditions programmatically.
 
 <div class="boxes-list">
+
+- [Multi-column filter panel](@/content/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md)
 
 </div>
