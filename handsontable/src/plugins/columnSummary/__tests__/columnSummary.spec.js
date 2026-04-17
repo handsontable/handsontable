@@ -705,10 +705,6 @@ describe('ColumnSummarySpec', () => {
 
     it('should shift the visual calculation result position when a row ' +
       'was moved outside the endpoint range', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const height = 252;
 
       handsontable({
@@ -742,10 +738,6 @@ describe('ColumnSummarySpec', () => {
 
     it('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const height = 252;
 
       handsontable({

@@ -172,10 +172,6 @@ describe('Comments', () => {
 
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is not scrolled (the Window object is not a scrollable element)', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const width = 500;
 
         handsontable({
@@ -200,10 +196,6 @@ describe('Comments', () => {
 
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is scrolled (the Window object is not a scrollable element)', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
         const width = 500;
         const height = 250;

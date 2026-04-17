@@ -753,9 +753,6 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (dev-2512)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: [
         // 3rd cell content has to be exactly 83px
@@ -778,9 +775,6 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: [
         // 3rd cell content has to be exactly 83px

@@ -2282,10 +2282,6 @@ describe('MergeCells cooperation with hidden rows', () => {
 
   describe('Hooks', () => {
     it('should trigger the `beforeOnCellMouseDown` hook with proper coords', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;
@@ -2317,10 +2313,6 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should trigger the `afterOnCellMouseDown` hook with proper coords', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;
