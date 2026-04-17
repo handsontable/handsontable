@@ -24,7 +24,9 @@ function JasmineHtmlPlugin(options) {
     // because the generic runner lives in `test/` and references bundles from
     // `test/dist/`. A per-run runner that already sits in `test/dist/` should
     // pass `./` so its `<script>` tag resolves to a sibling file.
-    bundleAssetPath: options.bundleAssetPath != null ? options.bundleAssetPath : 'dist/',
+    bundleAssetPath: options.bundleAssetPath !== undefined && options.bundleAssetPath !== null
+      ? options.bundleAssetPath
+      : 'dist/',
     jasmineJsFiles: toRelativeFiles(jasminePath, jasmineFiles.jsFiles)
       .concat(toRelativeFiles(jasmineBootDir, jasmineFiles.bootFiles)),
     jasmineCssFiles: toRelativeFiles(jasminePath, jasmineFiles.cssFiles),
