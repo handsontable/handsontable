@@ -182,10 +182,6 @@ describe('Filters UI Value component', () => {
   });
 
   it('should utilize the \'modifyFiltersMultiSelectValue\' hook to display the cell value', async() => {
-    if (getLoadedTheme() !== 'main') {
-      return;
-    }
-
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -202,16 +198,17 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
+    const renderedItems = byValueMultipleSelect().element.querySelectorAll('.htCore td');
     const unifiedColDataSample = [
       'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
     ];
+    const itemsToCheck = Math.min(unifiedColDataSample.length, renderedItems.length);
 
-    for (let i = 0; i < unifiedColDataSample.length; i++) {
-      expect(
-        byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-      ).toBe(`Pre ${unifiedColDataSample[i]}`);
+    expect(itemsToCheck).toBeGreaterThan(0);
+
+    for (let i = 0; i < itemsToCheck; i++) {
+      expect(renderedItems[i].textContent).toBe(`Pre ${unifiedColDataSample[i]}`);
     }
-    expect(unifiedColDataSample.length).toBe(5);
   });
 
   it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +

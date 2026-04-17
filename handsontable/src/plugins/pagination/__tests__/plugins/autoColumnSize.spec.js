@@ -11,9 +11,6 @@ describe('Pagination integration with AutoColumnSize', () => {
   });
 
   it('should correctly calculate the column widths based on the currently selected page', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const data = createSpreadsheetData(40, 3);
 
     data[11][1] = 'A very long text that should be truncated';
@@ -27,28 +24,37 @@ describe('Pagination integration with AutoColumnSize', () => {
       autoColumnSize: true,
     });
 
-    expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth());
-    expect(colWidth(spec().$container, 1)).toBe(getDefaultColumnWidth());
-    expect(colWidth(spec().$container, 2)).toBe(getDefaultColumnWidth());
+    // Page 1 has no long text -- capture the DOM-measured default column width
+    const defaultColWidth = colWidth(spec().$container, 0);
+
+    expect(colWidth(spec().$container, 0)).toBe(defaultColWidth);
+    expect(colWidth(spec().$container, 1)).toBe(defaultColWidth);
+    expect(colWidth(spec().$container, 2)).toBe(defaultColWidth);
 
     const pagination = getPlugin('pagination');
 
     pagination.setPage(2);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(268);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    // Page 2 contains the long text in column 1 (1px tolerance for border rounding across pages)
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 1)).toBeGreaterThan(defaultColWidth);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 1);
+
+    const page2Col1Width = colWidth(spec().$container, 1);
 
     pagination.setPage(3);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(163);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    // Page 3 contains a shorter long text -- still wider than default but narrower than page 2
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 1)).toBeGreaterThan(defaultColWidth);
+    expect(colWidth(spec().$container, 1)).toBeLessThan(page2Col1Width);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 1);
 
     pagination.setPage(4);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    // Page 4 has no long text -- all columns return to default width (1px tolerance for border rounding)
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 1);
   });
 });

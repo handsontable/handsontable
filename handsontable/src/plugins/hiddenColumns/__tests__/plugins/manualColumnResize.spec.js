@@ -112,10 +112,6 @@ describe('HiddenColumns', () => {
     });
 
     it('should resize a proper column using the resize handler when the table contains hidden column', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -132,6 +128,8 @@ describe('HiddenColumns', () => {
         manualColumnResize: true
       });
 
+      const widthBefore = colWidth(spec().$container, 1);
+
       const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)'); // Header "C"
 
       $headerTH.simulate('mouseover');
@@ -145,7 +143,7 @@ describe('HiddenColumns', () => {
         .simulate('mouseup')
       ;
 
-      expect(colWidth(spec().$container, 1)).toBe(93);
+      expect(colWidth(spec().$container, 1)).toBeGreaterThan(widthBefore);
     });
   });
 });

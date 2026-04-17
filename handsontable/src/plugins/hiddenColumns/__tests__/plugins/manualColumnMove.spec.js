@@ -244,10 +244,6 @@ describe('HiddenColumns', () => {
     describe('UI', () => {
       describe('backlight', () => {
         it('should get correct position and size while grabing the column placed after hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -267,14 +263,10 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($headerTH.offset().left);
-          expect($backlight.width()).toBe(50);
+          expect($backlight.width()).toBe($headerTH.outerWidth());
         });
 
         it('should get correct position and size while grabing the multiple columns placed after hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -286,6 +278,7 @@ describe('HiddenColumns', () => {
           });
 
           const $firstHeaderTH = spec().$container.find('thead th:eq(2)');
+          const $lastHeaderTH = spec().$container.find('thead th:eq(4)');
 
           $firstHeaderTH
             .simulate('mousedown')
@@ -293,23 +286,21 @@ describe('HiddenColumns', () => {
           spec().$container.find('thead th:eq(3)')
             .simulate('mouseover')
           ; // header "F"
-          spec().$container.find('thead th:eq(4)')
+          $lastHeaderTH
             .simulate('mouseover')
             .simulate('mouseup')
             .simulate('mousedown') // Triggers backlight
           ; // header "G"
 
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
+          const expectedWidth = ($lastHeaderTH.offset().left + $lastHeaderTH.outerWidth())
+            - $firstHeaderTH.offset().left;
 
           expect($backlight.offset().left).toBe($firstHeaderTH.offset().left);
-          expect($backlight.width()).toBe(150);
+          expect($backlight.width()).toBe(expectedWidth);
         });
 
         it('should get correct position and size while grabing the column placed before hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -329,14 +320,10 @@ describe('HiddenColumns', () => {
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
           expect($backlight.offset().left).toBe($headerTH.offset().left);
-          expect($backlight.width()).toBe(50);
+          expect($backlight.width()).toBe($headerTH.outerWidth());
         });
 
         it('should get correct position and size while grabing the multiple columns placed before hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -348,6 +335,7 @@ describe('HiddenColumns', () => {
           });
 
           const $firstHeaderTH = spec().$container.find('thead th:eq(2)');
+          const $lastHeaderTH = spec().$container.find('thead th:eq(4)');
 
           $firstHeaderTH
             .simulate('mousedown')
@@ -355,16 +343,18 @@ describe('HiddenColumns', () => {
           spec().$container.find('thead th:eq(3)')
             .simulate('mouseover')
           ; // header "4"
-          spec().$container.find('thead th:eq(4)')
+          $lastHeaderTH
             .simulate('mouseover')
             .simulate('mouseup')
             .simulate('mousedown') // Triggers backlight
           ; // header "E"
 
           const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
+          const expectedWidth = ($lastHeaderTH.offset().left + $lastHeaderTH.outerWidth())
+            - $firstHeaderTH.offset().left;
 
           expect($backlight.offset().left).toBe($firstHeaderTH.offset().left);
-          expect($backlight.width()).toBe(150);
+          expect($backlight.width()).toBe(expectedWidth);
         });
       });
 

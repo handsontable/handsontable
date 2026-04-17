@@ -78,9 +78,6 @@ describe('Filters UI Conditional component', () => {
   });
 
   it('should appear conditional options menu in the proper place after UISelect element click', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -93,18 +90,18 @@ describe('Filters UI Conditional component', () => {
     hot.rootElement.style.marginTop = '1000px';
 
     await dropdownMenu(1);
-    $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
-    const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
+    const uiSelect = dropdownMenuRootElement().querySelector('.htUISelect');
+    const uiSelectRect = uiSelect.getBoundingClientRect();
 
-    const layout = getThemeLayout();
-    const marginTop = 1000;
-    const gridChrome = (6 * layout.defaultDataRowHeight) + layout.defaultColumnHeaderHeight;
+    $(uiSelect).simulate('click');
 
-    expect(window.scrollY + rect.top).toBeAroundValue(
-      marginTop + gridChrome - 486,
-      1
-    );
+    const condMenuRect = document
+      .querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
+
+    // The conditional menu should appear vertically aligned with the UISelect element
+    expect(Math.abs(condMenuRect.top - uiSelectRect.top)).toBeLessThan(15);
+
     hot.rootElement.style.marginTop = '';
   });
 

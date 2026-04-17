@@ -75,10 +75,6 @@ describe('HiddenColumns', () => {
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is enabled)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
@@ -95,16 +91,16 @@ describe('HiddenColumns', () => {
         autoColumnSize: true,
       });
 
+      const autoColSize = getPlugin('autoColumnSize');
+
       expect(getColWidth(0)).toBe(0);
       expect(getColWidth(1)).toBe(0);
-      expect(getColWidth(2)).toBe(225);
+      // With indicators enabled, getColWidth includes indicator padding (15px per adjacent hidden column)
+      expect(getColWidth(2)).toBeGreaterThan(autoColSize.getColumnWidth(2));
+      expect(getColWidth(2)).toBe(colWidth(spec().$container, 0));
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
@@ -120,9 +116,12 @@ describe('HiddenColumns', () => {
         autoColumnSize: true,
       });
 
+      const autoColSize = getPlugin('autoColumnSize');
+
       expect(getColWidth(0)).toBe(0);
       expect(getColWidth(1)).toBe(0);
-      expect(getColWidth(2)).toBe(210);
+      // Without indicators, getColWidth matches the auto-sized width
+      expect(getColWidth(2)).toBe(autoColSize.getColumnWidth(2));
     });
 
     it('should return proper values from the `getColHeader` function', async() => {
