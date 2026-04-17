@@ -37,8 +37,12 @@ const srcDir = args.includes('--src-dir')
 const langRegistration = args.includes('--lang-registration');
 
 const IGNORE_PATTERNS = [/__tests__/, /[/\\]test[/\\]/, /[/\\]dist[/\\]/];
+// Matches a whole line that is either `import '…css';` (ESM side-effect) or
+// `require('…css');` (CJS side-effect). Both alternatives share the `^…\s*$`
+// anchors so partial mid-line matches like `var _x = require('…css');` cannot
+// be stripped and leave invalid fragments behind.
 const CSS_IMPORT_RE =
-  /^(?:import\s+['"][^'"]*\.(?:css|scss)['"];?\s*$)|(?:require\(['"][^'"]*\.(?:css|scss)['"]\);?\s*$)/gm;
+  /^(?:import\s+['"][^'"]*\.(?:css|scss)['"];?|require\(['"][^'"]*\.(?:css|scss)['"]\);?)\s*$/gm;
 
 // For ESM: rewrite local imports to add .mjs extension
 // eslint-disable-next-line max-len
