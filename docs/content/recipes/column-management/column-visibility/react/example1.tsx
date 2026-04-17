@@ -1,0 +1,154 @@
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { HotTable, type HotTableRef } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import type { ColumnSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+/* start:skip-in-preview */
+type EmployeeRow = {
+  name: string;
+  department: string;
+  role: string;
+  salary: number;
+  startDate: string;
+  location: string;
+  status: string;
+};
+
+const data: EmployeeRow[] = [
+  { name: 'Alice Johnson', department: 'Engineering', role: 'Senior Engineer', salary: 95000, startDate: '2019-03-12', location: 'New York', status: 'Active' },
+  { name: 'Bob Martinez', department: 'Marketing', role: 'Marketing Manager', salary: 78000, startDate: '2020-07-01', location: 'Chicago', status: 'Active' },
+  { name: 'Carol Lee', department: 'Engineering', role: 'Tech Lead', salary: 115000, startDate: '2017-11-15', location: 'San Francisco', status: 'Active' },
+  { name: 'David Kim', department: 'HR', role: 'HR Specialist', salary: 65000, startDate: '2021-02-28', location: 'Austin', status: 'On Leave' },
+  { name: 'Eva Novak', department: 'Finance', role: 'Financial Analyst', salary: 82000, startDate: '2018-09-03', location: 'New York', status: 'Active' },
+  { name: 'Frank Chen', department: 'Engineering', role: 'Junior Engineer', salary: 72000, startDate: '2022-05-16', location: 'Seattle', status: 'Active' },
+  { name: 'Grace Okafor', department: 'Sales', role: 'Sales Executive', salary: 70000, startDate: '2020-01-20', location: 'Dallas', status: 'Active' },
+  { name: 'Henry Walsh', department: 'Finance', role: 'Finance Director', salary: 130000, startDate: '2015-06-10', location: 'Chicago', status: 'Active' },
+];
+/* end:skip-in-preview */
+
+// The full columns config is the immutable source of truth.
+// Never mutate this array -- always derive a visible subset from it.
+const allColumns: (ColumnSettings & { title: string })[] = [
+  { data: 'name', title: 'Name', type: 'text', width: 140 },
+  { data: 'department', title: 'Department', type: 'text', width: 120 },
+  { data: 'role', title: 'Role', type: 'text', width: 150 },
+  {
+    data: 'salary',
+    title: 'Salary',
+    type: 'numeric',
+    numericFormat: { pattern: '$0,0', culture: 'en-US' },
+    width: 110,
+  },
+  { data: 'startDate', title: 'Start Date', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
+  { data: 'location', title: 'Location', type: 'text', width: 110 },
+  {
+    data: 'status',
+    title: 'Status',
+    type: 'dropdown',
+    source: ['Active', 'On Leave', 'Inactive'],
+    width: 100,
+  },
+];
+
+const ExampleComponent = () => {
+  const hotRef = useRef<HotTableRef>(null);
+  // Track which column indices (into allColumns) are currently visible.
+  // Start with all columns visible.
+  const [visibleIndices, setVisibleIndices] = useState<Set<number>>(
+    () => new Set(allColumns.map((_, i) => i))
+  );
+
+  const getVisibleColumns = useCallback(
+    (indices: Set<number>): ColumnSettings[] => allColumns.filter((_, i) => indices.has(i)),
+    []
+  );
+
+  const getVisibleHeaders = useCallback(
+    (indices: Set<number>): string[] =>
+      allColumns.filter((_, i) => indices.has(i)).map((col) => col.title),
+    []
+  );
+
+  const handleToggle = useCallback(
+    (index: number) => {
+      setVisibleIndices((prev) => {
+        if (prev.has(index)) {
+          // Prevent hiding the last visible column.
+          if (prev.size === 1) {
+            return prev;
+          }
+
+          const next = new Set(prev);
+
+          next.delete(index);
+          // Apply the new visible subset. updateSettings() re-renders the grid
+          // with only the provided columns config -- no DOM manipulation needed.
+          hotRef.current?.hotInstance?.updateSettings({
+            columns: getVisibleColumns(next),
+            colHeaders: getVisibleHeaders(next),
+          });
+
+          return next;
+        }
+
+        const next = new Set(prev);
+
+        next.add(index);
+        hotRef.current?.hotInstance?.updateSettings({
+          columns: getVisibleColumns(next),
+          colHeaders: getVisibleHeaders(next),
+        });
+
+        return next;
+      });
+    },
+    [getVisibleColumns, getVisibleHeaders]
+  );
+
+  const columns = useMemo(
+    () => getVisibleColumns(visibleIndices),
+    [visibleIndices, getVisibleColumns]
+  );
+  const colHeaders = useMemo(
+    () => getVisibleHeaders(visibleIndices),
+    [visibleIndices, getVisibleHeaders]
+  );
+
+  return (
+    <div>
+      <div id="column-toggles" style={{ marginBottom: '10px' }}>
+        {allColumns.map((col, index) => (
+          <label
+            key={col.data as string}
+            style={{ marginRight: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          >
+            <input
+              type="checkbox"
+              checked={visibleIndices.has(index)}
+              // When only one column remains visible, disable its checkbox so the user
+              // cannot produce an empty grid.
+              disabled={visibleIndices.size === 1 && visibleIndices.has(index)}
+              onChange={() => handleToggle(index)}
+            />
+            {col.title}
+          </label>
+        ))}
+      </div>
+      <HotTable
+        ref={hotRef}
+        data={data}
+        columns={columns}
+        colHeaders={colHeaders}
+        rowHeaders={true}
+        height="auto"
+        width="100%"
+        autoWrapRow={true}
+        licenseKey="non-commercial-and-evaluation"
+      />
+    </div>
+  );
+};
+
+export default ExampleComponent;

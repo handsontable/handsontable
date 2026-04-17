@@ -32,6 +32,17 @@ category: Import and Export
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2 --deps jspdf jspdf-autotable
+
+@[code](@/content/recipes/import-export/export-to-pdf/react/example1.jsx)
+@[code](@/content/recipes/import-export/export-to-pdf/react/example1.tsx)
+
+:::
+
+:::
+
 [[toc]]
 
 ## Overview

@@ -32,6 +32,18 @@ category: Filtering and Search
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/filtering-search/multi-column-filter-panel/react/example1.css)
+@[code](@/content/recipes/filtering-search/multi-column-filter-panel/react/example1.jsx)
+@[code](@/content/recipes/filtering-search/multi-column-filter-panel/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to control the Filters plugin from a filter panel outside of the grid. The panel includes controls aligned with the grid columns, and it applies all active filters together with AND logic.

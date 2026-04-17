@@ -32,6 +32,18 @@ category: Rendering and styling
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/rendering-styling/sparkline-cell-renderer/react/example1.css)
+@[code](@/content/recipes/rendering-styling/sparkline-cell-renderer/react/example1.jsx)
+@[code](@/content/recipes/rendering-styling/sparkline-cell-renderer/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to edit weekly values in table cells and render a mini bar chart with inline SVG in a separate sparkline column. No charting library is required.
