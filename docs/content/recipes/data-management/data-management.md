@@ -26,7 +26,8 @@ This section provides practical recipes for loading, syncing, and managing data 
 Current recipes:
 
 <div class="boxes-list">
-
+- [Sync two grids](@/content/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
+- [Undo / redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
 - [Server-side data with Spring Boot](@/content/recipes/data-management/server-side-spring/server-side-spring.md)
 </div>

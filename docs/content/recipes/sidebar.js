@@ -1,4 +1,5 @@
 const dataManagementItems = [
+  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript'] },
@@ -52,7 +53,13 @@ const editingValidationItems = [
     title: 'Dependent dropdowns',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
+    title: 'Row validation with error summary',
+    onlyFor: ['javascript'],
+  },
 ];
+
 
 module.exports = {
   sidebar: [
@@ -76,7 +83,10 @@ module.exports = {
     {
       title: 'Filtering and Search',
       path: 'filtering-and-search',
-      children: filteringAndSearchItems,
+      children: [
+        ...filteringAndSearchItems,
+        { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+      ],
       collapsable: false,
       onlyFor: ['javascript'],
     },
