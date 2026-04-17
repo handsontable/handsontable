@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 97k6p9p7
 title: Locale
 metaTitle: Locale - JavaScript Data Grid | Handsontable
@@ -19,7 +20,7 @@ angular:
 searchCategory: Guides
 category: Internationalization
 ---
-Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
+The `locale` option configures number and date formatting using a BCP 47 language tag (for example `'en-US'` or `'de-DE'`).
 
 [[toc]]
 
@@ -198,5 +199,14 @@ settings = {
 
 - [afterLanguageChange](@/api/hooks.md#afterlanguagechange)
 - [beforeLanguageChange](@/api/hooks.md#beforelanguagechange)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Language](@/guides/internationalization/language/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
 
 </div>

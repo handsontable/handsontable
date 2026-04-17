@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
@@ -16,6 +17,8 @@ category: Cell types
 menuTag: updated
 ---
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
+
+The time cell type formats time values using a configurable format string. Use it for scheduling, logging, or any time-based data.
 
 [[toc]]
 
@@ -329,6 +332,10 @@ columns: [{
 ### Editor behavior
 
 The [`timeFormat`](@/api/options.md#timeformat) option controls how times are displayed in the cell. The editor may show the value in a normalized form; for `intl-time`, the underlying value remains in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`).
+
+## Result
+
+After configuring the time cell type, cells display time values formatted according to your `timeFormat` configuration. Source data is stored in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) regardless of the display format.
 
 ## Related articles
 

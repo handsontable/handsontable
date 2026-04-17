@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: xm9k2p7q
 title: Server-side data
 metaTitle: Server-side data - JavaScript Data Grid | Handsontable
@@ -109,7 +110,7 @@ emptyDataState: true, // loading spinner and empty overlay while fetching / when
 notification: true, // built-in error toast when fetchRows or CRUD callbacks reject (including refetch after mutation)
 ```
 
-Use [`pagination`](@/api/options.md#pagination) so users can change pages and page size in the UI. With DataProvider, the Pagination plugin copies its **`pageSize`** and current **page** into every `fetchRows` call as `queryParameters.pageSize` and `queryParameters.page` (including [`initialPage`](@/guides/rows/rows-pagination/rows-pagination.md) when that is how the UI selects the first page). There is no `pageSize` field on the `dataProvider` object; set rows per page with `pagination: { pageSize: 10 }`, or `pagination: true` for the plugin’s default page size. With [`rowHeaders`](@/api/options.md#rowheaders) enabled, the DataProvider plugin uses [`modifyRowHeader`](@/api/hooks.md#modifyrowheader) so row headers reflect a **global** 1-based row index across pages (for example row `0` on page 2 with `pageSize: 5` shows header `6`), not only the index within the loaded slice. See the [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md) guide for the full configuration object.
+Use [`pagination`](@/api/options.md#pagination) so you can change pages and page size in the UI. With DataProvider, the Pagination plugin copies its **`pageSize`** and current **page** into every `fetchRows` call as `queryParameters.pageSize` and `queryParameters.page` (including [`initialPage`](@/guides/rows/rows-pagination/rows-pagination.md) when that is how the UI selects the first page). There is no `pageSize` field on the `dataProvider` object; set rows per page with `pagination: { pageSize: 10 }`, or `pagination: true` for the plugin’s default page size. With [`rowHeaders`](@/api/options.md#rowheaders) enabled, the DataProvider plugin uses [`modifyRowHeader`](@/api/hooks.md#modifyrowheader) so row headers reflect a **global** 1-based row index across pages (for example row `0` on page 2 with `pageSize: 5` shows header `6`), not only the index within the loaded slice. See the [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md) guide for the full configuration object.
 
 The sketch also sets [`filters`](@/api/options.md#filters) for server-driven column filters, [`emptyDataState`](@/api/options.md#emptydatastate) for loading and empty overlays with asynchronous fetches, and [`notification`](@/api/options.md#notification) so request failures from the DataProvider can show an error toast in the Notification plugin (see [Fetch hooks and loading UI](#fetch-hooks-and-loading-ui)). Omit or adjust any of these if you do not need that feature.
 
@@ -126,7 +127,7 @@ The sketch also sets [`filters`](@/api/options.md#filters) for server-driven col
 
 `page` and `pageSize` come from the [Pagination](@/api/pagination.md) plugin when it is enabled, including **`pagination: { pageSize: n }`** so your API receives `n` rows per request. If you omit `pagination` or leave Pagination off, Handsontable still calls `fetchRows` with a fixed **page 1** and the library default page size (10) until you enable pagination or drive pages yourself via [`fetchData`](@/api/dataProvider.md#fetchdata) (you can pass `{ pageSize: n }` there as an override).
 
-Respect `signal` so outdated requests abort when the user sorts, filters, or changes pages quickly.
+Respect `signal` so outdated requests abort when you sort, filter, or change pages quickly.
 
 ## Create, update, and remove
 
@@ -134,7 +135,7 @@ With a complete `dataProvider` configuration, Handsontable sends **create**, **u
 
 ### `onRowsCreate`
 
-Called when the user inserts rows (for example from the context menu). Payload shape:
+Called when you insert rows (for example from the context menu). Payload shape:
 
 - `position`: `'above'` or `'below'`.
 - `referenceRowId`: anchor row id when inserting next to a row (from `rowId`); may be `undefined` when there is no anchor (for example some programmatic inserts).
@@ -142,7 +143,7 @@ Called when the user inserts rows (for example from the context menu). Payload s
 
 Your API should create the rows and return a promise. Handsontable refetches the current query after success.
 
-Create, update, and remove requests are **serialized**: if the user triggers another mutation before the previous one finishes, work runs in order so your backend sees a single stream of operations.
+Create, update, and remove requests are **serialized**: if you trigger another mutation before the previous one finishes, work runs in order so your backend sees a single stream of operations.
 
 ### `onRowsUpdate`
 
@@ -193,7 +194,7 @@ When `onRowsUpdate` is set, Handsontable skips stacking certain edit sources on 
 
 When [`notification`](@/api/options.md#notification) is enabled, the [Notification](@/api/notification.md) plugin shows an error toast if `fetchRows` rejects or if `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` rejects, including when a refetch after a successful mutation fails. The title is translated per operation (load vs create vs update vs remove). The message text prefers a string `message`, `error`, or `detail` from a JSON body, including when that body is nested on the error object (`error.response?.data`, `error.data`, or `error.body`, as with some HTTP clients). Otherwise it falls back to an `Error` message, a string rejection, or a generic fallback. **Fetch** errors also add a **Refetch** button that calls `hot.getPlugin('dataProvider').fetchData()` again; that toast stays until you dismiss it or use Refetch. If Notification is disabled, use [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) for failed loads and refetches, and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) for rejected mutation callbacks; you supply your own error UI.
 
-The [Empty data state / loading](@/guides/accessories-and-menus/empty-data-state/empty-data-state.md) overlay follows DataProvider for the `"loading"` branch: [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch) turns loading on when `skipLoading` is not set; [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch) and [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) turn it off. [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort) does **not** clear loading by itself (for example when the user changes page while a request is in flight), so the overlay stays until a fetch finishes successfully or with an error. Refetches after column sort or CRUD pass `skipLoading: true` into [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch), so the Empty data state plugin skips the full loading overlay for those internal loads.
+The [Empty data state / loading](@/guides/accessories-and-menus/empty-data-state/empty-data-state.md) overlay follows DataProvider for the `"loading"` branch: [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch) turns loading on when `skipLoading` is not set; [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch) and [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) turn it off. [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort) does **not** clear loading by itself (for example when you change page while a request is in flight), so the overlay stays until a fetch finishes successfully or with an error. Refetches after column sort or CRUD pass `skipLoading: true` into [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch), so the Empty data state plugin skips the full loading overlay for those internal loads.
 
 ## DataProvider plugin methods
 
@@ -274,3 +275,15 @@ Each folder includes the same Express servers (`server-rest.mjs`, `server-graphq
 - [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror)
 
 </div>
+
+## What you learned
+
+- The `dataProvider` option connects Handsontable to a server-side API instead of a static in-memory array.
+- You supply `fetchRows` to load paged data, and `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` to push mutations to your backend.
+- Handsontable forwards sort and filter state to `fetchRows` as `queryParameters`, so your server handles those operations.
+- Hooks like `beforeDataProviderFetch` and `afterDataProviderFetchError` let you control loading UI and error handling.
+
+## Next steps
+
+- [Migrate to server-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md) -- follow the step-by-step checklist to move from a client-side array to `dataProvider`.
+- [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md) -- configure page size and navigation for server-backed grids.
