@@ -1,9 +1,9 @@
 ---
 type: tutorial
 id: a3f82c91
-title: Server-side data with NestJS
+title: Server-side Data with NestJS
 metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
-description: Connect Handsontable to a NestJS backend for paginated, sorted, and filtered server-side data with full CRUD support using the dataProvider plugin.
+description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations using an in-memory store.
 permalink: /recipes/data-management/server-side-nestjs
 canonicalUrl: /recipes/data-management/server-side-nestjs
 tags:
@@ -11,50 +11,36 @@ tags:
   - server-side
   - data-provider
   - typescript
-  - rest-api
-  - pagination
-  - sorting
-  - filtering
-  - crud
+  - recipes
 searchCategory: Recipes
 category: Data Management
 ---
 
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2
-
-@[code](@/content/recipes/data-management/server-side-nestjs/javascript/example1.js)
-@[code](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
-
-:::
-
-:::
-
 ## Overview
 
-In this tutorial, you will connect Handsontable to a [NestJS](https://nestjs.com/) backend. You will build a support-tickets data grid with server-side pagination, sorting, filtering, and full CRUD (create, update, delete) operations.
+This recipe shows how to connect Handsontable's `dataProvider` plugin to a NestJS 10 backend. You will build a support-tickets grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to an in-memory store.
 
 **Difficulty:** Intermediate
 **Time:** ~40 minutes
-**Stack:** NestJS 10, TypeScript, Handsontable `dataProvider` plugin
+**Stack:** NestJS 10, TypeScript, `class-validator`, `class-transformer`, Handsontable `dataProvider`
 
 ## What You'll Build
 
-- A NestJS REST API with `GET`, `POST`, `PATCH`, and `DELETE /tickets` endpoints
-- A Handsontable grid that fetches data from the API and reflects every page, sort, and filter change
-- Full CRUD -- add, edit, and delete rows; changes are sent to the server automatically
-- Automatic error toasts when a request fails, with a Refetch button for fetch errors
-- A status label outside the grid that shows the total record count
+A support-tickets data grid that:
+- Fetches paginated rows from a NestJS REST API on every page, sort, or filter change
+- Applies filters on the server using an in-memory array predicate -- the browser never loads the full dataset
+- Creates, updates, and deletes rows via dedicated endpoints
+- Serializes Handsontable's sort and filter objects as bracket-notation query parameters -- decoded in NestJS with `@Query()` and `class-transformer`
+- Seeds the store with 12 realistic support tickets on startup
 
-## Before You Begin
+## Before you begin
 
-- [x] Node.js 18 or later installed
-- [x] NestJS CLI installed: `npm install -g @nestjs/cli`
-- [x] Basic familiarity with NestJS modules, controllers, and services
-- [x] Basic familiarity with Handsontable initialization
+- Node.js 18 or later installed
+- NestJS CLI installed: `npm install -g @nestjs/cli`
+- Basic familiarity with NestJS modules, controllers, and services
+- A Handsontable project with the `dataProvider` plugin available
 
-## Step 1 -- Scaffold the NestJS project
+## Step 1: Scaffold the NestJS project
 
 Create a new NestJS application and install the validation libraries:
 
@@ -64,307 +50,195 @@ cd tickets-api
 npm install class-validator class-transformer
 ```
 
-**Why `class-validator` and `class-transformer`?**
+**What's happening:**
+- `nest new` scaffolds a complete NestJS project with `AppModule`, `AppController`, and `AppService`. You will replace the default controller and service with a `TicketsController` and `TicketsService`.
+- `class-transformer` converts query-string values -- which are always strings -- into the TypeScript types declared in your DTO. For example, `page=2` in the query string becomes the number `2`.
+- `class-validator` then validates those typed values against constraints such as `@IsInt()` and `@Min(1)`, and rejects invalid requests with a `400` response before they reach your service.
 
-NestJS's `ValidationPipe` uses these two libraries together:
+Together these two libraries give you end-to-end type safety from the HTTP request all the way to the TypeScript service method.
 
-- `class-transformer` converts query-string values (all strings by default) into the TypeScript types declared in your DTO -- so `page=2` becomes the number `2` instead of the string `"2"`.
-- `class-validator` then checks that those typed values satisfy your constraints (`@IsInt()`, `@Min(1)`, etc.) and rejects invalid requests before they reach your service.
+## Step 2: Define the data model
 
-Together they give you end-to-end type safety from the HTTP request to the TypeScript service method.
+Copy `ticket.entity.ts` into `src/tickets/`:
 
-## Step 2 -- Define the data model (`ticket.entity.ts`)
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
 
-Copy `ticket.entity.ts` from the `server/` folder into `src/tickets/`. This file defines the `Ticket` interface and the in-memory data store:
+**What's happening:**
+- `TicketStatus` and `TicketPriority` are union types that match the `source` arrays in the Handsontable column definitions. Sharing these types between server and client prevents mismatched values.
+- `ticketsStore` is an in-memory array that acts as the database for this recipe. Twelve realistic support-ticket rows make pagination and filtering meaningful from the first load.
+- The `id` field is a string rather than a number because Handsontable's `dataProvider.rowId` option tracks rows by string identity. Converting numbers to strings at the database boundary keeps the rest of the code consistent.
 
-```typescript
-export type TicketStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
-export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
+**Switching to TypeORM:**
+Replace the interface and array with a `@Entity()` class and inject `Repository<TicketEntity>` into the service. The `findAndCount()`, `save()`, and `delete()` calls map directly to the array operations in this recipe.
 
-export interface Ticket {
-  id: string;
-  subject: string;
-  status: TicketStatus;
-  priority: TicketPriority;
-  assignee: string;
-  createdAt: string; // ISO date string, e.g. "2025-01-15"
-}
+## Step 3: Create the fetch DTO
 
-export const ticketsStore: Ticket[] = [ /* ... seed data ... */ ];
-```
+Copy `fetch-tickets.dto.ts` into `src/tickets/dto/`:
 
-**Using TypeORM instead of an in-memory array**
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
 
-The in-memory store is enough to run this recipe with zero configuration. For a real application, replace it with a TypeORM entity backed by SQLite (zero extra setup) or any other database:
+**What's happening:**
 
-```shell
-npm install @nestjs/typeorm typeorm better-sqlite3
-```
+### `@Type(() => Number)` on `page` and `pageSize`
 
-```typescript
-// Replace the interface + array with:
-@Entity()
-export class TicketEntity {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() subject: string;
-  @Column({ default: 'open' }) status: TicketStatus;
-  @Column({ default: 'medium' }) priority: TicketPriority;
-  @Column() assignee: string;
-  @Column({ type: 'date' }) createdAt: string;
-}
-```
+Query-string values arrive as strings. `@Type(() => Number)` tells `class-transformer` to coerce `"2"` to `2` before `@IsInt()` runs. Without this decorator, `@IsInt()` would reject every request because `"2"` is a string, not an integer.
 
-Inject `@InjectRepository(TicketEntity)` into the service and replace array operations with `repository.findAndCount()`, `repository.save()`, and `repository.delete()`.
+### `@ValidateNested()` on `sort` and `filters`
 
-## Step 3 -- Create the fetch DTO (`fetch-tickets.dto.ts`)
+`@ValidateNested()` applies the constraints declared on the nested DTO class. Without it, `class-validator` only checks that the outer object has a `sort` field -- it does not inspect `sort.column` or `sort.order`.
 
-Copy `fetch-tickets.dto.ts` into `src/tickets/dto/`. This DTO validates and transforms the query parameters sent by Handsontable:
+### `@Transform(...)` on `filters`
 
-```typescript
-import { Transform, Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
-
-export class FilterConditionDto {
-  @IsString() prop: string;
-  @IsString() condition: string;
-  value: string[];
-}
-
-export class SortDto {
-  @IsString() column: string;
-  @IsString() order: 'asc' | 'desc';
-}
-
-export class FetchTicketsDto {
-  @IsInt() @Min(1) @Type(() => Number)
-  page: number = 1;
-
-  @IsInt() @Min(1) @Type(() => Number)
-  pageSize: number = 10;
-
-  @IsOptional() @ValidateNested() @Type(() => SortDto)
-  sort?: SortDto;
-
-  @IsOptional() @ValidateNested({ each: true }) @Type(() => FilterConditionDto)
-  @Transform(({ value }) => (Array.isArray(value) ? value : value ? [value] : []))
-  filters?: FilterConditionDto[];
-}
-```
-
-**What each decorator does:**
-
-| Decorator | Purpose |
-|---|---|
-| `@Type(() => Number)` | Converts the query-string `"2"` to the number `2` before validation runs |
-| `@IsInt()` / `@Min(1)` | Rejects non-integer or out-of-range values with a 400 response |
-| `@ValidateNested()` | Recursively validates nested objects (`SortDto`, `FilterConditionDto`) |
-| `@Transform(...)` | Normalizes `filters` -- ensures a single filter is always wrapped in an array |
-
-**How Handsontable serializes filters**
-
-Handsontable's Filters plugin sends one condition object per active column. In the query string that looks like:
+Handsontable sends one filter object per active column. With a single active filter the query string looks like:
 
 ```
 filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open
 ```
 
-NestJS parses bracket notation into nested objects automatically when `enableImplicitConversion` is set in the `ValidationPipe` options (configured in Step 4).
+NestJS parses this as `filters = { '0': { prop: 'status', ... } }` when only one filter is present and as an array when multiple filters are present. The `@Transform` decorator normalizes both shapes into a consistent `FilterConditionDto[]`.
 
-## Step 4 -- Bootstrap with CORS and `ValidationPipe` (`main.ts`)
+### `@IsArray()` on `FilterConditionDto.value`
 
-Copy `main.ts` into the project root `src/` folder:
+A filter condition can carry one or two values depending on the condition type (for example, `between` uses two). `@IsArray()` accepts both a single-element and a two-element array from Handsontable.
 
-```typescript
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+## Step 4: Bootstrap with CORS and `ValidationPipe`
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+Copy `main.ts` into `src/`:
 
-  // Allow requests from the frontend origin (any origin in development).
-  app.enableCors();
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/main.ts)
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-      whitelist: true,
-    }),
-  );
+**What's happening:**
 
-  await app.listen(3000);
-}
+### `app.enableCors()`
 
-bootstrap();
-```
-
-**`app.enableCors()`**
-
-Without this, the browser blocks requests from a different origin (e.g., `localhost:5173` calling `localhost:3000`). In production, replace the wildcard with your frontend domain:
+Without CORS headers, the browser blocks requests from a different origin -- for example, a Vite dev server on `localhost:5173` calling the NestJS API on `localhost:3000`. `enableCors()` with no arguments allows all origins, which is safe for local development. In production, pass your deployed frontend domain:
 
 ```typescript
 app.enableCors({ origin: 'https://your-app.example.com' });
 ```
 
-**`ValidationPipe` options explained:**
+### `ValidationPipe` options
 
 | Option | What it does |
 |---|---|
-| `transform: true` | Activates class-transformer so `@Type()` decorators convert string values to numbers and nested objects |
-| `enableImplicitConversion: true` | Also converts primitive types without an explicit `@Type()` decorator -- useful for nested query params |
+| `transform: true` | Activates `class-transformer` so `@Type()` decorators convert string values to numbers and nested objects |
+| `enableImplicitConversion: true` | Also converts primitive types without an explicit `@Type()` decorator -- ensures deeply nested query params are coerced correctly |
 | `whitelist: true` | Strips any properties not declared in the DTO, preventing extra data from reaching the service |
 
-## Step 5 -- Implement the service (`tickets.service.ts`)
+### Inline `AppModule`
 
-The service performs filtering, sorting, and pagination on the in-memory store. Copy `tickets.service.ts` into `src/tickets/`:
-
-```typescript
-@Injectable()
-export class TicketsService {
-  findAll(dto: FetchTicketsDto): { rows: Ticket[]; totalRows: number } {
-    let tickets = [...ticketsStore];
-
-    // Filtering: map each Handsontable condition to an array predicate
-    if (dto.filters?.length) {
-      for (const filter of dto.filters) {
-        tickets = tickets.filter((ticket) => {
-          const cell = String(ticket[filter.prop as keyof Ticket] ?? '').toLowerCase();
-
-          switch (filter.condition) {
-            case 'eq':           return cell === String(filter.value[0]).toLowerCase();
-            case 'contains':     return cell.includes(String(filter.value[0]).toLowerCase());
-            case 'begins_with':  return cell.startsWith(String(filter.value[0]).toLowerCase());
-            case 'empty':        return cell === '';
-            default:             return true;
-          }
-        });
-      }
-    }
-
-    // Sorting: compare strings with localeCompare; reverse for 'desc'
-    if (dto.sort) {
-      const { column, order } = dto.sort;
-
-      tickets.sort((a, b) => {
-        const cmp = String(a[column as keyof Ticket]).localeCompare(String(b[column as keyof Ticket]));
-
-        return order === 'asc' ? cmp : -cmp;
-      });
-    }
-
-    // Pagination: slice the array to the requested page
-    const totalRows = tickets.length;
-    const start = (dto.page - 1) * dto.pageSize;
-
-    return { rows: tickets.slice(start, start + dto.pageSize), totalRows };
-  }
-
-  // create, updateMany, removeMany -- see full server/tickets.service.ts
-}
-```
-
-**Filtering -- condition mapping**
-
-Handsontable's Filters plugin sends condition names such as `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, `not_empty`. The `switch` statement maps each to a JavaScript predicate. With TypeORM you would map these to `WHERE` clauses instead:
+The recipe declares `AppModule` inline in `main.ts` for brevity. In a real application, move `TicketsController` and `TicketsService` into a dedicated `TicketsModule`:
 
 ```typescript
-// TypeORM equivalent for 'contains':
-queryBuilder.andWhere(`ticket.${filter.prop} LIKE :val`, { val: `%${filter.value[0]}%` });
+@Module({ controllers: [TicketsController], providers: [TicketsService] })
+export class TicketsModule {}
+
+@Module({ imports: [TicketsModule] })
+export class AppModule {}
 ```
 
-**Why `totalRows` matters**
+## Step 5: Implement the service
 
-Handsontable uses `totalRows` to render the correct number of pages in the pagination bar. If you omit it or return the length of the current page instead of the total filtered count, the pagination will be wrong.
+Copy `tickets.service.ts` into `src/tickets/`:
 
-## Step 6 -- Add the controller (`tickets.controller.ts`)
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
 
-Copy `tickets.controller.ts` into `src/tickets/`. It maps each HTTP verb to the corresponding service method:
+**What's happening:**
+
+### Filtering -- condition mapping
+
+Handsontable's Filters plugin sends condition names such as `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. The `switch` statement maps each name to a JavaScript string predicate. With TypeORM, you would map the same names to `WHERE` clauses instead:
 
 ```typescript
-@Controller('tickets')
-export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
-
-  // GET /tickets?page=1&pageSize=10&sort[column]=status&sort[order]=asc
-  @Get()
-  findAll(@Query() query: FetchTicketsDto) {
-    return this.ticketsService.findAll(query);
-  }
-
-  // POST /tickets -- body: [{ subject, status, priority, assignee, createdAt }]
-  @Post()
-  @HttpCode(201)
-  create(@Body() body: CreateTicketDto | CreateTicketDto[]) {
-    const rows = Array.isArray(body) ? body : [body];
-
-    return rows.map((dto) => this.ticketsService.create(dto));
-  }
-
-  // PATCH /tickets -- body: [{ id, status }]  (partial updates)
-  @Patch()
-  updateMany(@Body() body: UpdateTicketDto[]) {
-    return this.ticketsService.updateMany(body);
-  }
-
-  // DELETE /tickets -- body: ['1', '3']
-  @Delete()
-  @HttpCode(204)
-  removeMany(@Body() ids: string[]) {
-    this.ticketsService.removeMany(ids);
-  }
-}
+case 'contains':
+  queryBuilder.andWhere(`ticket.${filter.prop} LIKE :val`, { val: `%${filter.value[0]}%` });
+  break;
 ```
 
-**Payload shapes -- how Handsontable calls each endpoint**
+### Sorting
 
-| Handsontable callback | HTTP method | Body shape |
+Handsontable sends `{ column: 'status', order: 'asc' }` for the active sort. The service reads `column` and `order` from the DTO and calls `localeCompare` for consistent alphabetical ordering. The result is negated for `'desc'`.
+
+### Pagination
+
+```typescript
+const start = (dto.page - 1) * dto.pageSize;
+return { rows: tickets.slice(start, start + dto.pageSize), totalRows };
+```
+
+Handsontable sends a 1-based `page` index. Subtracting 1 converts it to a 0-based offset for `Array.slice()`. `totalRows` is the count of matching rows *before* slicing -- Handsontable uses this number to render the correct number of pages in the pagination bar.
+
+### ID generation with an incrementing counter
+
+```typescript
+let nextId = ticketsStore.length + 1;
+```
+
+Using an incrementing counter rather than `Date.now()` avoids duplicate IDs when `onRowsCreate` sends a batch of rows. All calls in the batch happen within the same millisecond, so `Date.now()` would return the same value for every row in the batch.
+
+### `create` must return the created row
+
+After inserting a row the service returns it with its server-assigned `id`. The controller passes this return value back to Handsontable via `onRowsCreate`. Handsontable replaces the temporary client-side ID with the real one. If the response is empty, subsequent edits and deletes on the new row fail because the grid still holds the wrong ID.
+
+## Step 6: Add the controller
+
+Copy `tickets.controller.ts` into `src/tickets/`:
+
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
+
+**What's happening:**
+- `@Controller('tickets')` sets the base path. All four endpoints share the `/tickets` prefix.
+- `@Query() query: FetchTicketsDto` binds the parsed query string to the DTO. The `ValidationPipe` configured in `main.ts` transforms and validates the values before `findAll()` receives them.
+- `create()` accepts `CreateTicketDto | CreateTicketDto[]` because Handsontable may send one new row or several. Wrapping a single object in an array normalizes the input before the service loop.
+- `updateMany()` receives an array of partial row objects -- each includes the row `id` plus only the changed columns. The service finds each row by ID and applies the changes with `Object.assign`.
+- `removeMany()` receives an array of ID strings and returns `204 No Content`. Handsontable only checks for a non-error HTTP status on delete responses.
+
+**Endpoint summary:**
+
+| HTTP method | Path | Handsontable callback |
 |---|---|---|
-| `fetchRows` | `GET` | Query params (page, pageSize, sort, filters) |
-| `onRowsCreate` | `POST` | Array of new row objects with column data |
-| `onRowsUpdate` | `PATCH` | Array of partial row objects, each including the `rowId` field |
-| `onRowsRemove` | `DELETE` | Array of row ID strings |
+| `GET` | `/tickets` | `fetchRows` |
+| `POST` | `/tickets` | `onRowsCreate` |
+| `PATCH` | `/tickets` | `onRowsUpdate` |
+| `DELETE` | `/tickets` | `onRowsRemove` |
 
-The `rowId: 'id'` option in the frontend configuration tells Handsontable which field to use as the row identifier. The `onRowsUpdate` payload includes this ID alongside only the changed properties -- so a status change sends `[{ id: '3', status: 'resolved' }]`, not the full row.
+## Step 7: Wire up Handsontable
 
-## Step 7 -- Configure the frontend (`example1.ts`)
+With the server running on `http://localhost:3000`, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is below.
 
-**Import the TypeScript interfaces**
+::: only-for javascript
 
-NestJS developers are TypeScript users. Importing the Handsontable type interfaces gives you compile-time checks on the `fetchRows` signature:
+@[code js](@/content/recipes/data-management/server-side-nestjs/javascript/example1.js)
 
-```typescript
-import type {
-  DataProviderFetchOptions,
-  DataProviderQueryParameters,
-} from 'handsontable/plugins/dataProvider';
-```
+:::
 
-`DataProviderQueryParameters` describes the `params` argument -- `page`, `pageSize`, `sort`, and `filters`. `DataProviderFetchOptions` describes the second argument, which contains the `AbortSignal`.
+::: only-for typescript
 
-**Build the query string**
+@[code ts](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
 
-Handsontable passes a plain object to `fetchRows`. You need to convert it to a query string that NestJS can parse. Use bracket notation for nested values:
+:::
 
-```typescript
-function buildUrl(base: string, params: DataProviderQueryParameters): string {
+**What's happening:**
+
+### `buildUrl` helper
+
+```javascript
+function buildUrl(base, params) {
   const query = new URLSearchParams();
 
   query.set('page', String(params.page));
   query.set('pageSize', String(params.pageSize));
 
   if (params.sort) {
-    query.set('sort[column]', params.sort.column as string);
+    query.set('sort[column]', params.sort.column);
     query.set('sort[order]', params.sort.order);
   }
 
   if (params.filters?.length) {
     params.filters.forEach((filter, i) => {
-      query.set(`filters[${i}][prop]`, filter.prop as string);
+      query.set(`filters[${i}][prop]`, filter.prop);
       query.set(`filters[${i}][condition]`, filter.condition);
-      filter.value.forEach((v, j) => {
-        query.set(`filters[${i}][value][${j}]`, String(v));
-      });
+      filter.value.forEach((v, j) => query.set(`filters[${i}][value][${j}]`, String(v)));
     });
   }
 
@@ -372,136 +246,106 @@ function buildUrl(base: string, params: DataProviderQueryParameters): string {
 }
 ```
 
-**Why bracket notation?**
+`buildUrl` converts Handsontable's `DataProviderQueryParameters` object into the bracket-notation query string that NestJS parses correctly. The key difference from the Laravel recipe is the notation style: NestJS expects `sort[column]=status` while Laravel accepts a flat JSON string. The bracket notation maps directly to the nested `SortDto` object via `@Query()` and `class-transformer`.
 
-NestJS's `@Query()` decorator together with `class-transformer` parses `sort[column]=status` into the nested object `{ sort: { column: 'status' } }`. Plain dot-notation (e.g., `sort.column=status`) does not work -- NestJS treats it as a flat key named `"sort.column"`.
+### `fetchRows`
 
-**Wire up `dataProvider`**
+```javascript
+fetchRows: async (params, { signal }) => {
+  const url = buildUrl('http://localhost:3000/tickets', params);
+  const res = await fetch(url, { signal });
 
-```typescript
-dataProvider: {
-  rowId: 'id',
+  if (!res.ok) throw new Error(`Server error ${res.status}`);
 
-  fetchRows: async (params: DataProviderQueryParameters, { signal }: DataProviderFetchOptions) => {
-    const url = buildUrl('http://localhost:3000/tickets', params);
-    const res = await fetch(url, { signal });
-
-    if (!res.ok) throw new Error(`Server error ${res.status}`);
-
-    return res.json();
-  },
-
-  onRowsCreate: async (payload) => {
-    const res = await fetch('http://localhost:3000/tickets', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) throw new Error(`Create failed: ${res.status}`);
-
-    return res.json(); // Must return the created rows with server-assigned IDs
-  },
-
-  onRowsUpdate: async (rows) => {
-    await fetch('http://localhost:3000/tickets', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rows),
-    });
-  },
-
-  onRowsRemove: async (rowIds) => {
-    await fetch('http://localhost:3000/tickets', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rowIds),
-    });
-  },
+  return res.json();
 },
 ```
 
-**The `signal` parameter and request cancellation**
+Handsontable calls `fetchRows` whenever the user changes the page, sorts a column, or applies a filter. The `AbortSignal` from the second argument is passed to `fetch()`. When the user changes the page before the current request finishes, Handsontable aborts the in-flight request. Without the signal, a slow previous response can arrive after a faster one and overwrite the displayed data.
 
-The `DataProviderFetchOptions` object includes an `AbortSignal`. Pass it to `fetch()` as `{ signal }`. When the user changes the page or sort before the previous request finishes, Handsontable aborts the old request. Without the signal, stale responses can arrive out of order and overwrite newer data.
+### `onRowsCreate`
 
-**`onRowsCreate` must return the created rows**
+```javascript
+onRowsCreate: async (payload) => {
+  const res = await fetch('http://localhost:3000/tickets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 
-After the server creates a row it assigns a server-generated ID. `onRowsCreate` must return those rows so Handsontable can update its internal row tracker with the real IDs. If you return nothing, subsequent edits and deletes on the new rows will fail because the grid still holds a temporary client-side ID.
-
-## Step 8 -- Enable pagination, sorting, filtering, and error handling
-
-Add these options to the Handsontable configuration:
-
-```typescript
-pagination: { pageSize: 5 },  // Triggers server-side paging
-columnSorting: true,           // Sends sort descriptor in fetchRows params
-filters: true,                 // Sends filter conditions in fetchRows params
-dropdownMenu: true,            // Shows the column header menu with filter controls
-emptyDataState: true,          // Loading overlay + empty-state message
-notification: true,            // Automatic error toasts for all dataProvider errors
-```
-
-**`pagination`**
-
-Setting `pagination` activates the pagination bar below the grid and tells `dataProvider` to include `page` and `pageSize` in every `fetchRows` call. Without this option the grid would try to load all rows at once.
-
-**`emptyDataState`**
-
-Shows a loading spinner overlay while `fetchRows` is in flight. When the server returns zero rows, it shows a configurable empty-state message instead of a blank grid.
-
-**`notification: true`**
-
-Wraps all `dataProvider` callbacks in error handling. When `fetchRows` throws, a toast appears with a **Refetch** button that retries the last request. When `onRowsCreate`, `onRowsUpdate`, or `onRowsRemove` throw, a toast appears with the error message. You can customize the message by passing a configuration object instead of `true`:
-
-```typescript
-notification: {
-  fetchError: { message: 'Could not load tickets. Check your connection.' },
-  mutationError: { message: 'Save failed. Please try again.' },
-}
-```
-
-## Step 9 -- React to fetch results with a hook
-
-Use `afterDataProviderFetch` to update elements outside the grid whenever the data refreshes:
-
-```typescript
-afterDataProviderFetch(result) {
-  statusLabel.textContent = `${result.totalRows} tickets total`;
+  return res.json(); // Must return created rows with server-assigned IDs.
 },
 ```
 
-**When does `afterDataProviderFetch` fire?**
+Handsontable passes a `payload` object with the new row data keyed by the column `data` properties. The server creates the row, assigns a string `id`, and returns the created row. Handsontable uses the returned `id` to replace the temporary client-side ID -- without this the grid loses track of the row.
 
-After every successful `fetchRows` call -- on initial load, page change, sort change, and filter change. The `result` argument is the object returned by your `fetchRows` function, so it includes both `rows` (the current page) and `totalRows` (the total filtered count).
+### `onRowsUpdate`
 
-Use this hook to keep record counts, breadcrumbs, or any other derived UI in sync with the grid without polling.
+```javascript
+onRowsUpdate: async (rows) => {
+  await fetch('http://localhost:3000/tickets', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rows),
+  });
+},
+```
+
+Handsontable batches all cell edits from a single user action into one array. Each element is a partial row object that includes the row `id` and only the columns the user changed. The service applies the changes selectively using `Object.assign`.
+
+### `onRowsRemove`
+
+```javascript
+onRowsRemove: async (rowIds) => {
+  await fetch('http://localhost:3000/tickets', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rowIds),
+  });
+},
+```
+
+Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The controller deserializes them as `string[]` and passes them to `ticketsService.removeMany()`.
+
+### `notification: true` and `emptyDataState: true`
+
+```javascript
+notification: true,
+emptyDataState: true,
+```
+
+`notification: true` enables the built-in error toast. When `fetchRows` or a mutation callback throws, Handsontable shows a dismissible error message. Fetch failures also add a **Refetch** action that calls `fetchRows` again.
+
+`emptyDataState: true` shows a placeholder message when the current filter combination returns zero rows, instead of leaving the grid blank.
 
 ## How It Works -- Complete Flow
 
-1. **Initial load**: Handsontable calls `fetchRows({ page: 1, pageSize: 5 })`. The frontend builds the URL and fetches from NestJS. The service returns `{ rows: [...], totalRows: 12 }`. The grid renders the first page and the pagination bar shows 3 pages.
-2. **User changes page**: `fetchRows({ page: 2, pageSize: 5 })` is called. The previous request is aborted via `AbortSignal` if still in flight.
-3. **User clicks a column header**: `fetchRows({ page: 1, pageSize: 5, sort: { column: 'priority', order: 'asc' } })` is called. The service sorts the store and returns the first page of sorted results.
-4. **User opens the column menu and filters**: `fetchRows({ ..., filters: [{ prop: 'status', condition: 'eq', value: ['open'] }] })` is called. The service filters to only open tickets and returns the first page with a new `totalRows`.
-5. **User edits a cell**: After the edit is committed, `onRowsUpdate([{ id: '3', status: 'resolved' }])` is called. The service updates the store. No reload occurs -- the grid reflects the change locally.
-6. **User adds a row**: `onRowsCreate([{ subject: 'New issue', ... }])` is called. The service creates the row and returns it with a server-assigned `id`. The grid replaces the temporary client ID with the real one.
-7. **User deletes a row**: `onRowsRemove(['5'])` is called. The service removes the row. The current page is refetched to fill the gap.
-8. **A request fails**: `fetchRows` throws. The `notification` plugin shows a toast with a **Refetch** button. The `afterDataProviderFetchError` hook also fires if you need custom handling.
+1. **Initial load**: Handsontable calls `fetchRows` with `{ page: 1, pageSize: 5 }`.
+2. **Frontend builds**: `GET /tickets?page=1&pageSize=5`.
+3. **NestJS routes** the request to `TicketsController.findAll` via `FetchTicketsDto`.
+4. **Service queries**: slices the in-memory store to rows 0--4 and returns `{ rows: [...5 tickets...], totalRows: 12 }`.
+5. **User sorts by priority**: `fetchRows` called with `sort: { column: 'priority', order: 'asc' }`.
+6. **Frontend builds**: `GET /tickets?page=1&pageSize=5&sort[column]=priority&sort[order]=asc`.
+7. **Service sorts** the store using `localeCompare` and returns the first page of sorted results.
+8. **User filters status = open**: `fetchRows` called with `filters: [{ prop: 'status', condition: 'eq', value: ['open'] }]`.
+9. **Frontend builds**: `GET /tickets?...&filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open`.
+10. **DTO deserializes**: `class-transformer` maps bracket notation to `FilterConditionDto[]`; the `switch` maps `eq` to a strict equality predicate.
+11. **User edits assignee**: `onRowsUpdate([{ id: '3', assignee: 'Li Wei' }])` sent via `PATCH /tickets`.
+12. **Service updates**: `Object.assign(ticketsStore[idx], { assignee: 'Li Wei' })` -- only the changed column is written.
 
-## What You Learned
+## What you learned
 
-- How to scaffold a NestJS API with the correct module, controller, service, and DTO structure
-- How to use `class-validator` and `class-transformer` in a `ValidationPipe` to parse and validate Handsontable query parameters
-- How bracket-notation serialization maps Handsontable's sort and filter objects to NestJS `@Query()` DTOs
-- How to map Handsontable filter condition names (`eq`, `contains`, etc.) to array predicates or TypeORM `WHERE` clauses
-- How to use `DataProviderQueryParameters` and `DataProviderFetchOptions` TypeScript interfaces from `handsontable/plugins/dataProvider`
-- How `rowId`, `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` work together for full CRUD
-- How `notification: true` provides automatic error toasts with a Refetch button
-- How `afterDataProviderFetch` keeps UI outside the grid in sync
+- How to use `class-validator` and `class-transformer` in a NestJS `ValidationPipe` to parse and validate Handsontable's query parameters.
+- How bracket-notation serialization maps Handsontable's sort and filter objects to NestJS `@Query()` DTOs -- `sort[column]=status` becomes `{ sort: { column: 'status' } }`.
+- How to map Handsontable filter condition names (`eq`, `contains`, `begins_with`, etc.) to array predicates or TypeORM `WHERE` clauses.
+- How to use an incrementing counter for ID generation to avoid duplicate IDs in batch creates.
+- Why `onRowsCreate` must return the created rows with server-assigned IDs.
+- How `notification: true` provides automatic error toasts with a **Refetch** button for fetch failures.
+- How `emptyDataState: true` shows a placeholder when no rows match the active filters.
 
-## Next Steps
+## Next steps
 
-- Replace the in-memory store with TypeORM + SQLite (zero extra config) or PostgreSQL
-- Add authentication -- pass a `Bearer` token in the `fetchRows` fetch headers
-- Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo (e.g., a shared `packages/types` workspace package)
-- Explore the `afterDataProviderFetchError` and `afterRowsMutationError` hooks for custom error UI when `notification` is off
+- Replace the in-memory store with TypeORM + SQLite (zero extra config) or PostgreSQL.
+- Add authentication -- pass a `Bearer` token in the `fetchRows` fetch headers and protect mutation endpoints with a NestJS `AuthGuard`.
+- Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
+- Compare with the [Spring Boot recipe](@/content/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.
