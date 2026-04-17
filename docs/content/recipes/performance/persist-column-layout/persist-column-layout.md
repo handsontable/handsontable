@@ -205,19 +205,29 @@ function getCurrentWidths() {
 ```javascript
 document.querySelector('#reset-layout-btn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE_KEY);
-  hot.updateSettings({
-    colWidths: DEFAULT_COL_WIDTHS,
-    manualColumnMove: DEFAULT_COL_ORDER,
+
+  // Reset column order to the identity sequence [0, 1, 2, 3, 4, 5].
+  hot.columnIndexMapper.setIndexesSequence(DEFAULT_COL_ORDER);
+
+  // Reset each column width through the ManualColumnResize plugin API.
+  const resizePlugin = hot.getPlugin('manualColumnResize');
+
+  DEFAULT_COL_WIDTHS.forEach((width, visualIndex) => {
+    resizePlugin.setManualSize(visualIndex, width);
   });
+
+  hot.render();
 });
 ```
 
 **What's happening:**
 
 1. `localStorage.removeItem(STORAGE_KEY)` deletes the saved entry so the next page load starts from defaults.
-2. `hot.updateSettings({ colWidths, manualColumnMove })` applies the default widths and order without reloading the page. Handsontable re-renders the grid immediately, and the hooks continue to work -- the next resize or move will write fresh data.
+2. `hot.columnIndexMapper.setIndexesSequence(DEFAULT_COL_ORDER)` writes the identity sequence `[0, 1, 2, 3, 4, 5]` directly into the column index mapper, restoring the default visual order immediately without triggering additional moves.
+3. `resizePlugin.setManualSize(visualIndex, width)` sets each column's stored width in the ManualColumnResize plugin's internal map. Because the sequence was reset first, visual and physical indices are in sync at this point.
+4. `hot.render()` repaints the grid to reflect both changes at once.
 
-**Why `updateSettings()` instead of recreating the grid?** Recreating the grid loses any unsaved cell edits, the current scroll position, and the selection state. `updateSettings()` applies only the provided keys and triggers a minimal re-render, keeping everything else intact.
+**Why not `updateSettings({ colWidths, manualColumnMove })`?** `updateSettings` reapplies `manualColumnMove` by calling `moveColumns(array, 0)` on the current (already reordered) state -- which does not reliably restore the identity sequence. Similarly, `colWidths` is a core option, not the ManualColumnResize plugin's internal map, so passing it through `updateSettings` does not clear the widths the user has already set interactively. The direct plugin APIs bypass these limitations.
 
 ## How It Works - Complete Flow
 
@@ -226,7 +236,7 @@ document.querySelector('#reset-layout-btn').addEventListener('click', () => {
 3. **User resizes a column**: `afterColumnResize` fires, reads all column widths and the current order, and writes both to `localStorage`.
 4. **User moves a column**: `afterColumnMove` fires (if `movePerformed` is `true`), reads all widths and the new order, and writes both to `localStorage`.
 5. **User refreshes the page**: Step 1 repeats. The saved layout is found, and the grid initializes with the user's preferred widths and order.
-6. **User clicks Reset layout**: `localStorage` entry is removed. `hot.updateSettings()` restores default widths and order. The next resize or move writes fresh data.
+6. **User clicks Reset layout**: `localStorage` entry is removed. `hot.columnIndexMapper.setIndexesSequence()` restores default column order. `resizePlugin.setManualSize()` restores default widths per column. `hot.render()` repaints the grid. The next resize or move writes fresh data.
 
 ## What you learned
 
@@ -234,7 +244,7 @@ document.querySelector('#reset-layout-btn').addEventListener('click', () => {
 - Read all column widths with `hot.getColWidth(visualIndex)` and translate visual positions to physical indices with `hot.toPhysicalColumn(visualIndex)`.
 - Use `afterColumnResize` and `afterColumnMove` to detect when the user changes the layout and persist those changes immediately.
 - Validate data read from `localStorage` before using it, so malformed or stale entries fall back to defaults gracefully.
-- Call `hot.updateSettings({ colWidths, manualColumnMove })` to restore defaults at runtime without recreating the grid.
+- Call `hot.columnIndexMapper.setIndexesSequence()` and `resizePlugin.setManualSize()` to reset column order and widths at runtime without recreating the grid.
 
 ## Next steps
 

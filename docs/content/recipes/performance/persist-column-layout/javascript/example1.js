@@ -72,7 +72,7 @@ const hot = new Handsontable(container, {
   manualColumnResize: true,
   manualColumnMove: initialOrder || true,
   rowHeaders: true,
-  height: 'auto',
+  height: 320,
   width: '100%',
   autoWrapRow: true,
   licenseKey: 'non-commercial-and-evaluation',
@@ -120,8 +120,16 @@ function getCurrentWidths() {
 // Reset button: clear localStorage and restore the default layout.
 document.querySelector('#reset-layout-btn').addEventListener('click', () => {
   localStorage.removeItem(STORAGE_KEY);
-  hot.updateSettings({
-    colWidths: DEFAULT_COL_WIDTHS,
-    manualColumnMove: DEFAULT_COL_ORDER,
+
+  // Reset column order to the identity sequence [0, 1, 2, 3, 4, 5].
+  hot.columnIndexMapper.setIndexesSequence(DEFAULT_COL_ORDER);
+
+  // Reset each column width through the ManualColumnResize plugin API.
+  const resizePlugin = hot.getPlugin('manualColumnResize');
+
+  DEFAULT_COL_WIDTHS.forEach((width, visualIndex) => {
+    resizePlugin.setManualSize(visualIndex, width);
   });
+
+  hot.render();
 });
