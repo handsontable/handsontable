@@ -533,6 +533,9 @@ describe('NestedHeaders', () => {
     });
 
     it('should render the setup properly after the table being scrolled', async() => {
+      // TODO(theme-agnostic): DOM structure depends on auto-sized column widths; the number of columns
+      // rendered in the viewport varies per theme. Fixing requires rewriting the expected HTML to be
+      // dynamic or using visual regression tests.
       if (getLoadedTheme() !== 'main') {
         return;
       }

@@ -1029,10 +1029,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
        'the table\'s viewport and is wider than table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1048,15 +1044,12 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+      // Scroll position should place the left edge of header "B" (col 1) at the viewport start.
+      expect(inlineStartOverlay().getScrollPosition()).toBe(hot().getColWidth(0));
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
        'the table\'s viewport and is wider than table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1073,16 +1066,20 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
+      // Scroll position should place the right edge of header "B" (through col 8) at the viewport end.
+      const holder = spec().$container[0].querySelector('.wtHolder');
+      let headerRightEdge = 0;
+
+      for (let col = 0; col <= 8; col++) {
+        headerRightEdge += hot().getColWidth(col);
+      }
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(
-        265);
+        headerRightEdge - holder.clientWidth);
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
         'the table\'s viewport and is narrower than the table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1098,15 +1095,20 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
+      // Scroll position should place the right edge of header "J" (cols 3-4) at the viewport end.
+      const holder = spec().$container[0].querySelector('.wtHolder');
+      let headerRightEdge = 0;
+
+      for (let col = 0; col <= 4; col++) {
+        headerRightEdge += hot().getColWidth(col);
+      }
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(
+        headerRightEdge - holder.clientWidth);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
         'the table\'s viewport and is narrower than the table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1123,16 +1125,18 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(
-        250);
+      // Scroll position should place the left edge of header "K" (col 5) at the viewport start.
+      let headerLeftEdge = 0;
+
+      for (let col = 0; col < 5; col++) {
+        headerLeftEdge += hot().getColWidth(col);
+      }
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(headerLeftEdge);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
        'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1149,15 +1153,11 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
+      expect(inlineStartOverlay().getScrollPosition()).toBe(hot().getColWidth(0));
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
        'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1175,16 +1175,19 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
+      const holder = spec().$container[0].querySelector('.wtHolder');
+      let headerRightEdge = 0;
+
+      for (let col = 0; col <= 8; col++) {
+        headerRightEdge += hot().getColWidth(col);
+      }
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(
-        265);
+        headerRightEdge - holder.clientWidth);
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
         'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1201,15 +1204,19 @@ describe('NestedHeaders', () => {
 
       await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(65);
+      const holder = spec().$container[0].querySelector('.wtHolder');
+      let headerRightEdge = 0;
+
+      for (let col = 0; col <= 4; col++) {
+        headerRightEdge += hot().getColWidth(col);
+      }
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(
+        headerRightEdge - holder.clientWidth);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
         'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1227,8 +1234,13 @@ describe('NestedHeaders', () => {
       await scrollViewportTo(0, 9);
       await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(
-        250);
+      let headerLeftEdge = 0;
+
+      for (let col = 0; col < 5; col++) {
+        headerLeftEdge += hot().getColWidth(col);
+      }
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(headerLeftEdge);
     });
 
     it('should be possible to back to the single column selection, when it was modified by the SHIFT key', async() => {

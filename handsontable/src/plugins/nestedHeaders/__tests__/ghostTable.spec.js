@@ -42,10 +42,6 @@ describe('NestedHeaders', () => {
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(7, 7),
           width: 300,
@@ -57,36 +53,18 @@ describe('NestedHeaders', () => {
         });
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
-        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
-          110,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
-          110,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          110,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
-          110,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          110,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          110,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          110,
-        );
+        // All columns have the same header text, so their widths should be equal.
+        const firstWidth = ghostTable.widthsMap.getValueAtIndex(0);
+
+        expect(firstWidth).toBeGreaterThan(getDefaultColumnWidth());
+
+        for (let col = 0; col < 7; col++) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeAroundValue(firstWidth);
+        }
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           width: 300,
@@ -100,37 +78,16 @@ describe('NestedHeaders', () => {
         });
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
-        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
-          28,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
-          28,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          26,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
-          27,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          27,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          26,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          26,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
-          111,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          108,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBeAroundValue(
-          30,
+        // All columns should have positive widths cached.
+        for (let col = 0; col < 10; col++) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // The columns under the long header "This is a very long header to test" (cols 6-7)
+        // should be significantly wider than single-letter header columns.
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(0) * 2
         );
       });
 
@@ -151,10 +108,6 @@ describe('NestedHeaders', () => {
 
     describe('updateSettings', () => {
       it('should recreate the widths cache', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -172,18 +125,12 @@ describe('NestedHeaders', () => {
         const widthAfterUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
-        expect(widthAfterUpdate).toBeAroundValue(
-          150,
-        );
+        expect(widthAfterUpdate).toBeGreaterThan(widthBeforeUpdate);
       });
     });
 
     describe('with hidden columns', () => {
       it('should calculate the columns widths when some columns are hidden on table initialization', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -199,39 +146,24 @@ describe('NestedHeaders', () => {
         });
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
-        const themeLayout = getThemeLayout();
 
+        // Hidden columns should have null width in the cache.
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBeAroundValue(
-          28,
-        );
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBeAroundValue(
-          88,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          27,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          26,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          26,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
-          111,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          108,
-        );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
+
+        // Visible columns should have positive widths.
+        for (const col of [1, 3, 4, 5, 6, 7, 8]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // The long header columns should be wider than short header columns.
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(1)
+        );
       });
 
       it('should recalculate the columns widths after hiding columns', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -248,37 +180,25 @@ describe('NestedHeaders', () => {
         await render();
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
-        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBeAroundValue(
-          28,
-        );
+        // Hidden columns should have null width.
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          88,
-        );
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          27,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBeAroundValue(
-          26,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBeAroundValue(
-          26,
-        );
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          219,
-        );
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
+
+        // Visible columns should have positive widths.
+        for (const col of [0, 2, 4, 5, 6, 8]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // Column 8 absorbs the long header text (after col 7 is hidden) and should be the widest.
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(0)
+        );
       });
 
       it('should recalculate the columns widths after showing columns', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -297,26 +217,21 @@ describe('NestedHeaders', () => {
         await render();
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
-        const themeLayout = getThemeLayout();
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).toBeAroundValue(
-          88,
+        // Still-hidden columns should have null width.
+        for (const col of [0, 1, 3, 5, 6, 9]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBe(null);
+        }
+
+        // Shown columns should have positive widths.
+        for (const col of [2, 4, 7, 8]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // The long header columns should be wider than short header columns.
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(4)
         );
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).toBeAroundValue(
-          28,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeAroundValue(
-          111,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeAroundValue(
-          108,
-        );
-        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
     });
 
