@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: jn1po47i
 title: Themes
 metaTitle: Themes - JavaScript Data Grid | Handsontable
@@ -100,125 +101,6 @@ When using the Theme API, you can configure the color scheme using `setColorSche
 
 When using CSS files, color scheme switching is controlled through CSS class names. Use `ht-theme-{name}` for light mode, `ht-theme-{name}-dark` for dark mode, or `ht-theme-{name}-dark-auto` for automatic switching based on system preferences (e.g., `ht-theme-main`, `ht-theme-main-dark`, `ht-theme-main-dark-auto`).
 
-## Available Theme API parameters
-
-When registering a theme with `registerTheme()` or updating it using the `params()` method, you can configure the following keys:
-
-| Key           | Description                                                                                    |
-| ------------- | ---------------------------------------------------------------------------------------------- |
-| `name`        | Theme name string (can only be set during `registerTheme()`, cannot be updated via `params()`) |
-| `sizing`      | Size scale values (`size_0` through `size_10`)                                                 |
-| `density`     | Density type (`'default'`, `'compact'`, `'comfortable'`) or density configuration object       |
-| `icons`       | SVG icon definitions                                                                           |
-| `colors`      | Color palette with nested color values                                                         |
-| `tokens`      | Design tokens for visual properties                                                            |
-| `colorScheme` | Color scheme (`'light'`, `'dark'`, or `'auto'`)                                                |
-
-### Token value references
-
-Token values support a powerful reference system using dot notation. Instead of hardcoding values, you can reference values from other configuration namespaces:
-
-| Reference pattern | Example                    | Description                        |
-| ----------------- | -------------------------- | ---------------------------------- |
-| Direct value      | `'14px'`                   | Use a literal CSS value            |
-| `tokens.*`        | `'tokens.foregroundColor'` | Reference another token value      |
-| `sizing.*`        | `'sizing.size_4'`          | Reference a sizing scale value     |
-| `colors.*`        | `'colors.primary.500'`     | Reference a color from the palette |
-| `density.*`       | `'density.gap'`            | Reference a density-specific value |
-
-#### Sizing references
-
-The sizing scale provides consistent spacing values:
-
-```js
-myTheme.params({
-  tokens: {
-    iconSize: 'sizing.size_5',             // References e.g. 20px
-    wrapperBorderRadius: 'sizing.size_2',  // References e.g. 8px
-  },
-});
-```
-
-#### Color references
-
-Colors use a hierarchical structure with dot notation for nested values:
-
-```js
-myTheme.params({
-  tokens: {
-    accentColor: 'colors.primary.500',      // References primary color
-    borderColor: 'colors.palette.200',      // References palette color
-    backgroundColor: 'colors.white',        // References base white color
-  },
-});
-```
-
-#### Density references
-
-Density values adjust spacing based on the selected density type:
-
-```js
-myTheme.params({
-  tokens: {
-    cellHorizontalPadding: 'density.cellHorizontal',
-    buttonVerticalPadding: 'density.buttonVertical',
-    gapSize: 'density.gap',
-  },
-});
-```
-
-#### Token cross-references
-
-Tokens can reference other tokens for consistent styling:
-
-```js
-myTheme.params({
-  tokens: {
-    barForegroundColor: 'tokens.foregroundColor',
-    cellEditorBackgroundColor: 'tokens.backgroundColor',
-  },
-});
-```
-
-### Light and dark mode values
-
-For tokens that should have different values in light and dark modes, use an array with two values where the first value is for light mode and the second is for dark mode:
-
-```js
-myTheme.params({
-  tokens: {
-    // [lightModeValue, darkModeValue]
-    borderColor: ['colors.palette.100', 'colors.palette.700'],
-    foregroundColor: ['colors.palette.800', 'colors.palette.200'],
-    backgroundColor: ['colors.white', 'colors.palette.950'],
-  },
-});
-```
-
-## Available CSS files
-
-Handsontable provides CSS files needed to style your data grid. Here's an overview of what's available:
-
-### Base CSS file
-
-- **`handsontable.css`** / **`handsontable.min.css`** - The base stylesheet containing all structural styles, layout rules, and core functionality. This file is auto-injected by default. You can inject it manually instead, but you must set [`injectCoreCss`](@/api/options.md#injectcorecss) to `false` first. It includes border styles, cell rendering rules, and other fundamental grid components.
-
-### Theme files
-
-All themes are available in two variants:
-
-- **`ht-theme-{name}.css`** / **`ht-theme-{name}.min.css`** - Complete theme with icons included (where `{name}` is `main`, `horizon`, or `classic`).
-- **`ht-theme-{name}-no-icons.css`** / **`ht-theme-{name}-no-icons.min.css`** - Theme without icon styles.
-
-### Icon files
-
-If you're using a theme without icons (`*-no-icons.css`), you can optionally load separate icon files:
-
-- **`ht-icons-{name}.css`** / **`ht-icons-{name}.min.css`** - Icon styles for the theme (where `{name}` is `main` or `horizon`).
-
-### Recommended usage
-
-For production, use the minified versions (`.min.css`) to reduce file size and improve load times. For development, you may prefer the unminified versions (`.css`) for easier debugging.
 
 ## Use a theme
 
@@ -513,6 +395,128 @@ This hierarchy ensures that you can define a consistent default theme for your e
 
 :::
 
+## Theme reference
+
+### Theme API parameters
+
+When registering a theme with `registerTheme()` or updating it using the `params()` method, you can configure the following keys:
+
+| Key           | Description                                                                                    |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `name`        | Theme name string (can only be set during `registerTheme()`, cannot be updated via `params()`) |
+| `sizing`      | Size scale values (`size_0` through `size_10`)                                                 |
+| `density`     | Density type (`'default'`, `'compact'`, `'comfortable'`) or density configuration object       |
+| `icons`       | SVG icon definitions                                                                           |
+| `colors`      | Color palette with nested color values                                                         |
+| `tokens`      | Design tokens for visual properties                                                            |
+| `colorScheme` | Color scheme (`'light'`, `'dark'`, or `'auto'`)                                                |
+
+#### Token value references
+
+Token values support a powerful reference system using dot notation. Instead of hardcoding values, you can reference values from other configuration namespaces:
+
+| Reference pattern | Example                    | Description                        |
+| ----------------- | -------------------------- | ---------------------------------- |
+| Direct value      | `'14px'`                   | Use a literal CSS value            |
+| `tokens.*`        | `'tokens.foregroundColor'` | Reference another token value      |
+| `sizing.*`        | `'sizing.size_4'`          | Reference a sizing scale value     |
+| `colors.*`        | `'colors.primary.500'`     | Reference a color from the palette |
+| `density.*`       | `'density.gap'`            | Reference a density-specific value |
+
+##### Sizing references
+
+The sizing scale provides consistent spacing values:
+
+```js
+myTheme.params({
+  tokens: {
+    iconSize: 'sizing.size_5',             // References e.g. 20px
+    wrapperBorderRadius: 'sizing.size_2',  // References e.g. 8px
+  },
+});
+```
+
+##### Color references
+
+Colors use a hierarchical structure with dot notation for nested values:
+
+```js
+myTheme.params({
+  tokens: {
+    accentColor: 'colors.primary.500',      // References primary color
+    borderColor: 'colors.palette.200',      // References palette color
+    backgroundColor: 'colors.white',        // References base white color
+  },
+});
+```
+
+##### Density references
+
+Density values adjust spacing based on the selected density type:
+
+```js
+myTheme.params({
+  tokens: {
+    cellHorizontalPadding: 'density.cellHorizontal',
+    buttonVerticalPadding: 'density.buttonVertical',
+    gapSize: 'density.gap',
+  },
+});
+```
+
+##### Token cross-references
+
+Tokens can reference other tokens for consistent styling:
+
+```js
+myTheme.params({
+  tokens: {
+    barForegroundColor: 'tokens.foregroundColor',
+    cellEditorBackgroundColor: 'tokens.backgroundColor',
+  },
+});
+```
+
+#### Light and dark mode values
+
+For tokens that should have different values in light and dark modes, use an array with two values where the first value is for light mode and the second is for dark mode:
+
+```js
+myTheme.params({
+  tokens: {
+    // [lightModeValue, darkModeValue]
+    borderColor: ['colors.palette.100', 'colors.palette.700'],
+    foregroundColor: ['colors.palette.800', 'colors.palette.200'],
+    backgroundColor: ['colors.white', 'colors.palette.950'],
+  },
+});
+```
+
+### CSS files
+
+Handsontable provides CSS files needed to style your data grid. Here's an overview of what's available:
+
+#### Base CSS file
+
+- **`handsontable.css`** / **`handsontable.min.css`** - The base stylesheet containing all structural styles, layout rules, and core functionality. This file is auto-injected by default. You can inject it manually instead, but you must set [`injectCoreCss`](@/api/options.md#injectcorecss) to `false` first. It includes border styles, cell rendering rules, and other fundamental grid components.
+
+#### Theme files
+
+All themes are available in two variants:
+
+- **`ht-theme-{name}.css`** / **`ht-theme-{name}.min.css`** - Complete theme with icons included (where `{name}` is `main`, `horizon`, or `classic`).
+- **`ht-theme-{name}-no-icons.css`** / **`ht-theme-{name}-no-icons.min.css`** - Theme without icon styles.
+
+#### Icon files
+
+If you're using a theme without icons (`*-no-icons.css`), you can optionally load separate icon files:
+
+- **`ht-icons-{name}.css`** / **`ht-icons-{name}.min.css`** - Icon styles for the theme (where `{name}` is `main` or `horizon`).
+
+#### Recommended usage
+
+For production, use the minified versions (`.min.css`) to reduce file size and improve load times. For development, you may prefer the unminified versions (`.css`) for easier debugging.
+
 ## The legacy theme
 
 The legacy CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default styles up until `version 15` (released in December 2024). These styles are legacy and are removed in version 17.0.0.
@@ -545,3 +549,7 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
+
+## Result
+
+Your grid now renders with the theme you configured. You can switch color schemes and density modes at runtime using the Theme API.
