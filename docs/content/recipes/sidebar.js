@@ -1,3 +1,7 @@
+const columnManagementItems = [
+  { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript'] },
+];
+
 const dataManagementItems = [
   { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
@@ -84,6 +88,7 @@ const editingValidationItems = [
 module.exports = {
   sidebar: [
     'introduction',
+    { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {
