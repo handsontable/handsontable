@@ -1,3 +1,11 @@
+const dataManagementItems = [
+  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
+  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
+  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-django/server-side-django', title: 'Server-side data with Django', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript'] },
+];
+
 const cellTypesItems = [
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript'] },
   { path: 'cell-types/feedback-react/feedback-react', title: 'Simple Feedback', onlyFor: ['react'] },
@@ -14,6 +22,19 @@ const cellTypesItems = [
   { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
+];
+
+const renderingStylingItems = [
+  {
+    path: 'rendering-styling/frozen-summary-row/frozen-summary-row',
+    title: 'Frozen summary row',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
+    title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const importExportItems = [
@@ -40,14 +61,6 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
-const renderingStylingItems = [
-  {
-    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
-    title: 'Sparkline cell renderer',
-    onlyFor: ['javascript'],
-  },
-];
-
 const editingValidationItems = [
   {
     path: 'editing-validation/dependent-dropdowns/dependent-dropdowns',
@@ -61,12 +74,6 @@ const editingValidationItems = [
   },
 ];
 
-const dataManagementItems = [
-  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
-  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
-  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
-  { path: 'data-management/server-side-django/server-side-django', title: 'Server-side data with Django', onlyFor: ['javascript'] },
-];
 
 module.exports = {
   sidebar: [
