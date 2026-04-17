@@ -44,11 +44,7 @@ describe('DropdownMenu (RTL mode)', () => {
 
       it('should open dropdown menu on the left-top position if on the right ' +
         'and bottom there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
-        const rowDivisor = 29;
+        const rowDivisor = getDefaultRowHeight();
 
         handsontable({
           layoutDirection,
@@ -104,8 +100,8 @@ describe('DropdownMenu (RTL mode)', () => {
       }
 
         const layout = getThemeLayout();
-        const rowDivisor = 29;
-        const colDivisor = 50;
+        const rowDivisor = getDefaultRowHeight();
+        const colDivisor = getDefaultColumnWidth();
 
         handsontable({
           layoutDirection,
