@@ -67,6 +67,7 @@ statusBar.style.marginBottom = '8px';
 statusLabel.style.margin = '0';
 statusLabel.style.fontFamily = 'Arial, sans-serif';
 statusLabel.style.fontSize = '14px';
+statusLabel.style.color = 'var(--ht-foreground-color, #202124)';
 statusLabel.textContent = 'Loading...';
 
 rootContainer.appendChild(statusBar);
@@ -148,15 +149,15 @@ new Handsontable(gridContainer, {
   beforeDataProviderFetch: ({ skipLoading }: DataProviderBeforeFetchParameters) => {
     if (!skipLoading) {
       statusLabel.textContent = 'Loading...';
-      statusLabel.style.color = '#202124';
+      statusLabel.style.color = 'var(--ht-foreground-color, #202124)';
     }
   },
   afterDataProviderFetch: () => {
     statusLabel.textContent = 'Loaded from REST API via dataProvider.';
-    statusLabel.style.color = '#202124';
+    statusLabel.style.color = 'var(--ht-foreground-color, #202124)';
   },
   afterDataProviderFetchError: (error: Error) => {
     statusLabel.textContent = `Error: ${error.message}`;
-    statusLabel.style.color = '#c62828';
+    statusLabel.style.color = 'var(--ht-notification-error-accent, #c62828)';
   },
 });

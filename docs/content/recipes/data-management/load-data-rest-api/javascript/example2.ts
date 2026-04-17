@@ -85,7 +85,9 @@ function setUiState({
   message?: string;
 }) {
   statusLabel.textContent = message;
-  statusLabel.style.color = hasError ? '#c62828' : '#202124';
+  statusLabel.style.color = hasError
+    ? 'var(--ht-cell-error-foreground-color, #c62828)'
+    : 'var(--ht-foreground-color, #202124)';
   // Show "Retry" only when there is an error.
   retryButton.hidden = !hasError;
   // Show "Refresh" only when the grid has data and no error is active.

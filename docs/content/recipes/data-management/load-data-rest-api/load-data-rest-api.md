@@ -29,6 +29,17 @@ category: Data Management
 
 This recipe shows how to fetch JSON from a REST API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
 
+::: only-for react
+
+::: example #example1 :react --tsx 1 --jsx 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example1.tsx)
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example1.jsx)
+
+:::
+
+:::
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
@@ -154,7 +165,9 @@ The helper controls the "Refresh" button alongside the existing "Retry" button.
 ```javascript
 function setUiState({ loading = false, hasError = false, message = '' } = {}) {
   status.textContent = message;
-  status.style.color = hasError ? '#c62828' : '#202124';
+  status.style.color = hasError
+    ? 'var(--ht-cell-error-foreground-color, #c62828)'
+    : 'var(--ht-foreground-color, #202124)';
   retryButton.hidden = !hasError;            // visible only on error
   refreshButton.hidden = hasError || loading; // visible only when data is ready
   refreshButton.disabled = loading;
@@ -440,7 +453,7 @@ afterDataProviderFetch: () => {
 },
 afterDataProviderFetchError: (error) => {
   status.textContent = `Error: ${error.message}`;
-  status.style.color = '#c62828';
+  status.style.color = 'var(--ht-cell-error-foreground-color, #c62828)';
 },
 ```
 

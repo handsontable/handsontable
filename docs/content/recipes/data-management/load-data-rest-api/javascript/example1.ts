@@ -70,7 +70,9 @@ function setUiState({
   message?: string;
 }) {
   statusLabel.textContent = message;
-  statusLabel.style.color = hasError ? '#c62828' : '#202124';
+  statusLabel.style.color = hasError
+    ? 'var(--ht-cell-error-foreground-color, #c62828)'
+    : 'var(--ht-foreground-color, #202124)';
   retryButton.hidden = !hasError;
   retryButton.disabled = loading;
 }

@@ -128,15 +128,15 @@ new Handsontable(gridContainer, {
   beforeDataProviderFetch: ({ skipLoading }) => {
     if (!skipLoading) {
       status.textContent = 'Loading...';
-      status.style.color = '#202124';
+      status.style.color = 'var(--ht-foreground-color, #202124)';
     }
   },
   afterDataProviderFetch: () => {
     status.textContent = 'Loaded from REST API via dataProvider.';
-    status.style.color = '#202124';
+    status.style.color = 'var(--ht-foreground-color, #202124)';
   },
   afterDataProviderFetchError: (error) => {
     status.textContent = `Error: ${error.message}`;
-    status.style.color = '#c62828';
+    status.style.color = 'var(--ht-notification-error-accent, #c62828)';
   },
 });
