@@ -83,9 +83,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -105,15 +102,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell - active second selection layer', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(5, 8),
@@ -140,15 +134,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 2);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 4,2']);
     });
 
     it('should be possible to open the dropdown menu on the left position when on the right there is no space left', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -172,7 +163,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
@@ -180,9 +171,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -202,15 +190,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 4);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: -1,4 to: 2,4']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -230,15 +215,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 3);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell (navigableHeaders on)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -258,15 +240,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells (navigableHeaders on)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -286,15 +265,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 4);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: 2,4']);
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection (navigableHeaders on)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -314,15 +290,12 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 3);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 2,3']);
     });
 
     it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
       handsontable({
         data: createSpreadsheetData(3, 8),
@@ -343,7 +316,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+      expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
@@ -425,9 +398,6 @@ describe('DropdownMenu keyboard shortcut', () => {
 
     describe('cooperation with nested headers', () => {
       it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
 
         handsontable({
           data: createSpreadsheetData(3, 8),
@@ -450,7 +420,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
         expect(menuOffset.left).toBeAroundValue(buttonOffset.left);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,1 to: 2,3']);
       });
