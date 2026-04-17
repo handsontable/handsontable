@@ -386,9 +386,6 @@ describe('manualRowResize', () => {
   });
 
   it('should autosize row after double click (when initial height is not defined)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(3, 3),
       rowHeaders: true,
@@ -404,7 +401,7 @@ describe('manualRowResize', () => {
     await waitForNextAnimationFrames(63);
 
     expect(rowHeight(spec().$container, 2)).toBeAroundValue(
-      29,
+      getThemeLayout().defaultDataRowHeight,
       3);
   });
 
@@ -1209,10 +1206,6 @@ describe('manualRowResize', () => {
 
     it('should be able to get the last desired row height from the ' +
       '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const desiredHeightsLog = [];
 
       handsontable({
@@ -1249,10 +1242,6 @@ describe('manualRowResize', () => {
   describe('with the AutoRowSize plugin', () => {
     it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
       'after autoRowSize initialization', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const data = createSpreadsheetData(3, 5);
 
       data[0][4] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas hendrerit elit sed quam porta ' +

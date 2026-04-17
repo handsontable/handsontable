@@ -1133,44 +1133,38 @@ describe('CustomBorders', () => {
     // based on tests in Core_count.spec.js
 
     it('should render borders only for rendered rows', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
-      const height = 125;
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({
         data,
         customBorders,
-        height,
+        height: containerHeightForRows(5, 0),
         viewportRowRenderingOffset: 0
       });
 
-      expect(instance.countRenderedRows()).toEqual(5);
-      expect(countVisibleCustomBorders()).toEqual(5);
+      const renderedRows = instance.countRenderedRows();
+
+      expect(renderedRows).toBeLessThan(data.length);
+      expect(countVisibleCustomBorders()).toEqual(renderedRows);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
-      const height = 125;
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
       const instance = handsontable({
         data,
         customBorders,
-        height,
+        height: containerHeightForRows(5, 0),
         viewportRowRenderingOffset: 0
       });
 
       await scrollViewportVertically(400);
 
-      expect(instance.countRenderedRows()).toEqual(5);
-      expect(countVisibleCustomBorders()).toEqual(5);
+      const renderedRows = instance.countRenderedRows();
+
+      expect(renderedRows).toBeLessThan(data.length);
+      expect(countVisibleCustomBorders()).toEqual(renderedRows);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
 

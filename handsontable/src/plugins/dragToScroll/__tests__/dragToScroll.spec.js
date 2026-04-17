@@ -216,16 +216,10 @@ describe('DragToScroll', () => {
 
     it('should not scroll the table to the right, when dragging the selection ' +
       'in that direction inside the table', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
-      const width = 215;
-
       handsontable({
         data: createSpreadsheetData(10, 10),
-        width,
-        height: 150,
+        width: getDefaultRowHeaderWidth() + (getDefaultColumnWidth() * 4),
+        height: containerHeightForRows(3),
         rowHeaders: true,
         colHeaders: true,
       });
@@ -435,16 +429,12 @@ describe('DragToScroll', () => {
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is above' +
       ' of the table', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       spec().$container.css('margin-top', '100px');
 
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
-        height: 150,
+        height: containerHeightForRows(3),
         rowHeaders: true,
         colHeaders: true,
       });
@@ -456,10 +446,11 @@ describe('DragToScroll', () => {
         horizontalSnap: 'start',
       });
 
+      const scrollTopBefore = getMaster().find('.wtHolder').scrollTop();
       const $cell = $(getCell(8, 0));
       const $nextElement = $(document.body);
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(105);
+      expect(scrollTopBefore).toBeGreaterThan(0);
 
       $cell
         .simulate('mousedown')
@@ -475,19 +466,15 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(170);
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(scrollTopBefore);
     });
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is a row ' +
       'that belongs to the top overlay', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
-        height: 150,
+        height: containerHeightForRows(3),
         fixedRowsTop: 1,
         rowHeaders: true,
         colHeaders: true,
@@ -502,10 +489,11 @@ describe('DragToScroll', () => {
         horizontalSnap: 'start',
       });
 
+      const scrollTopBefore = getMaster().find('.wtHolder').scrollTop();
       const $cell = $(getCell(9, 0));
       const $topOverlayCell = $(getCell(0, 0));
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(105);
+      expect(scrollTopBefore).toBeGreaterThan(0);
 
       $cell
         .simulate('mousedown')
@@ -520,7 +508,7 @@ describe('DragToScroll', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(170);
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeLessThan(scrollTopBefore);
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the first row ' +

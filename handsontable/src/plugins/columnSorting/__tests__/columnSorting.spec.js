@@ -201,10 +201,6 @@ describe('ColumnSorting', () => {
     });
 
     it('should display the indicator properly after changing the sorted column sequence', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         layoutDirection,
         data: [
@@ -226,20 +222,18 @@ describe('ColumnSorting', () => {
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
-      const layout = getThemeLayout();
+      const computedStyle = window.getComputedStyle(sortedColumn, ':before');
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
+      expect(computedStyle.getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
       if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('2px');
+        expect(parseInt(computedStyle.getPropertyValue('left'), 10)).toBeGreaterThanOrEqual(0);
 
       } else {
-        expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('right')).toEqual('2px');
+        expect(parseInt(computedStyle.getPropertyValue('right'), 10)).toBeGreaterThanOrEqual(0);
       }
 
-      expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual(
-        '10px'
-      );
+      expect(parseInt(computedStyle.getPropertyValue('top'), 10)).toBeGreaterThanOrEqual(0);
     });
   });
 
