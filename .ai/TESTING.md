@@ -52,7 +52,7 @@ npm run test:unit -- --coverage
 **Parallel E2E runs:**
 `test:e2e.dump` hashes `--testPathPattern` + `--theme` into a short `runId`. Each run's bundle and runner HTML are suffixed with that ID, so runs with different inputs do not clobber each other:
 
-- Webpack output: `handsontable/test/dist/main.entry.<runId>.js`
+- Rspack output: `handsontable/test/dist/main.entry.<runId>.js`
 - Per-run Puppeteer runner: `handsontable/test/E2ERunner-<runId>.html`
 - Generic dev runner (always regenerated alongside): `handsontable/test/E2ERunner.html`
 

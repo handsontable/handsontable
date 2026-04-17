@@ -172,7 +172,7 @@ Every code change **must** satisfy all of the following:
 2. Use "you" not "we". Oxford comma.
 3. No evaluative adjectives ("easy", "simple", "obvious").
 4. Use hyphens (`-`) or double hyphens (`--`) to separate clauses. Do not use typographic en dashes or em dashes. Use straight quotes (`"` and `'`) only -- no curly/smart quotes or smart apostrophes. Stick to standard ASCII characters.
-5. Consistent naming: `Node.js`, `webpack`, `TypeScript`.
+5. Consistent naming: `Node.js`, `Rspack`, `SWC`, `TypeScript`.
 
 ---
 

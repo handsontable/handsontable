@@ -8,7 +8,7 @@ const DEFAULT_THEME = 'main';
 /**
  * Derives a short, deterministic run ID from the active test pattern and theme.
  *
- * The ID is reused by the webpack config to name the per-run bundle and HTML
+ * The ID is reused by the Rspack config to name the per-run bundle and HTML
  * runner, and by the Puppeteer script to know which HTML to open. Two runs
  * with the same pattern+theme share the same ID; runs with different inputs
  * get isolated artifacts and can execute in parallel without clobbering each
