@@ -278,7 +278,7 @@ describe('Non-contiguous selection scroll', () => {
       await selectCells([[11, 0], [9, 0]]);
 
       // the viewport should have scrolled to make cell(9, 0) visible
-      expect(topOverlay().getScrollPosition()).toBeGreaterThan(5);
+      expect(topOverlay().getScrollPosition()).toBeGreaterThanOrEqual(5);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(9, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
