@@ -177,7 +177,7 @@ class Highlight {
       disableHighlight = [disableHighlight];
     }
 
-    return disableHighlight === false || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
+    return !disableHighlight || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
   }
 
   /**

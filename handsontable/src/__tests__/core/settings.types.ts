@@ -164,7 +164,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   fragmentSelection: oneOf(true, 'cell'),
   headerClassName: 'htCenter test',
-  height: oneOf(500, () => 500),
+  height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
   initialState: {
@@ -354,7 +354,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
   viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
-  width: oneOf(500, () => 500),
+  width: oneOf(500, 'auto', '75vw', () => 500, () => 'auto'),
   wordWrap: true,
 
   // Hooks via settings object

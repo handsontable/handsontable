@@ -132,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '無法更新列',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '無法刪除列',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '要求失敗',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '關閉',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新載入',
 };
 
 export default dictionary;

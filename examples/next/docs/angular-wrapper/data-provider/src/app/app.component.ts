@@ -37,7 +37,7 @@ export class AppComponent {
     filters: true,
     contextMenu: true,
     emptyDataState: true,
-    dialog: true,
+    notification: true,
   };
 
   readonly ticketsSettings: GridSettings = {
@@ -69,6 +69,6 @@ export class AppComponent {
     filters: true,
     contextMenu: true,
     emptyDataState: true,
-    dialog: true,
+    notification: true,
   };
 }
