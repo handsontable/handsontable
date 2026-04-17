@@ -104,14 +104,17 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 
 **Parallel runs:** Multiple `npm run test:e2e --testPathPattern=<X>` invocations with different patterns (or themes) can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086` (retries up to 100 ports). Nothing special needs to be passed -- just launch the commands; the practical limit is machine resources, not the tooling.
 
-**Split dump + puppeteer:** When invoking the two steps separately, pass `--testPathPattern` AND `--theme` to **both** commands. Each `npm run` is its own npm process with its own env, and the Puppeteer script recomputes the same hash as dump to find the runner HTML -- a mismatch will fail with "Runner HTML not found at ...". Example:
+**Iterating on a single area:** Prefer `test:e2e.watch` -- it leaves the dev server running and re-bundles + re-runs on every source change, so you don't have to stop and restart between edits:
 
 ```bash
-npm run test:e2e.dump --testPathPattern=filters --theme=horizon
-npm run test:e2e.puppeteer --testPathPattern=filters --theme=horizon
+npm run test:e2e.watch --testPathPattern=filters --theme=horizon
 ```
 
-CI workflows in `.github/workflows/test.yml` follow this rule. The same applies to `test:production.dump` + `test:e2e.puppeteer`.
+Under the hood it spawns the regular Rspack dump in `--watch` mode and reopens the browser page, reusing the generic `test/E2ERunner.html` (no run ID needed -- the dump and puppeteer halves share one npm process, so the flags propagate automatically).
+
+**One-shot run:** Use the combined `npm run test:e2e --testPathPattern=<regex> --theme=<theme>` -- a single npm invocation passes the flags to both dump and puppeteer via env, so there's no risk of a mismatch.
+
+**Split dump + puppeteer** (what CI does): if you invoke the two steps in separate `npm run` commands, pass `--testPathPattern` AND `--theme` to **both**. Each `npm run` is its own npm process with its own env, and the Puppeteer script recomputes the same hash as dump to find the runner HTML -- a mismatch fails with "Runner HTML not found at ...". `.github/workflows/test.yml` is the canonical example; the same rule applies to `test:production.dump` + `test:e2e.puppeteer`.
 
 A generic `test/E2ERunner.html` (no run ID) is always regenerated alongside the per-run variant for developer manual testing in a browser. Specs that inject iframes with relative CSS paths (e.g. `afterRefreshDimensions`, `Selection`) rely on the runner living in `test/`, which is why the per-run HTML stays there too.
 
