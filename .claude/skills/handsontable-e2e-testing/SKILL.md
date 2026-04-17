@@ -96,11 +96,24 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 ## Run commands
 
 - **All:** `npm run test:e2e --prefix handsontable`
-- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths during the webpack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths during the Rspack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
 - **With theme:** `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 
-**Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm during the `.dump` step (webpack build), not by Puppeteer. Using `npm run test:e2e -- --testPathPattern=...` passes it only to the Puppeteer runner, which doesn't support it.
+**Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm during the `.dump` step (Rspack build), not by Puppeteer. Using `npm run test:e2e -- --testPathPattern=...` passes it only to the Puppeteer runner, which doesn't support it.
+
+**Parallel runs:** Two `npm run test:e2e --testPathPattern=<X>` invocations with different patterns can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086`. Nothing special needs to be passed -- just launch both commands.
+
+**Split dump + puppeteer:** When invoking the two steps separately, pass `--testPathPattern` AND `--theme` to **both** commands. Each `npm run` is its own npm process with its own env, and the Puppeteer script recomputes the same hash as dump to find the runner HTML -- a mismatch will fail with "Runner HTML not found at ...". Example:
+
+```bash
+npm run test:e2e.dump --testPathPattern=filters --theme=horizon
+npm run test:e2e.puppeteer --testPathPattern=filters --theme=horizon
+```
+
+CI workflows in `.github/workflows/test.yml` follow this rule. The same applies to `test:production.dump` + `test:e2e.puppeteer`.
+
+A generic `test/E2ERunner.html` (no run ID) is always regenerated alongside the per-run variant for developer manual testing in a browser. Specs that inject iframes with relative CSS paths (e.g. `afterRefreshDimensions`, `Selection`) rely on the runner living in `test/`, which is why the per-run HTML stays there too.
 
 ## Test location
 
