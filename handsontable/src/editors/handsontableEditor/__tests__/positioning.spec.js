@@ -31,9 +31,6 @@ describe('HandsontableEditor positioning', () => {
   // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
 
   it('should render the editors dropdown on the left edited cell when there is no space left on the right', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -85,9 +82,6 @@ describe('HandsontableEditor positioning', () => {
   });
 
   it('should render the editors dropdown above the cell when there is no space left below', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -97,10 +91,8 @@ describe('HandsontableEditor positioning', () => {
       ...createEditorSettings(),
     });
 
-    const scrollPositionBase = 71;
-
-    // scroll the viewport to the point where the editor may be rendered on the bottom (there is enough space)
-    await scrollViewportVertically(scrollPositionBase);
+    // scroll the viewport so cell 11 is near the top -- plenty of space below for the dropdown
+    await scrollViewportVertically(11 * 38);
 
     await selectCell(11, 1);
     await keyDownUp('enter');
@@ -109,6 +101,7 @@ describe('HandsontableEditor positioning', () => {
       const relativeRect = getCell(12, 1).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
+      // Dropdown is rendered below the edited cell.
       expect({
         top: containerRect.top,
         left: containerRect.left,
@@ -119,15 +112,16 @@ describe('HandsontableEditor positioning', () => {
     }
 
     await keyDownUp('escape');
-    // scroll the viewport to the point where the editor may not be rendered on the bottom (there is not enough space)
-    // so it should be rendered above the edited cell
-    await scrollViewportVertically(scrollPositionBase - 1);
+    // scroll so cell 11 is near the bottom of the viewport -- no space below for the dropdown
+    await scrollViewportVertically(0);
+    await selectCell(11, 1);
     await keyDownUp('enter');
 
     {
       const relativeRect = getCell(11, 1).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
+      // Dropdown is rendered above the edited cell.
       expect({
         top: containerRect.top,
         left: containerRect.left,

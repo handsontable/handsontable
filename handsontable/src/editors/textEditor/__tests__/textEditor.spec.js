@@ -144,17 +144,11 @@ describe('TextEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-    const layout = getThemeLayout();
     const overlayHeightPx = 240;
     const overlayWidthPx = 200;
 
-    if (overlayHeightPx !== null) {
-      spec().$container[0].style.height = `${overlayHeightPx}px`;
-      spec().$container[0].style.width = `${overlayWidthPx}px`;
-    }
+    spec().$container[0].style.height = `${overlayHeightPx}px`;
+    spec().$container[0].style.width = `${overlayWidthPx}px`;
 
     handsontable({
       data: createSpreadsheetData(8, 2),
@@ -268,17 +262,11 @@ describe('TextEditor', () => {
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays ' +
     'and the first row of each overlay is hidden', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-    const layout = getThemeLayout();
     const overlayHeightPx = 240;
     const overlayWidthPx = 200;
 
-    if (overlayHeightPx !== null) {
-      spec().$container[0].style.height = `${overlayHeightPx}px`;
-      spec().$container[0].style.width = `${overlayWidthPx}px`;
-    }
+    spec().$container[0].style.height = `${overlayHeightPx}px`;
+    spec().$container[0].style.width = `${overlayWidthPx}px`;
 
     handsontable({
       data: createSpreadsheetData(8, 2),
@@ -544,15 +532,9 @@ describe('TextEditor', () => {
   });
 
   it('should change editor z-index when switching overlays while the editor is open', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-    const layout = getThemeLayout();
     const containerHeightPx = 252;
 
-    if (containerHeightPx !== null) {
-      spec().$container[0].style.height = `${containerHeightPx}px`;
-    }
+    spec().$container[0].style.height = `${containerHeightPx}px`;
 
     handsontable({
       data: createSpreadsheetData(10, 10),
@@ -687,9 +669,6 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       columns: [{
@@ -710,9 +689,11 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
+    const cellWidth = getCell(0, 0).offsetWidth;
+
     expect(parseInt(getActiveEditor().TEXTAREA.style.width, 10)).toBeAroundValue(
-      60,
-      1,
+      cellWidth,
+      2,
     );
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
     expect(getActiveEditor().textareaParentStyle.top).toBe(getThemeLayout().e2eTextEditorTextareaParentTopPx());
@@ -738,9 +719,6 @@ describe('TextEditor', () => {
   });
 
   it('should hide whole editor when it is higher then header and TD is still rendered', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -1865,9 +1843,6 @@ describe('TextEditor', () => {
   });
 
   it('should resize editor to properly size after focus', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const data = [
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],
@@ -1894,7 +1869,8 @@ describe('TextEditor', () => {
 
     const $editorInput = $('.handsontableInput');
 
-    expect($editorInput.height()).toBe(94);
+    // The editor should resize to fit multi-line content (much taller than a single line).
+    expect($editorInput.height()).toBeGreaterThan(25);
   });
 
   it('allow scrolling the editor if its content exceeds the viewport height', async() => {

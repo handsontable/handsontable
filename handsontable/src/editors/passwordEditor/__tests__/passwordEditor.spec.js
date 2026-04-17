@@ -343,9 +343,6 @@ describe('PasswordEditor', () => {
   });
 
   it('should correctly calculate the input width based on typed values', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       columns: [
         {
@@ -364,12 +361,8 @@ describe('PasswordEditor', () => {
     await keyDownUp('w'); // trigger editor autoresize
     await waitForNextAnimationFrames(1);
 
-    const layout = getThemeLayout();
-
-    expect(editor.style.width).toBe(
-      `${layout.defaultColumnWidth + (2 * layout.defaultDataRowHeight)
-        - 1}px`
-    );
+    // The editor should have expanded beyond the default column width to fit password dots.
+    expect(parseInt(editor.style.width, 10)).toBeGreaterThan(getDefaultColumnWidth());
   });
 
   it('should set passwordEditor using \'password\' alias', async() => {

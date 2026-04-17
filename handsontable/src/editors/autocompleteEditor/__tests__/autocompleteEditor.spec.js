@@ -71,11 +71,6 @@ describe('AutocompleteEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-    const layout = getThemeLayout();
-
     spec().$container.css(
       'height',
       `${245}px`
