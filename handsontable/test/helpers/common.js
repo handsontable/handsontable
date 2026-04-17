@@ -487,6 +487,36 @@ export function containerHeightForRows(rowCount, colHeaderRows = 1) {
 }
 
 /**
+ * Scale a pixel height designed for the main theme so that the same fractional
+ * number of rows is visible in any theme. Use this for tests where exact rendered row counts
+ * determine selection patterns or scroll behavior.
+ *
+ * @param {number} mainThemeHeight The original height value designed for the main theme.
+ * @returns {number} Scaled height for the current theme.
+ */
+export function scaleHeight(mainThemeHeight) {
+  const mainRowHeight = themeLayoutFromTokens('main').defaultDataRowHeight;
+
+  return Math.round(mainThemeHeight * getDefaultRowHeight() / mainRowHeight);
+}
+
+/**
+ * Like {@link scaleHeight}, but for containers where a horizontal scrollbar consumes part of the
+ * height. The scrollbar width is OS-dependent (not theme-dependent), so the data area and the
+ * scrollbar region are scaled independently.
+ *
+ * @param {number} mainThemeHeight The original height value designed for the main theme (including scrollbar space).
+ * @returns {number} Scaled height for the current theme.
+ */
+export function scaleHeightWithScrollbar(mainThemeHeight) {
+  const mainRowHeight = themeLayoutFromTokens('main').defaultDataRowHeight;
+  const scrollbarWidth = Handsontable.dom.getScrollbarWidth(document);
+  const mainDataArea = mainThemeHeight - scrollbarWidth;
+
+  return Math.round(mainDataArea * getDefaultRowHeight() / mainRowHeight) + scrollbarWidth;
+}
+
+/**
  * Width and height for {@link BaseEditor#getEditedCellRect} (outer box + border compensation), derived from the
  * active editor TD. Matches BaseEditor#getEditedCellRect math for any theme.
  *

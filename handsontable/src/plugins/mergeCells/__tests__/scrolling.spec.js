@@ -11,9 +11,6 @@ describe('MergeCells scrolling', () => {
   });
 
   it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -23,19 +20,22 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    await scrollViewportVertically(130);
+    // Scroll down to a position where the merged cell (row 5) is visible but not at the top.
+    const scrollPos = 4 * getDefaultRowHeight();
+
+    await scrollViewportVertically(scrollPos);
     await render();
     await simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).toBe(130);
+    expect(topOverlay().getScrollPosition()).toBe(scrollPos);
 
     await scrollViewportVertically(0);
     await render();
-    await scrollViewportVertically(130);
+    await scrollViewportVertically(scrollPos);
     await render();
     await simulateClick(getCell(5, 2));
 
-    expect(topOverlay().getScrollPosition()).toBe(130);
+    expect(topOverlay().getScrollPosition()).toBe(scrollPos);
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked', async() => {

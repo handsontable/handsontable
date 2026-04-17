@@ -1737,14 +1737,10 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high merged cell', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
-      height: 245,
+      height: scaleHeight(245),
       viewportRowRenderingOffset: 0,
       mergeCells: true,
     });
@@ -1839,14 +1835,10 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high virtualized merged cell', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
-      height: 248,
+      height: scaleHeightWithScrollbar(248),
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,
