@@ -1,4 +1,5 @@
 ---
+type: reference
 id: umu0w734
 title: Changelog 8.0
 metaTitle: Changelog 8.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 8.x.
+
 ## 8.4.0
 
 Released on May 11, 2021.
@@ -24,7 +28,7 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/whats-new-in-handsontable-8-4-0)
-- [Documentation (8.4.0)](https://handsontable.com/docs/8.4.0/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.4.0)
 
 </div>
 
@@ -109,7 +113,7 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-8-3-2-introducing-monorepo)
-- [Documentation (8.3.2)](https://handsontable.com/docs/8.3.2/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.3.2)
 
 </div>
 
@@ -167,7 +171,7 @@ For more information on this release, see:
 
 <div class="boxes-list gray">
 
-- [Documentation (8.3.1)](https://handsontable.com/docs/8.3.1/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.3.1)
 
 </div>
 
@@ -186,7 +190,7 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-8.3.0-has-been-released)
-- [Documentation (8.3.0)](https://handsontable.com/docs/8.3.0/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.3.0)
 
 </div>
 
@@ -243,7 +247,7 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-8.2.0-has-been-released)
-- [Documentation (8.2.0)](https://handsontable.com/docs/8.2.0/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.2.0)
 
 </div>
 
@@ -289,7 +293,7 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-8.1.0-has-been-released)
-- [Documentation (8.1.0)](https://handsontable.com/docs/8.1.0/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.1.0)
 
 </div>
 
@@ -353,7 +357,7 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available)
-- [Documentation (8.0.0)](https://handsontable.com/docs/8.0.0/)
+- [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/8.0.0)
 - [Migration guide (7.4 → 8.0)](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)
 
 </div>
@@ -984,3 +988,7 @@ methods and hooks were added and there are few depreciations and removals, too.
 - Adding properties which were not defined on initialization or by `updateSettings` to the source
   data is possible only by the usage of `setSourceDataAtCell`.
   [#6664](https://github.com/handsontable/handsontable/issues/6664).
+
+## Related
+
+- [Migrating from 7.4 to 8.0](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)

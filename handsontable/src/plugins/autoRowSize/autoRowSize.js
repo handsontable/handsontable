@@ -764,7 +764,14 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const sheetId = formulasPlugin?.sheetId;
+
     const changedRows = changes.reduce((acc, change) => {
+      if (sheetId !== null && sheetId !== undefined && change.address?.sheet !== sheetId) {
+        return acc;
+      }
+
       const physicalRow = change.address?.row;
 
       if (Number.isInteger(physicalRow)) {

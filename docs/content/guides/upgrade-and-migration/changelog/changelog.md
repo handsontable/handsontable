@@ -1,4 +1,5 @@
 ---
+type: reference
 id: nbp8i3mk
 title: Changelog
 metaTitle: Changelog - JavaScript Data Grid | Handsontable
@@ -21,7 +22,8 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-See the full history of changes made to Handsontable in each major, minor, and patch release.
+
+This page aggregates all Handsontable release notes. For upgrade instructions, see the migration guides in this section.
 
 [[toc]]
 
@@ -2639,3 +2641,16 @@ For more information on this release, see:
 
 The changelogs from older versions of Handsontable are
 [available on GitHub](https://github.com/handsontable/handsontable/releases).
+
+## Related
+
+- [Migrating from 7.4 to 8.0](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)
+- [Migrating from 8.4 to 9.0](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md)
+- [Migrating from 9.0 to 10.0](@/guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0.md)
+- [Migrating from 10.0 to 11.0](@/guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0.md)
+- [Migrating from 11.1 to 12.0](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0.md)
+- [Migrating from 12.4 to 13.0](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0.md)
+- [Migrating from 13.1 to 14.0](@/guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0.md)
+- [Migrating from 14.6 to 15.0](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)
+- [Migrating from 15.3 to 16.0](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)
+- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)

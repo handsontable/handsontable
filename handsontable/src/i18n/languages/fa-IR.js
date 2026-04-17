@@ -139,7 +139,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'به‌روزرسانی ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'بستن',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
 };
 
 export default dictionary;
