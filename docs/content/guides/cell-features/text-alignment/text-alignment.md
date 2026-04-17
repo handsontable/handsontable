@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: chduupye
 title: Text alignment
 metaTitle: Text alignment - JavaScript Data Grid | Handsontable
@@ -18,9 +19,20 @@ Align values within cells: horizontally (to the right, left, center, or by justi
 
 [[toc]]
 
-## Horizontal and vertical alignment
+Apply text alignment to cells using CSS class names or the `className` configuration option.
 
-To initialize Handsontable with predefined horizontal and vertical alignment globally, provide the alignment details in the [`className`](@/api/options.md#classname) option, for example:
+## To align a cell
+
+To set alignment for individual cells, configure them using the [`cells`](@/api/options.md#cells) option or the [`cell`](@/api/options.md#cell) array. Available class names:
+
+- Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`
+- Vertical: `htTop`, `htMiddle`, `htBottom`
+
+You can track alignment changes by using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
+
+## To align a column
+
+To apply alignment globally or per column, provide the alignment details in the [`className`](@/api/options.md#classname) option, for example:
 
 ::: only-for javascript
 
@@ -45,15 +57,6 @@ settings = { className: "htCenter" };
 ```
 
 :::
-
-You can also configure cells individually by setting up the [`cells`](@/api/options.md#cells) option. See the code sample below for an example.
-
-Available class names:
-
-- Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`,
-- Vertical: `htTop`, `htMiddle`, `htBottom`.
-
-You can track alignment changes by using the [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta) hook.
 
 ## Basic example
 
@@ -110,3 +113,7 @@ The following code sample configures the grid to use `htCenter` and configures i
 - [beforeCellAlignment](@/api/hooks.md#beforecellalignment)
 
 </div>
+
+## Result
+
+Cells display the configured horizontal or vertical alignment. Global settings apply to all cells, and per-cell settings take precedence over the global defaults.

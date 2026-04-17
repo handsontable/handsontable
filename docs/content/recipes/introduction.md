@@ -33,6 +33,9 @@ Browse recipes by category, difficulty, or use case. Each guide is designed to g
 
 This resource is structured for easy indexing and retrieval. Each recipe includes metadata, keywords, problem descriptions, and solution patterns to help AI assistants provide accurate, contextual examples.
 
+### Editing and validation
+
+- [Editing and validation recipes](@/content/recipes/editing-validation/editing-validation.md) - Submit-time validation, error summaries, and related patterns.
 
 ## Contributing
 

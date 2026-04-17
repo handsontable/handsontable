@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: p7oq0ph7
 title: Configuration options
 metaTitle: Configuration options - JavaScript Data Grid | Handsontable
@@ -158,7 +159,7 @@ For more details on Handsontable's cascading configuration, see the [MetaManager
 
 ### Plugin options
 
-Configuration options can come from:
+Configuration options come from:
 
 <div class="boxes-list">
 
@@ -231,7 +232,7 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+### Example
 
 To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option.
 
@@ -340,7 +341,7 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+### Example
 
 In the example below, the [`columns`](@/api/options.md#columns) option is set to a function.
 
@@ -478,7 +479,7 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+### Example
 
 In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly).
 
@@ -595,7 +596,7 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+### Example
 
 In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0, 0`) and cell `B2`(`1, 1`) as [`readOnly`](@/api/options.md#readonly).
 
@@ -912,7 +913,7 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+### Example
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
@@ -1099,3 +1100,7 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 - [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
 
 </div>
+
+## Result
+
+Your grid now applies configuration options at the scope you specified -- grid-wide, per column, per row, or per individual cell -- using Handsontable's cascading configuration system.
