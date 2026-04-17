@@ -28,4 +28,4 @@ jobs:
 
       - name: NPM audit
         run: |
-          pnpm audit --prod --ignore-unfixable
+          pnpm audit --prod --ignore-unfixable --ignore-registry-errors

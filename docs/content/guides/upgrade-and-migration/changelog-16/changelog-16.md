@@ -1,4 +1,5 @@
 ---
+type: reference
 id: znsspzmg
 title: Changelog 16.0
 metaTitle: Changelog 16.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 16.x.
+
 ## 16.2.0
 
 Released on November 25th, 2025
@@ -184,3 +188,7 @@ For more information about this release see:
 - Fixed the column filter behavior when adding new columns. [#11616](https://github.com/handsontable/handsontable/pull/11616)
 - Fixed an issue with the dropdown elements' colors. [#11661](https://github.com/handsontable/handsontable/pull/11661)
 - Angular: Fixed an error of `this.hotInstance.getSettings(...).columns?.filter is not a function` in `angular-wrapper`. [#11695](https://github.com/handsontable/handsontable/pull/11695)
+
+## Related
+
+- [Migrating from 15.3 to 16.0](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)

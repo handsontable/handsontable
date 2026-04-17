@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: tcabky5c
 title: Language change in Vue 3
 metaTitle: Language change - Vue 3 Data Grid | Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Change the default language of the context menu from English to any of the built-in translations, using the `language` property.
+In this tutorial, you will add a language selection dropdown that changes the Handsontable UI language at runtime in a Vue 3 application.
 
 [[toc]]
 
@@ -78,3 +79,15 @@ Note that the `language` property is bound to the component separately using `la
 - [beforeLanguageChange](@/api/hooks.md#beforelanguagechange)
 
 </div>
+
+## What you learned
+
+- How to import and register a built-in language pack in a Vue 3 application.
+- How to bind the `language` prop dynamically to switch languages at runtime.
+- How to build a language selection dropdown that updates the Handsontable UI.
+
+## Next steps
+
+- [Setting up a translation in Vue 3](@/guides/integrate-with-vue3/vue3-setting-up-a-language/vue3-setting-up-a-language.md) -- configure number formats alongside the UI language.
+- [Language](@/guides/internationalization/language/language.md) -- explore all available language packs.
+- [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md) -- add custom items to the localized context menu.

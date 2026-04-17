@@ -32,7 +32,10 @@ Our recipes cover common use cases and implementation patterns for:
 Current recipes:
 
 <div class="boxes-list">
+<<<<<<< HEAD
 
 - [Sync two grids](@/content/recipes/data-management/sync-two-grids/sync-two-grids.md)
 
+=======
+>>>>>>> origin/develop
 </div>

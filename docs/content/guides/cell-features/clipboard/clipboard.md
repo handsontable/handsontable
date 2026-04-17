@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 2vbt7ev0
 title: Clipboard
 metaTitle: Clipboard - JavaScript Data Grid | Handsontable
@@ -21,6 +22,8 @@ category: Cell features
 Copy data from selected cells to the system clipboard.
 
 [[toc]]
+
+Handsontable supports copy, cut, and paste via the browser clipboard API and keyboard shortcuts. Configure clipboard behavior to control what data users can copy or paste.
 
 ## Overview
 
@@ -365,3 +368,7 @@ Examples of how to use them are provided in their descriptions.
 - [CopyPaste](@/api/copyPaste.md)
 
 </div>
+
+## Result
+
+Users can copy, cut, and paste cell data using keyboard shortcuts or the context menu. Programmatic copy and cut operations work by calling `document.execCommand()` after selecting the target cells.

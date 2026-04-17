@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: e23f98e7
 title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build an emoji feedback cell using Handsontable's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for javascript vue
 
@@ -458,3 +461,13 @@ config: ['Positive', 'Negative', 'Neutral'],
 ---
 
 **Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Handsontable CSS tokens, perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor using Handsontable's `editorFactory` helper. You used Handsontable CSS custom properties to style the editor in a theme-aware way, and registered the result as a reusable cell type with `registerCellType`.
+
+## Next steps
+
+- [Feedback (React)](/recipes/cell-types/feedback-react) - The same pattern using React's `EditorComponent`.
+- [Feedback Editor (Angular)](/recipes/feedback-angular) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating](/recipes/cell-types/rating) - Another custom editor built with `editorFactory` and SVG stars.

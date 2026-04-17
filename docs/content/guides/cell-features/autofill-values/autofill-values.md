@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: if13we5c
 title: Autofill values
 metaTitle: Autofill values - JavaScript Data Grid | Handsontable
@@ -25,6 +26,8 @@ category: Cell features
 Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
 
 [[toc]]
+
+Autofill lets users drag the fill handle to copy or extend values across adjacent cells. Use it to speed up repetitive data entry.
 
 ## Autofill in all directions
 
@@ -127,3 +130,7 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 - [Autofill](@/api/autofill.md)
 
 </div>
+
+## Result
+
+The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.
