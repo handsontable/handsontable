@@ -24,7 +24,7 @@ const masterData = [
 
 const toDetailRow = (row) => ({
   customer: `${row.firstName} ${row.lastName}`,
-  plan: row.plan.toUpperCase(),
+  plan: String(row.plan ?? '').toUpperCase(),
   seats: row.seats,
   monthlyRevenue: `$${(row.seats * row.pricePerSeat).toFixed(2)}`,
   lastActive: row.lastActive,

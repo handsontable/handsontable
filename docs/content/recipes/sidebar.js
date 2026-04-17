@@ -31,9 +31,18 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
+const editingValidationItems = [
+  {
+    path: 'editing-validation/dependent-dropdowns/dependent-dropdowns',
+    title: 'Dependent dropdowns',
+    onlyFor: ['javascript'],
+  },
+];
+
 const dataManagementItems = [
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
+  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
 ];
 
 const filteringSearchItems = [
@@ -44,6 +53,13 @@ module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    {
+      title: 'Editing and Validation',
+      path: 'editing-validation',
+      children: editingValidationItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     {
       title: 'Import and Export',
       path: 'import-export',

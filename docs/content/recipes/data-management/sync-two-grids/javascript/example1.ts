@@ -6,7 +6,7 @@ registerAllModules();
 interface MasterRow {
   firstName: string;
   lastName: string;
-  plan: string;
+  plan: string | null;
   seats: number;
   pricePerSeat: number;
   lastActive: string;
@@ -39,9 +39,17 @@ const masterData: MasterRow[] = [
 ];
 /* end:skip-in-preview */
 
+const normalizePlanLabel = (plan: MasterRow['plan']) => {
+  if (typeof plan === 'string') {
+    return plan.toUpperCase();
+  }
+
+  return 'N/A';
+};
+
 const toDetailRow = (row: MasterRow): DetailRow => ({
   customer: `${row.firstName} ${row.lastName}`,
-  plan: row.plan.toUpperCase(),
+  plan: normalizePlanLabel(row.plan),
   seats: row.seats,
   monthlyRevenue: `$${(row.seats * row.pricePerSeat).toFixed(2)}`,
   lastActive: row.lastActive,
