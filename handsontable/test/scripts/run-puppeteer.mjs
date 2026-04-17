@@ -1,8 +1,12 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
+import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
+
+const require = createRequire(import.meta.url);
+const { computeRunId, readRunIdInputsFromEnv } = require('../../.config/helper/run-id');
 
 const DEFAULT_PORT = 8086;
 const PORT_ATTEMPTS = 100;
@@ -17,18 +21,23 @@ const PORT_ATTEMPTS = 100;
  * @returns {Promise<number>} The port the server is now listening on.
  */
 function listenOnFreePort(server, startPort) {
+  // `http-server`'s wrapper object proxies `.listen()` and `.close()` but does
+  // not forward events. The real `http.Server` lives on `.server` -- attach
+  // listeners there.
+  const emitter = server.server || server;
+
   return new Promise((resolve, reject) => {
     let port = startPort;
 
     const attempt = () => {
       let handleError;
       const handleListening = () => {
-        server.off('error', handleError);
+        emitter.off('error', handleError);
         resolve(port);
       };
 
       handleError = (err) => {
-        server.off('listening', handleListening);
+        emitter.off('listening', handleListening);
 
         if (err.code === 'EADDRINUSE' && port < startPort + PORT_ATTEMPTS - 1) {
           port += 1;
@@ -39,8 +48,8 @@ function listenOnFreePort(server, startPort) {
         reject(err);
       };
 
-      server.once('error', handleError);
-      server.once('listening', handleListening);
+      emitter.once('error', handleError);
+      emitter.once('listening', handleListening);
       server.listen(port);
     };
 
@@ -51,16 +60,16 @@ function listenOnFreePort(server, startPort) {
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
-const [,, originalPath, ...flagArgs] = process.argv;
+const [,, argvPath, ...flagArgs] = process.argv;
 const flags = flagArgs.join(' ');
+
+// Resolve which HTML runner to open. An explicit argv path wins (used by the
+// watch script and dev tooling). Without it, fall back to the per-run HTML
+// emitted by `test:e2e.dump`, whose filename is derived from the same
+// `--testPathPattern` + `--theme` inputs so parallel runs don't collide.
+const originalPath = argvPath || `test/dist/E2ERunner-${computeRunId(readRunIdInputsFromEnv())}.html`;
 let htmlPath = originalPath;
 let verboseReporting = false;
-
-if (!originalPath) {
-  /* eslint-disable no-console */
-  console.log('The `path` argument is missing.');
-  process.exit(1);
-}
 
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);

@@ -7,42 +7,69 @@ const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
 const { getClosest }  = require('./helper/path');
+const { computeRunId } = require('./helper/run-id');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
+  const runId = computeRunId({
+    testPathPattern: envArgs.testPathPattern,
+    theme: envArgs.HOT_THEME,
+  });
 
   config.forEach(function(c) {
-    // Remove all 'JasmineHtmlPlugin' instances
+    // Remove all 'JasmineHtmlPlugin' instances added by the base test-e2e
+    // config -- production tests reference the minified bundles instead.
     c.plugins = c.plugins.filter(function(plugin) {
       return !plugin.__isJasmineHtmlPlugin;
     });
 
-    c.plugins.push(
-      new JasmineHtml({
-        filename: path.resolve(__dirname, '../test/E2ERunner.html'),
-        baseJasminePath: '../../',
-        externalCssFiles: [
-          'lib/normalize.css',
-          'helpers/common-themes.css',
-          `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
-        ],
-        hotCssFiles: [
-          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
-        ],
-        externalJsFiles: [
-          'helpers/jasmine-bridge-reporter.js',
-          'lib/jquery.min.js',
-          'lib/jquery.simulate.js',
-        ],
-        hotJsFiles: [
-          '../dist/handsontable.full.min.js',
-          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
-          '../dist/languages/all.min.js',
-        ],
-        hotTheme: envArgs.HOT_THEME,
-      })
-    );
+    const jasmineHtmlOptions = {
+      baseJasminePath: '../../',
+      externalCssFiles: [
+        'lib/normalize.css',
+        'helpers/common-themes.css',
+        `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
+      ],
+      hotCssFiles: [
+        `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
+      ],
+      externalJsFiles: [
+        'helpers/jasmine-bridge-reporter.js',
+        'lib/jquery.min.js',
+        'lib/jquery.simulate.js',
+      ],
+      hotJsFiles: [
+        '../dist/handsontable.full.min.js',
+        `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
+        '../dist/languages/all.min.js',
+      ],
+      hotTheme: envArgs.HOT_THEME,
+    };
+
+    c.plugins.push(new JasmineHtml({
+      ...jasmineHtmlOptions,
+      filename: path.resolve(__dirname, '../test/E2ERunner.html'),
+    }));
+
+    c.plugins.push(new JasmineHtml({
+      ...jasmineHtmlOptions,
+      filename: path.resolve(__dirname, `../test/dist/E2ERunner-${runId}.html`),
+      baseJasminePath: '../../../',
+      bundleAssetPath: './',
+      externalCssFiles: jasmineHtmlOptions.externalCssFiles.map(rewriteAssetPath),
+      hotCssFiles: jasmineHtmlOptions.hotCssFiles.map(rewriteAssetPath),
+      externalJsFiles: jasmineHtmlOptions.externalJsFiles.map(rewriteAssetPath),
+      hotJsFiles: jasmineHtmlOptions.hotJsFiles.map(rewriteAssetPath),
+    }));
   });
 
   return [].concat(config);
+}
+
+function rewriteAssetPath(assetPath) {
+  if (path.isAbsolute(assetPath)) {
+    return assetPath;
+  }
+
+  return `../${assetPath}`;
 }

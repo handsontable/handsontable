@@ -7,6 +7,7 @@ const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const { getClosest }  = require('./helper/path');
+const { computeRunId } = require('./helper/run-id');
 
 // Allow-list of module specifiers that may appear in files under `handsontable/test/**`
 // (the loader scope defined on the rule below). Matched by literal string, with a
@@ -37,6 +38,10 @@ const ALLOWED_E2E_MODULES = [
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
+  const runId = computeRunId({
+    testPathPattern: envArgs.testPathPattern,
+    theme: envArgs.HOT_THEME,
+  });
 
   config.forEach(function(c) {
     c.devtool = 'cheap-module-source-map';
@@ -45,7 +50,7 @@ module.exports.create = function create(envArgs) {
     c.output = {
       library: '__hot_tests__',
       libraryTarget: 'var',
-      filename: '[name].entry.js',
+      filename: `[name].entry.${runId}.js`,
       path: path.resolve(__dirname, '../test/dist'),
     };
     c.resolve.alias.handsontable = path.resolve(__dirname, '../src');
@@ -77,36 +82,56 @@ module.exports.create = function create(envArgs) {
       },
     ];
 
-    c.plugins.push(
-      new JasmineHtml({
-        filename: path.resolve(__dirname, '../test/E2ERunner.html'),
-        baseJasminePath: '../../',
-        externalCssFiles: [
-          'lib/normalize.css',
-          'helpers/common-themes.css',
-          `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
-        ],
-        hotCssFiles: [
-          `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
-        ],
-        externalJsFiles: [
-          'helpers/jasmine-progressbar-reporter.js',
-          'helpers/jasmine-bridge-reporter.js',
-          'lib/jquery.min.js',
-          'lib/jquery.simulate.js',
-          `${getClosest('../node_modules/numbro', true)}/dist/numbro.js`,
-          `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
-          `${getClosest('../node_modules/moment', true)}/moment.js`,
-          `${getClosest('../node_modules/@handsontable/pikaday', true)}/pikaday.js`,
-          `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,
-        ],
-        hotJsFiles: [
-          `../dist/handsontable.js`,
-          `../dist/languages/all.js`,
-        ],
-        hotTheme: envArgs.HOT_THEME,
-      })
-    );
+    const jasmineHtmlOptions = {
+      baseJasminePath: '../../',
+      externalCssFiles: [
+        'lib/normalize.css',
+        'helpers/common-themes.css',
+        `${getClosest('../node_modules/@handsontable/pikaday', true)}/css/pikaday.css`,
+      ],
+      hotCssFiles: [
+        `../styles/ht-theme-${envArgs.HOT_THEME}.css`,
+      ],
+      externalJsFiles: [
+        'helpers/jasmine-progressbar-reporter.js',
+        'helpers/jasmine-bridge-reporter.js',
+        'lib/jquery.min.js',
+        'lib/jquery.simulate.js',
+        `${getClosest('../node_modules/numbro', true)}/dist/numbro.js`,
+        `${getClosest('../node_modules/numbro', true)}/dist/languages.min.js`,
+        `${getClosest('../node_modules/moment', true)}/moment.js`,
+        `${getClosest('../node_modules/@handsontable/pikaday', true)}/pikaday.js`,
+        `${getClosest('../node_modules/dompurify', true)}/dist/purify.js`,
+      ],
+      hotJsFiles: [
+        `../dist/handsontable.js`,
+        `../dist/languages/all.js`,
+      ],
+      hotTheme: envArgs.HOT_THEME,
+    };
+
+    // Generic runner for developer manual testing. Its CSS/JS asset paths are
+    // relative to `test/`, so it stays at `test/E2ERunner.html`.
+    c.plugins.push(new JasmineHtml({
+      ...jasmineHtmlOptions,
+      filename: path.resolve(__dirname, '../test/E2ERunner.html'),
+    }));
+
+    // Per-run runner consumed by Puppeteer. Lives in `test/dist/` so parallel
+    // runs with different `--testPathPattern` / `--theme` don't overwrite each
+    // other. The extra `../` on relative asset paths keeps them resolving to
+    // the same files when the HTML lives one directory deeper, and the bundle
+    // prefix becomes `./` since HTML and bundle sit in the same directory.
+    c.plugins.push(new JasmineHtml({
+      ...jasmineHtmlOptions,
+      filename: path.resolve(__dirname, `../test/dist/E2ERunner-${runId}.html`),
+      baseJasminePath: '../../../',
+      bundleAssetPath: './',
+      externalCssFiles: jasmineHtmlOptions.externalCssFiles.map(rewriteAssetPath),
+      hotCssFiles: jasmineHtmlOptions.hotCssFiles.map(rewriteAssetPath),
+      externalJsFiles: jasmineHtmlOptions.externalJsFiles.map(rewriteAssetPath),
+      hotJsFiles: jasmineHtmlOptions.hotJsFiles.map(rewriteAssetPath),
+    }));
 
     // Disable side effects optimization for test builds. Test helpers like custom-matchers.js
     // have no exports but register Jasmine matchers via beforeEach (side effects only).
@@ -121,4 +146,12 @@ module.exports.create = function create(envArgs) {
   });
 
   return [].concat(config);
+}
+
+function rewriteAssetPath(assetPath) {
+  if (path.isAbsolute(assetPath)) {
+    return assetPath;
+  }
+
+  return `../${assetPath}`;
 }

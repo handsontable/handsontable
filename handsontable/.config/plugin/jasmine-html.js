@@ -20,6 +20,11 @@ function JasmineHtmlPlugin(options) {
   const config = {
     filename: options.filename || 'SpecRunner.html',
     baseJasminePath: options.baseJasminePath || '',
+    // Prefix used when injecting entry bundles into the HTML. Defaults to `dist/`
+    // because the generic runner lives in `test/` and references bundles from
+    // `test/dist/`. A per-run runner that already sits in `test/dist/` should
+    // pass `./` so its `<script>` tag resolves to a sibling file.
+    bundleAssetPath: options.bundleAssetPath != null ? options.bundleAssetPath : 'dist/',
     jasmineJsFiles: toRelativeFiles(jasminePath, jasmineFiles.jsFiles)
       .concat(toRelativeFiles(jasmineBootDir, jasmineFiles.bootFiles)),
     jasmineCssFiles: toRelativeFiles(jasminePath, jasmineFiles.cssFiles),
@@ -34,10 +39,20 @@ function JasmineHtmlPlugin(options) {
     __isJasmineHtmlPlugin: true,
     apply(compiler) {
       compiler.hooks.afterEmit.tapAsync('JasmineHtmlPlugin', (compilation, callback) => {
+        // Collect the actual emitted JS asset filenames per entrypoint rather
+        // than reconstructing them from the entrypoint name. The `filename`
+        // template in the webpack/rspack output can include hashes or suffixes
+        // (for example per-run IDs for parallel builds) that we cannot guess.
         const jsAssets = [];
 
-        compilation.entrypoints.forEach((_, name) => {
-          jsAssets.push(`${name}.entry.js`);
+        compilation.entrypoints.forEach((entrypoint) => {
+          const files = typeof entrypoint.getFiles === 'function' ? entrypoint.getFiles() : [];
+
+          files.forEach((file) => {
+            if (file.endsWith('.js')) {
+              jsAssets.push(file);
+            }
+          });
         });
 
         const html = generateHtml(config, jsAssets);
@@ -143,7 +158,7 @@ function generateHtml(config, jsAssets) {
 
   // Inject test bundle scripts
   jsAssets.forEach((asset) => {
-    lines.push(`<script src="dist/${asset}"></script>`);
+    lines.push(`<script src="${config.bundleAssetPath}${asset}"></script>`);
   });
 
   lines.push('');
