@@ -8,6 +8,33 @@ const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const { getClosest }  = require('./helper/path');
 
+// Allow-list of module specifiers that may appear in files under `handsontable/test/**`
+// (the loader scope defined on the rule below). Matched by literal string, with a
+// trailing '*' acting as a prefix wildcard. Every `./foo` / `../foo` used by a spec
+// or helper in scope must appear here, otherwise the build fails.
+const ALLOWED_E2E_MODULES = [
+  'window',
+  'jasmine-co',
+  'html-parse-stringify',
+  './htmlNormalize',
+  './focusNavigator',
+  './common',
+  './utils',
+  './mouseEvents',
+  './keyboardEvents',
+  './../bootstrap',
+  './helpers/custom-matchers',
+  './helpers/jasmine-helpers',
+  '../helpers/it-themes-extension',
+  './asciiTable',
+  './__mocks__/*',
+  './MemoryLeakTest',
+  '../MemoryLeakTest',
+  '../../../src/themes/static/variables/icons/*',
+  '../../../src/themes/static/variables/colors/*',
+  '../../../src/themes/static/variables/tokens/*',
+];
+
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
 
@@ -29,6 +56,19 @@ module.exports.create = function create(envArgs) {
         /pikaday\/css/,
       ],
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
+    });
+
+    // Enforce allowed imports in test files (prevents importing unauthorized modules)
+    c.module.rules.push({
+      test: /\.js$/,
+      include: [
+        path.resolve(__dirname, '../test'),
+      ],
+      enforce: 'pre',
+      loader: path.resolve(__dirname, 'loader/forbidden-imports-loader.js'),
+      options: {
+        allowedModules: ALLOWED_E2E_MODULES,
+      },
     });
 
     c.externals = [
@@ -67,6 +107,13 @@ module.exports.create = function create(envArgs) {
         hotTheme: envArgs.HOT_THEME,
       })
     );
+
+    // Disable side effects optimization for test builds. Test helpers like custom-matchers.js
+    // have no exports but register Jasmine matchers via beforeEach (side effects only).
+    // Without this, Rspack tree-shakes them away based on the package.json sideEffects field.
+    c.optimization = {
+      sideEffects: false,
+    };
 
     c.node = {
       global: true,

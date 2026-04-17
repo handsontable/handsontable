@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: l884wwjc
 title: Using the `HotColumn` component in Vue 3
 metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Configure the Vue 3 data grid's columns, using the props of the `HotColumn` component. Define a custom cell editor or a custom cell renderer.
+HotColumn is a Vue 3 component that lets you define column settings declaratively as child components of HotTable.
 
 [[toc]]
 
@@ -52,3 +53,7 @@ You can declare a custom editor by creating a class that extends `TextEditor` an
 @[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.js)
 
 :::
+
+## Result
+
+Using `HotColumn` child components, each column reads its settings declaratively from Vue props rather than from a flat `columns` array, keeping your template in sync with your column configuration.

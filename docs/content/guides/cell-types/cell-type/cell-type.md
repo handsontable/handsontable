@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: de2hxgso
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
@@ -604,6 +605,19 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 :::
 
 Empty cells may be treated differently in different contexts, for example, the [`ColumnSorting`](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+
+## Related
+
+- [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
+- [Checkbox cell type](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)
+- [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
+- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+- [Handsontable cell type](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md)
+- [MultiSelect cell type](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)
+- [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+- [Password cell type](@/guides/cell-types/password-cell-type/password-cell-type.md)
+- [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
+- [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 
 ## Related articles
 
