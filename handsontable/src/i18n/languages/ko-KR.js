@@ -132,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '행을 업데이트할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '행을 제거할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '요청이 실패했습니다',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '닫기',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '다시 불러오기',
 };
 
 export default dictionary;

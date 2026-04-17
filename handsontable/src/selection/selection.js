@@ -631,6 +631,10 @@ class Selection {
    * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
+    if (!this.isSelected()) {
+      return;
+    }
+
     const {
       visualCoords
     } = this.#extenderTransformation.transformStart(rowDelta, colDelta, createMissingRecords);
@@ -645,6 +649,10 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
+    if (!this.isSelected()) {
+      return;
+    }
+
     const {
       visualCoords,
       selectionLayer,
@@ -660,6 +668,10 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformFocus(rowDelta, colDelta) {
+    if (!this.isSelected()) {
+      return;
+    }
+
     const {
       selectionLayer,
       visualCoords,

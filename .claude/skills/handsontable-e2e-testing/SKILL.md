@@ -51,8 +51,35 @@ These are injected automatically. Do not import them manually.
 
 ## Event simulation
 
-- **Mouse:** `mouseDown()`, `mouseUp()`, `mouseOver()` from `test/helpers/mouseEvents.js`
+- **Mouse:** `mouseDown()`, `mouseUp()`, `mouseOver()`, `mouseClick()`, `mouseDoubleClick()` from `test/helpers/mouseEvents.js`
 - **Keyboard:** `keyDown()`, `keyUp()`, `keyDownUp()` from `test/helpers/keyboardEvents.js`
+- **Touch:** `triggerTouchEvent(type, target)`, `simulateTouch(target)` from `test/helpers/common.js`
+  - `triggerTouchEvent('touchstart', element)` / `triggerTouchEvent('touchend', element)` — dispatches a single touch event
+  - `simulateTouch(element)` — full Android sequence: touchstart → touchend → mousedown → mouseup → click (with `preventDefault` handling)
+  - Both must be `await`-ed in spec files
+
+### Testing touch / mobile behavior
+
+When testing touch interactions (editors opening on double-tap, outside-click after touch, etc.):
+
+```js
+it('should open editor on double-tap', async() => {
+  handsontable({ data: createSpreadsheetData(5, 5) });
+
+  const cell = getCell(0, 0);
+
+  // First tap — select
+  await triggerTouchEvent('touchstart', cell);
+  await triggerTouchEvent('touchend', cell);
+  // Second tap — open editor
+  await triggerTouchEvent('touchstart', cell);
+  await triggerTouchEvent('touchend', cell);
+
+  // Assert editor opened
+});
+```
+
+Use `simulateTouch(target)` when you need to test the full Android event sequence including synthetic mouse events.
 
 ## Flaky test handling
 
@@ -69,9 +96,11 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 ## Run commands
 
 - **All:** `npm run test:e2e --prefix handsontable`
-- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths during the webpack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
 - **With theme:** `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
+
+**Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm during the `.dump` step (webpack build), not by Puppeteer. Using `npm run test:e2e -- --testPathPattern=...` passes it only to the Puppeteer runner, which doesn't support it.
 
 ## Test location
 

@@ -367,7 +367,7 @@ export function buildManualUpdateRowPayloads(hot, rowIdOption, rows) {
  * Calls `onRowsUpdate`, success/error hooks, then re-fetches or re-renders.
  *
  * @param {Core} hot Handsontable instance.
- * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void, onRequestFailed?: function(string, Error): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value). `onRequestFailed` receives `'update'` or `'fetch'`.
+ * @param {{ getOnRowsUpdate: function(): *, fetchData: function(): Promise<*>, logError: function(...*): void, onRequestFailed?: function(string, Error): void }} callbacks Callbacks for IO and logging (`getOnRowsUpdate` returns `onRowsUpdate` or a falsy value). `onRequestFailed` receives `'update'` only; when `fetchData` rejects after a successful update, the caller's `fetchData` implementation is responsible for error UI (for example [[DataProvider#fetchData]] shows a notification and rethrows).
  * @param {object[]} rowPayloads Per-row `RowUpdatePayload` objects (`types/plugins/dataProvider/dataProvider.d.ts`).
  * @param {object} [options] Optional flags.
  * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
@@ -410,7 +410,7 @@ export async function commitRowsUpdate(hot, callbacks, rowPayloads, options = {}
       revertOptimistic();
     }
     hot.render();
-    onRequestFailed?.('fetch', err);
+    // Do not call `onRequestFailed('fetch', err)` here: `fetchData` already surfaces fetch errors (and rethrows).
   }
 }
 
@@ -536,7 +536,7 @@ export async function runUpdateFromChanges(hot, ctx, changes) {
  * @param {function(string, object): void} ctx.runAfterRowsMutation - Runs the success hook.
  * @param {function(string, Error, object): void} ctx.runAfterRowsMutationError - Runs the error hook.
  * @param {function(...*): void} ctx.logError - Logs mutation failures.
- * @param {function(string, Error): void} [ctx.onRequestFailed] - `'create'|'remove'` for the server callback, `'fetch'` when `onSuccess` (refetch) fails.
+ * @param {function(string, Error): void} [ctx.onRequestFailed] - `'create'|'remove'` when the server callback rejects. When `onSuccess` (refetch) fails, error UI is owned by that `fetchData` implementation (not `onRequestFailed`).
  * @param {string} operation `'create'` or `'remove'`.
  * @param {object} payload Hook payload.
  * @param {function(): Promise<*>} userPromiseFn Server callback invocation.
@@ -576,7 +576,7 @@ export function queueCrud(ctx, operation, payload, userPromiseFn, onSuccess) {
     } catch (err) {
       afterMutErr(operation, err, payload);
       logErr('Data reload failed:', err);
-      onRequestFailed?.('fetch', err);
+      // Do not call `onRequestFailed('fetch', err)` here: `onSuccess` is typically `fetchData`, which already surfaces fetch errors (and rethrows).
     }
   });
 }
