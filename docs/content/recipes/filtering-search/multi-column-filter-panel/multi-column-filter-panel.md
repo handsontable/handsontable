@@ -99,6 +99,7 @@ const applyFilters = () => {
   }
 
   filtersPlugin.filter();
+  hot.render();
 };
 ```
 
@@ -116,6 +117,7 @@ clearAllButton.addEventListener('click', () => {
   maxPriceInput.value = '';
   filtersPlugin.clearConditions();
   filtersPlugin.filter();
+  hot.render();
 });
 ```
 

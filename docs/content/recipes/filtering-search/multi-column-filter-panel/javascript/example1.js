@@ -120,6 +120,7 @@ function applyFilters() {
   }
 
   filtersPlugin.filter();
+  hot.render();
 }
 
 function clearFilters() {
@@ -130,6 +131,7 @@ function clearFilters() {
 
   filtersPlugin.clearConditions();
   filtersPlugin.filter();
+  hot.render();
 }
 
 categoryFilter.addEventListener('change', applyFilters);

@@ -127,6 +127,7 @@ function applyFilters(): void {
   }
 
   filtersPlugin.filter();
+  hot.render();
 }
 
 function clearFilters(): void {
@@ -137,6 +138,7 @@ function clearFilters(): void {
 
   filtersPlugin.clearConditions();
   filtersPlugin.filter();
+  hot.render();
 }
 
 categoryFilter.addEventListener('change', applyFilters);
