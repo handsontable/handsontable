@@ -227,7 +227,7 @@ const sharedGridOptions = {
   columnSorting: true,
   contextMenu: true,
   emptyDataState: true,
-  dialog: true,
+  notification: true,
   licenseKey: 'non-commercial-and-evaluation',
 };
 

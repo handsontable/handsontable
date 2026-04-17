@@ -136,7 +136,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nevarēja atjaunināt rindas',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Aizvērt',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
 };
 
 export default dictionary;
