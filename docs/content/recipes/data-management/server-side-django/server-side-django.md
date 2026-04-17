@@ -462,6 +462,12 @@ const hot = new Handsontable(container, {
 });
 ```
 
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+
+:::
+
 **Key options explained:**
 
 | Option | What it does |

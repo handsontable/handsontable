@@ -33,6 +33,17 @@ category: Filtering and Search
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/filtering-and-search/highlight-search-matches/react/example1.jsx)
+@[code](@/content/recipes/filtering-and-search/highlight-search-matches/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to highlight matched text fragments with a custom renderer that wraps matches in a `<mark>` element. You can use this approach when you want richer highlighting than the default Search plugin class.

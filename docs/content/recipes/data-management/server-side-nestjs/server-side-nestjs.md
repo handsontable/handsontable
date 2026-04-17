@@ -218,6 +218,12 @@ With the server running on `http://localhost:3000`, configure Handsontable to us
 
 :::
 
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-nestjs/react/example1.jsx)
+
+:::
+
 **What's happening:**
 
 ### `buildUrl` helper
