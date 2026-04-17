@@ -49,9 +49,16 @@ const IGNORE_PATTERNS = [/__tests__/, /[/\\]test[/\\]/, /[/\\]dist[/\\]/];
 const CSS_IMPORT_RE =
   /^(?:import\s+['"][^'"]*\.(?:css|scss)['"];?|require\(['"][^'"]*\.(?:css|scss)['"]\);?)\s*$/gm;
 
-// For ESM: rewrite local imports to add .mjs extension
+// For ESM: rewrite local imports to add .mjs extension.
+// The optional clause group uses a lazy `??` quantifier so bare side-effect
+// imports (e.g. `import './init';`) match on their own line instead of the
+// greedy form spanning across lines to find `from` on a following named
+// import, which silently leaves the side-effect path extensionless.
+// Multi-line destructured imports (`import {\n  a,\n} from '...'`) still
+// resolve via backtracking: the zero-case fails against `{`, so the engine
+// expands the optional group on the next attempt.
 // eslint-disable-next-line max-len
-const LOCAL_IMPORT_RE = /(?<keyword>(?:import|export)\s+(?:[\s\S]*?\s+from\s+)?)(?<quote>['"])(?<path>\.\.?\/[^'"]*?)(?<ext>\.(?:js|mjs))?\k<quote>/g;
+const LOCAL_IMPORT_RE = /(?<keyword>(?:import|export)\s+(?:[\s\S]*?\s+from\s+)??)(?<quote>['"])(?<path>\.\.?\/[^'"]*?)(?<ext>\.(?:js|mjs))?\k<quote>/g;
 
 /**
  * Collect all .js source files, excluding test/dist directories.
