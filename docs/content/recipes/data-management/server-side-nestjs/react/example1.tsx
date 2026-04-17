@@ -45,6 +45,11 @@ function buildUrl(base: string, params: DataProviderQueryParameters): string {
   if (params.filters && params.filters.length > 0) {
     params.filters.forEach((filter, i) => {
       query.set(`filters[${i}][prop]`, filter.prop);
+      query.set(`filters[${i}][condition]`, filter.condition);
+
+      filter.value.forEach((v: string | number, j: number) => {
+        query.set(`filters[${i}][value][${j}]`, String(v));
+      });
     });
   }
 
