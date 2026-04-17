@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: u00oul7m
 title: Cell editor
 metaTitle: Cell editor - JavaScript Data Grid | Handsontable
@@ -155,7 +156,7 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 
 **Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and call `event.stopImmediatePropagation()` to prevent `EditorManager` from processing a specific key. Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
 
-**Editor singleton:** Each editor class has exactly one instance per table. The constructor and `init()` run once per table; `prepare()` runs every time the user selects a cell that uses that editor.
+**Editor singleton:** Each editor class has exactly one instance per table. The constructor and `init()` run once per table; `prepare()` runs every time you select a cell that uses that editor.
 
 ## BaseEditor API
 
@@ -487,3 +488,7 @@ class ExtendedSelectEditor extends MySelectEditor {
 - [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
 
 </div>
+
+## Result
+
+You now have a custom cell editor that controls how values are entered in your data grid. You can extend a built-in editor for small changes, or build from `BaseEditor` for a completely custom editing experience.

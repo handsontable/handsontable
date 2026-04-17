@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 id: k3m9p2x7
-description: Recipes for validation patterns, submit-time checks, and dynamic cell configuration in Handsontable.
+description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable.
 react:
   id: n5r8w1t4
   metaTitle: Editing and Validation Recipes - React Data Grid | Handsontable
@@ -19,8 +19,9 @@ angular:
 
 ## Overview
 
-This section collects recipes focused on editing behavior and validation -- for example, validating a whole grid on a **Submit** action and surfacing errors outside the table.
+This section collects recipes focused on editing behavior, validation, and keeping cell configuration in sync with your data -- for example, dropdown lists that depend on another column.
 
 ## Available recipes
 
+- **[Dependent dropdowns](@/content/recipes/editing-validation/dependent-dropdowns/dependent-dropdowns.md)** - Update a child column's `dropdown` source when a parent value changes.
 - **[Row validation with error summary](@/content/recipes/editing-validation/row-validation-error-summary/row-validation-error-summary.md)** - Validate all rows on Submit, show an external issue list, and highlight invalid cells with `htInvalid`.
