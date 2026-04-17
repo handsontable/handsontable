@@ -74,7 +74,10 @@ module.exports = {
     {
       title: 'Filtering and Search',
       path: 'filtering-and-search',
-      children: filteringAndSearchItems,
+      children: [
+        ...filteringAndSearchItems,
+        { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+      ],
       collapsable: false,
       onlyFor: ['javascript'],
     },
