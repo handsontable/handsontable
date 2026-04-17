@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -42,61 +42,39 @@ const allColumns = [
 ];
 
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
   // Track which column indices (into allColumns) are currently visible.
   // Start with all columns visible.
   const [visibleIndices, setVisibleIndices] = useState(
     () => new Set(allColumns.map((_, i) => i))
   );
 
-  const getVisibleColumns = useCallback(
-    (indices) => allColumns.filter((_, i) => indices.has(i)),
-    []
-  );
+  const handleToggle = useCallback((index) => {
+    setVisibleIndices((prev) => {
+      // Prevent hiding the last visible column.
+      if (prev.has(index) && prev.size === 1) {
+        return prev;
+      }
 
-  const getVisibleHeaders = useCallback(
-    (indices) => allColumns.filter((_, i) => indices.has(i)).map((col) => col.title),
-    []
-  );
+      const next = new Set(prev);
 
-  const handleToggle = useCallback(
-    (index) => {
-      setVisibleIndices((prev) => {
-        if (prev.has(index)) {
-          // Prevent hiding the last visible column.
-          if (prev.size === 1) {
-            return prev;
-          }
-
-          const next = new Set(prev);
-
-          next.delete(index);
-          // Apply the new visible subset. updateSettings() re-renders the grid
-          // with only the provided columns config -- no DOM manipulation needed.
-          hotRef.current?.hotInstance?.updateSettings({
-            columns: getVisibleColumns(next),
-            colHeaders: getVisibleHeaders(next),
-          });
-
-          return next;
-        }
-
-        const next = new Set(prev);
-
+      if (prev.has(index)) {
+        next.delete(index);
+      } else {
         next.add(index);
-        hotRef.current?.hotInstance?.updateSettings({
-          columns: getVisibleColumns(next),
-          colHeaders: getVisibleHeaders(next),
-        });
+      }
 
-        return next;
-      });
-    },
-    [getVisibleColumns, getVisibleHeaders]
+      return next;
+    });
+  }, []);
+
+  const columns = useMemo(
+    () => allColumns.filter((_, i) => visibleIndices.has(i)),
+    [visibleIndices]
   );
-
-  const columns = useMemo(() => getVisibleColumns(visibleIndices), [visibleIndices, getVisibleColumns]);
-  const colHeaders = useMemo(() => getVisibleHeaders(visibleIndices), [visibleIndices, getVisibleHeaders]);
+  const colHeaders = useMemo(
+    () => allColumns.filter((_, i) => visibleIndices.has(i)).map((col) => col.title),
+    [visibleIndices]
+  );
 
   return (
     <div>
@@ -119,7 +97,6 @@ const ExampleComponent = () => {
         ))}
       </div>
       <HotTable
-        ref={hotRef}
         data={data}
         columns={columns}
         colHeaders={colHeaders}
