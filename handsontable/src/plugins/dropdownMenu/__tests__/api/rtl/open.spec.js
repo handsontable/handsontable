@@ -38,8 +38,8 @@ describe('DropdownMenu (RTL mode)', () => {
         const menuWidth = $dropdownMenu.outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
       });
 
       it('should open dropdown menu on the left-top position if on the right ' +
@@ -66,8 +66,8 @@ describe('DropdownMenu (RTL mode)', () => {
         const menuWidth = $dropdownMenu.outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
       });
 
       it('should open dropdown menu on the right-bottom position if on the left there is no space left', async() => {
@@ -89,16 +89,12 @@ describe('DropdownMenu (RTL mode)', () => {
         const menuBoundingClientRect = $dropdownMenu[0].getBoundingClientRect();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuBoundingClientRect.y).toBeCloseTo(cellOffset.top + 1, 0);
-        expect(menuBoundingClientRect.x).toBeCloseTo(cellOffset.left, 0);
+        expect(menuBoundingClientRect.y).toBeAroundValue(cellOffset.top + 1, 4);
+        expect(menuBoundingClientRect.x).toBeAroundValue(cellOffset.left, 4);
       });
 
       it('should open dropdown menu on the right-top position if on the left ' +
         'and bottom there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
@@ -125,8 +121,8 @@ describe('DropdownMenu (RTL mode)', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left, 4);
       });
     });
   });

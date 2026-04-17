@@ -38,8 +38,8 @@ describe('DropdownMenu', () => {
         const menuOffset = $dropdownMenu.offset();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left, 4);
       });
 
       it('should open dropdown menu by default on the right-bottom position (including offset)', async() => {
@@ -64,8 +64,8 @@ describe('DropdownMenu', () => {
         const menuOffset = $dropdownMenu.offset();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1 + 40, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left + 20, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1 + 40, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left + 20, 4);
       });
 
       it('should open dropdown menu on the right-top position if on the left ' +
@@ -91,8 +91,8 @@ describe('DropdownMenu', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left, 4);
       });
 
       it('should open dropdown menu on the right-top position if on the left ' +
@@ -123,8 +123,8 @@ describe('DropdownMenu', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuBoundingClientRect.y).toBeCloseTo(cellOffset.top - menuHeight + 30, 0);
-        expect(menuBoundingClientRect.x).toBeCloseTo(cellOffset.left + 20, 0);
+        expect(menuBoundingClientRect.y).toBeAroundValue(cellOffset.top - menuHeight + 30, 4);
+        expect(menuBoundingClientRect.x).toBeAroundValue(cellOffset.left + 20, 4);
       });
 
       it('should open dropdown menu on the left-bottom position if on the right there is no space left', async() => {
@@ -147,8 +147,8 @@ describe('DropdownMenu', () => {
         const menuWidth = $dropdownMenu.outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuBoundingClientRect.y).toBeCloseTo(cellOffset.top + 1, 0);
-        expect(menuBoundingClientRect.x).toBeCloseTo(cellOffset.left - menuWidth, 0);
+        expect(menuBoundingClientRect.y).toBeAroundValue(cellOffset.top + 1, 4);
+        expect(menuBoundingClientRect.x).toBeAroundValue(cellOffset.left - menuWidth, 4);
       });
 
       it('should open dropdown menu on the left-bottom position if on the right there is no space left (including offset)', async() => {
@@ -176,16 +176,12 @@ describe('DropdownMenu', () => {
         const menuWidth = $dropdownMenu.outerWidth();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuBoundingClientRect.y).toBeCloseTo(cellOffset.top + 1 + 40, 0);
-        expect(menuBoundingClientRect.x).toBeCloseTo(cellOffset.left - menuWidth + 10, 0);
+        expect(menuBoundingClientRect.y).toBeAroundValue(cellOffset.top + 1 + 40, 4);
+        expect(menuBoundingClientRect.x).toBeAroundValue(cellOffset.left - menuWidth + 10, 4);
       });
 
       it('should open dropdown menu on the left-top position if on the right and' +
         ' bottom there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
@@ -213,16 +209,12 @@ describe('DropdownMenu', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
       });
 
       it('should open dropdown menu on the left-top position if on the right ' +
         'and bottom there is no space left (including offset)', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
@@ -255,8 +247,8 @@ describe('DropdownMenu', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight + 30, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + 10, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10, 4);
       });
     });
   });

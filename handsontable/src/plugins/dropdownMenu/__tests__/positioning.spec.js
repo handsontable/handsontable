@@ -25,10 +25,6 @@ describe('DropdownMenu', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/dropdown-menu/
 
     it('should show tick from "Read only" element at proper place', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -45,7 +41,9 @@ describe('DropdownMenu', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(155);
+      const readOnlyItemOffset = $readOnlyItem.offset();
+
+      expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
       expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 1);
     });
   });

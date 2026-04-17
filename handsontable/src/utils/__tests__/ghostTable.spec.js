@@ -197,6 +197,7 @@ describe('GhostTable', () => {
     });
 
     it('should get valid widths', async() => {
+      // TODO(theme-agnostic): column widths depend on autoColumnSize font metrics
       if (getLoadedTheme() !== 'main') {
         return;
       }

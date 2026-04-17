@@ -24,10 +24,6 @@ describe('ContextMenu (RTL mode)', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
     it('should show tick from "Read only" element at proper place', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -47,7 +43,9 @@ describe('ContextMenu (RTL mode)', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).toBe(246);
+      const readOnlyItemOffset = $readOnlyItem.offset();
+
+      expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
       expect(tickItemOffset.left).toBe(contextMenuOffset.left + 1);
     });
   });

@@ -279,7 +279,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should sync inline start overlay with the main table after updating the last cell with new value (#7102)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): row heights and scroll positions depend on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -435,7 +437,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column resize', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): row heights and scroll positions depend on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -675,7 +679,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): row heights and scroll positions depend on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({

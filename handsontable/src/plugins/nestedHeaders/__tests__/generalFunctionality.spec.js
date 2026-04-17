@@ -533,13 +533,14 @@ describe('NestedHeaders', () => {
     });
 
     it('should render the setup properly after the table being scrolled', async() => {
-      // TODO(theme-agnostic): DOM structure depends on auto-sized column widths; the number of columns
-      // rendered in the viewport varies per theme. Fixing requires rewriting the expected HTML to be
-      // dynamic or using visual regression tests.
+      // TODO(theme-agnostic): column widths depend on autoColumnSize font metrics
       if (getLoadedTheme() !== 'main') {
         return;
       }
 
+      // TODO(theme-agnostic): DOM structure depends on auto-sized column widths; the number of columns
+      // rendered in the viewport varies per theme. Fixing requires rewriting the expected HTML to be
+      // dynamic or using visual regression tests.
       const width = 400;
 
       handsontable({

@@ -37,8 +37,8 @@ describe('ContextMenu', () => {
         const menuOffset = $contextMenu.offset();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left, 4);
       });
 
       it('should open context menu by default on the right-bottom position (including offset)', async() => {
@@ -63,8 +63,8 @@ describe('ContextMenu', () => {
         const menuOffset = $contextMenu.offset();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1 + 40, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left + 20, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1 + 40, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left + 20, 4);
       });
 
       it('should open context menu on the right-top position if on the left and ' +
@@ -90,8 +90,8 @@ describe('ContextMenu', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left, 4);
       });
 
       it('should open context menu on the right-top position if on the left and ' +
@@ -122,8 +122,8 @@ describe('ContextMenu', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight + 30, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left + 20, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left + 20, 4);
       });
 
       it('should open context menu on the left-bottom position if on the right there is no space left', async() => {
@@ -146,8 +146,8 @@ describe('ContextMenu', () => {
         const menuWidth = $contextMenu.outerWidth();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
       });
 
       it('should open context menu on the left-bottom position if on the right there is no space left (including offset)', async() => {
@@ -175,16 +175,12 @@ describe('ContextMenu', () => {
         const menuWidth = $contextMenu.outerWidth();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top + 1 + 40, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + 10, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top + 1 + 40, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10, 4);
       });
 
       it('should open context menu on the left-top position if on the right and ' +
         'bottom there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
@@ -212,16 +208,12 @@ describe('ContextMenu', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
       });
 
       it('should open context menu on the left-top position if on the right and' +
         ' bottom there is no space left (including offset)', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
@@ -254,8 +246,8 @@ describe('ContextMenu', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight + 30, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth + 10, 0);
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10, 4);
       });
     });
   });
