@@ -20,13 +20,6 @@ function JasmineHtmlPlugin(options) {
   const config = {
     filename: options.filename || 'SpecRunner.html',
     baseJasminePath: options.baseJasminePath || '',
-    // Prefix used when injecting entry bundles into the HTML. Defaults to `dist/`
-    // because the generic runner lives in `test/` and references bundles from
-    // `test/dist/`. A per-run runner that already sits in `test/dist/` should
-    // pass `./` so its `<script>` tag resolves to a sibling file.
-    bundleAssetPath: options.bundleAssetPath !== undefined && options.bundleAssetPath !== null
-      ? options.bundleAssetPath
-      : 'dist/',
     jasmineJsFiles: toRelativeFiles(jasminePath, jasmineFiles.jsFiles)
       .concat(toRelativeFiles(jasmineBootDir, jasmineFiles.bootFiles)),
     jasmineCssFiles: toRelativeFiles(jasminePath, jasmineFiles.cssFiles),
@@ -160,7 +153,7 @@ function generateHtml(config, jsAssets) {
 
   // Inject test bundle scripts
   jsAssets.forEach((asset) => {
-    lines.push(`<script src="${config.bundleAssetPath}${asset}"></script>`);
+    lines.push(`<script src="dist/${asset}"></script>`);
   });
 
   lines.push('');

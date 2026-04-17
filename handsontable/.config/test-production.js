@@ -6,7 +6,7 @@
 const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
-const { getClosest, rewriteAssetPath }  = require('./helper/path');
+const { getClosest }  = require('./helper/path');
 const { computeRunId } = require('./helper/run-id');
 
 module.exports.create = function create(envArgs) {
@@ -53,13 +53,7 @@ module.exports.create = function create(envArgs) {
 
     c.plugins.push(new JasmineHtml({
       ...jasmineHtmlOptions,
-      filename: path.resolve(__dirname, `../test/dist/E2ERunner-${runId}.html`),
-      baseJasminePath: '../../../',
-      bundleAssetPath: './',
-      externalCssFiles: jasmineHtmlOptions.externalCssFiles.map(rewriteAssetPath),
-      hotCssFiles: jasmineHtmlOptions.hotCssFiles.map(rewriteAssetPath),
-      externalJsFiles: jasmineHtmlOptions.externalJsFiles.map(rewriteAssetPath),
-      hotJsFiles: jasmineHtmlOptions.hotJsFiles.map(rewriteAssetPath),
+      filename: path.resolve(__dirname, `../test/E2ERunner-${runId}.html`),
     }));
   });
 

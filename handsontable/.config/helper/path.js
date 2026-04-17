@@ -1,4 +1,3 @@
-const path = require('path');
 const fsExtra  = require('fs-extra');
 
 /**
@@ -28,26 +27,6 @@ function getClosest(relativePath, testOffset, maxDepth = 2) {
   }
 }
 
-/**
- * Prefixes `../` onto a relative asset path so it still resolves correctly
- * when the generated HTML lives one directory deeper than the "canonical"
- * `test/E2ERunner.html`. Absolute paths are returned unchanged.
- *
- * Used when the JasmineHtml plugin emits a per-run runner into `test/dist/`
- * while the original asset paths were authored for `test/`.
- *
- * @param {string} assetPath
- * @returns {string}
- */
-function rewriteAssetPath(assetPath) {
-  if (path.isAbsolute(assetPath)) {
-    return assetPath;
-  }
-
-  return `../${assetPath}`;
-}
-
 module.exports = {
   getClosest,
-  rewriteAssetPath,
 };

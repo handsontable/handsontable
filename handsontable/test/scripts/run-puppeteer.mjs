@@ -74,7 +74,7 @@ const flags = flagArgs.join(' ');
 // watch script and dev tooling). Without it, fall back to the per-run HTML
 // emitted by `test:e2e.dump`, whose filename is derived from the same
 // `--testPathPattern` + `--theme` inputs so parallel runs don't collide.
-const originalPath = argvPath || `test/dist/E2ERunner-${computeRunId(readRunIdInputsFromEnv())}.html`;
+const originalPath = argvPath || `test/E2ERunner-${computeRunId(readRunIdInputsFromEnv())}.html`;
 let htmlPath = originalPath;
 let verboseReporting = false;
 

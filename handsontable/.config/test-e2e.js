@@ -6,7 +6,7 @@
 const path = require('path');
 const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
-const { getClosest, rewriteAssetPath }  = require('./helper/path');
+const { getClosest }  = require('./helper/path');
 const { computeRunId } = require('./helper/run-id');
 
 // Allow-list of module specifiers that may appear in files under `handsontable/test/**`
@@ -110,27 +110,20 @@ module.exports.create = function create(envArgs) {
       hotTheme: envArgs.HOT_THEME,
     };
 
-    // Generic runner for developer manual testing. Its CSS/JS asset paths are
-    // relative to `test/`, so it stays at `test/E2ERunner.html`.
+    // Generic runner for developer manual testing.
     c.plugins.push(new JasmineHtml({
       ...jasmineHtmlOptions,
       filename: path.resolve(__dirname, '../test/E2ERunner.html'),
     }));
 
-    // Per-run runner consumed by Puppeteer. Lives in `test/dist/` so parallel
-    // runs with different `--testPathPattern` / `--theme` don't overwrite each
-    // other. The extra `../` on relative asset paths keeps them resolving to
-    // the same files when the HTML lives one directory deeper, and the bundle
-    // prefix becomes `./` since HTML and bundle sit in the same directory.
+    // Per-run runner consumed by Puppeteer. Kept in `test/` alongside the
+    // generic one so parallel runs with different `--testPathPattern` /
+    // `--theme` don't overwrite each other, and so iframe-based specs that
+    // inject relative CSS paths (e.g. `lib/normalize.css`, `../styles/*.css`)
+    // still resolve against the same base URL.
     c.plugins.push(new JasmineHtml({
       ...jasmineHtmlOptions,
-      filename: path.resolve(__dirname, `../test/dist/E2ERunner-${runId}.html`),
-      baseJasminePath: '../../../',
-      bundleAssetPath: './',
-      externalCssFiles: jasmineHtmlOptions.externalCssFiles.map(rewriteAssetPath),
-      hotCssFiles: jasmineHtmlOptions.hotCssFiles.map(rewriteAssetPath),
-      externalJsFiles: jasmineHtmlOptions.externalJsFiles.map(rewriteAssetPath),
-      hotJsFiles: jasmineHtmlOptions.hotJsFiles.map(rewriteAssetPath),
+      filename: path.resolve(__dirname, `../test/E2ERunner-${runId}.html`),
     }));
 
     // Disable side effects optimization for test builds. Test helpers like custom-matchers.js
