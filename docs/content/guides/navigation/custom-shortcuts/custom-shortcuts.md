@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: g7139vli
 title: Custom shortcuts
 metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
@@ -26,13 +27,9 @@ searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Customize Handsontable's keyboard shortcuts.
+Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
 
 [[toc]]
-
-## Overview
-
-You can completely customize your keyboard shortcuts, using the [`ShortcutManager`](@/api/shortcutManager.md) API:
 
 ::: only-for react
 
@@ -70,7 +67,7 @@ hot.getShortcutManager();
 </li>
 <li>
 
-**Select a keyboard shortcut [context](#keyboard-shortcut-contexts), for example:**
+**Select a keyboard shortcut context, for example:**
 
 ```js
 const gridContext = hot.getShortcutManager().getContext('grid');
@@ -94,32 +91,6 @@ gridContext.addShortcut({
 
 </li>
 </ol>
-
-## Keyboard shortcut contexts
-
-Every keyboard action is registered in a particular context:
-
-| Context  | Description                                                       | Type     |
-| -------- | ----------------------------------------------------------------- | -------- |
-| `grid`   | Activates when the user navigates the data grid (initial context) | Built-in |
-| `editor` | Activates when the user opens a cell editor                       | Built-in |
-| `menu`   | Activates when the user opens a cell's context menu               | Built-in |
-| Custom   | Your [custom context](#manage-keyboard-shortcut-contexts)         | Custom   |
-
-When the user interacts with the keyboard, only actions registered for the currently-active context are executed.
-
-Only one context is active at a time.
-
-### Manage keyboard shortcut contexts
-
-Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
-
-- Get the name of the currently-active context: [`getActiveContextName()`](@/api/shortcutManager.md#getactivecontextname)
-- Switch to a different context: [`setActiveContextName()`](@/api/shortcutManager.md#setactivecontextname)
-- Get an already-registered context: [`getContext()`](@/api/shortcutManager.md#getcontext)
-- Create and register a new context: [`addContext()`](@/api/shortcutManager.md#addcontext)
-
-For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor/cell-editor.md#how-to-create-a-custom-editor), you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
 
 ## Add a custom keyboard shortcut
 
@@ -152,13 +123,6 @@ gridContext.addShortcut({
 
 </li>
 </ol>
-
-   The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
-
-   - Accepts all the [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
-   - Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
-   - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
-   - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
 
 ### Add a conditional keyboard action
 
@@ -343,6 +307,41 @@ settings = {
 
 :::
 
+## Reference
+
+### Keyboard shortcut contexts
+
+Every keyboard action is registered in a particular context:
+
+| Context  | Description                                                       | Type     |
+| -------- | ----------------------------------------------------------------- | -------- |
+| `grid`   | Activates when the user navigates the data grid (initial context) | Built-in |
+| `editor` | Activates when the user opens a cell editor                       | Built-in |
+| `menu`   | Activates when the user opens a cell's context menu               | Built-in |
+| Custom   | Your custom context                                               | Custom   |
+
+When the user interacts with the keyboard, only actions registered for the currently-active context are executed. Only one context is active at a time.
+
+### Manage keyboard shortcut contexts
+
+Using the [`ShortcutManager`](@/api/shortcutManager.md) API methods, you can:
+
+- Get the name of the currently-active context: [`getActiveContextName()`](@/api/shortcutManager.md#getactivecontextname)
+- Switch to a different context: [`setActiveContextName()`](@/api/shortcutManager.md#setactivecontextname)
+- Get an already-registered context: [`getContext()`](@/api/shortcutManager.md#getcontext)
+- Create and register a new context: [`addContext()`](@/api/shortcutManager.md#addcontext)
+
+For example: if you're using a complex [custom editor](@/guides/cell-functions/cell-editor/cell-editor.md#how-to-create-a-custom-editor), you can create a new shortcut context to navigate your editor's UI with the arrow keys (normally, the arrow keys would navigate the grid instead).
+
+### `addShortcut()` parameters
+
+The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
+
+- Accepts all the [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) key names.
+- Accepts key names in both lowercase and uppercase (e.g., both `Enter` and `enter` work)
+- Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
+- Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
+
 ## API reference
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
@@ -385,6 +384,10 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 - [beforeKeyDown](@/api/hooks.md#beforekeydown)
 
 </div>
+
+## Result
+
+After completing these steps, you have custom keyboard shortcuts registered in the target context. The shortcuts trigger your callbacks when the user presses the configured key combination, and only when the specified context is active.
 
 ## Troubleshooting
 

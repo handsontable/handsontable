@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: oi78d8nv
 title: Dropdown cell type
 metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
@@ -20,6 +21,8 @@ searchCategory: Guides
 category: Cell types
 ---
 Collect user input with a searchable list of choices, by using the dropdown cell type.
+
+The dropdown cell type lets users select a value from a predefined list. It is a simplified version of autocomplete with strict mode always on.
 
 [[toc]]
 
@@ -193,6 +196,10 @@ When working with object-based dropdown data, you can use methods like [`getSour
 **Note:** When the `source` option is declared as an array of `key` + `value` objects, the data in the edited cell should also be an object with `key` + `value` properties.
 
 :::
+
+## Result
+
+After configuring the dropdown cell type, cells display a button that opens a dropdown list of options. Users can search the list by typing. Only values from the source list are accepted. The selected value is stored in the data source.
 
 ## Related articles
 

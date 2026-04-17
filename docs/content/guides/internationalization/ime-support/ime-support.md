@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: bhst4cl4
 title: IME support
 metaTitle: IME support - JavaScript Data Grid | Handsontable
@@ -76,5 +77,14 @@ To test the IME support, you will need to change your language preferences for y
 - [Core: `isRtl()`](@/api/core.md#isrtl)
 - [Hooks: `afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
 - [Hooks: `beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Locale](@/guides/internationalization/locale/locale.md)
+- [Language](@/guides/internationalization/language/language.md)
 
 </div>

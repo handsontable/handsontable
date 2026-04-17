@@ -16,6 +16,14 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
+const importExportItems = [
+  {
+    path: 'import-export/export-to-pdf/export-to-pdf',
+    title: 'Export to PDF',
+    onlyFor: ['javascript'],
+  },
+];
+
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -32,9 +40,11 @@ const editingValidationItems = [
 ];
 
 const dataManagementItems = [
+  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
 ];
 
 const filteringSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
 ];
 
 module.exports = {
@@ -45,6 +55,13 @@ module.exports = {
       title: 'Editing and Validation',
       path: 'editing-validation',
       children: editingValidationItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Import and Export',
+      path: 'import-export',
+      children: importExportItems,
       collapsable: false,
       onlyFor: ['javascript'],
     },
