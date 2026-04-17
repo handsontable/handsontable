@@ -90,7 +90,7 @@ describe('dataProvider crud', () => {
       expect(hot.runHooks).toHaveBeenCalledWith('afterRowsMutationError', 'update', err, expect.any(Object));
     });
 
-    it('should call onRequestFailed with fetch when fetchData rejects after onRowsUpdate', async() => {
+    it('should not call onRequestFailed when fetchData rejects after onRowsUpdate (fetchData owns fetch error UI)', async() => {
       const err = new Error('refetch failed');
       const onRequestFailed = jest.fn();
       const hot = {
@@ -107,7 +107,7 @@ describe('dataProvider crud', () => {
         onRequestFailed,
       }, [{ id: 1, changes: {}, rowData: {} }]);
 
-      expect(onRequestFailed).toHaveBeenCalledWith('fetch', err);
+      expect(onRequestFailed).not.toHaveBeenCalled();
       expect(hot.runHooks).toHaveBeenCalledWith('afterRowsMutation', 'update', expect.any(Object));
       expect(hot.runHooks).toHaveBeenCalledWith('afterRowsMutationError', 'update', err, expect.any(Object));
     });
@@ -139,7 +139,7 @@ describe('dataProvider crud', () => {
       expect(onRequestFailed).toHaveBeenCalledWith('create', err);
     });
 
-    it('should call onRequestFailed with fetch when refetch rejects after create', async() => {
+    it('should not call onRequestFailed when refetch rejects after create (fetchData owns fetch error UI)', async() => {
       const err = new Error('reload failed');
       const onRequestFailed = jest.fn();
       const state = { tail: Promise.resolve() };
@@ -161,7 +161,7 @@ describe('dataProvider crud', () => {
         }
       );
 
-      expect(onRequestFailed).toHaveBeenCalledWith('fetch', err);
+      expect(onRequestFailed).not.toHaveBeenCalled();
     });
   });
 

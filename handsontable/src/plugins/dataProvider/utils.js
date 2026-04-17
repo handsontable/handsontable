@@ -56,7 +56,7 @@ function collectStringsFromApiPayload(obj, candidates) {
 }
 
 /**
- * Picks user-visible error text for DataProvider dialogs and logging.
+ * Picks user-visible error text for DataProvider notifications and logging.
  * Prefer server JSON (`message`, `error`, `detail`) from `response.data`, `data`, or `body` over a bare status code in `Error#message`.
  *
  * @param {*} err Value thrown or rejected from `fetchRows` or row mutation callbacks.

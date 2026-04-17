@@ -132,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Zeilen konnten nicht aktualisiert werden',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Zeilen konnten nicht entfernt werden',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Anfrage fehlgeschlagen',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Schließen',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Neu laden',
 };
 
 export default dictionary;

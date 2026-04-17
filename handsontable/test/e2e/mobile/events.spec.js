@@ -179,4 +179,132 @@ describe('Events', () => {
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
   });
+
+  describe('long-press', () => {
+    it('should open context menu after long-pressing a cell (#12302)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        width: 400,
+        height: 400,
+      });
+
+      const cell = getCell(1, 1);
+
+      await triggerTouchEvent('touchstart', cell);
+      await sleep(600);
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+
+      await triggerTouchEvent('touchend', cell);
+    });
+
+    it('should fire `beforeOnCellContextMenu` and `afterOnCellContextMenu` hooks on long-press (#12302)', async() => {
+      const beforeOnCellContextMenu = jasmine.createSpy('beforeOnCellContextMenu');
+      const afterOnCellContextMenu = jasmine.createSpy('afterOnCellContextMenu');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        width: 400,
+        height: 400,
+        beforeOnCellContextMenu,
+        afterOnCellContextMenu,
+      });
+
+      const cell = getCell(1, 1);
+
+      await triggerTouchEvent('touchstart', cell);
+      await sleep(600);
+
+      expect(beforeOnCellContextMenu).toHaveBeenCalledTimes(1);
+      expect(afterOnCellContextMenu).toHaveBeenCalledTimes(1);
+
+      await triggerTouchEvent('touchend', cell);
+    });
+
+    it('should not open context menu if touch ends before long-press threshold (#12302)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        width: 400,
+        height: 400,
+      });
+
+      const cell = getCell(1, 1);
+
+      await triggerTouchEvent('touchstart', cell);
+      await sleep(100);
+      await triggerTouchEvent('touchend', cell);
+      await sleep(500);
+
+      expect($('.htContextMenu').is(':visible')).toBeFalse();
+    });
+
+    it('should not open context menu if finger moves during touch (#12302)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        width: 400,
+        height: 400,
+      });
+
+      const cell = getCell(1, 1);
+      const cellRect = cell.getBoundingClientRect();
+
+      await triggerTouchEvent('touchstart', cell);
+      await sleep(100);
+
+      // Simulate finger moving 50px away from the initial position.
+      await triggerTouchEvent('touchmove', cell,
+        parseInt(cellRect.left, 10) + 60,
+        parseInt(cellRect.top, 10) + 60
+      );
+
+      await sleep(500);
+
+      expect($('.htContextMenu').is(':visible')).toBeFalse();
+
+      await triggerTouchEvent('touchend', cell);
+    });
+
+    it('should not open context menu if contextMenu option is disabled (#12302)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: false,
+        width: 400,
+        height: 400,
+      });
+
+      const cell = getCell(1, 1);
+
+      await triggerTouchEvent('touchstart', cell);
+      await sleep(600);
+
+      expect($('.htContextMenu').is(':visible')).toBeFalse();
+
+      await triggerTouchEvent('touchend', cell);
+    });
+
+    it('should select the cell before opening context menu on long-press (#12302)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        width: 400,
+        height: 400,
+      });
+
+      const cell = getCell(2, 3);
+
+      expect(getSelected()).toBeUndefined();
+
+      await triggerTouchEvent('touchstart', cell);
+      await sleep(600);
+
+      expect(getSelected()).toEqual([[2, 3, 2, 3]]);
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+
+      await triggerTouchEvent('touchend', cell);
+    });
+  });
 });

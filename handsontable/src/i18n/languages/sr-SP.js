@@ -136,7 +136,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nije moguće ažurirati redove',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zatvori',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
 };
 
 export default dictionary;

@@ -87,7 +87,7 @@ const applyFilters = () => {
   }
 
   if (selectedCategory) {
-    filtersPlugin.addCondition(1, 'contains', [selectedCategory]);
+    filtersPlugin.addCondition(1, 'eq', [selectedCategory]);
   }
 
   if (minPrice && maxPrice) {

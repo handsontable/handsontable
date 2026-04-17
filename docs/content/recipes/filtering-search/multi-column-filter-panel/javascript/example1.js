@@ -91,7 +91,7 @@ function applyFilters() {
   filtersPlugin.clearConditions();
 
   if (selectedCategory) {
-    filtersPlugin.addCondition(1, 'contains', [selectedCategory]);
+    filtersPlugin.addCondition(1, 'eq', [selectedCategory]);
   }
 
   if (enteredName) {
