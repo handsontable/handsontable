@@ -90,6 +90,7 @@ this.hot.resumeRender();
 - No direct cross-plugin imports. Use hooks or `hot.getPlugin('{Name}')`.
 - No circular dependencies between plugins.
 - Conflict ownership: the plugin introducing the incompatibility owns the blocking logic.
+- **DataProvider built-in errors** -- The DataProvider plugin surfaces request failures through `getPlugin('notification')` when `notification` is enabled (error toasts). **Fetch** failures include a primary **Refetch** action and `duration: 0` so the user can retry `fetchData()` from the toast. It does not use Dialog for that path. Dialog is still used elsewhere (for example Loading plugin, ExportFile overlay). Prefer hooks (`afterDataProviderFetchError`, `afterRowsMutationError`) for fully custom error UI when Notification is off.
 
 ## Registration Checklist
 

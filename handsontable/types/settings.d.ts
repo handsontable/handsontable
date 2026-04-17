@@ -165,7 +165,7 @@ export interface GridSettings extends Events {
   formulas?: FormulasSettings;
   fragmentSelection?: boolean | 'cell';
   headerClassName?: string;
-  height?: number | string | (() => number | string);
+  height?: number | 'auto' | string | (() => number | 'auto' | string);
   hiddenColumns?: HiddenColumnsSettings;
   hiddenRows?: HiddenRowsSettings;
   initialState?: Partial<GridSettings>;
@@ -253,6 +253,6 @@ export interface GridSettings extends Events {
   viewportColumnRenderingThreshold?: number | 'auto';
   viewportRowRenderingThreshold?: number | 'auto';
   visibleRows?: number;
-  width?: number | string | (() => number | string);
+  width?: number | 'auto' | string | (() => number | 'auto' | string);
   wordWrap?: boolean;
 }

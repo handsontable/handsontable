@@ -163,6 +163,7 @@ init(editor) {
 
   editor.flatpickr = flatpickr(editor.input, {
     dateFormat: 'Y-m-d',
+    disableMobile: true,
     onClose: () => {
       editor.finishEditing();
     },
@@ -385,6 +386,7 @@ const cellDefinition = {
       editor.input.classList.add('flatpickr-editor');
       editor.flatpickr = flatpickr(editor.input, {
         dateFormat: 'Y-m-d',
+        disableMobile: true,
         onClose: () => {
           editor.finishEditing();
         },
