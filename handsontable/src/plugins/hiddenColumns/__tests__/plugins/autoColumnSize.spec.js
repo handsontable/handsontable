@@ -75,10 +75,6 @@ describe('HiddenColumns', () => {
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is enabled)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
@@ -101,10 +97,6 @@ describe('HiddenColumns', () => {
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,

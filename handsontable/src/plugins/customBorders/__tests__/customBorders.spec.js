@@ -1133,10 +1133,6 @@ describe('CustomBorders', () => {
     // based on tests in Core_count.spec.js
 
     it('should render borders only for rendered rows', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const height = 125;
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
@@ -1153,10 +1149,6 @@ describe('CustomBorders', () => {
     });
 
     it('should render borders only for rendered rows, after scrolling', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const height = 125;
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);

@@ -42,10 +42,6 @@ describe('NestedHeaders', () => {
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(7, 7),
           width: 300,
@@ -83,10 +79,6 @@ describe('NestedHeaders', () => {
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           width: 300,
@@ -151,10 +143,6 @@ describe('NestedHeaders', () => {
 
     describe('updateSettings', () => {
       it('should recreate the widths cache', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -180,10 +168,6 @@ describe('NestedHeaders', () => {
 
     describe('with hidden columns', () => {
       it('should calculate the columns widths when some columns are hidden on table initialization', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -228,10 +212,6 @@ describe('NestedHeaders', () => {
       });
 
       it('should recalculate the columns widths after hiding columns', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -275,10 +255,6 @@ describe('NestedHeaders', () => {
       });
 
       it('should recalculate the columns widths after showing columns', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [

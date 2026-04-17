@@ -19,10 +19,6 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
     describe('"Control/meta" + "Enter"', () => {
       it('should be possible to open the dropdown menu in the correct position', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(3, 8),
@@ -50,13 +46,9 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
       });
 
       it('should be possible to open the dropdown menu on the right position when on the left there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
+          data: createSpreadsheetData(4, Math.floor(window.innerWidth / getDefaultColumnWidth())),
           colHeaders: true,
           rowHeaders: true,
           navigableHeaders: true,

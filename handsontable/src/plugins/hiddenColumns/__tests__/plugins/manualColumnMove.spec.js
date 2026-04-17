@@ -244,10 +244,6 @@ describe('HiddenColumns', () => {
     describe('UI', () => {
       describe('backlight', () => {
         it('should get correct position and size while grabing the column placed after hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -271,10 +267,6 @@ describe('HiddenColumns', () => {
         });
 
         it('should get correct position and size while grabing the multiple columns placed after hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -306,10 +298,6 @@ describe('HiddenColumns', () => {
         });
 
         it('should get correct position and size while grabing the column placed before hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,
@@ -333,10 +321,6 @@ describe('HiddenColumns', () => {
         });
 
         it('should get correct position and size while grabing the multiple columns placed before hidden columns', async() => {
-          if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
           handsontable({
             data: createSpreadsheetData(10, 10),
             colHeaders: true,

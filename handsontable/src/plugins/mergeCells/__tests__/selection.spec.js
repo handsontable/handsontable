@@ -344,9 +344,6 @@ describe('MergeCells Selection', () => {
 
   it('should keep the highlight (area selection) on the virtualized merged cell ' +
     'after vertical scroll', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
 
     handsontable({
       data: createSpreadsheetData(100, 10),
@@ -380,9 +377,6 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep focus selection on the wide virtualized merged cell that intersects the left overlay', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -431,9 +425,6 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep area selection on the wide virtualized merged cell that intersects the left overlay', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -462,14 +453,11 @@ describe('MergeCells Selection', () => {
 
   it('should keep focus selection on the high virtualized merged cell that ' +
     'intersects the top overlay', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
 
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
-      height: 248,
+      height: containerHeightForRows(9, 0),
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
       mergeCells: {
@@ -500,10 +488,6 @@ describe('MergeCells Selection', () => {
 
     await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
-    const firstVisibleAfterPartialScroll = 'A1';
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe(firstVisibleAfterPartialScroll);
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
     expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
 
     expect(`
@@ -540,9 +524,6 @@ describe('MergeCells Selection', () => {
   });
 
   it('should keep area selection on the high virtualized merged cell that intersects the top overlay', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,

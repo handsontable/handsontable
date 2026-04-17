@@ -13,10 +13,6 @@ describe('DropdownMenu keyboard shortcut', () => {
   describe('"PageUp"', () => {
     it('should move the menu item selection to the first item that is visible in the browser viewport ' +
        'when there is no initial selection', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200),

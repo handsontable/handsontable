@@ -88,10 +88,6 @@ describe('ContextMenu', () => {
     });
 
     it('should show tick from "Read only" element at proper place', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),

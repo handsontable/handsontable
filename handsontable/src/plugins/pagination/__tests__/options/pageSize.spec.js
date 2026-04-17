@@ -373,10 +373,6 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the row heights (table with defined size)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
@@ -442,10 +438,6 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the value from "auto" to a number and vice versa (table without defined size)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 10),
         pagination: {
@@ -483,10 +475,6 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the window height (table without defined size)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 12),
         pagination: {
@@ -534,10 +522,6 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should render elements after changing the row heights (table without defined size)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
@@ -608,10 +592,6 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should correctly calculate all pages when rows are rendered with different height', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(100, 5).map((row, index) => {
           if (index % 5 === 0) {

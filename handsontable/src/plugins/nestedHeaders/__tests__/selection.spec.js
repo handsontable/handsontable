@@ -1029,10 +1029,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
        'the table\'s viewport and is wider than table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1053,10 +1049,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
        'the table\'s viewport and is wider than table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1079,10 +1071,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
         'the table\'s viewport and is narrower than the table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1103,10 +1091,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
         'the table\'s viewport and is narrower than the table width', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1129,10 +1113,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
        'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1154,10 +1134,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the right edge of the clicked nested header when its left index extends beyond ' +
        'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1181,10 +1157,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
         'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1206,10 +1178,6 @@ describe('NestedHeaders', () => {
 
     it('should scroll the viewport to the left edge of the clicked nested header when its left index extends beyond ' +
         'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,

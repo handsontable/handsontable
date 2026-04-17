@@ -144,9 +144,6 @@ describe('TextEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const layout = getThemeLayout();
     const overlayHeightPx = 240;
     const overlayWidthPx = 200;
@@ -268,9 +265,6 @@ describe('TextEditor', () => {
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays ' +
     'and the first row of each overlay is hidden', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const layout = getThemeLayout();
     const overlayHeightPx = 240;
     const overlayWidthPx = 200;
@@ -544,9 +538,6 @@ describe('TextEditor', () => {
   });
 
   it('should change editor z-index when switching overlays while the editor is open', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const layout = getThemeLayout();
     const containerHeightPx = 252;
 
@@ -687,9 +678,6 @@ describe('TextEditor', () => {
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
       columns: [{
@@ -738,9 +726,6 @@ describe('TextEditor', () => {
   });
 
   it('should hide whole editor when it is higher then header and TD is still rendered', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(50, 50),
       rowHeaders: true,
@@ -1865,9 +1850,6 @@ describe('TextEditor', () => {
   });
 
   it('should resize editor to properly size after focus', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const data = [
       ['', '', '', '', '', '', '', '', '', '', ''],
       ['', '', '', '', '', '', '', '', '', '', ''],

@@ -182,10 +182,6 @@ describe('Filters UI Value component', () => {
   });
 
   it('should utilize the \'modifyFiltersMultiSelectValue\' hook to display the cell value', async() => {
-    if (getLoadedTheme() !== 'main') {
-      return;
-    }
-
     const columnsSetting = getColumnsForFilters();
 
     handsontable({

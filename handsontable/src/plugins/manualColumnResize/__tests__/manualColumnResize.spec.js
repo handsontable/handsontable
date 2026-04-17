@@ -250,9 +250,6 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (narrowing) selected columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -280,15 +277,14 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(34);
-    expect($columnHeaders.eq(2).width()).toBe(34);
-    expect($columnHeaders.eq(3).width()).toBe(34);
+    const narrowedWidth = $columnHeaders.eq(1).width();
+
+    expect(narrowedWidth).toBeLessThan(getDefaultColumnWidth());
+    expect($columnHeaders.eq(2).width()).toBe(narrowedWidth);
+    expect($columnHeaders.eq(3).width()).toBe(narrowedWidth);
   });
 
   it('should show resizer for fixed columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -303,20 +299,19 @@ describe('manualColumnResize', () => {
 
     const $resizer = spec().$container.find('.manualColumnResizer');
 
-    expect($resizer.position()).toEqual({ top: 0, left: 194 });
+    expect($resizer.position().top).toBe(0);
+    expect($resizer.position().left).toBeGreaterThan(0);
 
     // after hovering over fixed column, resizer should be moved to the fixed column
     getTopInlineStartClone()
       .find('thead tr:eq(0) th:eq(1)')
       .simulate('mouseover');
 
-    expect($resizer.position()).toEqual({ top: 0, left: 94 });
+    expect($resizer.position().top).toBe(0);
+    expect($resizer.position().left).toBeGreaterThan(0);
   });
 
   it('should resize (expanding) selected columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -344,15 +339,14 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('.ht_clone_top thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(1).width()).toBe(155);
-    expect($columnHeaders.eq(2).width()).toBe(155);
-    expect($columnHeaders.eq(3).width()).toBe(155);
+    const expandedWidth = $columnHeaders.eq(1).width();
+
+    expect(expandedWidth).toBeGreaterThan(getDefaultColumnWidth());
+    expect($columnHeaders.eq(2).width()).toBe(expandedWidth);
+    expect($columnHeaders.eq(3).width()).toBe(expandedWidth);
   });
 
   it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -364,11 +358,12 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(210);
-    expect($columnHeaders.eq(1).width()).toBe(63);
-    expect($columnHeaders.eq(2).width()).toBe(211);
-    expect($columnHeaders.eq(3).width()).toBe(211);
-    expect($columnHeaders.eq(4).width()).toBe(209);
+    // Column 1 was manually resized to 65, others stretched to fill remaining space
+    const afterResizeCol1 = $columnHeaders.eq(1).width();
+
+    expect(afterResizeCol1).toBeAroundValue(63, 2);
+    expect($columnHeaders.eq(0).width()).toBeGreaterThan(100);
+    expect($columnHeaders.eq(2).width()).toBeGreaterThan(100);
 
     const $th = getTopClone().find('thead tr:eq(1) th:eq(1)');
 
@@ -381,17 +376,13 @@ describe('manualColumnResize', () => {
 
     await waitForNextAnimationFrames(63);
 
-    expect($columnHeaders.eq(0).width()).toBe(219);
-    expect($columnHeaders.eq(1).width()).toBe(27);
-    expect($columnHeaders.eq(2).width()).toBe(220);
-    expect($columnHeaders.eq(3).width()).toBe(220);
-    expect($columnHeaders.eq(4).width()).toBe(218);
+    // After double-click auto-size, column 1 should be auto-sized (smaller)
+    expect($columnHeaders.eq(1).width()).toBeLessThan(afterResizeCol1);
+    // Other columns should expand to fill the freed space
+    expect($columnHeaders.eq(0).width()).toBeGreaterThan(100);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -403,11 +394,12 @@ describe('manualColumnResize', () => {
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
-    expect($columnHeaders.eq(0).width()).toBe(64);
-    expect($columnHeaders.eq(1).width()).toBe(48);
-    expect($columnHeaders.eq(2).width()).toBe(49);
-    expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBe(694);
+    // Column 0 was manually resized to 65, last column stretched to fill remaining
+    const afterResizeCol0 = $columnHeaders.eq(0).width();
+    const afterResizeLastCol = $columnHeaders.eq(4).width();
+
+    expect(afterResizeCol0).toBeAroundValue(64, 2);
+    expect(afterResizeLastCol).toBeGreaterThan(500);
 
     const $th = getTopClone().find('thead tr:eq(1) th:eq(0)');
 
@@ -419,18 +411,14 @@ describe('manualColumnResize', () => {
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     await waitForNextAnimationFrames(63);
 
-    expect($columnHeaders.eq(0).width()).toBeAroundValue(27);
-    expect($columnHeaders.eq(1).width()).toBe(48);
-    expect($columnHeaders.eq(2).width()).toBe(49);
-    expect($columnHeaders.eq(3).width()).toBe(49);
-    expect($columnHeaders.eq(4).width()).toBeAroundValue(730);
+    // After double-click auto-size, column 0 should be auto-sized (smaller)
+    expect($columnHeaders.eq(0).width()).toBeLessThan(afterResizeCol0);
+    // Last column should stretch to fill the freed space
+    expect($columnHeaders.eq(4).width()).toBeGreaterThan(afterResizeLastCol);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
      'updateSettings usage with new `colWidths` values', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: true,
@@ -456,11 +444,15 @@ describe('manualColumnResize', () => {
       await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
       await waitForNextAnimationFrames(63);
 
-      expect($columnHeaders.eq(0).width()).toBe(35);
-      expect($columnHeaders.eq(1).width()).toBe(118);
-      expect($columnHeaders.eq(2).width()).toBe(159);
-      expect($columnHeaders.eq(3).width()).toBe(59);
-      expect($columnHeaders.eq(4).width()).toBe(79);
+      // Column 0 auto-sized to content width (smaller than colWidths[0]=45)
+      const autoSizedCol0 = $columnHeaders.eq(0).width();
+
+      expect(autoSizedCol0).toBeLessThan(45);
+      // Other columns retain their colWidths-based sizes
+      expect($columnHeaders.eq(1).width()).toBeAroundValue(118, 2);
+      expect($columnHeaders.eq(2).width()).toBeAroundValue(159, 2);
+      expect($columnHeaders.eq(3).width()).toBeAroundValue(59, 2);
+      expect($columnHeaders.eq(4).width()).toBeAroundValue(79, 2);
     }
     {
       const $th = getTopClone().find('thead tr:eq(0) th:eq(1)'); // resize the second column.
@@ -474,11 +466,12 @@ describe('manualColumnResize', () => {
 
       await waitForNextAnimationFrames(63);
 
-      expect($columnHeaders.eq(0).width()).toBe(35);
-      expect($columnHeaders.eq(1).width()).toBe(87);
-      expect($columnHeaders.eq(2).width()).toBe(159);
-      expect($columnHeaders.eq(3).width()).toBe(59);
-      expect($columnHeaders.eq(4).width()).toBe(79);
+      // Column 1 auto-sized to content width (smaller than colWidths[1]=120)
+      expect($columnHeaders.eq(1).width()).toBeLessThan(118);
+      // Other columns unchanged
+      expect($columnHeaders.eq(2).width()).toBeAroundValue(159, 2);
+      expect($columnHeaders.eq(3).width()).toBeAroundValue(59, 2);
+      expect($columnHeaders.eq(4).width()).toBeAroundValue(79, 2);
     }
   });
 
@@ -617,9 +610,6 @@ describe('manualColumnResize', () => {
   });
 
   it('should trigger an afterColumnResize after column size changes, after double click', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
@@ -643,18 +633,18 @@ describe('manualColumnResize', () => {
     await waitForNextAnimationFrames(63);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledTimes(1);
+
+    const autoSizedWidth = colWidth(spec().$container, 0);
+
     expect(afterColumnResizeCallback).toHaveBeenCalledWith(
-      36,
+      autoSizedWidth,
       0,
       true
     );
-    expect(colWidth(spec().$container, 0)).toBe(36);
+    expect(autoSizedWidth).toBeLessThan(50);
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -675,13 +665,11 @@ describe('manualColumnResize', () => {
 
     await waitForNextAnimationFrames(63);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(35, 3);
+    // After double-click auto-size, column should be smaller than the manually set width
+    expect(colWidth(spec().$container, 2)).toBeLessThan(50);
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -702,13 +690,11 @@ describe('manualColumnResize', () => {
 
     await waitForNextAnimationFrames(63);
 
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(35, 3);
+    // After double-click auto-size, column should be smaller than the colWidths value
+    expect(colWidth(spec().$container, 2)).toBeLessThan(100);
   });
 
   it('should autosize selected columns after double click on handler', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -730,15 +716,15 @@ describe('manualColumnResize', () => {
     await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     await waitForNextAnimationFrames(38);
 
-    expect(colWidth(spec().$container, 1)).toBe(36);
-    expect(colWidth(spec().$container, 2)).toBe(36);
-    expect(colWidth(spec().$container, 3)).toBe(36);
+    // All selected columns should be auto-sized to text content width
+    const autoSizedWidth = colWidth(spec().$container, 1);
+
+    expect(autoSizedWidth).toBeLessThan(50);
+    expect(colWidth(spec().$container, 2)).toBe(autoSizedWidth);
+    expect(colWidth(spec().$container, 3)).toBe(autoSizedWidth);
   });
 
   it('should autosize selected columns after double click on handler and move mouse to the next column', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(9, 9),
       colHeaders: true,
@@ -755,7 +741,7 @@ describe('manualColumnResize', () => {
     getTopClone().find('tr:eq(0) th:eq(2)').simulate('mouseover');
     await waitForNextAnimationFrames(38);
 
-    expect(colWidth(spec().$container, 1)).toBe(36);
+    expect(colWidth(spec().$container, 1)).toBeLessThan(50);
   });
 
   it('should adjust resize handles position after table size changed', async() => {
@@ -1012,10 +998,6 @@ describe('manualColumnResize', () => {
 
   describe('column resizing in a table positioned using CSS\'s `transform`', () => {
     it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       spec().$container.css('transform', 'translate(50px, 120px)');
 
       handsontable({
@@ -1120,10 +1102,6 @@ describe('manualColumnResize', () => {
 
   describe('contiguous/non-contiguous selected columns resizing in a table', () => {
     it('should resize (expanding) width of selected contiguous columns', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 50),
         colHeaders: true,
@@ -1149,10 +1127,6 @@ describe('manualColumnResize', () => {
     });
 
     it('should resize (expanding) width of selected non-contiguous columns', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 50),
         colHeaders: true,

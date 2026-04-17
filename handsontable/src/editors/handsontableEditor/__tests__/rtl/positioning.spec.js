@@ -39,10 +39,6 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
 
     it('should render the editors dropdown on the right edited cell when there is no space left on the left', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(25, 25),
         layoutDirection,

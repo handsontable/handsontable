@@ -44,11 +44,7 @@ describe('DropdownMenu (RTL mode)', () => {
 
       it('should open dropdown menu on the left-top position if on the right ' +
         'and bottom there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
-        const rowDivisor = 29;
+        const rowDivisor = getDefaultRowHeight();
 
         handsontable({
           layoutDirection,
@@ -77,7 +73,7 @@ describe('DropdownMenu (RTL mode)', () => {
       it('should open dropdown menu on the right-bottom position if on the left there is no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
+          data: createSpreadsheetData(4, Math.floor(window.innerWidth / getDefaultColumnWidth())),
           dropdownMenu: true,
         });
 
@@ -99,13 +95,9 @@ describe('DropdownMenu (RTL mode)', () => {
 
       it('should open dropdown menu on the right-top position if on the left ' +
         'and bottom there is no space left', async() => {
-        if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
         const layout = getThemeLayout();
-        const rowDivisor = 29;
-        const colDivisor = 50;
+        const rowDivisor = getDefaultRowHeight();
+        const colDivisor = getDefaultColumnWidth();
 
         handsontable({
           layoutDirection,
