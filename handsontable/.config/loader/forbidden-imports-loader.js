@@ -16,9 +16,12 @@ module.exports = function forbiddenImportsLoader(source) {
   // Match side-effect imports: import 'module';
   const sideEffectImportRegex = /import\s+['"]([^'"]+)['"]/g;
   // Match named/default imports: import X from 'module'; import { X } from 'module';
-  const namedImportRegex = /import\s+[^'"]+\s+from\s+['"]([^'"]+)['"]/g;
+  // Use a lazy [\s\S]*? segment to tolerate quoted comments between import and from,
+  // e.g. `import { /* it's */ foo } from 'module'`.
+  const namedImportRegex = /import\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]/g;
   // Match export-from re-exports: export { X } from 'module'; export * from 'module';
-  const exportFromRegex = /export\s+[^'"]+\s+from\s+['"]([^'"]+)['"]/g;
+  // Same quoted-comment tolerance as above.
+  const exportFromRegex = /export\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]/g;
   // Match require() calls: require('module')
   const requireRegex = /require\(\s*['"]([^'"]+)['"]\s*\)/g;
 

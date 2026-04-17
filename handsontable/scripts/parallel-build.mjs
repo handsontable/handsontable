@@ -92,7 +92,10 @@ function runTask(name) {
     const child = spawn(tasks[name].cmd, [], {
       cwd: ROOT,
       env: { ...process.env, PATH: envPATH },
-      stdio: ['pipe', 'pipe', 'pipe'],
+      // We only read stderr for compact failure diagnostics.
+      // Keep stdout ignored to avoid deadlock if a child writes enough data
+      // to fill the pipe buffer while parent never consumes it.
+      stdio: ['ignore', 'ignore', 'pipe'],
       shell: true,
     });
 
