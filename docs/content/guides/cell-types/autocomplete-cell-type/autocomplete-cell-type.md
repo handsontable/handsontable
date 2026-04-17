@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: cjib1mhw
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
@@ -20,6 +21,8 @@ searchCategory: Guides
 category: Cell types
 ---
 Collect user input with a list of choices, by using the autocomplete cell type.
+
+The autocomplete cell type provides a text input with suggestions from a predefined list. Use it when users should choose from known values but can also type freely.
 
 [[toc]]
 
@@ -310,6 +313,10 @@ The left column uses the default case-insensitive behavior. The right column has
 :::
 
 :::
+
+## Result
+
+After configuring the autocomplete cell type, cells display a text input that shows matching suggestions as the user types. In strict mode, only values from the source list are accepted. In flexible mode, users can also enter custom values not in the list.
 
 ## Related articles
 

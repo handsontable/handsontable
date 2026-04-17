@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 38qivuj4
 title: Custom context menu in Vue 3
 metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Customize the context menu of your Vue 3 data grid, by creating a custom function for each menu item.
+In this tutorial, you will add custom items to the Handsontable context menu in a Vue 3 application. You will learn to define menu items with labels and callback functions.
 
 [[toc]]
 
@@ -91,3 +92,15 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 - [ContextMenu](@/api/contextMenu.md)
 
 </div>
+
+## What you learned
+
+- How to enable the context menu in a Vue 3 Handsontable application.
+- How to define custom menu items with labels and callback functions.
+- How to restrict menu items to specific contexts using the `contextMenu` option.
+
+## Next steps
+
+- [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) -- explore the full context menu API.
+- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md) -- build a custom cell editor.
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md) -- build a custom cell renderer.

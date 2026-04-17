@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 4ca0c70r
 title: Conditional formatting
 metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
@@ -17,6 +18,8 @@ category: Cell features
 Format specified cells, based on dynamic conditions.
 
 [[toc]]
+
+Conditional formatting lets you apply custom styles to cells based on their values. Use it to highlight outliers, flag errors, or visualize data ranges.
 
 ## Overview
 
@@ -103,3 +106,7 @@ This demo shows how to use the cell type renderer feature to make some condition
 - [CustomBorders](@/api/customBorders.md)
 
 </div>
+
+## Result
+
+Cells that match the defined conditions display the configured styles -- colors, fonts, or borders -- automatically updating as data changes.

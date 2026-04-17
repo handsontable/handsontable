@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
@@ -24,34 +25,9 @@ angular:
 searchCategory: Guides
 category: Formulas
 ---
-Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400
-functions, custom functions, named expressions, and more.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
 [[toc]]
-
-## Overview
-
-The _Formulas_ plugin adds spreadsheet-style calculation to Handsontable. It is powered by
-[HyperFormula](https://hyperformula.handsontable.com/), an open-source formula engine built by the
-Handsontable team.
-
-Key capabilities:
-
-- **~400 built-in functions** - Math, Engineering, Statistical, Financial, Logical, and more.
-- **Cross-sheet references** - formulas can reference cells in other Handsontable instances that
-  share the same HyperFormula engine.
-- **Named expressions** - assign a label to a value or formula and reuse it across the workbook.
-- **Custom functions** - extend HyperFormula with your own function implementations.
-
-Below are some ideas on what you can do with it:
-
-- Fully-featured spreadsheet apps
-- Smart documents
-- Educational apps
-- Business logic builders
-- Forms and form builders
-- Online calculators
-- Low connectivity apps
 
 ## Basic multi-sheet example
 
@@ -831,3 +807,7 @@ details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 - [Formulas](@/api/formulas.md)
 
 </div>
+
+## Result
+
+After setting up the `Formulas` plugin with a HyperFormula engine, cells that contain a formula (starting with `=`) are evaluated automatically. Editing a cell updates all dependent formula cells in real time, and cross-sheet references stay in sync across linked Handsontable instances.

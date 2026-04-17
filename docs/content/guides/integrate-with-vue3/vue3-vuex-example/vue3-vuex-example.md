@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: pxr5suzy
 title: Vuex in Vue 3
 metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.
+In this tutorial, you will connect a Handsontable grid to a Vuex store so that cell changes update shared application state.
 
 [[toc]]
 
@@ -31,3 +32,15 @@ The following example implements the `@handsontable/vue3` component with a [`rea
 @[code](@/content/guides/integrate-with-vue3/vue3-vuex-example/vue/example1.css)
 
 :::
+
+## What you learned
+
+- How to connect a Handsontable grid to a Vuex store in a Vue 3 application.
+- How to use Vuex getters and mutations to read and write grid data.
+- How to propagate cell changes from Handsontable hooks back to the store.
+
+## Next steps
+
+- [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) -- access the Handsontable API directly from your component.
+- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- configure columns declaratively alongside your store.
+- [Formulas integration in Vue 3](@/guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example.md) -- combine Vuex-managed data with formula calculations.

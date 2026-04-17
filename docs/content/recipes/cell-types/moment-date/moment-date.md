@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 9f21530e
 title: Moment.js-based date
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
@@ -20,6 +21,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to create a custom date cell type using Moment.js and the Pikaday calendar picker, with format auto-correction and per-column configuration.
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
 
@@ -333,3 +336,13 @@ const hot = new Handsontable(container, hotOptions);
 3. **Date selection**: User picks a date from the calendar or types a value; arrow keys navigate the picker
 4. **Validation**: Moment.js checks the format and date validity; auto-corrects if `correctFormat` is enabled
 5. **Save**: Valid values are saved to the cell; invalid values are rejected
+
+## What you learned
+
+You created a custom Moment.js-based date cell type in Handsontable. You used `editorFactory` with `position: 'portal'` to overlay a Pikaday calendar, Moment.js for date validation and format auto-correction, and `registerCellType` to make the cell type reusable across columns.
+
+## Next steps
+
+- [Pikaday](/recipes/cell-types/pikaday) - A standalone Pikaday date picker recipe that also serves as a migration path from the built-in date cell type.
+- [Moment.js time](/recipes/cell-types/moment-time) - The same Moment.js pattern applied to time values.
+- [Flatpickr](/recipes/cell-types/flatpickr) - An alternative date picker using the Flatpickr library with dark theme support.
