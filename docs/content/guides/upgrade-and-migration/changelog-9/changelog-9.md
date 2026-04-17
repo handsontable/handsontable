@@ -1,4 +1,5 @@
 ---
+type: reference
 id: flrcarvt
 title: Changelog 9.0
 metaTitle: Changelog 9.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 9.x.
+
 ## 9.0.2
 
 Released on July 28, 2021.
@@ -138,3 +142,7 @@ For more information on this release, see:
   ([#5870](https://github.com/handsontable/handsontable/issues/5870))
 - Fixed a bug with using the `clear` method broke the formulas in the table.
   ([#6248](https://github.com/handsontable/handsontable/issues/6248))
+
+## Related
+
+- [Migrating from 8.4 to 9.0](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md)

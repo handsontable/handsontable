@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 2rti5w12
 title: "Feedback Editor"
 metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cells
 ---
+
+This tutorial shows you how to build an emoji feedback cell in Angular using `HotCellEditorAdvancedComponent`, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for angular
 
@@ -613,3 +616,13 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 ---
 
 **Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent), matching the look of the [Feedback recipe](@/recipes/cell-types/feedback) and perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor in Angular using `HotCellEditorAdvancedComponent`. You used Handsontable CSS tokens for theme-aware button styling, `override shortcuts` for keyboard navigation, and `ChangeDetectorRef` to trigger view updates after keyboard-driven value changes.
+
+## Next steps
+
+- [Feedback (JavaScript)](/recipes/cell-types/feedback) - The same concept using `editorFactory` with Handsontable CSS tokens.
+- [Feedback (React)](/recipes/cell-types/feedback-react) - The React version using `EditorComponent`.
+- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - Another Angular editor using `HotCellEditorAdvancedComponent` with SVG stars.

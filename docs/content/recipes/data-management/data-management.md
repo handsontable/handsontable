@@ -34,5 +34,4 @@ Current recipes:
 <div class="boxes-list">
 
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
-
 </div>

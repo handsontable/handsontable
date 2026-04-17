@@ -1,4 +1,5 @@
 ---
+type: reference
 id: l59xqo44
 title: Changelog 17.0
 metaTitle: Changelog 17.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 17.x.
+
 ## 17.0.1
 
 Released on March 25th, 2026
@@ -101,3 +105,7 @@ For more information about this release, see:
 - Fixed incorrect scrollbar width calculation for scaled environments. [#12035](https://github.com/handsontable/handsontable/pull/12035)
 - Fixed and issue with column headers styles [#12058](https://github.com/handsontable/handsontable/pull/12058)
 - Angular: Fixed a problem with the Angular wrapper that broke builds done with a disabled `skipLibCheck`. [#12091](https://github.com/handsontable/handsontable/pull/12091)
+
+## Related
+
+- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)

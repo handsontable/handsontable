@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: ibewekco
 title: "Star Rating Editor"
 metaTitle: "Star Rating Editor - JavaScript Data Grid | Handsontable"
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build an interactive SVG star rating cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`, with hover preview and keyboard shortcuts.
 
 ::: only-for angular
 
@@ -762,3 +765,13 @@ export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponen
 ---
 
 **Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Angular components, perfect for intuitive 1-5 star ratings in your data grid!
+
+## What you learned
+
+You built an SVG star rating cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`. You used `DomSanitizer` to render inline SVG safely, `closest()` for reliable star hover detection, and `KeyboardShortcutConfig` for number-key and arrow-key selection.
+
+## Next steps
+
+- [Star Rating (JavaScript)](/recipes/cell-types/rating) - The same concept using `editorFactory` and `rendererFactory`.
+- [Star Rating (React)](/recipes/cell-types/react-rating) - The React version using `EditorComponent` and `react-star-rating-component`.
+- [Feedback Editor (Angular)](/recipes/feedback-angular) - Another Angular editor using `HotCellEditorAdvancedComponent`.

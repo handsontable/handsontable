@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: ffimaicc
 title: Modules
 metaTitle: Modules - JavaScript Data Grid | Handsontable
@@ -1290,3 +1291,7 @@ You can also use modules with Handsontable's framework wrappers:
 - [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
 
 </div>
+
+## Result
+
+Your bundle now includes only the modules you imported, reducing its size compared to the full Handsontable package.

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 7a5vawwl
 title: Custom builds
 metaTitle: Custom builds - JavaScript Data Grid | Handsontable
@@ -36,7 +37,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
 | `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |
 
-All the projects are released together, under the same version number.
+Handsontable releases all projects together, under the same version number.
 But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing/testing.md) processes.
 
 ### Build processes
@@ -89,8 +90,8 @@ To run your first build:
 2. Install [npm](https://www.npmjs.com/) (needed for the `examples` and `docs` packages).
 3. Install [pnpm](https://pnpm.io/) (needed for the monorepo dependency management). <br>The version should correspond to the one defined in the `packageManager` field of the root's `package.json`.
 4. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
-5. From the root directory, run `pnpm install`.<br>All the required dependencies get installed.
-6. From the root directory, run `pnpm run build`.<br>All the Handsontable packages get built.
+5. From the root directory, run `pnpm install`.<br>pnpm installs all required dependencies.
+6. From the root directory, run `pnpm run build`.<br>The script builds all Handsontable packages.
 
 ## Build the packages
 
@@ -309,3 +310,7 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 - [Testing](@/guides/tools-and-building/testing/testing.md)
 
 </div>
+
+## Result
+
+You now have a local build of Handsontable. The output files in `handsontable/dist/` and `handsontable/tmp/` reflect your source changes.
