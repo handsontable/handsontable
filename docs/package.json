@@ -17,8 +17,7 @@
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
     "docs:code-examples:generate-js": "node scripts/transpile-doc-example.mjs",
     "docs:visual-test": "npx playwright test",
-    "docs:visual-test:update-screenshot": "npx playwright test -u",
-    "docs:code-examples:generate-js": "node scripts/transpile-doc-example.mjs"
+    "docs:visual-test:update-screenshot": "npx playwright test -u"
   },
   "license": "CC BY 4.0",
   "dependencies": {
