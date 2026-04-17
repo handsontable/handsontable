@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: xfus5qpz
 title: Design System
 metaTitle: Design System / UI Kit - JavaScript Data Grid | Handsontable
@@ -26,7 +27,7 @@ searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-Design, prototype, and customize your data grid with the Design System for Figma.
+The Handsontable design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
 
 [[toc]]
 
@@ -79,5 +80,14 @@ Didn't find what you need? Try this:
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Themes](@/guides/styling/themes/themes.md)
+- [Legacy Style](@/guides/styling/legacy-style/legacy-style.md)
 
 </div>

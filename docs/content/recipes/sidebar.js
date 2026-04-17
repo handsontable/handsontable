@@ -1,3 +1,11 @@
+const dataManagementItems = [
+  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
+  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
+  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript'] },
+];
+
 const cellTypesItems = [
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript'] },
   { path: 'cell-types/feedback-react/feedback-react', title: 'Simple Feedback', onlyFor: ['react'] },
@@ -16,21 +24,93 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
-const dataManagementItems = [
-  { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript'] },
+const renderingStylingItems = [
+  {
+    path: 'rendering-styling/frozen-summary-row/frozen-summary-row',
+    title: 'Frozen summary row',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
+    title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
+];
+
+const importExportItems = [
+  {
+    path: 'import-export/export-to-pdf/export-to-pdf',
+    title: 'Export to PDF',
+    onlyFor: ['javascript'],
+  },
+];
+
+const filteringAndSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
+  {
+    path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
+    title: 'Highlight search matches',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
+
+const editingValidationItems = [
+  {
+    path: 'editing-validation/dependent-dropdowns/dependent-dropdowns',
+    title: 'Dependent dropdowns',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
+    title: 'Row validation with error summary',
+    onlyFor: ['javascript'],
+  },
+];
+
 
 module.exports = {
   sidebar: [
     'introduction',
-    { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
+    { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    {
+      title: 'Editing and Validation',
+      path: 'editing-validation',
+      children: editingValidationItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Import and Export',
+      path: 'import-export',
+      children: importExportItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Filtering and Search',
+      path: 'filtering-and-search',
+      children: [
+        ...filteringAndSearchItems,
+        { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+      ],
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Rendering and styling',
+      path: 'rendering-styling',
+      children: renderingStylingItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };

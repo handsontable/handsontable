@@ -19,5 +19,6 @@ commonjs/
 es/
 coverage/
 tmp/
+tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
