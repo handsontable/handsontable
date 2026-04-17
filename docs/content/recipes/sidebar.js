@@ -24,6 +24,15 @@ const importExportItems = [
   },
 ];
 
+const filteringAndSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
+  {
+    path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
+    title: 'Highlight search matches',
+    onlyFor: ['javascript'],
+  },
+];
+
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -44,10 +53,6 @@ const dataManagementItems = [
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
 ];
 
-const filteringSearchItems = [
-  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
-];
-
 module.exports = {
   sidebar: [
     'introduction',
@@ -66,8 +71,14 @@ module.exports = {
       collapsable: false,
       onlyFor: ['javascript'],
     },
+    {
+      title: 'Filtering and Search',
+      path: 'filtering-and-search',
+      children: filteringAndSearchItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Filtering and Search', path: 'filtering-search', children: filteringSearchItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
