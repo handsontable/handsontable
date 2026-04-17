@@ -22,7 +22,7 @@ const cellTypesItems = [
   { path: 'cell-types/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
   { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
+  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
 ];
 
 const renderingStylingItems = [
@@ -34,6 +34,11 @@ const renderingStylingItems = [
   {
     path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
     title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
+    title: 'Conditional row coloring',
     onlyFor: ['javascript'],
   },
 ];
