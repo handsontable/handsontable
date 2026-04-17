@@ -1,11 +1,11 @@
 /**
  * Docs assistant widget root.
  *
- * Renders a floating action button (FAB) and a right-side panel. The panel
- * is *non-modal* (`aria-modal="false"`) on purpose: readers can keep
- * interacting with the docs while the assistant is open. ESC and the close
- * button both return focus to the FAB; opening the panel moves focus to
- * the composer so keyboard users can start typing immediately.
+ * The panel is triggered by header buttons (`#header-assistant-btn` and
+ * `#mobile-assistant-btn`) rendered in Header.astro. The panel is
+ * *non-modal* (`aria-modal="false"`) so readers can keep interacting
+ * with the docs while the assistant is open. ESC and the close button
+ * both dismiss the panel; opening moves focus to the composer.
  *
  * Open state, thread, and panel width are persisted to localStorage
  * (see `STORAGE_KEYS`) so navigation between docs pages does not reset
@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS, WIDTH } from './constants';
-import { IconChat, IconClose, IconNew } from './icons';
+import { IconChatbot, IconClose, IconTrash } from './icons';
 import { Thread } from './Thread';
 import { useAssistant } from './useAssistant';
 import './DocsAssistant.css';
@@ -38,10 +38,13 @@ function readInitialWidth(): number {
   }
 }
 
+/** IDs of the header buttons rendered by Header.astro */
+const HEADER_BTN_IDS = ['header-assistant-btn', 'mobile-assistant-btn'];
+
 export function DocsAssistantWidget() {
   const [open, setOpen] = useState<boolean>(() => readInitialOpen());
   const [width, setWidth] = useState<number>(() => readInitialWidth());
-  const fabRef = useRef<HTMLButtonElement>(null);
+  const [pendingDraft, setPendingDraft] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const resizingRef = useRef(false);
   const { state, send, stop, retry, clear, setFeedback } = useAssistant();
@@ -62,13 +65,36 @@ export function DocsAssistantWidget() {
     }
   }, [width]);
 
+  // Listen for clicks on the header buttons (outside React tree)
+  useEffect(() => {
+    const toggle = () => setOpen((v) => !v);
+    const btns = HEADER_BTN_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+    btns.forEach((btn) => btn!.addEventListener('click', toggle));
+    return () => {
+      btns.forEach((btn) => btn!.removeEventListener('click', toggle));
+    };
+  }, []);
+
+  // "Ask AI about this page" button in ToC — clears chat and pre-fills draft
+  useEffect(() => {
+    const tocBtn = document.getElementById('toc-assistant-btn');
+    if (!tocBtn) return;
+    const handleAskAboutPage = () => {
+      const pageTitle = tocBtn.getAttribute('data-page-title') || document.title;
+      clear();
+      setPendingDraft(`I have a question about the "${pageTitle}" page.\n`);
+      setOpen(true);
+    };
+    tocBtn.addEventListener('click', handleAskAboutPage);
+    return () => tocBtn.removeEventListener('click', handleAskAboutPage);
+  }, [clear]);
+
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(() => composerRef.current?.focus(), 50);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setOpen(false);
-        fabRef.current?.focus();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -96,80 +122,63 @@ export function DocsAssistantWidget() {
     window.addEventListener('pointerup', onUp);
   }, []);
 
-  const toggleOpen = () => setOpen((v) => !v);
-
   return (
-    <>
-      <button
-        ref={fabRef}
-        type="button"
-        className="da-fab"
-        aria-label="Open docs assistant"
-        aria-hidden={open}
-        tabIndex={open ? -1 : 0}
-        onClick={toggleOpen}
-        data-open={open ? 'true' : 'false'}
-      >
-        <IconChat />
-      </button>
-
-      <aside
-        className="da-panel"
-        role="dialog"
-        aria-modal="false"
-        aria-label="Docs assistant"
-        data-open={open ? 'true' : 'false'}
-        style={{ width: `${width}px` }}
-      >
-        <div
-          className="da-resize"
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize assistant panel"
-          onPointerDown={startResize}
-        />
-        <header className="da-header">
-          <div className="da-title">
-            <img className="da-logo da-logo-light" src="/docs/img/favicon.png" alt="" width="28" height="28" />
-            <img className="da-logo da-logo-dark" src="/docs/img/favicon-dark.png" alt="" width="28" height="28" />
-            <span>Docs assistant</span>
-          </div>
-          <div className="da-header-actions">
+    <aside
+      className="da-panel"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Docs assistant"
+      data-open={open ? 'true' : 'false'}
+      style={{ width: `${width}px` }}
+    >
+      <div
+        className="da-resize"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize assistant panel"
+        onPointerDown={startResize}
+      />
+      <header className="da-header">
+        <div className="da-title">
+          <IconChatbot />
+          <span>Docs assistant</span>
+        </div>
+        <div className="da-header-actions">
+          {state.messages.length > 0 && (
             <button
               type="button"
               className="da-header-btn"
               onClick={clear}
-              aria-label="New conversation"
-              title="New conversation"
+              aria-label="Clear chat"
+              title="Clear chat"
             >
-              <IconNew />
+              <IconTrash />
             </button>
-            <button
-              type="button"
-              className="da-header-btn"
-              onClick={() => {
-                setOpen(false);
-                fabRef.current?.focus();
-              }}
-              aria-label="Close assistant"
-              title="Close"
-            >
-              <IconClose />
-            </button>
-          </div>
-        </header>
+          )}
+          <button
+            type="button"
+            className="da-header-btn"
+            onClick={() => setOpen(false)}
+            aria-label="Close assistant"
+            title="Close"
+          >
+            <IconClose />
+          </button>
+        </div>
+      </header>
 
-        <Thread
-          messages={state.messages}
-          streaming={state.streaming}
-          error={state.error}
-          composerRef={composerRef}
-          onSend={send}
-          onStop={stop}
-          onRetry={retry}
-          onFeedback={setFeedback}
-        />
-      </aside>
-    </>
+      <Thread
+        messages={state.messages}
+        streaming={state.streaming}
+        error={state.error}
+        composerRef={composerRef}
+        pendingDraft={pendingDraft}
+        onPendingDraftConsumed={() => setPendingDraft(null)}
+        onSend={send}
+        onStop={stop}
+        onRetry={retry}
+        onFeedback={setFeedback}
+      />
+    </aside>
   );
 }

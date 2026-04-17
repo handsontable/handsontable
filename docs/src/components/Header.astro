@@ -65,6 +65,17 @@ const frameworks = [
       {shouldRenderSearch && <Search />}
     </div>
     <div class="sl-hidden md:sl-flex print:hidden right-group">
+      <!-- Docs assistant toggle -->
+      <button
+        type="button"
+        class="header-assistant-btn"
+        id="header-assistant-btn"
+        aria-label="Open docs assistant"
+        title="Docs assistant"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
+        <span>Ask AI</span>
+      </button>
       <!-- GitHub stars badge -->
       <a
         href="https://github.com/handsontable/handsontable"
@@ -90,6 +101,15 @@ const frameworks = [
       <div class="mobile-theme-toggle">
         <ThemeSelect />
       </div>
+      <button
+        type="button"
+        class="header-assistant-btn mobile-assistant-btn"
+        id="mobile-assistant-btn"
+        aria-label="Open docs assistant"
+        title="Docs assistant"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
+      </button>
       <button class="mobile-menu-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav-overlay">
         <svg class="mobile-menu-icon-open" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
         <svg class="mobile-menu-icon-close" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
@@ -604,6 +624,31 @@ const frameworks = [
     border-color: var(--sl-color-accent);
     z-index: 1;
     background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  /* Docs assistant header button — matches ht-link-card visual style */
+  .header-assistant-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    padding: 0.15rem 0.6rem;
+    color: var(--sl-color-gray-1);
+    font-family: inherit;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+  }
+  .header-assistant-btn:hover {
+    color: var(--sl-color-white);
+    background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  }
+  .mobile-assistant-btn span {
+    display: none;
   }
 
   /* GitHub stars badge */
