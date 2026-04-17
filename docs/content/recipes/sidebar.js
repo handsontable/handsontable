@@ -27,6 +27,7 @@ const dataManagementItems = [
 ];
 
 const filteringSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
 ];
 
 module.exports = {
