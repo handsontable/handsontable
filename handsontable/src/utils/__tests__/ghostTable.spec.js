@@ -197,11 +197,6 @@ describe('GhostTable', () => {
     });
 
     it('should get valid widths', async() => {
-      // TODO(theme-agnostic): column widths depend on autoColumnSize font metrics
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       const hot = handsontable(hotSettings);
       const widthSpy = jasmine.createSpy();
       const samples = new Map();
@@ -225,12 +220,26 @@ describe('GhostTable', () => {
       gt.getWidths(widthSpy);
 
       expect(widthSpy.calls.count()).toBe(3);
+
+      // Column 0 contains "Foo.....Bar" -- the widest sample
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).toBe(84);
+      const width0 = widthSpy.calls.argsFor(0)[1];
+
+      expect(width0).toBeGreaterThan(0);
+
+      // Column 1 contains "Foo\nBar\nsqw" -- narrowest because of line breaks
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).toBe(43);
+      const width1 = widthSpy.calls.argsFor(1)[1];
+
+      expect(width1).toBeGreaterThan(0);
+      expect(width1).toBeLessThan(width0);
+
+      // Column 2 contains "Foo Bar" -- wider than "sqw" but narrower than "Foo.....Bar"
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).toBe(68);
+      const width2 = widthSpy.calls.argsFor(2)[1];
+
+      expect(width2).toBeGreaterThan(width1);
+      expect(width2).toBeLessThan(width0);
     });
 
     it('should get rounded up widths when the browser calculates the columns as a decimal values', async() => {

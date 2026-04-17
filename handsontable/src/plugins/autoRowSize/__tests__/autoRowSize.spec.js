@@ -279,11 +279,6 @@ describe('AutoRowSize', () => {
   });
 
   it('should sync inline start overlay with the main table after updating the last cell with new value (#7102)', async() => {
-    // TODO(theme-agnostic): row heights and scroll positions depend on font metrics
-    if (getLoadedTheme() !== 'main') {
-      return;
-    }
-
     handsontable({
       data: [
         ['A long text'],
@@ -306,8 +301,10 @@ describe('AutoRowSize', () => {
     await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
-    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(216);
-    expect(getMaster().find('.wtHolder').scrollTop()).toBe(216);
+    const mainScroll = getMaster().find('.wtHolder').scrollTop();
+
+    expect(mainScroll).toBeGreaterThan(0);
+    expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(mainScroll);
   });
 
   it('should consider CSS style of each instance separately', async() => {
@@ -437,11 +434,6 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column resize', async() => {
-    // TODO(theme-agnostic): row heights and scroll positions depend on font metrics
-    if (getLoadedTheme() !== 'main') {
-      return;
-    }
-
     handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -452,34 +444,52 @@ describe('AutoRowSize', () => {
     });
 
     const manualColumnResizePlugin = getPlugin('manualColumnResize');
+    const layout = getThemeLayout();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
+    // Capture initial heights at 250px column width
+    const row0HeightInitial = parseInt(getCell(0, -1).style.height, 10);
+    const row1HeightInitial = parseInt(getCell(1, -1).style.height, 10);
+    const row2HeightInitial = parseInt(getCell(2, -1).style.height, 10);
+
+    expect(row0HeightInitial).toBeGreaterThanOrEqual(layout.firstRenderedRowDefaultHeight);
+    expect(row1HeightInitial).toBeGreaterThanOrEqual(layout.defaultDataRowHeight);
+    expect(row2HeightInitial).toBeGreaterThanOrEqual(layout.defaultDataRowHeight);
 
     await resizeColumn(1, 90);
 
     manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(89);
+    // Row 1 has "The very very longest one" in a 90px column -- wraps, so taller than at 250px
+    const row1HeightAt90 = parseInt(getCell(1, -1).style.height, 10);
+
+    expect(row1HeightAt90).toBeGreaterThan(layout.defaultDataRowHeight);
+    expect(row1HeightAt90).toBeGreaterThanOrEqual(row1HeightInitial);
+
+    // Row 2 has "The very very very longest one" in col 0 (250px, may wrap by theme)
+    // and "Short" in col 1 (90px, no wrap). Height depends on col 0 text wrapping.
+    const row2HeightAt90 = parseInt(getCell(2, -1).style.height, 10);
+
+    expect(row2HeightAt90).toBeGreaterThanOrEqual(layout.defaultDataRowHeight);
 
     await resizeColumn(1, 50);
 
     manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_5e8f2219da());
+    // When column is even narrower, text wraps more -- rows get taller or stay the same
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBeGreaterThanOrEqual(row1HeightAt90);
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBeGreaterThanOrEqual(row2HeightAt90);
 
     await resizeColumn(1, 200);
 
     manualColumnResizePlugin.afterMouseDownTimeout();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(49);
+    // When column is wide enough, text fits on fewer lines -- heights should decrease
+    // or stay at their initial values
+    const row1HeightAt200 = parseInt(getCell(1, -1).style.height, 10);
+    const row2HeightAt200 = parseInt(getCell(2, -1).style.height, 10);
+
+    expect(row1HeightAt200).toBeLessThanOrEqual(row1HeightAt90);
+    expect(row2HeightAt200).toBeLessThanOrEqual(row2HeightAt90);
   });
 
   it('should recalculate heights after column moved', async() => {
@@ -679,11 +689,6 @@ describe('AutoRowSize', () => {
   });
 
   it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', async() => {
-    // TODO(theme-agnostic): row heights and scroll positions depend on font metrics
-    if (getLoadedTheme() !== 'main') {
-      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 400,
@@ -695,13 +700,15 @@ describe('AutoRowSize', () => {
 
     await scrollViewportTo(49, 0);
 
-    expect(topOverlay().getScrollPosition()).toBe(1135);
+    const scrollPosBefore = topOverlay().getScrollPosition();
+
+    expect(scrollPosBefore).toBeGreaterThan(0);
 
     await listen();
     await selectColumns(2, 2);
     await keyDownUp('delete');
 
-    expect(topOverlay().getScrollPosition()).toBe(1135);
+    expect(topOverlay().getScrollPosition()).toBe(scrollPosBefore);
   });
 
   it('should correctly calculate row heights for cell\'s content that produce ' +
