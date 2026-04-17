@@ -6,32 +6,30 @@ canonicalUrl: /recipes/data-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-id: d7k3p9v1
-description: Practical recipes for undo, redo, and other data-change workflows in Handsontable.
+id: c4b7e2f1
+description: Practical recipes for loading, syncing, and managing data in Handsontable.
 react:
-  id: q2m8t4c6
+  id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
 angular:
-  id: n5r1b7h3
+  id: 6e1c8b3d
   metaTitle: Data Management Recipes - Angular Data Grid | Handsontable
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical, ready-to-use recipes for managing user-driven data changes in Handsontable.
+This section provides practical recipes for loading, syncing, and managing data in Handsontable. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 
-Our recipes cover common use cases and demonstrate best practices for:
+Our recipes cover common use cases and implementation patterns for:
 
-- **Undo and redo UX** - Connect built-in data history to custom controls.
-- **State-aware controls** - Keep action buttons in sync with plugin state.
+- **Remote data loading** -- Fetching JSON data and rendering it in the grid.
+- **Data synchronization** -- Keeping multiple grid instances in sync.
+- **Undo and redo UX** -- Connecting built-in data history to custom controls.
 
 Current recipes:
 
 <div class="boxes-list">
-
-- [Undo / redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
-
 </div>

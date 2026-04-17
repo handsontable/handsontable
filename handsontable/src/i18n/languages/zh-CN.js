@@ -135,7 +135,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '无法更新行',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '无法删除行',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '请求失败',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '关闭',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新加载',
 };
 
 export default dictionary;

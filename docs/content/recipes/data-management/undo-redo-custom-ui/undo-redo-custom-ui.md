@@ -191,8 +191,8 @@ syncHistoryButtons();
 
 <div class="boxes-list">
 
-- [undo()](@/api/core.md#undo)
-- [redo()](@/api/core.md#redo)
+- [undo()](@/api/undoRedo.md#undo)
+- [redo()](@/api/undoRedo.md#redo)
 - [UndoRedo](@/api/undoRedo.md)
 - [afterChange](@/api/hooks.md#afterchange)
 - [afterUndo](@/api/hooks.md#afterundo)

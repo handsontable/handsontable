@@ -31,7 +31,7 @@ Enable the context menu with the default configuration:
 contextMenu: true,
 ```
 
-To see the context menu, right-click on a cell:
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: only-for javascript
 
@@ -110,7 +110,7 @@ You can define the items in the menu by passing the [`contextMenu`](@/api/option
 | [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter. Requires: [`Filters`](@/api/filters.md)                                                                                                 |
 | [`export_file`](@/api/contextMenu.md)                    | Open the Export submenu with "To CSV" and "To Excel" items. Requires: [`ExportFile`](@/api/exportFile.md). The Excel item is hidden when no XLSX engine is configured. |
 
-To see the context menu, right-click on a cell:
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: only-for javascript
 
@@ -151,7 +151,7 @@ To see the context menu, right-click on a cell:
 
 In addition to built-in options, you can equip your context menu with custom options.
 
-To see the context menu, right-click on a cell:
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: example #example4 :react --js 1 --ts 2
 
@@ -220,7 +220,7 @@ The following example shows how to:
 - Use a custom renderer
 
 
-To see the context menu, right-click on a cell:
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
 ::: only-for javascript
 
@@ -255,11 +255,12 @@ To see the context menu, right-click on a cell:
 
 :::
 
-## Related keyboard shortcuts
+## Related keyboard shortcuts and gestures
 
 | Windows                                                                                               | macOS                                                                                                | Action                                                        |  Excel  | Sheets  |
 | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> or <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**\\**</kbd> or <kbd>⇧</kbd>+<kbd>**F10**</kbd> | Open the context menu                                         | &cross; | &check; |
+| Long-press (touch devices)                                                                            | Long-press (touch devices)                                                                           | Open the context menu                                         | &cross; | &check; |
 | Arrow keys                                                                                            | Arrow keys                                                                                           | Move one available menu item up, down, left, or right         | &check; | &check; |
 | <kbd>**Page Up**</kbd>                                                                                | <kbd>**Page Up**</kbd>                                                                               | Move to the first visible item of the context menu or submenu | &check; | &cross; |
 | <kbd>**Page Down**</kbd>                                                                              | <kbd>**Page Down**</kbd>                                                                             | Move to the last visible item of the context menu or submenu  | &check; | &cross; |

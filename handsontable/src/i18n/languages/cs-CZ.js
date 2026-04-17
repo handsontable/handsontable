@@ -133,7 +133,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Řádky se nepodařilo aktualizovat',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zavřít',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Znovu načíst',
 };
 
 export default dictionary;

@@ -24,7 +24,6 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-2-released)
-- [Documentation (7.4.2)](https://handsontable.com/docs/7.4.2/)
 - [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/7.4.2)
 
 </div>
@@ -57,7 +56,6 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-0-released)
-- [Documentation (7.4.0)](https://handsontable.com/docs/7.4.0/)
 - [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/7.4.0)
 
 </div>

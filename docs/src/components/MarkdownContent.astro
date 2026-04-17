@@ -1,0 +1,23 @@
+---
+/**
+ * MarkdownContent override.
+ *
+ * Wraps Starlight's default MarkdownContent in a `<div class="content__default">`
+ * so the Algolia crawler's legacy VuePress selectors continue to work:
+ *
+ *   ".content__default p"   -- page content
+ *   ".content__default li"  -- page list items
+ *   ".content__default h2"  -- h2 headings (lvl2)
+ *   ".content__default h3"  -- h3 headings (lvl3)
+ *   ".content__default h4"  -- h4 headings (lvl4)
+ *   ".content__default h5"  -- h5 headings (lvl5)
+ *
+ * The wrapper div carries no styling; all existing rules targeting
+ * `.sl-markdown-content` (rendered inside by Default) remain unaffected.
+ */
+import Default from '@astrojs/starlight/components/MarkdownContent.astro';
+---
+
+<div class="content__default">
+  <Default {...Astro.props}><slot /></Default>
+</div>
