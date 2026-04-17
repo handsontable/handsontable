@@ -33,6 +33,7 @@ const themesItems = [
 
 const dataManagementItems = [
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
+  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
 ];
 
 const filteringSearchItems = [
