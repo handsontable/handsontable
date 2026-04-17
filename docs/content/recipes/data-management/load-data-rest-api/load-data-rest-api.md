@@ -31,7 +31,7 @@ This recipe shows how to fetch JSON from a REST API and populate Handsontable af
 
 ::: only-for react
 
-::: example #example1 :react --tsx 1 --jsx 2
+::: example #example1 :react-advanced --tsx 1 --jsx 2
 
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example1.tsx)
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example1.jsx)
