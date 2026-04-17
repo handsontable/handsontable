@@ -33,14 +33,12 @@ function buildUrl(base: string, { page, pageSize, sort, filters }: DataProviderQ
   if (filters) {
     filters.forEach((filter, i) => {
       params.set(`filters[${i}][prop]`, filter.prop);
-      params.set(`filters[${i}][condition]`, filter.condition);
-      const value = filter.value;
-      if (Array.isArray(value)) {
-        // Single-value conditions: contains, gt, eq, begins_with …
-        if (value[0] != null) params.set(`filters[${i}][value]`, String(value[0]));
-        // Range conditions: between, not_between
-        if (value[1] != null) params.set(`filters[${i}][value2]`, String(value[1]));
-      }
+      params.set(`filters[${i}][condition]`, filter.condition.name);
+      const args = filter.condition.args ?? [];
+      // Single-value conditions: contains, gt, eq, begins_with …
+      if (args[0] != null) params.set(`filters[${i}][value]`, String(args[0]));
+      // Range conditions: between, not_between
+      if (args[1] != null) params.set(`filters[${i}][value2]`, String(args[1]));
     });
   }
 
