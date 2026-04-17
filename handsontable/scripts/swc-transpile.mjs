@@ -26,14 +26,19 @@ import { performance } from 'node:perf_hooks';
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(currentDir, '..');
 
-// Parse CLI args
+// Parse CLI args. `indexOf` returns -1 when the flag is absent, so reading
+// `args[-1 + 1]` (i.e. `args[0]`) silently substitutes an unrelated argument
+// for a missing value. Guard on -1 before indexing.
 const args = process.argv.slice(2);
-const format = args[args.indexOf('--format') + 1] || 'commonjs';
-const outDir = resolve(ROOT, args[args.indexOf('--out-dir') + 1] || 'tmp');
-const outExt = args.includes('--out-ext') ? args[args.indexOf('--out-ext') + 1] : '.js';
-const srcDir = args.includes('--src-dir')
-  ? resolve(ROOT, args[args.indexOf('--src-dir') + 1])
-  : resolve(ROOT, 'src');
+const getArg = (name, fallback) => {
+  const idx = args.indexOf(name);
+
+  return idx !== -1 ? args[idx + 1] : fallback;
+};
+const format = getArg('--format', 'commonjs');
+const outDir = resolve(ROOT, getArg('--out-dir', 'tmp'));
+const outExt = getArg('--out-ext', '.js');
+const srcDir = resolve(ROOT, getArg('--src-dir', 'src'));
 const langRegistration = args.includes('--lang-registration');
 
 const IGNORE_PATTERNS = [/__tests__/, /[/\\]test[/\\]/, /[/\\]dist[/\\]/];

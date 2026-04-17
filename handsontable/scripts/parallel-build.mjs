@@ -194,7 +194,7 @@ async function build() {
 
       throw new Error(
         `Build stalled: ${pending.length} task(s) never ran (${pending.join(', ')}). `
-        + `Check the dependency graph for cycles or unresolved deps.`
+        + 'Check the dependency graph for cycles or unresolved deps.'
       );
     }
 
