@@ -22,6 +22,11 @@ const renderingStylingItems = [
     title: 'Frozen summary row',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
+    title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const importExportItems = [

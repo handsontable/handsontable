@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 id: a8f3c91d
-description: Practical recipes for row layout, summaries, conditional styling, and visual tweaks in Handsontable.
+description: Practical recipes for row layout, summaries, custom renderers, and visual styling in Handsontable.
 react:
   id: b2e4d80a
   metaTitle: Rendering and styling recipes - React Data Grid | Handsontable
@@ -19,7 +19,7 @@ angular:
 
 ## Overview
 
-This section collects recipes that focus on how the grid is **laid out** and how cells **look**: pinned summary rows and similar patterns.
+This section collects recipes that focus on how the grid is laid out and how cells look. You can use these patterns for pinned summaries, inline graphics, and visual tweaks without adding heavy charting libraries.
 
 ## Getting started
 
@@ -28,5 +28,6 @@ If you are new to fixed rows, read the [Row freezing](@/guides/rows/row-freezing
 ## Available recipes
 
 - [Frozen summary row](@/content/recipes/rendering-styling/frozen-summary-row/frozen-summary-row.md) - pinned bottom row with sum, average, and count that updates on edits
+- [Sparkline cell renderer](@/content/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) - mini SVG bar charts from array values in a cell
 
 Each recipe includes runnable examples you can copy into your project.
