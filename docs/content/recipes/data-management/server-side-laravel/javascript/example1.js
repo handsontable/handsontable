@@ -43,7 +43,6 @@ function applyFilters(rows, filters) {
     filters.every(({ prop, condition }) => {
       const cell = row[prop];
       const [v, v2] = condition.args ?? [];
-      const s = str => String(cell ?? '').toLowerCase().includes(String(v ?? '').toLowerCase());
       switch (condition.name) {
         case 'contains': return String(cell ?? '').toLowerCase().includes(String(v ?? '').toLowerCase());
         case 'not_contains': return !String(cell ?? '').toLowerCase().includes(String(v ?? '').toLowerCase());

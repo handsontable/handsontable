@@ -32,7 +32,10 @@ class ProductController extends Controller
                 $value     = $filter['value']     ?? null;
                 $value2    = $filter['value2']    ?? null;
 
-                if (!$prop || !$condition) {
+                // Validate $prop against an allowlist of filterable columns before
+                // interpolating it into any raw SQL to prevent SQL injection.
+                $allowedColumns = ['name', 'sku', 'category', 'price', 'stock'];
+                if (!$prop || !$condition || !in_array($prop, $allowedColumns, true)) {
                     continue;
                 }
 
@@ -82,10 +85,13 @@ class ProductController extends Controller
         // Use manual skip/take rather than Laravel's paginate() because
         // Handsontable sends 1-based page + pageSize directly.
         if (is_array($sort) && isset($sort['prop'], $sort['order'])) {
+            $allowedColumns = ['name', 'sku', 'category', 'price', 'stock'];
             $direction = in_array(strtolower($sort['order']), ['asc', 'desc'])
                 ? strtolower($sort['order'])
                 : 'asc';
-            $query->orderBy($sort['prop'], $direction);
+            if (in_array($sort['prop'], $allowedColumns, true)) {
+                $query->orderBy($sort['prop'], $direction);
+            }
         }
 
         // --- Pagination --------------------------------------------------------
