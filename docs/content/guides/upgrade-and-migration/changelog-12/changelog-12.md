@@ -1,4 +1,5 @@
 ---
+type: reference
 id: t93bqrh5
 title: Changelog 12.0
 metaTitle: Changelog 12.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 12.x.
+
 ## 12.4.0
 
 Released on May 23, 2023.
@@ -578,3 +582,7 @@ For more information on this release, see:
 - React, Vue 2, Vue 3: Fixed an issue with registering modules for the React, Vue 2, and Vue 3
   wrappers, by adding an `"exports"` field to their `package.json` files.
   [#9140](https://github.com/handsontable/handsontable/issues/9140)
+
+## Related
+
+- [Migrating from 11.1 to 12.0](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0.md)
