@@ -8,10 +8,11 @@ const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const { getClosest }  = require('./helper/path');
 
-// Allow-list of *non-relative* module specifiers that may appear in E2E test
-// sources. Relative imports (starting with '.' or '..') are unconditionally
-// accepted by forbidden-imports-loader because they resolve to code we own --
-// listing them here would be dead configuration.
+// Allow-list of module specifiers that may appear in E2E test sources.
+// Matched by literal string (with trailing '*' as prefix wildcard) against
+// the raw import path -- mirrors `babel-plugin-forbidden-imports` on develop.
+// Relative entries are authoritative: every `./foo` or `../foo` used by a
+// spec or helper must appear here, otherwise the build fails.
 const ALLOWED_E2E_MODULES = [
   'window',
   'hyperformula*',
@@ -22,6 +23,26 @@ const ALLOWED_E2E_MODULES = [
   'regenerator-runtime/runtime*',
   '@babel/runtime/*',
   '@swc/helpers/*',
+  './htmlNormalize',
+  './focusNavigator',
+  './common',
+  './utils',
+  './jasmine-helpers',
+  './mouseEvents',
+  './keyboardEvents',
+  './../bootstrap',
+  './helpers/custom-matchers',
+  './custom-matchers',
+  './helpers/jasmine-helpers',
+  '../helpers/it-themes-extension',
+  './asciiTable',
+  '../../../../../test/helpers/asciiTable',
+  './__mocks__/*',
+  './MemoryLeakTest',
+  '../MemoryLeakTest',
+  '../../../src/themes/static/variables/icons/*',
+  '../../../src/themes/static/variables/colors/*',
+  '../../../src/themes/static/variables/tokens/*',
 ];
 
 module.exports.create = function create(envArgs) {

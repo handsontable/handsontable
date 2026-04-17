@@ -44,21 +44,18 @@ module.exports = function forbiddenImportsLoader(source) {
 };
 
 /**
- * Check if a module name matches any pattern in the allowlist.
- * Patterns support trailing '*' as a glob wildcard.
- * Local relative imports (starting with '.' or '..') are always allowed -- only external
- * (non-relative) modules are checked against the allowlist.
+ * Check if a module specifier matches any pattern in the allow-list.
+ * Mirrors `babel-plugin-forbidden-imports`' `isMatches` semantics exactly:
+ * literal string equality, with trailing '*' acting as a prefix wildcard.
+ * Relative paths are NOT auto-allowed -- specs must declare every helper
+ * they pull in, otherwise drive-by relative imports into src/ or arbitrary
+ * test helpers would silently bloat the E2E bundle.
  *
  * @param {string[]} patterns Array of allowed module patterns.
  * @param {string} moduleName The import path to check.
  * @returns {boolean} True if the import is allowed.
  */
 function isAllowed(patterns, moduleName) {
-  // Local relative imports are always allowed (resolved by the bundler)
-  if (moduleName.startsWith('.')) {
-    return true;
-  }
-
   return patterns.some((pattern) => {
     if (pattern.indexOf('*') > -1) {
       return moduleName.startsWith(pattern.split('*')[0]);
