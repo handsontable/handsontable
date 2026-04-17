@@ -1,10 +1,47 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
+import net from 'net';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
 
-const PORT = 8086;
+const DEFAULT_PORT = 8086;
+
+/**
+ * Checks whether a TCP port is available on localhost.
+ *
+ * @param {number} port The port number to test.
+ * @returns {Promise<boolean>} Resolves to `true` when the port is free.
+ */
+function isPortFree(port) {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', () => resolve(false))
+      .once('listening', () => {
+        tester.close(() => resolve(true));
+      })
+      .listen(port);
+  });
+}
+
+/**
+ * Returns the first available port starting from `startPort`.
+ * Tries up to 100 consecutive ports before giving up.
+ *
+ * @param {number} startPort The preferred port to start probing from.
+ * @returns {Promise<number>} The first free port found.
+ */
+async function findFreePort(startPort) {
+  for (let port = startPort; port < startPort + 100; port++) {
+    if (await isPortFree(port)) {
+      return port;
+    }
+  }
+
+  throw new Error(`No free port found in range ${startPort}–${startPort + 99}`);
+}
+
+const PORT = await findFreePort(DEFAULT_PORT);
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
