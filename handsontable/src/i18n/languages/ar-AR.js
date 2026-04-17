@@ -134,7 +134,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'تعذر تحديث الصفوف',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'إغلاق',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
 };
 
 export default dictionary;

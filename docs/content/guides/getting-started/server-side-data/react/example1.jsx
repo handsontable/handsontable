@@ -514,9 +514,7 @@ const InventoryServerTable = memo(function InventoryServerTable({
           filters
           contextMenu
           emptyDataState
-          dialog={{
-            animation: false,
-          }}
+          notification
           beforeDataProviderFetch={beforeDataProviderFetch}
           afterDataProviderFetch={afterDataProviderFetch}
           afterDataProviderFetchError={afterDataProviderFetchError}

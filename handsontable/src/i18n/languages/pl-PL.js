@@ -142,7 +142,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nie udało się zaktualizować wierszy',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zamknij',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
 };
 
 export default dictionary;

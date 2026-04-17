@@ -79,7 +79,8 @@
 - Contains: 40+ plugins, each in its own directory with an `index.js` barrel export
 - Depends on: Core (via `this.hot`), Hooks system, IndexMapper
 - Used by: Core instantiates all registered plugins
-- Key plugins: `autoColumnSize`, `autoRowSize`, `columnSorting`, `filters`, `formulas`, `hiddenColumns`, `hiddenRows`, `mergeCells`, `nestedHeaders`, `nestedRows`, `undoRedo`, `contextMenu`, `copyPaste`, `comments`, `stretchColumns`
+- Key plugins: `autoColumnSize`, `autoRowSize`, `columnSorting`, `dataProvider`, `filters`, `formulas`, `hiddenColumns`, `hiddenRows`, `mergeCells`, `nestedHeaders`, `nestedRows`, `notification`, `undoRedo`, `contextMenu`, `copyPaste`, `comments`, `stretchColumns`
+- **DataProvider and error UI:** With a complete `dataProvider` configuration, failed `fetchRows` or `onRowsCreate` / `onRowsUpdate` / `onRowsRemove` (including refetch after a mutation) can show a built-in **error toast** when the **Notification** plugin is enabled (`notification: true` or a config object). **Fetch** failures add a **Refetch** action that calls `fetchData()` again (toast uses `duration: 0` until dismissed or Refetch). The **Dialog** plugin is not used for those errors; Dialog remains for blocking overlays (for example Loading plugin, ExportFile binary export progress, and custom modal content).
 
 **Hooks System:**
 - Purpose: Event bus for inter-component communication (before/after patterns)
