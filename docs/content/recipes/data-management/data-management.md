@@ -1,13 +1,13 @@
 ---
 title: Data Management Recipes
 metaTitle: Data Management Recipes - JavaScript Data Grid | Handsontable
+description: Practical recipes for loading, syncing, and managing data in Handsontable.
 permalink: /recipes/data-management
 canonicalUrl: /recipes/data-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
 id: c4b7e2f1
-description: Practical recipes for loading, syncing, and managing data in Handsontable.
 react:
   id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
@@ -23,12 +23,6 @@ This section provides practical recipes for loading, syncing, and managing data 
 
 ## Available Recipes
 
-Our recipes cover common use cases and implementation patterns for:
-
-- **Remote data loading** -- Fetching JSON data and rendering it in the grid.
-- **Data synchronization** -- Keeping multiple grid instances in sync.
-- **Undo and redo UX** -- Connecting built-in data history to custom controls.
-
 Current recipes:
 
 <div class="boxes-list">
@@ -36,4 +30,5 @@ Current recipes:
 - [Sync two grids](@/content/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
 - [Undo / redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
+- [Server-side data with Spring Boot](@/content/recipes/data-management/server-side-spring/server-side-spring.md)
 </div>

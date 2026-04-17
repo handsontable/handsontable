@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Emit a sibling `.js` file from a documentation `.ts` example using the
  * TypeScript compiler API (transpile only -- no typecheck, no path resolution).
