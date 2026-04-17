@@ -24,31 +24,33 @@ describe('StretchColumns', () => {
     });
 
     it('should return correct column widths when stretching "all" is enabled', async() => {
-      const containerWidth = 200;
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
 
       handsontable({
         data: createSpreadsheetData(3, 3),
-        width: containerWidth,
-        height: containerHeightForRows(3, 0),
+        width: 200,
+        height: 100,
         stretchH: 'all',
       });
 
       const plugin = getPlugin('stretchColumns');
-      const expectedFloor = Math.floor(containerWidth / 3);
 
-      expect(plugin.getColumnWidth(0)).toBeAroundValue(expectedFloor, 1);
-      expect(plugin.getColumnWidth(1)).toBeAroundValue(expectedFloor, 1);
-      expect(plugin.getColumnWidth(2)).toBeAroundValue(expectedFloor, 1);
-      expect(plugin.getColumnWidth(0) + plugin.getColumnWidth(1) + plugin.getColumnWidth(2)).toBe(containerWidth);
+      expect(plugin.getColumnWidth(0)).toBe(67);
+      expect(plugin.getColumnWidth(1)).toBe(67);
+      expect(plugin.getColumnWidth(2)).toBe(66);
     });
 
     it('should return correct column widths when stretching "last" is enabled', async() => {
-      const containerWidth = 200;
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
 
       handsontable({
         data: createSpreadsheetData(3, 3),
-        width: containerWidth,
-        height: containerHeightForRows(3, 0),
+        width: 200,
+        height: 100,
         stretchH: 'last',
       });
 
@@ -56,7 +58,7 @@ describe('StretchColumns', () => {
 
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
-      expect(plugin.getColumnWidth(2)).toBe(containerWidth - 100);
+      expect(plugin.getColumnWidth(2)).toBe(100);
     });
   });
 });

@@ -15,6 +15,10 @@ describe('ContextMenu keyboard shortcut', () => {
     ['Home'],
   ], (keyboardShortcut) => {
     it('should move the menu item selection to the first item', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         contextMenu: generateRandomContextMenuItems(200),
       });

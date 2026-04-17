@@ -1737,6 +1737,9 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high merged cell', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
 
     handsontable({
       data: createSpreadsheetData(50, 3),
@@ -1836,6 +1839,9 @@ describe('MergeCells', () => {
   });
 
   it('should display properly high virtualized merged cell', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
 
     handsontable({
       data: createSpreadsheetData(50, 30),

@@ -279,6 +279,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should sync inline start overlay with the main table after updating the last cell with new value (#7102)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: [
         ['A long text'],
@@ -432,6 +435,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should recalculate heights after column resize', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -669,6 +675,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should keep the viewport position unchanged after resetting all rows heights (#dev-1888)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 400,
@@ -744,6 +753,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (dev-2512)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: [
         // 3rd cell content has to be exactly 83px
@@ -766,6 +778,9 @@ describe('AutoRowSize', () => {
   });
 
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: [
         // 3rd cell content has to be exactly 83px

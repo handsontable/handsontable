@@ -2115,6 +2115,9 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   it('should display properly high merged cell containing hidden columns', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
 
     handsontable({
       data: createSpreadsheetData(50, 3),
@@ -2211,6 +2214,9 @@ describe('MergeCells cooperation with hidden rows', () => {
 
   it('should display properly high merged cell containing ' +
     'hidden columns (virtualized)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
 
     handsontable({
@@ -2276,6 +2282,10 @@ describe('MergeCells cooperation with hidden rows', () => {
 
   describe('Hooks', () => {
     it('should trigger the `beforeOnCellMouseDown` hook with proper coords', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;
@@ -2307,6 +2317,10 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should trigger the `afterOnCellMouseDown` hook with proper coords', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;

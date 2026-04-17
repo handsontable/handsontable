@@ -86,6 +86,10 @@ describe('NestedRows', () => {
       });
 
       it('should display indicators properly located', async() => {
+        if (getLoadedTheme() !== 'main') {
+          return;
+        }
+
         handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),

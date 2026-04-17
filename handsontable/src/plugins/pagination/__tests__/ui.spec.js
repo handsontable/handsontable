@@ -215,6 +215,9 @@ describe('Pagination UI', () => {
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are visible)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 500,

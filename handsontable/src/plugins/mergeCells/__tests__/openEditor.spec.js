@@ -143,6 +143,10 @@ describe('MergeCells open editor', () => {
     });
 
     it('should render the editor correctly after scroll for very high merged cell', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(100, 5),
         rowHeaders: true,

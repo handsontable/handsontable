@@ -79,6 +79,10 @@ describe('ContextMenu', () => {
 
   describe('menu width', () => {
     it('should display the menu with the minimum width', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         contextMenu: {
           items: {

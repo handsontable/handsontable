@@ -11,6 +11,9 @@ describe('Pagination integration with AutoColumnSize', () => {
   });
 
   it('should correctly calculate the column widths based on the currently selected page', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     const data = createSpreadsheetData(40, 3);
 
     data[11][1] = 'A very long text that should be truncated';

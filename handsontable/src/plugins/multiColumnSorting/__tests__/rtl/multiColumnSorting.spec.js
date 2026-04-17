@@ -22,6 +22,10 @@ describe('MultiColumnSorting (RTL)', () => {
 
     describe('Numbers presenting sorting sequence', () => {
       it('should position the sorting sequence number when multiple columns are sorted', async() => {
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 

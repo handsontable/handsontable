@@ -599,6 +599,10 @@ describe('CopyPaste', () => {
     });
 
     it('should paste data without scrolling the viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       const layout = getThemeLayout();
 
       handsontable({

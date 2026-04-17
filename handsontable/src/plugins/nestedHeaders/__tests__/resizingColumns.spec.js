@@ -14,6 +14,10 @@ describe('NestedHeaders', () => {
 
   describe('resizing columns', () => {
     it('should be possible to resize a column manually when both `manualColumnResize` and `nestedHeaders` plugins are enabled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,

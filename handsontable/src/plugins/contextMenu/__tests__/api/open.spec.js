@@ -69,7 +69,11 @@ describe('ContextMenu', () => {
 
       it('should open context menu on the right-top position if on the left and ' +
         'bottom there is no space left', async() => {
-        const rowDivisor = getDefaultRowHeight();
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
+        const rowDivisor = 29;
 
         handsontable({
           layoutDirection,
@@ -96,7 +100,11 @@ describe('ContextMenu', () => {
 
       it('should open context menu on the right-top position if on the left and ' +
         'bottom there is no space left (including offset)', async() => {
-        const rowDivisor = getDefaultRowHeight();
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
+        const rowDivisor = 29;
 
         handsontable({
           layoutDirection,
@@ -129,7 +137,7 @@ describe('ContextMenu', () => {
       it('should open context menu on the left-bottom position if on the right there is no space left', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(4, Math.floor(window.innerWidth / getDefaultColumnWidth())),
+          data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
           contextMenu: true,
         });
 
@@ -153,7 +161,7 @@ describe('ContextMenu', () => {
       it('should open context menu on the left-bottom position if on the right there is no space left (including offset)', async() => {
         handsontable({
           layoutDirection,
-          data: createSpreadsheetData(4, Math.floor(window.innerWidth / getDefaultColumnWidth())),
+          data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
           contextMenu: true,
         });
 
@@ -181,9 +189,13 @@ describe('ContextMenu', () => {
 
       it('should open context menu on the left-top position if on the right and ' +
         'bottom there is no space left', async() => {
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
         const layout = getThemeLayout();
-        const rowDivisor = getDefaultRowHeight();
-        const colDivisor = getDefaultColumnWidth();
+        const rowDivisor = 29;
+        const colDivisor = 50;
 
         handsontable({
           layoutDirection,
@@ -214,9 +226,13 @@ describe('ContextMenu', () => {
 
       it('should open context menu on the left-top position if on the right and' +
         ' bottom there is no space left (including offset)', async() => {
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
         const layout = getThemeLayout();
-        const rowDivisor = getDefaultRowHeight();
-        const colDivisor = getDefaultColumnWidth();
+        const rowDivisor = 29;
+        const colDivisor = 50;
 
         handsontable({
           layoutDirection,

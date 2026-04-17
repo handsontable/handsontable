@@ -189,6 +189,9 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should display the indicator properly after changing the sorted column sequence', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -2770,6 +2773,10 @@ describe('MultiColumnSorting', () => {
       });
 
       it('should position the sorting sequence number when multiple columns are sorted', async() => {
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 

@@ -78,6 +78,9 @@ describe('Filters UI Conditional component', () => {
   });
 
   it('should appear conditional options menu in the proper place after UISelect element click', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

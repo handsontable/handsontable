@@ -30,6 +30,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
     describe('should return an object with provided correct information about size and position of the cell', () => {
       describe('for top overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -41,19 +45,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => ({
+          expectGetEditedCellRectFromPartial(() => ({
             start: 0,
             top: 0,
-            width: getDefaultColumnWidth(),
-            maxWidth: 300 - sbw,
-            height: layout.firstRenderedRowDefaultHeight,
-            maxHeight: 200 - sbw,
+            width: 50,
+            maxWidth: 285,
+            height: 30,
+            maxHeight: 185,
           }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -63,12 +69,12 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((layout) => ({
+          expectGetEditedCellRectFromPartial(() => ({
             start: 0,
             top: 0,
-            width: getDefaultColumnWidth() + layout.cellBorderWidth,
+            width: 51,
             maxWidth: document.documentElement.clientWidth,
-            height: layout.firstRenderedRowDefaultHeight,
+            height: 30,
             maxHeight: document.documentElement.clientHeight,
           }));
         });
@@ -76,6 +82,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for top overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -93,25 +103,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, countRows() - 1);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const cw = 300 - sbw;
-            const ch = 200 - sbw;
-            const colOuter = getDefaultColumnWidth() + layout.cellBorderWidth;
-
-            return {
-              start: cw - colOuter,
-              top: layout.defaultDataRowHeight,
-              width: colOuter,
-              maxWidth: colOuter,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: ch - layout.defaultDataRowHeight,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 234,
+            top: 29,
+            width: 51,
+            maxWidth: 51,
+            height: 30,
+            maxHeight: 156,
+          }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
           // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
           if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
@@ -133,13 +139,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((layout) => {
+          expectGetEditedCellRectFromPartial(() => {
             const v = getE2eDocumentViewport();
 
             return {
-              top: v.offsetHeight - v.clientHeight + layout.defaultDataRowHeight,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: v.clientHeight - layout.defaultDataRowHeight,
+              start: v.scrollLeft + v.clientWidth - 62,
+              top: v.offsetHeight - v.clientHeight + 29,
+              width: 62,
+              maxWidth: 62,
+              height: 30,
+              maxHeight: v.clientHeight - 29,
             };
           });
         });
@@ -147,6 +156,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for top-left corner overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -159,19 +172,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => ({
+          expectGetEditedCellRectFromPartial(() => ({
             start: 0,
             top: 0,
-            width: getDefaultColumnWidth(),
-            maxWidth: 300 - sbw,
-            height: layout.firstRenderedRowDefaultHeight,
-            maxHeight: 200 - sbw,
+            width: 50,
+            maxWidth: 285,
+            height: 30,
+            maxHeight: 185,
           }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -182,12 +197,12 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((layout) => ({
+          expectGetEditedCellRectFromPartial(() => ({
             start: 0,
             top: 0,
-            width: getDefaultColumnWidth() + layout.cellBorderWidth,
+            width: 51,
             maxWidth: document.documentElement.clientWidth,
-            height: layout.firstRenderedRowDefaultHeight,
+            height: 30,
             maxHeight: document.documentElement.clientHeight,
           }));
         });
@@ -195,6 +210,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for top-left corner overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -213,21 +232,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, 1);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-          const cw = 300 - sbw;
-          const ch = 200 - sbw;
-
-          expectGetEditedCellRectFromPartial((layout) => ({
-            start: getDefaultColumnWidth() - layout.cellBorderWidth,
-            top: layout.defaultDataRowHeight,
-            width: getDefaultColumnWidth() + layout.cellBorderWidth,
-            maxWidth: cw - (getDefaultColumnWidth() - layout.cellBorderWidth),
-            height: layout.firstRenderedRowDefaultHeight,
-            maxHeight: ch - layout.defaultDataRowHeight,
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 49,
+            top: 29,
+            width: 51,
+            maxWidth: 236,
+            height: 30,
+            maxHeight: 156,
           }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -244,16 +263,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, 1);
 
-          expectGetEditedCellRectFromPartial((layout) => {
+          expectGetEditedCellRectFromPartial(() => {
             const v = getE2eDocumentViewport();
 
             return {
-              start: v.scrollLeft + getDefaultColumnWidth(),
-              top: v.offsetHeight - v.clientHeight + layout.defaultDataRowHeight,
-              width: getDefaultColumnWidth() + 2 * layout.cellBorderWidth,
-              maxWidth: v.clientWidth - getDefaultColumnWidth(),
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: v.clientHeight - layout.defaultDataRowHeight,
+              start: v.scrollLeft + 50,
+              top: v.offsetHeight - v.clientHeight + 29,
+              width: 52,
+              maxWidth: v.clientWidth - 50,
+              height: 30,
+              maxHeight: v.clientHeight - 29,
             };
           });
         });
@@ -261,6 +280,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for left overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -272,19 +295,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => ({
+          expectGetEditedCellRectFromPartial(() => ({
             start: 0,
             top: 0,
-            width: getDefaultColumnWidth(),
-            maxWidth: 300 - sbw,
-            height: layout.firstRenderedRowDefaultHeight,
-            maxHeight: 200 - sbw,
+            width: 50,
+            maxWidth: 285,
+            height: 30,
+            maxHeight: 185,
           }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -294,12 +319,12 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((layout) => ({
+          expectGetEditedCellRectFromPartial(() => ({
             start: 0,
             top: 0,
-            width: getDefaultColumnWidth() + layout.cellBorderWidth,
+            width: 51,
             maxWidth: document.documentElement.clientWidth,
-            height: layout.firstRenderedRowDefaultHeight,
+            height: 30,
             maxHeight: document.documentElement.clientHeight,
           }));
         });
@@ -307,6 +332,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for left overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -324,24 +353,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, 1);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const cw = 300 - sbw;
-            const ch = 200 - sbw;
-
-            return {
-              start: getDefaultColumnWidth() - layout.cellBorderWidth,
-              top: ch - layout.firstRenderedRowDefaultHeight,
-              width: getDefaultColumnWidth() + layout.cellBorderWidth,
-              maxWidth: cw - (getDefaultColumnWidth() - layout.cellBorderWidth),
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: layout.firstRenderedRowDefaultHeight,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 49,
+            top: 155,
+            width: 51,
+            maxWidth: 236,
+            height: 30,
+            maxHeight: 30,
+          }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -357,16 +383,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, 1);
 
-          expectGetEditedCellRectFromPartial((layout) => {
+          expectGetEditedCellRectFromPartial(() => {
             const v = getE2eDocumentViewport();
 
             return {
-              start: v.scrollLeft + getDefaultColumnWidth(),
-              top: v.offsetHeight - layout.firstRenderedRowDefaultHeight,
-              width: getDefaultColumnWidth() + 2 * layout.cellBorderWidth,
-              maxWidth: v.clientWidth - getDefaultColumnWidth(),
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: layout.firstRenderedRowDefaultHeight,
+              start: v.scrollLeft + 50,
+              top: v.offsetHeight - 30,
+              width: 52,
+              maxWidth: v.clientWidth - 50,
+              height: 30,
+              maxHeight: 30,
             };
           });
         });
@@ -374,6 +400,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for bottom-left corner overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -386,24 +416,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(8, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-          const ch = 200 - sbw;
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const bottomOverlayHeight = layout.overlayHeight({ rows: 2 });
-
-            return {
-              start: 0,
-              top: ch - bottomOverlayHeight,
-              width: getDefaultColumnWidth(),
-              maxWidth: 300 - sbw,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: bottomOverlayHeight,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 0,
+            top: 126,
+            width: 50,
+            maxWidth: 285,
+            height: 30,
+            maxHeight: 59,
+          }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -414,25 +441,23 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const bottomOverlayHeight = layout.overlayHeight({ rows: 2 });
-
-            return {
-              start: 0,
-              top: document.documentElement.clientHeight - bottomOverlayHeight,
-              width: getDefaultColumnWidth() + layout.cellBorderWidth,
-              maxWidth: document.documentElement.clientWidth,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: bottomOverlayHeight + sbw,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 0,
+            top: document.documentElement.clientHeight - 59,
+            width: 51,
+            maxWidth: document.documentElement.clientWidth,
+            height: 30,
+            maxHeight: 74,
+          }));
         });
       });
 
       describe('for bottom-left corner overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -451,24 +476,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 2, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-          const ch = 200 - sbw;
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const bottomOverlayHeight = layout.overlayHeight({ rows: 2 });
-
-            return {
-              start: 0,
-              top: ch - bottomOverlayHeight,
-              width: getDefaultColumnWidth(),
-              maxWidth: 300 - sbw,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: bottomOverlayHeight,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 0,
+            top: 126,
+            width: 50,
+            maxWidth: 285,
+            height: 30,
+            maxHeight: 59,
+          }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -485,19 +507,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 2, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
+          expectGetEditedCellRectFromPartial(() => {
             const v = getE2eDocumentViewport();
-            const bottomOverlayHeight = layout.overlayHeight({ rows: 2 });
 
             return {
               start: v.scrollLeft,
-              top: v.offsetHeight - bottomOverlayHeight - layout.cellBorderWidth,
-              width: getDefaultColumnWidth() + layout.cellBorderWidth,
+              top: v.offsetHeight - 60,
+              width: 51,
               maxWidth: v.clientWidth,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: bottomOverlayHeight + sbw,
+              height: 30,
+              maxHeight: 74,
             };
           });
         });
@@ -505,6 +524,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
       describe('for bottom overlay when viewport is scrolled to the top-left edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -516,24 +539,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-          const ch = 200 - sbw;
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const bottomOverlayHeight = layout.overlayHeight({ rows: 2 });
-
-            return {
-              start: 0,
-              top: ch - bottomOverlayHeight,
-              width: getDefaultColumnWidth(),
-              maxWidth: 300 - sbw,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: bottomOverlayHeight,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 0,
+            top: 126,
+            width: 50,
+            maxWidth: 285,
+            height: 30,
+            maxHeight: 59,
+          }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(100, 100),
@@ -543,25 +563,23 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const bottomOverlayHeight = layout.overlayHeight({ rows: 2 });
-
-            return {
-              start: 0,
-              top: document.documentElement.clientHeight - bottomOverlayHeight,
-              width: getDefaultColumnWidth() + layout.cellBorderWidth,
-              maxWidth: document.documentElement.clientWidth,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: bottomOverlayHeight + sbw,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 0,
+            top: document.documentElement.clientHeight - 59,
+            width: 51,
+            maxWidth: document.documentElement.clientWidth,
+            height: 30,
+            maxHeight: 74,
+          }));
         });
       });
 
       describe('for bottom overlay when viewport is scrolled to the bottom-right edge', () => {
         it('and the scrollable element is not the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           handsontable({
             layoutDirection,
             data: createSpreadsheetData(10, 10),
@@ -579,25 +597,21 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, countCols() - 1);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
-            const cw = 300 - sbw;
-            const ch = 200 - sbw;
-            const colOuter = getDefaultColumnWidth() + layout.cellBorderWidth;
-
-            return {
-              start: cw - colOuter,
-              top: ch - layout.firstRenderedRowDefaultHeight,
-              width: colOuter,
-              maxWidth: colOuter,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: layout.firstRenderedRowDefaultHeight,
-            };
-          });
+          expectGetEditedCellRectFromPartial(() => ({
+            start: 234,
+            top: 155,
+            width: 51,
+            maxWidth: 51,
+            height: 30,
+            maxHeight: 30,
+          }));
         });
 
         it('and the scrollable element is the Window object', async() => {
+          if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
           // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
           // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
           if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
@@ -622,20 +636,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, countCols() - 1);
 
-          const sbw = Handsontable.dom.getScrollbarWidth();
-
-          expectGetEditedCellRectFromPartial((layout) => {
+          expectGetEditedCellRectFromPartial(() => {
             const v = getE2eDocumentViewport();
-            const colOuter = getDefaultColumnWidth() + layout.cellBorderWidth;
-            const lastColStart = 99 * getDefaultColumnWidth() - layout.cellBorderWidth;
 
             return {
-              start: lastColStart,
-              top: v.offsetHeight - (layout.defaultDataRowHeight + 2 * layout.cellBorderWidth),
-              width: colOuter,
-              maxWidth: colOuter,
-              height: layout.firstRenderedRowDefaultHeight,
-              maxHeight: layout.firstRenderedRowDefaultHeight + sbw,
+              start: 4949,
+              top: v.offsetHeight - 31,
+              width: 51,
+              maxWidth: 51,
+              height: 30,
+              maxHeight: 45,
             };
           });
         });

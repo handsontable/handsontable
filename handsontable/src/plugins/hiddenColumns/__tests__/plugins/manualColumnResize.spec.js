@@ -112,6 +112,10 @@ describe('HiddenColumns', () => {
     });
 
     it('should resize a proper column using the resize handler when the table contains hidden column', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },

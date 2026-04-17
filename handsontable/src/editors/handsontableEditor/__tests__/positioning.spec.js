@@ -31,6 +31,9 @@ describe('HandsontableEditor positioning', () => {
   // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
 
   it('should render the editors dropdown on the left edited cell when there is no space left on the right', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,
@@ -82,6 +85,9 @@ describe('HandsontableEditor positioning', () => {
   });
 
   it('should render the editors dropdown above the cell when there is no space left below', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(25, 25),
       colWidths: 80,

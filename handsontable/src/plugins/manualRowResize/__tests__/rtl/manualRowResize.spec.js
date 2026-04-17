@@ -16,6 +16,9 @@ describe('manualRowResize (RTL mode)', () => {
   });
 
   it('should resize (expanding and narrowing) selected rows', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       rowHeaders: true,

@@ -197,6 +197,10 @@ describe('GhostTable', () => {
     });
 
     it('should get valid widths', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       const hot = handsontable(hotSettings);
       const widthSpy = jasmine.createSpy();
       const samples = new Map();

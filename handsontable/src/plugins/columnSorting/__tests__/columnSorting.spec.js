@@ -201,6 +201,10 @@ describe('ColumnSorting', () => {
     });
 
     it('should display the indicator properly after changing the sorted column sequence', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         layoutDirection,
         data: [

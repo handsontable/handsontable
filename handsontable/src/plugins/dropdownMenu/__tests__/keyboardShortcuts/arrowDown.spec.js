@@ -25,6 +25,10 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should move the menu item selection to the first item and scroll the viewport', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200),

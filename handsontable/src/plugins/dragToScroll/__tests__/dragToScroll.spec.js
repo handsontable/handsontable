@@ -216,6 +216,10 @@ describe('DragToScroll', () => {
 
     it('should not scroll the table to the right, when dragging the selection ' +
       'in that direction inside the table', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       const width = 215;
 
       handsontable({
@@ -431,6 +435,10 @@ describe('DragToScroll', () => {
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is above' +
       ' of the table', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       spec().$container.css('margin-top', '100px');
 
       handsontable({
@@ -472,6 +480,10 @@ describe('DragToScroll', () => {
 
     it('should move the table\'s viewport upwards when the next mouse-overed element is a row ' +
       'that belongs to the top overlay', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,

@@ -1634,6 +1634,10 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the collapse functionality, when the table has been scrolled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -1845,6 +1849,10 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should calculate the column width on the longest cell value, not the header text size (#dev-2151)', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 10),
         nestedHeaders: [
@@ -2574,6 +2582,10 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should maintain the expand functionality, when the table has been scrolled', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),

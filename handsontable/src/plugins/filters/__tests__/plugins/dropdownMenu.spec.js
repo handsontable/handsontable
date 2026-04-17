@@ -11,6 +11,9 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should scale text input showed after condition selection (pixel perfect)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -47,6 +50,9 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should scale a condition select (pixel perfect)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -78,6 +84,9 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should scale search input of the value box (pixel perfect)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

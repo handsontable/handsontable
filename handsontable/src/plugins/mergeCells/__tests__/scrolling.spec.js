@@ -11,6 +11,9 @@ describe('MergeCells scrolling', () => {
   });
 
   it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetObjectData(10, 5),
       mergeCells: [

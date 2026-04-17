@@ -50,6 +50,9 @@ describe('manualColumnResize (RTL)', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,

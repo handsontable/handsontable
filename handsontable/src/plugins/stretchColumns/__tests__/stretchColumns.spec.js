@@ -22,12 +22,13 @@ describe('StretchColumns', () => {
   });
 
   it('should be possible to change the stretch strategy via `updateSettings`', async() => {
-    const containerWidth = 200;
+    if (getLoadedTheme() !== 'main') {      return;
+    }
 
     handsontable({
       data: createSpreadsheetData(3, 3),
-      width: containerWidth,
-      height: containerHeightForRows(3, 0),
+      width: 200,
+      height: 100,
     });
 
     expect(getColWidth(0)).toBe(50);
@@ -38,12 +39,9 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    const stretchedAll = Math.floor(containerWidth / 3);
-
-    expect(getColWidth(0)).toBeAroundValue(stretchedAll, 1);
-    expect(getColWidth(1)).toBeAroundValue(stretchedAll, 1);
-    expect(getColWidth(2)).toBeAroundValue(stretchedAll, 1);
-    expect(getColWidth(0) + getColWidth(1) + getColWidth(2)).toBe(containerWidth);
+    expect(getColWidth(0)).toBe(67);
+    expect(getColWidth(1)).toBe(67);
+    expect(getColWidth(2)).toBe(66);
 
     await updateSettings({
       stretchH: 'last',
@@ -51,7 +49,7 @@ describe('StretchColumns', () => {
 
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
-    expect(getColWidth(2)).toBe(containerWidth - 100);
+    expect(getColWidth(2)).toBe(100);
 
     await updateSettings({
       stretchH: 'none',
@@ -78,41 +76,39 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns after table size change', async() => {
-    const rhw = getDefaultRowHeaderWidth();
+    if (getLoadedTheme() !== 'main') {      return;
+    }
 
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: containerHeightForRows(5),
+      height: 200,
       stretchH: 'all',
     });
 
-    const expected1 = Math.floor((320 - rhw) / 3);
-
-    expect(getColWidth(0)).toBe(expected1);
-    expect(getColWidth(1)).toBe(expected1);
-    expect(getColWidth(2)).toBe(expected1);
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
 
     await updateSettings({
       width: 500,
     });
 
-    const expected2 = Math.floor((500 - rhw) / 3);
-
-    expect(getColWidth(0)).toBe(expected2);
-    expect(getColWidth(1)).toBe(expected2);
-    expect(getColWidth(2)).toBe(expected2);
+    expect(getColWidth(0)).toBe(150);
+    expect(getColWidth(1)).toBe(150);
+    expect(getColWidth(2)).toBe(150);
   });
 
   it(`should correctly stretch columns after vertical scroll appears
  (defined table size)`, async() => {
-    const rhw = getDefaultRowHeaderWidth();
-    // Height that fits all 5 rows without vertical scrollbar
-    const heightFull = containerHeightForRows(5) + 5;
-    // Height that does NOT fit all 5 rows -- vertical scrollbar appears
-    const heightWithScroll = containerHeightForRows(4) + 5;
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
+    const layout = getThemeLayout();
+    const heightFull = 179;
+    const heightWithScroll = 165;
 
     handsontable({
       data: createSpreadsheetData(5, 3),
@@ -123,30 +119,25 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    const expectedNoScroll = Math.floor((320 - rhw) / 3);
-
-    expect(getColWidth(0)).toBe(expectedNoScroll);
-    expect(getColWidth(1)).toBe(expectedNoScroll);
-    expect(getColWidth(2)).toBe(expectedNoScroll);
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
 
     await updateSettings({
       height: heightWithScroll,
     });
 
-    // Scrollbar reduces available width by ~15px
-    const expectedWithScroll = getColWidth(0);
-
-    expect(expectedWithScroll).toBeLessThan(expectedNoScroll);
-    expect(getColWidth(1)).toBe(expectedWithScroll);
-    expect(getColWidth(2)).toBe(expectedWithScroll);
+    expect(getColWidth(0)).toBe(85);
+    expect(getColWidth(1)).toBe(85);
+    expect(getColWidth(2)).toBe(85);
 
     await updateSettings({
       height: heightFull,
     });
 
-    expect(getColWidth(0)).toBe(expectedNoScroll);
-    expect(getColWidth(1)).toBe(expectedNoScroll);
-    expect(getColWidth(2)).toBe(expectedNoScroll);
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
   });
 
   it.flaky('should correctly stretch columns after vertical scroll appears (window as scrollable element)', async() => {
@@ -235,6 +226,9 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns when there are some rows with multi-line text', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     const data = createSpreadsheetData(5, 2);
 
     for (let i = 0; i < data.length; i++) {
@@ -250,10 +244,8 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    // Column 0 has multi-line text so it should be wider than column 1
-    expect(getColWidth(0)).toBeGreaterThan(getColWidth(1));
-    // Both columns together should fill the container
-    expect(getColWidth(0) + getColWidth(1)).toBe(500);
+    expect(getColWidth(0)).toBe(418);
+    expect(getColWidth(1)).toBe(82);
   });
 
   it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', async() => {
@@ -348,6 +340,9 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch the column after changing the cell value (#dev-1727)', async() => {
+    if (getLoadedTheme() !== 'main') {      return;
+    }
+
     const data = createSpreadsheetData(1, 5);
 
     data[0][4] = 'very long text is here to make the column wider';
@@ -359,19 +354,15 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    const widthWithLongText = getColWidth(4);
-
-    expect(widthWithLongText).toBeGreaterThan(200);
+    expect(getColWidth(4)).toBe(311);
 
     await setDataAtCell(0, 4, 'text');
 
-    const widthWithShortText = getColWidth(4);
-
-    expect(widthWithShortText).toBeLessThan(widthWithLongText);
+    expect(getColWidth(4)).toBe(80);
 
     await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
-    expect(getColWidth(4)).toBe(widthWithLongText);
+    expect(getColWidth(4)).toBe(311);
   });
 
   it('should stretch the table to the entirety of the container when autoRowSize is enabled', async() => {

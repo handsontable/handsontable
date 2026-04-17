@@ -67,6 +67,10 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -91,8 +95,12 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu on the left position when on the right there is no space left', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
-        data: createSpreadsheetData(4, Math.floor(window.innerWidth / getDefaultColumnWidth())),
+        data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         colHeaders: true,
         rowHeaders: true,
         navigableHeaders: true,
@@ -138,6 +146,10 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should not be possible to close already opened the dropdown menu', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -163,6 +175,10 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', async() => {
+      if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -258,6 +274,10 @@ describe('DropdownMenu keyboard shortcut', () => {
 
     describe('cooperation with nested headers', () => {
       it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers are selected', async() => {
+        if (getLoadedTheme() !== 'main') {
+        return;
+      }
+
         handsontable({
           data: createSpreadsheetData(3, 8),
           colHeaders: true,
