@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: migrating-14.6-to-15.0
 title: Migrating from 14.6 to 15.0
 metaTitle: Migrating from 14.6 to 15.0 - JavaScript Data Grid | Handsontable
@@ -24,7 +25,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## Introducing the New React Wrapper
 
-With Handsontable 15.0, we're rolling out a brand-new React wrapper designed for functional programming. It focuses on type safety, idiomatic React usage, and developer experience. Named `react-wrapper`, you can find it in our [GitHub monorepo](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper) or install it directly from [npm](https://www.npmjs.com/package/@handsontable/react-wrapper).
+With Handsontable 15.0, a brand-new React wrapper is available designed for functional programming. It focuses on type safety, idiomatic React usage, and developer experience. Named `react-wrapper`, you can find it in our [GitHub monorepo](https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper) or install it directly from [npm](https://www.npmjs.com/package/@handsontable/react-wrapper).
 
 This guide will help you migrate your existing `@handsontable/react` class-based wrapper to `@handsontable/react-wrapper`.
 
@@ -55,7 +56,7 @@ Pass your component using `editor` prop of the `HotTable` or `HotColumn` compone
 
 ### 1. Removal of `settings` property
 
-The `settings` property has been removed. Configuration options must now be passed directly to the `HotTable` component.
+The `settings` property is removed. Pass configuration options directly to the `HotTable` component.
 
 **`@handsontable/react`:**
 ```jsx
@@ -192,3 +193,7 @@ Just like with renderers, custom editors now need to be provided using the `edit
 ::: tip  
 If you’re using the `editor` option for JavaScript class-based editors, you can still use them. Just define them under the `hotEditor` key instead of `editor`.  
 :::
+
+## Result
+
+Your application now runs on Handsontable 15.0.

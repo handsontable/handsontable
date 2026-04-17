@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: pqe1xozj
 title: Select cell type
 metaTitle: Select cell type - JavaScript Data Grid | Handsontable
@@ -16,6 +17,8 @@ category: Cell types
 ---
 Use the select cell type to collect user input with an HTML `<select>` element that creates a multi-item dropdown list.
 
+The select cell type renders a native HTML `<select>` element. Consider using the dropdown cell type instead for autocomplete and search capabilities.
+
 [[toc]]
 
 ## Overview
@@ -24,7 +27,7 @@ The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dro
 
 ## Usage
 
-The select editor should be considered an example of how to write editors rather than used as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md). We recommend that you use the latter in your projects.
+> **Note:** The select editor is intended as a reference implementation for writing custom editors rather than as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md). Use the dropdown cell type in your projects for a better user experience.
 
 ::: only-for javascript
 
@@ -58,6 +61,10 @@ The select editor should be considered an example of how to write editors rather
 :::
 
 :::
+
+## Result
+
+After configuring the select cell type, cells render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.
 
 ## Related articles
 

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - JavaScript Data Grid | Handsontable
@@ -16,6 +17,8 @@ category: Cell types
 menuTag: updated
 ---
 Display, format, sort, and filter dates correctly by using the date cell type.
+
+The date cell type provides a date picker for selecting and displaying dates. It validates input against a configurable date format.
 
 [[toc]]
 
@@ -334,6 +337,10 @@ columns: [{
 ### Editor behavior
 
 The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date`, the underlying value remains in ISO 8601 format.
+
+## Result
+
+After configuring the date cell type, cells display dates formatted according to your `dateFormat` configuration. Clicking an `intl-date` cell opens a native date picker. Source data is stored in ISO 8601 format (`YYYY-MM-DD`) regardless of the display format.
 
 ## Related articles
 

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: ct5f32ig
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
@@ -18,14 +19,9 @@ angular:
 searchCategory: Guides
 category: Navigation
 ---
-
-# Searching values
-
-Search data across Handsontable using the built-in API methods of the [`Search`](@/api/search.md) plugin, and implement your own search UI.
+Enable the [`Search`](@/api/search.md) plugin and call [`query()`](@/api/search.md#query) on each keystroke to highlight matching cells across the grid.
 
 [[toc]]
-
-## Overview
 
 ::: only-for react
 
@@ -54,140 +50,6 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 The [`Search`](@/api/search.md) plugin lets you scan all cells in the grid and get back a list of matches. Enable it by setting the [`search`](@/api/options.md#search) option to `true` or to a configuration object.
 
 Once enabled, the plugin exposes the [`query(queryStr)`](@/api/search.md#query) method. Call it with a search string whenever the user types. By default, the search is case-insensitive and matches partial cell values.
-
-## How `query()` works
-
-Calling [`query(queryStr, [callback], [queryMethod])`](@/api/search.md#query) does two things:
-
-1. Iterates over every cell in the grid and tests each one using the `queryMethod`.
-2. After each test, calls the `callback` to update cell metadata (`isSearchResult`).
-
-It returns an array of result objects - one for each matching cell:
-
-| Property | Type | Description |
-| --- | --- | --- |
-| `row` | `number` | Visual row index of the matching cell |
-| `col` | `number` | Visual column index of the matching cell |
-| `data` | `string\|number\|null` | Value of the matching cell |
-
-After calling `query()`, call `hot.render()` to refresh visual highlighting.
-
-## Search result class
-
-After `query()` runs, every cell where `isSearchResult === true` automatically receives the CSS class `htSearchResult`. You can replace this class in two ways:
-
-- At initialization: set `search: { searchResultClass: 'my-class' }`
-- Programmatically: call `hot.getPlugin('search').setSearchResultClass('my-class')`
-
-## Custom `queryMethod`
-
-The `queryMethod` function determines whether the query string matches a cell value. It is called once per cell during every `query()` call.
-
-**Signature:**
-
-```js
-function queryMethod(query, value, cellProperties) {
-  // return true for a match, false otherwise
-}
-```
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `query` | `string` | The search string passed to `query()` |
-| `value` | `string\|number\|null` | The cell value (from `getDataAtCell()`) |
-| `cellProperties` | `object` | The cell's metadata object (includes `locale`, `type`, and other cell options) |
-
-The built-in default performs a **case-insensitive, locale-aware substring match**:
-
-```js
-function defaultQueryMethod(query, value, cellProperties) {
-  if (query === undefined || query === null || query.length === 0) {
-    return false;
-  }
-  if (value === undefined || value === null) {
-    return false;
-  }
-
-  return value.toString().toLocaleLowerCase(cellProperties.locale)
-    .indexOf(query.toLocaleLowerCase(cellProperties.locale)) !== -1;
-}
-```
-
-You can set a custom query method in three ways:
-
-- At initialization: `search: { queryMethod: myQueryMethod }`
-- Programmatically: `hot.getPlugin('search').setQueryMethod(myQueryMethod)`
-- Per `query()` call: `searchPlugin.query(queryStr, callback, myQueryMethod)` (applies to that call only)
-
-## Custom result callback
-
-The `callback` function is called for **every cell** during a `query()` run, whether or not the cell matches. It is responsible for updating cell metadata so the renderer knows which cells to highlight.
-
-**Signature:**
-
-```js
-function callback(instance, row, col, data, testResult) {
-  // update cell metadata based on testResult
-}
-```
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `instance` | `Handsontable` | The Handsontable instance |
-| `row` | `number` | Visual row index |
-| `col` | `number` | Visual column index |
-| `data` | `string\|number\|null` | The cell value |
-| `testResult` | `boolean` | `true` if the cell matches the query, `false` otherwise |
-
-The built-in default sets the `isSearchResult` flag on each cell's metadata:
-
-```js
-function defaultCallback(instance, row, col, data, testResult) {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
-}
-```
-
-If you override the callback to add custom logic (for example, to count results), call the default behavior manually so that cell highlighting still works.
-
-You can set a custom callback in three ways:
-
-- At initialization: `search: { callback: myCallback }`
-- Programmatically: `hot.getPlugin('search').setCallback(myCallback)`
-- Per `query()` call: `searchPlugin.query(queryStr, myCallback)` (applies to that call only)
-
-## Per-cell `queryMethod` and `callback`
-
-Both `queryMethod` and `callback` can be overridden for individual cells, columns, or rows using Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md) model. Set a `search` object directly in a `cell`, `columns`, or `rows` entry:
-
-```js
-handsontable({
-  data: myData,
-  search: true,
-  columns: [
-    {},
-    // Column 1: exact match only, everything else uses the global queryMethod
-    {
-      search: {
-        queryMethod(queryStr, value) {
-          return queryStr.toString() === value.toString();
-        }
-      }
-    }
-  ]
-});
-```
-
-You can also set it programmatically on a specific cell using [`setCellMeta()`](@/api/core.md#setcellmeta):
-
-```js
-hot.setCellMeta(row, col, 'search', {
-  queryMethod(queryStr, value) {
-    return queryStr.toString() === value.toString();
-  }
-});
-```
-
-Per-cell settings take precedence over the plugin-level `queryMethod` and `callback`. Only `queryMethod` and `callback` support per-cell overrides - `searchResultClass` does not.
 
 ## Simplest use case
 
@@ -371,7 +233,143 @@ The example below displays the number of matching search results. To do this, it
 
 :::
 
-## Related API reference
+## Result
+
+After following these steps, typing in your search input highlights matching cells with the `htSearchResult` CSS class. The `query()` call returns an array of matching `{ row, col, data }` objects that you can use to build a results counter or navigate between matches.
+
+## Related API
+
+### How `query()` works
+
+Calling [`query(queryStr, [callback], [queryMethod])`](@/api/search.md#query) does two things:
+
+1. Iterates over every cell in the grid and tests each one using the `queryMethod`.
+2. After each test, calls the `callback` to update cell metadata (`isSearchResult`).
+
+It returns an array of result objects - one for each matching cell:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `row` | `number` | Visual row index of the matching cell |
+| `col` | `number` | Visual column index of the matching cell |
+| `data` | `string\|number\|null` | Value of the matching cell |
+
+After calling `query()`, call `hot.render()` to refresh visual highlighting.
+
+### Search result class
+
+After `query()` runs, every cell where `isSearchResult === true` automatically receives the CSS class `htSearchResult`. You can replace this class in two ways:
+
+- At initialization: set `search: { searchResultClass: 'my-class' }`
+- Programmatically: call `hot.getPlugin('search').setSearchResultClass('my-class')`
+
+### `queryMethod` signature
+
+The `queryMethod` function determines whether the query string matches a cell value. It is called once per cell during every `query()` call.
+
+```js
+function queryMethod(query, value, cellProperties) {
+  // return true for a match, false otherwise
+}
+```
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `query` | `string` | The search string passed to `query()` |
+| `value` | `string\|number\|null` | The cell value (from `getDataAtCell()`) |
+| `cellProperties` | `object` | The cell's metadata object (includes `locale`, `type`, and other cell options) |
+
+The built-in default performs a **case-insensitive, locale-aware substring match**:
+
+```js
+function defaultQueryMethod(query, value, cellProperties) {
+  if (query === undefined || query === null || query.length === 0) {
+    return false;
+  }
+  if (value === undefined || value === null) {
+    return false;
+  }
+
+  return value.toString().toLocaleLowerCase(cellProperties.locale)
+    .indexOf(query.toLocaleLowerCase(cellProperties.locale)) !== -1;
+}
+```
+
+You can set a custom query method in three ways:
+
+- At initialization: `search: { queryMethod: myQueryMethod }`
+- Programmatically: `hot.getPlugin('search').setQueryMethod(myQueryMethod)`
+- Per `query()` call: `searchPlugin.query(queryStr, callback, myQueryMethod)` (applies to that call only)
+
+### `callback` signature
+
+The `callback` function is called for **every cell** during a `query()` run, whether or not the cell matches. It is responsible for updating cell metadata so the renderer knows which cells to highlight.
+
+```js
+function callback(instance, row, col, data, testResult) {
+  // update cell metadata based on testResult
+}
+```
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `instance` | `Handsontable` | The Handsontable instance |
+| `row` | `number` | Visual row index |
+| `col` | `number` | Visual column index |
+| `data` | `string\|number\|null` | The cell value |
+| `testResult` | `boolean` | `true` if the cell matches the query, `false` otherwise |
+
+The built-in default sets the `isSearchResult` flag on each cell's metadata:
+
+```js
+function defaultCallback(instance, row, col, data, testResult) {
+  instance.getCellMeta(row, col).isSearchResult = testResult;
+}
+```
+
+If you override the callback to add custom logic (for example, to count results), call the default behavior manually so that cell highlighting still works.
+
+You can set a custom callback in three ways:
+
+- At initialization: `search: { callback: myCallback }`
+- Programmatically: `hot.getPlugin('search').setCallback(myCallback)`
+- Per `query()` call: `searchPlugin.query(queryStr, myCallback)` (applies to that call only)
+
+### Per-cell `queryMethod` and `callback`
+
+Both `queryMethod` and `callback` can be overridden for individual cells, columns, or rows using Handsontable's [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md) model. Set a `search` object directly in a `cell`, `columns`, or `rows` entry:
+
+```js
+handsontable({
+  data: myData,
+  search: true,
+  columns: [
+    {},
+    // Column 1: exact match only, everything else uses the global queryMethod
+    {
+      search: {
+        queryMethod(queryStr, value) {
+          return queryStr.toString() === value.toString();
+        }
+      }
+    }
+  ]
+});
+```
+
+You can also set it programmatically on a specific cell using [`setCellMeta()`](@/api/core.md#setcellmeta):
+
+```js
+hot.setCellMeta(row, col, 'search', {
+  queryMethod(queryStr, value) {
+    return queryStr.toString() === value.toString();
+  }
+});
+```
+
+Per-cell settings take precedence over the plugin-level `queryMethod` and `callback`. Only `queryMethod` and `callback` support per-cell overrides - `searchResultClass` does not.
+
+### Plugin configuration options
 
 **Configuration options**
 

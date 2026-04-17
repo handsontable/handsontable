@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 95c84eb4
 title: Star Rating
 metaTitle: Star Rating Cell Type - React Data Grid | Handsontable
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build a star rating cell in React using the `react-star-rating-component` library and Handsontable's `EditorComponent`, with a custom renderer for view mode.
 
 ::: only-for react
 
@@ -448,3 +451,13 @@ The `StarRatingComponent` uses radio inputs. Enhance with ARIA:
 ---
 
 **Congratulations!** You've created a star rating editor using React's `EditorComponent` and `react-star-rating-component`, perfect for rating selection in your data grid!
+
+## What you learned
+
+You integrated the `react-star-rating-component` library as a Handsontable cell editor in React. You used `EditorComponent` with the render prop pattern to manage hover preview and click-to-confirm selection, and a React component renderer to display stars in view mode.
+
+## Next steps
+
+- [Star Rating (JavaScript)](/recipes/cell-types/rating) - The same concept using `editorFactory` and SVG stars with no external library.
+- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Colorful Picker (React)](/recipes/cell-types/colorful-picker) - Another React `EditorComponent` example for color selection.

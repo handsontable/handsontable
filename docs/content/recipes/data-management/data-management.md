@@ -32,5 +32,4 @@ Our recipes cover common use cases and implementation patterns for:
 Current recipes:
 
 <div class="boxes-list">
-
 </div>
