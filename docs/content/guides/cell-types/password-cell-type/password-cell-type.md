@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: a7a5mkrw
 title: Password cell type
 metaTitle: Password cell type - JavaScript Data Grid | Handsontable
@@ -15,6 +16,8 @@ searchCategory: Guides
 category: Cell types
 ---
 Use the password cell type to mask confidential values by rendering entered characters as symbols.
+
+The password cell type masks cell values with asterisks. Use it for PIN codes, access codes, or other values that should not be visible in plain text.
 
 [[toc]]
 
@@ -128,6 +131,10 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 :::
 
 :::
+
+## Result
+
+After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field. The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
 
 ## Related articles
 

@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 
 /**
  * A single filter condition sent by Handsontable's Filters plugin.
@@ -19,6 +19,8 @@ export class FilterConditionDto {
   condition: string;
 
   /** One or two values depending on the condition type. */
+  @IsArray()
+  @IsString({ each: true })
   value: string[];
 }
 

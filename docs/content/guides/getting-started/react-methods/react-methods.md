@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: dceorl8m
 title: Instance methods
 metaTitle: Instance methods - JavaScript Data Grid | Handsontable
@@ -20,7 +21,7 @@ searchCategory: Guides
 onlyFor: react
 category: Getting started
 ---
-Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
+Use useRef and HotTableRef to get a reference to the Handsontable instance from a React component, then call any API method on it.
 
 [[toc]]
 
@@ -70,3 +71,7 @@ ref.current?.hotInstance?.selectCell(1, 1);
 |---|---|---|
 | `hotInstance` | `Handsontable \| null` | The Handsontable instance. Use this to call Handsontable API methods. |
 | `hotElementRef` | `HTMLElement` | The root DOM element of the grid. |
+
+## Result
+
+Your React component now holds a typed reference to the Handsontable instance through `HotTableRef`. You can call any Handsontable API method on `ref.current.hotInstance` from event handlers and lifecycle effects.

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 6o0zftmc
 title: Rows sorting
 metaTitle: Rows sorting - JavaScript Data Grid | Handsontable
@@ -33,9 +34,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Rows sorting
-
 Sort rows alphabetically or numerically, in ascending, descending, or a custom order, by one or multiple columns.
 
 [[toc]]
@@ -44,8 +42,8 @@ Sort rows alphabetically or numerically, in ascending, descending, or a custom o
 
 Handsontable provides two plugins for sorting rows:
 
-- [`ColumnSorting`](@/api/columnSorting.md) — sorts rows by a **single column** at a time. Clicking a column header cycles through ascending, descending, and unsorted states.
-- [`MultiColumnSorting`](@/api/multiColumnSorting.md) — sorts rows by **multiple columns** simultaneously. Hold Ctrl/Cmd and click column headers to add more sort criteria.
+- [`ColumnSorting`](@/api/columnSorting.md) -- sorts rows by a **single column** at a time. Clicking a column header cycles through ascending, descending, and unsorted states.
+- [`MultiColumnSorting`](@/api/multiColumnSorting.md) -- sorts rows by **multiple columns** simultaneously. Hold Ctrl/Cmd and click column headers to add more sort criteria.
 
 Both plugins sort the view only. The source data array is never modified. To persist the sorted order back to the data source, see [Saving data](@/guides/getting-started/saving-data/saving-data.md).
 
@@ -171,15 +169,7 @@ To disable sorting for specific columns, set [`headerAction`](@/api/options.md#c
 
 ## Configure sorting
 
-Set `columnSorting` to an object to configure the plugin. The available options are:
-
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. |
-| `sortEmptyCells` | `boolean` | `false` | When `true`, empty cells participate in sorting. When `false`, empty cells are always placed at the end. |
-| `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
-| `compareFunctionFactory` | `function` | — | A factory that returns a custom comparator function. See [Add a custom comparator](#add-a-custom-comparator). |
-| `initialConfig` | `object` | — | Sort config applied at initialization. Contains `column` (visual index) and `sortOrder` (`'asc'` or `'desc'`). |
+Set `columnSorting` to an object to configure the plugin. See the [Reference](#reference) section below for all available options.
 
 ::: only-for javascript
 
@@ -1235,6 +1225,32 @@ registerPlugin(ColumnSorting);
 | --- | --- | --- | :---: | :---: |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Sort by the focused column, cycling through ascending, descending, and original order | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Append the focused column to the active sort criteria. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
+
+## Reference
+
+### Plugin comparison
+
+| Feature | `ColumnSorting` | `MultiColumnSorting` |
+| --- | --- | --- |
+| Sort by single column | Yes | Yes |
+| Sort by multiple columns | No | Yes |
+| Ctrl/Cmd + click to add columns | No | Yes |
+| `initialConfig` type | Object | Array of objects |
+| Mutual exclusivity | Disabled when `MultiColumnSorting` is enabled | Disables `ColumnSorting` |
+
+### Configuration options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `headerAction` | `boolean` | `true` | When `true`, clicking a column header sorts by that column. |
+| `sortEmptyCells` | `boolean` | `false` | When `true`, empty cells participate in sorting. When `false`, empty cells are always placed at the end. |
+| `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
+| `compareFunctionFactory` | `function` | -- | A factory that returns a custom comparator function. See [Add a custom comparator](#add-a-custom-comparator). |
+| `initialConfig` | `object` | -- | Sort config applied at initialization. Contains `column` (visual index) and `sortOrder` (`'asc'` or `'desc'`). |
+
+## Result
+
+After completing this guide, users can sort rows by clicking column headers, and you can control sort order programmatically. You can use `ColumnSorting` for single-column sorting or `MultiColumnSorting` for multi-column sorting with custom priority.
 
 ## API reference
 

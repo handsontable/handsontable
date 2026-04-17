@@ -1,4 +1,5 @@
 ---
+type: reference
 id: umu0w734
 title: Changelog 8.0
 metaTitle: Changelog 8.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 8.x.
+
 ## 8.4.0
 
 Released on May 11, 2021.
@@ -984,3 +988,7 @@ methods and hooks were added and there are few depreciations and removals, too.
 - Adding properties which were not defined on initialization or by `updateSettings` to the source
   data is possible only by the usage of `setSourceDataAtCell`.
   [#6664](https://github.com/handsontable/handsontable/issues/6664).
+
+## Related
+
+- [Migrating from 7.4 to 8.0](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)

@@ -3,7 +3,8 @@
 .idea
 .vscode
 .cache
-.cursor
+.cursor/*
+!.cursor/settings.json
 .claude/*
 !.claude/skills/
 !.claude/agents/

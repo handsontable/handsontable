@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 66g0jo36
 title: Binding to data
 metaTitle: Binding to data - JavaScript Data Grid | Handsontable
@@ -706,3 +707,16 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 - [modifySourceData](@/api/hooks.md#modifysourcedata)
 
 </div>
+
+## What you learned
+
+- Handsontable accepts three main data structures: arrays of arrays, arrays of objects, and function-based data sources.
+- You can pass an initial dataset through the `data` option or via the `HotTable` component's props.
+- Use `loadData()` to replace data and reset configuration, `updateData()` to replace data without resetting settings, and `updateSettings({ data })` to update data alongside other options.
+- Handsontable binds to your data by reference. Copy the dataset before passing it in to avoid unintended mutations.
+- For large datasets that live on a server, use `dataProvider` instead of a local array.
+
+## Next steps
+
+- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- persist changes to a backend or local storage.
