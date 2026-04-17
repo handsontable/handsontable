@@ -32,6 +32,7 @@ Our recipes cover common use cases and implementation patterns for:
 Current recipes:
 
 <div class="boxes-list">
-
+- [Sync two grids](@/content/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
+- [Undo / redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
 </div>

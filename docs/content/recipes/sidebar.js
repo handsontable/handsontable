@@ -24,6 +24,15 @@ const importExportItems = [
   },
 ];
 
+const filteringAndSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
+  {
+    path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
+    title: 'Highlight search matches',
+    onlyFor: ['javascript'],
+  },
+];
+
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -45,15 +54,17 @@ const editingValidationItems = [
     title: 'Dependent dropdowns',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'editing-validation/row-validation-error-summary/row-validation-error-summary',
+    title: 'Row validation with error summary',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const dataManagementItems = [
+  { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
-];
-
-const filteringSearchItems = [
-  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
 ];
 
 module.exports = {
@@ -74,8 +85,17 @@ module.exports = {
       collapsable: false,
       onlyFor: ['javascript'],
     },
+    {
+      title: 'Filtering and Search',
+      path: 'filtering-and-search',
+      children: [
+        ...filteringAndSearchItems,
+        { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+      ],
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Filtering and Search', path: 'filtering-search', children: filteringSearchItems, collapsable: false, onlyFor: ['javascript'] },
     {
       title: 'Rendering and styling',
       path: 'rendering-styling',
