@@ -16,7 +16,36 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
 ];
 
+const importExportItems = [
+  {
+    path: 'import-export/export-to-pdf/export-to-pdf',
+    title: 'Export to PDF',
+    onlyFor: ['javascript'],
+  },
+];
+
+const filteringAndSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
+  {
+    path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
+    title: 'Highlight search matches',
+    onlyFor: ['javascript'],
+  },
+];
+
+const themesItems = [
+  { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
+  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+];
+
 const renderingStylingItems = [
+  {
+    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
+    title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
   {
     path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
     title: 'Conditional row coloring',
@@ -37,41 +66,16 @@ const editingValidationItems = [
   },
 ];
 
-const importExportItems = [
-  {
-    path: 'import-export/export-to-pdf/export-to-pdf',
-    title: 'Export to PDF',
-    onlyFor: ['javascript'],
-  },
-];
-
-const filteringAndSearchItems = [
-  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
-  {
-    path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
-    title: 'Highlight search matches',
-    onlyFor: ['javascript'],
-  },
-];
-
 const dataManagementItems = [
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
 ];
 
-const themesItems = [
-  { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
-  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
-];
-
 module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
-    { title: 'Rendering and styling', path: 'rendering-styling', children: renderingStylingItems, collapsable: false, onlyFor: ['javascript'] },
     {
       title: 'Editing and Validation',
       path: 'editing-validation',
@@ -97,6 +101,13 @@ module.exports = {
       onlyFor: ['javascript'],
     },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
+    {
+      title: 'Rendering and styling',
+      path: 'rendering-styling',
+      children: renderingStylingItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };

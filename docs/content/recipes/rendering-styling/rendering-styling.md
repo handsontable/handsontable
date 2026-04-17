@@ -6,21 +6,22 @@ canonicalUrl: /recipes/rendering-styling
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-id: r8n4k2p1
-description: Recipes for conditional row styling, CSS class mapping, and presentation patterns in Handsontable.
+id: a8f3c91d
+description: Practical recipes for custom renderers, SVG, and visual styling in Handsontable.
 react:
-  id: m6t9v3q5
+  id: b2e4d80a
   metaTitle: Rendering and styling recipes - React Data Grid | Handsontable
 angular:
-  id: w2x7j4h8
+  id: c7f1a92e
   metaTitle: Rendering and styling recipes - Angular Data Grid | Handsontable
 ---
 [[toc]]
 
 ## Overview
 
-This section collects recipes that focus on how the grid looks in the DOM: CSS classes, conditional formatting, and keeping presentation aligned with your data.
+This section collects recipes that focus on how cells look in the grid - custom renderers, inline graphics, and layout tweaks - without pulling in heavy charting libraries.
 
 ## Available recipes
 
-- **[Conditional row coloring](@/content/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md)** - Map a status column to row-level CSS classes with the `cells` callback and scoped styles.
+- [Sparkline cell renderer](@/content/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) - mini SVG bar charts from array values in a cell
+- [Conditional row coloring](@/content/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) - map a status column to row-level CSS classes with the `cells` callback and scoped styles

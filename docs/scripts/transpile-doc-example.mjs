@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Emit a sibling `.js` file from a documentation `.ts` example using the
  * TypeScript compiler API (transpile only -- no typecheck, no path resolution).
@@ -34,5 +33,5 @@ const { outputText } = ts.transpileModule(sourceText, {
   fileName: absoluteTs,
 });
 
-fs.writeFileSync(jsPath, `${outputText.replace(/\s*$/, '')}\n`);
+fs.writeFileSync(jsPath, outputText);
 console.log(`Wrote ${path.relative(process.cwd(), jsPath)}`);
