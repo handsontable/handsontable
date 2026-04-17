@@ -250,12 +250,10 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (narrowing) selected columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
+      autoColumnSize: false,
       manualColumnResize: true
     });
 
@@ -286,14 +284,12 @@ describe('manualColumnResize', () => {
   });
 
   it('should show resizer for fixed columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
       rowHeaders: true,
       fixedColumnsStart: 2,
+      autoColumnSize: false,
       manualColumnResize: true
     });
 
@@ -314,12 +310,10 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
+      autoColumnSize: false,
       manualColumnResize: true
     });
 
@@ -350,7 +344,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize appropriate columns to calculated stretch width after double click on column handler when stretchH is set as `all`', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     spec().$container.css('width', '910px');
@@ -389,7 +385,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     spec().$container.css('width', '910px');
@@ -428,7 +426,9 @@ describe('manualColumnResize', () => {
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
      'updateSettings usage with new `colWidths` values', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -617,7 +617,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should trigger an afterColumnResize after column size changes, after double click', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
@@ -652,7 +654,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -679,7 +683,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -706,7 +712,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should autosize selected columns after double click on handler', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -736,7 +744,9 @@ describe('manualColumnResize', () => {
   });
 
   it('should autosize selected columns after double click on handler and move mouse to the next column', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
+    // TODO(theme-agnostic): auto-resize double-click width depends on font metrics
+    if (getLoadedTheme() !== 'main') {
+      return;
     }
 
     handsontable({
@@ -1012,15 +1022,12 @@ describe('manualColumnResize', () => {
 
   describe('column resizing in a table positioned using CSS\'s `transform`', () => {
     it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       spec().$container.css('transform', 'translate(50px, 120px)');
 
       handsontable({
         data: createSpreadsheetData(10, 20),
         colHeaders: true,
+        autoColumnSize: false,
         manualColumnResize: true,
         width: 400,
         height: 200,
@@ -1120,14 +1127,11 @@ describe('manualColumnResize', () => {
 
   describe('contiguous/non-contiguous selected columns resizing in a table', () => {
     it('should resize (expanding) width of selected contiguous columns', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 50),
         colHeaders: true,
         rowHeaders: true,
+        autoColumnSize: false,
         manualColumnResize: true
       });
 
@@ -1149,14 +1153,11 @@ describe('manualColumnResize', () => {
     });
 
     it('should resize (expanding) width of selected non-contiguous columns', async() => {
-      if (getLoadedTheme() !== 'main') {
-        return;
-      }
-
       handsontable({
         data: createSpreadsheetData(10, 50),
         colHeaders: true,
         rowHeaders: true,
+        autoColumnSize: false,
         manualColumnResize: true
       });
 
