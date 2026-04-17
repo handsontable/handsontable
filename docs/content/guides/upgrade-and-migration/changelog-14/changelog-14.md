@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 5wvnjbho
 title: Changelog 14.0
 metaTitle: Changelog 14.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 14.x.
+
 ## 14.6.1
 
 Released on October 17, 2024
@@ -348,3 +352,7 @@ For more information on this release, see:
 - Updated the demos for better accessibility. [#10563](https://github.com/handsontable/handsontable/pull/10563)
 - Fixed a problem with the text editor's width being calculated incorrectly. [#10590](https://github.com/handsontable/handsontable/pull/10590)
 - Fixed a problem with two cells being selected after `Ctrl/Cmd + Shift` key combination. [#10622](https://github.com/handsontable/handsontable/pull/10622)
+
+## Related
+
+- [Migrating from 13.1 to 14.0](@/guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0.md)

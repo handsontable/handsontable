@@ -22,6 +22,7 @@ module.exports = {
     '**/recipes/**/*.tsx',
     '**/*.astro',
     '**/scripts/**/*.ts',
+    '**/components/DocsAssistant/**/*.ts',
     '**/content/config.ts',
     '**/content.config.ts',
   ],

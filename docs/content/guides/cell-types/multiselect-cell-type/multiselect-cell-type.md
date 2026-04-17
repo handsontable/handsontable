@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: cjih3fhw
 title: MultiSelect cell type
 metaTitle: MultiSelect cell type - JavaScript Data Grid | Handsontable
@@ -16,6 +17,8 @@ category: Cell types
 menuTag: new
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
+
+The multiselect cell type lets users pick multiple values from a dropdown list. Values are stored as a comma-separated string or array.
 
 [[toc]]
 
@@ -181,6 +184,10 @@ When working with object-based MultiSelect data, you can use methods like [`getS
 
 :::
 
+
+## Result
+
+After configuring the multiselect cell type, cells display a dropdown that allows selecting multiple items. Each selected value appears as a removable chip inside the cell. The underlying data source stores the selections as an array (or as a comma-separated string when used with the Formulas plugin).
 
 ## Related articles
 

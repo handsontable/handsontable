@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: k5920uow
 title: Merge cells
 metaTitle: Merge cells - JavaScript Data Grid | Handsontable
@@ -195,3 +196,7 @@ The example below uses virtualized merged cells. It's also recommended to increa
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
+
+## Result
+
+Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

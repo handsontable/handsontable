@@ -1,0 +1,18 @@
+.export-pdf-toolbar {
+  margin-bottom: 12px;
+}
+
+.export-pdf-btn {
+  background: #1a42e8;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+}
+
+.export-pdf-btn:hover {
+  background: #1536c4;
+}
