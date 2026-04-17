@@ -11,15 +11,12 @@ describe('StretchColumns cooperation with reordered indexes', () => {
   });
 
   it('should follow the columns order when they are moved', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 4),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
       beforeStretchingColumnWidth(width, columnVisualIndex) {
         return this.toPhysicalColumn(columnVisualIndex) === 1 ? 33 : width;
@@ -29,6 +26,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     columnIndexMapper().setIndexesSequence([0, 2, 3, 1]);
     await render();
 
+    // available = 270; physical col 1 fixed at 33; remaining = 270 - 33 = 237; 237 / 3 = 79
     expect(getColWidth(0)).toBe(79);
     expect(getColWidth(1)).toBe(79);
     expect(getColWidth(2)).toBe(79);

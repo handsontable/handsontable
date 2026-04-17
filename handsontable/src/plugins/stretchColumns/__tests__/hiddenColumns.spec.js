@@ -11,15 +11,12 @@ describe('StretchColumns cooperation with hidden columns', () => {
   });
 
   it('should stretch only visible columns (ignore hidden ones)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 9),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
@@ -33,14 +30,16 @@ describe('StretchColumns cooperation with hidden columns', () => {
     hot().view.adjustElementsSize();
     await render();
 
-    expect(getColWidth(0)).toBe(50);
+    // 4 visible cols out of 9; available = 320 - 50 = 270
+    // 270 / 4: round(50 * 270/200) = 68; last visible = 270 - 3*68 = 66
+    expect(getColWidth(0)).toBe(50); // hidden
     expect(getColWidth(1)).toBe(68);
     expect(getColWidth(2)).toBe(68);
-    expect(getColWidth(3)).toBe(50);
-    expect(getColWidth(4)).toBe(50);
+    expect(getColWidth(3)).toBe(50); // hidden
+    expect(getColWidth(4)).toBe(50); // hidden
     expect(getColWidth(5)).toBe(68);
-    expect(getColWidth(6)).toBe(50);
-    expect(getColWidth(7)).toBe(66);
-    expect(getColWidth(8)).toBe(50);
+    expect(getColWidth(6)).toBe(50); // hidden
+    expect(getColWidth(7)).toBe(66); // last visible col gets remainder
+    expect(getColWidth(8)).toBe(50); // hidden
   });
 });

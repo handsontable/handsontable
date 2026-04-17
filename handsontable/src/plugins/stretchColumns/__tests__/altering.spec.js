@@ -11,26 +11,25 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should re-stretch all columns after adding a new column', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 2),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
     await alter('insert_col_end', null, 1);
 
+    // available = 320 - 50 = 270; 270 / 3 = 90
     expect(getColWidth(0)).toBe(90);
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
     await alter('insert_col_start', null, 1);
 
+    // 270 / 4: round(50 * 270/200) = 68; last = 270 - 3*68 = 66
     expect(getColWidth(0)).toBe(68);
     expect(getColWidth(1)).toBe(68);
     expect(getColWidth(2)).toBe(68);
@@ -38,20 +37,18 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should re-stretch all columns after removing a column', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 7),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
     await alter('remove_col');
 
+    // 6 cols * 50 = 300 > 270 available (320 - 50 rowHeader), so horizontal scroll appears
     expect(tableView().hasHorizontalScroll()).toBe(true);
 
     expect(getColWidth(0)).toBe(50);
@@ -63,6 +60,7 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('remove_col', 1);
 
+    // 5 cols, available = 270; 270 / 5 = 54
     expect(tableView().hasHorizontalScroll()).toBe(false);
 
     expect(getColWidth(0)).toBe(54);
@@ -73,20 +71,18 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should stop stretching the columns when the sum of columns widths is wider than the viewport', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 2),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
     await alter('insert_col_end', null, 3);
 
+    // 5 cols, available = 270; 270 / 5 = 54
     expect(tableView().hasHorizontalScroll()).toBe(false);
     expect(getColWidth(0)).toBe(54);
     expect(getColWidth(1)).toBe(54);
@@ -96,6 +92,7 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('insert_col_end', null, 1);
 
+    // 6 cols * 50 = 300 > 270, no stretching
     expect(tableView().hasHorizontalScroll()).toBe(true);
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);

@@ -471,6 +471,9 @@ export function expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1) 
  * Compute a container height that guarantees exactly `rowCount` fully visible data rows.
  * Use this to set `height:` in test config instead of hardcoding pixel values.
  *
+ * Accounts for the first-row border compensation (the first rendered data row is 1px taller
+ * than subsequent rows due to collapsed border seam with the header or container top).
+ *
  * @param {number} rowCount Desired number of fully visible data rows.
  * @param {number} [colHeaderRows=1] Number of column header rows.
  * @returns {number}
@@ -478,8 +481,9 @@ export function expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1) 
 export function containerHeightForRows(rowCount, colHeaderRows = 1) {
   const layout = getThemeLayout();
   const headerHeight = colHeaderRows * (layout.defaultColumnHeaderHeight + layout.cellBorderWidth);
+  const firstRowCompensation = rowCount > 0 ? layout.cellBorderWidth : 0;
 
-  return headerHeight + (rowCount * layout.defaultDataRowHeight);
+  return headerHeight + (rowCount * layout.defaultDataRowHeight) + firstRowCompensation;
 }
 
 /**

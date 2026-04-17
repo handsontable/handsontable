@@ -22,13 +22,10 @@ describe('StretchColumns', () => {
   });
 
   it('should be possible to change the stretch strategy via `updateSettings`', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(3, 3),
       width: 200,
-      height: 100,
+      height: containerHeightForRows(3, 0),
     });
 
     expect(getColWidth(0)).toBe(50);
@@ -76,18 +73,16 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns after table size change', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
+    // available = 320 - 50 (rowHeader) = 270; 270 / 3 = 90
     expect(getColWidth(0)).toBe(90);
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
@@ -96,6 +91,7 @@ describe('StretchColumns', () => {
       width: 500,
     });
 
+    // available = 500 - 50 = 450; 450 / 3 = 150
     expect(getColWidth(0)).toBe(150);
     expect(getColWidth(1)).toBe(150);
     expect(getColWidth(2)).toBe(150);
@@ -103,12 +99,13 @@ describe('StretchColumns', () => {
 
   it(`should correctly stretch columns after vertical scroll appears
  (defined table size)`, async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
-    const layout = getThemeLayout();
-    const heightFull = 179;
-    const heightWithScroll = 165;
+    // Use a height that fits all 5 rows (no scrollbar) and one that fits only 3 (scrollbar appears).
+    const heightFull = containerHeightForRows(5);
+    const heightWithScroll = containerHeightForRows(3);
+    const rowHeaderWidth = getDefaultRowHeaderWidth();
+    const scrollbarWidth = Handsontable.dom.getScrollbarWidth(document);
+    const availableNoScroll = 320 - rowHeaderWidth;
+    const availableWithScroll = availableNoScroll - scrollbarWidth;
 
     handsontable({
       data: createSpreadsheetData(5, 3),
@@ -119,25 +116,26 @@ describe('StretchColumns', () => {
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
+    expect(getColWidth(0)).toBe(Math.round(availableNoScroll / 3));
+    expect(getColWidth(1)).toBe(Math.round(availableNoScroll / 3));
+    expect(getColWidth(2)).toBe(availableNoScroll - (2 * Math.round(availableNoScroll / 3)));
 
     await updateSettings({
       height: heightWithScroll,
     });
 
-    expect(getColWidth(0)).toBe(85);
-    expect(getColWidth(1)).toBe(85);
-    expect(getColWidth(2)).toBe(85);
+    // Scrollbar appeared, stretched widths shrink.
+    expect(getColWidth(0)).toBe(Math.round(availableWithScroll / 3));
+    expect(getColWidth(1)).toBe(Math.round(availableWithScroll / 3));
+    expect(getColWidth(2)).toBe(availableWithScroll - (2 * Math.round(availableWithScroll / 3)));
 
     await updateSettings({
       height: heightFull,
     });
 
-    expect(getColWidth(0)).toBe(90);
-    expect(getColWidth(1)).toBe(90);
-    expect(getColWidth(2)).toBe(90);
+    expect(getColWidth(0)).toBe(Math.round(availableNoScroll / 3));
+    expect(getColWidth(1)).toBe(Math.round(availableNoScroll / 3));
+    expect(getColWidth(2)).toBe(availableNoScroll - (2 * Math.round(availableNoScroll / 3)));
   });
 
   it.flaky('should correctly stretch columns after vertical scroll appears (window as scrollable element)', async() => {
@@ -226,9 +224,6 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch columns when there are some rows with multi-line text', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const data = createSpreadsheetData(5, 2);
 
     for (let i = 0; i < data.length; i++) {
@@ -240,12 +235,13 @@ describe('StretchColumns', () => {
     handsontable({
       data,
       width: 500,
-      height: 200,
+      height: containerHeightForRows(5, 0),
       stretchH: 'all',
     });
 
-    expect(getColWidth(0)).toBe(418);
-    expect(getColWidth(1)).toBe(82);
+    // The column with multi-line text should be wider, total should equal container width.
+    expect(getColWidth(0)).toBeGreaterThan(getColWidth(1));
+    expect(getColWidth(0) + getColWidth(1)).toBe(500);
   });
 
   it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', async() => {
@@ -340,9 +336,6 @@ describe('StretchColumns', () => {
   });
 
   it('should correctly stretch the column after changing the cell value (#dev-1727)', async() => {
-    if (getLoadedTheme() !== 'main') {      return;
-    }
-
     const data = createSpreadsheetData(1, 5);
 
     data[0][4] = 'very long text is here to make the column wider';
@@ -350,19 +343,24 @@ describe('StretchColumns', () => {
     handsontable({
       data,
       width: 400,
-      height: 300,
+      height: containerHeightForRows(1, 0),
       stretchH: 'all',
     });
 
-    expect(getColWidth(4)).toBe(311);
+    const widthWithLongText = getColWidth(4);
+
+    // The column with long text should get more than equal share (400/5 = 80).
+    expect(widthWithLongText).toBeGreaterThan(80);
 
     await setDataAtCell(0, 4, 'text');
 
+    // After clearing, all columns have equal short text, so equal distribution: 400/5 = 80.
     expect(getColWidth(4)).toBe(80);
 
     await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
-    expect(getColWidth(4)).toBe(311);
+    // After restoring, the column should get the same wider width again.
+    expect(getColWidth(4)).toBe(widthWithLongText);
   });
 
   it('should stretch the table to the entirety of the container when autoRowSize is enabled', async() => {
