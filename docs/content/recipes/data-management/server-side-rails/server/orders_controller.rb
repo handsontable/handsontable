@@ -105,17 +105,23 @@ module Api
 
     private
 
-    # Translate Handsontable's sort state into ActiveRecord's .order() call.
-    # Uses the hash form of .order so the column name is quoted safely.
+    # Translate Handsontable's sort state into ActiveRecord's .reorder() call.
+    # Uses the hash form so the column name is quoted safely.
     # Values that are not on the whitelist are silently ignored -- no SQL
     # is generated for them.
+    #
+    # .reorder (not .order) is used on purpose: the Order model sets a
+    # default_scope ordering by created_at DESC for the initial page view.
+    # .order would *append* the user-chosen column to the default, making
+    # it a secondary tiebreaker. .reorder replaces the ORDER BY clause
+    # entirely so the user's sort is the primary sort.
     def apply_sort(scope)
       prop  = params[:sort_prop]
       order = params[:sort_order] == "desc" ? :desc : :asc
 
       return scope unless SORTABLE_COLUMNS.include?(prop)
 
-      scope.order(prop => order)
+      scope.reorder(prop => order)
     end
 
     # Translate Handsontable's filters[] param into chained .where calls.

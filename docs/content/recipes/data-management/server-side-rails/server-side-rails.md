@@ -228,7 +228,7 @@ def apply_sort(scope)
 
   return scope unless SORTABLE_COLUMNS.include?(prop)
 
-  scope.order(prop => order)
+  scope.reorder(prop => order)
 end
 ```
 
@@ -236,7 +236,7 @@ end
 
 - `params[:sort_prop]` comes directly from the frontend's `sort_prop=` query param (see Step 9).
 - `SORTABLE_COLUMNS.include?(prop)` is the whitelist check. Any column not on the list is silently ignored -- no SQL is generated for it.
-- `scope.order(prop => order)` uses the hash form of `.order()`, which ActiveRecord quotes safely.
+- `scope.reorder(prop => order)` uses the hash form, which ActiveRecord quotes safely. `.reorder` is used instead of `.order` because the `Order` model defines `default_scope -> { order(created_at: :desc) }`. Calling `.order` would *append* the user-selected column to the default, making it a secondary tiebreaker; `.reorder` replaces the `ORDER BY` clause so the user's sort is primary.
 - `params[:sort_order]` falls back to `:asc` unless the client explicitly sends `desc`. This prevents arbitrary SQL fragments (for example, `created_at; DROP TABLE orders`) from reaching the database.
 
 ### Filter helper
