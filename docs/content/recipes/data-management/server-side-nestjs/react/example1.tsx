@@ -23,7 +23,7 @@ registerAllModules();
  *   {
  *     page: 1,
  *     pageSize: 10,
- *     sort: { column: 'status', order: 'asc' } | undefined,
+ *     sort: { prop: 'status', order: 'asc' } | undefined,
  *     filters: [{ prop: 'status', condition: 'eq', value: ['open'] }] | undefined,
  *   }
  *
