@@ -141,6 +141,7 @@ export interface DataProviderConfig {
  * `dataProvider` setting. A truthy value enables the DataProvider plugin; each key is validated like other plugin options.
  * When the value is a full [[DataProviderConfig]] (all keys present and valid), Handsontable loads data via `fetchRows` and disables `trimRows`, `manualRowMove`, `manualColumnMove`, and `multiColumnSorting`. Use `columnSorting` for server-side sort.
  * Server fetch and mutations no-op when the corresponding callbacks are missing or invalid.
+ * Built-in error toasts for failed `fetchRows` or mutation callbacks require [[Options#notification]] (`notification: true`); they are not shown through the Dialog plugin.
  */
 export type Settings = DataProviderConfig | undefined;
 

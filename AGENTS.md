@@ -66,6 +66,7 @@ These are the most frequent mistakes. Read this section first.
 | Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
 | Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
 | Confusing the context menu with the column (dropdown) menu | These are two separate plugins. See [Context menu vs column menu](#context-menu-vs-column-menu). |
+| Expecting built-in DataProvider error UI from `dialog: true` alone | Enable `notification: true` (or a `notification` config object). DataProvider uses the Notification plugin for fetch/CRUD failures. Dialog stays for blocking modals (for example Loading plugin, ExportFile binary export overlay, custom `show` content). |
 
 ---
 
@@ -223,6 +224,7 @@ Every code change **must** satisfy all of the following:
 | Index translations | `handsontable/src/translations/` |
 | Walkontable engine | `handsontable/src/3rdparty/walkontable/src/` |
 | Hooks system | `handsontable/src/core/hooks/` |
+| DataProvider plugin (server-backed data) | `handsontable/src/plugins/dataProvider/dataProvider.js` |
 | Error helpers | `handsontable/src/helpers/errors.js` |
 | i18n | `handsontable/src/i18n/constants.js`, `src/i18n/languages/` |
 | TypeScript definitions | `handsontable/types/` |
@@ -245,6 +247,7 @@ Every code change **must** satisfy all of the following:
 - For hook signature/behavior fixes, add both a runtime regression and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` -- warnings about ignored build scripts (e.g., `less`) are expected.
 - **Never use raw `setTimeout` in core code.** Use `this.hot._registerTimeout(fn, delay)` instead -- it auto-clears all registered timeouts on `hot.destroy()`, preventing memory leaks and stale callbacks after the instance is destroyed.
+- **DataProvider built-in errors** -- When `notification` is enabled, failed `fetchRows` or mutation callbacks show an error toast via the Notification plugin. **Fetch** failures add a **Refetch** action (`duration: 0` until dismissed or Refetch) that calls `fetchData()` again. Hooks `afterDataProviderFetchError` and `afterRowsMutationError` still fire; use them for custom UI when Notification is off. See `.ai/ARCHITECTURE.md` (Plugin system) and skill `handsontable-plugin-dev`.
 
 ---
 
@@ -293,3 +296,70 @@ To update a task status directly from a commit or PR, append the target status i
 9. After PR is created, use ClickUp MCP to update task status to **"code review"**.
 
 **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions. Do not call the ClickUp REST API directly.
+
+## Coding discipline
+
+Behavioral guidelines to reduce common LLM coding mistakes. These complement -- not replace -- the [Mandatory checklist for every change](#mandatory-checklist-for-every-change) and [Architecture constraints](#architecture-constraints). They bias toward caution over speed; for small, low-risk tasks, use judgment.
+
+### Think before coding
+
+Do not assume. Do not hide confusion. Surface tradeoffs.
+
+Before implementing:
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them -- do not pick silently.
+- If a shorter approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what is confusing. Ask.
+
+### Minimal code
+
+Write the minimum code that solves the problem. Nothing speculative.
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No flexibility or configurability that was not requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: would a senior engineer say this is overcomplicated? If yes, shorten it. This rule aligns with the [Architecture constraints](#architecture-constraints) section: do not add speculative abstractions.
+
+### Surgical changes
+
+Touch only what you must. Clean up only your own mess.
+
+When editing existing code:
+
+- Do not "improve" adjacent code, comments, or formatting.
+- Do not refactor things that are not broken.
+- Match existing style, even if you would do it differently.
+- If you notice unrelated dead code, mention it -- do not delete it.
+
+When your changes create orphans:
+
+- Remove imports, variables, or functions that your changes made unused.
+- Do not remove pre-existing dead code unless asked.
+
+The test: every changed line should trace directly to the user's request.
+
+### Goal-driven execution
+
+Define success criteria. Loop until verified. This extends the [Mandatory checklist for every change](#mandatory-checklist-for-every-change): red-green TDD is the required mechanism; the guidance below is how to frame work around it.
+
+Transform tasks into verifiable goals:
+
+- "Add validation" -> write tests for invalid inputs, then make them pass.
+- "Fix the bug" -> write a test that reproduces it, then make it pass.
+- "Refactor X" -> ensure tests pass before and after.
+
+For multi-step tasks, state a brief plan:
+
+```
+1. [Step] -> verify: [check]
+2. [Step] -> verify: [check]
+3. [Step] -> verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+These guidelines are working if diffs contain fewer unrequested changes, fewer rewrites from overcomplication, and clarifying questions come before implementation rather than after mistakes.
