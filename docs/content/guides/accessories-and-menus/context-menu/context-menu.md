@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 3hrrxxln
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
@@ -19,7 +20,7 @@ angular:
 searchCategory: Guides
 category: Accessories and menus
 ---
-Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
+The context menu provides cell-level actions accessible by right-clicking. This page lists all available menu items and their configuration keys.
 
 [[toc]]
 
@@ -330,5 +331,15 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 <div class="boxes-list">
 
 - [ContextMenu](@/api/contextMenu.md)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Custom shortcuts](@/guides/navigation/custom-shortcuts/custom-shortcuts.md)
+- [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
+- [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
 
 </div>

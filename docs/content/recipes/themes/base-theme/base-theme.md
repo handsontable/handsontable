@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: q7n4k2p9
 title: Handsontable with Base Web
 metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
@@ -24,6 +25,8 @@ angular:
 searchCategory: Recipes
 category: Themes
 ---
+
+This tutorial shows you how to integrate Handsontable into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
 
 <iframe src="https://codesandbox.io/embed/3ctq7w?view=preview"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -223,3 +226,13 @@ This keeps the grid aligned with system-level style updates and avoids one-off C
 - [Themes](/themes) - Built-in themes and Theme API.
 - [Theme customization](/theme-customization) - Theme API parameters and CSS variable reference.
 - [Design system (Figma)](/handsontable-design-system) - Figma kit and design tokens.
+
+## What you learned
+
+You registered a custom Handsontable theme that maps Base Web design tokens to Handsontable colors and tokens. You used `registerTheme` with a `colors` object backed by `var(--bds-*)` CSS variables, Horizon tokens as the base, and `.params()` overrides to match Base Web's border radius.
+
+## Next steps
+
+- [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn/ui CSS variables and Lucide icons.
+- [Handsontable with MUI](/recipes/themes/mui-theme) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
+- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.

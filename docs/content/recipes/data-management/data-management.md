@@ -7,7 +7,7 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 id: c4b7e2f1
-description: Practical recipes for loading and synchronizing Handsontable data with external APIs.
+description: Practical recipes for loading, syncing, and managing data in Handsontable.
 react:
   id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
@@ -19,20 +19,20 @@ angular:
 
 ## Overview
 
-This section gives you practical recipes for loading, transforming, and synchronizing data in Handsontable. Each recipe includes a complete, working example you can copy.
+This section provides practical recipes for loading, syncing, and managing data in Handsontable. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 
 Our recipes cover common use cases and implementation patterns for:
 
-- **Remote data loading** - Fetching API data and rendering it in the grid.
-- **UI states** - Showing loading, success, and error states around async operations.
-- **Column mapping** - Translating API response shapes to grid columns.
+- **Remote data loading** -- Fetching JSON data and rendering it in the grid.
+- **Data synchronization** -- Keeping multiple grid instances in sync.
+- **Undo and redo UX** -- Connecting built-in data history to custom controls.
 
 Current recipes:
 
 <div class="boxes-list">
 
 - [Load data from a GraphQL API](@/content/recipes/data-management/load-data-graphql/load-data-graphql.md)
-
+- [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
 </div>
