@@ -102,7 +102,7 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 
 **Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm during the `.dump` step (Rspack build), not by Puppeteer. Using `npm run test:e2e -- --testPathPattern=...` passes it only to the Puppeteer runner, which doesn't support it.
 
-**Parallel runs:** Two `npm run test:e2e --testPathPattern=<X>` invocations with different patterns can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086`. Nothing special needs to be passed -- just launch both commands.
+**Parallel runs:** Multiple `npm run test:e2e --testPathPattern=<X>` invocations with different patterns (or themes) can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086` (retries up to 100 ports). Nothing special needs to be passed -- just launch the commands; the practical limit is machine resources, not the tooling.
 
 **Split dump + puppeteer:** When invoking the two steps separately, pass `--testPathPattern` AND `--theme` to **both** commands. Each `npm run` is its own npm process with its own env, and the Puppeteer script recomputes the same hash as dump to find the runner HTML -- a mismatch will fail with "Runner HTML not found at ...". Example:
 

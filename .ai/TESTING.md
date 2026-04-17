@@ -56,7 +56,7 @@ npm run test:unit -- --coverage
 - Per-run Puppeteer runner: `handsontable/test/E2ERunner-<runId>.html`
 - Generic dev runner (always regenerated alongside): `handsontable/test/E2ERunner.html`
 
-`run-puppeteer.mjs` computes the same hash from `npm_config_testpathpattern` / `npm_config_theme` and opens the matching HTML. It also binds the local HTTP server to the first free port starting at `8086` (retries on `EADDRINUSE`), so two runs on the same machine each get their own port. Running two `npm run test:e2e --testPathPattern=<A>` and `npm run test:e2e --testPathPattern=<B>` concurrently works without further configuration.
+`run-puppeteer.mjs` computes the same hash from `npm_config_testpathpattern` / `npm_config_theme` and opens the matching HTML. It also binds the local HTTP server to the first free port starting at `8086` (retries on `EADDRINUSE`, up to 100 ports), so each concurrent run gets its own port. Any number of `npm run test:e2e --testPathPattern=<X>` invocations with distinct patterns (or themes) can run in parallel without further configuration -- the practical limit is machine resources, not the tooling.
 
 The helper that derives the hash lives in `handsontable/.config/helper/run-id.js` -- used by both the Rspack config and the Puppeteer script so they stay in lockstep.
 
