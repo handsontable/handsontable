@@ -42,6 +42,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript'],
   },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript'] },
 ];
 
 const filteringAndSearchItems = [
@@ -71,11 +72,6 @@ const editingValidationItems = [
     title: 'Row validation with error summary',
     onlyFor: ['javascript'],
   },
-];
-
-
-const importExportItems = [
-  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript'] },
 ];
 
 module.exports = {
@@ -115,6 +111,5 @@ module.exports = {
       onlyFor: ['javascript'],
     },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
-    { title: 'Import and Export', path: 'import-export', children: importExportItems, collapsable: false, onlyFor: ['javascript'] },
   ],
 };
