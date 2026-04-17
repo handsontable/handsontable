@@ -28,7 +28,7 @@
           :filters="true"
           :context-menu="true"
           :empty-data-state="true"
-          :dialog="true"
+          :notification="true"
         />
       </div>
     </section>
@@ -52,7 +52,7 @@
           :filters="true"
           :context-menu="true"
           :empty-data-state="true"
-          :dialog="true"
+          :notification="true"
         />
       </div>
     </section>

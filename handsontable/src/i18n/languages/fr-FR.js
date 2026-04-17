@@ -132,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Impossible de mettre à jour les lignes',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossible de supprimer les lignes',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La requête a échoué',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Fermer',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recharger',
 };
 
 export default dictionary;

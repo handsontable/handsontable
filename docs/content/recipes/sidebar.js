@@ -27,7 +27,14 @@ const filteringAndSearchItems = [
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+];
+
+const dataManagementItems = [
+];
+
+const filteringSearchItems = [
 ];
 
 module.exports = {
@@ -35,6 +42,7 @@ module.exports = {
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Filtering and Search', path: 'filtering-and-search', children: filteringAndSearchItems, collapsable: false, onlyFor: ['javascript'] },
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
