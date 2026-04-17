@@ -1140,7 +1140,7 @@ describe('Formulas general', () => {
       await selectCell(0, 0);
       autofill(0, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         ['Mercedes A 160', 'Mercedes A 160'],
@@ -2468,7 +2468,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -2513,7 +2513,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -2558,7 +2558,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -2583,7 +2583,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '13/12/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)
@@ -2607,14 +2607,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '12/11/2022');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44906], // 11 Dec 2022
@@ -2638,7 +2638,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -2683,14 +2683,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
 
       await setDataAtCell(0, 0, '12/13/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['12/13/2022'], // Not converted - improper date (we treat it as a string)
@@ -2714,14 +2714,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '13/11/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44878], // 13 Nov 2022
@@ -2745,7 +2745,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -2926,7 +2926,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '11,8');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()).toEqual([
         [11.8, 60, 118038.11164],
@@ -2972,7 +2972,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3017,7 +3017,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
@@ -3062,7 +3062,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3087,7 +3087,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '13/12/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['13/12/2022'], // Not converted - improper date (we treat it as a string)
@@ -3111,14 +3111,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '12/11/2022');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44906], // 11 Dec 2022
@@ -3142,7 +3142,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
@@ -3187,14 +3187,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);
 
       await setDataAtCell(0, 0, '12/13/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         ['12/13/2022'], // Not converted - improper date (we treat it as a string)
@@ -3218,14 +3218,14 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(false);
       expect(getCellMeta(1, 0).valid).toBe(false);
 
       await setDataAtCell(0, 0, '13/11/2022');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
         [44878], // 13 Nov 2022
@@ -3249,7 +3249,7 @@ describe('Formulas general', () => {
 
       await validateCells();
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(getCellMeta(0, 0).valid).toBe(true);
       expect(getCellMeta(1, 0).valid).toBe(true);

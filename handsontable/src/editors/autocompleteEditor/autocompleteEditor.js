@@ -11,7 +11,7 @@ import {
   setAttribute,
   setCaretPosition,
 } from '../../helpers/dom/element';
-import { isUndefined, isDefined, stringify } from '../../helpers/mixed';
+import { isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
@@ -255,32 +255,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     super.discardEditor(result);
 
     this.hot.view.render();
-  }
-
-  /**
-   * Finishes editing and start saving or restoring process for editing cell.
-   *
-   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
-   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
-   * @param {Function} callback The callback function, fired after editor closing.
-   */
-  finishEditing(restoreOriginalValue, ctrlDown, callback) {
-    if (this.isOpened()) {
-      const lastSelectedRange = this.hot.getSelectedRangeActive();
-
-      if (
-        isUndefined(lastSelectedRange) ||
-        (
-          isDefined(lastSelectedRange) &&
-          !lastSelectedRange.includes(this.hot._createCellCoords(this.row, this.col))
-        )
-      ) {
-        // Method was triggered by selecting a different cell or deselecting cells.
-        restoreOriginalValue = true;
-      }
-    }
-
-    super.finishEditing(restoreOriginalValue, ctrlDown, callback);
   }
 
   /**

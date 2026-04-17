@@ -39,7 +39,9 @@ describe('built-in plugins', () => {
       'Loading',
       'Dialog',
       'EmptyDataState',
+      'Notification',
       'Pagination',
+      'DataProvider',
       'UndoRedo',
     ]);
   });

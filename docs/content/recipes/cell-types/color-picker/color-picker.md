@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell Type - Step-by-Step Guide
+::: only-for javascript vue
 
-[[toc]]
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
+
+@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -30,20 +38,6 @@ This guide shows how to create a custom color picker cell using the [Pickr](http
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 **Libraries:** `@simonwep/pickr`
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
-
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.js)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
-
-:::
-
-:::
 
 ## What You'll Build
 
@@ -197,11 +191,18 @@ afterInit(editor) {
     el: button,
     theme: 'nano',
     default: editor.input.value || '#000000',
+    autoReposition: false,
+    padding: 0,
     components: {
       preview: true,
       hue: true,
     }
   });
+
+  // Collapse the Pickr trigger button so it doesn't add vertical space
+  // between the cell editor and the popup.
+  editor.pickr._root.root.style.height = '0';
+  editor.pickr._root.root.style.overflow = 'hidden';
 
   editor.preventCloseElement = editor.pickr._root.app;
 
@@ -213,6 +214,11 @@ afterInit(editor) {
   });
 
   editor.pickr.on('hide', () => {
+    if (Date.now() - editor._openedAt < 400) {
+      editor.pickr.show();
+
+      return;
+    }
     editor.finishEditing();
   });
 }
@@ -235,8 +241,20 @@ Set the current color and show the Pickr picker.
 
 ```typescript
 afterOpen(editor) {
+  editor._openedAt = Date.now();
   editor.pickr.setColor(editor.input.value || '#000000');
   editor.pickr.show();
+
+  // Pickr positions its popup relative to the trigger button with an
+  // internal offset. Use double-rAF to ensure Pickr's own positioning
+  // is complete before overriding the top to sit flush below the cell.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const cellRect = editor.TD.getBoundingClientRect();
+
+      editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+    });
+  });
 }
 ```
 
@@ -254,6 +272,7 @@ Ensure the Pickr popup is hidden when the editor closes.
 
 ```typescript
 afterClose(editor) {
+  editor.pickr._root.app.classList.remove('visible');
   editor.pickr.hide();
 }
 ```
@@ -338,21 +357,47 @@ const cellDefinition = {
         el: button,
         theme: 'nano',
         default: editor.input.value || '#000000',
+        autoReposition: false,
+        padding: 0,
         components: { preview: true, hue: true },
       });
+
+      // Collapse the Pickr trigger button so it doesn't add vertical space
+      // between the cell editor and the popup.
+      editor.pickr._root.root.style.height = '0';
+      editor.pickr._root.root.style.overflow = 'hidden';
 
       editor.preventCloseElement = editor.pickr._root.app;
 
       editor.pickr.on('change', (color) => {
         if (color) editor.input.value = color.toHEXA().toString();
       });
-      editor.pickr.on('hide', () => editor.finishEditing());
+      editor.pickr.on('hide', () => {
+        if (Date.now() - editor._openedAt < 400) {
+          editor.pickr.show();
+
+          return;
+        }
+        editor.finishEditing();
+      });
     },
     afterOpen(editor) {
+      editor._openedAt = Date.now();
       editor.pickr.setColor(editor.input.value || '#000000');
       editor.pickr.show();
+
+      // Pickr positions its popup relative to the trigger button with an
+      // internal offset. Override the top to sit flush below the cell.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const cellRect = editor.TD.getBoundingClientRect();
+
+          editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+        });
+      });
     },
     afterClose(editor) {
+      editor.pickr._root.app.classList.remove('visible');
       editor.pickr.hide();
     },
     getValue(editor) {

@@ -1,0 +1,39 @@
+---
+/**
+ * SiteTitle component override.
+ *
+ * Renders the default Starlight site title (logo) with a "dev" badge
+ * when BUILD_MODE is not 'production' (local development, staging, etc.).
+ * The framework switcher has been moved to the header nav row
+ * (FrameworkSwitcher.astro), next to the versions dropdown.
+ */
+import Default from '@astrojs/starlight/components/SiteTitle.astro';
+
+const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
+---
+<div class="site-title-wrapper">
+  <Default {...Astro.props} />
+  {!isProduction && <span class="dev-badge" aria-label="Development build">dev</span>}
+</div>
+
+<style>
+  .site-title-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .dev-badge {
+    background: var(--sl-color-accent, #4e94f8);
+    border: 1px solid var(--sl-color-accent, #4e94f8);
+    border-radius: 99px;
+    color: #fff;
+    font-family: var(--sl-font-system, system-ui, sans-serif);
+    font-size: 0.65rem;
+    font-weight: 400;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    text-transform: capitalize;
+    vertical-align: middle;
+  }
+</style>

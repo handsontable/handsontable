@@ -15,6 +15,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
+import { getEditorAnchorWidth } from './utils';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
@@ -396,6 +397,7 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+    this.eventManager.addEventListener(editorElement, 'keydown', event => this.#onEditorKeyDown(event));
 
     this.eventManager.addEventListener(
       this.getEditorInputElement(),
@@ -630,6 +632,8 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+    const metaColspan = cellMeta.colspan ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
     if (commentStyle) {
@@ -639,7 +643,8 @@ export class Comments extends BasePlugin {
       this.#editor.resetSize();
     }
 
-    const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getColumnWidth(renderableColumn);
+    const lastColWidth = isBeforeRenderedColumns ? 0 :
+      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
 
     const {
@@ -658,7 +663,8 @@ export class Comments extends BasePlugin {
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     const verticalScrollbarWidth = hasVerticalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     const horizontalScrollbarWidth = hasHorizontalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
-    let x = left + rootWindow.scrollX + lastColWidth;
+    const mergedBorderCompensation = metaColspan > 1 ? 1 : 0;
+    let x = left + rootWindow.scrollX + lastColWidth - mergedBorderCompensation;
     let y = top + rootWindow.scrollY + lastRowHeight;
 
     if (this.hot.isRtl()) {
@@ -830,6 +836,24 @@ export class Comments extends BasePlugin {
     this.#commentValueBeforeSave = this.getComment();
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+  }
+
+  /**
+   * Stops keyboard events from propagating to the grid's shortcut system while the comment
+   * textarea is visible. Without this, keys like Ctrl+A trigger grid-level actions (e.g.
+   * "select all cells") instead of native textarea behavior. Events matching shortcuts
+   * registered in the `plugin:comments` context are allowed through.
+   *
+   * @param {KeyboardEvent} event The keydown event from the comment textarea.
+   */
+  #onEditorKeyDown(event) {
+    if (!this.#editor.isVisible()) {
+      return;
+    }
+
+    if (!this.hot.getShortcutManager().hasEventShortcut(SHORTCUTS_CONTEXT_NAME, event)) {
+      event.stopPropagation();
+    }
   }
 
   /**

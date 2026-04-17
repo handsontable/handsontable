@@ -36,7 +36,7 @@ describe('timeValidator', () => {
 
     await setDataAtCell(0, 0, '');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time');
   });
@@ -56,7 +56,7 @@ describe('timeValidator', () => {
 
     await setDataAtCell(0, 0, 'nd');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'nd', 0, 'time');
   });
@@ -76,7 +76,7 @@ describe('timeValidator', () => {
 
     await setDataAtCell(0, 0, '30:10:25');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '30:10:25', 0, 'time');
   });
@@ -96,7 +96,7 @@ describe('timeValidator', () => {
 
     await setDataAtCell(1, 0, '20:20:01');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '20:20:01', 1, 'time');
   });
@@ -116,7 +116,7 @@ describe('timeValidator', () => {
 
     await setDataAtCell(1, 0, '5:10:15 am');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '5:10:15 am', 1, 'time');
   });
@@ -136,7 +136,7 @@ describe('timeValidator', () => {
 
     await setDataAtCell(1, 0, '16:32:03');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '16:32:03', 1, 'time');
   });
@@ -157,7 +157,7 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, '');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'time');
     });
@@ -177,7 +177,7 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, null);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'time');
     });
@@ -197,7 +197,7 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 1, 'time');
     });
@@ -219,7 +219,7 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, '13:00:00');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time');
     });
@@ -239,7 +239,7 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, '13:00:00');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '13:00:00', 1, 'time');
     });
@@ -258,11 +258,11 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, '16:35:01');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '16:35:01', 1, 'time');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('4:35:01 pm');
     });
@@ -283,11 +283,11 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, currentDateTime.getTime()); // timestamp in milliseconds
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, currentDateTime.getTime(), 1, 'time');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       const addLeadingZero = function(number) {
         return number.toString().padStart(2, '0');
@@ -314,12 +314,12 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, currentDateTime.toISOString()); // ISO-formatted datetime, sth like '2016-02-19T12:40:04.983Z'
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate)
         .toHaveBeenCalledWith(true, currentDateTime.toISOString(), 1, 'time');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       const addLeadingZero = function(number) {
         return number.toString().padStart(2, '0');
@@ -344,11 +344,11 @@ describe('timeValidator', () => {
 
       await setDataAtCell(1, 0, '19');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '19', 1, 'time');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('07:00:00 pm');
     });
@@ -366,11 +366,11 @@ describe('timeValidator', () => {
       });
 
       await setDataAtCell(1, 0, '57');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '57', 1, 'time');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('57:00');
     });
@@ -389,7 +389,7 @@ describe('timeValidator', () => {
       });
 
       await setDataAtCell(1, 0, 'test non-time string');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
     });
@@ -410,7 +410,7 @@ describe('timeValidator', () => {
         [5, 0, '22:22:22'],
       ]);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(countRows()).toBe(6);
     });
@@ -444,7 +444,7 @@ describe('timeValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(isValid, value, 0, 0);
         });
@@ -470,7 +470,7 @@ describe('timeValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });
@@ -508,7 +508,7 @@ describe('timeValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
         });
@@ -530,7 +530,7 @@ describe('timeValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });

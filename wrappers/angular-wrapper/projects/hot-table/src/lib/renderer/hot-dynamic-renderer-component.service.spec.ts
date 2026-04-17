@@ -10,6 +10,7 @@ import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.c
 @Component({
   selector: 'hot-dummy-renderer',
   template: `<div>Component Renderer: {{ value }}</div>`,
+  standalone: false,
 })
 class DummyRendererComponent extends HotCellRendererComponent {}
 
@@ -17,6 +18,7 @@ class DummyRendererComponent extends HotCellRendererComponent {}
 @Component({
   selector: 'hot-dummy-renderer-advanced',
   template: `<div>Component Renderer: {{ value }}</div>`,
+  standalone: false,
 })
 class DummyRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
@@ -30,6 +32,7 @@ class DummyRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
     <ng-template #dummyContainer></ng-template>
   `,
+  standalone: false,
 })
 class DummyTemplateHostComponent {
   @ViewChild('dummyTemplate', { static: true }) dummyTemplate!: TemplateRef<any>;

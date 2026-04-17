@@ -1,0 +1,111 @@
+---
+/**
+ * Custom 404 page.
+ *
+ * Renders the full site layout (header, footer) via StarlightPage so that
+ * users landing on a missing URL see the same styled shell as every other
+ * docs page -- rather than Netlify's bare default 404 screen.
+ * sidebar={[]} passes an empty sidebar array so Starlight computes
+ * hasSidebar=false and omits the sidebar panel entirely.
+ *
+ * Netlify serves the built 404.html for all unmatched routes when the publish
+ * directory contains that file. Astro generates it automatically from this
+ * src/pages/404.astro source.
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+---
+
+<StarlightPage
+  frontmatter={{
+    title: 'Page not found',
+  }}
+  sidebar={[]}
+>
+  <div class="not-found">
+    <div class="not-found__grid">
+      <div class="not-found__code">404</div>
+      <div class="not-found__message">
+        <p class="not-found__text">
+          The page you are looking for does not exist or has been moved.
+        </p>
+        <a href="/docs/javascript-data-grid/" class="not-found__link">
+          Go to documentation home
+        </a>
+      </div>
+    </div>
+  </div>
+</StarlightPage>
+
+<style>
+  .not-found {
+    padding: 4rem 0;
+  }
+
+  .not-found__grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0;
+    border: 1px solid var(--sl-color-gray-5);
+    max-width: 640px;
+  }
+
+  .not-found__code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--sl-color-accent);
+    padding: 2rem 2.5rem;
+    border-right: 1px solid var(--sl-color-gray-5);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+    line-height: 1;
+    min-width: 8rem;
+  }
+
+  .not-found__message {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .not-found__text {
+    color: var(--sl-color-gray-2);
+    margin: 0;
+    font-size: var(--sl-text-sm);
+  }
+
+  .not-found__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sl-color-accent);
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    border: 1px solid var(--sl-color-accent);
+    padding: 0.4rem 0.875rem;
+    transition: background-color 0.15s, color 0.15s;
+    align-self: flex-start;
+  }
+
+  .not-found__link:hover {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-black);
+  }
+
+  @media (max-width: 36rem) {
+    .not-found__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .not-found__code {
+      border-right: none;
+      border-bottom: 1px solid var(--sl-color-gray-5);
+      padding: 1.5rem;
+      font-size: 3rem;
+    }
+  }
+</style>

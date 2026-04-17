@@ -22,6 +22,7 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 @Component({
   selector: 'hot-table',
   template: '<div #container></div>',
+  standalone: false,
   encapsulation: ViewEncapsulation.None,
   providers: [HotSettingsResolver],
   styles: [
@@ -155,8 +156,18 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
+    const initOnlySettingKeys: string[] =
+      (this.hotInstance.getSettings() as any)?._initOnlySettings || [];
+    const filteredSettings: Handsontable.GridSettings = {};
+
+    for (const key of Object.keys(newSettings)) {
+      if (!initOnlySettingKeys.includes(key)) {
+        (filteredSettings as any)[key] = (newSettings as any)[key];
+      }
+    }
+
     this.ngZone.runOutsideAngular(() => {
-      this.hotInstance?.updateSettings(newSettings, false);
+      this.hotInstance?.updateSettings(filteredSettings, false);
     });
   }
 

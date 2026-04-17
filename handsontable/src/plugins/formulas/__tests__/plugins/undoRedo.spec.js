@@ -562,7 +562,7 @@ describe('Formulas integration with undo/redo', () => {
       // Overwritten formula
       autofill(1, 0);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getSourceData()).toEqual([
         [2, 3, 4, 5],
@@ -575,7 +575,7 @@ describe('Formulas integration with undo/redo', () => {
 
       autofill(1, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getSourceData()).toEqual([
         [2, 2, 4, 5],
@@ -659,7 +659,7 @@ describe('Formulas integration with undo/redo', () => {
 
       autofill(1, 3);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       getPlugin('undoRedo').undo();
 
@@ -712,7 +712,7 @@ describe('Formulas integration with undo/redo', () => {
 
       autofill(0, 3);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       getPlugin('undoRedo').undo();
 

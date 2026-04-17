@@ -11,7 +11,8 @@ import {Component, Input} from '@angular/core';
  */
 @Component({
   selector: 'hot-cell-renderer',
-  template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`
+  template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
+  standalone: false,
 })
 export abstract class HotCellRendererComponent<TValue extends string | number | boolean = string, TProps extends {} = any> {
   static readonly RENDERER_MARKER = Symbol('HotCellRendererComponent');

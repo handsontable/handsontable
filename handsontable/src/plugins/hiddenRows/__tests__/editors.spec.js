@@ -31,7 +31,7 @@ describe('HiddenRows', () => {
 
       await keyDownUp('enter');
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect($mainHolder.scrollTop()).toBe(startScrollTop);
     });

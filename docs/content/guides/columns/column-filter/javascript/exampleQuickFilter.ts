@@ -8,6 +8,39 @@ registerAllModules();
 const container = document.querySelector('#exampleQuickFilter')!;
 const filterField = document.querySelector('#filterField')!;
 
+// Custom dropdown logic
+const trigger = document.getElementById('filterTrigger')!;
+const menu = document.getElementById('filterMenu')!;
+const label = document.getElementById('filterTriggerLabel')!;
+let selectedColumn: string = '0';
+
+trigger.addEventListener('click', () => {
+  const open = trigger.getAttribute('aria-expanded') === 'true';
+
+  trigger.setAttribute('aria-expanded', String(!open));
+  (menu as HTMLElement).hidden = open;
+});
+
+menu.addEventListener('click', (e: Event) => {
+  const li = (e.target as HTMLElement).closest('li[data-value]') as HTMLElement | null;
+
+  if (!li) return;
+
+  menu.querySelectorAll('li').forEach((el) => el.removeAttribute('aria-selected'));
+  li.setAttribute('aria-selected', 'true');
+  selectedColumn = li.dataset.value!;
+  label.textContent = li.textContent!.trim();
+  trigger.setAttribute('aria-expanded', 'false');
+  (menu as HTMLElement).hidden = true;
+});
+
+document.addEventListener('click', (e: Event) => {
+  if (!(e.target as HTMLElement).closest('#filterDropdown')) {
+    trigger.setAttribute('aria-expanded', 'false');
+    (menu as HTMLElement).hidden = true;
+  }
+});
+
 const hot = new Handsontable(container, {
   data: [
     {
@@ -104,12 +137,9 @@ const hot = new Handsontable(container, {
 // add a filter input listener
 filterField.addEventListener('keyup', (event) => {
   const filters: Filters = hot.getPlugin('filters');
-  const columnSelector = document.getElementById('columns') as HTMLInputElement;
-  const columnValue = columnSelector.value as unknown as number;
 
-  filters.removeConditions(columnValue);
-  filters.addCondition(columnValue, 'contains', [(event.target as HTMLInputElement).value]);
+  filters.removeConditions(selectedColumn as unknown as number);
+  filters.addCondition(selectedColumn as unknown as number, 'contains', [(event.target as HTMLInputElement).value]);
   filters.filter();
-
   hot.render();
 });

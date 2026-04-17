@@ -118,6 +118,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   customBorders: true,
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
+  dataProvider: {
+    rowId: 'id',
+    fetchRows: async () => ({ rows: [], totalRows: 0 }),
+    onRowsCreate: async () => {},
+    onRowsUpdate: async () => {},
+    onRowsRemove: async () => {},
+  },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
   dateFormat: 'foo',
   datePickerConfig: {
@@ -157,7 +164,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   fragmentSelection: oneOf(true, 'cell'),
   headerClassName: 'htCenter test',
-  height: oneOf(500, () => 500),
+  height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
   initialState: {
@@ -292,6 +299,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
     title: 'Loading...',
     description: 'Loading...',
   }),
+  notification: oneOf(true, {
+    stackLimit: 5,
+    animation: false,
+  }),
   emptyDataState: oneOf(true, {
     message: 'No data available',
   }, {
@@ -343,7 +354,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
   viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
-  width: oneOf(500, () => 500),
+  width: oneOf(500, 'auto', '75vw', () => 500, () => 'auto'),
   wordWrap: true,
 
   // Hooks via settings object
@@ -442,6 +453,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLoadingShow: () => {},
   beforeLoadingHide: () => {},
   afterLoadingHide: () => {},
+  afterNotificationHide: (_id) => {},
+  afterNotificationShow: (_id, _options) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;
@@ -496,6 +509,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRemoveCellMeta: (row, column, key, value) => {},
   afterRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   afterRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
+  afterRowsMutation: (operation, payload) => {},
+  afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
   afterRowMove: (movedRows, finalIndex, dropIndex, movePossible,
@@ -543,6 +558,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterUnmergeCells: (cellRange, auto) => {},
   afterUntrimRow: (rows) => {},
   afterUpdateData: (sourceData, firstTime, source) => {},
+  afterDataProviderFetch: (result) => {},
+  afterDataProviderFetchError: (error, queryParameters) => {},
+  afterDataProviderFetchAbort: (queryParameters, reason) => {},
   afterUpdateSettings: () => {},
   afterValidate: () => {},
   afterViewportColumnCalculatorOverride: (calc) => {},
@@ -558,6 +576,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCellAlignment: (stateBefore, range, type, alignmentClass) => {},
   beforeChange: (changes, source) => { if (changes?.[0] !== null) { changes[0][3] = 10; } return false; },
   beforeChangeRender: (changes, source) => {},
+  beforeAlter: (action, index, amount, source, keepEmptyRows) => true,
   beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
   beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
@@ -577,6 +596,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCopy: (data, coords) => { data.splice(0, 1); return false; },
   beforeCreateCol: (index, amount, source) => {},
   beforeCreateRow: (index, amount, source) => {},
+  beforeRowsMutation: (operation, payload) => true,
   beforeCut: (data, coords) => { data.splice(0, 1); return false; },
   beforeDetachChild: (parent, element) => {},
   beforeDialogHide: () => {},
@@ -586,6 +606,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDropdownMenuShow: (instance) => {},
   beforeEmptyDataStateShow: () => {},
   beforeEmptyDataStateHide: () => {},
+  beforeNotificationHide: (_id) => {},
+  beforeNotificationShow: (_options) => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {
@@ -624,6 +646,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
+  beforeDataProviderFetch: (queryParameters) => true,
   beforePageChange(oldPage, newPage) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
@@ -710,9 +733,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   construct: () => {},
   dialogFocusNextElement: () => {},
   dialogFocusPreviousElement: () => {},
+  hasExternalDataSource: () => false,
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
-  modifyAutofillRange: (startArea, entireArea) => {},
+  modifyAutofillRange: (entireArea, startArea) => {
+    const _entireArea: [number, number, number, number] = entireArea;
+    const _startArea: [number, number, number, number] = startArea;
+
+    return _startArea[0] === _entireArea[0] ? _startArea : _entireArea;
+  },
   modifyColHeader: (column) => {},
   modifyColumnHeaderHeight: () => {},
   modifyColumnHeaderValue: (headerValue, visualColumnIndex, headerLevel) => {},

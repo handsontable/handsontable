@@ -15,10 +15,14 @@ export const plugins = {
     exclude: ['/node_modules/', '**.json'],
     extensions: ['.js', '.ts', '.tsx', '.jsx'],
     presets: [
-      '@babel/env'
+      '@babel/env',
+      '@babel/preset-typescript',
+      '@babel/preset-react'
     ],
   }),
-  nodeResolve: nodeResolve(),
+  nodeResolve: nodeResolve({
+    extensions: ['.mjs', '.js', '.json', '.node', '.ts', '.tsx', '.jsx']
+  }),
   json: json({
     include: 'package.json',
     compact: true

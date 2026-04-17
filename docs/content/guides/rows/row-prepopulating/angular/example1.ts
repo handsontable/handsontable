@@ -2,6 +2,7 @@
 import {AfterViewInit, Component, ViewChild} from '@angular/core';
 import {GridSettings, HotTableComponent} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 @Component({
   selector: 'app-example1',
@@ -60,7 +61,7 @@ export class AppComponent implements AfterViewInit {
         td.style.color = '';
       }
 
-      Handsontable.renderers.TextRenderer(
+      textRenderer(
         instance,
         td,
         row,

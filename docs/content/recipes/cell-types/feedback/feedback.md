@@ -19,9 +19,17 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Feedback Cell Type - Step-by-Step Guide
+::: only-for javascript vue
 
-[[toc]]
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/javascript/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -40,20 +48,6 @@ A cell that:
 - Supports keyboard navigation (arrow keys, Tab)
 - Provides click-to-select functionality
 - Works without any external libraries
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
-
-@[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
-@[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/feedback/javascript/example1.css)
-
-:::
-
-:::
 
 ## Prerequisites
 
@@ -141,8 +135,14 @@ Create the DOM structure with emoji buttons, this function will be called only o
 init(editor) {
   editor.input = document.createElement('DIV') as HTMLDivElement;
   editor.input.classList.add('feedback-editor');
+  editor._openedAt = 0;
 
   editor.input.addEventListener('click', (event) => {
+    // Ignore synthetic click events that Android fires right after the editor
+    // opens — they land on the button that just appeared at the touch position.
+    if (Date.now() - editor._openedAt < 300) {
+      return;
+    }
     if (event.target instanceof HTMLButtonElement) {
       editor.setValue(event.target.innerText);
       editor.finishEditing();
@@ -303,13 +303,20 @@ const cellDefinition = {
     init: (editor) => {
       editor.input = document.createElement('DIV') as HTMLDivElement;
       editor.input.classList.add('feedback-editor');
+      editor._openedAt = 0;
       editor.input.addEventListener('click', (event) => {
+        if (Date.now() - editor._openedAt < 300) {
+          return;
+        }
         if (event.target instanceof HTMLButtonElement) {
           editor.setValue(event.target.innerText);
           editor.finishEditing();
         }
       });
       editor.render(editor);
+    },
+    afterOpen: (editor) => {
+      editor._openedAt = Date.now();
     },
     beforeOpen: (editor, { originalValue, cellProperties }) => {
       editor.setValue(originalValue);

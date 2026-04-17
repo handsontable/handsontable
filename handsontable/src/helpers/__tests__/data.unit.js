@@ -1,5 +1,6 @@
 import {
   dataRowToChangesArray,
+  hasChangeForCell,
   spreadsheetColumnLabel,
   spreadsheetColumnIndex,
   isArrayOfArrays,
@@ -83,6 +84,21 @@ describe('Data helper', () => {
       expect(isArrayOfObjects([null])).toBe(false);
       expect(isArrayOfObjects([[]])).toBe(false);
       expect(isArrayOfObjects([['test'], [1]])).toBe(false);
+    });
+  });
+
+  describe('hasChangeForCell', () => {
+    it('should return `true` only when the visual row and prop pair exists in changes', () => {
+      const changes = [
+        [0, 'name', 'A1', 'edited'],
+        [1, 'id', 1, 2],
+        [2, 0, 'C3', 'changed'],
+      ];
+
+      expect(hasChangeForCell(changes, 0, 'name')).toBe(true);
+      expect(hasChangeForCell(changes, 2, 0)).toBe(true);
+      expect(hasChangeForCell(changes, 0, 'id')).toBe(false);
+      expect(hasChangeForCell(changes, 1, 'name')).toBe(false);
     });
   });
 });

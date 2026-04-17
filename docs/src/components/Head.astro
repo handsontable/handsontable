@@ -1,0 +1,56 @@
+---
+/**
+ * Starlight Head component override.
+ *
+ * Imports the example runner script, which scans each page for
+ * [data-example-js] / [data-example-jsx] elements and dynamically loads
+ * the matching Handsontable example modules.
+ */
+import Default from '@astrojs/starlight/components/Head.astro';
+---
+
+<Default {...Astro.props} />
+
+<link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
+<link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
+
+<script is:inline>
+  // Remove Starlight's default favicon in favor of light/dark media-query versions above.
+  document.querySelector('link[rel="shortcut icon"]')?.remove();
+</script>
+
+<script>
+  import Handsontable from 'handsontable/base';
+
+  (window as any).HandsontableVersion = Handsontable.version;
+  (window as any).HandsontableBuildDate = Handsontable.buildDate;
+</script>
+
+<script>
+  import '../scripts/example-runner';
+</script>
+
+<script>
+  // Code block copy button: swap icon to checkmark after copying (matches Copy Markdown UX).
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.expressive-code .copy button');
+    if (!btn) return;
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 3000);
+  });
+</script>
+
+<script>
+  // Move source-code-link elements inside their preceding heading for
+  // absolute positioning. The preprocessor emits them as standalone <a> tags
+  // (wrapped in <p> by Astro), but CSS absolute positioning requires a
+  // parent–child relationship.
+  document.querySelectorAll<HTMLAnchorElement>('.source-code-link').forEach((link) => {
+    const p = link.parentElement;
+    if (!p || p.tagName !== 'P') return;
+    const heading = p.previousElementSibling;
+    if (!heading || !/^H[2-4]$/.test(heading.tagName)) return;
+    heading.appendChild(link);
+    p.remove();
+  });
+</script>

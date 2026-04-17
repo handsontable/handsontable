@@ -15,9 +15,6 @@ angular:
   id: c5f6d93e
   metaTitle: Theme Recipes - Angular Data Grid | Handsontable
 ---
-
-# Theme Recipes
-
 [[toc]]
 
 ## Overview
@@ -32,7 +29,19 @@ Before diving into specific recipes, we recommend reading our [Themes guide](@/g
 
 Our recipes cover common use cases and demonstrate best practices for:
 
-- **Design system integration** – Match the grid to shadcn/ui, Tailwind, or other design systems
+- **Design system integration** – Match the grid to shadcn/ui, Fluent UI, Tailwind, or other design systems
 - **Theme API** – Register and configure themes with colors, density, and dark mode
 
+Current recipes:
+
+<div class="boxes-list">
+
+- [Handsontable with shadcn/ui](@/content/recipes/themes/custom-theme/custom-theme.md)
+- [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md)
+
+</div>
+
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.
+
+- [Handsontable with shadcn/ui](/recipes/themes/custom-theme)
+- [Handsontable with Base Web](/recipes/themes/base-theme)

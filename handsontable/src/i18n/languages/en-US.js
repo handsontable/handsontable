@@ -124,12 +124,22 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 
   [C.LOADING_TITLE]: 'Loading...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Close',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'No data available',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'There’s nothing to display yet.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'No results found',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'It looks like your current filters are hiding all results.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Reset filters',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Loading data',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Please wait.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Could not load data',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Could not create rows',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Could not update rows',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
 };
 
 export default dictionary;

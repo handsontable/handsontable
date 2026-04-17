@@ -12,6 +12,18 @@ describe('AutoRowSize', () => {
       destroy();
       this.$container.remove();
     }
+    if (this.$container2) {
+      try {
+        if (this.$container2.handsontable('getInstance')) {
+          this.$container2.handsontable('getInstance').destroy();
+        }
+      } catch (e) {
+        if (!e.message.includes('instance has been destroyed')) {
+          throw e;
+        }
+      }
+      this.$container2.remove();
+    }
   });
 
   /**
@@ -68,7 +80,7 @@ describe('AutoRowSize', () => {
 
     const oldHeight = spec().$container[0].scrollHeight;
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     const newHeight = spec().$container[0].scrollHeight;
 
@@ -92,7 +104,7 @@ describe('AutoRowSize', () => {
 
     await setDataAtCell(150, 0, 'This is very long text which will break this cell text into two lines');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     const newHeight = spec().$container[0].scrollHeight;
 
@@ -147,7 +159,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
@@ -165,7 +177,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
@@ -183,7 +195,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       const newHeight = spec().$container[0].scrollHeight;
 
@@ -202,7 +214,7 @@ describe('AutoRowSize', () => {
         autoRowSize: true
       });
 
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
@@ -222,7 +234,7 @@ describe('AutoRowSize', () => {
       autoRowSize: true
     });
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     spec().$container.css('display', 'block');
     await render();
 
@@ -305,12 +317,14 @@ describe('AutoRowSize', () => {
       colHeaders: true,
       colWidths: 50,
       height: 300,
-      autoRowSize: true
+      autoRowSize: true,
+      viewportColumnRenderingOffset: 10,
+      viewportRowRenderingOffset: 10,
     });
 
     await selectCell(4, 0);
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
@@ -723,7 +737,7 @@ describe('AutoRowSize', () => {
       autoRowSize: true,
     });
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 
@@ -1053,6 +1067,72 @@ describe('AutoRowSize', () => {
 
       expect(getPlugin('autoRowSize').ghostTable.addRow).toHaveBeenCalledTimes(1);
       Handsontable.hooks.remove('beforeInit', beforeInit);
+    });
+
+    it('should not throw when two tables with different layouts share a HyperFormula engine (#12301)', async() => {
+      spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+
+      const hot1 = handsontable({
+        data: [['a', 'b']],
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      spec().$container2.handsontable({
+        data: [['c'], ['d']],
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2',
+        },
+      });
+
+      const hot2 = spec().$container2.handsontable('getInstance');
+
+      expect(() => {
+        hot2.setDataAtCell(0, 0, 'test');
+      }).not.toThrow();
+
+      expect(() => {
+        hot1.setDataAtCell(0, 0, 'test2');
+      }).not.toThrow();
+    });
+
+    it('should not queue row refresh for changes belonging to another sheet (#12301)', async() => {
+      spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+
+      const hot1 = handsontable({
+        data: [['a', '=A1']],
+        autoRowSize: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      const hot2Instance = spec().$container2.handsontable({
+        data: [['=Sheet1!A1'], ['d'], ['e']],
+        autoRowSize: true,
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2',
+        },
+      }).data('handsontable');
+
+      const sheet2Id = hot2Instance.getPlugin('formulas').sheetId;
+      const toVisualRowSpy = spyOn(hot1, 'toVisualRow').and.callThrough();
+
+      hot1.runHooks('afterFormulasValuesUpdate', [
+        { address: { sheet: sheet2Id, row: 0, col: 0 }, newValue: 'test' },
+        { address: { sheet: sheet2Id, row: 2, col: 0 }, newValue: 'test2' },
+      ]);
+
+      expect(toVisualRowSpy).not.toHaveBeenCalled();
     });
   });
 });
