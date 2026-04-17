@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 0slrmsni
 title: "Date picker"
 metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cells
 ---
+
+This tutorial shows you how to build a date picker cell in Angular using custom editor and renderer components with the native HTML5 date input and the `date-fns` library.
 
 ::: only-for angular
 
@@ -593,3 +596,13 @@ export class DateRendererComponent extends HotCellRendererAdvancedComponent<stri
 ---
 
 **Congratulations!** You've created a production-ready date picker with full localization support and advanced configuration.
+
+## What you learned
+
+You built a date picker cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`. You used `date-fns` to parse and format dates, the native HTML5 `<input type="date">` for the editor, and `rendererProps` to drive per-column display formats.
+
+## Next steps
+
+- [Flatpickr](/recipes/cell-types/flatpickr) - A JavaScript date picker using the Flatpickr library with dark theme support.
+- [Pikaday](/recipes/cell-types/pikaday) - An alternative date picker using Pikaday and Moment.js.
+- [Feedback Editor (Angular)](/recipes/feedback-angular) - Another Angular cell editor using `HotCellEditorAdvancedComponent`.

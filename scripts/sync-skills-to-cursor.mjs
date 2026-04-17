@@ -33,7 +33,7 @@ const GLOB_MAP = {
   'creating-visual-test-examples': ['examples/**'],
   'coordinate-systems': ['handsontable/src/translations/**', 'handsontable/src/plugins/**'],
   'i18n-translations': ['handsontable/src/i18n/**'],
-  'theme-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],
+  'handsontable-css-dev': ['handsontable/src/styles/**', 'handsontable/src/themes/**'],
   linting: ['handsontable/.eslintrc.js', 'handsontable/.config/plugin/eslint/**', '.eslintrc.js'],
   refactoring: null, // no globs -- too broad
   'pr-creation': null,

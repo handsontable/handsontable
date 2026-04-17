@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: cdahp04c
 title: Focus scopes
 metaTitle: Focus scopes - JavaScript Data Grid | Handsontable
@@ -23,13 +24,9 @@ searchCategory: Guides
 category: Navigation
 menuTag: updated
 ---
-Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
+Use focus scopes to create isolated focus boundaries within a Handsontable instance and control which keyboard shortcuts are active for each part of the UI. Focus scopes come in two types: `inline` (default) allows natural DOM tab order, and `modal` blocks focus outside the scope -- useful for dialogs and overlays.
 
 [[toc]]
-
-## Overview
-
-Focus scopes allow you to create isolated focus boundaries within your Handsontable instance, enabling seamless focus switching between the grid and your custom UI elements. They automatically manage keyboard shortcuts contexts and provide fine-grained control over which elements can receive focus and which shortcuts are active.
 
 ::: only-for react
 ::: tip
@@ -80,16 +77,7 @@ focusScopeManager.registerScope('customScope', containerElement, {
 </li>
 </ol>
 
-## Focus scope types
-
-Focus scopes come in two types, each with different behavior:
-
-| Type     | Description                                                                                                 |
-| -------- | ----------------------------------------------------------------------------------------------------------- |
-| `inline` (default) | The scope is inline and allows the rest of the component to receive focus in the order of the rendered elements in the DOM. |
-| `modal`  | The scope is modal and blocks the rest of the component from receiving focus. Only elements within the scope can be focused. |
-
-### Inline scopes
+## Inline scopes
 
 Inline scopes allow natural tab navigation through the DOM. Users can  navigate to other parts of the grid using the <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keys.
 
@@ -385,6 +373,10 @@ For the complete API reference, see the following pages:
 - [beforeKeyDown](@/api/hooks.md#beforekeydown)
 
 </div>
+
+## Result
+
+After registering a focus scope, Handsontable automatically activates it when the user clicks inside the container or tabs to it. The associated shortcuts context switches accordingly, and tab navigation flows through your registered scopes in the correct order.
 
 ## Troubleshooting
 

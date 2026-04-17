@@ -29,7 +29,7 @@ Before diving into specific recipes, we recommend reading our [Themes guide](@/g
 
 Our recipes cover common use cases and demonstrate best practices for:
 
-- **Design system integration** – Match the grid to shadcn/ui, Tailwind, or other design systems
+- **Design system integration** – Match the grid to shadcn/ui, Fluent UI, Tailwind, or other design systems
 - **Theme API** – Register and configure themes with colors, density, and dark mode
 
 Current recipes:
