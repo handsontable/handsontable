@@ -18,9 +18,6 @@ tags:
 react:
   id: 7c4d2e9a
   metaTitle: Load Data from a REST API - React Data Grid | Handsontable
-angular:
-  id: 3b6f1d8e
-  metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---
@@ -40,7 +37,7 @@ This recipe shows how to fetch JSON from a REST API and populate Handsontable af
 
 :::
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example1 :hot-recipe --js 1 --ts 2
 
@@ -74,7 +71,7 @@ The first example resets all grid state on every data load -- column sort order,
 
 `hot.updateData()` replaces the dataset while keeping every registered grid state intact. The second example demonstrates this: sort any column by clicking its header, then click **Refresh**. The sort order survives the data update.
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example2 :hot-recipe --js 1 --ts 2
 
@@ -262,7 +259,7 @@ async function refreshUsers() {
 
 The first two examples manage the fetch lifecycle yourself: you call `loadData()` or `updateData()` at the right time and maintain loading state manually. Handsontable's `dataProvider` option flips this model -- you provide a `fetchRows` function and three CRUD callbacks, and the plugin drives everything else: initial load, pagination, column sorting, request cancellation, and loading overlays.
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example3 :hot-recipe --js 1 --ts 2
 

@@ -27,12 +27,12 @@ export default function ExampleComponent() {
 
   const columns = useMemo(
     () => [
-      { data: 'id', type: 'numeric', width: 70 },
-      { data: 'name', type: 'text', width: 190 },
-      { data: 'username', type: 'text', width: 150 },
-      { data: 'email', type: 'text', width: 220 },
-      { data: 'city', type: 'text', width: 140 },
-      { data: 'company', type: 'text', width: 180 },
+      { data: 'id', type: 'numeric', width: 70, readOnly: true },
+      { data: 'name', type: 'text', width: 190, readOnly: true },
+      { data: 'username', type: 'text', width: 150, readOnly: true },
+      { data: 'email', type: 'text', width: 220, readOnly: true },
+      { data: 'city', type: 'text', width: 140, readOnly: true },
+      { data: 'company', type: 'text', width: 180, readOnly: true },
     ],
     []
   );
