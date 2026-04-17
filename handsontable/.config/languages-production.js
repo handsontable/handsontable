@@ -1,8 +1,8 @@
 /**
  * Config responsible for building minified Handsontable `dist/languages/` files.
  */
-const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
+const rspack = require('@rspack/core');
 const configFactory = require('./languages-development');
 const OUTPUT_LANGUAGES_DIRECTORY = 'dist/languages';
 
@@ -16,10 +16,11 @@ module.exports.create = function create() {
     config.mode = 'production';
     config.optimization = {
       minimize: true,
+      sideEffects: false,
       minimizer: [
-        new TerserPlugin({
+        new rspack.SwcJsMinimizerRspackPlugin({
           extractComments: false,
-          terserOptions: {
+          minimizerOptions: {
             format: {
               comments: false,
             },
