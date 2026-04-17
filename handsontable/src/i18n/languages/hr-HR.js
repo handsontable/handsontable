@@ -148,7 +148,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nije moguće ažurirati retke',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti retke',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtjev nije uspio',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zatvori',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovno učitaj',
 };
 
 export default dictionary;

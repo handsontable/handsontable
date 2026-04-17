@@ -85,7 +85,7 @@ if (container instanceof HTMLElement) {
         if (oldValue !== newValue) {
           const physicalRow = hot.toPhysicalRow(visualRow as number);
 
-          if (physicalRow >= 0) {
+          if (physicalRow !== null && physicalRow >= 0) {
             dirtyRows.add(physicalRow);
           }
         }

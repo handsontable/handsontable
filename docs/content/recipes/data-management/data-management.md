@@ -6,26 +6,28 @@ canonicalUrl: /recipes/data-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-id: m4k8n2q1
-description: Practical recipes for saving, syncing, and persisting Handsontable data.
+id: c4b7e2f1
+description: Practical recipes for loading, syncing, and managing data in Handsontable.
 react:
-  id: t8c3p6d4
+  id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
 angular:
-  id: h2v9r5x7
+  id: 6e1c8b3d
   metaTitle: Data Management Recipes - Angular Data Grid | Handsontable
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical, ready-to-use recipes for persisting and synchronizing Handsontable data. Each recipe includes complete working examples with step-by-step instructions.
-
-## Getting Started
-
-Before you implement recipe patterns, review the [Saving data guide](@/guides/getting-started/saving-data/saving-data.md) to understand core hooks and persistence basics.
+This section provides practical recipes for loading, syncing, and managing data in Handsontable. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
+
+Our recipes cover common use cases and implementation patterns for:
+
+- **Remote data loading** -- Fetching JSON data and rendering it in the grid.
+- **Data synchronization** -- Keeping multiple grid instances in sync.
+- **Undo and redo UX** -- Connecting built-in data history to custom controls.
 
 Current recipes:
 
@@ -34,5 +36,3 @@ Current recipes:
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
 
 </div>
-
-Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you ship reliable data workflows.
