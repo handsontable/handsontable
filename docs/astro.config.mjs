@@ -740,6 +740,7 @@ export default defineConfig({
         Head: './src/components/Head.astro',
         Header: './src/components/Header.astro',
         Footer: './src/components/Footer.astro',
+        MarkdownContent: './src/components/MarkdownContent.astro',
         PageTitle: './src/components/PageTitle.astro',
         Sidebar: './src/components/Sidebar.astro',
         PageSidebar: './src/components/PageSidebar.astro',
@@ -797,6 +798,9 @@ export default defineConfig({
   },
 
   vite: {
+    server: {
+      allowedHosts: ['.trycloudflare.com'],
+    },
     // Expose BUILD_MODE to Astro components via import.meta.env.PUBLIC_BUILD_MODE.
     // The deployment pipeline sets BUILD_MODE; this bridges it into the Vite/Astro
     // env namespace so .astro components can read it at build time.

@@ -6,22 +6,30 @@ canonicalUrl: /recipes/data-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-id: 9bc3d2a1
-description: Practical recipes for syncing, transforming, and coordinating data across Handsontable instances.
+id: c4b7e2f1
+description: Practical recipes for loading, syncing, and managing data in Handsontable.
 react:
-  id: 7ad4e291
+  id: 9d2f6a4b
   metaTitle: Data Management Recipes - React Data Grid | Handsontable
 angular:
-  id: 5c19f8b3
+  id: 6e1c8b3d
   metaTitle: Data Management Recipes - Angular Data Grid | Handsontable
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical recipes for data flow patterns in Handsontable. Each recipe includes a working implementation that you can copy into your app.
+This section provides practical recipes for loading, syncing, and managing data in Handsontable. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
+
+Our recipes cover common use cases and implementation patterns for:
+
+- **Remote data loading** -- Fetching JSON data and rendering it in the grid.
+- **Data synchronization** -- Keeping multiple grid instances in sync.
+- **Undo and redo UX** -- Connecting built-in data history to custom controls.
+
+Current recipes:
 
 <div class="boxes-list">
 
