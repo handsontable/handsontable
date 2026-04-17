@@ -118,10 +118,12 @@ public class ProductService {
                     product.setCategory((String) changes.get("category"));
                 }
                 if (changes.containsKey("price")) {
-                    product.setPrice(new BigDecimal(changes.get("price").toString()));
+                    Object val = changes.get("price");
+                    product.setPrice(val == null ? null : new BigDecimal(val.toString()));
                 }
                 if (changes.containsKey("stock")) {
-                    product.setStock(Integer.parseInt(changes.get("stock").toString()));
+                    Object val = changes.get("stock");
+                    product.setStock(val == null ? null : Integer.parseInt(val.toString()));
                 }
 
                 repository.save(product);

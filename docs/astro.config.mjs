@@ -801,11 +801,22 @@ export default defineConfig({
     server: {
       allowedHosts: ['.trycloudflare.com'],
     },
+    // Use the React automatic JSX runtime for .tsx source files under src/,
+    // so components don't need an explicit `import React from 'react'`.
+    // (Content-tree .jsx examples are handled separately by the custom
+    // resolveMonorepoPackages transform hook above.)
+    esbuild: {
+      jsx: 'automatic',
+      jsxImportSource: 'react',
+    },
     // Expose BUILD_MODE to Astro components via import.meta.env.PUBLIC_BUILD_MODE.
     // The deployment pipeline sets BUILD_MODE; this bridges it into the Vite/Astro
     // env namespace so .astro components can read it at build time.
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
+      'import.meta.env.PUBLIC_CHAT_API_URL': JSON.stringify(
+        process.env.PUBLIC_CHAT_API_URL || 'https://hot-docs-assistant.netlify.app'
+      ),
     },
 
     // Exclude all packages resolved by resolveMonorepoPackages from Vite's

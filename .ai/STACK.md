@@ -45,9 +45,10 @@
 - `jest-preset-angular` 14 - Angular wrapper tests (requires `NODE_OPTIONS=--openssl-legacy-provider`)
 
 **Build/Dev:**
-- Webpack 5 - Core library bundling (`handsontable/.config/`)
+- Rspack 1.7 (`@rspack/core`, `@rspack/cli`) - Core library bundling (`handsontable/rspack.config.js` + `handsontable/.config/`). Migrated from Webpack 5; the `.config/` folder name is kept for historical reasons.
 - Rollup 4 - React and Vue 3 wrapper bundling
-- Babel 7 - JavaScript transpilation (`handsontable/babel.config.js`)
+- SWC 1.x (`@swc/core`, `@swc/helpers`) - JavaScript transpilation for all builds: Rspack uses `builtin:swc-loader`, and file-per-file transpilation runs through `handsontable/scripts/swc-transpile.mjs` (used by `build:commonjs`, `build:es`, `build:languages.es`)
+- Babel 7 - Retained only for Jest unit tests via `babel-jest` (see `handsontable/babel.config.js`); no longer used for production or test bundles
 - ng-packagr 16 - Angular library packaging
 - Sass 1.58 - SCSS compilation
 - TypeScript 3.8.2 (core types), 5.1.6 (Angular), 4.x (Vue 3)
@@ -75,8 +76,8 @@
 - `stylelint` 16 - CSS/SCSS linting
 - `env-cmd` 9 - Injects environment variables from `hot.config.js` during build
 - `cross-env` 7 - Cross-platform environment variable setting
-- `mini-css-extract-plugin` - CSS extraction from webpack bundles
-- `css-minimizer-webpack-plugin` - CSS minification
+- `rspack.CssExtractRspackPlugin` - CSS extraction from Rspack bundles (drop-in replacement for the former `mini-css-extract-plugin`)
+- `rspack.LightningCssMinimizerRspackPlugin` - CSS minification via Lightning CSS (replaces the former `css-minimizer-webpack-plugin`)
 
 ## Configuration
 
@@ -85,22 +86,27 @@
 - Injected via `env-cmd -f ../hot.config.js` in all build/test scripts
 - No `.env` files in the repository (air-gapped environment support)
 
-**Webpack configs (`handsontable/.config/`):**
-- `base.js` - Base configuration (UMD output, library name `Handsontable`, babel-loader, empty-loader for numbro/moment locales)
-- `development.js` / `production.js` - Dev and production build configs
+**Rspack configs (`handsontable/.config/`):** (folder name predates the Webpack→Rspack migration)
+- `base.js` - Base configuration (UMD output, library name `Handsontable`, `builtin:swc-loader` for JS, empty-loader for numbro/moment locales)
+- `development.js` / `production.js` - Dev and production UMD build configs
+- `watch.js` - Dev watcher config (used by `npm run watch`)
 - `styles-development.js` / `styles-production.js` - CSS build configs
 - `themes-css-development.js` / `themes-css-production.js` - Theme CSS builds
 - `themes-umd-development.js` / `themes-umd-production.js` - Theme UMD builds
 - `languages-development.js` / `languages-production.js` - i18n language pack builds
 - `walkontable.js` - Walkontable standalone build
-- `test-e2e.js` / `test-production.js` / `test-walkontable.js` - Test bundle configs
+- `test-e2e.js` / `test-e2e-esm-cjs.js` / `test-mobile.js` / `test-production.js` / `test-walkontable.js` - Test bundle configs (consumed by `test:*.dump` scripts)
+- `loader/forbidden-imports-loader.js` - Custom Rspack loader that replaces the former `babel-plugin-forbidden-imports` (enforces the E2E allow-list in `test-e2e.js`)
+- `plugin/eslint/` - In-repo ESLint plugin (`eslint-plugin-handsontable`), linked via `file:.config/plugin/eslint`
 
 **Babel environments (`handsontable/babel.config.js`):**
-- `commonjs` - Unit testing, source code, and UMD builds via webpack
-- `commonjs_dist` - Transpiling to CommonJS for `tmp/` output
-- `es` - Transpiling to ES modules (`.mjs`) for `tmp/` output
-- `es_languages` - Language packs as ES modules with auto-registration
-- `commonjs_e2e` - E2E test bundles (includes `babel-plugin-forbidden-imports` to restrict imports)
+- Only one env remains: `commonjs` - used by Jest unit tests via `babel-jest` (`@babel/plugin-transform-runtime` + `@babel/plugin-transform-modules-commonjs`). Every other former env (`commonjs_dist`, `es`, `es_languages`, `commonjs_e2e`) was removed when Babel was swapped out for SWC; the `babel.config.js` header comment states this explicitly.
+- `BABEL_ENV=commonjs` / `BABEL_ENV=commonjs_e2e` still appear in several `package.json` scripts that invoke `rspack`. Those assignments are effectively dead — Rspack uses `builtin:swc-loader` and ignores `BABEL_ENV`. They are kept to avoid churn in scripts but do not select a Babel environment.
+
+**SWC pipeline (replaces Babel for everything except Jest):**
+- Rspack bundles (`rspack.config.js` + `.config/*`) - JS transpiled by `builtin:swc-loader` using targets from `browser-targets.js`
+- `handsontable/scripts/swc-transpile.mjs` - File-per-file transpiler driven by `@swc/core`; produces the `tmp/` output consumed by wrappers. Handles CJS (`build:commonjs`), ESM (`build:es`, `.mjs` output), and i18n language packs with auto-registration (`build:languages.es --lang-registration`)
+- `handsontable/scripts/parallel-build.mjs` - Build orchestrator invoked by `npm run build`; runs the Rspack and SWC tasks above concurrently where the dependency graph allows
 
 **Linting:**
 - `.eslintrc.js` (root) - Monorepo-level ESLint config
@@ -115,7 +121,7 @@
 - `handsontable/jest.config.js` - Jest config (jsdom environment, `jest-jasmine2` runner, `*.unit.js` pattern)
 - Module aliases in Jest: `handsontable` -> `src/`, `walkontable` -> `src/3rdparty/walkontable/src/`
 - CSS/SCSS mocked via `handsontable/test/__mocks__/styleMock.js`
-- E2E test dump scripts use webpack to bundle test helpers and spec files before Puppeteer execution
+- E2E test dump scripts use Rspack to bundle test helpers and spec files before Puppeteer execution
 
 ## Build Outputs
 
