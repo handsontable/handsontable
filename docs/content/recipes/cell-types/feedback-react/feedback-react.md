@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: e107bb0d
 title: Feedback
 metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build an emoji feedback cell in React using Handsontable's `EditorComponent`, with per-column configuration and keyboard navigation.
 
 ::: only-for react
 
@@ -765,3 +768,13 @@ For number-based feedback:
 ---
 
 **Congratulations!** You've created a simple feedback editor with emoji buttons using React's `EditorComponent`, perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor in React using Handsontable's `EditorComponent`. You used the render prop pattern to render configurable option buttons, `onPrepare` to read per-column configuration from `cellProperties`, and the `shortcuts` prop for keyboard navigation.
+
+## Next steps
+
+- [Feedback (JavaScript)](/recipes/cell-types/feedback) - The same pattern using `editorFactory` with Handsontable CSS tokens.
+- [Feedback Editor (Angular)](/recipes/feedback-angular) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating (React)](/recipes/cell-types/react-rating) - Another React editor using `EditorComponent` for numeric selection.
