@@ -61,7 +61,13 @@ function listenOnFreePort(server, startPort) {
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
-const [,, argvPath, ...flagArgs] = process.argv;
+// Separate positional args (runner HTML path) from flag args (--random,
+// --verbose, --seed=..., --hotVersion=...). Without this split, a flag-only
+// invocation like `test:e2e.puppeteer -- --random` would treat `--random`
+// as the HTML path.
+const allArgs = process.argv.slice(2);
+const argvPath = allArgs.find(arg => !arg.startsWith('-'));
+const flagArgs = allArgs.filter(arg => arg.startsWith('-'));
 const flags = flagArgs.join(' ');
 
 // Resolve which HTML runner to open. An explicit argv path wins (used by the

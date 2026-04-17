@@ -6,7 +6,7 @@
 const path = require('path');
 const configFactory = require('./test-e2e');
 const JasmineHtml = require('./plugin/jasmine-html');
-const { getClosest }  = require('./helper/path');
+const { getClosest, rewriteAssetPath }  = require('./helper/path');
 const { computeRunId } = require('./helper/run-id');
 
 module.exports.create = function create(envArgs) {
@@ -64,12 +64,4 @@ module.exports.create = function create(envArgs) {
   });
 
   return [].concat(config);
-}
-
-function rewriteAssetPath(assetPath) {
-  if (path.isAbsolute(assetPath)) {
-    return assetPath;
-  }
-
-  return `../${assetPath}`;
 }
