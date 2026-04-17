@@ -1,47 +1,53 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
-import net from 'net';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
 
 const DEFAULT_PORT = 8086;
+const PORT_ATTEMPTS = 100;
 
 /**
- * Checks whether a TCP port is available on localhost.
+ * Binds `server` to the first free port starting at `startPort`. Uses a
+ * bind-and-retry loop rather than a separate probe so there is no window in
+ * which another process can grab the port between the check and the bind.
  *
- * @param {number} port The port number to test.
- * @returns {Promise<boolean>} Resolves to `true` when the port is free.
+ * @param {object} server The server to bind (a `net.Server`-compatible instance).
+ * @param {number} startPort The preferred port to start from.
+ * @returns {Promise<number>} The port the server is now listening on.
  */
-function isPortFree(port) {
-  return new Promise((resolve) => {
-    const tester = net.createServer()
-      .once('error', () => resolve(false))
-      .once('listening', () => {
-        tester.close(() => resolve(true));
-      })
-      .listen(port);
+function listenOnFreePort(server, startPort) {
+  return new Promise((resolve, reject) => {
+    let port = startPort;
+
+    const attempt = () => {
+      let handleError;
+      const handleListening = () => {
+        server.off('error', handleError);
+        resolve(port);
+      };
+
+      handleError = (err) => {
+        server.off('listening', handleListening);
+
+        if (err.code === 'EADDRINUSE' && port < startPort + PORT_ATTEMPTS - 1) {
+          port += 1;
+          attempt();
+
+          return;
+        }
+        reject(err);
+      };
+
+      server.once('error', handleError);
+      server.once('listening', handleListening);
+      server.listen(port);
+    };
+
+    attempt();
   });
 }
 
-/**
- * Returns the first available port starting from `startPort`.
- * Tries up to 100 consecutive ports before giving up.
- *
- * @param {number} startPort The preferred port to start probing from.
- * @returns {Promise<number>} The first free port found.
- */
-async function findFreePort(startPort) {
-  for (let port = startPort; port < startPort + 100; port++) {
-    if (await isPortFree(port)) {
-      return port;
-    }
-  }
-
-  throw new Error(`No free port found in range ${startPort}–${startPort + 99}`);
-}
-
-const PORT = await findFreePort(DEFAULT_PORT);
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
@@ -83,6 +89,17 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   process.exit(exitCode);
 };
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootPath = path.resolve(`${__dirname}`, '../../..');
+
+const server = createServer({
+  root: rootPath,
+  showDir: true,
+  autoIndex: true,
+});
+
+const PORT = await listenOnFreePort(server, DEFAULT_PORT);
+
 const browser = await puppeteer.launch({
   // devtools: true, // Turn it on to debug the tests.
   headless: false,
@@ -104,17 +121,7 @@ page.setViewport({
   height: 720,
 });
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootPath = path.resolve(`${__dirname}`, '../../..');
-
-const server = createServer({
-  root: rootPath,
-  showDir: true,
-  autoIndex: true,
-});
 const cleanup = cleanupFactory(browser, server);
-
-server.listen(PORT);
 
 const reporter = new JasmineReporter({
   colors: 1,
