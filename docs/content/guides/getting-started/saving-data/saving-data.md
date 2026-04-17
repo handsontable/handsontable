@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 7js3d370
 title: Saving data
 metaTitle: Saving data - JavaScript Data Grid | Handsontable
@@ -86,3 +87,7 @@ To persist table state (e.g. column order, column widths, row order) across page
 - [afterChange](@/api/hooks.md#afterchange)
 
 </div>
+
+## Result
+
+Changes made in the grid are now persisted to your backend or local state on every edit.

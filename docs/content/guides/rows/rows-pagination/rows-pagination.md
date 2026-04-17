@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 85u4f81b
 title: Rows pagination
 metaTitle: Rows pagination - JavaScript Data Grid | Handsontable
@@ -28,19 +29,9 @@ searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
+Split large data sets into pages to improve usability and rendering performance. Pagination operates fully on the client side and automatically recomputes the total page count whenever rows are added, removed, filtered, or otherwise modified.
 
 [[toc]]
-
-## Overview
-
-With pagination, large data sets are divided into smaller pages, significantly improving usability and rendering performance. Users can navigate pages using built-in UI controls such as page navigation buttons, a page size selector, and a page counter, or you can manage pages programmatically via Handsontable's API.
-
-Pagination operates fully on the client side, requiring all data to be loaded into Handsontable.
-
-Whenever rows are added, removed, hidden, unhidden, filtered, or otherwise modified, pagination automatically recomputes total pages and adjusts the currently visible slice of data.
-
-By default, the plugin does not override core data access methods (e.g., `getData`, `getData*`, `getSourceData`, `getSourceData*`, `countRows`). Instead, a developer must explicitly call the pagination [`getCurrentPageData`](@/api/pagination.md#getcurrentpagedata) method or [`getPaginationData`](@/api/pagination.md#getpaginationdata) method conjunction with core methods (e.g., `getData`) to interact with paged data.
 
 ## Pagination demo
 
@@ -435,6 +426,10 @@ When pagination is enabled:
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
+
+## Result
+
+After completing this guide, your grid divides rows into pages with built-in navigation controls. You can configure the page size, customize the UI position, control pagination programmatically, and react to page changes using hooks.
 
 ## Troubleshooting
 

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
@@ -16,6 +17,8 @@ category: Cell types
 menuTag: updated
 ---
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
+
+The numeric cell type formats numbers using Intl.NumberFormat, right-aligns values, and restricts input to valid numbers.
 
 [[toc]]
 
@@ -400,6 +403,10 @@ you edit a numeric cell:
 - You can't enter a thousands separator. After you finish editing the cell, the thousands
   separator is added automatically, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
+
+## Result
+
+After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) input is rejected. The underlying data source stores the raw number.
 
 ## Related articles
 

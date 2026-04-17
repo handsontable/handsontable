@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 7ezlo7y5
 title: Setting up a translation in Vue 3
 metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Configure your Vue 3 data grid with different number formats, depending on the specified language and culture.
+Register a language file with Handsontable and pass the `language` option to the HotTable component to translate the grid UI.
 
 [[toc]]
 
@@ -30,6 +31,10 @@ The following example shows a Handsontable instance with translations set up in 
 @[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.js)
 
 :::
+
+## Result
+
+The HotTable component renders with number formatting and locale-specific text determined by the registered language file, and the context menu labels reflect the selected language.
 
 ## Related articles
 
