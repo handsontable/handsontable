@@ -136,6 +136,27 @@ async function build() {
   const running = new Map(); // name -> Promise
   const taskTimes = {};
 
+  // Validate the dependency graph up front: every `deps` entry must reference
+  // an existing task. A missing dep (typo, stale rename) would otherwise leave
+  // the dependent task permanently unready, the loop would break out with
+  // running.size === 0, and the build would falsely report success.
+  const unknownDeps = [];
+
+  taskNames.forEach((name) => {
+    tasks[name].deps.forEach((dep) => {
+      if (!Object.prototype.hasOwnProperty.call(tasks, dep)) {
+        unknownDeps.push(`${name} -> "${dep}"`);
+      }
+    });
+  });
+
+  if (unknownDeps.length > 0) {
+    throw new Error(
+      `Unknown task dependency(ies): ${unknownDeps.join(', ')}. `
+      + `Known tasks: ${taskNames.join(', ')}.`
+    );
+  }
+
   // eslint-disable-next-line no-console
   console.log('Building Handsontable (parallel)...\n');
 
@@ -165,7 +186,16 @@ async function build() {
     });
 
     if (running.size === 0) {
-      break; // nothing left to do
+      // No ready task and nothing running, yet the completed set is short of
+      // every declared task. Upfront validation should prevent this, but guard
+      // against future cycles or logic bugs sneaking in -- a silent success
+      // here would ship an incomplete build.
+      const pending = taskNames.filter(n => !completed.has(n));
+
+      throw new Error(
+        `Build stalled: ${pending.length} task(s) never ran (${pending.join(', ')}). `
+        + `Check the dependency graph for cycles or unresolved deps.`
+      );
     }
 
     // Wait for at least one running task to complete
@@ -229,4 +259,8 @@ async function build() {
   console.log(`Critical path: ${critPath.join(' -> ')} (${maxTime}ms theoretical minimum)`);
 }
 
-build();
+build().catch((err) => {
+  // eslint-disable-next-line no-console
+  console.error(`\n\x1b[31m${err.message}\x1b[0m`);
+  process.exit(1);
+});

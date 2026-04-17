@@ -8,35 +8,25 @@ const configFactory = require('./base');
 const JasmineHtml = require('./plugin/jasmine-html');
 const { getClosest }  = require('./helper/path');
 
-// Allow-list of module specifiers that may appear in E2E test sources.
-// Matched by literal string (with trailing '*' as prefix wildcard) against
-// the raw import path -- mirrors `babel-plugin-forbidden-imports` on develop.
-// Relative entries are authoritative: every `./foo` or `../foo` used by a
-// spec or helper must appear here, otherwise the build fails.
+// Allow-list of module specifiers that may appear in files under `handsontable/test/**`
+// (the loader scope defined on the rule below). Matched by literal string, with a
+// trailing '*' acting as a prefix wildcard. Every `./foo` / `../foo` used by a spec
+// or helper in scope must appear here, otherwise the build fails.
 const ALLOWED_E2E_MODULES = [
   'window',
-  'hyperformula*',
-  'exceljs',
   'jasmine-co',
-  'jest-matcher-utils',
   'html-parse-stringify',
-  'regenerator-runtime/runtime*',
-  '@babel/runtime/*',
-  '@swc/helpers/*',
   './htmlNormalize',
   './focusNavigator',
   './common',
   './utils',
-  './jasmine-helpers',
   './mouseEvents',
   './keyboardEvents',
   './../bootstrap',
   './helpers/custom-matchers',
-  './custom-matchers',
   './helpers/jasmine-helpers',
   '../helpers/it-themes-extension',
   './asciiTable',
-  '../../../../../test/helpers/asciiTable',
   './__mocks__/*',
   './MemoryLeakTest',
   '../MemoryLeakTest',
