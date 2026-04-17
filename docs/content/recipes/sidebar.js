@@ -1,7 +1,13 @@
+const columnManagementItems = [
+  { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript'] },
+];
+
 const recipeDataManagementItems = [
+  { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-django/server-side-django', title: 'Server-side data with Django', onlyFor: ['javascript'] },
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript'] },
   { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript'] },
 ];
@@ -21,7 +27,7 @@ const cellTypesItems = [
   { path: 'cell-types/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
   { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
+  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
 ];
 
 const renderingStylingItems = [
@@ -33,6 +39,11 @@ const renderingStylingItems = [
   {
     path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
     title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
+    title: 'Conditional row coloring',
     onlyFor: ['javascript'],
   },
 ];
@@ -77,6 +88,7 @@ const editingValidationItems = [
 module.exports = {
   sidebar: [
     'introduction',
+    { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Data Management', path: 'data-management', children: recipeDataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {

@@ -29,5 +29,6 @@ If you are new to fixed rows, read the [Row freezing](@/guides/rows/row-freezing
 
 - [Frozen summary row](@/content/recipes/rendering-styling/frozen-summary-row/frozen-summary-row.md) - pinned bottom row with sum, average, and count that updates on edits
 - [Sparkline cell renderer](@/content/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) - mini SVG bar charts from array values in a cell
+- [Conditional row coloring](@/content/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) - map a status column to row-level CSS classes with the `cells` callback and scoped styles
 
 Each recipe includes runnable examples you can copy into your project.
