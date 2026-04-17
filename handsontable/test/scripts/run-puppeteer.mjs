@@ -74,7 +74,8 @@ const flags = flagArgs.join(' ');
 // watch script and dev tooling). Without it, fall back to the per-run HTML
 // emitted by `test:e2e.dump`, whose filename is derived from the same
 // `--testPathPattern` + `--theme` inputs so parallel runs don't collide.
-const originalPath = argvPath || `test/E2ERunner-${computeRunId(readRunIdInputsFromEnv())}.html`;
+const runIdInputs = readRunIdInputsFromEnv();
+const originalPath = argvPath || `test/E2ERunner-${computeRunId(runIdInputs)}.html`;
 let htmlPath = originalPath;
 let verboseReporting = false;
 
@@ -137,6 +138,10 @@ const browser = await puppeteer.launch({
 });
 
 console.log(`Started Puppeteer with version: ${await browser.version()}`);
+console.log(
+  `Runner: ${originalPath} (testPathPattern: ${runIdInputs.testPathPattern || '<all>'},`
+  + ` theme: ${runIdInputs.theme})`
+);
 
 const page = await browser.newPage();
 const cdpClient = await page.createCDPSession();
