@@ -27,14 +27,12 @@ const highlightRenderer = rendererFactory(({ td, value, cellProperties }) => {
         td.textContent = cellText;
         return;
     }
-    const escapedCellText = escapeHtml(cellText);
-    const escapedQuery = escapeHtml(query);
-    const splitter = new RegExp(`(${escapeRegExp(escapedQuery)})`, 'gi');
-    const highlighted = escapedCellText
+    const splitter = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+    const highlighted = cellText
         .split(splitter)
-        .map(fragment => (fragment.toLocaleLowerCase() === escapedQuery.toLocaleLowerCase()
-        ? `<mark>${fragment}</mark>`
-        : fragment))
+        .map(fragment => (fragment.toLocaleLowerCase() === query.toLocaleLowerCase()
+        ? `<mark>${escapeHtml(fragment)}</mark>`
+        : escapeHtml(fragment)))
         .join('');
     td.innerHTML = highlighted;
 });

@@ -1,4 +1,5 @@
 ---
+type: reference
 id: kk7fprli
 title: Changelog 11.0
 metaTitle: Changelog 11.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 11.x.
+
 ## 11.1.0
 
 Released on January 13, 2022
@@ -161,3 +165,7 @@ For more information on this release, see:
 - React: Fixed a React wrapper issue where it's impossible to use different sets of props in editor
   components reused across multiple columns.
   [#8527](https://github.com/handsontable/handsontable/issues/8527)
+
+## Related
+
+- [Migrating from 10.0 to 11.0](@/guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0.md)

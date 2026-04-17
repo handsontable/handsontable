@@ -16,7 +16,16 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
+const importExportItems = [
+  {
+    path: 'import-export/export-to-pdf/export-to-pdf',
+    title: 'Export to PDF',
+    onlyFor: ['javascript'],
+  },
+];
+
 const filteringAndSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
   {
     path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
     title: 'Highlight search matches',
@@ -32,16 +41,27 @@ const themesItems = [
 ];
 
 const dataManagementItems = [
-];
-
-const filteringSearchItems = [
+  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
 ];
 
 module.exports = {
   sidebar: [
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
-    { title: 'Filtering and Search', path: 'filtering-and-search', children: filteringAndSearchItems, collapsable: false, onlyFor: ['javascript'] },
+    {
+      title: 'Import and Export',
+      path: 'import-export',
+      children: importExportItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
+      title: 'Filtering and Search',
+      path: 'filtering-and-search',
+      children: filteringAndSearchItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],

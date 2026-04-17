@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 7wh7yk48
 title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build a color picker cell in Angular using the native HTML5 color input, with a custom renderer component and hex validation.
 
 ::: only-for angular
 
@@ -493,3 +496,13 @@ export class ColorRendererConfigurableComponent extends HotCellRendererAdvancedC
 ---
 
 **Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](/recipes/cell-types/color-picker).
+
+## What you learned
+
+You built a custom color picker cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`. You used the native HTML5 `<input type="color">` for the editor and displayed the selected color as a circle swatch in the renderer.
+
+## Next steps
+
+- [Color Picker (JavaScript)](/recipes/cell-types/color-picker) - The same concept using `editorFactory` and the Pickr library.
+- [Colorful Picker (React)](/recipes/cell-types/colorful-picker) - The React version using `EditorComponent` and `react-colorful`.
+- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - Another Angular custom cell built with `HotCellEditorAdvancedComponent`.

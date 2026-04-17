@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: h840od8r
 title: Cell validator
 metaTitle: Cell validator - JavaScript Data Grid | Handsontable
@@ -14,13 +15,14 @@ angular:
 searchCategory: Guides
 category: Cell functions
 ---
-Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
+
+Cell validators run when a user finishes editing a cell. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
 
 [[toc]]
 
 ## Overview
 
-When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
+When you create a validator, assign it an alias so you can reference it by name in column configuration. Handsontable defines 5 aliases by default:
 
 - `autocomplete` for `Handsontable.validators.AutocompleteValidator`
 - `date` for `Handsontable.validators.DateValidator`
@@ -28,7 +30,7 @@ When you create a validator, a good idea is to assign it as an alias that will r
 - `numeric` for `Handsontable.validators.NumericValidator`
 - `time` for `Handsontable.validators.TimeValidator`
 
-It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
+Aliases give you a convenient way to specify which validator runs when table validation triggers. You don't need to reference the validator function directly, and you can swap the function behind an alias without changing your column configuration.
 
 ## Register custom cell validator
 
@@ -67,7 +69,7 @@ That's better.
 
 ## Using an alias
 
-The final touch is to use the registered aliases, so that users can easily refer to it without the need to now the actual validator function is.
+The final touch is to use the registered aliases, so that you can easily refer to them without knowing the actual validator function.
 
 To sum up, a well prepared validator function should look like this:
 
@@ -286,3 +288,7 @@ Mind that changes in table are applied after running all validators (both synchr
 - [beforeValidate](@/api/hooks.md#beforevalidate)
 
 </div>
+
+## Result
+
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.
