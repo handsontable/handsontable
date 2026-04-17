@@ -53,10 +53,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Flue
 ## Step 1: Install dependencies with pinned Handsontable versions
 
 ```bash
-npm install \
-  handsontable@0.0.0-next-deba76c-20260408 \
-  @handsontable/react-wrapper@0.0.0-next-deba76c-20260408 \
-  @fluentui/react-components
+npm install handsontable @handsontable/react-wrapper @fluentui/react-components
 ```
 
 ## Step 2: Wrap your app in FluentProvider
