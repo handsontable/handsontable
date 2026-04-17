@@ -81,7 +81,6 @@ export class Example1ServerSideLaravelComponent {
       { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
       { data: 'stock', type: 'numeric' },
     ],
-    licenseKey: 'non-commercial-and-evaluation',
   };
 
   async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: unknown[]; totalRows: number }> {

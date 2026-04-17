@@ -59,7 +59,6 @@ export class Example1ServerSideSpringComponent {
     pagination: { pageSize: 10 },
     emptyDataState: true,
     notification: true,
-    licenseKey: 'non-commercial-and-evaluation',
   };
 
   async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: unknown[]; totalRows: number }> {

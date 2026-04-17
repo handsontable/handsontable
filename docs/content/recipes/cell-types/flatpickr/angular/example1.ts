@@ -136,7 +136,6 @@ export class Example1FlatpickrComponent {
       } as any,
       { data: 'status', type: 'text', width: 130 },
     ],
-    licenseKey: 'non-commercial-and-evaluation',
   };
 }
 /* end-file */

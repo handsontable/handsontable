@@ -147,7 +147,6 @@ export class Example1MomentTimeComponent {
         },
       },
     ],
-    licenseKey: 'non-commercial-and-evaluation',
   };
 }
 /* end-file */

@@ -76,7 +76,6 @@ export class Example1ServerSideDjangoComponent {
     height: 400,
     width: '100%',
     autoWrapRow: true,
-    licenseKey: 'non-commercial-and-evaluation',
   };
 
   async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {

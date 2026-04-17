@@ -179,7 +179,6 @@ export class Example1NumbroComponent {
         },
       } as any,
     ],
-    licenseKey: 'non-commercial-and-evaluation',
   };
 }
 /* end-file */

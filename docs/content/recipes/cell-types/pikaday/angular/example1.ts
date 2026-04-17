@@ -158,7 +158,6 @@ export class Example1PikadayComponent {
         },
       },
     ],
-    licenseKey: 'non-commercial-and-evaluation',
   };
 }
 /* end-file */

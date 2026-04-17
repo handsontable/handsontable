@@ -161,7 +161,6 @@ export class Example1MomentDateComponent {
         },
       },
     ],
-    licenseKey: 'non-commercial-and-evaluation',
   };
 }
 /* end-file */
