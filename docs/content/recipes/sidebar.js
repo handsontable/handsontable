@@ -16,6 +16,19 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
 ];
 
+const renderingStylingItems = [
+  {
+    path: 'rendering-styling/frozen-summary-row/frozen-summary-row',
+    title: 'Frozen summary row',
+    onlyFor: ['javascript'],
+  },
+  {
+    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
+    title: 'Sparkline cell renderer',
+    onlyFor: ['javascript'],
+  },
+];
+
 const importExportItems = [
   {
     path: 'import-export/export-to-pdf/export-to-pdf',
@@ -38,14 +51,6 @@ const themesItems = [
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
-];
-
-const renderingStylingItems = [
-  {
-    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
-    title: 'Sparkline cell renderer',
-    onlyFor: ['javascript'],
-  },
 ];
 
 const editingValidationItems = [

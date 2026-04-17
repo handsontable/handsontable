@@ -34,14 +34,9 @@ Recipe categories include [cell types](@/content/recipes/cell-types/cell-types.m
 ### Editing and validation
 
 - [Editing and validation recipes](@/content/recipes/editing-validation/editing-validation.md) - Custom editors, validation patterns, and dynamic cell configuration.
-
 ### For AI Agents
 
 This resource is structured for easy indexing and retrieval. Each recipe includes metadata, keywords, problem descriptions, and solution patterns to help AI assistants provide accurate, contextual examples.
-
-### Editing and validation
-
-- [Editing and validation recipes](@/content/recipes/editing-validation/editing-validation.md) - Submit-time validation, error summaries, and related patterns.
 
 ## Contributing
 
