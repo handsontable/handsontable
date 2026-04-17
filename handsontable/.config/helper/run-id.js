@@ -1,5 +1,10 @@
 const crypto = require('crypto');
 
+// Must match the default in `rspack.config.js` so runs that omit `--theme`
+// hash identically whether the caller is the rspack config or the Puppeteer
+// script.
+const DEFAULT_THEME = 'main';
+
 /**
  * Derives a short, deterministic run ID from the active test pattern and theme.
  *
@@ -15,7 +20,7 @@ const crypto = require('crypto');
  * @returns {string} 8-character hex hash.
  */
 function computeRunId({ testPathPattern, theme } = {}) {
-  const input = `${testPathPattern || ''}|${theme || ''}`;
+  const input = `${testPathPattern || ''}|${theme || DEFAULT_THEME}`;
 
   return crypto.createHash('sha1').update(input).digest('hex').slice(0, 8);
 }
@@ -29,12 +34,13 @@ function computeRunId({ testPathPattern, theme } = {}) {
 function readRunIdInputsFromEnv() {
   const testPathPattern =
     process.env.npm_config_testPathPattern || process.env.npm_config_testpathpattern || '';
-  const theme = process.env.npm_config_theme || '';
+  const theme = process.env.npm_config_theme || DEFAULT_THEME;
 
   return { testPathPattern, theme };
 }
 
 module.exports = {
+  DEFAULT_THEME,
   computeRunId,
   readRunIdInputsFromEnv,
 };

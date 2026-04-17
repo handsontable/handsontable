@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
+import fs from 'fs';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
@@ -70,6 +71,18 @@ const flags = flagArgs.join(' ');
 const originalPath = argvPath || `test/dist/E2ERunner-${computeRunId(readRunIdInputsFromEnv())}.html`;
 let htmlPath = originalPath;
 let verboseReporting = false;
+
+// Fail fast if the runner HTML is missing. Without this, `page.goto` receives
+// a 404/directory listing and Jasmine never starts -- the process would hang
+// silently after the "Started Puppeteer" line.
+if (!fs.existsSync(originalPath)) {
+  /* eslint-disable no-console */
+  console.log(
+    `Runner HTML not found at ${originalPath}. Did \`test:e2e.dump\` run with the same `
+    + `\`--testPathPattern\` / \`--theme\` values?`
+  );
+  process.exit(1);
+}
 
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
