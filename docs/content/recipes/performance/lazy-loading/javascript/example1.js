@@ -40,8 +40,15 @@ const PAGE_SIZE = 20;
 // JSONPlaceholder has 200 todos total (10 pages of 20)
 const TOTAL_PAGES = 10;
 
-// Loading indicator element shown below the grid
-const loadingIndicator = document.querySelector('#loading-indicator');
+const container = document.querySelector('#example1');
+
+// Create and inject a loading indicator element directly below the grid
+const loadingIndicator = document.createElement('div');
+
+loadingIndicator.style.cssText =
+  'display:none; padding:8px; text-align:center; color:#666; font-size:13px;';
+loadingIndicator.textContent = 'Loading more tasks...';
+container.insertAdjacentElement('afterend', loadingIndicator);
 
 /**
  * Fetches the next page of tasks from the JSONPlaceholder API and appends
@@ -94,8 +101,6 @@ async function fetchNextPage() {
     loadingIndicator.style.display = 'none';
   }
 }
-
-const container = document.querySelector('#example1');
 
 const hot = new Handsontable(container, {
   data: loadedData,

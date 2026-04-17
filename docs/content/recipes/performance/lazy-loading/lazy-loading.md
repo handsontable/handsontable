@@ -80,19 +80,15 @@ const PAGE_SIZE = 20;
 
 ## Step 2 -- Create the loading indicator
 
-The loading indicator is a plain DOM element placed below the grid container in your HTML:
-
-```html
-<div id="example1"></div>
-<div id="loading-indicator" style="display:none; padding:8px; text-align:center; color:#666;">
-  Loading more tasks...
-</div>
-```
-
-In JavaScript, get a reference to it:
+The loading indicator is created in JavaScript and inserted below the grid container:
 
 ```javascript
-const loadingIndicator = document.querySelector('#loading-indicator');
+const loadingIndicator = document.createElement('div');
+
+loadingIndicator.style.cssText =
+  'display:none; padding:8px; text-align:center; color:#666; font-size:13px;';
+loadingIndicator.textContent = 'Loading more tasks...';
+container.insertAdjacentElement('afterend', loadingIndicator);
 ```
 
 You show it at the start of a fetch and hide it when the fetch completes. When all data is loaded, you update its text to "All tasks loaded." and leave it visible so the user knows there is nothing more to fetch.
