@@ -18,7 +18,7 @@ registerAllModules();
  *   {
  *     page: 1,
  *     pageSize: 10,
- *     sort: { column: 'status', order: 'asc' } | undefined,
+ *     sort: { prop: 'status', order: 'asc' } | undefined,
  *     filters: [{ prop: 'status', condition: 'eq', value: ['open'] }] | undefined,
  *   }
  *
@@ -33,7 +33,7 @@ function buildUrl(base, params) {
   query.set('pageSize', String(params.pageSize));
 
   if (params.sort) {
-    query.set('sort[column]', params.sort.column);
+    query.set('sort[column]', params.sort.prop);
     query.set('sort[order]', params.sort.order);
   }
 
