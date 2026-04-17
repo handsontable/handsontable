@@ -11,6 +11,9 @@ tags:
   - screen reader
   - wcag
   - recipes
+angular:
+  id: b3e9f1a2
+  metaTitle: ARIA-Friendly Grid with Row Descriptions - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
 ---
@@ -20,6 +23,17 @@ category: Accessibility & UX
 ::: example #example1 :hot-recipe --js 1
 
 @[code](@/content/recipes/accessibility/aria-grid/javascript/example1.js)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/accessibility/aria-grid/angular/example1.ts)
+@[code](@/content/recipes/accessibility/aria-grid/angular/example1.html)
 
 :::
 

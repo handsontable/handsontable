@@ -12,6 +12,9 @@ tags:
   - data-management
   - recipes
   - dataprovider
+angular:
+  id: v9x1z3b5
+  metaTitle: Server-side data with Laravel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---
@@ -207,6 +210,17 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 ::: only-for typescript
 
 @[code ts](@/content/recipes/data-management/server-side-laravel/javascript/example1.ts)
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.html)
+
+:::
 
 :::
 

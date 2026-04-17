@@ -32,6 +32,17 @@ category: Import and Export
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps jspdf jspdf-autotable
+
+@[code](@/content/recipes/import-export/export-to-pdf/angular/example1.ts)
+@[code](@/content/recipes/import-export/export-to-pdf/angular/example1.html)
+
+:::
+
+:::
+
 [[toc]]
 
 ## Overview

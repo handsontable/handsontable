@@ -12,6 +12,9 @@ tags:
   - data-provider
   - typescript
   - recipes
+angular:
+  id: n3p5r7t9
+  metaTitle: Server-side Data with NestJS - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---
@@ -215,6 +218,17 @@ With the server running on `http://localhost:3000`, configure Handsontable to us
 ::: only-for typescript
 
 @[code ts](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/server-side-nestjs/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-nestjs/angular/example1.html)
+
+:::
 
 :::
 

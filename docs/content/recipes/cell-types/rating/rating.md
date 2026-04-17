@@ -34,6 +34,18 @@ This tutorial shows you how to build an interactive SVG star rating cell using `
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/rating/angular/example1.ts)
+@[code](@/content/recipes/cell-types/rating/angular/example1.html)
+@[code](@/content/recipes/cell-types/rating/angular/example1.css)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create an interactive star rating cell using inline SVG stars. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.

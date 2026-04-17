@@ -31,6 +31,17 @@ category: Data Management
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/auto-save-backend/angular/example1.ts)
+@[code](@/content/recipes/data-management/auto-save-backend/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to auto-save edited rows to a backend with `afterChange`, an 800 ms debounce, and row-level dirty tracking. It sends only modified rows, ignores `loadData` changes, and reports save status in the UI.

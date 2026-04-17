@@ -33,6 +33,18 @@ category: Editing and Validation
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/angular/example1.ts)
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/angular/example1.html)
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/angular/example1.css)
+
+:::
+
+:::
+
 ## Overview
 
 Run validation for **all rows** when the user clicks **Submit orders**. Keep rules in a map from **column index** to a small function that returns `null` when the value is valid, or a string message when it is not. Collect every failure, show them in a list under the grid, and mark bad cells with `htInvalid` using `setCellMeta` plus `render()`. When the user edits a cell that was marked invalid, clear that cell's highlight and update the summary.

@@ -32,6 +32,18 @@ category: Rendering and styling
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/rendering-styling/sparkline-cell-renderer/angular/example1.ts)
+@[code](@/content/recipes/rendering-styling/sparkline-cell-renderer/angular/example1.html)
+@[code](@/content/recipes/rendering-styling/sparkline-cell-renderer/angular/example1.css)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to edit weekly values in table cells and render a mini bar chart with inline SVG in a separate sparkline column. No charting library is required.

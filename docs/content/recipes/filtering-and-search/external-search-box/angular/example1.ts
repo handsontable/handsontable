@@ -1,0 +1,90 @@
+/* file: app.component.ts */
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+
+const data = [
+  ['Alice Johnson', 'Engineering', 'Berlin', 'alice.johnson@example.com'],
+  ['Noah Smith', 'Design', 'Warsaw', 'noah.smith@example.com'],
+  ['Mia Garcia', 'Marketing', 'New York', 'mia.garcia@example.com'],
+  ['Liam Brown', 'Engineering', 'Toronto', 'liam.brown@example.com'],
+  ['Emma Davis', 'Sales', 'London', 'emma.davis@example.com'],
+  ['Oliver Miller', 'Support', 'Madrid', 'oliver.miller@example.com'],
+];
+
+@Component({
+  selector: 'example1-external-search-box',
+  standalone: false,
+  template: `
+    <div style="margin-bottom: 12px;">
+      <label for="external-search-input" style="display: block; margin-bottom: 4px;">Search rows</label>
+      <input
+        id="external-search-input"
+        type="text"
+        placeholder="Type to highlight matching cells..."
+        style="width: 100%; box-sizing: border-box; padding: 8px;"
+        (input)="onSearch($event)"
+      />
+    </div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+  `,
+})
+export class Example1ExternalSearchBoxComponent {
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  readonly data = data;
+
+  readonly gridSettings: GridSettings = {
+    rowHeaders: true,
+    colHeaders: ['Name', 'Team', 'Location', 'Email'],
+    height: 'auto',
+    width: '100%',
+    autoWrapRow: true,
+    autoWrapCol: true,
+    search: true,
+  };
+
+  private debounceTimer: ReturnType<typeof setTimeout> | undefined;
+
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => {
+      const hot = this.hotTable.hotInstance;
+
+      if (!hot) {
+        return;
+      }
+
+      hot.getPlugin('search').query(value);
+      hot.render();
+    }, 120);
+  }
+}
+/* end-file */
+
+/* file: app.module.ts */
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+/* start:skip-in-compilation */
+import { Example1ExternalSearchBoxComponent } from './app.component';
+/* end:skip-in-compilation */
+
+registerAllModules();
+
+export const appConfig: ApplicationConfig = {
+  providers: [{ provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig }],
+};
+
+@NgModule({
+  imports: [BrowserModule, HotTableModule, CommonModule],
+  declarations: [Example1ExternalSearchBoxComponent],
+  providers: [...appConfig.providers],
+  bootstrap: [Example1ExternalSearchBoxComponent],
+})
+export class AppModule {}
+/* end-file */

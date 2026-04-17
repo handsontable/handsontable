@@ -33,6 +33,17 @@ category: Filtering and Search
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/filtering-and-search/highlight-search-matches/angular/example1.ts)
+@[code](@/content/recipes/filtering-and-search/highlight-search-matches/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to highlight matched text fragments with a custom renderer that wraps matches in a `<mark>` element. You can use this approach when you want richer highlighting than the default Search plugin class.

@@ -10,6 +10,9 @@ tags:
   - updateSettings
   - toggle columns
   - column management
+angular:
+  id: c7d4e5f6
+  metaTitle: Dynamic Column Visibility Toggle - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
 ---
@@ -20,6 +23,17 @@ category: Column Management
 
 @[code](@/content/recipes/column-management/column-visibility/javascript/example1.html)
 @[code](@/content/recipes/column-management/column-visibility/javascript/example1.js)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/column-management/column-visibility/angular/example1.ts)
+@[code](@/content/recipes/column-management/column-visibility/angular/example1.html)
 
 :::
 

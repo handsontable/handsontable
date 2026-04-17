@@ -30,6 +30,17 @@ This tutorial shows you how to create a custom numeric cell type using the Numbr
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps numbro
+
+@[code](@/content/recipes/cell-types/numbro/angular/example1.ts)
+@[code](@/content/recipes/cell-types/numbro/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create a custom numbro cell type using the [Numbro](https://numbrojs.com/) library. Users can format numbers using the Numbro API.

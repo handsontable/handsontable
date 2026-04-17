@@ -32,6 +32,17 @@ category: Filtering and Search
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/filtering-and-search/external-search-box/angular/example1.ts)
+@[code](@/content/recipes/filtering-and-search/external-search-box/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to place a search input outside Handsontable and use the built-in `Search` plugin to highlight matching cells in real time.

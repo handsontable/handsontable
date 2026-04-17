@@ -11,6 +11,9 @@ tags:
   - server-side
   - data-provider
   - recipe
+angular:
+  id: q1s3u5w7
+  metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: tutorial
@@ -461,6 +464,17 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/server-side-django/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-django/angular/example1.html)
+
+:::
+
+:::
 
 **Key options explained:**
 

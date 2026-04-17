@@ -31,6 +31,17 @@ This tutorial shows you how to create a custom time cell type using Moment.js fo
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps moment
+
+@[code](@/content/recipes/cell-types/moment-time/angular/example1.ts)
+@[code](@/content/recipes/cell-types/moment-time/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create a custom time cell type using the [Moment.js](https://momentjs.com/) library. Users can format times using the Moment.js API.

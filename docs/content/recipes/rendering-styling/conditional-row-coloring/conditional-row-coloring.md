@@ -32,6 +32,18 @@ category: Rendering and styling
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/rendering-styling/conditional-row-coloring/angular/example1.ts)
+@[code](@/content/recipes/rendering-styling/conditional-row-coloring/angular/example1.html)
+@[code](@/content/recipes/rendering-styling/conditional-row-coloring/angular/example1.css)
+
+:::
+
+:::
+
 [[toc]]
 
 ## Overview

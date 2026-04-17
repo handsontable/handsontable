@@ -33,6 +33,18 @@ category: Rendering and styling
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/angular/example1.ts)
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/angular/example1.html)
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/angular/example1.css)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe pins a single **summary** row to the bottom of the grid so it stays visible while you scroll. The row shows **sum**, **average**, and **count** for each numeric column, skips non-numeric values, stays **read-only**, and updates whenever data changes.

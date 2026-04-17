@@ -32,6 +32,18 @@ category: Data Management
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/angular/example1.ts)
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/angular/example1.html)
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/angular/example1.css)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to connect external **Undo** and **Redo** buttons to Handsontable's built-in undo/redo stack. The buttons stay disabled until an action is available, and they update after every change, undo, and redo.

@@ -32,6 +32,17 @@ category: Filtering and Search
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/filtering-search/multi-column-filter-panel/angular/example1.ts)
+@[code](@/content/recipes/filtering-search/multi-column-filter-panel/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to control the Filters plugin from a filter panel outside of the grid. The panel includes controls aligned with the grid columns, and it applies all active filters together with AND logic.
