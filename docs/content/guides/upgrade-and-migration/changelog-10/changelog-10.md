@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 6x1ythps
 title: Changelog 10.0
 metaTitle: Changelog 10.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 10.x.
+
 ## 10.0.0
 
 Released on September 29, 2021.
@@ -93,3 +97,7 @@ For more information on this release, see:
   [#8704](https://github.com/handsontable/handsontable/issues/8704)
 - Improved the performance of the regular expression used to detect numeric values, and fixed major
   code smells. [#8752](https://github.com/handsontable/handsontable/issues/8752)
+
+## Related
+
+- [Migrating from 9.0 to 10.0](@/guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0.md)

@@ -1,4 +1,5 @@
 ---
+type: reference
 id: e195f568
 title: Changelog 13.0
 metaTitle: Changelog 13.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 13.x.
+
 ## 13.1.0
 
 Released on August 31, 2023.
@@ -82,3 +86,7 @@ For more information on this release, see:
 #### Fixed
 
 - Fixed an issue where the "Read only" icon of the context menu displayed incorrectly in the RTL layout direction. [#10375](https://github.com/handsontable/handsontable/pull/10375)
+
+## Related
+
+- [Migrating from 12.4 to 13.0](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0.md)

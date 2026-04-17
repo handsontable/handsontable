@@ -21,6 +21,58 @@ function createHighlightInstance(options = {}) {
 }
 
 describe('Highlight', () => {
+  describe('isEnabledFor()', () => {
+    it('should treat `undefined` the same as `false` (selection enabled)', () => {
+      const highlight = createHighlightInstance({
+        disabledCellSelection: () => undefined,
+      });
+
+      expect(highlight.isEnabledFor('focus', { row: 0, col: 0 })).toBe(true);
+      expect(highlight.isEnabledFor('area', { row: 0, col: 0 })).toBe(true);
+      expect(highlight.isEnabledFor('header', { row: 0, col: 0 })).toBe(true);
+    });
+
+    it('should return `true` when `disabledCellSelection` returns `false`', () => {
+      const highlight = createHighlightInstance({
+        disabledCellSelection: () => false,
+      });
+
+      expect(highlight.isEnabledFor('focus', { row: 0, col: 0 })).toBe(true);
+      expect(highlight.isEnabledFor('area', { row: 0, col: 0 })).toBe(true);
+      expect(highlight.isEnabledFor('header', { row: 0, col: 0 })).toBe(true);
+    });
+
+    it('should return `false` when `disabledCellSelection` returns `true`', () => {
+      const highlight = createHighlightInstance({
+        disabledCellSelection: () => true,
+      });
+
+      expect(highlight.isEnabledFor('focus', { row: 0, col: 0 })).toBe(false);
+      expect(highlight.isEnabledFor('area', { row: 0, col: 0 })).toBe(false);
+      expect(highlight.isEnabledFor('header', { row: 0, col: 0 })).toBe(false);
+    });
+
+    it('should selectively disable highlight types when `disabledCellSelection` returns a string', () => {
+      const highlight = createHighlightInstance({
+        disabledCellSelection: () => 'current',
+      });
+
+      expect(highlight.isEnabledFor('focus', { row: 0, col: 0 })).toBe(false);
+      expect(highlight.isEnabledFor('area', { row: 0, col: 0 })).toBe(true);
+      expect(highlight.isEnabledFor('header', { row: 0, col: 0 })).toBe(true);
+    });
+
+    it('should selectively disable highlight types when `disabledCellSelection` returns an array', () => {
+      const highlight = createHighlightInstance({
+        disabledCellSelection: () => ['current', 'header'],
+      });
+
+      expect(highlight.isEnabledFor('focus', { row: 0, col: 0 })).toBe(false);
+      expect(highlight.isEnabledFor('area', { row: 0, col: 0 })).toBe(true);
+      expect(highlight.isEnabledFor('header', { row: 0, col: 0 })).toBe(false);
+    });
+  });
+
   describe('updateHighlightClassNames()', () => {
     it('should update the rowClassName option and all cached row highlights', () => {
       const highlight = createHighlightInstance();

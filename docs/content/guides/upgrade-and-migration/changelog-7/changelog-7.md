@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 5t9ao5jq
 title: Older versions
 metaTitle: Older versions - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 7.x.
+
 ## 7.4.2
 
 Released on February 19, 2020.
@@ -24,7 +28,6 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-2-released)
-- [Documentation (7.4.2)](https://handsontable.com/docs/7.4.2/)
 - [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/7.4.2)
 
 </div>
@@ -57,7 +60,6 @@ For more information on this release, see:
 <div class="boxes-list gray">
 
 - [Blog post](https://handsontable.com/blog/handsontable-7-4-0-released)
-- [Documentation (7.4.0)](https://handsontable.com/docs/7.4.0/)
 - [GitHub release tag](https://github.com/handsontable/handsontable/releases/tag/7.4.0)
 
 </div>
@@ -87,3 +89,7 @@ For more information on this release, see:
 
 The changelogs from older versions of Handsontable are
 [available on GitHub](https://github.com/handsontable/handsontable/releases).
+
+## Related
+
+- [Migrating from 7.4 to 8.0](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)

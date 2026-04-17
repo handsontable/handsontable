@@ -511,9 +511,7 @@ export class ManualColumnResize extends BasePlugin {
       this.#pressed = true;
 
       if (this.#autoresizeTimeout === null) {
-        this.#autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
-
-        this.hot._registerTimeout(this.#autoresizeTimeout);
+        this.#autoresizeTimeout = this.hot._registerTimeout(() => this.afterMouseDownTimeout(), 500);
       }
       this.#dblclick += 1;
 
