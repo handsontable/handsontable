@@ -16,47 +16,34 @@ searchCategory: Recipes
 category: Data Management
 ---
 
-::: only-for javascript
-
-::: example #example1 :hot-recipe --js 1 --ts 2
-
-@[code](@/content/recipes/data-management/server-side-laravel/javascript/example1.js)
-@[code](@/content/recipes/data-management/server-side-laravel/javascript/example1.ts)
-
-:::
-
-:::
-
 ## Overview
 
-This guide shows how to wire Handsontable's [`dataProvider`](@/api/options.md#dataprovider) plugin to a Laravel JSON API, covering paginated row loading, server-side sorting and filtering, and full CRUD.
+This recipe shows how to connect Handsontable's `dataProvider` plugin to a Laravel backend. You will build a product inventory grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a Laravel database.
 
 **Difficulty:** Intermediate  
 **Time:** ~30 minutes  
-**Backend:** Laravel 11 (PHP 8.2+)
+**Stack:** Laravel 11 (PHP 8.2+), Eloquent ORM, Handsontable `dataProvider`
 
 ## What You'll Build
 
-A product inventory grid that:
+A product inventory data grid that:
 
-- Loads one page of rows at a time from `GET /api/products`
-- Sends sort and filter parameters as query strings Laravel reads natively
-- Inserts, updates, and deletes rows through `POST`, `PATCH`, and `DELETE` endpoints
-- Shows a loading overlay while data loads and an error toast when the server returns an error
-- Confirms before deleting rows
+- Fetches paginated rows from `GET /api/products` on every page change
+- Sorts and filters rows on the server -- the browser never loads the full dataset
+- Creates, updates, and deletes rows via `POST`, `PATCH`, and `DELETE` endpoints
+- Sends CSRF tokens for Blade-rendered pages or uses Sanctum for SPA auth
+- Shows a loading overlay while data loads and an error toast when a request fails
 
-## Prerequisites
+## Before you begin
 
-```shell
-# Create a Laravel project and install Handsontable
-composer create-project laravel/laravel inventory
-cd inventory
-npm install handsontable
-```
+- PHP 8.2+ and Composer installed
+- A Laravel 11 project created (`composer create-project laravel/laravel inventory`)
+- A configured database (SQLite works for local development)
+- Node.js 22 and Handsontable installed (`npm install handsontable`)
 
-## Step 1: Scaffold the Backend
+## Step 1: Scaffold the backend
 
-Run these Artisan commands to generate the required files:
+Run these Artisan commands in your Laravel project root:
 
 ```shell
 php artisan make:model Product --migration
@@ -64,24 +51,22 @@ php artisan make:controller ProductController --model=Product
 php artisan make:seeder ProductSeeder
 ```
 
-**What each command does:**
-- `make:model Product --migration` -- creates `app/Models/Product.php` and a database migration
-- `make:controller ProductController --model=Product` -- creates `ProductController.php` bound to the `Product` model
-- `make:seeder ProductSeeder` -- creates a seeder to populate sample rows
+**What's happening:**
+- `make:model Product --migration` creates `app/Models/Product.php` and a timestamped migration file in `database/migrations/`.
+- `make:controller ProductController --model=Product` creates `ProductController.php` pre-bound to the `Product` model.
+- `make:seeder ProductSeeder` creates `database/seeders/ProductSeeder.php` for sample data.
 
-## Step 2: Define the Migration
+## Step 2: Define the migration
 
 Replace the generated migration's `up()` method with the products schema:
 
-```php
-@[code](@/content/recipes/data-management/server-side-laravel/server/migration.php)
-```
+@[code php](@/content/recipes/data-management/server-side-laravel/server/migration.php)
 
-**Column choices:**
-- `id()` -- auto-increment primary key; Handsontable uses this as `rowId`
-- `string('sku')->unique()` -- generated server-side, so the grid sets this column `readOnly: true`
-- `decimal('price', 10, 2)` -- supports `gt`, `lt`, and `between` filter conditions
-- `unsignedInteger('stock')` -- non-negative integer; suitable for numeric filters
+**What's happening:**
+- `id()` creates an auto-increment primary key. This is the value Handsontable uses as `rowId`.
+- `string('sku')->unique()` is a server-generated field, so the grid marks it `readOnly: true`.
+- `decimal('price', 10, 2)` stores two decimal places, matching the `numeric` cell type in the frontend column definition.
+- `unsignedInteger('stock')` enforces a non-negative integer at the database level.
 
 Run the migration:
 
@@ -89,25 +74,25 @@ Run the migration:
 php artisan migrate
 ```
 
-## Step 3: Create the Eloquent Model
+## Step 3: Create the Eloquent model
 
 Open `app/Models/Product.php` and set `$fillable` and `$casts`:
 
-```php
-@[code](@/content/recipes/data-management/server-side-laravel/server/Product.php)
-```
+@[code php](@/content/recipes/data-management/server-side-laravel/server/Product.php)
 
-**Why `$casts`?**
+**What's happening:**
+- `$fillable` lists the columns that `Product::create()` and `update()` may write to, protecting the `id` from mass-assignment.
+- `$casts` maps `price` to `float` and `stock` to `integer`. Without this, Eloquent returns all values as strings and Handsontable's numeric cell type receives `"1299.99"` instead of `1299.99`.
 
-Without casting, Eloquent returns all column values as strings. Handsontable's numeric cell type expects JavaScript numbers. Adding `'price' => 'float'` and `'stock' => 'integer'` ensures the JSON response contains `1299.99` and `42`, not `"1299.99"` and `"42"`.
+## Step 4: Seed the database
 
-## Step 4: Seed the Database
+Open `database/seeders/ProductSeeder.php` and add at least 50 rows so that pagination spans multiple pages:
 
-Open `database/seeders/ProductSeeder.php` and add at least 50 rows so pagination is visible across multiple pages:
+@[code php](@/content/recipes/data-management/server-side-laravel/server/seeder.php)
 
-```php
-@[code](@/content/recipes/data-management/server-side-laravel/server/seeder.php)
-```
+**What's happening:**
+- `Product::create($data)` inserts each row through Eloquent so the `$fillable` guard and timestamps apply.
+- The 52 rows create six pages at the default `pageSize: 10`, making pagination controls visible from the first load.
 
 Run the seeder:
 
@@ -119,13 +104,13 @@ php artisan db:seed --class=ProductSeeder
 
 `ProductController` handles all four HTTP verbs. Each method maps to one Handsontable `dataProvider` callback:
 
-```php
-@[code](@/content/recipes/data-management/server-side-laravel/server/ProductController.php)
-```
+@[code php](@/content/recipes/data-management/server-side-laravel/server/ProductController.php)
+
+**What's happening:**
 
 ### `index()` -- paginate, sort, and filter
 
-`index()` reads three groups of query parameters sent by the `buildUrl()` helper on the frontend:
+Handsontable sends query parameters through the `buildUrl()` frontend helper:
 
 | Query parameter | Example value | PHP access |
 |---|---|---|
@@ -133,13 +118,7 @@ php artisan db:seed --class=ProductSeeder
 | `sort[prop]`, `sort[order]` | `'name'`, `'asc'` | `$request->input('sort')` |
 | `filters[0][prop]`, `filters[0][condition]`, `filters[0][value]` | `'price'`, `'gt'`, `'100'` | `$request->input('filters')` |
 
-**Why `skip()`/`take()` instead of Laravel's `paginate()`?**
-
-Laravel's `paginate(n)` manages its own `?page=` parameter and returns a `LengthAwarePaginator` object with a different JSON shape. Handsontable already sends `page` and `pageSize` directly, so manual `skip(($page - 1) * $pageSize)->take($pageSize)` is more straightforward and returns the `{ data, total }` shape that `fetchRows` expects.
-
-**Filter condition mapping:**
-
-The `switch` block maps Handsontable condition names to SQL clauses:
+The filter loop maps Handsontable condition names to SQL clauses. Text conditions use `LOWER()` for case-insensitive matching:
 
 | Handsontable condition | SQL equivalent |
 |---|---|
@@ -149,11 +128,15 @@ The `switch` block maps Handsontable condition names to SQL clauses:
 | `between` | `BETWEEN value AND value2` |
 | `empty` | `IS NULL OR = ''` |
 
-Text conditions use `LOWER()` for case-insensitive matching.
+Both `$prop` values (for filters and for sort) are validated against an allowlist of column names before being used in any query, preventing SQL injection through unsanitized user input.
+
+**Why `skip()`/`take()` instead of `paginate()`?**
+
+Laravel's `paginate(n)` manages its own `?page=` parameter and returns a `LengthAwarePaginator` JSON shape. Handsontable already sends `page` and `pageSize` directly, so manual `skip(($page - 1) * $pageSize)->take($pageSize)` is more straightforward and returns the `{ data, total }` shape that `fetchRows` expects.
 
 ### `store()` -- create rows
 
-When the user inserts rows via the context menu, `onRowsCreate` sends:
+When the user inserts rows from the context menu, `onRowsCreate` calls `POST /api/products` with:
 
 ```json
 { "position": "above", "referenceRowId": 5, "rowsAmount": 1 }
@@ -163,35 +146,35 @@ When the user inserts rows via the context menu, `onRowsCreate` sends:
 
 ### `batchUpdate()` -- update changed cells
 
-After a cell edit, `onRowsUpdate` sends:
+After a cell edit, `onRowsUpdate` calls `PATCH /api/products` with:
 
 ```json
 [{ "id": 4, "changes": { "price": 149.99 }, "rowData": { "..." } }]
 ```
 
-`batchUpdate()` finds each product by `id` and calls `update()` with only the `changes` object -- never the full row -- to avoid overwriting fields the user did not touch.
+`batchUpdate()` finds each product by `id` and calls `update()` with only the `changes` object, so unchanged fields are not overwritten.
 
 ### `batchDestroy()` -- delete rows
 
-`onRowsRemove` sends a plain array of row IDs:
+`onRowsRemove` calls `DELETE /api/products` with a plain array of row IDs:
 
 ```json
 [4, 7, 12]
 ```
 
-`batchDestroy()` deletes them in a single `whereIn()->delete()` query and returns HTTP 204.
+`batchDestroy()` deletes them in one `whereIn()->delete()` query and returns HTTP 204.
 
-## Step 6: Register API Routes
+## Step 6: Register API routes
 
 Open `routes/api.php` and add the four product routes:
 
-```php
-@[code](@/content/recipes/data-management/server-side-laravel/server/routes-api.php)
-```
+@[code php](@/content/recipes/data-management/server-side-laravel/server/routes-api.php)
 
-All four routes share the same `/api/products` path -- Laravel matches them by HTTP method.
+**What's happening:**
+- All four routes share the same `/api/products` path. Laravel matches them by HTTP method.
+- The Sanctum middleware group is shown commented out. Uncomment it when you add authentication to your API.
 
-Verify:
+Verify the routes are registered:
 
 ```shell
 php artisan route:list --path=api/products
@@ -207,11 +190,29 @@ Open `config/cors.php` and allow your frontend origin:
 'allowed_origins' => ['http://localhost:5173'], // Vite dev server
 ```
 
-The CORS middleware registers automatically in Laravel 11. For development, set `'allowed_origins' => ['*']`.
+**What's happening:**
+- The CORS middleware registers automatically in Laravel 11 via `bootstrap/app.php`. No extra configuration is needed beyond the `allowed_origins` list.
+- In production replace `'http://localhost:5173'` with the exact frontend origin. Using `['*']` is acceptable during local development but exposes your API to any origin.
 
-## Step 8: Build the `buildUrl()` Helper
+## Step 8: Wire up Handsontable
 
-`buildUrl()` serializes the `queryParameters` object that `fetchRows` receives into a URL query string that Laravel reads with `request()->input()`:
+With the server running (`php artisan serve`), configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+
+::: only-for javascript
+
+@[code js](@/content/recipes/data-management/server-side-laravel/javascript/example1.js)
+
+:::
+
+::: only-for typescript
+
+@[code ts](@/content/recipes/data-management/server-side-laravel/javascript/example1.ts)
+
+:::
+
+**What's happening:**
+
+### `buildUrl` helper
 
 ```javascript
 function buildUrl(base, { page, pageSize, sort, filters }) {
@@ -239,44 +240,9 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
 }
 ```
 
-**What `sort` looks like:**
+`buildUrl` serializes the `queryParameters` object that `fetchRows` receives into a URL query string that Laravel reads with `request()->input()`. It converts the Handsontable filter condition shape -- `{ prop, condition: { name, args } }` -- into the flat bracket-notation parameters Laravel parses automatically.
 
-```javascript
-// User clicks the Name column header to sort ascending:
-sort = { prop: 'name', order: 'asc' }
-
-// No column is sorted:
-sort = null
-```
-
-**What `filters` looks like:**
-
-```javascript
-// "Price > 100" filter:
-filters = [{ prop: 'price', condition: { name: 'gt', args: [100] } }]
-
-// "Name contains 'laptop'" and "Stock between 10 and 200":
-filters = [
-  { prop: 'name',  condition: { name: 'contains', args: ['laptop'] } },
-  { prop: 'stock', condition: { name: 'between',  args: [10, 200]  } },
-]
-```
-
-`buildUrl()` flattens `condition.name` into `filters[i][condition]` and the args into `filters[i][value]` / `filters[i][value2]`. Laravel's bracket notation parsing handles this automatically.
-
-## Step 9: Handle CSRF Tokens
-
-Laravel requires a CSRF token on `POST`, `PATCH`, and `DELETE` requests. There are two approaches depending on how your frontend is served.
-
-### Blade-rendered pages
-
-Inject the token into a `<meta>` tag in your Blade layout:
-
-```html
-<meta name="csrf-token" content="{{ csrf_token() }}">
-```
-
-Read it in JavaScript:
+### `csrfToken` helper
 
 ```javascript
 function csrfToken() {
@@ -284,34 +250,9 @@ function csrfToken() {
 }
 ```
 
-Then pass it in the `X-CSRF-TOKEN` header of every mutating request -- as shown in `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` in the example above.
+Laravel requires a CSRF token on `POST`, `PATCH`, and `DELETE` requests. For Blade-rendered pages, inject the token via `<meta name="csrf-token" content="{{ csrf_token() }}">` in your layout. For a Sanctum SPA, call `GET /sanctum/csrf-cookie` once on startup and send the `X-XSRF-TOKEN` cookie value instead.
 
-### SPA with Laravel Sanctum
-
-For a single-page application served from a separate origin, call the CSRF cookie endpoint once when the app starts:
-
-```javascript
-await fetch('/sanctum/csrf-cookie', { credentials: 'include' });
-```
-
-This sets a `XSRF-TOKEN` cookie. Read and forward it in subsequent requests:
-
-```javascript
-function sanctumToken() {
-  return decodeURIComponent(
-    document.cookie.split('; ')
-      .find(c => c.startsWith('XSRF-TOKEN='))
-      ?.split('=')[1] ?? ''
-  );
-}
-
-// Use X-XSRF-TOKEN instead of X-CSRF-TOKEN:
-headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': sanctumToken() }
-```
-
-## Step 10: Configure `fetchRows`
-
-`fetchRows` is called on every page change, sort, and filter. Pass `signal` to `fetch()` so stale requests abort automatically:
+### `fetchRows`
 
 ```javascript
 fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
@@ -320,22 +261,14 @@ fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-  // Laravel returns: { data: [...], total: n }
   const json = await res.json();
-
   return { rows: json.data, totalRows: json.total };
 },
 ```
 
-**Why `signal`?**
+`fetchRows` is called on every page change, sort, and filter. Passing `signal` to `fetch()` lets the browser cancel stale in-flight requests when the user sorts or pages quickly. Throwing on a non-ok response lets `notification: true` display an error toast automatically.
 
-When the user sorts or changes pages quickly, Handsontable fires a new `fetchRows` before the previous one resolves. Passing `signal` lets the browser cancel the stale in-flight request so the grid always shows the correct page.
-
-**Why throw on non-ok responses?**
-
-With `notification: true`, Handsontable catches the rejected promise and shows a translated error toast automatically. Fetch failures also include a **Refetch** button that retries the last request.
-
-## Step 11: Wire Up CRUD Callbacks
+### `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`
 
 ```javascript
 onRowsCreate: async (payload) => {
@@ -366,27 +299,9 @@ onRowsRemove: async (rowIds) => {
 },
 ```
 
-**Optimistic updates:**
+Cell edits appear in the grid immediately (optimistic update). If the server returns a non-2xx response or the callback throws, Handsontable rolls back the values and fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror).
 
-Cell changes appear in the grid immediately when `onRowsUpdate` is called. If the server returns a 4xx or 5xx, or the `fetch()` throws, Handsontable rolls back the values and fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror).
-
-## Step 12: Enable Pagination, Sorting, Filters, and UI Feedback
-
-```javascript
-pagination: { pageSize: 10 },  // rows per page — also sent in queryParameters.pageSize
-columnSorting: true,           // sends queryParameters.sort on column header click
-filters: true,                 // sends queryParameters.filters on filter change
-dropdownMenu: true,            // shows the filter button in column headers
-contextMenu: true,             // "Insert row above / below" and "Remove row"
-emptyDataState: true,          // loading overlay + empty-state overlay
-notification: true,            // error toasts with Refetch for fetch failures
-```
-
-**`emptyDataState: true`** shows a spinner while `fetchRows` is in flight and a friendly empty-state message when the filtered result is empty.
-
-**`notification: true`** means you do not need a `try/catch` for basic error display. Handsontable catches rejected promises from `fetchRows` and all CRUD callbacks, shows a translated toast, and adds a Refetch button for load failures.
-
-## Step 13: Add a Delete Confirmation with `beforeRowsMutation`
+### `beforeRowsMutation`
 
 ```javascript
 beforeRowsMutation(operation, payload) {
@@ -397,27 +312,43 @@ beforeRowsMutation(operation, payload) {
 },
 ```
 
-**What's happening:**
-- `operation` is `'create'`, `'update'`, or `'remove'`
-- For `'remove'`, `payload.rowsRemove` holds the array of IDs that `onRowsRemove` would receive
-- Returning `false` cancels the operation -- `onRowsRemove` is not called and no rows are deleted
+`beforeRowsMutation` fires before any create, update, or remove operation. Returning `false` cancels the operation -- `onRowsRemove` is not called and no rows are deleted on the server.
+
+### `notification: true` and `emptyDataState: true`
+
+```javascript
+notification: true,
+emptyDataState: true,
+```
+
+`notification: true` enables the built-in error toast. When `fetchRows` or a mutation callback throws, Handsontable shows a translated error message. Fetch failures also add a **Refetch** action that retries the last request.
+
+`emptyDataState: true` shows a loading overlay while `fetchRows` is in flight and an empty-state message when the server returns zero rows.
 
 ## How It Works -- Complete Flow
 
-1. **Initial load** -- `fetchRows` fires with `{ page: 1, pageSize: 10, sort: null, filters: null }`. Laravel returns `{ data: [...10 rows...], total: 52 }`. The grid renders the first page with a pagination bar.
+1. **Initial load**: `fetchRows` fires with `{ page: 1, pageSize: 10, sort: null, filters: null }`. Laravel returns `{ data: [...10 rows...], total: 52 }`. The grid renders the first page with a pagination bar.
+2. **Sort**: The user clicks the **Price** header. `fetchRows` fires with `sort: { prop: 'price', order: 'asc' }`. Laravel applies `orderBy('price', 'asc')` and returns the first page sorted by price.
+3. **Filter**: The user opens the **Category** filter and types "Electronics". `fetchRows` fires with the filter condition. Laravel applies `WHERE LOWER(category) LIKE '%electronics%'` and returns the matching rows.
+4. **Edit**: The user changes a price cell. The new value appears immediately. `onRowsUpdate` fires with `[{ id: 4, changes: { price: 149.99 } }]`. Laravel updates the row. On success, Handsontable silently refetches the current page.
+5. **Insert**: The user right-clicks and selects **Insert row below**. `onRowsCreate` fires with `{ position: 'below', referenceRowId: 4, rowsAmount: 1 }`. Laravel creates a blank row and Handsontable refetches.
+6. **Delete**: The user selects two rows and chooses **Remove rows**. `beforeRowsMutation` shows a confirm dialog. On confirmation, `onRowsRemove` fires with `[4, 7]`. Laravel deletes both rows.
+7. **Error**: The server returns 500. `fetchRows` throws. Handsontable shows an error toast with a **Refetch** button.
 
-2. **Sort** -- The user clicks the **Price** header. `fetchRows` fires with `sort: { prop: 'price', order: 'asc' }`. Laravel applies `orderBy('price', 'asc')` and returns the first page sorted by price.
+## What you learned
 
-3. **Filter** -- The user opens the **Category** filter and types "Electronics". `fetchRows` fires with `filters: [{ prop: 'category', condition: { name: 'contains', args: ['Electronics'] } }]`. Laravel applies `WHERE LOWER(category) LIKE '%electronics%'` and returns the filtered result.
+- How to map Handsontable's `queryParameters` to Laravel `request()->input()` with the `buildUrl()` helper.
+- How to apply Handsontable filter condition names as Eloquent `where()` clauses.
+- Why `skip()`/`take()` is simpler than `paginate()` when Handsontable sends `page` and `pageSize` directly.
+- How to validate column names against an allowlist before using them in `whereRaw()` and `orderBy()` to prevent SQL injection.
+- How to send CSRF tokens for Blade-rendered pages and for SPA Sanctum apps.
+- How `notification: true` provides error toasts and a Refetch action with no extra code.
+- How `beforeRowsMutation` intercepts operations before they reach the server.
 
-4. **Edit** -- The user changes a price cell. The new value appears immediately. `onRowsUpdate` fires with `[{ id: 4, changes: { price: 149.99 } }]`. Laravel updates the row. On success, Handsontable silently refetches the current page.
+## Next steps
 
-5. **Insert** -- The user right-clicks and selects **Insert row below**. `onRowsCreate` fires with `{ position: 'below', referenceRowId: 4, rowsAmount: 1 }`. Laravel creates a blank row. Handsontable refetches.
-
-6. **Delete** -- The user selects two rows and chooses **Remove rows**. `beforeRowsMutation` shows a confirm dialog. On confirmation, `onRowsRemove` fires with `[4, 7]`. Laravel deletes both rows. If the current page becomes empty, Handsontable moves to the previous page.
-
-7. **Error** -- The server returns 500. `fetchRows` throws. Handsontable shows an error toast with a **Refetch** button. Clicking Refetch replays the last request.
-
----
-
-**Congratulations!** You have a fully wired Handsontable grid backed by a Laravel API with pagination, sorting, filtering, CRUD, and error handling.
+- [Server-side data overview](@/guides/getting-started/server-side-data/server-side-data.md) -- DataProvider plugin reference
+- [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md) -- all `fetchRows` query fields
+- [Server-side CRUD](@/guides/getting-started/server-side-data/server-side-data-crud.md) -- mutation lifecycle and hooks
+- [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md) -- error handling and loading UI
+- [Server-side data with Spring Boot](@/recipes/data-management/server-side-spring/server-side-spring.md) -- the same Handsontable frontend wired to a Java backend
