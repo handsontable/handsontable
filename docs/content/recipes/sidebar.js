@@ -34,6 +34,11 @@ const renderingStylingItems = [
     title: 'Sparkline cell renderer',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
+    title: 'Conditional row coloring',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const importExportItems = [
@@ -58,19 +63,6 @@ const themesItems = [
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
-];
-
-const renderingStylingItems = [
-  {
-    path: 'rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer',
-    title: 'Sparkline cell renderer',
-    onlyFor: ['javascript'],
-  },
-  {
-    path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
-    title: 'Conditional row coloring',
-    onlyFor: ['javascript'],
-  },
 ];
 
 const editingValidationItems = [
