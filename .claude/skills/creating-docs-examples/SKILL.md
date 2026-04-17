@@ -32,7 +32,7 @@ docs/content/guides/category/feature/
 
 - **25-60 lines per example.** Keep examples focused and scannable.
 - **One concept per example.** Use progressive numbering for complexity: `example1` = basic setup, `example2` = a configuration variation, `example3` = advanced usage.
-- **TypeScript is primary.** Always write the `.ts` / `.tsx` file first. Generate the JS variant with: `npm run docs:code-examples:generate-js <path-to-ts-file>`. Never hand-edit generated JS files.
+- **TypeScript is primary.** Always write the `.ts` / `.tsx` file first. From `docs/`, generate the JS variant with: `npm run docs:code-examples:generate-js -- <path-to-ts-file>` (path relative to `docs/`). Never hand-edit generated JS files.
 - **Use realistic data.** Prefer `createSpreadsheetData()` or domain-appropriate sample data (product names, dates, currencies). Avoid trivial arrays like `[1, 2, 3]`.
 
 ## Required Elements in Every Example

@@ -24,6 +24,15 @@ const importExportItems = [
   },
 ];
 
+const filteringAndSearchItems = [
+  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
+  {
+    path: 'filtering-and-search/highlight-search-matches/highlight-search-matches',
+    title: 'Highlight search matches',
+    onlyFor: ['javascript'],
+  },
+];
+
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -31,13 +40,17 @@ const themesItems = [
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
 
-const dataManagementItems = [
-  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
+const editingValidationItems = [
+  {
+    path: 'editing-validation/dependent-dropdowns/dependent-dropdowns',
+    title: 'Dependent dropdowns',
+    onlyFor: ['javascript'],
+  },
 ];
 
-const filteringSearchItems = [
-  { path: 'filtering-and-search/external-search-box/external-search-box', title: 'Global Search', onlyFor: ['javascript'] },
-  { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+const dataManagementItems = [
+  { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
+  { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
 ];
 
 module.exports = {
@@ -45,14 +58,30 @@ module.exports = {
     'introduction',
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {
+      title: 'Editing and Validation',
+      path: 'editing-validation',
+      children: editingValidationItems,
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
+    {
       title: 'Import and Export',
       path: 'import-export',
       children: importExportItems,
       collapsable: false,
       onlyFor: ['javascript'],
     },
+    {
+      title: 'Filtering and Search',
+      path: 'filtering-and-search',
+      children: [
+        ...filteringAndSearchItems,
+        { path: 'filtering-search/multi-column-filter-panel/multi-column-filter-panel', title: 'Multi-column filter panel', onlyFor: ['javascript'] },
+      ],
+      collapsable: false,
+      onlyFor: ['javascript'],
+    },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Filtering and Search', path: 'filtering-search', children: filteringSearchItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
