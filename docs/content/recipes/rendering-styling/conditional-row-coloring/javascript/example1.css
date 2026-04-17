@@ -1,18 +1,12 @@
 /* Scoped to the recipe preview container */
 #example1 td.ht-demo-row-status-active {
-  background-color: color-mix(
-    in srgb,
-    var(--ht-accent-color, #1a42e8) 12%,
-    var(--ht-background-color, #ffffff)
-  );
+  background-color: rgba(26, 66, 232, 0.12);
+  background-color: color-mix(in srgb, var(--ht-accent-color, #1a42e8) 12%, var(--ht-background-color, #ffffff));
 }
 
 #example1 td.ht-demo-row-status-pending {
-  background-color: color-mix(
-    in srgb,
-    var(--ht-warn-color, #ca8a04) 14%,
-    var(--ht-background-color, #ffffff)
-  );
+  background-color: rgba(202, 138, 4, 0.14);
+  background-color: color-mix(in srgb, var(--ht-warn-color, #ca8a04) 14%, var(--ht-background-color, #ffffff));
 }
 
 #example1 td.ht-demo-row-status-inactive {
