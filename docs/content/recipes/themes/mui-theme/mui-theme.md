@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: f2a7b9c1
 title: Handsontable with MUI
 metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
@@ -24,6 +25,8 @@ angular:
 searchCategory: Recipes
 category: Themes
 ---
+
+This tutorial shows you how to integrate Handsontable into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
 
 <iframe src="https://codesandbox.io/embed/y4vsfq?view=preview"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -222,3 +225,13 @@ export default function App() {
 - [Design system](@/guides/styling/design-system/design-system.md)
 
 </div>
+
+## What you learned
+
+You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `wrapperBorderRadius` override.
+
+## Next steps
+
+- [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn CSS variables and Lucide icons.
+- [Handsontable with Base Web](/recipes/themes/base-theme) - The same pattern using Base Web design tokens.
+- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.

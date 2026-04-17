@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 4q2wi29j
 title: Row trimming
 metaTitle: Row trimming - JavaScript Data Grid | Handsontable
@@ -130,7 +131,13 @@ Note that the second, third, and sixth rows are missing in the following example
 
 :::
 
-## API examples
+## Result
+
+After completing this guide, rows you specify are excluded from rendering and from `DataMap`. You can trim rows at initialization or dynamically at runtime using the plugin API.
+
+## Related API
+
+### Plugin methods
 
 ::: only-for react
 
@@ -195,7 +202,7 @@ plugin.untrimRows([0, 4, 6]);
 
 To see the changes made, call `hot.render();` to re-render the table.
 
-## Related API reference
+### API reference
 
 **Options**
 

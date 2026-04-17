@@ -1,4 +1,5 @@
 ---
+type: reference
 id: yhyglrda
 title: Changelog 15.0
 metaTitle: Changelog 15.0 - JavaScript Data Grid | Handsontable
@@ -14,6 +15,9 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+
+These are the release notes for Handsontable 15.x.
+
 ## 15.3.0
 
 Released on April 29, 2025
@@ -232,3 +236,7 @@ For more information about this release see:
 - Fixed the missing `source` argument for the `setDataAtCell` method. [#11287](https://github.com/handsontable/handsontable/pull/11287)
 - Fixed the top overlay misalignment issue, visible after vertical scrollbar disappeared. [#11289](https://github.com/handsontable/handsontable/pull/11289)
 - React: Made the build scripts of `@handsontable/react-wrapper` place the TS type definitions in the configured directory. [#11296](https://github.com/handsontable/handsontable/pull/11296)
+
+## Related
+
+- [Migrating from 14.6 to 15.0](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)

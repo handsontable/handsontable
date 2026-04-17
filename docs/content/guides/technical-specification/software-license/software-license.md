@@ -1,4 +1,5 @@
 ---
+type: reference
 id: jgk5hkn4
 title: Software license
 metaTitle: Software license - JavaScript Data Grid | Handsontable
@@ -100,3 +101,7 @@ For many years Handsontable was available as an open-source software, and releas
 - [`licenseKey`](@/api/options.md#licensekey)
 
 </div>
+
+## Next steps
+
+To purchase a commercial license or talk to the sales team, visit the [pricing page](https://handsontable.com/pricing) or contact [sales@handsontable.com](mailto:sales@handsontable.com).

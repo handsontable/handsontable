@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: a52om5wr
 title: Selection
 metaTitle: Selection - JavaScript Data Grid | Handsontable
@@ -20,6 +21,8 @@ category: Cell features
 Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 
 [[toc]]
+
+Use the selection API to control how users select cells -- single cells, ranges, columns, or rows -- and to read or set selections programmatically.
 
 ## Overview
 
@@ -346,3 +349,7 @@ To jump across a horizontal edge:
 - [DragToScroll](@/api/dragToScroll.md)
 
 </div>
+
+## Result
+
+Users can select cells using the configured mode -- single cell, range, or multiple ranges. Programmatic selections take effect immediately and fire the relevant selection hooks.

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: tpa768pc
 title: Migrating from 11.1 to 12.0
 metaTitle: Migrate from 11.1 to 12.0 - JavaScript Data Grid | Handsontable
@@ -102,7 +103,7 @@ Read more on referencing the Handsontable instance:
 
 Handsontable 12.0.0 changes how the [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
 
-This change might affect your custom plugins.
+This change may affect your custom plugins.
 
 #### Before
 
@@ -279,7 +280,7 @@ To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the
 
 Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (`_wt`, internally referred to as "Walkontable") is not a part of Handsontable's public API.
 
-To emphasize this, we changed the following property name:
+To emphasize this, Handsontable 12.0 changes the following property name:
 
 | Before                         | After                           |
 | ------------------------------ | ------------------------------- |
@@ -299,3 +300,7 @@ If your custom editor needs to know the size and position of the edited cell,
 now you can get them without referring to `_wt`. Instead, use the new [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect) method.
 
 :::
+
+## Result
+
+Your application now runs on Handsontable 12.0.
