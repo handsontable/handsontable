@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
@@ -17,6 +18,8 @@ category: Cell features
 Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 
 [[toc]]
+
+Format cells using CSS classes, inline styles, or the renderer API. Choose the approach that fits your use case.
 
 ## Overview
 
@@ -194,3 +197,7 @@ The example below demonstrates different border styles applied to various cell r
 - [CustomBorders](@/api/customBorders.md)
 
 </div>
+
+## Result
+
+Cells display the configured CSS classes, inline styles, or custom borders. The appearance updates each time the grid renders, keeping styles in sync with your configuration.

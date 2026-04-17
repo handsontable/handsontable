@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: vasj6t6t
 title: Row virtualization
 metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
@@ -101,5 +102,14 @@ Using row virtualization has the following side effects:
 
 - [renderAllRows](@/api/options.md#renderallrows)
 - [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Performance](@/guides/optimization/performance/performance.md) -- tips for optimizing grid rendering speed with large data sets
+- [Row height](@/guides/rows/row-height/row-height.md) -- configure fixed or dynamic row heights, which affects viewport calculations during virtualization
 
 </div>

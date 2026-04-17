@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: e50f0177
 title: Colorful Picker
 metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build a color picker cell in React using the `react-colorful` library and Handsontable's `EditorComponent`.
 
 ::: only-for react
 
@@ -420,3 +423,13 @@ export const ColorPickerEditor = () => {
 ---
 
 **Congratulations!** You've created a color picker editor using React's `EditorComponent` and `react-colorful`, perfect for color selection in your data grid!
+
+## What you learned
+
+You integrated the `react-colorful` library as a Handsontable cell editor in React. You used `EditorComponent` with the render prop pattern to manage editor state, `rendererFactory` to display a color swatch, and CSS custom properties to style the editor.
+
+## Next steps
+
+- [Color Picker (JavaScript)](/recipes/cell-types/color-picker) - The same pattern using `editorFactory` and the Pickr library.
+- [Color Picker (Angular)](/recipes/color-picker-angular) - The Angular version using `HotCellEditorAdvancedComponent` and the native HTML5 color input.
+- [Star Rating (React)](/recipes/cell-types/react-rating) - Another custom editor using `EditorComponent` in React.
