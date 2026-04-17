@@ -6,7 +6,6 @@ canonicalUrl: /recipes/import-export
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-<<<<<<< HEAD
 id: c4e8a91f
 description: Practical recipes for moving data in and out of Handsontable.
 react:
