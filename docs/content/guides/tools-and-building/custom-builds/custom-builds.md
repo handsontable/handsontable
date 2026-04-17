@@ -68,7 +68,7 @@ Handsontable building processes require:
 - [Node.js](https://nodejs.org/) (version defined in `.nvmrc` in the root of the repository)
 - [pnpm](https://pnpm.io/) (in version relevant to the one defined in the `packageManager` field of the root's `package.json`)
 - [npm](https://www.npmjs.com/) (version corresponding to the Node.js version)
-- Node modules installed through `pnpm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
+- Node modules installed through `pnpm install` (e.g. [Rspack](https://rspack.dev/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
 
