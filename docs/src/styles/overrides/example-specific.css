@@ -1,8 +1,9 @@
-/* Sync Handsontable theme with docs theme toggle (override browser default) */
-[data-theme="dark"] .ht-theme-main {
+/* Sync Handsontable theme with docs theme toggle (override browser default).
+   Exclude .disable-auto-theme containers that manage their own color scheme. */
+[data-theme="dark"] .ht-theme-main:not(.disable-auto-theme *) {
   color-scheme: dark;
 }
-[data-theme="light"] .ht-theme-main {
+[data-theme="light"] .ht-theme-main:not(.disable-auto-theme *) {
   color-scheme: light;
 }
 
