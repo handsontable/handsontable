@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 9w5zs3t2
 title: Migrating from 16.2 to 17.0
 metaTitle: Migrating from 16.2 to 17.0 - JavaScript Data Grid | Handsontable
@@ -23,9 +24,9 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 [[toc]]
 
-## 1. Legacy styles have been removed
+## 1. Remove legacy styles
 
-Starting from **version 17.0.0**, the legacy stylesheet (`dist/handsontable.full.min.css`) has been completely removed from Handsontable. If you're upgrading from an earlier version and still using the legacy styles, you must migrate to a theme.
+Starting from **version 17.0.0**, Handsontable 17.0 completely removes the legacy stylesheet (`dist/handsontable.full.min.css`). If you're upgrading from an earlier version and still using the legacy styles, you must migrate to a theme.
 
 ::: tip Using the main theme without modifications
 If you want to use the `main` theme without any modifications, you don't need to configure anything. Handsontable will automatically use the `main` theme with default settings. However, if you want to retain the legacy look and feel, migrate to the **Classic** theme as described below.
@@ -202,7 +203,7 @@ The Classic theme provides the same visual appearance as the legacy style, but w
 
 ## 2. Migrate from CSS-based themes to the Theme API
 
-If you're currently using CSS-based themes (loading theme CSS files and passing theme name as a string), we recommend migrating to the Theme API for better runtime control and customization options.
+If you're currently using CSS-based themes (loading theme CSS files and passing theme name as a string), migrating to the Theme API provides better runtime control and customization options.
 
 ### What Changed
 
@@ -621,7 +622,8 @@ If you need numbro.js-specific formatting features that aren't available in `Int
 - **Version 17.0**: Numbro format deprecated with warnings
 - **Version 18.0**: Numbro format options (including dependencies) will be removed
 
-### Related resources
+
+## Related resources
 
 - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
 
@@ -1102,7 +1104,7 @@ sanitizer: (content, source) =>
 
 ## 6. `core-js` dependency removed
 
-Starting in **version 17.0**, Handsontable no longer depends on or bundles [core-js](https://github.com/zloirock/core-js). The library relied on it in the past for polyfills (e.g. ECMAScript 5/6 features, Promises, Symbols, collections). That dependency has been removed to reduce bundle size and to avoid forcing a specific polyfill set on applications that target modern environments only.
+Starting in **version 17.0**, Handsontable no longer depends on or bundles [core-js](https://github.com/zloirock/core-js). The library relied on it in the past for polyfills (e.g. ECMAScript 5/6 features, Promises, Symbols, collections). Handsontable removes that dependency to reduce bundle size and to avoid forcing a specific polyfill set on applications that target modern environments only.
 
 ### What Changed
 
@@ -1169,3 +1171,7 @@ See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calc
 - [Themes](@/guides/styling/themes/themes.md) - Learn about the theming system
 - [Theme Customization](@/guides/styling/theme-customization/theme-customization.md) - Customize themes with CSS variables
 - [Legacy Style](@/guides/styling/legacy-style/legacy-style.md) - Information about the legacy style deprecation
+
+## Result
+
+Your application now runs on Handsontable 17.0.

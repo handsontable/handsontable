@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: svu0391b
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
@@ -135,6 +136,80 @@ These dimensions will be set as inline styles in a container element, and `overf
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
+
+### Use `'auto'` sizing
+
+Set `height: 'auto'` to make the grid grow to match its content height. Handsontable writes `height: auto; overflow: clip;` as inline styles on the root element. No internal vertical scrollbar is created, so the page itself scrolls when the grid is taller than the viewport.
+
+::: only-for javascript
+
+```js
+{
+  height: 'auto',
+}
+```
+
+You can combine it with `width: 'auto'` to let the grid follow its parent container's width:
+
+```js
+{
+  height: 'auto',
+  width: 'auto',
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+  <HotTable height="auto" />
+```
+
+You can combine it with `width="auto"` to let the grid follow its parent container's width:
+
+```jsx
+  <HotTable height="auto" width="auto" />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: "auto",
+};
+```
+
+You can combine it with `width: "auto"` to let the grid follow its parent container's width:
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: "auto",
+  width: "auto",
+};
+```
+
+:::
+
+`height: 'auto'` is different from leaving `height` unset:
+
+| Setting            | Inline styles on root                                       | Scroll parent                                                                  | Row virtualization          |
+| ------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------- |
+| `height: 'auto'`   | `height: auto; overflow: clip;`                             | The page, outside the grid                                                     | Disabled, all rows render   |
+| `height: <number>` | `height: <n>px; overflow: clip;`                            | The grid itself                                                                | Enabled                     |
+| `height` unset     | None, Handsontable does not touch the root inline styles    | Nearest ancestor with `overflow: auto` or `overflow: hidden`, else the window  | Depends on the scroll parent |
+
+::: tip
+
+With `height: 'auto'`, every row is laid out in the DOM at once. Avoid this value for large datasets. Set a numeric `height` instead so that Handsontable can virtualize off-screen rows.
+
+:::
 
 ### Troubleshooting with 100% height
 
@@ -362,3 +437,7 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 - [beforeRefreshDimensions](@/api/hooks.md#beforerefreshdimensions)
 
 </div>
+
+## Result
+
+Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.

@@ -28,8 +28,10 @@ focusScopeManager.registerScope('test', element, {
 focusScopeManager.registerScope('test', element, {
   shortcutsContextName: 'test',
   type: 'inline',
+  enableFocusCatchers: false,
 });
 
 focusScopeManager.unregisterScope('test');
 focusScopeManager.activateScope('test');
+focusScopeManager.activateScope('test', 'tab_from_above');
 focusScopeManager.deactivateScope('test');

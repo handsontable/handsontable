@@ -96,6 +96,26 @@ describe('ScopeManager', () => {
         expect(getFocusScopeManager().getActiveScopeId()).toBe('top');
         expect(getShortcutManager().getActiveContextName()).toBe('myPlugin');
       });
+
+      it('should pass focusSource to the scope `onActivate` callback when `activateScope` is called with a second argument', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+        });
+
+        let receivedFocusSource;
+
+        createUIWithFocusScope('before', {
+          id: 'top',
+          shortcutsContextName: 'myPlugin',
+          onActivate(focusSource) {
+            receivedFocusSource = focusSource;
+          },
+        });
+
+        getFocusScopeManager().activateScope('top', 'tab_from_above');
+
+        expect(receivedFocusSource).toBe('tab_from_above');
+      });
     });
 
     describe('`type` option', () => {

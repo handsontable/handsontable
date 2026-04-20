@@ -34,10 +34,10 @@ category: Cell features    # Must match a sidebar category exactly
 
 Follow this order consistently:
 
-1. **H1 title** - must match the `title` frontmatter field exactly.
-2. **Overview** - 1-2 sentences describing what the feature does and why it matters.
+1. **No H1 in the Markdown body** - Starlight renders the page heading from the `title` frontmatter field. Do not add `# Title` (or any other H1) after the frontmatter, or the title appears twice on the page.
+2. **Overview** - start with 1-2 sentences describing what the feature does and why it matters (first content after `---`).
 3. **`[[toc]]`** - auto-generates a table of contents from headings.
-4. **Progressive sections** - ordered from basic to advanced: Enable the feature, Basic usage, Configuration options, Advanced usage, Keyboard shortcuts, Known limitations, API reference links.
+4. **Progressive sections** - use `##` and below only, ordered from basic to advanced: Enable the feature, Basic usage, Configuration options, Advanced usage, Keyboard shortcuts, Known limitations, API reference links.
 
 ## 3. Framework-Specific Content
 
@@ -111,11 +111,13 @@ Use `onlyFor: ['react']` or `onlyFor: ['angular']` if the page is framework-spec
 
 ## 8. Code Example Generation
 
-Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant by running:
+Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant from the `docs/` directory:
 
 ```bash
-npm run docs:code-examples:generate-js <path-to-ts-file>
+cd docs && npm run docs:code-examples:generate-js -- <path-to-ts-file>
 ```
+
+Use a path relative to `docs/` (for example `content/recipes/foo/javascript/example1.ts`).
 
 ## Reference
 

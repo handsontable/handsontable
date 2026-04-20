@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 
   [C.LOADING_TITLE]: 'Laster...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Ingen data tilgjengelig',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Det er ingenting å vise ennå.',
@@ -131,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Kunne ikke oppdatere rader',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Lukk',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
 };
 
 export default dictionary;

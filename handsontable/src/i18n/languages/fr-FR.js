@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Aller à la dernière page',
 
   [C.LOADING_TITLE]: 'Chargement...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Aucune donnée disponible',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Il n\'y a rien à afficher pour le moment.',
@@ -131,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Impossible de mettre à jour les lignes',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossible de supprimer les lignes',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La requête a échoué',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Fermer',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recharger',
 };
 
 export default dictionary;

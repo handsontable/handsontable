@@ -51,8 +51,35 @@ These are injected automatically. Do not import them manually.
 
 ## Event simulation
 
-- **Mouse:** `mouseDown()`, `mouseUp()`, `mouseOver()` from `test/helpers/mouseEvents.js`
+- **Mouse:** `mouseDown()`, `mouseUp()`, `mouseOver()`, `mouseClick()`, `mouseDoubleClick()` from `test/helpers/mouseEvents.js`
 - **Keyboard:** `keyDown()`, `keyUp()`, `keyDownUp()` from `test/helpers/keyboardEvents.js`
+- **Touch:** `triggerTouchEvent(type, target)`, `simulateTouch(target)` from `test/helpers/common.js`
+  - `triggerTouchEvent('touchstart', element)` / `triggerTouchEvent('touchend', element)` — dispatches a single touch event
+  - `simulateTouch(element)` — full Android sequence: touchstart → touchend → mousedown → mouseup → click (with `preventDefault` handling)
+  - Both must be `await`-ed in spec files
+
+### Testing touch / mobile behavior
+
+When testing touch interactions (editors opening on double-tap, outside-click after touch, etc.):
+
+```js
+it('should open editor on double-tap', async() => {
+  handsontable({ data: createSpreadsheetData(5, 5) });
+
+  const cell = getCell(0, 0);
+
+  // First tap — select
+  await triggerTouchEvent('touchstart', cell);
+  await triggerTouchEvent('touchend', cell);
+  // Second tap — open editor
+  await triggerTouchEvent('touchstart', cell);
+  await triggerTouchEvent('touchend', cell);
+
+  // Assert editor opened
+});
+```
+
+Use `simulateTouch(target)` when you need to test the full Android event sequence including synthetic mouse events.
 
 ## Flaky test handling
 
@@ -69,9 +96,27 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 ## Run commands
 
 - **All:** `npm run test:e2e --prefix handsontable`
-- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **Targeted:** `npm run test:e2e --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths during the Rspack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
 - **With theme:** `npm run test:e2e --testPathPattern=<regex> --theme=horizon --prefix handsontable` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
+
+**Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm during the `.dump` step (Rspack build), not by Puppeteer. Using `npm run test:e2e -- --testPathPattern=...` passes it only to the Puppeteer runner, which doesn't support it.
+
+**Parallel runs:** Multiple `npm run test:e2e --testPathPattern=<X>` invocations with different patterns (or themes) can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086` (retries up to 100 ports). Nothing special needs to be passed -- just launch the commands; the practical limit is machine resources, not the tooling.
+
+**Iterating on a single area:** Prefer `test:e2e.watch` -- it leaves the dev server running and re-bundles + re-runs on every source change, so you don't have to stop and restart between edits:
+
+```bash
+npm run test:e2e.watch --testPathPattern=filters --theme=horizon
+```
+
+Under the hood it spawns the regular Rspack dump in `--watch` mode and reopens the browser page, reusing the generic `test/E2ERunner.html` (no run ID needed -- the dump and puppeteer halves share one npm process, so the flags propagate automatically).
+
+**One-shot run:** Use the combined `npm run test:e2e --testPathPattern=<regex> --theme=<theme>` -- a single npm invocation passes the flags to both dump and puppeteer via env, so there's no risk of a mismatch.
+
+**Split dump + puppeteer** (what CI does): if you invoke the two steps in separate `npm run` commands, pass `--testPathPattern` AND `--theme` to **both**. Each `npm run` is its own npm process with its own env, and the Puppeteer script recomputes the same hash as dump to find the runner HTML -- a mismatch fails with "Runner HTML not found at ...". `.github/workflows/test.yml` is the canonical example; the same rule applies to `test:production.dump` + `test:e2e.puppeteer`.
+
+A generic `test/E2ERunner.html` (no run ID) is always regenerated alongside the per-run variant for developer manual testing in a browser. Specs that inject iframes with relative CSS paths (e.g. `afterRefreshDimensions`, `Selection`) rely on the runner living in `test/`, which is why the per-run HTML stays there too.
 
 ## Test location
 

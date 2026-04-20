@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: 4f25a767
 title: Deprecation policy
 metaTitle: Deprecation policy - JavaScript Data Grid | Handsontable
@@ -14,6 +15,8 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
+This page explains how Handsontable handles deprecated APIs -- including the grace period before removal and how you will be notified.
+
 Deprecation occurs when better alternatives emerge that offer improved performance, security, or usability compared to existing implementations. It also helps maintain API consistency by removing redundant or inconsistent functions, creating a cleaner overall design. As web standards and the JavaScript ecosystem evolve, certain approaches become obsolete or suboptimal, requiring updates to stay current. Additionally, deprecation reduces maintenance complexity by phasing out rarely-used or problematic features, while addressing potential security vulnerabilities in older implementations. Rather than introducing breaking changes, deprecation provides a gradual migration path that gives developers time to adapt while clearly signaling the library's future direction.
 
 After a Handsontable feature, a framework wrapper or any other part of the API is marked deprecated, we commit to a **grace period** **(at least 3 months)** during which the deprecated feature still works. We will not remove the feature immediately in the next minor or patch release. Instead, removal is deferred until a future **major release**, in accordance with semantic versioning.
@@ -56,3 +59,8 @@ Below is a list of current deprecations that are planned to be removed in the ne
 | **Built-in HyperFormula** | The Formulas plugin engine. Will be removed from package.json in 18.0. Import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. | [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) |
 
 
+
+## Related
+
+- [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
+- [Long-term support](@/guides/upgrade-and-migration/long-term-support/long-term-support.md)

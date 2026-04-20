@@ -124,6 +124,7 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
 
   [C.LOADING_TITLE]: 'در حال بارگذاری...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'بستن',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'هیچ داده‌ای در دسترس نیست',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'هنوز چیزی برای نمایش وجود ندارد.',
@@ -138,7 +139,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'به‌روزرسانی ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'بستن',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
 };
 
 export default dictionary;

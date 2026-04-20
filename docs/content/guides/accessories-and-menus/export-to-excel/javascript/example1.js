@@ -74,7 +74,7 @@ const button = document.querySelector('#export-file');
 button.addEventListener('click', async () => {
   await exportPlugin.downloadFileAsync('xlsx', {
     filename: 'Q1-Sales-Report',
-    columnHeaders: true,
+    colHeaders: true,
     rowHeaders: true,
     exportFormulas: true,
   });

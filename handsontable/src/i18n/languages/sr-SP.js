@@ -121,6 +121,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Idi na poslednju stranicu',
 
   [C.LOADING_TITLE]: 'Učitavanje...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nema dostupnih podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Još uvek nema ništa za prikaz.',
@@ -135,7 +136,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nije moguće ažurirati redove',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zatvori',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
 };
 
 export default dictionary;

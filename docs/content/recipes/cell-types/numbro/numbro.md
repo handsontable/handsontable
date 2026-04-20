@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: cf4e768b
 title: Numbro
 metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable
@@ -19,6 +20,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to create a custom numeric cell type using the Numbro library for locale-aware number formatting.
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
 
@@ -209,3 +212,13 @@ const hot = new Handsontable(container, hotOptions);
 3. **User enters number**: Input is validated against the numeric validator
 4. **Validation**: Non-numeric values are rejected; valid numbers are accepted
 5. **Save**: The value is stored as a raw number and re-rendered with Numbro formatting
+
+## What you learned
+
+You created a custom Numbro-based numeric cell type in Handsontable. You used `rendererFactory` to format numbers with Numbro before display, registered all Numbro language packs for locale support, and composed the cell type from a custom renderer with the built-in numeric validator and editor.
+
+## Next steps
+
+- [Moment.js date](/recipes/cell-types/moment-date) - A custom cell type using another third-party library for date formatting.
+- [Moment.js time](/recipes/cell-types/moment-time) - A custom cell type using Moment.js for time validation.
+- [Pikaday](/recipes/cell-types/pikaday) - A date picker cell type using Pikaday and Moment.js.

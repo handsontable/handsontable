@@ -1,0 +1,115 @@
+.import-csv-excel-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.import-dropzone {
+  border: 2px dashed var(--sl-color-gray-4, #ccc);
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  background: var(--sl-color-bg-inline-code, rgba(0, 0, 0, 0.04));
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.import-dropzone.import-dropzone--active {
+  border-color: var(--sl-color-accent, #3b82f6);
+  background: var(--sl-color-accent-low, rgba(59, 130, 246, 0.08));
+}
+
+.import-file-label {
+  display: inline-block;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.import-file-label span {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: var(--sl-color-accent, #3b82f6);
+  color: var(--sl-color-black, #fff);
+  font-size: 0.875rem;
+}
+
+.import-file-label input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.import-sample-block label {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 6px;
+}
+
+#import-sample-csv {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--sl-color-gray-4, #ccc);
+  resize: vertical;
+}
+
+.import-sample-actions {
+  margin-top: 8px;
+}
+
+.import-sample-actions button,
+.import-apply-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--sl-color-gray-4, #ccc);
+  background: var(--sl-color-bg, #fff);
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.import-apply-btn {
+  margin-top: 8px;
+  border-color: var(--sl-color-accent, #3b82f6);
+  color: var(--sl-color-accent, #3b82f6);
+}
+
+.import-msg {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.import-msg--error {
+  background: var(--sl-color-red-low, rgba(239, 68, 68, 0.12));
+  border: 1px solid var(--sl-color-red, #ef4444);
+  color: var(--sl-color-red-high, #b91c1c);
+}
+
+.import-preview {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--sl-color-gray-4, #ccc);
+  background: var(--sl-color-bg-inline-code, rgba(0, 0, 0, 0.03));
+}
+
+.import-preview-title {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.import-header-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+}
+
+#example1 {
+  min-height: 180px;
+}

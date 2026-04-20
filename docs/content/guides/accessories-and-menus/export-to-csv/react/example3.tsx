@@ -14,7 +14,7 @@ const ExampleComponent = () => {
     const exportedString = exportPlugin?.exportAsString('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       rowDelimiter: '\r\n',

@@ -20,7 +20,7 @@ describe('exportFile', () => {
       expect(csv.options.filename).toMatch(/Handsontable \d+-\d+-\d+/);
       expect(csv.options.bom).toBe(true);
       expect(csv.options.encoding).toBe('utf-8');
-      expect(csv.options.columnHeaders).toBe(false);
+      expect(csv.options.colHeaders).toBe(false);
       expect(csv.options.rowHeaders).toBe(false);
       expect(csv.options.exportHiddenColumns).toBe(false);
       expect(csv.options.exportHiddenRows).toBe(false);

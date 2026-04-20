@@ -66,6 +66,7 @@ These are the most frequent mistakes. Read this section first.
 | Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
 | Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
 | Confusing the context menu with the column (dropdown) menu | These are two separate plugins. See [Context menu vs column menu](#context-menu-vs-column-menu). |
+| Expecting built-in DataProvider error UI from `dialog: true` alone | Enable `notification: true` (or a `notification` config object). DataProvider uses the Notification plugin for fetch/CRUD failures. Dialog stays for blocking modals (for example Loading plugin, ExportFile binary export overlay, custom `show` content). |
 
 ---
 
@@ -171,7 +172,7 @@ Every code change **must** satisfy all of the following:
 2. Use "you" not "we". Oxford comma.
 3. No evaluative adjectives ("easy", "simple", "obvious").
 4. Use hyphens (`-`) or double hyphens (`--`) to separate clauses. Do not use typographic en dashes or em dashes. Use straight quotes (`"` and `'`) only -- no curly/smart quotes or smart apostrophes. Stick to standard ASCII characters.
-5. Consistent naming: `Node.js`, `webpack`, `TypeScript`.
+5. Consistent naming: `Node.js`, `Rspack`, `SWC`, `TypeScript`.
 
 ---
 
@@ -182,6 +183,7 @@ Every code change **must** satisfy all of the following:
 - Release branches: `release/x.y.z`
 - LTS branches: `lts/[major].x`
 - **Never force-push** to `master`, `develop`, or PR-bound branches.
+- **Never commit directly to `develop` or `master`.** Always create a feature branch and open a PR. This applies to all changes, including skills, docs, and config files.
 - **SemVer**: Even-numbered majors (16, 18, 20) become LTS. No more than 4 major releases per year.
 - All PRs target **develop**. Cherry-picks to release/lts handled separately by maintainers.
 
@@ -190,8 +192,8 @@ Every code change **must** satisfy all of the following:
 ## Pull requests and changelog
 
 - Every PR must be connected to a GitHub issue.
-- Every PR that changes source code must include a changelog entry (`.changelogs/*.json`). See skill `changelog-creation`.
-- Use `[skip changelog]` only for non-source-code changes.
+- Every PR that changes **library source code** (`handsontable/` or `wrappers/` packages) must include a changelog entry (`.changelogs/*.json`). See skill `changelog-creation`.
+- Use `[skip changelog]` in the **PR body** for all other changes -- docs (`docs/`), config, CI, scripts, AGENTS.md. "Source code" here means library packages, not the docs site or tooling. This line must appear in the PR body, not in the commit message.
 - PRs are merged using **"Squash and merge"**. Commit messages: descriptive, max 80 characters.
 - If a task spans multiple days, create a draft PR and commit daily.
 - See skill `pr-creation` for the full workflow.
@@ -222,6 +224,7 @@ Every code change **must** satisfy all of the following:
 | Index translations | `handsontable/src/translations/` |
 | Walkontable engine | `handsontable/src/3rdparty/walkontable/src/` |
 | Hooks system | `handsontable/src/core/hooks/` |
+| DataProvider plugin (server-backed data) | `handsontable/src/plugins/dataProvider/dataProvider.js` |
 | Error helpers | `handsontable/src/helpers/errors.js` |
 | i18n | `handsontable/src/i18n/constants.js`, `src/i18n/languages/` |
 | TypeScript definitions | `handsontable/types/` |
@@ -237,11 +240,14 @@ Every code change **must** satisfy all of the following:
 - Two builds: `handsontable.js` (base) and `handsontable.full.js` (includes HyperFormula). Test both.
 - Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider` (already in the `test` script).
 - The docs site (`docs/`) uses Node 20 and is not needed for core development.
+- **Docs guide pages** (`docs/content/guides/`): do not put an H1 in the Markdown body; `title` in frontmatter is the only page heading (Starlight shows it once). See skill `writing-docs-pages`.
 - Walkontable has its **own test runner** -- do not mix with main E2E tests.
 - **Merged cells -- read from meta, not DOM**: Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, not DOM attributes. The meta is authoritative regardless of viewport state.
 - **Filters plugin visual/physical column index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
 - For hook signature/behavior fixes, add both a runtime regression and a TypeScript regression (`handsontable/src/__tests__/core/settings.types.ts`) when types are changed.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` -- warnings about ignored build scripts (e.g., `less`) are expected.
+- **Never use raw `setTimeout` in core code.** Use `this.hot._registerTimeout(fn, delay)` instead -- it auto-clears all registered timeouts on `hot.destroy()`, preventing memory leaks and stale callbacks after the instance is destroyed.
+- **DataProvider built-in errors** -- When `notification` is enabled, failed `fetchRows` or mutation callbacks show an error toast via the Notification plugin. **Fetch** failures add a **Refetch** action (`duration: 0` until dismissed or Refetch) that calls `fetchData()` again. Hooks `afterDataProviderFetchError` and `afterRowsMutationError` still fire; use them for custom UI when Notification is off. See `.ai/ARCHITECTURE.md` (Plugin system) and skill `handsontable-plugin-dev`.
 
 ---
 
@@ -267,15 +273,93 @@ For Cursor, set `CLICKUP_API_TOKEN` in Cursor Settings > MCP secrets, or export 
 3. **Set status to "in progress".** Check the task's current status. If it is **"to do"**, immediately update it to **"in progress"** using the ClickUp MCP tools before doing anything else (branching, coding, etc.).
 4. **Create the correct branch:** `feature/<TASK-ID>_<Slugified-Title>` (e.g., `feature/DEV-627_Forum-Update`). Never use other branch naming patterns for ClickUp tasks.
 
+### How GitHub activity is linked to ClickUp tasks
+
+ClickUp's GitHub integration **automatically** associates commits, branches, and pull requests with a task whenever a valid task ID appears anywhere in the branch name, commit message, PR title, or PR description. No manual comment or pasted URL is required.
+
+Accepted ID formats: `DEV-627`, `#DEV-627`, `CU-86c97jjb7`, `#86c97jjb7`.
+
+The branch naming convention `feature/DEV-627_Short-Title` already satisfies this -- every push to that branch is linked automatically.
+
+To update a task status directly from a commit or PR, append the target status in square brackets immediately after the task ID (no space): `DEV-627[code review]`.
+
 ### Workflow
 
 1. Parse task ID from ClickUp URL (e.g., `DEV-627`).
 2. Use ClickUp MCP to fetch task details.
 3. If the task status is **"to do"**, update it to **"in progress"** via ClickUp MCP before proceeding.
-4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`.
+4. Create and checkout branch: `feature/<TASK-ID>_<Slugified-Title>`. The task ID in the branch name is what triggers automatic GitHub linking.
 5. Implement the fix/feature. Commit with the task ID in the message.
-6. Push and (when asked) open a PR whose title includes the task ID.
-7. Apply changelog policy: `[skip changelog]` only for non-source-code changes.
-8. After PR is created, use ClickUp MCP to update task status to **"code review"**.
+6. Push. Immediately after pushing, use ClickUp MCP to add a comment to the task with the branch name and commit hash -- this links the task to the code even before a PR exists.
+7. (When asked) Open a PR whose title includes the task ID. The PR body **must** contain the ClickUp task URL on its own line (e.g., `ClickUp task: https://app.clickup.com/t/9015210959/DEV-627`). This is what attaches the PR to the ClickUp task.
+8. Apply changelog policy: put `[skip changelog]` in the **PR body** if the change does not touch library source code (`handsontable/` or `wrappers/`).
+9. After PR is created, use ClickUp MCP to update task status to **"code review"**.
 
 **Authentication**: Use the ClickUp MCP tools for all ClickUp API interactions. Do not call the ClickUp REST API directly.
+
+## Coding discipline
+
+Behavioral guidelines to reduce common LLM coding mistakes. These complement -- not replace -- the [Mandatory checklist for every change](#mandatory-checklist-for-every-change) and [Architecture constraints](#architecture-constraints). They bias toward caution over speed; for small, low-risk tasks, use judgment.
+
+### Think before coding
+
+Do not assume. Do not hide confusion. Surface tradeoffs.
+
+Before implementing:
+
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them -- do not pick silently.
+- If a shorter approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what is confusing. Ask.
+
+### Minimal code
+
+Write the minimum code that solves the problem. Nothing speculative.
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No flexibility or configurability that was not requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: would a senior engineer say this is overcomplicated? If yes, shorten it. This rule aligns with the [Architecture constraints](#architecture-constraints) section: do not add speculative abstractions.
+
+### Surgical changes
+
+Touch only what you must. Clean up only your own mess.
+
+When editing existing code:
+
+- Do not "improve" adjacent code, comments, or formatting.
+- Do not refactor things that are not broken.
+- Match existing style, even if you would do it differently.
+- If you notice unrelated dead code, mention it -- do not delete it.
+
+When your changes create orphans:
+
+- Remove imports, variables, or functions that your changes made unused.
+- Do not remove pre-existing dead code unless asked.
+
+The test: every changed line should trace directly to the user's request.
+
+### Goal-driven execution
+
+Define success criteria. Loop until verified. This extends the [Mandatory checklist for every change](#mandatory-checklist-for-every-change): red-green TDD is the required mechanism; the guidance below is how to frame work around it.
+
+Transform tasks into verifiable goals:
+
+- "Add validation" -> write tests for invalid inputs, then make them pass.
+- "Fix the bug" -> write a test that reproduces it, then make it pass.
+- "Refactor X" -> ensure tests pass before and after.
+
+For multi-step tasks, state a brief plan:
+
+```
+1. [Step] -> verify: [check]
+2. [Step] -> verify: [check]
+3. [Step] -> verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+These guidelines are working if diffs contain fewer unrequested changes, fewer rewrites from overcomplication, and clarifying questions come before implementation rather than after mistakes.

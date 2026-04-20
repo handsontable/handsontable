@@ -12,7 +12,7 @@ handsontable-develop/
 │   ├── tmp/                    # ES/CJS module build output (used by wrappers)
 │   ├── styles/                 # Compiled CSS output
 │   ├── languages/              # Compiled language files
-│   ├── .config/                # Webpack configs
+│   ├── .config/                # Rspack configs (the `.config/` name predates the Webpack→Rspack switch)
 │   ├── scripts/                # Build scripts
 │   ├── dev.html                # Dev playground (LTR)
 │   ├── dev-rtl.html            # Dev playground (RTL)
@@ -76,6 +76,7 @@ handsontable/src/
 │   ├── contextMenu/            # Right-click context menu
 │   ├── copyPaste/              # Copy/paste support
 │   ├── customBorders/          # Custom cell borders
+│   ├── dataProvider/           # Server-backed fetchRows + CRUD
 │   ├── dialog/                 # Dialog/modal support
 │   ├── dragToScroll/           # Drag-to-scroll viewport
 │   ├── dropdownMenu/           # Column header dropdown menus
@@ -96,6 +97,7 @@ handsontable/src/
 │   ├── multipleSelectionHandles/ # Mobile selection handles
 │   ├── nestedHeaders/          # Multi-level column headers
 │   ├── nestedRows/             # Hierarchical row data
+│   ├── notification/           # Toast notifications
 │   ├── pagination/             # Data pagination
 │   ├── search/                 # Cell search
 │   ├── stretchColumns/         # Column stretching strategies
@@ -361,8 +363,8 @@ handsontable/src/
 
 **Configuration:**
 - `hot.config.js`: Build environment variables (HOT_VERSION, HOT_BUILD_DATE, etc.)
-- `handsontable/webpack.config.js`: Main webpack config
-- `handsontable/.config/`: Additional webpack configs (base, languages, etc.)
+- `handsontable/rspack.config.js`: Main Rspack config (entry loader that dispatches to `.config/` per `NODE_ENV`)
+- `handsontable/.config/`: Additional Rspack configs (base, languages, styles, themes, e2e, etc.)
 - `handsontable/babel.config.js`: Babel config
 - `handsontable/jest.config.js`: Jest config for unit tests
 - `.eslintrc.js`: Root ESLint config

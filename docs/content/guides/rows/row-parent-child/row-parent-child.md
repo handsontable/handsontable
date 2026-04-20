@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
@@ -138,7 +139,13 @@ The context menu has been extended with a few Nested Rows related options, such 
 
 The “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
 
-## Known limitations
+## Result
+
+After completing this guide, your grid displays rows in a parent-child hierarchy with collapse and expand toggle buttons in row headers and context menu options for inserting and detaching child rows.
+
+## Notes
+
+### Known limitations
 
 When you use the parent-child row structure, the following Handsontable features are not supported:
 
@@ -146,7 +153,7 @@ When you use the parent-child row structure, the following Handsontable features
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 
-## Related keyboard shortcuts
+### Keyboard shortcuts
 
 | Windows              | macOS                | Action                           |  Excel  | Sheets  |
 | -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |

@@ -740,6 +740,8 @@ export default defineConfig({
         Head: './src/components/Head.astro',
         Header: './src/components/Header.astro',
         Footer: './src/components/Footer.astro',
+        MarkdownContent: './src/components/MarkdownContent.astro',
+        NotFound: './src/components/NotFound.astro',
         PageTitle: './src/components/PageTitle.astro',
         Sidebar: './src/components/Sidebar.astro',
         PageSidebar: './src/components/PageSidebar.astro',
@@ -751,16 +753,10 @@ export default defineConfig({
         starlightPageActions(),
       ],
 
-      // ── Algolia DocSearch ──────────────────────────────────────────────────
-      // To enable: install @astrojs/starlight-docsearch, then set env vars:
-      //   ALGOLIA_APP_ID, ALGOLIA_API_KEY
-      //
-      // Index name logic (mirrors the VuePress AlgoliaSearch.vue behaviour):
-      //   - Latest released version → index 'handsontable'
-      //   - Older / dev versions    → index 'handsontable-with-versions'
-      //
-      // Pagefind is used as default local search until Algolia is wired up.
+      // Algolia DocSearch is used for search. Pagefind is disabled to avoid
+      // building an unused search index during production builds.
       // Search is hidden entirely in non-production builds (see Header.astro).
+      pagefind: false,
     }),
 
     // Serves clean Markdown at *.md URLs for the "View in Markdown" button
@@ -797,11 +793,25 @@ export default defineConfig({
   },
 
   vite: {
+    server: {
+      allowedHosts: ['.trycloudflare.com'],
+    },
+    // Use the React automatic JSX runtime for .tsx source files under src/,
+    // so components don't need an explicit `import React from 'react'`.
+    // (Content-tree .jsx examples are handled separately by the custom
+    // resolveMonorepoPackages transform hook above.)
+    esbuild: {
+      jsx: 'automatic',
+      jsxImportSource: 'react',
+    },
     // Expose BUILD_MODE to Astro components via import.meta.env.PUBLIC_BUILD_MODE.
     // The deployment pipeline sets BUILD_MODE; this bridges it into the Vite/Astro
     // env namespace so .astro components can read it at build time.
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
+      'import.meta.env.PUBLIC_CHAT_API_URL': JSON.stringify(
+        process.env.PUBLIC_CHAT_API_URL || 'https://hot-docs-assistant.netlify.app'
+      ),
     },
 
     // Exclude all packages resolved by resolveMonorepoPackages from Vite's
