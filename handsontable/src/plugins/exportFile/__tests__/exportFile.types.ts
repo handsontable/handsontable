@@ -29,7 +29,7 @@ const csvOptions = {
   bom: true,
   columnDelimiter: ';',
   rowDelimiter: '\r\n',
-  columnHeaders: true,
+  colHeaders: true,
   rowHeaders: true,
   exportHiddenColumns: true,
   exportHiddenRows: true,
@@ -50,7 +50,7 @@ exportPlugin.downloadFile('csv', csvOptions);
 
 const xlsxOptions = {
   filename: 'report',
-  columnHeaders: true,
+  colHeaders: true,
   rowHeaders: true,
   exportHiddenColumns: false,
   exportHiddenRows: false,
@@ -86,7 +86,7 @@ exportPlugin.downloadFileAsync('xlsx', {
 const sheet1: SheetOptions = {
   instance: hot,
   name: 'Q1 Sales',
-  columnHeaders: true,
+  colHeaders: true,
   rowHeaders: true,
   exportFormulas: true,
   exportHiddenColumns: 'hide',
@@ -107,7 +107,7 @@ exportPlugin.downloadFileAsync('xlsx', {
 // name should be optional — implementation uses `sheetConfig.name || 'Sheet'`
 const sheetWithoutName: SheetOptions = {
   instance: hot,
-  columnHeaders: true,
+  colHeaders: true,
 };
 
 // ─── ExportOptions: headerStyle (XLSX) ────────────────────────────────────

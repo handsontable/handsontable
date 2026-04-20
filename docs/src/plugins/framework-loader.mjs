@@ -114,9 +114,10 @@ function escapeHtml(str) {
  * @param {string[]} fileRefs - Paths relative to contentDir (after stripping '@/content/')
  * @param {string} contentDir - Absolute path to docs/content/
  * @param {Object<string, string>} [fileMeta] - Optional EC meta attributes keyed by file path
+ * @param {string} [extraClasses] - Space-separated CSS classes to add to the container div
  * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
+function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '') {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -285,7 +286,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
     <div class="hot-example-loader__row"></div>
     <div class="hot-example-loader__row"></div>
   </div>
-  ${htmlPreviewContent || `<div id="${escapeHtml(id)}"></div>`}
+  ${htmlPreviewContent || `<div id="${escapeHtml(id)}"${extraClasses ? ` class="${escapeHtml(extraClasses)}"` : ''}></div>`}
 </div>
 <div class="hot-example-toolbar">
   <button class="hot-example-source-btn" type="button" aria-expanded="false" aria-controls="hot-code-${escapeHtml(id)}">
@@ -337,6 +338,10 @@ function processExampleBlocks(content, contentDir) {
       const idMatch = header.match(/#(\S+)/);
       const id = idMatch ? idMatch[1] : 'unknown';
 
+      // Extract CSS classes from the header (e.g. '.disable-auto-theme')
+      const classMatches = [...header.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)];
+      const extraClasses = classMatches.map(m => m[1]).join(' ');
+
       // Collect all lines inside this block until the matching closing :::
       const blockLines = [];
       let depth = 1;
@@ -377,7 +382,7 @@ function processExampleBlocks(content, contentDir) {
         }
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);

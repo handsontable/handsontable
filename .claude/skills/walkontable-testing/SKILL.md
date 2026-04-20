@@ -14,7 +14,7 @@ Walkontable has its own dedicated test runner. Do NOT run Walkontable tests thro
 
 The directory contains two sub-pipelines:
 
-- `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate webpack config and bootstrap)
+- `test/spec/` -- E2E-style specs (Jasmine + Puppeteer, same as main E2E but with a separate Rspack config and bootstrap)
 - `test/unit/` -- Unit-style specs for calculators, filters, renderers, and utilities
 
 ## Writing Tests
@@ -35,4 +35,4 @@ Tests are organized by subsystem: `overlay/`, `scroll/`, `selection/`, `renderer
 - Running Walkontable tests via `test:e2e` -- they have their own command and will not execute.
 - Skipping frozen row/column scenarios -- this misses the overlay edge cases where most regressions occur.
 - Testing only small datasets -- Walkontable bugs often surface at scale.
-- Modifying Walkontable test bootstrap/webpack config without verifying that both `spec/` and `unit/` sub-pipelines still pass.
+- Modifying Walkontable test bootstrap/Rspack config without verifying that both `spec/` and `unit/` sub-pipelines still pass.

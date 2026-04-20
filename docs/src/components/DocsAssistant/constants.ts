@@ -17,7 +17,7 @@ export const STARTER_SUGGESTIONS = [
 ];
 
 export const WELCOME = {
-  headline: 'Ask me anything about Handsontable',
+  headline: 'How can I help?',
   sub: 'I search the docs to answer questions about APIs, configuration, and usage. I say "I don\'t know" when the docs don\'t cover it.',
 };
 

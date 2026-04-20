@@ -121,7 +121,14 @@ class Xlsx extends BaseType {
 
       sheets.forEach((sheetConfig) => {
         const dp = new DataProvider(sheetConfig.instance);
-        const sheetOptions = { ...this.options, ...sheetConfig };
+        // Apply the same legacy-alias promotion that _mergeOptions does for top-level
+        // options: if the caller passed the deprecated `columnHeaders` on a per-sheet
+        // config without also passing `colHeaders`, promote it so `dataProvider.js`
+        // (which only reads `colHeaders`) picks it up correctly.
+        const normalizedSheetConfig = ('columnHeaders' in sheetConfig && !('colHeaders' in sheetConfig))
+          ? { ...sheetConfig, colHeaders: sheetConfig.columnHeaders }
+          : sheetConfig;
+        const sheetOptions = { ...this.options, ...normalizedSheetConfig };
 
         dp.setOptions(sheetOptions);
 

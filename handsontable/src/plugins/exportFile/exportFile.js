@@ -54,7 +54,7 @@ export const PLUGIN_PRIORITY = 240;
  * exportPlugin.exportAsString('csv', {
  *   exportHiddenRows: true,     // default false
  *   exportHiddenColumns: true,  // default false
- *   columnHeaders: true,        // default false
+ *   colHeaders: true,            // default false
  *   rowHeaders: true,           // default false
  *   columnDelimiter: ';',       // default ','
  *   range: [1, 1, 6, 6]         // [startRow, startColumn, endRow, endColumn]
@@ -63,7 +63,7 @@ export const PLUGIN_PRIORITY = 240;
  * // XLSX with options
  * await exportPlugin.downloadFileAsync('xlsx', {
  *   filename: 'MyFile',
- *   columnHeaders: true,
+ *   colHeaders: true,
  *   rowHeaders: true,
  *   exportHiddenRows: false,
  *   exportHiddenColumns: false,
@@ -199,7 +199,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
-   * @param {boolean} [options.columnHeaders=false] Include column headers in the exported file.
+   * @param {boolean} [options.colHeaders=false] Include column headers in the exported file.
    * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
    * @param {boolean|string} [options.exportHiddenColumns=false] Controls how hidden columns are handled. `true` exports them as normal visible columns. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
    * @param {boolean|string} [options.exportHiddenRows=false] Controls how hidden rows are handled. `true` exports them as normal visible rows. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
@@ -233,7 +233,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
-   * @param {boolean} [options.columnHeaders=false] Include column headers.
+   * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
    * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
@@ -270,7 +270,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.bom] Include BOM signature (text formats only).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
-   * @param {boolean} [options.columnHeaders=false] Include column headers.
+   * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
    * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
@@ -302,7 +302,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format.
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
-   * @param {boolean} [options.columnHeaders=false] Include column headers.
+   * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
    * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
@@ -342,7 +342,7 @@ export class ExportFile extends BasePlugin {
    * @param {boolean} [options.bom] Include BOM signature (text formats only).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
-   * @param {boolean} [options.columnHeaders=false] Include column headers.
+   * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
    * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
    * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
