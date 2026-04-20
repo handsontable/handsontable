@@ -84,16 +84,17 @@ describe('DropdownMenu keyboard shortcut', () => {
       const menuOffset = $dropdownMenu.offset();
       const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      // The menu top aligns with the dropdown button's bottom (see
-      // registerShortcuts: `top: buttonRect.bottom + offset.top`). The button
-      // size and vertical position inside the header cell are theme-dependent,
-      // so derive the expected menu top from the button's bounding rect.
-      const buttonBottomDoc = cell.querySelector('.changeType')
-        .getBoundingClientRect().bottom + window.scrollY;
+      // The plugin positions the menu at the icon's bottom (see
+      // registerShortcuts/#getButtonRect: the rect it passes is centered on
+      // the ::before icon, not the button). The positioner then adds
+      // `below(3) + 1` (setPositionBelowCursor). Mirror that math so the
+      // assertion holds on any theme.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-      expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
@@ -122,12 +123,14 @@ describe('DropdownMenu keyboard shortcut', () => {
       const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
       expect($dropdownMenu.length).toBe(1);
-      // Menu top aligns with the dropdown button's bottom; button geometry is
-      // theme-dependent so read it from the DOM.
-      const buttonBottomDoc = cell.querySelector('.changeType')
-        .getBoundingClientRect().bottom + window.scrollY;
+      // The plugin positions the menu at the icon's bottom (see
+      // registerShortcuts/#getButtonRect: the rect it passes is centered on
+      // the ::before icon, not the button). The positioner then adds
+      // `below(3) + 1` (setPositionBelowCursor). Mirror that math so the
+      // assertion holds on any theme.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-      expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
@@ -168,15 +171,16 @@ describe('DropdownMenu keyboard shortcut', () => {
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      // Menu top aligns with the dropdown button's bottom; button geometry is
-      // theme-dependent so read it from the DOM.
-      const buttonBottomDoc = cell.querySelector('.changeType')
-        .getBoundingClientRect().bottom + window.scrollY;
+      // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+      // See #getButtonRect and setPositionBelowCursor.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-      expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
@@ -198,15 +202,16 @@ describe('DropdownMenu keyboard shortcut', () => {
       const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      // Menu top aligns with the dropdown button's bottom; button geometry is
-      // theme-dependent so read it from the DOM.
-      const buttonBottomDoc = cell.querySelector('.changeType')
-        .getBoundingClientRect().bottom + window.scrollY;
+      // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+      // See #getButtonRect and setPositionBelowCursor.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-      expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
@@ -302,6 +307,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+        const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
 
@@ -309,12 +315,11 @@ describe('DropdownMenu keyboard shortcut', () => {
           return;
         }
 
-        // Menu top aligns with the dropdown button's bottom; button geometry
-        // is theme-dependent so read it from the DOM.
-        const buttonBottomDoc = cell.querySelector('.changeType')
-          .getBoundingClientRect().bottom + window.scrollY;
+        // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+        // See #getButtonRect and setPositionBelowCursor.
+        const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-        expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+        expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
         expect(menuOffset.left).toBeAroundValue(buttonOffset.left);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
       });

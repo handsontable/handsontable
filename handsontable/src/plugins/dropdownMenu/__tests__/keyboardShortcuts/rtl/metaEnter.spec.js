@@ -41,12 +41,11 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        // Menu top aligns with the dropdown button's bottom; button geometry
-        // is theme-dependent so read it from the DOM.
-        const buttonBottomDoc = cell.querySelector('.changeType')
-          .getBoundingClientRect().bottom + window.scrollY;
+        // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+        // See #getButtonRect and setPositionBelowCursor.
+        const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-        expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+        expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
       });
@@ -74,14 +73,14 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+        const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
         expect($dropdownMenu.length).toBe(1);
-        // Menu top aligns with the dropdown button's bottom; button geometry
-        // is theme-dependent so read it from the DOM.
-        const buttonBottomDoc = cell.querySelector('.changeType')
-          .getBoundingClientRect().bottom + window.scrollY;
+        // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+        // See #getButtonRect and setPositionBelowCursor.
+        const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
 
-        expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
+        expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
