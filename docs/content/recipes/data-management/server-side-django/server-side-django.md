@@ -11,6 +11,12 @@ tags:
   - server-side
   - data-provider
   - recipe
+react:
+  id: zdsrh5oc
+  metaTitle: Server-side data with Django - React Data Grid | Handsontable
+angular:
+  id: q1s3u5w7
+  metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: tutorial
@@ -469,7 +475,18 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-@[code jsx](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+@[code](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/server-side-django/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-django/angular/example1.html)
+
+:::
 
 :::
 

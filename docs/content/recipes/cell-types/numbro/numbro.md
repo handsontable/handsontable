@@ -23,7 +23,7 @@ category: Cell Types
 
 This tutorial shows you how to create a custom numeric cell type using the Numbro library for locale-aware number formatting.
 
-::: only-for javascript vue angular
+::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
 
@@ -40,6 +40,16 @@ This tutorial shows you how to create a custom numeric cell type using the Numbr
 
 @[code](@/content/recipes/cell-types/numbro/react/example1.jsx)
 @[code](@/content/recipes/cell-types/numbro/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps numbro
+
+@[code](@/content/recipes/cell-types/numbro/angular/example1.ts)
+@[code](@/content/recipes/cell-types/numbro/angular/example1.html)
 
 :::
 

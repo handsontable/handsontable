@@ -38,6 +38,16 @@ category: Filtering and Search
 
 @[code](@/content/recipes/filtering-and-search/external-search-box/react/example1.jsx)
 @[code](@/content/recipes/filtering-and-search/external-search-box/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/filtering-and-search/external-search-box/angular/example1.ts)
+@[code](@/content/recipes/filtering-and-search/external-search-box/angular/example1.html)
 
 :::
 

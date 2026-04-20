@@ -41,6 +41,16 @@ This tutorial shows you how to integrate the Pickr color picker library as a cus
 @[code](@/content/recipes/cell-types/color-picker/react/example1.css)
 @[code](@/content/recipes/cell-types/color-picker/react/example1.jsx)
 @[code](@/content/recipes/cell-types/color-picker/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps @simonwep/pickr
+
+@[code](@/content/recipes/cell-types/color-picker/angular/example1.ts)
+@[code](@/content/recipes/cell-types/color-picker/angular/example1.html)
 
 :::
 

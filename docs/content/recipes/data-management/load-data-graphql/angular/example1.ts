@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 
 type ApiUser = {
   id: number;
@@ -40,8 +41,9 @@ const USERS_QUERY = `
 `;
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-load-data-graphql',
-  standalone: false,
   template: `
     <div>
       <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
@@ -59,7 +61,7 @@ const USERS_QUERY = `
     </div>
   `,
 })
-export class Example1LoadDataGraphqlComponent implements OnInit {
+export class AppComponent implements OnInit {
   status = 'Loading users...';
   hasError = false;
   rows: UserRow[] = [];
@@ -138,36 +140,20 @@ export class Example1LoadDataGraphqlComponent implements OnInit {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import {
-  HOT_GLOBAL_CONFIG,
-  HotGlobalConfig,
-  HotTableModule,
-  NON_COMMERCIAL_LICENSE,
-} from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1LoadDataGraphqlComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule],
-  declarations: [Example1LoadDataGraphqlComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1LoadDataGraphqlComponent],
-})
-export class AppModule {}
 /* end-file */

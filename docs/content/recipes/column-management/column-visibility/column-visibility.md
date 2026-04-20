@@ -10,6 +10,12 @@ tags:
   - updateSettings
   - toggle columns
   - column management
+react:
+  id: mab9c608
+  metaTitle: Dynamic column visibility - React Data Grid | Handsontable
+angular:
+  id: c7d4e5f6
+  metaTitle: Dynamic Column Visibility Toggle - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
 ---
@@ -31,6 +37,16 @@ category: Column Management
 
 @[code](@/content/recipes/column-management/column-visibility/react/example1.jsx)
 @[code](@/content/recipes/column-management/column-visibility/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/column-management/column-visibility/angular/example1.ts)
+@[code](@/content/recipes/column-management/column-visibility/angular/example1.html)
 
 :::
 

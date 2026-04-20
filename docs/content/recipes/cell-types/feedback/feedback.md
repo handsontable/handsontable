@@ -41,6 +41,17 @@ This tutorial shows you how to build an emoji feedback cell using Handsontable's
 @[code](@/content/recipes/cell-types/feedback/react/example1.css)
 @[code](@/content/recipes/cell-types/feedback/react/example1.jsx)
 @[code](@/content/recipes/cell-types/feedback/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/feedback/angular/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/angular/example1.html)
+@[code](@/content/recipes/cell-types/feedback/angular/example1.css)
 
 :::
 
