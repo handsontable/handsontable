@@ -316,6 +316,12 @@
   --ht-dialog-content-padding-vertical: var(--ht-density-dialog-vertical);
   --ht-dialog-content-border-radius: var(--ht-sizing-size-4);
   --ht-dialog-content-background-color: var(--ht-background-color);
+  --ht-notification-foreground-color: var(--ht-foreground-color);
+  --ht-notification-background-color: var(--ht-background-color);
+  --ht-notification-border-color: var(--ht-background-color);
+  --ht-notification-success-accent: #37bc6cff;
+  --ht-notification-warning-accent: #fbe952ff;
+  --ht-notification-error-accent: #fa4d32ff;
   --ht-chip-background: var(--ht-background-secondary-color);
   --ht-chip-border-radius: var(--ht-sizing-size-2);
   --ht-chip-vertical-padding: var(--ht-sizing-size-0);
@@ -543,6 +549,14 @@
 }
 
 [class*=ht-theme-horizon] .ht-multi-select-chip-remove::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 4L4 12M4 4L12 12' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-horizon] .ht-notification__close::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
