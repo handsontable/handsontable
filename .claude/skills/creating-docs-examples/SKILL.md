@@ -1,5 +1,6 @@
 ---
 name: creating-docs-examples
+path: docs/**
 description: Use when creating code examples for documentation pages - JavaScript, TypeScript, React, Angular, and Vue variants with proper imports, registration, and license key
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: angular-wrapper-dev
+path: wrappers/angular-wrapper/**
 description: Use when developing or modifying the @handsontable/angular-wrapper package - Angular components with decorators, NgZone performance optimization, and ng-packagr build system
 ---
 
