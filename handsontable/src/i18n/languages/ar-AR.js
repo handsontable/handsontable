@@ -119,6 +119,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
 
   [C.LOADING_TITLE]: 'جاري التحميل...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'لا توجد بيانات متاحة',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'لا يوجد شيء للعرض بعد.',
@@ -133,7 +134,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'تعذر تحديث الصفوف',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'إغلاق',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
 };
 
 export default dictionary;

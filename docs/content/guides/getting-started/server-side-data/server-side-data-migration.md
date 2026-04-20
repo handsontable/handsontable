@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: k3m9n2p1
 title: Migrate to server-side data
 metaTitle: Migrate to server-side data - JavaScript Data Grid | Handsontable
@@ -18,8 +19,6 @@ angular:
 searchCategory: Guides
 category: Server-side data
 ---
-
-# Migrate to server-side data
 
 Use this checklist when moving from a full in-memory `data` array and hooks such as [`afterChange`](@/api/hooks.md#afterchange) to `dataProvider`. For an overview and demo, see [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
 
@@ -41,3 +40,7 @@ Use this checklist when moving from a full in-memory `data` array and hooks such
 - [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md)
 - [Create, update, and remove](@/guides/getting-started/server-side-data/server-side-data-crud.md)
 - [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md)
+
+## Result
+
+Your grid now loads and saves data server-side using the updated API.

@@ -12,6 +12,18 @@ describe('AutoColumnSize', () => {
       destroy();
       this.$container.remove();
     }
+    if (this.$container2) {
+      try {
+        if (this.$container2.handsontable('getInstance')) {
+          this.$container2.handsontable('getInstance').destroy();
+        }
+      } catch (e) {
+        if (!e.message.includes('instance has been destroyed')) {
+          throw e;
+        }
+      }
+      this.$container2.remove();
+    }
   });
 
   const arrayOfObjects = function() {
@@ -1084,6 +1096,72 @@ describe('AutoColumnSize', () => {
 
       // Error text like "#VALUE!" should change the column width.
       expect(colWidth(spec().$container, 1)).not.toBe(widthBefore);
+    });
+
+    it('should not throw when two tables with different layouts share a HyperFormula engine (#12301)', async() => {
+      spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+
+      const hot1 = handsontable({
+        data: [['a', 'b']],
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      spec().$container2.handsontable({
+        data: [['c'], ['d']],
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2',
+        },
+      });
+
+      const hot2 = spec().$container2.handsontable('getInstance');
+
+      expect(() => {
+        hot2.setDataAtCell(0, 0, 'test');
+      }).not.toThrow();
+
+      expect(() => {
+        hot1.setDataAtCell(0, 0, 'test2');
+      }).not.toThrow();
+    });
+
+    it('should not queue column refresh for changes belonging to another sheet (#12301)', async() => {
+      spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
+
+      const hot1 = handsontable({
+        data: [['a', '=A1']],
+        autoColumnSize: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      const hot2Instance = spec().$container2.handsontable({
+        data: [['=Sheet1!A1'], ['d'], ['e']],
+        autoColumnSize: true,
+        formulas: {
+          engine: hot1.getPlugin('formulas').engine,
+          sheetName: 'Sheet2',
+        },
+      }).data('handsontable');
+
+      const sheet2Id = hot2Instance.getPlugin('formulas').sheetId;
+      const toVisualColumnSpy = spyOn(hot1, 'toVisualColumn').and.callThrough();
+
+      hot1.runHooks('afterFormulasValuesUpdate', [
+        { address: { sheet: sheet2Id, row: 0, col: 0 }, newValue: 'test' },
+        { address: { sheet: sheet2Id, row: 2, col: 0 }, newValue: 'test2' },
+      ]);
+
+      expect(toVisualColumnSpy).not.toHaveBeenCalled();
     });
   });
 });

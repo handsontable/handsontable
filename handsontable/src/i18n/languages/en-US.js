@@ -124,6 +124,7 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 
   [C.LOADING_TITLE]: 'Loading...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Close',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'No data available',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'There’s nothing to display yet.',
@@ -138,7 +139,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Could not update rows',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Could not remove rows',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Request failed',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Close',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Refetch',
 };
 
 export default dictionary;

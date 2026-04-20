@@ -128,6 +128,9 @@ export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
 
+export const NOTIFICATION_NAMESPACE = 'Notification:';
+export const NOTIFICATION_BUTTONS_CLOSE = `${NOTIFICATION_NAMESPACE}buttons.close`;
+
 export const EXPORT_FILE_NAMESPACE = 'ExportFile:';
 export const EXPORT_FILE_DIALOG_TITLE = `${EXPORT_FILE_NAMESPACE}dialog.title`;
 
@@ -146,4 +149,4 @@ export const DATA_PROVIDER_ERRORS_CREATE = `${DATA_PROVIDER_NAMESPACE}errors.cre
 export const DATA_PROVIDER_ERRORS_UPDATE = `${DATA_PROVIDER_NAMESPACE}errors.update`;
 export const DATA_PROVIDER_ERRORS_REMOVE = `${DATA_PROVIDER_NAMESPACE}errors.remove`;
 export const DATA_PROVIDER_ERRORS_REQUEST_FAILED = `${DATA_PROVIDER_NAMESPACE}errors.requestFailed`;
-export const DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE = `${DATA_PROVIDER_NAMESPACE}buttons.errorDialogClose`;
+export const DATA_PROVIDER_BUTTONS_REFETCH = `${DATA_PROVIDER_NAMESPACE}buttons.refetch`;

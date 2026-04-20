@@ -19,8 +19,6 @@ searchCategory: Guides
 category: Server-side data
 ---
 
-# Server-side configuration
-
 How to wire [`dataProvider`](@/api/options.md#dataprovider) with [`pagination`](@/api/options.md#pagination), sorting, and filters, and what `fetchRows` receives in each request. Start with [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md) if you need the overview or demo.
 
 [[toc]]
@@ -45,12 +43,12 @@ pagination: { pageSize: 10 }, // or `true`; `pageSize` is read from Pagination i
 columnSorting: true, // server-side sort (one column)
 filters: true, // server-side column filters; read queryParameters.filters in fetchRows
 emptyDataState: true, // loading spinner and empty overlay while fetching / when no rows
-dialog: true, // built-in error modal when fetchRows or CRUD callbacks reject (including refetch after mutation)
+notification: true, // built-in error toasts when fetchRows or CRUD callbacks reject; fetch failures include a Refetch action
 ```
 
 Use [`pagination`](@/api/options.md#pagination) so users can change pages and page size in the UI. With DataProvider, the Pagination plugin copies its **`pageSize`** and current **page** into every `fetchRows` call as `queryParameters.pageSize` and `queryParameters.page` (including [`initialPage`](@/guides/rows/rows-pagination/rows-pagination.md) when that is how the UI selects the first page). There is no `pageSize` field on the `dataProvider` object; set rows per page with `pagination: { pageSize: 10 }`, or `pagination: true` for the plugin’s default page size. With [`rowHeaders`](@/api/options.md#rowheaders) enabled, the DataProvider plugin uses [`modifyRowHeader`](@/api/hooks.md#modifyrowheader) so row headers reflect a **global** 1-based row index across pages (for example row `0` on page 2 with `pageSize: 5` shows header `6`), not only the index within the loaded slice. See the [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md) guide for the full configuration object.
 
-The sketch also sets [`filters`](@/api/options.md#filters) for server-driven column filters, [`emptyDataState`](@/api/options.md#emptydatastate) for loading and empty overlays with asynchronous fetches, and [`dialog`](@/api/options.md#dialog) so request failures from the DataProvider can show an error message in the Dialog plugin (see [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md#fetch-hooks-and-loading-ui)). Omit or adjust any of these if you do not need that feature.
+The sketch also sets [`filters`](@/api/options.md#filters) for server-driven column filters, [`emptyDataState`](@/api/options.md#emptydatastate) for loading and empty overlays with asynchronous fetches, and [`notification`](@/api/options.md#notification) so request failures from the DataProvider can show an error toast in the Notification plugin (see [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md#fetch-hooks-and-loading-ui)). Omit or adjust any of these if you do not need that feature.
 
 ## Query parameters
 

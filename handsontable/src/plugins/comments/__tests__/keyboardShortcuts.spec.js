@@ -280,6 +280,65 @@ describe('Comments keyboard shortcut', () => {
     });
   });
 
+  describe('"Cmd/Ctrl" + "A"', () => {
+    it('should not trigger grid "select all" when the comment textarea is focused (#12193)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        contextMenu: true,
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
+      await waitForNextAnimationFrames(1);
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      editor.value = 'hello';
+      editor.setSelectionRange(2, 2);
+
+      expect(document.activeElement).toBe(editor);
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
+
+      await keyDownUp(['control', 'a']);
+
+      expect(document.activeElement).toBe(editor);
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    });
+
+    it('should not trigger grid "select all" when the comment is opened via context menu (#12193)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+        contextMenu: true,
+      });
+
+      await selectCell(1, 1);
+      await contextMenu();
+      await selectContextMenuOption('Add comment');
+      await waitForNextAnimationFrames(1);
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      editor.value = 'hello';
+      editor.setSelectionRange(2, 2);
+
+      expect(document.activeElement).toBe(editor);
+
+      await keyDownUp(['control', 'a']);
+
+      expect(document.activeElement).toBe(editor);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    });
+  });
+
   describe('"Cmd/Ctrl" + "Enter"', () => {
     it('should close the comment and save the value (comment opened by keyboard shortcut)', async() => {
       handsontable({

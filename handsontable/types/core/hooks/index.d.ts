@@ -86,6 +86,10 @@ export interface Events {
   afterEmptyDataStateShow?: () => void;
   beforeEmptyDataStateHide?: () => void;
   afterEmptyDataStateHide?: () => void;
+  beforeNotificationShow?: (options: import('../../plugins/notification/notification').NotificationNormalizedOptions) => boolean | void;
+  afterNotificationShow?: (id: string, options: import('../../plugins/notification/notification').NotificationNormalizedOptions) => void;
+  beforeNotificationHide?: (id: string) => boolean | void;
+  afterNotificationHide?: (id: string) => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
@@ -252,7 +256,7 @@ export interface Events {
   beforeRemoveRow?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
-  beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
+  beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isRowFlipped: boolean) => void;
   beforeSelectAll?: (from: CellCoords, to: CellCoords, highlight?: CellCoords) => void;
@@ -294,7 +298,7 @@ export interface Events {
   modifyColHeader?: (column: number) => void;
   modifyColumnHeaderHeight?: () => void;
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
-  modifyColWidth?: (width: number, column: number, source?: string) => void;
+  modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | CellValue;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
@@ -304,7 +308,7 @@ export interface Events {
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
-  modifyRowHeaderWidth?: (rowHeaderWidth: number) => void;
+  modifyRowHeaderWidth?: (rowHeaderWidth: number) => void | number;
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: OverlayType) => void | number;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;

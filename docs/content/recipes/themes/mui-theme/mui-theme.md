@@ -1,7 +1,8 @@
 ---
+type: tutorial
 id: f2a7b9c1
 title: Handsontable with MUI
-metaTitle: Handsontable with MUI - React Data Grid | Handsontable
+metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
 description: Integrate Handsontable into a React app with MUI so your grid follows Material UI colors, typography, and spacing.
 permalink: /recipes/themes/mui-theme
 canonicalUrl: /recipes/themes/mui-theme
@@ -18,9 +19,14 @@ tags:
 react:
   id: d4e8a6f2
   metaTitle: Handsontable with MUI - React Data Grid | Handsontable
+angular:
+  id: a3b7c9e1
+  metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
 ---
+
+This tutorial shows you how to integrate Handsontable into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
 
 <iframe src="https://codesandbox.io/embed/y4vsfq?view=preview"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -212,6 +218,20 @@ export default function App() {
 
 ## Related
 
-- [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
-- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Theme Recipes](/recipes/themes) - Practical design-system recipes for Handsontable.
+<div class="boxes-list">
+
+- [Themes](@/guides/styling/themes/themes.md)
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md)
+- [Design system](@/guides/styling/design-system/design-system.md)
+
+</div>
+
+## What you learned
+
+You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `wrapperBorderRadius` override.
+
+## Next steps
+
+- [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn CSS variables and Lucide icons.
+- [Handsontable with Base Web](/recipes/themes/base-theme) - The same pattern using Base Web design tokens.
+- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.

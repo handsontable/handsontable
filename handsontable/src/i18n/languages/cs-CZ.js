@@ -118,6 +118,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
 
   [C.LOADING_TITLE]: 'Načítání...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zavřít',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Žádná data nejsou k dispozici',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Zatím není co zobrazit.',
@@ -132,7 +133,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Řádky se nepodařilo aktualizovat',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Řádky se nepodařilo odstranit',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Požadavek selhal',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zavřít',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Znovu načíst',
 };
 
 export default dictionary;

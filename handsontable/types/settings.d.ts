@@ -43,6 +43,7 @@ import { Settings as SearchSettings } from './plugins/search';
 import { Settings as TrimRowsSettings } from './plugins/trimRows';
 import { Settings as DialogSettings } from './plugins/dialog';
 import { Settings as LoadingSettings } from './plugins/loading';
+import { Settings as NotificationSettings } from './plugins/notification';
 import { Settings as EmptyDataStateSettings } from './plugins/emptyDataState';
 import { Settings as ExportFileSettings } from './plugins/exportFile';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
@@ -164,7 +165,7 @@ export interface GridSettings extends Events {
   formulas?: FormulasSettings;
   fragmentSelection?: boolean | 'cell';
   headerClassName?: string;
-  height?: number | string | (() => number | string);
+  height?: number | 'auto' | string | (() => number | 'auto' | string);
   hiddenColumns?: HiddenColumnsSettings;
   hiddenRows?: HiddenRowsSettings;
   initialState?: Partial<GridSettings>;
@@ -239,6 +240,7 @@ export interface GridSettings extends Events {
   uncheckedTemplate?: boolean | string | number;
   dialog?: DialogSettings;
   loading?: LoadingSettings;
+  notification?: NotificationSettings;
   emptyDataState?: EmptyDataStateSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
@@ -251,6 +253,6 @@ export interface GridSettings extends Events {
   viewportColumnRenderingThreshold?: number | 'auto';
   viewportRowRenderingThreshold?: number | 'auto';
   visibleRows?: number;
-  width?: number | string | (() => number | string);
+  width?: number | 'auto' | string | (() => number | 'auto' | string);
   wordWrap?: boolean;
 }

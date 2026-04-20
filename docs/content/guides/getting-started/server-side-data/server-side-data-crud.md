@@ -19,8 +19,6 @@ searchCategory: Guides
 category: Server-side data
 ---
 
-# Server-side CRUD
-
 With a complete [`dataProvider`](@/api/options.md#dataprovider) configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend. For loading and `fetchRows`, see [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md) and [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md).
 
 [[toc]]
@@ -38,7 +36,7 @@ When a user edits a cell, the update flows through these steps in order:
 3. **Optimistic UI update** — the new cell values appear in the grid immediately.
 4. **`onRowsUpdate`** — your server callback runs with the batch of changes.
 5. **On success**: [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation) fires, then Handsontable refetches the current page (with `skipLoading: true` so the loading overlay does not flash).
-6. **On failure**: the optimistic values roll back and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires. If [`dialog`](@/api/options.md#dialog) is enabled, an error modal appears.
+6. **On failure**: the optimistic values roll back and [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires. If [`notification`](@/api/options.md#notification) is enabled, an error toast appears.
 
 ### `onRowsCreate`
 
@@ -77,6 +75,8 @@ From the plugin instance (`hot.getPlugin('dataProvider')`), you can also call [`
 - [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) — runs when the mutation callback throws or rejects, when validation fails before the request, or when the refetch after a successful update fails.
 
 `operation` is `'create'`, `'update'`, or `'remove'`. The hook `payload` is a wrapper object, not the same reference as the callback argument: `'create'` uses `{ rowsCreate }` (same inner shape as `onRowsCreate`), `'update'` uses `{ rows }` (the array passed to `onRowsUpdate`), and `'remove'` uses `{ rowsRemove }` (the id array passed to `onRowsRemove`).
+
+When the server callback succeeds but the following refetch fails, `afterRowsMutationError` still uses the same `operation` as the mutation (`'update'`, `'create'`, or `'remove'`). Use [[Hooks#afterDataProviderFetchError]] if you need to handle fetch failures separately from rejected mutation callbacks.
 
 ### Undo stack
 

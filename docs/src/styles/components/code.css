@@ -67,6 +67,7 @@
 :root[data-theme='light'] .expressive-code {
   --ec-frm-shdCol: transparent;
   --ec-frm-frameBoxShdCssVal: none;
+  --ec-frm-trmTtbBrdBtmCol: var(--sl-color-gray-5);
 }
 
 :root[data-theme='light'] .expressive-code .copy button {

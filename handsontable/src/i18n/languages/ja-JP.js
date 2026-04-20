@@ -123,6 +123,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
 
   [C.LOADING_TITLE]: '読み込み中...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '閉じる',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'データがありません',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '表示するデータがまだありません。',
@@ -137,7 +138,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '行を更新できませんでした',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '行を削除できませんでした',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'リクエストに失敗しました',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '閉じる',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
 };
 
 export default dictionary;

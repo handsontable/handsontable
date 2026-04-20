@@ -164,7 +164,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   fragmentSelection: oneOf(true, 'cell'),
   headerClassName: 'htCenter test',
-  height: oneOf(500, () => 500),
+  height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
   initialState: {
@@ -299,6 +299,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
     title: 'Loading...',
     description: 'Loading...',
   }),
+  notification: oneOf(true, {
+    stackLimit: 5,
+    animation: false,
+  }),
   emptyDataState: oneOf(true, {
     message: 'No data available',
   }, {
@@ -350,7 +354,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
   viewportRowRenderingThreshold: oneOf(100, 'auto'),
   visibleRows: 123,
-  width: oneOf(500, () => 500),
+  width: oneOf(500, 'auto', '75vw', () => 500, () => 'auto'),
   wordWrap: true,
 
   // Hooks via settings object
@@ -449,6 +453,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterLoadingShow: () => {},
   beforeLoadingHide: () => {},
   afterLoadingHide: () => {},
+  afterNotificationHide: (_id) => {},
+  afterNotificationShow: (_id, _options) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;
@@ -600,6 +606,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDropdownMenuShow: (instance) => {},
   beforeEmptyDataStateShow: () => {},
   beforeEmptyDataStateHide: () => {},
+  beforeNotificationHide: (_id) => {},
+  beforeNotificationShow: (_options) => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {

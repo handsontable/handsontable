@@ -133,6 +133,7 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
 
   [C.LOADING_TITLE]: 'Učitavanje...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nema dostupnih podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Još nema ništa za prikaz.',
@@ -147,7 +148,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nije moguće ažurirati retke',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti retke',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtjev nije uspio',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zatvori',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovno učitaj',
 };
 
 export default dictionary;

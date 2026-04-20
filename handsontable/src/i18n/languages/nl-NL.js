@@ -123,6 +123,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 
   [C.LOADING_TITLE]: 'Laden...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Geen gegevens beschikbaar',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Er is nog niets te tonen.',
@@ -137,7 +138,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Rijen konden niet worden bijgewerkt',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Rijen konden niet worden verwijderd',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Verzoek mislukt',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Sluiten',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Opnieuw laden',
 };
 
 export default dictionary;

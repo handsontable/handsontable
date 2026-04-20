@@ -127,6 +127,7 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
 
   [C.LOADING_TITLE]: 'Ładowanie...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zamknij',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Brak dostępnych danych',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Nie ma jeszcze nic do wyświetlenia.',
@@ -141,7 +142,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nie udało się zaktualizować wierszy',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nie udało się usunąć wierszy',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Żądanie nie powiodło się',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Zamknij',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponów pobieranie',
 };
 
 export default dictionary;

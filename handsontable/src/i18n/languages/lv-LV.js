@@ -121,6 +121,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
 
   [C.LOADING_TITLE]: 'Ielādē...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Aizvērt',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nav pieejamu datu',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Vēl nav ko rādīt.',
@@ -135,7 +136,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nevarēja atjaunināt rindas',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nevarēja noņemt rindas',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Pieprasījums neizdevās',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Aizvērt',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Pārlādēt',
 };
 
 export default dictionary;

@@ -20,7 +20,7 @@ const sharedGridProps = {
   filters: true,
   contextMenu: true,
   emptyDataState: true,
-  dialog: true,
+  notification: true,
 };
 
 function App() {

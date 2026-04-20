@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '轉到最後一頁',
 
   [C.LOADING_TITLE]: '載入中...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '關閉',
 
   [C.EMPTY_DATA_STATE_TITLE]: '暫無資料',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '暫無內容可顯示。',
@@ -131,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '無法更新列',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '無法刪除列',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '要求失敗',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '關閉',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '重新載入',
 };
 
 export default dictionary;

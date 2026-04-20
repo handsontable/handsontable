@@ -31,8 +31,8 @@ pnpm --filter handsontable run test:e2e
 npm run test:unit --testPathPattern=cellMeta
 
 # Run specific E2E test pattern (must be run from handsontable/ directory):
-# The pattern is baked into the webpack bundle at dump time via __ENV_ARGS__.testPathPattern.
-# webpack.config.js copies the lowercase npm_config_testpathpattern to npm_config_testPathPattern
+# The pattern is baked into the Rspack bundle at dump time via __ENV_ARGS__.testPathPattern.
+# rspack.config.js copies the lowercase npm_config_testpathpattern to npm_config_testPathPattern
 # so the standard npm --key=value syntax works.
 # Step 1: rebuild the test bundle with the pattern (skips full UMD build):
 npm run test:e2e.dump --testPathPattern=filters

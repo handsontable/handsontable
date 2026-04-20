@@ -362,6 +362,87 @@ describe('Filters UI Value component', () => {
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
 
+  it('should trim leading and trailing spaces for search, treat whitespace-only as empty, and filter on the' +
+    ' trimmed text (#12290)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
+    searchInput.focus();
+
+    await sleep(208);
+
+    const getLabels = () =>
+      Array.from(byValueBoxRootElement().querySelectorAll('label')).map(el => el.textContent);
+
+    const fullListLabels = getLabels();
+
+    expect(fullListLabels.length).toBeGreaterThan(0);
+
+    const triggerInput = (valueStr) => {
+      document.activeElement.value = valueStr;
+      document.activeElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    };
+
+    triggerInput('   ');
+    expect(getLabels()).toEqual(fullListLabels);
+
+    triggerInput('zzzzznonmatching');
+    expect(getLabels().length).toBe(0);
+
+    triggerInput('  zzzzznonmatching  ');
+    expect(getLabels().length).toBe(0);
+
+    triggerInput(' \n nannie \t ');
+    expect(getLabels().length).toBe(1);
+    expect(getLabels()[0]).toContain('Nannie');
+  });
+
+  it('should treat whitespace-only search as empty when searchMode is `apply` (#12290)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: {
+        searchMode: 'apply'
+      },
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
+    searchInput.focus();
+
+    await sleep(208);
+
+    const countChecked = () => byValueMultipleSelect().getItems().filter(item => item.checked).length;
+    const startChecked = countChecked();
+
+    expect(startChecked).toBeGreaterThan(0);
+    expect(startChecked).toBe(byValueMultipleSelect().getItems().length);
+
+    document.activeElement.value = ' \t ';
+    document.activeElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+
+    expect(countChecked()).toBe(startChecked);
+  });
+
   it('should disappear after hitting ESC key (focused items box)', async() => {
     handsontable({
       data: getDataForFilters(),

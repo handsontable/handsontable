@@ -4,6 +4,10 @@
  *
  * Renders a dropdown showing the current framework with icon. Each item
  * in the dropdown has a framework icon. Clicking switches the URL prefix.
+ *
+ * The legacy classes `nav-frameworks`, `dropdown-title`, and `title` are
+ * included in the markup for backward compatibility with the Algolia crawler
+ * config that targets `.nav-frameworks .dropdown-title .title`.
  */
 const pathname = Astro.url.pathname;
 
@@ -14,9 +18,9 @@ const currentPrefix = pathname.includes('/react-data-grid/')
     : 'javascript-data-grid';
 
 const frameworks = [
-  { id: 'javascript-data-grid', label: 'JS', icon: 'i-javascript' },
-  { id: 'react-data-grid', label: 'React', icon: 'i-react' },
-  { id: 'angular-data-grid', label: 'Angular', icon: 'i-angular' },
+  { id: 'javascript-data-grid', label: 'JS', fullName: 'JavaScript', icon: 'i-javascript' },
+  { id: 'react-data-grid', label: 'React', fullName: 'React', icon: 'i-react' },
+  { id: 'angular-data-grid', label: 'Angular', fullName: 'Angular', icon: 'i-angular' },
 ];
 
 const current = frameworks.find((f) => f.id === currentPrefix)!;
@@ -28,7 +32,7 @@ const items = frameworks.map((fw) => ({
 }));
 ---
 
-<div class="fw-dropdown">
+<div class="fw-dropdown nav-frameworks">
   <button
     class="fw-trigger"
     aria-haspopup="menu"
@@ -38,6 +42,13 @@ const items = frameworks.map((fw) => ({
   >
     <span class:list={['fw-icon', current.icon]} aria-hidden="true"></span>
     {current.label}
+    {/* Hidden span provides the legacy .nav-frameworks .dropdown-title .title selector
+        for the Algolia crawler without affecting the visual layout. Uses offscreen
+        positioning (not display:none) so the text is included in innerText-based
+        extraction methods. */}
+    <span class="dropdown-title" aria-hidden="true" style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
+      <span class="title">{current.fullName}</span>
+    </span>
     <svg class="fw-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
   </button>
 

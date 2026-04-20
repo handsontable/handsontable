@@ -41,6 +41,10 @@ export class Example2EventsHooksComponent implements AfterViewInit {
         const selection = hot?.getSelected()?.[0];
 
         if (!selection) return;
+
+        // Ignore header and corner selections (row or column index < 0)
+        if (selection[0] < 0 || selection[1] < 0) return;
+
         console.log(selection);
 
         // BACKSPACE or DELETE

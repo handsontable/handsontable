@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
 
   [C.LOADING_TITLE]: '로딩 중...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '닫기',
 
   [C.EMPTY_DATA_STATE_TITLE]: '사용 가능한 데이터가 없습니다',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '아직 표시할 내용이 없습니다.',
@@ -131,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: '행을 업데이트할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: '행을 제거할 수 없습니다',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: '요청이 실패했습니다',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: '닫기',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '다시 불러오기',
 };
 
 export default dictionary;

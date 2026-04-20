@@ -117,6 +117,7 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
 
   [C.LOADING_TITLE]: 'Загрузка...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Данные недоступны',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Пока нечего отображать.',
@@ -131,7 +132,7 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Не удалось обновить строки',
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
-  [C.DATA_PROVIDER_BUTTONS_ERROR_DIALOG_CLOSE]: 'Закрыть',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
 };
 
 export default dictionary;

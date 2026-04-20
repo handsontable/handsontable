@@ -1,0 +1,37 @@
+<div class="import-csv-excel-wrap">
+  <div
+    class="import-dropzone"
+    id="import-dropzone"
+    tabindex="0"
+    role="button"
+    aria-label="Drop a CSV or Excel file here"
+  >
+    <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or use the file picker.</p>
+    <label class="import-file-label">
+      <span>Choose file</span>
+      <input id="import-file" type="file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
+    </label>
+  </div>
+
+  <div class="import-sample-block">
+    <label for="import-sample-csv">Sample CSV (copy into a file or click <strong>Parse sample CSV</strong>):</label>
+    <textarea id="import-sample-csv" rows="5" spellcheck="false">Product,Category,In stock,Price
+Widget A,Hardware,true,19.99
+Widget B,Hardware,false,24.5
+Service Pack,Services,true,0
+</textarea>
+    <div class="import-sample-actions">
+      <button type="button" id="import-parse-sample">Parse sample CSV</button>
+    </div>
+  </div>
+
+  <div id="import-error" class="import-msg import-msg--error" hidden></div>
+
+  <div id="import-preview" class="import-preview" hidden>
+    <p class="import-preview-title">Detected column headers (not loaded yet):</p>
+    <ul id="import-header-list" class="import-header-list"></ul>
+    <button type="button" id="import-apply" class="import-apply-btn">Load into grid</button>
+  </div>
+
+  <div id="example1"></div>
+</div>
