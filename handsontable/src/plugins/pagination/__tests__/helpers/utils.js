@@ -182,10 +182,13 @@ let cachedPaginationHeight = null;
 
 /**
  * Returns the pagination container height by measuring it from the DOM. On first call,
- * a temporary Handsontable instance with pagination is created inside the live test
- * container (`#testContainer`), measured, and destroyed. Subsequent calls return the
- * cached value. This makes the helper independent of theme name, density level, and
+ * a temporary Handsontable instance with pagination is created inside an OFF-SCREEN temp
+ * div (appended to `document.body`, removed after measurement). Subsequent calls return
+ * the cached value. This makes the helper independent of theme name, density level, and
  * token values -- it always reflects the real rendered height for the current theme.
+ *
+ * The probe uses its own container (not `#testContainer`) so the caller's `beforeEach`
+ * HOT instance is never touched. The cached result applies for the lifetime of the run.
  *
  * @returns {number}
  */
@@ -194,11 +197,19 @@ export function getPaginationContainerHeight() {
     return cachedPaginationHeight;
   }
 
-  const testContainer = document.getElementById('testContainer');
-  const data = Array.from({ length: 20 }, (_, i) => [`Row${i + 1}`]);
-  const $container = $(testContainer);
+  const tempDiv = document.createElement('div');
 
-  $container.handsontable({
+  tempDiv.id = 'ht-pagination-height-probe';
+  // Keep the probe outside the visible layout so it does not affect the caller's page.
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-10000px';
+  tempDiv.style.top = '-10000px';
+  document.body.appendChild(tempDiv);
+
+  const data = Array.from({ length: 20 }, (_, i) => [`Row${i + 1}`]);
+  const $probe = $(tempDiv);
+
+  $probe.handsontable({
     data,
     pagination: true,
     autoRowSize: true,
@@ -206,7 +217,7 @@ export function getPaginationContainerHeight() {
     height: 400,
   });
 
-  const paginationEl = testContainer.querySelector('.ht-pagination');
+  const paginationEl = tempDiv.querySelector('.ht-pagination');
 
   // Add 1px because `AutoPageSizeStrategy.calculate` (strategies/autoPageSize.js) triggers
   // a page break when `totalSize + itemSize >= viewportSize` (strict >=, not >). A spec
@@ -215,9 +226,9 @@ export function getPaginationContainerHeight() {
   // N-th row renders. Fix the strategy (use `>` instead of `>=`) to remove this.
   cachedPaginationHeight = paginationEl ? paginationEl.offsetHeight + 1 : 0;
 
-  $container.handsontable('destroy');
-  $container.removeData();
-  testContainer.innerHTML = '';
+  $probe.handsontable('destroy');
+  $probe.removeData();
+  document.body.removeChild(tempDiv);
 
   return cachedPaginationHeight;
 }
