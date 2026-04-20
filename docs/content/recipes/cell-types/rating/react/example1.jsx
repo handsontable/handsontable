@@ -18,7 +18,7 @@ const ratingRenderer = rendererFactory(({ td, value }) => {
 
 const ratingValidator = (value, callback) => {
   value = parseInt(value);
-  callback(value >= 0 && value <= 100);
+  callback(value >= 1 && value <= 5);
 };
 
 const ratingEditor = editorFactory({

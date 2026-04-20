@@ -39,6 +39,17 @@ category: Data Management
 @[code](@/content/recipes/data-management/sync-two-grids/react/example1.css)
 @[code](@/content/recipes/data-management/sync-two-grids/react/example1.jsx)
 @[code](@/content/recipes/data-management/sync-two-grids/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/data-management/sync-two-grids/angular/example1.ts)
+@[code](@/content/recipes/data-management/sync-two-grids/angular/example1.html)
+@[code](@/content/recipes/data-management/sync-two-grids/angular/example1.css)
 
 :::
 

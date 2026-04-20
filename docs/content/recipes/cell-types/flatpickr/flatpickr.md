@@ -41,6 +41,16 @@ This tutorial shows you how to integrate the Flatpickr date picker as a custom H
 @[code](@/content/recipes/cell-types/flatpickr/react/example1.css)
 @[code](@/content/recipes/cell-types/flatpickr/react/example1.jsx)
 @[code](@/content/recipes/cell-types/flatpickr/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps date-fns flatpickr
+
+@[code](@/content/recipes/cell-types/flatpickr/angular/example1.ts)
+@[code](@/content/recipes/cell-types/flatpickr/angular/example1.html)
 
 :::
 

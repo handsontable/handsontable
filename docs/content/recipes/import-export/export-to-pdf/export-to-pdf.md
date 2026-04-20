@@ -38,6 +38,17 @@ category: Import and Export
 
 @[code](@/content/recipes/import-export/export-to-pdf/react/example1.jsx)
 @[code](@/content/recipes/import-export/export-to-pdf/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps jspdf jspdf-autotable
+
+@[code](@/content/recipes/import-export/export-to-pdf/angular/example1.ts)
+@[code](@/content/recipes/import-export/export-to-pdf/angular/example1.html)
+@[code](@/content/recipes/import-export/export-to-pdf/angular/example1.css)
 
 :::
 

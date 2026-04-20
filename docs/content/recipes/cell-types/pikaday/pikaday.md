@@ -41,6 +41,16 @@ This tutorial shows you how to integrate the Pikaday date picker as a custom Han
 @[code](@/content/recipes/cell-types/pikaday/react/example1.css)
 @[code](@/content/recipes/cell-types/pikaday/react/example1.jsx)
 @[code](@/content/recipes/cell-types/pikaday/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps moment @handsontable/pikaday
+
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.ts)
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.html)
 
 :::
 

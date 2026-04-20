@@ -38,6 +38,16 @@ category: Editing and Validation
 
 @[code](@/content/recipes/editing-validation/dependent-dropdowns/react/example1.jsx)
 @[code](@/content/recipes/editing-validation/dependent-dropdowns/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/editing-validation/dependent-dropdowns/angular/example1.ts)
+@[code](@/content/recipes/editing-validation/dependent-dropdowns/angular/example1.html)
 
 :::
 

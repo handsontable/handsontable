@@ -59,6 +59,17 @@ This recipe shows a small UI with:
 @[code](@/content/recipes/import-export/import-csv-excel/react/example1.css)
 @[code](@/content/recipes/import-export/import-csv-excel/react/example1.jsx)
 @[code](@/content/recipes/import-export/import-csv-excel/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps papaparse xlsx
+
+@[code](@/content/recipes/import-export/import-csv-excel/angular/example1.ts)
+@[code](@/content/recipes/import-export/import-csv-excel/angular/example1.html)
+@[code](@/content/recipes/import-export/import-csv-excel/angular/example1.css)
 
 :::
 
