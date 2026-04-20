@@ -57,16 +57,18 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
   @ViewChild('editorContainer', { static: true }) editorContainer!: ElementRef<HTMLElement>;
 
   private pickrInstance: Pickr | null = null;
+  private pickrButton: HTMLButtonElement | null = null;
   private openedAt = 0;
 
   override afterOpen(): void {
     this.openedAt = Date.now();
     this.colorInput.nativeElement.value = this.value || '#000000';
 
-    const button = document.createElement('button');
-    button.textContent = 'Open color picker';
-    button.style.cssText = 'position:absolute;opacity:0;pointer-events:none;';
-    this.editorContainer.nativeElement.appendChild(button);
+    this.pickrButton = document.createElement('button');
+    this.pickrButton.textContent = 'Open color picker';
+    this.pickrButton.style.cssText = 'position:absolute;opacity:0;pointer-events:none;';
+    this.editorContainer.nativeElement.appendChild(this.pickrButton);
+    const button = this.pickrButton;
 
     this.pickrInstance = Pickr.create({
       el: button,
@@ -114,6 +116,8 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
     this.pickrInstance?.hide();
     this.pickrInstance?.destroy();
     this.pickrInstance = null;
+    this.pickrButton?.remove();
+    this.pickrButton = null;
   }
 
   override onFocus(): void {
