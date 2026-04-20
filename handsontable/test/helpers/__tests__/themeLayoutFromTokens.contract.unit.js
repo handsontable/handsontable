@@ -1,28 +1,33 @@
-import { mainTheme, classicTheme, horizonTheme } from '../../../src/themes/theme';
+import { mainTheme } from '../../../src/themes/theme';
+import * as themeModules from '../../../src/themes/theme';
 import density from '../../../src/themes/static/variables/density';
 import sizing from '../../../src/themes/static/variables/sizing';
 import { createThemeLayoutCore, E2E_REGISTERED_THEME_KEYS } from '../themeLayoutFromTokens';
 import WalkontableSettings from '../../../src/3rdparty/walkontable/src/settings';
 
+const ALL_THEMES = Object.values(themeModules).filter(m => m && m.name);
+
 describe('themeLayoutFromTokens entry point is src/themes/theme', () => {
-  it('registers theme modules exported from src/themes/theme/index.js', () => {
-    expect(E2E_REGISTERED_THEME_KEYS).toEqual(
-      expect.arrayContaining([classicTheme.name, mainTheme.name, horizonTheme.name])
-    );
-    expect(E2E_REGISTERED_THEME_KEYS.length).toBeGreaterThanOrEqual(3);
+  it('registers every theme module exported from src/themes/theme/index.js', () => {
+    const expectedNames = ALL_THEMES.map(m => m.name);
+
+    expect(E2E_REGISTERED_THEME_KEYS).toEqual(expect.arrayContaining(expectedNames));
+    expect(E2E_REGISTERED_THEME_KEYS.length).toBe(expectedNames.length);
   });
 
-  it('reads densityLevel from the theme module, not a hardcoded map', () => {
-    expect(createThemeLayoutCore(mainTheme.name).densityLevel).toBe(mainTheme.density);
-    expect(createThemeLayoutCore(classicTheme.name).densityLevel).toBe(classicTheme.density);
-    expect(createThemeLayoutCore(horizonTheme.name).densityLevel).toBe(horizonTheme.density);
+  ALL_THEMES.forEach((theme) => {
+    it(`reads densityLevel from the "${theme.name}" theme module, not a hardcoded map`, () => {
+      expect(createThemeLayoutCore(theme.name).densityLevel).toBe(theme.density);
+    });
   });
 
-  it('resolves cellVerticalPadding from density[theme.density].cellVertical', () => {
-    const sizingKey = density[mainTheme.density].cellVertical.replace('sizing.', '');
+  ALL_THEMES.forEach((theme) => {
+    it(`resolves cellVerticalPadding from density[${theme.name}.density].cellVertical`, () => {
+      const sizingKey = density[theme.density].cellVertical.replace('sizing.', '');
 
-    expect(createThemeLayoutCore(mainTheme.name).cellVerticalPadding)
-      .toBe(parseInt(sizing[sizingKey], 10));
+      expect(createThemeLayoutCore(theme.name).cellVerticalPadding)
+        .toBe(parseInt(sizing[sizingKey], 10));
+    });
   });
 });
 

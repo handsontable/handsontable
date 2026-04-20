@@ -250,6 +250,8 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (narrowing) selected columns', async() => {
+    // Disable autoColumnSize so columns use the deterministic 50px default width,
+    // making the post-drag pixel assertions (34px) stable across themes.
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -284,6 +286,8 @@ describe('manualColumnResize', () => {
   });
 
   it('should show resizer for fixed columns', async() => {
+    // Disable autoColumnSize so columns use the deterministic 50px default width,
+    // making the exact resizer position assertions (left: 194, left: 94) stable across themes.
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -310,6 +314,8 @@ describe('manualColumnResize', () => {
   });
 
   it('should resize (expanding) selected columns', async() => {
+    // Disable autoColumnSize so columns use the deterministic 50px default width,
+    // making the post-drag pixel assertions (155px) stable across themes.
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,

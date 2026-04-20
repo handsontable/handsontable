@@ -118,6 +118,8 @@ export function createThemeLayoutCore(themeName) {
   const defaultDataRowHeight = cellContentHeight + cellBorderWidth;
   const defaultColumnHeaderHeight = cellContentHeight;
   const firstRenderedRowDefaultHeight = defaultDataRowHeight + cellBorderWidth;
+  // Walkontable defaults row-header column width to the same constant as data columns
+  // (rendering engine convention -- see src/3rdparty/walkontable/src/settings.js).
   const defaultColumnWidth = WALKONTABLE_DEFAULT_COLUMN_WIDTH;
   const defaultRowHeaderWidth = WALKONTABLE_DEFAULT_COLUMN_WIDTH;
 
@@ -177,6 +179,12 @@ export function createThemeLayoutCore(themeName) {
  * scenarios that share a numeric formula. Do not treat the hash as meaningful.
  * Each helper below carries a JSDoc block that names the spec scenario it represents
  * and the meaning of every non-token numeric constant in its formula.
+ *
+ * The helpers are grouped into two historical buckets separated by divider comments:
+ *   - Bucket A: helpers that were already pure token formulas before the refactor.
+ *   - Bucket B: helpers whose formula had to be recovered by reverse-engineering the
+ *     original per-density numeric triplets back into token arithmetic.
+ * The bucket classification is historical only -- callers should not depend on it.
  *
  * @param {object} core Return value of `createThemeLayoutCore`.
  * @returns {object} Methods merged into the public theme layout API.

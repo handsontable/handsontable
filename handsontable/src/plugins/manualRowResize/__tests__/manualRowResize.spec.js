@@ -588,6 +588,9 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
+    // The drag moved the resizer by 30px, producing a final row height of
+    // `defaultDataRowHeight + 29` (29 = 30px drag - 1px resizer snap). This +29
+    // offset recurs across the following drag-resize assertions.
     expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
       getThemeLayout().defaultDataRowHeight + 29);
     expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(

@@ -51,6 +51,16 @@ describe('AutoRowSize', () => {
    * Third data row header height: auto-row-size may measure single-line or double-line
    * depending on column width and font metrics. Both are valid for any theme.
    *
+   * Ambiguity rationale: the third row contains the longest string ("The very very very
+   * longest one") and the test does not pin a column width -- the default column width
+   * from autoColumnSize can leave the string on one line or wrap it to two, depending on
+   * rounding of the theme's font metrics across themes and densities. Both outcomes are
+   * valid behaviours of autoRowSize. A deterministic version of this assertion would have
+   * to fix `colWidths` at a value wider than the longest string (single-line) or narrower
+   * than it (double-line). Rather than couple the test to a specific theme's font metrics,
+   * accept either height here and rely on the surrounding ordering assertions
+   * (`height0 < height1 < height2`) to detect regressions.
+   *
    * @param {number} heightPx Measured row height.
    */
   function expectThirdRowHeaderHeightAmbiguous(heightPx) {

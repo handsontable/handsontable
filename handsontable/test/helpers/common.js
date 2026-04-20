@@ -247,10 +247,11 @@ export function getE2eThemeStylesheetLinkTagsHtml() {
 /**
  * Single theme `<link>` tag (iframes that load one theme only).
  *
- * @param {string} themeKey Key from {@link E2E_REGISTERED_THEME_KEYS}.
+ * @param {string} [themeKey=getLoadedTheme()] Key from {@link E2E_REGISTERED_THEME_KEYS}.
+ *   Defaults to the theme currently loaded by the E2E runner.
  * @returns {string}
  */
-export function getE2eThemeStylesheetLinkTagHtml(themeKey) {
+export function getE2eThemeStylesheetLinkTagHtml(themeKey = getLoadedTheme()) {
   return `<link type="text/css" rel="stylesheet" href="${getE2eThemeStylesheetHref(themeKey)}">`;
 }
 
@@ -429,7 +430,7 @@ export function getDefaultRowHeight() {
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
-  return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+  return getThemeLayout().firstRenderedRowDefaultHeight;
 }
 
 /**

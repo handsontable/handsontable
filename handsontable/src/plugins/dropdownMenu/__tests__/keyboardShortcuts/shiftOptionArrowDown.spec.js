@@ -83,7 +83,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -112,7 +111,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell - active second selection layer', async() => {
-
       handsontable({
         data: createSpreadsheetData(5, 8),
         colHeaders: true,
@@ -148,7 +146,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu on the left position when on the right there is no space left', async() => {
-
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         colHeaders: true,
@@ -183,7 +180,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -212,7 +208,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -241,7 +236,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the single cell (navigableHeaders on)', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -270,7 +264,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of the cells (navigableHeaders on)', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -299,7 +292,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position triggered from the range of non-contiguous selection (navigableHeaders on)', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -328,7 +320,6 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', async() => {
-
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -434,7 +425,6 @@ describe('DropdownMenu keyboard shortcut', () => {
 
     describe('cooperation with nested headers', () => {
       it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers is selected', async() => {
-
         handsontable({
           data: createSpreadsheetData(3, 8),
           colHeaders: true,
