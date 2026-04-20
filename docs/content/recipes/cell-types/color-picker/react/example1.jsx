@@ -13,7 +13,7 @@ const colorPickerRenderer = rendererFactory(({ td, value }) => {
 });
 
 const colorPickerValidator = (value, callback) => {
-  callback(value.length === 7 && value[0] == '#');
+  callback(value.length === 7 && value[0] === '#');
 };
 
 const colorPickerEditor = editorFactory({
