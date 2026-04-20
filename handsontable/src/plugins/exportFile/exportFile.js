@@ -490,7 +490,7 @@ export class ExportFile extends BasePlugin {
 
     const exported = typeFormatter.export();
 
-    if (exported != null && typeof exported.then === 'function') {
+    if (typeof exported?.then === 'function') {
       return exported.then(buffer => new Blob([buffer], {
         type: typeFormatter.options.mimeType,
       }));
