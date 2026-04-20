@@ -2,7 +2,8 @@ const columnManagementItems = [
   { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 
-const recipeDataManagementItems = [
+const dataManagementItems = [
+  { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript', 'angular', 'react'] },
@@ -97,7 +98,7 @@ module.exports = {
     'introduction',
     { title: 'Accessibility', path: 'accessibility', children: accessibilityItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
-    { title: 'Data Management', path: 'data-management', children: recipeDataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {
       title: 'Editing and Validation',
