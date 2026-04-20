@@ -1439,7 +1439,6 @@ We provide complete working examples for common use cases. All examples use the 
 3. **[Flatpickr Date Picker](@/recipes/cell-types/flatpickr/flatpickr.md)** - Advanced date picker with options using `factoryEditor`
 4. **[Pikaday Date Picker](@/recipes/cell-types/pikaday/pikaday.md)** - Integrate Pikaday date picker using `factoryEditor`
 5. **[Star Rating](@/recipes/cell-types/rating/rating.md)** - Interactive star rating using `factoryEditor`
-6. **[Multiple Select](@/recipes/cell-types/select-multiple/select-multiple.md)** - Multi-select dropdown using `factoryEditor`
 
 ## Migration from Traditional Approach
 
