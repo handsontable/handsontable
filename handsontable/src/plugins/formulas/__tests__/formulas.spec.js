@@ -1,14 +1,9 @@
 import HyperFormula from 'hyperformula';
 
-const fillHandleSelector = '.wtBorder.current.corner';
-
 const autofill = (endRow, endCol) => {
-  spec().$container.find(fillHandleSelector).simulate('mousedown');
+  const target = spec().$container.find(`tbody tr:eq(${endRow}) td:eq(${endCol})`);
 
-  spec().$container
-    .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
-    .simulate('mouseover')
-    .simulate('mouseup');
+  simulateFillHandleDrag(target);
 };
 
 describe('Formulas general', () => {

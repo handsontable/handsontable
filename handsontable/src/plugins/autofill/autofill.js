@@ -143,6 +143,8 @@ export class Autofill extends BasePlugin {
 
     if (typeof settings === 'string') {
       pluginSettings.direction = settings;
+    } else if (settings && typeof settings === 'object') {
+      Object.assign(pluginSettings, settings);
     }
 
     this.updatePluginSettings(pluginSettings);
@@ -521,6 +523,11 @@ export class Autofill extends BasePlugin {
   redrawBorders(cellCoords) {
     const allowedDirections = this.directions;
     const lastRange = this.hot.getSelectedRangeLast();
+
+    if (!lastRange || !cellCoords) {
+      return;
+    }
+
     const highlight = lastRange.getBottomEndCorner();
     const topStartCorner = lastRange.getTopStartCorner();
     const bottomEndCorner = lastRange.getBottomEndCorner();

@@ -147,9 +147,15 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
       scrollRelativeX,
     );
 
-    // Fallback to edge columns if still not found
+    // Fallback to edge columns if still not found.
+    // If `lastPartiallyVisibleColumn` is null (e.g., the HoT is positioned off-screen and
+    // viewport queries return invalid indexes), fall back to the global column bounds.
     if (foundColumn === null) {
-      foundColumn = scrollRelativeX < 0 ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
+      if (scrollRelativeX < 0) {
+        foundColumn = firstPartiallyVisibleColumn ?? 0;
+      } else {
+        foundColumn = lastPartiallyVisibleColumn ?? (hotInstance.countCols() - 1);
+      }
     }
   }
 
@@ -212,9 +218,14 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
       scrollRelativeY,
     );
 
-    // Fallback to edge rows if still not found
+    // Fallback to edge rows if still not found. If the viewport query returns null
+    // (off-screen HoT edge case), use the global row bounds.
     if (foundRow === null) {
-      foundRow = lastPartiallyVisibleRow;
+      if (scrollRelativeY < 0) {
+        foundRow = firstPartiallyVisibleRow ?? 0;
+      } else {
+        foundRow = lastPartiallyVisibleRow ?? (hotInstance.countRows() - 1);
+      }
     }
   }
 

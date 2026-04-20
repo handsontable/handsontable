@@ -48,9 +48,7 @@ describe('MultiSelectEditor autofill', () => {
 
       await selectCell(0, 0, 0, 0);
 
-      spec().$container.find('.wtBorder.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
-      spec().$container.find('tr:eq(0) td:eq(1)').simulate('mouseup');
+      simulateFillHandleDrag(spec().$container.find('tr:eq(0) td:eq(1)'));
 
       await waitForNextAnimationFrames(1);
 
@@ -59,9 +57,7 @@ describe('MultiSelectEditor autofill', () => {
 
       await selectCell(0, 0, 0, 1);
 
-      spec().$container.find('.wtBorder.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseover');
-      spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseup');
+      simulateFillHandleDrag(spec().$container.find('tr:eq(2) td:eq(1)'));
 
       await waitForNextAnimationFrames(1);
 
@@ -98,9 +94,7 @@ describe('MultiSelectEditor autofill', () => {
 
       await selectCell(0, 0, 0, 0);
 
-      spec().$container.find('.wtBorder.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
-      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+      simulateFillHandleDrag(spec().$container.find('tr:eq(2) td:eq(0)'));
 
       await waitForNextAnimationFrames(1);
 
