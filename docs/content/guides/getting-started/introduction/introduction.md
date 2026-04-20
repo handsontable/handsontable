@@ -17,6 +17,7 @@ category: Getting started
 ---
 Handsontable is a JavaScript data grid component. This page explains what it does, who uses it, and when it is the right tool for your project.
 
+
 [[toc]]
 
 ## Getting started 🚀
