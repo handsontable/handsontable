@@ -11,17 +11,49 @@ tags:
   - chart.js
   - selection
   - real-time
+react:
+  id: b5e8d1f4
+  metaTitle: Sync selected rows to a Chart.js chart - React Data Grid | Handsontable
+angular:
+  id: c6f9e2a5
+  metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time and Integrations
 type: tutorial
 ---
 
-::: only-for javascript
+::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --css 2 --deps chart.js
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps chart.js
 
 @[code](@/content/recipes/real-time/chartjs-sync/javascript/example1.js)
+@[code](@/content/recipes/real-time/chartjs-sync/javascript/example1.ts)
 @[code](@/content/recipes/real-time/chartjs-sync/javascript/example1.css)
+@[code](@/content/recipes/real-time/chartjs-sync/javascript/example1.html)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps chart.js
+
+@[code](@/content/recipes/real-time/chartjs-sync/react/example1.css)
+@[code](@/content/recipes/real-time/chartjs-sync/react/example1.jsx)
+@[code](@/content/recipes/real-time/chartjs-sync/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps chart.js
+
+@[code](@/content/recipes/real-time/chartjs-sync/angular/example1.ts)
+@[code](@/content/recipes/real-time/chartjs-sync/angular/example1.html)
+@[code](@/content/recipes/real-time/chartjs-sync/angular/example1.css)
 
 :::
 

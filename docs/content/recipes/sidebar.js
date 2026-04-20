@@ -1,5 +1,6 @@
 const realTimeItems = [
   { path: 'real-time/websocket-updates/websocket-updates', title: 'Real-time updates via WebSocket', onlyFor: ['javascript', 'react', 'angular'] },
+  { path: 'real-time/chartjs-sync/chartjs-sync', title: 'Sync rows to Chart.js', onlyFor: ['javascript', 'react', 'angular'] },
 ];
 
 const columnManagementItems = [
@@ -73,10 +74,6 @@ const filteringAndSearchItems = [
   },
 ];
 
-const realTimeItems = [
-  { path: 'real-time/chartjs-sync/chartjs-sync', title: 'Sync rows to Chart.js', onlyFor: ['javascript'] },
-];
-
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -141,7 +138,6 @@ module.exports = {
       collapsable: false,
       onlyFor: ['javascript', 'angular', 'react'],
     },
-    { title: 'Real-time and Integrations', path: 'real-time', children: realTimeItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
