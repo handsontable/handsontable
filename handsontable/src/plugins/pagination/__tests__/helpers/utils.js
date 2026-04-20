@@ -208,8 +208,11 @@ export function getPaginationContainerHeight() {
 
   const paginationEl = testContainer.querySelector('.ht-pagination');
 
-  // Add 1px to account for `.ht-pagination--bordered` border-top-color transition
-  // that may differ between the measurement instance and the real spec instance.
+  // Add 1px because `AutoPageSizeStrategy.calculate` (strategies/autoPageSize.js) triggers
+  // a page break when `totalSize + itemSize >= viewportSize` (strict >=, not >). A spec
+  // that sets `height: N * rowHeight + paginationHeight` would otherwise truncate to
+  // `N - 1` visible rows. The +1 nudges the container height past the threshold so the
+  // N-th row renders. Fix the strategy (use `>` instead of `>=`) to remove this.
   cachedPaginationHeight = paginationEl ? paginationEl.offsetHeight + 1 : 0;
 
   $container.handsontable('destroy');
