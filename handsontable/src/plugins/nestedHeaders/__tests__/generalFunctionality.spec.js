@@ -577,6 +577,27 @@ describe('NestedHeaders', () => {
         expect($(this).attr('colspan') || '1').toBe('1');
       });
 
+      // Structure check: no columns are hidden here, so the count of visible
+      // bottom-row headers must equal the rendered column count, and each label
+      // must match `getColHeader(col, lastHeaderLevel)` for the rendered range.
+      const renderedCols = countRenderedCols();
+      const startCol = hot().view._wt.wtTable.getFirstRenderedColumn();
+      const lastHeaderLevel = hot().view._wt.wtTable.THEAD.querySelectorAll('tr').length - 1;
+
+      expect(bottomRowHeaders.length).toBe(renderedCols);
+      const expectedLabels = [];
+
+      for (let i = 0; i < renderedCols; i++) {
+        expectedLabels.push(getColHeader(startCol + i, lastHeaderLevel));
+      }
+      const actualLabels = bottomRowHeaders.toArray().map((th) => {
+        const colHeader = th.querySelector('.colHeader');
+
+        return colHeader ? colHeader.innerText : $(th).text();
+      });
+
+      expect(actualLabels).toEqual(expectedLabels);
+
       // Each header row must have at least as many visible headers as the bottom row
       const headerRows = getTopClone().find('thead tr');
 

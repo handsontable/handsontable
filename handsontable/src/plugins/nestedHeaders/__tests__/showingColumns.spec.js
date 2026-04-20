@@ -1045,6 +1045,40 @@ describe('NestedHeaders', () => {
         expect($(this).attr('colspan') || '1').toBe('1');
       });
 
+      // Structure check: the count of visible bottom-row headers must equal the
+      // count of rendered columns whose physical index is not in the hidden set.
+      // Each column labeled from getColHeader(col, lastHeaderLevel) must match
+      // the text content of the corresponding visible TH in order.
+      const lastHeaderLevel = hot().view._wt.wtTable.THEAD.querySelectorAll('tr').length - 1;
+      const renderedCols1 = countRenderedCols();
+      const startCol1 = hot().view._wt.wtTable.getFirstRenderedColumn();
+      const hiddenSet1 = new Set();
+
+      for (let i = 1; i <= 45; i += 2) {
+        hiddenSet1.add(i); // odd indexes 1..45 are hidden
+      }
+      let hiddenInRange1 = 0;
+      const expectedLabels1 = [];
+
+      for (let i = 0; i < renderedCols1; i++) {
+        const visualCol = startCol1 + i;
+
+        if (hiddenSet1.has(visualCol)) {
+          hiddenInRange1 += 1;
+        } else {
+          expectedLabels1.push(getColHeader(visualCol, lastHeaderLevel));
+        }
+      }
+      expect(bottomHeaders1.length).toBe(renderedCols1 - hiddenInRange1);
+      const actualLabels1 = bottomHeaders1.toArray().map((th) => {
+        const colHeader = th.querySelector('.colHeader');
+
+        return colHeader ? colHeader.innerText : $(th).text();
+      });
+
+      expect(actualLabels1).toEqual(expectedLabels1);
+      expect(getTopClone().find('thead tr:last th.hiddenHeader').length).toBe(hiddenInRange1);
+
       hidingMap.setValueAtIndex(31, false); // Show column that contains cells AF{n}
       hidingMap.setValueAtIndex(33, false); // Show column that contains cells AH{n}
       hidingMap.setValueAtIndex(35, false); // Show column that contains cells AJ{n}
@@ -1080,6 +1114,40 @@ describe('NestedHeaders', () => {
       bottomHeaders2.each(function() {
         expect($(this).attr('colspan') || '1').toBe('1');
       });
+
+      // Structure check: the updated hidden set is odd numbers 1..45 minus the
+      // indexes we just re-enabled (31, 33, 35, 37, 39, 41, 43, 45).
+      const reShown = new Set([31, 33, 35, 37, 39, 41, 43, 45]);
+      const hiddenSet2 = new Set();
+
+      for (let i = 1; i <= 45; i += 2) {
+        if (!reShown.has(i)) {
+          hiddenSet2.add(i);
+        }
+      }
+      const renderedCols2 = countRenderedCols();
+      const startCol2 = hot().view._wt.wtTable.getFirstRenderedColumn();
+      let hiddenInRange2 = 0;
+      const expectedLabels2 = [];
+
+      for (let i = 0; i < renderedCols2; i++) {
+        const visualCol = startCol2 + i;
+
+        if (hiddenSet2.has(visualCol)) {
+          hiddenInRange2 += 1;
+        } else {
+          expectedLabels2.push(getColHeader(visualCol, lastHeaderLevel));
+        }
+      }
+      expect(bottomHeaders2.length).toBe(renderedCols2 - hiddenInRange2);
+      const actualLabels2 = bottomHeaders2.toArray().map((th) => {
+        const colHeader = th.querySelector('.colHeader');
+
+        return colHeader ? colHeader.innerText : $(th).text();
+      });
+
+      expect(actualLabels2).toEqual(expectedLabels2);
+      expect(getTopClone().find('thead tr:last th.hiddenHeader').length).toBe(hiddenInRange2);
 
       // Verify header rows are well-formed
       const headerRows = getTopClone().find('thead tr');

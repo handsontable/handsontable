@@ -226,14 +226,35 @@ describe('ColumnSorting', () => {
 
       expect(computedStyle.getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
+      // _column-sorting.scss sets `top: 50%; right: 2px;` (LTR) or `left: 2px;` (RTL) on
+      // `.columnSorting::before`. Assert the exact hardcoded horizontal offset and that the
+      // vertical anchor resolves to the span's vertical midpoint.
+      const spanRect = sortedColumn.getBoundingClientRect();
+      const topPx = parseFloat(computedStyle.getPropertyValue('top'));
+      const iconSize = parseFloat(
+        window.getComputedStyle(sortedColumn).getPropertyValue('--ht-icon-size')
+      ) || 16;
+
+      // `top: 50%` resolves relative to the ::before's containing block (the sortedColumn span);
+      // allow a 1px tolerance for sub-pixel rounding.
+      expect(Math.abs(topPx - spanRect.height / 2)).toBeLessThanOrEqual(1);
+
       if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
-        expect(parseInt(computedStyle.getPropertyValue('left'), 10)).toBeGreaterThanOrEqual(0);
+        // In RTL mode the indicator is anchored to the left of the span at exactly 2px.
+        expect(parseFloat(computedStyle.getPropertyValue('left'))).toBe(2);
+        // The opposite edge is declared `auto`; browsers resolve it to a positive value that
+        // equals (span width - left anchor - icon width) within a small rounding tolerance.
+        const rightPx = parseFloat(computedStyle.getPropertyValue('right'));
+
+        expect(rightPx).toBeGreaterThanOrEqual(spanRect.width - iconSize - 2 - 1);
 
       } else {
-        expect(parseInt(computedStyle.getPropertyValue('right'), 10)).toBeGreaterThanOrEqual(0);
-      }
+        // In LTR mode the indicator is anchored to the right of the span at exactly 2px.
+        expect(parseFloat(computedStyle.getPropertyValue('right'))).toBe(2);
+        const leftPx = parseFloat(computedStyle.getPropertyValue('left'));
 
-      expect(parseInt(computedStyle.getPropertyValue('top'), 10)).toBeGreaterThanOrEqual(0);
+        expect(leftPx).toBeGreaterThanOrEqual(spanRect.width - iconSize - 2 - 1);
+      }
     });
   });
 

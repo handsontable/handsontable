@@ -1132,6 +1132,44 @@ describe('NestedHeaders', () => {
         expect($(this).attr('colspan') || '1').toBe('1');
       });
 
+      // Structure check: the number of visible bottom-row headers must match
+      // the rendered column count minus the count of hidden columns that fall
+      // inside the rendered range.
+      const renderedCols1 = countRenderedCols();
+      const startCol1 = hot().view._wt.wtTable.getFirstRenderedColumn();
+      const hiddenSet = new Set([40, 42, 45]);
+      let hiddenInRange1 = 0;
+
+      for (let i = 0; i < renderedCols1; i++) {
+        if (hiddenSet.has(startCol1 + i)) {
+          hiddenInRange1 += 1;
+        }
+      }
+      expect(bottomHeaders1.length).toBe(renderedCols1 - hiddenInRange1);
+
+      // Structure check: labels in visible bottom-row headers must match
+      // `getColHeader(col, lastHeaderLevel)` for each rendered, non-hidden column.
+      const lastHeaderLevel = hot().view._wt.wtTable.THEAD.querySelectorAll('tr').length - 1;
+      const expectedLabels1 = [];
+
+      for (let i = 0; i < renderedCols1; i++) {
+        const visualCol = startCol1 + i;
+
+        if (!hiddenSet.has(visualCol)) {
+          expectedLabels1.push(getColHeader(visualCol, lastHeaderLevel));
+        }
+      }
+      const actualLabels1 = bottomHeaders1.toArray().map((th) => {
+        const colHeader = th.querySelector('.colHeader');
+
+        return colHeader ? colHeader.innerText : $(th).text();
+      });
+
+      expect(actualLabels1).toEqual(expectedLabels1);
+
+      // Hidden headers still exist in the DOM carrying the hiddenHeader class.
+      expect(getTopClone().find('thead tr:last th.hiddenHeader').length).toBe(hiddenInRange1);
+
       // The data row must also exclude hidden columns
       expect(htmlAfterFirstScroll).not.toContain('>AO1<');
       expect(htmlAfterFirstScroll).not.toContain('>AQ1<');
@@ -1167,6 +1205,39 @@ describe('NestedHeaders', () => {
       bottomHeaders2.each(function() {
         expect($(this).attr('colspan') || '1').toBe('1');
       });
+
+      // Structure check: the number of visible bottom-row headers must match
+      // the rendered column count minus the count of hidden columns that fall
+      // inside the rendered range. The set includes columns hidden in both steps.
+      const renderedCols2 = countRenderedCols();
+      const startCol2 = hot().view._wt.wtTable.getFirstRenderedColumn();
+      const hiddenSet2 = new Set([40, 42, 45, 57, 59, 60, 62]);
+      let hiddenInRange2 = 0;
+
+      for (let i = 0; i < renderedCols2; i++) {
+        if (hiddenSet2.has(startCol2 + i)) {
+          hiddenInRange2 += 1;
+        }
+      }
+      expect(bottomHeaders2.length).toBe(renderedCols2 - hiddenInRange2);
+
+      const expectedLabels2 = [];
+
+      for (let i = 0; i < renderedCols2; i++) {
+        const visualCol = startCol2 + i;
+
+        if (!hiddenSet2.has(visualCol)) {
+          expectedLabels2.push(getColHeader(visualCol, lastHeaderLevel));
+        }
+      }
+      const actualLabels2 = bottomHeaders2.toArray().map((th) => {
+        const colHeader = th.querySelector('.colHeader');
+
+        return colHeader ? colHeader.innerText : $(th).text();
+      });
+
+      expect(actualLabels2).toEqual(expectedLabels2);
+      expect(getTopClone().find('thead tr:last th.hiddenHeader').length).toBe(hiddenInRange2);
     });
 
     it('should adjust headers correctly when the new maps are created and registered after Hot is running', async() => {
