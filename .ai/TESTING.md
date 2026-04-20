@@ -415,16 +415,27 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 
 ### Available metrics
 
+From `getThemeLayout()`:
+
 - `defaultDataRowHeight` -- outer height of a data row (content + 1px border)
 - `defaultColumnHeaderHeight` -- content height of column header (no border)
 - `firstRenderedRowDefaultHeight` -- first row in an overlay (extra 1px compensation)
 - `defaultColumnWidth` -- 50px (Walkontable constant)
 - `defaultRowHeaderWidth` -- 50px for every theme (Walkontable default row-header column width; used for E2E container width math so horizontal viewport matches across themes)
 - `cellContentHeight` -- same as defaultColumnHeaderHeight (TD clientHeight)
-- `densityLevel` -- `'compact' | 'default' | 'comfortable'` read from the theme module; drives all density-branching inside helpers
+- `lineHeight`, `cellVerticalPadding`, `cellHorizontalPadding`, `cellBorderWidth` -- token primitives to compose formulas from
+- `densityLevel` -- `'compact' | 'default' | 'comfortable'` read from the theme module (exposed for diagnostic access; **do not branch on it** -- primitives already vary per theme)
 - `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
 - `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
-- **`e2e*()` helpers** -- regression geometry for specific E2E scenarios (menu scroll, filters submenu Y, manual row resize handle positions, stretch-columns widths, nested-headers keyboard scroll snapshots, etc.). They live in `themeLayoutE2eHelpers.js` and branch on `densityLevel` (or use token formulas), never on theme name. Add new scenarios in `themeLayoutE2eHelpers.js` when specs would otherwise embed numeric literals. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
+- **`e2e*()` / `e2eGcr_*()` / `e2eDensity_*()` helpers** -- shared regression geometry expressed as pure arithmetic expressions over the primitives above. No density-name branching, no hardcoded per-theme literals. Add new scenarios in `themeLayoutE2eHelpers.js` when multiple specs would otherwise embed the same formula. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
+
+Additional viewport helpers in `common.js` (globals in E2E):
+
+- `expectedVisibleRows(containerHeight, colHeaderRows = 1)` -- number of fully visible data rows for a given container height
+- `expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1)` -- 0-based index of the last fully visible data row
+- `containerHeightForRows(rowCount, colHeaderRows = 1)` -- container height that guarantees exactly `rowCount` fully visible data rows (prefer this over hardcoded `height:` literals when the test's intent is "N rows visible")
+- `scaleHeight(mainThemeHeight)` / `scaleHeightWithScrollbar(mainThemeHeight)` -- scale a main-theme pixel height proportionally to the current theme's row height
+- `getPaginationContainerHeight()` -- returns the pagination bar's rendered `offsetHeight` measured live from the DOM once per run; theme/density/token independent
 
 ### Preferred patterns
 
