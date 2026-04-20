@@ -91,25 +91,25 @@ function persistThread(messages: ChatMessage[]) {
   }
 }
 
-function readSlackThread(): string | null {
+function readThreadId(): string | null {
   try {
-    return localStorage.getItem(STORAGE_KEYS.slackThread);
+    return localStorage.getItem(STORAGE_KEYS.threadId);
   } catch {
     return null;
   }
 }
 
-function writeSlackThread(ts: string) {
+function writeThreadId(ts: string) {
   try {
-    localStorage.setItem(STORAGE_KEYS.slackThread, ts);
+    localStorage.setItem(STORAGE_KEYS.threadId, ts);
   } catch {
     // Quota or privacy-mode — drop silently.
   }
 }
 
-function clearSlackThreadStorage() {
+function clearThreadIdStorage() {
   try {
-    localStorage.removeItem(STORAGE_KEYS.slackThread);
+    localStorage.removeItem(STORAGE_KEYS.threadId);
   } catch {
     // Quota or privacy-mode — drop silently.
   }
@@ -163,11 +163,11 @@ export function useAssistant() {
   });
   const abortRef = useRef<AbortController | null>(null);
   const hydratedRef = useRef(false);
-  // Slack thread timestamp for the current conversation. Persisted in
-  // localStorage under STORAGE_KEYS.slackThread so the thread id survives
-  // page reloads and cross-page navigation, matching the lifecycle of the
-  // visible conversation. Reset in `clear` / `clearAndSend`.
-  const slackThreadRef = useRef<string | null>(readSlackThread());
+  // Conversation thread id returned by the backend. Persisted in localStorage
+  // under STORAGE_KEYS.threadId so the id survives page reloads and cross-page
+  // navigation, matching the lifecycle of the visible conversation. Reset in
+  // `clear` / `clearAndSend`.
+  const threadIdRef = useRef<string | null>(readThreadId());
 
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -215,8 +215,8 @@ export function useAssistant() {
 
       try {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (slackThreadRef.current) {
-          headers['X-Slack-Thread'] = slackThreadRef.current;
+        if (threadIdRef.current) {
+          headers['X-Thread-Id'] = threadIdRef.current;
         }
 
         const res = await fetch(CHAT_ENDPOINT, {
@@ -234,14 +234,14 @@ export function useAssistant() {
         }
         if (!res.body) throw new Error('No response body');
 
-        // Capture the Slack thread id returned by the first successful turn so
-        // subsequent turns thread under the same Slack post. The server returns
-        // the same value on every turn of a conversation; the `!current` guard
-        // avoids redundant writes.
-        const returnedTs = res.headers.get('X-Slack-Thread');
-        if (returnedTs && !slackThreadRef.current) {
-          slackThreadRef.current = returnedTs;
-          writeSlackThread(returnedTs);
+        // Capture the thread id returned by the first successful turn so the
+        // backend can correlate subsequent turns to the same conversation. The
+        // server returns the same value on every turn of a conversation; the
+        // `!current` guard avoids redundant writes.
+        const returnedId = res.headers.get('X-Thread-Id');
+        if (returnedId && !threadIdRef.current) {
+          threadIdRef.current = returnedId;
+          writeThreadId(returnedId);
         }
 
         for await (const event of readSSE(res.body, controller.signal)) {
@@ -305,8 +305,8 @@ export function useAssistant() {
   const clear = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
-    slackThreadRef.current = null;
-    clearSlackThreadStorage();
+    threadIdRef.current = null;
+    clearThreadIdStorage();
     dispatch({ type: 'CLEAR' });
   }, []);
 
@@ -314,8 +314,8 @@ export function useAssistant() {
     async (text: string) => {
       abortRef.current?.abort();
       abortRef.current = null;
-      slackThreadRef.current = null;
-      clearSlackThreadStorage();
+      threadIdRef.current = null;
+      clearThreadIdStorage();
       dispatch({ type: 'CLEAR' });
       const trimmed = text.trim();
       if (!trimmed) return;
