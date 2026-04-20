@@ -198,12 +198,20 @@ export function useAssistant() {
         dispatch({ type: 'END' });
       } catch (err) {
         if ((err as Error).name === 'AbortError') {
-          dispatch({ type: 'END' });
+          // Only dispatch END if no newer request has replaced this controller.
+          // clearAndSend sets abortRef.current to null/new before aborting the
+          // old one, so this guard prevents the old abort from killing the new
+          // request's streaming state.
+          if (abortRef.current === controller) {
+            dispatch({ type: 'END' });
+          }
           return;
         }
         dispatch({ type: 'ERROR', error: (err as Error).message || 'Request failed' });
       } finally {
-        abortRef.current = null;
+        if (abortRef.current === controller) {
+          abortRef.current = null;
+        }
       }
     },
     []
