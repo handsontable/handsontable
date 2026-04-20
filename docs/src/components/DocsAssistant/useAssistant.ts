@@ -160,7 +160,19 @@ export function useAssistant() {
 
   const sendInternal = useCallback(
     async (userMessageText: string, historyForApi: ChatMessage[]) => {
+      // Register the controller before any await so clearAndSend can abort
+      // even while buildContextualMessage is still fetching page context.
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       const contextualised = await buildContextualMessage(userMessageText);
+
+      // Bail out if aborted during page-context fetch (no UI state committed yet).
+      if (controller.signal.aborted) {
+        if (abortRef.current === controller) abortRef.current = null;
+        return;
+      }
+
       const apiMessages = [
         ...historyForApi.map(({ role, content }) => ({ role, content })),
         { role: 'user' as const, content: contextualised },
@@ -171,9 +183,6 @@ export function useAssistant() {
         type: 'BEGIN_ASSISTANT',
         message: { id: assistantId, role: 'assistant', content: '', ts: Date.now() },
       });
-
-      const controller = new AbortController();
-      abortRef.current = controller;
 
       try {
         const res = await fetch(CHAT_ENDPOINT, {
