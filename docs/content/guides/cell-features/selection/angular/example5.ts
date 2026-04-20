@@ -1,10 +1,11 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example5-selection',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <div class="example-controls-container">
       <div class="controls">
@@ -18,16 +19,16 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     </div>`,
   encapsulation: ViewEncapsulation.None
 })
-export class Example5SelectionComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data = [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5'],
-    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6'],
+    ['Ana García',     'Engineering', 'Senior Engineer',  95000, 12, '2026-03-14'],
+    ['James Okafor',   'Marketing',   'Product Manager',  88000,  8, '2026-07-01'],
+    ['Li Wei',         'Engineering', 'Frontend Dev',     82000,  5, '2026-01-10'],
+    ['Maria Santos',   'HR',          'HR Specialist',    71000,  3, '2026-11-20'],
+    ['David Kim',      'Engineering', 'Backend Dev',      85000,  7, '2026-08-05'],
+    ['Emma Wilson',    'Marketing',   'SEO Analyst',      68000,  2, '2026-02-14'],
   ];
 
   readonly gridSettings: GridSettings = {
@@ -58,37 +59,21 @@ export class Example5SelectionComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example5SelectionComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example5SelectionComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example5SelectionComponent ]
-})
-
-export class AppModule { }
 /* end-file */

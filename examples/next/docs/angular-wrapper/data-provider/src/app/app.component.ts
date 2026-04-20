@@ -1,13 +1,10 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { registerAllModules } from 'handsontable/registry';
 import {
   HotTableModule,
   GridSettings,
 } from '@handsontable/angular-wrapper';
 import { createTicketsDataProvider, createWarehouseDataProvider } from './data-provider-clients';
 import { environment } from '../environments/environment';
-
-registerAllModules();
 
 @Component({
   standalone: true,
