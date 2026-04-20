@@ -20,7 +20,7 @@ interface PikadayEditorInstance {
 }
 
 const pikadayRenderer = rendererFactory(({ td, value, cellProperties }) => {
-  td.innerText = moment(new Date(value as string), cellProperties.renderFormat).format(cellProperties.renderFormat);
+  td.innerText = value ? moment(new Date(value as string), cellProperties.renderFormat).format(cellProperties.renderFormat) : '';
 });
 
 const pikadayEditor = editorFactory<PikadayEditorInstance>({

@@ -13,7 +13,7 @@ const DATE_FORMAT_US = 'MM/DD/YYYY';
 const DEFAULT_DATE_FORMAT = DATE_FORMAT_US;
 
 const pikadayRenderer = rendererFactory(({ td, value, cellProperties }) => {
-  td.innerText = moment(new Date(value), cellProperties.renderFormat).format(cellProperties.renderFormat);
+  td.innerText = value ? moment(new Date(value), cellProperties.renderFormat).format(cellProperties.renderFormat) : '';
 });
 
 const pikadayEditor = editorFactory({
