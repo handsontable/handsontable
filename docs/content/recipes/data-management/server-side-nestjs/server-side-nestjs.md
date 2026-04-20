@@ -16,6 +16,10 @@ searchCategory: Recipes
 category: Data Management
 ---
 
+::: tip Handsontable sponsors NestJS
+Handsontable is a proud sponsor of NestJS. You can support the project on [Open Collective](https://opencollective.com/handsontable-javascript-data-grid).
+:::
+
 ## Overview
 
 This recipe shows how to connect Handsontable's `dataProvider` plugin to a NestJS 10 backend. You will build a support-tickets grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to an in-memory store.
