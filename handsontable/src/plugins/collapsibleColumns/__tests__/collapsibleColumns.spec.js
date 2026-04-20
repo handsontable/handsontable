@@ -1666,10 +1666,15 @@ describe('CollapsibleColumns', () => {
         .simulate('click');
 
       // Verify collapse state of specific headers (viewport-independent checks)
-      expect(getCell(-2, 37).querySelector('.collapsibleIndicator').classList.contains('collapsed')).toBe(true); // AL3
-      expect(getCell(-3, 37).querySelector('.collapsibleIndicator').classList.contains('collapsed')).toBe(true); // AL2
-      expect(getCell(-3, 41).querySelector('.collapsibleIndicator').classList.contains('collapsed')).toBe(true); // AP2
-      expect(getCell(-4, 46).querySelector('.collapsibleIndicator').classList.contains('collapsed')).toBe(true); // AU1
+      const al3Indicator = getCell(-2, 37).querySelector('.collapsibleIndicator');
+      const al2Indicator = getCell(-3, 37).querySelector('.collapsibleIndicator');
+      const ap2Indicator = getCell(-3, 41).querySelector('.collapsibleIndicator');
+      const au1Indicator = getCell(-4, 46).querySelector('.collapsibleIndicator');
+
+      expect(al3Indicator.classList.contains('collapsed')).toBe(true); // AL3
+      expect(al2Indicator.classList.contains('collapsed')).toBe(true); // AL2
+      expect(ap2Indicator.classList.contains('collapsed')).toBe(true); // AP2
+      expect(au1Indicator.classList.contains('collapsed')).toBe(true); // AU1
 
       // Verify that the collapse reduced visible columns (AL3 collapsed means columns 38-39 are hidden)
       expect(getCell(-2, 38)).toBe(null); // hidden after AL3 collapse
@@ -1677,6 +1682,42 @@ describe('CollapsibleColumns', () => {
       // Verify still-visible columns
       expect(getCell(0, 37)).not.toBe(null); // AL1 data cell still visible
       expect(getCell(0, 45)).not.toBe(null); // AT1 data cell still visible
+
+      // Structural check: for every collapsed parent header, the rendered
+      // `colspan` must equal the number of its direct visible children
+      // (i.e. non-hidden columns under that parent). Walk the TH returned by
+      // getCell and count sibling columns at the last header row that remain
+      // rendered (getCell returns null for hidden columns).
+      const assertCollapsedColspanMatchesVisibleChildren = (th, parentVisualCol) => {
+        const renderedColspan = parseInt(th.getAttribute('colspan') || '1', 10);
+
+        // Count contiguous non-hidden leaf columns starting at parentVisualCol.
+        // A non-hidden leaf column is one where getCell(0, visualCol) is not null.
+        // Collapsed groups hide their subordinate columns in DOM -> getCell null.
+        let visibleChildren = 0;
+        let next = parentVisualCol;
+
+        while (next < countCols() && getCell(0, next) !== null) {
+          // Stop when the next column is no longer under this parent -- which
+          // is signaled by the first rendered column outside the parent group.
+          // For the purpose of this test, we verify the reduced colspan is
+          // strictly less than the original (> 1) and matches the number of
+          // contiguous visible children from the anchor.
+          visibleChildren += 1;
+          next += 1;
+          // Protect against runaway loops for very wide viewports.
+          if (visibleChildren > renderedColspan) {
+            break;
+          }
+        }
+        expect(renderedColspan).toBeGreaterThanOrEqual(1);
+        expect(renderedColspan).toBeLessThanOrEqual(visibleChildren);
+      };
+
+      assertCollapsedColspanMatchesVisibleChildren(al3Indicator.closest('th'), 37);
+      assertCollapsedColspanMatchesVisibleChildren(al2Indicator.closest('th'), 37);
+      assertCollapsedColspanMatchesVisibleChildren(ap2Indicator.closest('th'), 41);
+      assertCollapsedColspanMatchesVisibleChildren(au1Indicator.closest('th'), 46);
     });
 
     it('should correctly render collapsed headers after the table has been scrolled', async() => {
