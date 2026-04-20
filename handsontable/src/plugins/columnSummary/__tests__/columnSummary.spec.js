@@ -738,7 +738,9 @@ describe('ColumnSummarySpec', () => {
 
     it('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
-      const height = 252;
+      // Size the container so at least 9 data rows fit regardless of theme row height,
+      // otherwise the summary result row (row 8 after the move) renders outside the viewport.
+      const height = containerHeightForRows(9);
 
       handsontable({
         data: createNumericData(40, 40),
