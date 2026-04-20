@@ -11,16 +11,47 @@ tags:
   - accessibility
   - recipes
   - tutorial
+react:
+  id: b2e91d30
+  metaTitle: Custom keyboard shortcuts - React Data Grid | Handsontable
+angular:
+  id: c4f03e47
+  metaTitle: Custom keyboard shortcuts - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
 ---
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --css 2
+::: example #example1 :hot-recipe --html 1 --js 2 --css 3
 
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/javascript/example1.html)
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/javascript/example1.js)
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react --js 1 --ts 2 --css 3
+
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/react/example1.jsx)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/react/example1.tsx)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/react/example1.css)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/angular/example1.ts)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/angular/example1.html)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/angular/example1.css)
 
 :::
 

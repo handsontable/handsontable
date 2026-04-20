@@ -114,9 +114,10 @@ function escapeHtml(str) {
  * @param {string[]} fileRefs - Paths relative to contentDir (after stripping '@/content/')
  * @param {string} contentDir - Absolute path to docs/content/
  * @param {Object<string, string>} [fileMeta] - Optional EC meta attributes keyed by file path
+ * @param {string} [extraClasses] - Space-separated CSS classes to add to the container div
  * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
+function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '') {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -285,7 +286,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}) {
     <div class="hot-example-loader__row"></div>
     <div class="hot-example-loader__row"></div>
   </div>
-  ${htmlPreviewContent || `<div id="${escapeHtml(id)}"></div>`}
+  ${htmlPreviewContent || `<div id="${escapeHtml(id)}"${extraClasses ? ` class="${escapeHtml(extraClasses)}"` : ''}></div>`}
 </div>
 <div class="hot-example-toolbar">
   <button class="hot-example-source-btn" type="button" aria-expanded="false" aria-controls="hot-code-${escapeHtml(id)}">
@@ -337,6 +338,10 @@ function processExampleBlocks(content, contentDir) {
       const idMatch = header.match(/#(\S+)/);
       const id = idMatch ? idMatch[1] : 'unknown';
 
+      // Extract CSS classes from the header (e.g. '.disable-auto-theme')
+      const classMatches = [...header.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)];
+      const extraClasses = classMatches.map(m => m[1]).join(' ');
+
       // Collect all lines inside this block until the matching closing :::
       const blockLines = [];
       let depth = 1;
@@ -377,7 +382,7 @@ function processExampleBlocks(content, contentDir) {
         }
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);
@@ -398,7 +403,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v29';
+const LOADER_VERSION = 'v33';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -571,6 +576,52 @@ function convertDetailsContainers(content) {
     }
 
     result.push(line);
+  }
+
+  return result.join('\n');
+}
+
+/**
+ * Converts ::: ask-about-api name|memberof ::: blocks to Ask AI button elements.
+ *
+ * @param {string} content
+ * @returns {string}
+ */
+function convertAskAboutApiButtons(content) {
+  const lines = content.split('\n');
+  const result = [];
+  let inBlock = false;
+  let optionData = '';
+
+  for (const line of lines) {
+    const openMatch = line.match(/^:::\s+ask-about-api\s+(\S+)\s*$/);
+
+    if (openMatch) {
+      inBlock = true;
+      optionData = openMatch[1];
+      continue;
+    }
+
+    if (inBlock && /^:::\s*$/.test(line)) {
+      inBlock = false;
+      const pipeIdx = optionData.indexOf('|');
+      const optionName = pipeIdx >= 0 ? optionData.slice(0, pipeIdx) : optionData;
+      // Strip namespace prefix (e.g. "module:Core" -> "Core")
+      const rawPlugin = pipeIdx >= 0 ? optionData.slice(pipeIdx + 1) : '';
+      const pluginName = rawPlugin.split(':').pop()?.split('~')[0]?.split('#')[0] || 'Handsontable';
+
+      if (optionName) {
+        result.push(
+          `<button type="button" class="ask-about-api-btn" data-option="${optionName}" data-plugin="${pluginName}" aria-label="Ask AI about ${optionName}">Ask AI</button>`
+        );
+      }
+      optionData = '';
+      continue;
+    }
+
+    if (!inBlock) {
+      result.push(line);
+    }
   }
 
   return result.join('\n');
@@ -1053,6 +1104,9 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // Strip :::example / :::example-without-tabs container markers
   result = stripExampleContainers(result);
 
+  // Convert ::: ask-about-api name|memberof to a button element
+  result = convertAskAboutApiButtons(result);
+
   // Convert ::: source-code-link URL to an HTML anchor
   result = convertSourceCodeLinks(result);
 
@@ -1113,6 +1167,57 @@ export function frameworkLoader({ contentDir }) {
       // Used to compute filePaths relative to site root, as required by Astro.
       const siteRoot = dirname(contentDir.replace(/[/\\]$/, ''));
       const allFiles = listMdFiles(contentDir);
+
+      // ── 404 page ────────────────────────────────────────────────────────
+      // Starlight looks for getEntry('docs', '404'). Emit a custom entry so
+      // the 404 page renders our branded content instead of the generic fallback.
+      {
+        const notFoundHtml = `<div class="not-found">`
+          + `<div class="not-found__info">`
+            + `<span class="not-found__code">404</span>`
+            + `<h1 class="not-found__heading">Page not found</h1>`
+            + `<p class="not-found__text">This page doesn't exist or has been moved to a new location.</p>`
+            + `<p class="not-found__cta">While you're here, sweep some mines -- powered by a real Handsontable grid.</p>`
+            + `<a href="/docs/javascript-data-grid/" class="not-found__link">Back to documentation</a>`
+          + `</div>`
+          + `<div class="minesweeper">`
+            + `<div class="minesweeper-status">`
+              + `<span class="minesweeper-mines">010</span>`
+              + `<button class="minesweeper-reset" type="button" aria-label="Reset game">\u{1F642}</button>`
+              + `<span class="minesweeper-timer">000</span>`
+            + `</div>`
+            + `<div class="minesweeper-grid"></div>`
+            + `<div class="minesweeper-mobile-controls">`
+              + `<button class="minesweeper-flag-toggle" type="button" aria-label="Toggle flag mode">`
+                + `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9"/><path d="M5 21v-7"/></svg>`
+                + ` Flag mode`
+              + `</button>`
+              + `<span class="minesweeper-mobile-hint">Tap to reveal, toggle to flag</span>`
+            + `</div>`
+          + `</div>`
+          + `</div>`;
+
+        const notFoundData = await parseData({
+          id: '404',
+          data: {
+            title: '404',
+            template: 'splash',
+            editUrl: false,
+            pagefind: false,
+            sidebar: { hidden: true },
+            draft: false,
+          },
+        });
+
+        store.set({
+          id: '404',
+          data: notFoundData,
+          body: '',
+          rendered: { html: notFoundHtml, metadata: { headings: [], imagePaths: [], frontmatter: {} } },
+          filePath: 'content/404.md',
+          digest: generateDigest('404-page' + LOADER_VERSION),
+        });
+      }
 
       for (const absPath of allFiles) {
         const filename = absPath.split('/').pop();

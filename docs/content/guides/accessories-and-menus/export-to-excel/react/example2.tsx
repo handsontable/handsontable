@@ -43,8 +43,8 @@ const ExampleComponent = () => {
     await exportPlugin?.downloadFileAsync('xlsx', {
       filename: 'Annual-Sales-Report',
       sheets: [
-        { instance: hotQ1!, name: 'Q1 Sales', columnHeaders: true, rowHeaders: true },
-        { instance: hotQ2Ref.current?.hotInstance!, name: 'Q2 Sales', columnHeaders: true, rowHeaders: true },
+        { instance: hotQ1!, name: 'Q1 Sales', colHeaders: true, rowHeaders: true },
+        { instance: hotQ2Ref.current?.hotInstance!, name: 'Q2 Sales', colHeaders: true, rowHeaders: true },
       ],
     });
   };

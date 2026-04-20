@@ -1,0 +1,615 @@
+/* Docs Assistant widget — inherits Starlight --sl-* tokens. */
+
+#docs-assistant-root {
+  font-family: var(--sl-font, system-ui, sans-serif);
+  font-size: var(--sl-text-base, 1rem);
+  color: var(--sl-color-white);
+}
+
+/* ── Panel ──────────────────────────────────────────────────────────── */
+
+.da-panel {
+  position: fixed;
+  top: var(--sl-nav-height, 3.25rem);
+  right: 0;
+  height: calc(100vh - var(--sl-nav-height, 3.25rem));
+  max-width: 100vw;
+  background: var(--sl-color-bg);
+  color: var(--sl-color-text);
+  border-left: 1px solid var(--sl-color-gray-5);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.08);
+  z-index: 49;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+.da-panel[data-open='true'] {
+  transform: translateX(0);
+  top: 0;
+  bottom: 0;
+  height: 100%;
+  z-index: 10100;
+}
+@media (max-width: 50rem) {
+  .da-panel {
+    top: 0;
+    height: 100vh;
+    width: 100vw !important;
+    z-index: 100;
+    border-left: none;
+  }
+}
+
+.da-resize {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+  transition: background-color 0.15s;
+}
+.da-resize:hover {
+  background: var(--sl-color-accent-low);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+.da-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-bg);
+}
+.da-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--sl-color-text);
+}
+.da-logo {
+  display: none;
+}
+:root[data-theme='light'] .da-logo-light,
+:root[data-theme='dark'] .da-logo-dark {
+  display: block;
+}
+.da-header-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+.da-header-btn {
+  background: none;
+  border: none;
+  padding: 0.375rem;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--sl-color-gray-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, color 0.15s;
+}
+.da-header-btn:hover {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-text);
+}
+.da-header-btn:focus-visible {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 1px;
+}
+
+/* ── Thread ─────────────────────────────────────────────────────────── */
+
+.da-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.da-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+.da-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Welcome screen */
+.da-welcome {
+  padding: 1.5rem 0.5rem;
+}
+.da-welcome-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+@media (max-width: 50rem) {
+  .da-welcome-hero {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+  .da-welcome-illustration {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+  }
+}
+.da-welcome-text {
+  flex: 1;
+  min-width: 0;
+}
+.da-welcome-illustration {
+  width: 200px;
+  height: 200px;
+  flex-shrink: 0;
+}
+.da-welcome h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--sl-color-white);
+}
+.da-welcome p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+  line-height: 1.5;
+}
+.da-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-left: 1px solid var(--sl-color-gray-5);
+}
+.da-suggestion {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--sl-color-white);
+  font-family: inherit;
+  transition: background-color 0.15s;
+}
+.da-suggestion:hover:not(:disabled) {
+  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+}
+.da-suggestion:hover:not(:disabled) .da-suggestion-arrow {
+  color: var(--sl-color-white);
+}
+.da-suggestion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.da-suggestion-arrow {
+  color: var(--sl-color-gray-3);
+  font-size: 1.1rem;
+  transition: color 0.15s;
+}
+
+/* Messages */
+.da-msg {
+  display: flex;
+  flex-direction: column;
+}
+.da-msg-user {
+  align-items: flex-end;
+}
+.da-msg-user .da-bubble {
+  background: var(--sl-color-accent);
+  color: #fff;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0;
+  max-width: 85%;
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-size: 0.9375rem;
+  position: relative;
+  margin-bottom: 6px;
+}
+.da-msg-user .da-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-top: 6px solid var(--sl-color-accent);
+}
+.da-msg-assistant {
+  align-items: flex-start;
+}
+/* ── Assistant body — mirrors .sl-markdown-content typography ─────── */
+.da-assistant-body {
+  max-width: 100%;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--sl-color-text);
+}
+
+/* Headings */
+.da-assistant-body :is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--sl-color-white);
+}
+.da-assistant-body h1 {
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  margin: 1rem 0 0.5rem;
+}
+.da-assistant-body h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+  margin: 1.5rem 0 0.5rem;
+}
+.da-assistant-body h3 {
+  font-size: 1.1rem;
+  letter-spacing: -0.005em;
+  margin: 1.25rem 0 0.5rem;
+}
+.da-assistant-body h4 {
+  font-size: 1rem;
+  margin: 1rem 0 0.5rem;
+}
+.da-assistant-body :not(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 1.5rem;
+}
+
+/* Strong */
+.da-assistant-body strong {
+  font-weight: 500;
+  color: var(--sl-color-white);
+}
+
+/* Paragraphs */
+.da-assistant-body p {
+  margin: 0 0 0.75rem;
+}
+.da-assistant-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lists */
+.da-assistant-body ul,
+.da-assistant-body ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.5rem;
+}
+.da-assistant-body li {
+  margin: 0.25rem 0;
+}
+
+/* Links — match .sl-markdown-content link style */
+.da-assistant-body a {
+  color: var(--sl-color-white);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+}
+.da-assistant-body a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--sl-color-gray-3);
+}
+
+/* Blockquote */
+.da-assistant-body blockquote {
+  border-left: 3px solid var(--sl-color-gray-5);
+  margin: 0 0 0.75rem;
+  padding: 0 0 0 0.75rem;
+  color: var(--sl-color-gray-2);
+}
+
+/* Inline code — match .sl-markdown-content code style */
+.da-assistant-body code:not(.da-code *) {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6);
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.125rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+/* Tables — match .sl-markdown-content table style */
+.da-assistant-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 0.75rem;
+  font-size: var(--sl-text-sm, 0.875rem);
+  background-color: var(--sl-color-block-bg);
+  border: 1px solid var(--sl-color-gray-5);
+}
+.da-assistant-body th {
+  font-size: var(--sl-text-sm, 0.875rem);
+  font-weight: 600;
+  background-color: var(--sl-color-bg);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem 1.25rem;
+  text-align: left;
+  color: var(--sl-color-white);
+}
+.da-assistant-body td {
+  font-size: var(--sl-text-sm, 0.875rem);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem 1.25rem;
+}
+.da-assistant-body tr:last-child td {
+  border-bottom: none;
+}
+
+/* Horizontal rule */
+.da-assistant-body hr {
+  border: none;
+  border-top: 1px solid var(--sl-color-gray-5);
+  margin: 0.75rem 0;
+}
+
+/* ── Code block — matches Expressive Code visual style ───────────── */
+.da-code {
+  margin: 0 0 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--sl-color-block-bg);
+  position: relative;
+}
+.da-code-header {
+  display: none;
+}
+/* Copy button — absolute top-right, hidden until hover */
+.da-code-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--sl-color-gray-3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+  z-index: 1;
+}
+.da-code-copy span {
+  display: none;
+}
+.da-code:hover .da-code-copy {
+  opacity: 1;
+}
+.da-code-copy:hover {
+  border-color: var(--sl-color-gray-5);
+  color: var(--sl-color-white);
+}
+.da-code-copy.is-copied {
+  opacity: 1;
+  color: var(--sl-color-accent);
+}
+.da-code-body {
+  overflow-x: auto;
+  font-size: var(--sl-text-xs, 0.8125rem);
+  line-height: 1.45;
+}
+.da-code-body pre {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: transparent !important;
+  counter-reset: da-line;
+}
+.da-code-body pre,
+.da-code-body code {
+  font-family: var(--sl-font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+.da-code-body code {
+  display: flex;
+  flex-direction: column;
+}
+/* Line numbers via CSS counter on .ec-line spans */
+.da-code-body .ec-line {
+  display: block;
+  counter-increment: da-line;
+  padding-left: 56px;
+  position: relative;
+  line-height: 22px;
+}
+.da-code-body .ec-line::before {
+  content: counter(da-line);
+  position: absolute;
+  left: 0;
+  width: 42px;
+  padding-right: 14px;
+  text-align: right;
+  color: var(--sl-color-gray-3);
+  font-size: inherit;
+  line-height: inherit;
+  border-right: 1.5px solid var(--sl-color-gray-5);
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* Message action row */
+.da-msg-actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+.da-action {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--sl-color-gray-3);
+  padding: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.da-action:hover {
+  color: var(--sl-color-text);
+  background: var(--sl-color-gray-6);
+}
+.da-action.is-active {
+  color: var(--sl-color-accent);
+  border-color: var(--sl-color-accent-low);
+  background: var(--sl-color-accent-low);
+}
+
+/* Error */
+.da-error {
+  background: rgba(200, 30, 30, 0.06);
+  border: 1px solid rgba(200, 30, 30, 0.25);
+  color: #b91c1c;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.da-error-retry {
+  background: none;
+  border: 1px solid rgba(200, 30, 30, 0.3);
+  color: #b91c1c;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+.da-error-retry:hover {
+  background: rgba(200, 30, 30, 0.1);
+}
+
+/* ── Composer ───────────────────────────────────────────────────────── */
+
+.da-composer {
+  padding: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-bg);
+}
+.da-input-wrap {
+  position: relative;
+  display: flex;
+  border: 0;
+  border-radius: 0;
+  background: var(--sl-color-bg);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.da-input-wrap:focus-within {
+  border-color: transparent;
+}
+.da-input {
+  flex: 1;
+  resize: none;
+  border: none;
+  border-radius: 0;
+  padding: 0.75rem 0.75rem;
+  padding-left: 1.5rem;
+  padding-right: 3rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: inherit;
+  background: transparent;
+  min-height: 2.5rem;
+  max-height: 8rem;
+  transition: background-color 0.15s, box-shadow 0.15s;
+}
+.da-input:hover {
+  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+}
+.da-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+}
+.da-input::placeholder {
+  color: var(--sl-color-gray-3);
+}
+.da-send {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  background: var(--sl-color-white);
+  color: var(--sl-color-bg);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s, background-color 0.15s;
+}
+.da-send:hover:not(:disabled) {
+  opacity: 0.85;
+}
+.da-send:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.da-send.is-stop {
+  opacity: 1;
+  background: var(--sl-color-gray-3);
+  color: var(--sl-color-bg);
+}
+.da-send.is-stop:hover {
+  background: var(--sl-color-gray-2);
+}
+
+/* ── Disclaimer ─────────────────────────────────────────────────────── */
+
+.da-disclaimer {
+  margin: 0;
+  padding: 0.5rem 1rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--sl-color-gray-3);
+  text-align: center;
+  background: var(--sl-color-bg);
+}
+
+/* ── Typing / thinking indicator ────────────────────────────────────── */
+
+.da-typing {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  color: var(--sl-color-accent);
+}

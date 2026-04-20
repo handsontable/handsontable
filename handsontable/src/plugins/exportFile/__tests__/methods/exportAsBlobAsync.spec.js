@@ -53,8 +53,8 @@ describe('ExportFile `exportAsBlobAsync` method', () => {
     formatter.options = { mimeType: 'text/csv', encoding: 'utf-8' };
     spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
 
-    await plugin.exportAsBlobAsync('csv', { columnHeaders: true });
+    await plugin.exportAsBlobAsync('csv', { colHeaders: true });
 
-    expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
+    expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { colHeaders: true });
   });
 });

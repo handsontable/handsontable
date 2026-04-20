@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: uu0rzeo6
 title: Custom renderer in Vue 3
 metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.
+In this tutorial, you will create a custom cell renderer that displays image URLs as actual images in a Vue 3 application.
 
 [[toc]]
 
@@ -87,3 +88,15 @@ The following example is an implementation of `@handsontable/vue3` with a custom
 - [beforeRenderer](@/api/hooks.md#beforerenderer)
 
 </div>
+
+## What you learned
+
+- How to declare a custom renderer function in a Vue 3 application.
+- How to read cell values and render HTML elements -- such as images -- inside cells.
+- How to assign the renderer to a specific column using the `renderer` option.
+
+## Next steps
+
+- [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) -- explore the full renderer API.
+- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- assign renderers per column declaratively.
+- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md) -- pair your renderer with a custom editor.

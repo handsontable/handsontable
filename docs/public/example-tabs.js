@@ -656,10 +656,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var tsFile = findFile(userFiles, '.ts') || 'app.component.ts';
     var tsCode = userFiles[tsFile] || '';
 
-    // Split the combined example file into component / module sections.
+    // Split the combined example file into component / module / config sections.
     var parsed        = parseAngularSourceFiles(tsCode);
     var componentCode = parsed['app.component.ts'] || tsCode;
     var moduleCode    = parsed['app.module.ts']    || null;
+    var configCode    = parsed['app.config.ts']    || null;
 
     var selector  = extractAngularSelector(componentCode);
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
@@ -805,12 +806,28 @@ document.addEventListener('DOMContentLoaded', function () {
       var classMatch = componentCode.match(/export\s+class\s+(\w+)/);
       var className  = classMatch ? classMatch[1] : 'AppComponent';
 
-      mainTs = [
-        "import { bootstrapApplication } from '@angular/platform-browser';",
-        "import { " + className + " } from './app/app.component';",
-        '',
-        'bootstrapApplication(' + className + ').catch(err => console.error(err));',
-      ].join('\n');
+      if (configCode) {
+        mainTs = [
+          "import { bootstrapApplication } from '@angular/platform-browser';",
+          "import { registerAllModules } from 'handsontable/registry';",
+          "import { " + className + " } from './app/app.component';",
+          "import { appConfig } from './app/app.config';",
+          '',
+          'registerAllModules();',
+          '',
+          'bootstrapApplication(' + className + ', appConfig).catch(err => console.error(err));',
+        ].join('\n');
+      } else {
+        mainTs = [
+          "import { bootstrapApplication } from '@angular/platform-browser';",
+          "import { registerAllModules } from 'handsontable/registry';",
+          "import { " + className + " } from './app/app.component';",
+          '',
+          'registerAllModules();',
+          '',
+          'bootstrapApplication(' + className + ').catch(err => console.error(err));',
+        ].join('\n');
+      }
     }
 
     var files = {
@@ -824,6 +841,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (moduleCode) {
       files['src/app/app.module.ts'] = moduleCode;
+    }
+
+    if (configCode) {
+      files['src/app/app.config.ts'] = configCode;
     }
 
     return files;

@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 1f21530e
 title: Moment.js-based time
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
@@ -21,10 +22,37 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
+This tutorial shows you how to create a custom time cell type using Moment.js for validation and format auto-correction.
+
+::: only-for javascript vue
+
 ::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
 
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2 --deps moment
+
+@[code](@/content/recipes/cell-types/moment-time/react/example1.jsx)
+@[code](@/content/recipes/cell-types/moment-time/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps moment
+
+@[code](@/content/recipes/cell-types/moment-time/angular/example1.ts)
+@[code](@/content/recipes/cell-types/moment-time/angular/example1.html)
+
+:::
 
 :::
 
@@ -224,3 +252,13 @@ const hot = new Handsontable(container, hotOptions);
 3. **User enters time**: Input like `9`, `14:30`, or a Unix timestamp is accepted
 4. **Validation**: Moment.js checks the format and time validity; auto-corrects if `correctFormat` is enabled
 5. **Save**: Valid values are saved to the cell; invalid values are rejected
+
+## What you learned
+
+You created a custom Moment.js-based time cell type in Handsontable. You used Moment.js to validate and auto-correct time values, reused the built-in text renderer and editor, and registered the result with `registerCellType` for use across columns.
+
+## Next steps
+
+- [Moment.js date](/recipes/cell-types/moment-date) - The same Moment.js pattern applied to date values, with a Pikaday calendar picker.
+- [Numbro](/recipes/cell-types/numbro) - A custom numeric cell type using the Numbro formatting library.
+- [Flatpickr](/recipes/cell-types/flatpickr) - A date picker using Flatpickr with dark theme support.

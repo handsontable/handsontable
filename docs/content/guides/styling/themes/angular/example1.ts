@@ -1,9 +1,9 @@
 /* file: app.component.ts */
-import {AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE} from '@handsontable/angular-wrapper';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE, HotTableModule} from '@handsontable/angular-wrapper';
 import {PredefinedMenuItemKey} from 'handsontable/plugins/contextMenu';
-import {FormControl} from '@angular/forms';
-import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme} from 'handsontable/themes';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
+import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme, ThemeColorScheme} from 'handsontable/themes';
 
 registerTheme(mainTheme);
 registerTheme(horizonTheme);
@@ -1214,6 +1214,8 @@ export const data = [
 ];
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule, ReactiveFormsModule],
   selector: 'app-example1',
   styles: `
   .color-select {
@@ -1243,9 +1245,9 @@ export const data = [
       <div class="controls">
         <label class="color-select">
           <select [formControl]="themeControl" id="themeSelect">
-            <option *ngFor="let option of themeOptions" [value]="option.value">
-              {{option.label}}
-            </option>
+            @for (option of themeOptions; track option.value) {
+              <option [value]="option.value">{{option.label}}</option>
+            }
           </select>
           <div #colorBox id="colorBox" class="color-box">
             <span class="color" style="background: var(--ht-foreground-color);"></span>
@@ -1260,7 +1262,6 @@ export const data = [
     </hot-table>
   `,
   encapsulation: ViewEncapsulation.None,
-  standalone: false
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
@@ -1283,7 +1284,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.hotSettings = {
-      theme: getTheme('main'),
+      theme: getTheme('main') ?? mainTheme,
       height: 450,
       colWidths: [180, 220, 140, 120, 120, 120, 140],
       colHeaders: [
@@ -1382,49 +1383,33 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   setTheme = (theme: string) => {
     const [themeName, colorScheme] = theme.split('-');
+    const scheme: ThemeColorScheme = (colorScheme as ThemeColorScheme) ?? 'auto';
 
     this.colorBox.nativeElement.classList.value = `color-box ht-theme-${themeName}`;
     this.hotTable.hotInstance?.updateSettings({
-      theme: getTheme(themeName).setColorScheme(colorScheme || 'auto')
+      theme: getTheme(themeName)?.setColorScheme(scheme)
     });
   };
 }
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 
-/* start:skip-in-compilation */
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule, ReactiveFormsModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

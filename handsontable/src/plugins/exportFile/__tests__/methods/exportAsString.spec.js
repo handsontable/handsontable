@@ -20,9 +20,9 @@ describe('ExportFile `exportAsString` method', () => {
     formatter.export.and.returnValue('foo;bar');
     spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
 
-    const result = plugin.exportAsString('csv', { columnHeaders: true });
+    const result = plugin.exportAsString('csv', { colHeaders: true });
 
-    expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
+    expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { colHeaders: true });
     expect(formatter.export).toHaveBeenCalled();
     expect(result).toBe('foo;bar');
   });

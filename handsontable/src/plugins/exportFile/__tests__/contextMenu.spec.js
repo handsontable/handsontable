@@ -108,7 +108,7 @@ describe('ExportFile', () => {
     });
 
     describe('export options', () => {
-      it('should include columnHeaders and rowHeaders when they are enabled', async() => {
+      it('should include colHeaders and rowHeaders when they are enabled', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           colHeaders: true,
@@ -125,12 +125,12 @@ describe('ExportFile', () => {
         await selectContextSubmenuOption('Export', 'To CSV');
 
         expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-          columnHeaders: true,
+          colHeaders: true,
           rowHeaders: true,
         }));
       });
 
-      it('should not include columnHeaders or rowHeaders when they are not enabled', async() => {
+      it('should not include colHeaders or rowHeaders when they are not enabled', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           contextMenu: true,
@@ -145,7 +145,7 @@ describe('ExportFile', () => {
         await selectContextSubmenuOption('Export', 'To CSV');
 
         expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-          columnHeaders: false,
+          colHeaders: false,
           rowHeaders: false,
         }));
       });
@@ -209,7 +209,7 @@ describe('ExportFile', () => {
         await selectContextSubmenuOption('Export', 'To CSV');
 
         expect(plugin.downloadFile).toHaveBeenCalledWith('csv', jasmine.objectContaining({
-          columnHeaders: true,
+          colHeaders: true,
           rowHeaders: true,
         }));
         expect(plugin.downloadFile).not.toHaveBeenCalledWith('csv', jasmine.objectContaining({

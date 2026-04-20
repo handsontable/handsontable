@@ -25,7 +25,7 @@ document.querySelector('#no-sanitization').addEventListener('click', () => {
   exportPlugin.downloadFile('csv', {
     bom: false,
     columnDelimiter: ',',
-    columnHeaders: false,
+    colHeaders: false,
     exportHiddenColumns: true,
     exportHiddenRows: true,
     fileExtension: 'csv',
@@ -38,7 +38,7 @@ document.querySelector('#recommended-sanitization').addEventListener('click', ()
   exportPlugin.downloadFile('csv', {
     bom: false,
     columnDelimiter: ',',
-    columnHeaders: false,
+    colHeaders: false,
     exportHiddenColumns: true,
     exportHiddenRows: true,
     fileExtension: 'csv',
@@ -52,7 +52,7 @@ document.querySelector('#regexp-sanitization').addEventListener('click', () => {
   exportPlugin.downloadFile('csv', {
     bom: false,
     columnDelimiter: ',',
-    columnHeaders: false,
+    colHeaders: false,
     exportHiddenColumns: true,
     exportHiddenRows: true,
     fileExtension: 'csv',
@@ -66,7 +66,7 @@ document.querySelector('#function-sanitization').addEventListener('click', () =>
   exportPlugin.downloadFile('csv', {
     bom: false,
     columnDelimiter: ',',
-    columnHeaders: false,
+    colHeaders: false,
     exportHiddenColumns: true,
     exportHiddenRows: true,
     fileExtension: 'csv',
