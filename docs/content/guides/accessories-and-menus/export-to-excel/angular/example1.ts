@@ -14,7 +14,7 @@ import ExcelJS from 'exceljs';
       </div>
     </div>
 
-    <hot-table [settings]="hotSettings!" [data]="hotData" (afterInit)="onAfterInit()">
+    <hot-table [settings]="hotSettings" [data]="hotData">
     </hot-table>
   `,
 })
@@ -72,14 +72,15 @@ export class AppComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     exportFile: { engines: { xlsx: ExcelJS } },
+    afterInit() {
+      const hot = this;
+
+      // @ts-ignore
+      hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
+      // @ts-ignore
+      hot.render();
+    },
   };
-
-  onAfterInit(): void {
-    const hot = this.hotTable.hotInstance!;
-
-    hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
-    hot.render();
-  }
 
   async exportFile(): Promise<void> {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');

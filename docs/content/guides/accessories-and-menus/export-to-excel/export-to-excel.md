@@ -30,7 +30,7 @@ The `ExportFile` plugin supports XLSX export via [ExcelJS](https://github.com/ex
 
 - Cell types (`numeric`, `date`, `time`, `checkbox`, `dropdown`) are written as native Excel types with matching number formats.
 - Cell styling is read from the rendered DOM - font properties, background colors, alignment, and borders are all transferred to the workbook.
-- Column headers and nested headers, merged cells, frozen panes, hidden rows, and hidden columns are preserved.
+- Column headers and nested headers, merged cells, and frozen panes are preserved.
 - [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells can be exported as live Excel formulas.
 - Multiple Handsontable instances can be exported into separate sheets of one workbook.
 
@@ -190,8 +190,6 @@ Pass these options as the second argument to `downloadFileAsync('xlsx', options)
 | `filename` | `String`, default `'Handsontable [YYYY]-[MM]-[DD]'` | File name without extension. Placeholders `[YYYY]`, `[MM]`, and `[DD]` are replaced with the current date. |
 | `colHeaders` | `Boolean`, default `false` | Include column headers in the exported file. Supports the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `rowHeaders` | `Boolean`, default `false` | Include row headers as a frozen first column in the exported file. |
-| `exportHiddenColumns` | `Boolean` \| `'hide'`, default `false` | Controls how hidden columns are handled. `true` exports them as normal visible columns. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel, so their data is preserved but not shown. |
-| `exportHiddenRows` | `Boolean` \| `'hide'`, default `false` | Controls how hidden rows are handled. `true` exports them as normal visible rows. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel, so their data is preserved but not shown. |
 | `exportFormulas` | `Boolean`, default `false` | Export [HyperFormula](@/guides/formulas/formula-calculation/formula-calculation.md) cells and [ColumnSummary](@/guides/columns/column-summary/column-summary.md) destination cells as live Excel formulas instead of their pre-calculated values. |
 | `sheets` | `Array`, default `[]` | Multi-sheet configuration. Each entry is an object with an `instance` (a Handsontable object), a `name` (the sheet tab label), and any per-sheet options such as `colHeaders` or `rowHeaders`. When provided, the top-level `instance` is ignored and each sheet is exported separately. |
 | `compression` | `Boolean` \| `Number` (1–9), default `false` | Enable DEFLATE compression. `true` uses level 6. A number 1–9 sets a specific level (1 = fastest, 9 = smallest). |
