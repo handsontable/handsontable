@@ -49,11 +49,10 @@ type: tutorial
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --css 3 --deps chart.js
+::: example #example1 :angular --ts 1 --html 2 --deps chart.js
 
 @[code](@/content/recipes/real-time/chartjs-sync/angular/example1.ts)
 @[code](@/content/recipes/real-time/chartjs-sync/angular/example1.html)
-@[code](@/content/recipes/real-time/chartjs-sync/angular/example1.css)
 
 :::
 

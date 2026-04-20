@@ -22,7 +22,12 @@ const data = [
   standalone: true,
   imports: [HotTableModule],
   selector: 'example1-chartjs-sync',
-  styleUrls: ['./example1.css'],
+  styles: [`
+    #chart-canvas {
+      max-height: 300px;
+      margin-top: 16px;
+    }
+  `],
   template: `
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     <canvas #chartCanvas id="chart-canvas"></canvas>
