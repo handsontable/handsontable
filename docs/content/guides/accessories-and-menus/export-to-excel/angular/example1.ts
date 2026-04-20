@@ -12,7 +12,7 @@ import ExcelJS from 'exceljs';
       </div>
     </div>
 
-    <hot-table [settings]="hotSettings!" [data]="hotData">
+    <hot-table [settings]="hotSettings" [data]="hotData">
     </hot-table>
   `,
   standalone: false,
