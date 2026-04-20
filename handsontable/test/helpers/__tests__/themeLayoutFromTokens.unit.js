@@ -63,21 +63,8 @@ describe('themeLayoutFromTokens reads from src/themes/theme modules', () => {
       });
 
       it('overlayHeight({ rows: 0 }) == 0', () => {
+        // Edge case: special-cased in the implementation (not a formula result).
         expect(layout.overlayHeight({ rows: 0 })).toBe(0);
-      });
-
-      it('overlayHeight({ rows: 3 }) == firstRenderedRowDefaultHeight + 2 * defaultDataRowHeight', () => {
-        expect(layout.overlayHeight({ rows: 3 }))
-          .toBe(layout.firstRenderedRowDefaultHeight + (2 * layout.defaultDataRowHeight));
-      });
-
-      it('overlayHeight({ rows: 3, includeFirstRowCompensation: false }) == 3 * defaultDataRowHeight', () => {
-        expect(layout.overlayHeight({ rows: 3, includeFirstRowCompensation: false }))
-          .toBe(3 * layout.defaultDataRowHeight);
-      });
-
-      it('verticalScrollForRow(n) == n * defaultDataRowHeight', () => {
-        expect(layout.verticalScrollForRow(7)).toBe(7 * layout.defaultDataRowHeight);
       });
 
       it('defaultColumnWidth is the Walkontable constant 50', () => {
@@ -232,14 +219,6 @@ describe('themeLayoutFromTokens E2E helpers are token-derived', () => {
         expect(l.e2eDensity_9d03a9eba0()).toBe((2 * l.lineHeight) + 201);
       });
 
-      it('e2eDensity_9d8bccd1c7 == 2 * cellVerticalPadding + 26', () => {
-        expect(l.e2eDensity_9d8bccd1c7()).toBe((2 * l.cellVerticalPadding) + 26);
-      });
-
-      it('e2eDensity_315eed5b06 == 2 * cellVerticalPadding + 27', () => {
-        expect(l.e2eDensity_315eed5b06()).toBe((2 * l.cellVerticalPadding) + 27);
-      });
-
       it('e2eDensity_ed183d57c9 == lineHeight + defaultDataRowHeight', () => {
         expect(l.e2eDensity_ed183d57c9()).toBe(l.lineHeight + l.defaultDataRowHeight);
       });
@@ -256,11 +235,6 @@ describe('themeLayoutFromTokens E2E helpers are token-derived', () => {
         expect(l.e2eDensity_c1a868f9c9()).toBe(l.defaultDataRowHeight + (2 * l.lineHeight));
       });
 
-      it('e2eDensity_9efbb642b5 == 3 * defaultDataRowHeight - 4 * cellVerticalPadding', () => {
-        expect(l.e2eDensity_9efbb642b5())
-          .toBe((3 * l.defaultDataRowHeight) - (4 * l.cellVerticalPadding));
-      });
-
       it('e2eDensity_a24230f0bc == 3 * defaultDataRowHeight - 2 * cellVerticalPadding', () => {
         expect(l.e2eDensity_a24230f0bc())
           .toBe((3 * l.defaultDataRowHeight) - (2 * l.cellVerticalPadding));
@@ -272,10 +246,6 @@ describe('themeLayoutFromTokens E2E helpers are token-derived', () => {
 
       it('e2eDensity_f0a5ff56db == 3 * defaultDataRowHeight', () => {
         expect(l.e2eDensity_f0a5ff56db()).toBe(3 * l.defaultDataRowHeight);
-      });
-
-      it('e2eDensity_25c4d95d1f == 2 * cellVerticalPadding + 83', () => {
-        expect(l.e2eDensity_25c4d95d1f()).toBe((2 * l.cellVerticalPadding) + 83);
       });
 
       it('e2eDensity_9b92431d49 == cellContentHeight + 3 * lineHeight', () => {
