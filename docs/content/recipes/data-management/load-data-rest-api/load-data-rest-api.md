@@ -31,10 +31,10 @@ This recipe shows how to fetch JSON from a REST API and populate Handsontable af
 
 ::: only-for react
 
-::: example #example1 :react-advanced --tsx 1 --jsx 2
+::: example #example1 :react-advanced --js 1 --ts 2
 
-@[code](@/content/recipes/data-management/load-data-rest-api/react/example1.tsx)
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example1.jsx)
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example1.tsx)
 
 :::
 
@@ -87,10 +87,10 @@ The first example resets all grid state on every data load -- column sort order,
 
 ::: only-for react
 
-::: example #example2 :react-advanced --tsx 1 --jsx 2
+::: example #example2 :react-advanced --js 1 --ts 2
 
-@[code](@/content/recipes/data-management/load-data-rest-api/react/example2.tsx)
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example2.jsx)
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example2.tsx)
 
 :::
 
@@ -297,10 +297,10 @@ The first two examples manage the fetch lifecycle yourself: you call `loadData()
 
 ::: only-for react
 
-::: example #example3 :react-advanced --tsx 1 --jsx 2
+::: example #example3 :react-advanced --js 1 --ts 2
 
-@[code](@/content/recipes/data-management/load-data-rest-api/react/example3.tsx)
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example3.jsx)
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example3.tsx)
 
 :::
 
