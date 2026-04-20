@@ -9,7 +9,6 @@
  * Mobile: two-row header (main bar + sub-bar) with separate overlay for
  * main nav, sidebar toggle (delegates to Starlight), and ToC panel.
  */
-import config from 'virtual:starlight/user-config';
 import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
 import Search from 'virtual:starlight/components/Search';
 import SiteTitle from 'virtual:starlight/components/SiteTitle';
@@ -20,11 +19,10 @@ import FrameworkSwitcher from './FrameworkSwitcher.astro';
 
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 
-// Hide Algolia search in non-production builds (dev / staging). Algolia does
-// not crawl dev builds, so showing the search box would return stale results.
-// Pagefind (local search) is still available.
-const shouldRenderSearch = isProduction &&
-  (config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro');
+// Hide search in non-production builds (dev / staging) -- results would be
+// stale or empty. The search provider (Algolia or Starlight default) is
+// configured independently of this flag.
+const shouldRenderSearch = isProduction;
 
 const pathname = Astro.url.pathname;
 

@@ -753,16 +753,10 @@ export default defineConfig({
         starlightPageActions(),
       ],
 
-      // ── Algolia DocSearch ──────────────────────────────────────────────────
-      // To enable: install @astrojs/starlight-docsearch, then set env vars:
-      //   ALGOLIA_APP_ID, ALGOLIA_API_KEY
-      //
-      // Index name logic (mirrors the VuePress AlgoliaSearch.vue behaviour):
-      //   - Latest released version → index 'handsontable'
-      //   - Older / dev versions    → index 'handsontable-with-versions'
-      //
-      // Pagefind is used as default local search until Algolia is wired up.
+      // Algolia DocSearch is used for search. Pagefind is disabled to avoid
+      // building an unused search index during production builds.
       // Search is hidden entirely in non-production builds (see Header.astro).
+      pagefind: false,
     }),
 
     // Serves clean Markdown at *.md URLs for the "View in Markdown" button
