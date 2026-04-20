@@ -143,7 +143,7 @@ export interface GridSettings extends Events {
   dataDotNotation?: boolean;
   dataProvider?: DataProviderSettings;
   dataSchema?: RowObject | CellValue[] | ((row: number) => RowObject | CellValue[]);
-  dateFormat?: string;
+  dateFormat?: string | Intl.DateTimeFormatOptions;
   datePickerConfig?: PikadayOptions;
   defaultDate?: string;
   tabNavigation?: boolean;
