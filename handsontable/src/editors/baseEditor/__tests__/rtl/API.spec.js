@@ -222,9 +222,11 @@ describe('BaseEditor API (RTL mode)', () => {
             await selectCell(1, 1);
 
             expectGetEditedCellRectFromPartial(L => ({
-              start: L.defaultColumnWidth - L.cellBorderWidth,
+              // Use live rendered column widths because AutoColumnSize may widen data columns
+              // beyond `defaultColumnWidth` under themes with wider fonts.
+              start: hot().getColWidth(0) - L.cellBorderWidth,
               top: L.defaultDataRowHeight,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
+              width: hot().getColWidth(1) + L.cellBorderWidth,
               height: L.cellContentHeight + (2 * L.cellBorderWidth),
             }));
           });
@@ -342,9 +344,11 @@ describe('BaseEditor API (RTL mode)', () => {
               const cellOuterHeight = L.cellContentHeight + (2 * L.cellBorderWidth);
 
               return {
-                start: L.defaultColumnWidth - L.cellBorderWidth,
+                // Use live rendered column widths because AutoColumnSize may widen data columns
+                // beyond `defaultColumnWidth` under themes with wider fonts.
+                start: hot().getColWidth(0) - L.cellBorderWidth,
                 top: 200 - sb - cellOuterHeight,
-                width: L.defaultColumnWidth + L.cellBorderWidth,
+                width: hot().getColWidth(1) + L.cellBorderWidth,
                 height: cellOuterHeight,
                 maxHeight: cellOuterHeight,
               };

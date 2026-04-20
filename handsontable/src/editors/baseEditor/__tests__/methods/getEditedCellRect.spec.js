@@ -220,12 +220,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           expectGetEditedCellRectFromPartial((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
-            const col1Start = L.defaultColumnWidth - L.cellBorderWidth;
+            // Use the live rendered column widths rather than the default because AutoColumnSize
+            // may widen data columns beyond `defaultColumnWidth` under themes with wider fonts.
+            const col0Width = hot().getColWidth(0);
+            const col1Width = hot().getColWidth(1);
+            const col1Start = col0Width - L.cellBorderWidth;
 
             return {
               start: col1Start,
               top: L.defaultDataRowHeight,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
+              width: col1Width + L.cellBorderWidth,
               maxWidth: 300 - sb - col1Start,
               height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: 200 - sb - L.defaultDataRowHeight,
@@ -337,12 +341,16 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           expectGetEditedCellRectFromPartial((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const cellOuterHeight = L.cellContentHeight + (2 * L.cellBorderWidth);
-            const col1Start = L.defaultColumnWidth - L.cellBorderWidth;
+            // Use the live rendered column widths rather than the default because AutoColumnSize
+            // may widen data columns beyond `defaultColumnWidth` under themes with wider fonts.
+            const col0Width = hot().getColWidth(0);
+            const col1Width = hot().getColWidth(1);
+            const col1Start = col0Width - L.cellBorderWidth;
 
             return {
               start: col1Start,
               top: 200 - sb - cellOuterHeight,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
+              width: col1Width + L.cellBorderWidth,
               maxWidth: 300 - sb - col1Start,
               height: cellOuterHeight,
               maxHeight: cellOuterHeight,
