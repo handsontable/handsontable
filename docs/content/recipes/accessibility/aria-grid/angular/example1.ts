@@ -61,9 +61,9 @@ export class Example1AriaGridComponent {
     // Custom renderer that sets aria-label to "Column Name: cell value" on every cell.
     cells() {
       return {
-        renderer(hotInstance: Handsontable, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: Handsontable.CellValue) {
-          getRenderer('text')(hotInstance, TD, row, col, prop, value);
-          TD.setAttribute('aria-label', `${colHeaders[col]}: ${value || 'empty'}`);
+        renderer(hotInstance: Handsontable, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: Handsontable.CellValue, cellProperties: Handsontable.CellProperties) {
+          getRenderer('text')(hotInstance, TD, row, col, prop, value, cellProperties);
+          TD.setAttribute('aria-label', `${colHeaders[col]}: ${value ?? 'empty'}`);
         },
       };
     },

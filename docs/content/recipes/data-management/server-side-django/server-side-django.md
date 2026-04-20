@@ -470,7 +470,8 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-@[code jsx](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+@[code](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+
 :::
 
 ::: only-for angular
