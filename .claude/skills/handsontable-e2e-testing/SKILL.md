@@ -48,7 +48,7 @@ These are injected automatically. Do not import them manually.
 - **DOM:** `getCell()`, `spec()`, `hot()`
 - **Plugins:** `getPlugin()`
 - **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `.ai/TESTING.md`)
-- **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` -- from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutCore.js` (same keys as `THEME_TOKENS`).
+- **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` -- from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutCore.js`, auto-discovered from `src/themes/theme/index.js` (add a theme there and the list updates automatically).
 - Full list in `test/helpers/common.js`.
 
 ## Theme-specific expected values
@@ -59,13 +59,26 @@ Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpe
 
 **Fundamental rule:** All expectations must be pure expressions over tokens + density tokens + sizing tokens, or derived from live DOM measurements. Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere.
 
-**When a value is not token-derivable** (text shaping, autosize widths, pixel rounding): use a DOM measurement (`getCell().offsetWidth`, `hot().getColWidth()`, `hot().getPlugin('autoColumnSize').getColumnWidth()`), a relational assertion (`toBeGreaterThan`, `toBeLessThanOrEqual`), or a tolerance-based comparison (`toBeAroundValue(expected, 2)`).
+**When a value is not token-derivable** (text shaping, autosize widths, pixel rounding), compute it from the live DOM or assert a relational property instead of branching on the theme:
 
-Prefer: primitives (`layout.defaultDataRowHeight`, `layout.overlayHeight()`, …), formulas (for example `layout.defaultDataRowHeight + 29`), and named **`layout.e2e*()`** / **`layout.e2eGcr_*()`** helpers. Add new `e2e*` helpers in `themeLayoutE2eHelpers.js` -- they branch on `layout.densityLevel` (or use token formulas), never on theme name. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived behavior, not bulk loops that only mirror helper outputs.
+- **Plugin API reads:** `hot().getColWidth(col)`, `hot().getRowHeight(row)`, `hot().getPlugin('autoColumnSize').getColumnWidth(col)`
+- **DOM measurements:** `getCell(r, c).offsetWidth/offsetHeight`, `$el.getBoundingClientRect()`, `window.getComputedStyle(el).padding*`
+- **Relational assertions:** `toBeGreaterThan(previousValue)`, `toBeLessThanOrEqual(containerWidth)`
+- **Tolerance-based comparisons:** `toBeAroundValue(expected, 2)` or `expect(Math.abs(actual - expected)).toBeLessThanOrEqual(1)`
+
+**Viewport helpers (all globals from `common.js`):**
+
+- `expectedVisibleRows(containerHeight, colHeaderRows = 1)` -- number of fully visible data rows
+- `expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1)` -- 0-based index of the last fully visible row
+- `containerHeightForRows(rowCount, colHeaderRows = 1)` -- height that guarantees exactly `rowCount` fully visible rows (prefer this over hardcoded `height: 200`)
+- `scaleHeight(mainThemeHeight)` / `scaleHeightWithScrollbar(mainThemeHeight)` -- scale a main-theme pixel height proportionally to the current theme's row height (useful when porting tests that used a fixed height)
+- `getPaginationContainerHeight()` -- measures the live pagination bar height; theme/density/token independent
+
+Prefer, in order: (1) named `layout.e2e*()` / `layout.e2eGcr_*()` helpers when a shared formula exists, (2) a direct formula in primitives (`layout.defaultDataRowHeight + layout.cellBorderWidth`), (3) a DOM/plugin-API read, (4) a relational assertion. **Do not** branch on `layout.densityLevel` or theme name in specs -- the primitives already vary per theme.
 
 **Adding a new theme:** Create `src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`, re-export from `src/themes/theme/index.js`, add the stylesheet build, and add E2E matrix jobs in `.github/workflows/test.yml`. No edits needed to `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, or any spec file -- auto-discovery handles the rest.
 
-**Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. For inner Handsontable editor lists (dropdown / handsontable / autocomplete), use global **`expectInnerHandsontableEditorListClientBoxMatchesSettings()`** from `test/helpers/common.js`. For **`getEditedCellRect`**, use **`expectGetEditedCellRectFromPartial`** with **`layout.e2eGcr_*`**; pass **`getE2eDocumentViewport()`** when the helper needs document scroll or viewport height.
+**Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Every test should run under every theme. For inner Handsontable editor lists (dropdown / handsontable / autocomplete), use global **`expectInnerHandsontableEditorListClientBoxMatchesSettings()`** from `test/helpers/common.js`. For **`getEditedCellRect`**, use **`expectGetEditedCellRectFromPartial`** with **`layout.e2eGcr_*`**; pass **`getE2eDocumentViewport()`** when the helper needs document scroll or viewport height.
 
 See `.ai/TESTING.md` ("Data-Driven Theme Assertions") for full details and all available metrics.
 
