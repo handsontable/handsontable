@@ -315,7 +315,20 @@ describe('AutoRowSize', () => {
 
     const mainScroll = getMaster().find('.wtHolder').scrollTop();
 
-    expect(mainScroll).toBeGreaterThan(0);
+    // After editing row 4 (the last data row) in a 300px viewport with 5 wrapped rows,
+    // the viewport must scroll so row 4 sits at the bottom. The expected scrollTop equals
+    // the sum of row-0 through row-4 outer heights (plus column header) minus the viewport
+    // height (.wtHolder.offsetHeight). Derive from the live DOM so the test remains valid
+    // across themes where wrap / autoRowSize produces different row heights.
+    const $holder = getMaster().find('.wtHolder');
+    const viewportHeight = $holder[0].offsetHeight;
+    const rowsStackedHeight = [0, 1, 2, 3, 4]
+      .map(rowIndex => getCell(rowIndex, 0).getBoundingClientRect().height)
+      .reduce((sum, h) => sum + h, 0);
+    const colHeaderHeight = getThemeLayout().defaultColumnHeaderHeight;
+    const expectedScroll = Math.max(0, rowsStackedHeight + colHeaderHeight - viewportHeight);
+
+    expect(mainScroll).toBeAroundValue(expectedScroll, 2);
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(mainScroll);
   });
 
