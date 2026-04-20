@@ -20,6 +20,7 @@
   },
   "license": "CC BY 4.0",
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.2",
     "@astrojs/starlight": "^0.38.2",
     "@expressive-code/plugin-collapsible-sections": "^0.41.7",
     "@expressive-code/plugin-line-numbers": "^0.41.7",
@@ -68,17 +69,8 @@
     "jsdoc-to-markdown": "^7.0.1",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
-    "typescript": "^5.4.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "react-star-rating-component>react": "$react"
-    }
-  },
-  "overrides": {
-    "react-star-rating-component": {
-      "react": "$react"
-    }
+    "typescript": "^5.4.0",
+    "vite": "^7.3.2"
   },
   "browserslist": [
     "last 2 Chrome versions",
