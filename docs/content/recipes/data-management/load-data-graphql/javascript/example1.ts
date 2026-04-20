@@ -12,11 +12,34 @@ type ApiUser = {
   company?: { name?: string };
 };
 
+const USERS_QUERY = `
+  query {
+    users {
+      data {
+        id
+        name
+        username
+        email
+        address {
+          city
+        }
+        company {
+          name
+        }
+      }
+    }
+  }
+`;
+
 const STATUS_LOADING = 'Loading users...';
 const STATUS_READY = 'Loaded users from GraphQL API.';
 const STATUS_ERROR = 'Failed to load users. Try again.';
 
-const rootContainer = document.querySelector('#example1') as HTMLDivElement;
+const container = document.querySelector('#example1');
+
+if (!container) {
+  throw new Error('Missing #example1 element.');
+}
 
 const statusBar = document.createElement('div');
 const statusLabel = document.createElement('p');
@@ -36,10 +59,10 @@ retryButton.type = 'button';
 retryButton.textContent = 'Retry';
 retryButton.hidden = true;
 
-rootContainer.appendChild(statusBar);
+container.appendChild(statusBar);
 statusBar.appendChild(statusLabel);
 statusBar.appendChild(retryButton);
-rootContainer.appendChild(gridContainer);
+container.appendChild(gridContainer);
 
 const hot = new Handsontable(gridContainer, {
   data: [],
@@ -86,50 +109,35 @@ function mapUsersToGridRows(users: ApiUser[]) {
   }));
 }
 
+async function fetchUsers(): Promise<ApiUser[]> {
+  const response = await fetch('https://graphqlzero.almansi.me/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: USERS_QUERY }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status: ${response.status}`);
+  }
+
+  const payload = (await response.json()) as {
+    data?: { users?: { data?: ApiUser[] } };
+    errors?: Array<{ message?: string }>;
+  };
+
+  // GraphQL APIs can return HTTP 200 and still include execution errors.
+  if (payload.errors?.length) {
+    throw new Error(payload.errors[0]?.message ?? 'GraphQL request failed.');
+  }
+
+  return payload.data?.users?.data ?? [];
+}
+
 async function loadUsers() {
   setUiState({ loading: true, message: STATUS_LOADING });
 
   try {
-    const response = await fetch('https://graphqlzero.almansi.me/api', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `
-          query {
-            users {
-              data {
-                id
-                name
-                username
-                email
-                address {
-                  city
-                }
-                company {
-                  name
-                }
-              }
-            }
-          }
-        `,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status: ${response.status}`);
-    }
-
-    const payload = (await response.json()) as {
-      data?: { users?: { data?: ApiUser[] } };
-      errors?: Array<{ message?: string }>;
-    };
-
-    // GraphQL APIs can return HTTP 200 and still include execution errors.
-    if (payload.errors?.length) {
-      throw new Error(payload.errors[0]?.message ?? 'GraphQL request failed.');
-    }
-
-    const users = payload.data?.users?.data ?? [];
+    const users = await fetchUsers();
 
     hot.loadData(mapUsersToGridRows(users));
     setUiState({ message: STATUS_READY });
