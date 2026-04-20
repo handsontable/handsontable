@@ -229,8 +229,6 @@ With the server running on `http://localhost:3000`, configure Handsontable to us
 @[code jsx](@/content/recipes/data-management/server-side-nestjs/react/example1.jsx)
 :::
 
-:::
-
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2

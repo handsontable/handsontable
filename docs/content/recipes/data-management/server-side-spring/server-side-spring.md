@@ -245,8 +245,6 @@ With the server running on `http://localhost:8080`, configure Handsontable to us
 @[code jsx](@/content/recipes/data-management/server-side-spring/react/example1.jsx)
 :::
 
-:::
-
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2

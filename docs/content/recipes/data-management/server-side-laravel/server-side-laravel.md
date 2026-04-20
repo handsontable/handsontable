@@ -221,8 +221,6 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 @[code jsx](@/content/recipes/data-management/server-side-laravel/react/example1.jsx)
 :::
 
-:::
-
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2
