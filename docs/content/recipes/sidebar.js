@@ -1,3 +1,7 @@
+const realTimeItems = [
+  { path: 'real-time/websocket-updates/websocket-updates', title: 'Real-time updates via WebSocket', onlyFor: ['javascript', 'react', 'angular'] },
+];
+
 const columnManagementItems = [
   { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript', 'angular', 'react'] },
 ];
@@ -98,6 +102,7 @@ module.exports = {
   sidebar: [
     'introduction',
     { title: 'Accessibility', path: 'accessibility', children: accessibilityItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
+    { title: 'Real-time & Integrations', path: 'real-time', children: realTimeItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
