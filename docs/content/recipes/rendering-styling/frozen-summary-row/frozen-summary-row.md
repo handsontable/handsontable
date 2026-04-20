@@ -33,6 +33,18 @@ category: Rendering and styling
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/react/example1.css)
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/react/example1.jsx)
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe pins a single **summary** row to the bottom of the grid so it stays visible while you scroll. The row shows **sum**, **average**, and **count** for each numeric column, skips non-numeric values, stays **read-only**, and updates whenever data changes.

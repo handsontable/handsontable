@@ -239,6 +239,12 @@ With the server running on `http://localhost:8080`, configure Handsontable to us
 
 :::
 
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-spring/react/example1.jsx)
+
+:::
+
 **What's happening:**
 
 ### `buildUrl` helper

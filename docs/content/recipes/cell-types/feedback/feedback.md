@@ -34,6 +34,18 @@ This tutorial shows you how to build an emoji feedback cell using Handsontable's
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/feedback/react/example1.css)
+@[code](@/content/recipes/cell-types/feedback/react/example1.jsx)
+@[code](@/content/recipes/cell-types/feedback/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create a simple feedback editor cell using emoji buttons. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.

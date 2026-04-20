@@ -24,10 +24,25 @@ category: Cell Types
 
 This tutorial shows you how to create a custom time cell type using Moment.js for validation and format auto-correction.
 
+::: only-for javascript vue angular
+
 ::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
 
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2 --deps moment
+
+@[code](@/content/recipes/cell-types/moment-time/react/example1.jsx)
+@[code](@/content/recipes/cell-types/moment-time/react/example1.tsx)
+
+:::
 
 :::
 

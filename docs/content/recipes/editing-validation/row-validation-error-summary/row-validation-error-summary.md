@@ -33,6 +33,18 @@ category: Editing and Validation
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/react/example1.css)
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/react/example1.jsx)
+@[code](@/content/recipes/editing-validation/row-validation-error-summary/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 Run validation for **all rows** when the user clicks **Submit orders**. Keep rules in a map from **column index** to a small function that returns `null` when the value is valid, or a string message when it is not. Collect every failure, show them in a list under the grid, and mark bad cells with `htInvalid` using `setCellMeta` plus `render()`. When the user edits a cell that was marked invalid, clear that cell's highlight and update the summary.

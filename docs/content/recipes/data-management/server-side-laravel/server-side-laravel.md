@@ -215,6 +215,12 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 
 :::
 
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-laravel/react/example1.jsx)
+
+:::
+
 **What's happening:**
 
 ### `buildUrl` helper
