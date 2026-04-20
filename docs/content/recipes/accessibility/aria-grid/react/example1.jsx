@@ -42,8 +42,8 @@ const ExampleComponent = () => {
       ]}
       cells={function() {
         return {
-          renderer(hotInstance, TD, row, col, prop, value) {
-            getRenderer('text')(hotInstance, TD, row, col, prop, value);
+          renderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+            getRenderer('text')(hotInstance, TD, row, col, prop, value, cellProperties);
             TD.setAttribute('aria-label', `${colHeaders[col]}: ${value || 'empty'}`);
           },
         };
