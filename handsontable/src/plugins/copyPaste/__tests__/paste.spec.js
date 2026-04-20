@@ -599,10 +599,12 @@ describe('CopyPaste', () => {
     });
 
     it('should paste data without scrolling the viewport', async() => {
+      // Size the container so row 6 fits inside the viewport regardless of theme row height;
+      // otherwise `selectCell(6, 2)` below would auto-scroll and defeat the purpose of the test.
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
-        height: 250,
+        height: containerHeightForRows(7),
       });
 
       await selectCell(6, 2);
