@@ -91,6 +91,30 @@ function persistThread(messages: ChatMessage[]) {
   }
 }
 
+function readThreadId(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.threadId);
+  } catch {
+    return null;
+  }
+}
+
+function writeThreadId(ts: string) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.threadId, ts);
+  } catch {
+    // Quota or privacy-mode — drop silently.
+  }
+}
+
+function clearThreadIdStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.threadId);
+  } catch {
+    // Quota or privacy-mode — drop silently.
+  }
+}
+
 function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -139,6 +163,11 @@ export function useAssistant() {
   });
   const abortRef = useRef<AbortController | null>(null);
   const hydratedRef = useRef(false);
+  // Conversation thread id returned by the backend. Persisted in localStorage
+  // under STORAGE_KEYS.threadId so the id survives page reloads and cross-page
+  // navigation, matching the lifecycle of the visible conversation. Reset in
+  // `clear` / `clearAndSend`.
+  const threadIdRef = useRef<string | null>(readThreadId());
 
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -185,16 +214,35 @@ export function useAssistant() {
       });
 
       try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (threadIdRef.current) {
+          headers['X-Thread-Id'] = threadIdRef.current;
+        }
+
         const res = await fetch(CHAT_ENDPOINT, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: apiMessages }),
+          headers,
+          body: JSON.stringify({
+            messages: apiMessages,
+            pageTitle: document.title,
+            pageUrl: window.location.href,
+          }),
           signal: controller.signal,
         });
         if (!res.ok) {
           throw new Error(`${res.status} ${res.statusText || 'Request failed'}`);
         }
         if (!res.body) throw new Error('No response body');
+
+        // Capture the thread id returned by the first successful turn so the
+        // backend can correlate subsequent turns to the same conversation. The
+        // server returns the same value on every turn of a conversation; the
+        // `!current` guard avoids redundant writes.
+        const returnedId = res.headers.get('X-Thread-Id');
+        if (returnedId && !threadIdRef.current) {
+          threadIdRef.current = returnedId;
+          writeThreadId(returnedId);
+        }
 
         for await (const event of readSSE(res.body, controller.signal)) {
           if (event.type === 'content_chunk') {
@@ -257,6 +305,8 @@ export function useAssistant() {
   const clear = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    threadIdRef.current = null;
+    clearThreadIdStorage();
     dispatch({ type: 'CLEAR' });
   }, []);
 
@@ -264,6 +314,8 @@ export function useAssistant() {
     async (text: string) => {
       abortRef.current?.abort();
       abortRef.current = null;
+      threadIdRef.current = null;
+      clearThreadIdStorage();
       dispatch({ type: 'CLEAR' });
       const trimmed = text.trim();
       if (!trimmed) return;
