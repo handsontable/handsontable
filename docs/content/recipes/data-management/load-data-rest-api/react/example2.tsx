@@ -4,6 +4,8 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
+const EMPTY_DATA: never[] = [];
+
 type ApiUser = {
   id: number;
   name: string;
@@ -140,7 +142,7 @@ const ExampleComponent = () => {
 
       <HotTable
         ref={hotRef}
-        data={[]}
+        data={EMPTY_DATA}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}
         columns={columns}
         columnSorting={true}

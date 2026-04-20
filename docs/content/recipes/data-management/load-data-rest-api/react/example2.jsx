@@ -4,6 +4,8 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
+const EMPTY_DATA = [];
+
 const STATUS_LOADING = 'Loading users...';
 const STATUS_READY =
   'Users loaded. Sort a column, then click "Refresh" to see that the column sort order is preserved.';
@@ -122,7 +124,7 @@ const ExampleComponent = () => {
 
       <HotTable
         ref={hotRef}
-        data={[]}
+        data={EMPTY_DATA}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}
         columns={columns}
         columnSorting={true}
