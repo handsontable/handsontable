@@ -740,12 +740,22 @@ describe('TextEditor', () => {
     await scrollViewportVertically(150);
     await scrollViewportHorizontally(100);
 
+    // After scrolling 100 px horizontally, the textarea parent's inline-start offset equals
+    // the row-header width plus the cumulative width of columns 0 and 1 (both fully scrolled
+    // past the viewport's inline edge) minus the horizontal scroll. Using live widths keeps
+    // this robust across themes whose font metrics make AutoColumnSize grow columns past the
+    // 50 px default.
+    const rowHeaderWidth = getDefaultRowHeaderWidth();
+    const col0Width = hot().getColWidth(0);
+    const col1Width = hot().getColWidth(1);
+    const expectedLeft = rowHeaderWidth + (col0Width + col1Width) - 100;
+
     expect(parseInt(getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
     expect(parseInt(getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(
       getThemeLayout().e2eDensity_dcb53105f5(),
     );
     expect(parseInt(getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(
-      50,
+      expectedLeft,
     );
   });
 
