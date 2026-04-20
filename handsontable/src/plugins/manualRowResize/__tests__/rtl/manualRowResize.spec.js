@@ -53,9 +53,13 @@ describe('manualRowResize (RTL mode)', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).toBe(35);
-    expect($rowsHeaders.eq(2).height()).toBe(35);
-    expect($rowsHeaders.eq(3).height()).toBe(35);
+    // Floor the expected height to the theme's minimum cell content height; themes with
+    // taller default content (e.g. horizon) prevent rows from shrinking below that minimum.
+    const minHeight = Math.max(35, getThemeLayout().cellContentHeight);
+
+    expect($rowsHeaders.eq(1).height()).toBe(minHeight);
+    expect($rowsHeaders.eq(2).height()).toBe(minHeight);
+    expect($rowsHeaders.eq(3).height()).toBe(minHeight);
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
