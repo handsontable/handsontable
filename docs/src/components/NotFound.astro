@@ -1,40 +1,28 @@
 ---
 /**
- * Custom 404 page.
+ * Custom 404 page content.
  *
- * Renders the full site layout (header, footer) via StarlightPage so that
- * users landing on a missing URL see the same styled shell as every other
- * docs page -- rather than Netlify's bare default 404 screen.
- * sidebar={[]} passes an empty sidebar array so Starlight computes
- * hasSidebar=false and omits the sidebar panel entirely.
- *
- * Netlify serves the built 404.html for all unmatched routes when the publish
- * directory contains that file. Astro generates it automatically from this
- * src/pages/404.astro source.
+ * This component is rendered inside Starlight's built-in 404 route
+ * (node_modules/@astrojs/starlight/routes/static/404.astro), which
+ * already provides the StarlightPage shell (header, footer, no sidebar).
+ * Placing custom content here avoids the duplicate-route collision that
+ * occurs when src/pages/404.astro shadows Starlight's own static route.
  */
-import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
 ---
 
-<StarlightPage
-  frontmatter={{
-    title: 'Page not found',
-  }}
-  sidebar={[]}
->
-  <div class="not-found">
-    <div class="not-found__grid">
-      <div class="not-found__code">404</div>
-      <div class="not-found__message">
-        <p class="not-found__text">
-          The page you are looking for does not exist or has been moved.
-        </p>
-        <a href="/docs/javascript-data-grid/" class="not-found__link">
-          Go to documentation home
-        </a>
-      </div>
+<div class="not-found">
+  <div class="not-found__grid">
+    <div class="not-found__code">404</div>
+    <div class="not-found__message">
+      <p class="not-found__text">
+        The page you are looking for does not exist or has been moved.
+      </p>
+      <a href="/docs/javascript-data-grid/" class="not-found__link">
+        Go to documentation home
+      </a>
     </div>
   </div>
-</StarlightPage>
+</div>
 
 <style>
   .not-found {

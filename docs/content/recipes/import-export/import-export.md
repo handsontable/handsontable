@@ -26,5 +26,6 @@ This section collects recipes for exporting grid data to common formats and for 
 <div class="boxes-list">
 
 - [Export to PDF](@/content/recipes/import-export/export-to-pdf/export-to-pdf.md)
+- [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md)
 
 </div>

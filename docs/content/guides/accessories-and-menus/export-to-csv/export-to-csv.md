@@ -182,8 +182,8 @@ Each method takes two parameters. The first, `format`, is required. The second, 
 | Property               | Type / Default                          | Description |
 | ---------------------- | --------------------------------------- | ----------- |
 | `bom`                  | `Boolean`, default `true`               | Prepend output with BOM (UTF-8). Browser uses _EF BB BF_. |
+| `colHeaders`           | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `columnDelimiter`      | `String`, default `','`                | Column delimiter. |
-| `columnHeaders`        | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `exportHiddenColumns`  | `Boolean`, default `false`              | Include hidden columns. |
 | `exportHiddenRows`    | `Boolean`, default `false`              | Include hidden rows. |
 | `fileExtension`       | `String`, default `'csv'`               | File extension. Used by `downloadFile()`. |
