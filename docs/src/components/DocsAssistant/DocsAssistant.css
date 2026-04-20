@@ -593,6 +593,18 @@
   background: var(--sl-color-gray-2);
 }
 
+/* ── Disclaimer ─────────────────────────────────────────────────────── */
+
+.da-disclaimer {
+  margin: 0;
+  padding: 0.5rem 1rem 0.75rem;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--sl-color-gray-3);
+  text-align: center;
+  background: var(--sl-color-bg);
+}
+
 /* ── Typing / thinking indicator ────────────────────────────────────── */
 
 .da-typing {
