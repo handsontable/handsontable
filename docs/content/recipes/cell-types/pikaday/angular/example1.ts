@@ -3,14 +3,17 @@ import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angu
 import {
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-  GridSettings,
+  GridSettings,,
+  HotTableModule
 } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 
 const DATE_FORMAT_US = 'MM/DD/YYYY';
 
 @Component({
+  standalone: true,
   selector: 'example1-pikaday-editor',
   template: `<div #container class="pikaday-container"></div>`,
   styles: [
@@ -19,7 +22,6 @@ const DATE_FORMAT_US = 'MM/DD/YYYY';
     .pikaday-container { min-height: 250px; }
   `,
   ],
-  standalone: false,
 })
 export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<string> {
   @ViewChild('container', { static: true }) container!: ElementRef;
@@ -63,10 +65,10 @@ export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<strin
 }
 
 @Component({
+  standalone: true,
   selector: 'example1-pikaday-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span>{{ formattedDate }}</span>`,
-  standalone: false,
 })
 export class PikadayRendererComponent extends HotCellRendererAdvancedComponent<string> {
   get formattedDate(): string {
@@ -78,11 +80,12 @@ export class PikadayRendererComponent extends HotCellRendererAdvancedComponent<s
 }
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-pikaday',
-  standalone: false,
   template: `<div><hot-table [data]="data" [settings]="gridSettings"></hot-table></div>`,
 })
-export class Example1PikadayComponent {
+export class AppComponent {
   readonly data = [
     {
       itemName: 'Lunar Core',
@@ -162,37 +165,20 @@ export class Example1PikadayComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import {
-  Example1PikadayComponent,
-  PikadayEditorComponent,
-  PikadayRendererComponent,
-} from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1PikadayComponent, PikadayEditorComponent, PikadayRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1PikadayComponent],
-})
-export class AppModule {}
 /* end-file */

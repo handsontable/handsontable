@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 
@@ -16,8 +17,9 @@ const data = Array.from({ length: ROWS }, (_, row) => [
 /* end:skip-in-preview */
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-export-to-pdf',
-  standalone: false,
   styleUrls: ['./example1.css'],
   template: `
     <div class="export-pdf-toolbar">
@@ -26,7 +28,7 @@ const data = Array.from({ length: ROWS }, (_, row) => [
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,
 })
-export class Example1ExportToPdfComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data = data;
@@ -73,28 +75,20 @@ export class Example1ExportToPdfComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1ExportToPdfComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
-  providers: [{ provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig }],
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
+  ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1ExportToPdfComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1ExportToPdfComponent],
-})
-export class AppModule {}
 /* end-file */

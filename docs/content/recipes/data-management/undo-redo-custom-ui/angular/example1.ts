@@ -1,11 +1,13 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import Handsontable from 'handsontable/base';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-undo-redo-custom-ui',
-  standalone: false,
   template: `
     <div class="undo-redo-controls">
       <button type="button" [disabled]="!isUndoAvailable" (click)="undo()">Undo</button>
@@ -14,7 +16,7 @@ import Handsontable from 'handsontable/base';
     <hot-table [data]="hotData" [settings]="hotSettings"></hot-table>
   `,
 })
-export class Example1UndoRedoCustomUiComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   isUndoAvailable = false;
@@ -75,35 +77,20 @@ export class Example1UndoRedoCustomUiComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1UndoRedoCustomUiComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1UndoRedoCustomUiComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1UndoRedoCustomUiComponent],
-})
-export class AppModule {}
 /* end-file */

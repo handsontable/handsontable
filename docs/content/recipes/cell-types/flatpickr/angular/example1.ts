@@ -3,8 +3,10 @@ import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angu
 import {
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-  GridSettings,
+  GridSettings,,
+  HotTableModule
 } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import { format, isDate, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
@@ -13,6 +15,7 @@ const DATE_FORMAT_US = 'MM/dd/yyyy';
 const DATE_FORMAT_EU = 'dd/MM/yyyy';
 
 @Component({
+  standalone: true,
   selector: 'example1-flatpickr-editor',
   template: `<input #pickerInput class="flatpickr-editor" type="text" />`,
   styles: [
@@ -30,7 +33,6 @@ const DATE_FORMAT_EU = 'dd/MM/yyyy';
     }
   `,
   ],
-  standalone: false,
 })
 export class FlatpickrEditorComponent extends HotCellEditorAdvancedComponent<
   string,
@@ -62,10 +64,10 @@ export class FlatpickrEditorComponent extends HotCellEditorAdvancedComponent<
 }
 
 @Component({
+  standalone: true,
   selector: 'example1-flatpickr-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span>{{ formattedDate }}</span>`,
-  standalone: false,
 })
 export class FlatpickrRendererComponent extends HotCellRendererAdvancedComponent<
   string,
@@ -87,11 +89,12 @@ export class FlatpickrRendererComponent extends HotCellRendererAdvancedComponent
 }
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-flatpickr',
-  standalone: false,
   template: `<div><hot-table [data]="data" [settings]="gridSettings"></hot-table></div>`,
 })
-export class Example1FlatpickrComponent {
+export class AppComponent {
   readonly data = [
     { product: 'Dashboard Pro', version: '3.2.0', releaseDate: '2025-03-15', status: 'Released' },
     { product: 'Form Builder', version: '2.1.0', releaseDate: '2025-04-22', status: 'Released' },
@@ -140,37 +143,20 @@ export class Example1FlatpickrComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import {
-  Example1FlatpickrComponent,
-  FlatpickrEditorComponent,
-  FlatpickrRendererComponent,
-} from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1FlatpickrComponent, FlatpickrEditorComponent, FlatpickrRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1FlatpickrComponent],
-})
-export class AppModule {}
 /* end-file */

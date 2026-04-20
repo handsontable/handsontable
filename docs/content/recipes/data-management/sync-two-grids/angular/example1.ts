@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import Handsontable from 'handsontable/base';
 
 interface MasterRow {
@@ -58,8 +59,9 @@ const DETAIL_COLUMN_MAP: Record<keyof DetailRow, number> = {
 };
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-sync-two-grids',
-  standalone: false,
   template: `
     <div class="sync-grids-layout">
       <section class="sync-grids-card">
@@ -73,7 +75,7 @@ const DETAIL_COLUMN_MAP: Record<keyof DetailRow, number> = {
     </div>
   `,
 })
-export class Example1SyncTwoGridsComponent {
+export class AppComponent {
   @ViewChild('masterGrid', { static: false }) masterHotTable!: HotTableComponent;
   @ViewChild('detailGrid', { static: false }) detailHotTable!: HotTableComponent;
 
@@ -147,35 +149,20 @@ export class Example1SyncTwoGridsComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1SyncTwoGridsComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1SyncTwoGridsComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1SyncTwoGridsComponent],
-})
-export class AppModule {}
 /* end-file */

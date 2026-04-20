@@ -5,8 +5,10 @@ import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-  KeyboardShortcutConfig,
+  KeyboardShortcutConfig,,
+  HotTableModule
 } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 
 /* start:skip-in-preview */
 const starSvg =
@@ -25,6 +27,7 @@ const inputData = [
 /* end:skip-in-preview */
 
 @Component({
+  standalone: true,
   selector: 'example1-star-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -34,7 +37,6 @@ const inputData = [
       }
     </div>`,
   styleUrls: ['./example1.css'],
-  standalone: false,
 })
 export class StarRendererComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -42,8 +44,8 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
 }
 
 @Component({
+  standalone: true,
   selector: 'example1-star-editor',
-  standalone: false,
   template: `
     <div class="rating-editor" (mouseover)="onMouseOver($event)" (mousedown)="onMouseDown()">
       @for (star of stars; track $index) {
@@ -115,11 +117,12 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 }
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-rating',
-  standalone: false,
   template: `<div><hot-table [data]="data" [settings]="gridSettings"></hot-table></div>`,
 })
-export class Example1RatingComponent {
+export class AppComponent {
   readonly data = inputData;
 
   readonly gridSettings: GridSettings = {
@@ -133,7 +136,17 @@ export class Example1RatingComponent {
     columns: [
       { data: 'product', type: 'text', width: 240 },
       { data: 'category', type: 'text', width: 120 },
-      { data: 'rating', width: 150, renderer: StarRendererComponent, editor: StarEditorComponent },
+      {
+        data: 'rating',
+        width: 150,
+        renderer: StarRendererComponent,
+        editor: StarEditorComponent,
+        validator: (value: unknown, callback: (valid: boolean) => void) => {
+          const num = parseInt(String(value), 10);
+
+          callback(num >= 1 && num <= 5);
+        },
+      },
       { data: 'reviews', type: 'numeric', width: 80 },
       { data: 'price', type: 'numeric', width: 80 },
     ],
@@ -141,33 +154,20 @@ export class Example1RatingComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1RatingComponent, StarRendererComponent, StarEditorComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1RatingComponent, StarRendererComponent, StarEditorComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1RatingComponent],
-})
-export class AppModule {}
 /* end-file */

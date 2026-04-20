@@ -3,14 +3,17 @@ import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angu
 import {
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-  GridSettings,
+  GridSettings,,
+  HotTableModule
 } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 
 @Component({
+  standalone: true,
   selector: 'example1-moment-date-editor',
   template: `<div #container class="pikaday-container"></div>`,
   styles: [
@@ -19,7 +22,6 @@ const DATE_FORMAT = 'YYYY-MM-DD';
     .pikaday-container { min-height: 250px; }
   `,
   ],
-  standalone: false,
 })
 export class MomentDateEditorComponent extends HotCellEditorAdvancedComponent<string> {
   @ViewChild('container', { static: true }) container!: ElementRef;
@@ -66,10 +68,10 @@ export class MomentDateEditorComponent extends HotCellEditorAdvancedComponent<st
 }
 
 @Component({
+  standalone: true,
   selector: 'example1-moment-date-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span>{{ formattedDate }}</span>`,
-  standalone: false,
 })
 export class MomentDateRendererComponent extends HotCellRendererAdvancedComponent<string> {
   get formattedDate(): string {
@@ -81,11 +83,12 @@ export class MomentDateRendererComponent extends HotCellRendererAdvancedComponen
 }
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-moment-date',
-  standalone: false,
   template: `<div><hot-table [data]="data" [settings]="gridSettings"></hot-table></div>`,
 })
-export class Example1MomentDateComponent {
+export class AppComponent {
   readonly data = [
     {
       itemName: 'Lunar Core',
@@ -165,37 +168,20 @@ export class Example1MomentDateComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import {
-  Example1MomentDateComponent,
-  MomentDateEditorComponent,
-  MomentDateRendererComponent,
-} from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1MomentDateComponent, MomentDateEditorComponent, MomentDateRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1MomentDateComponent],
-})
-export class AppModule {}
 /* end-file */

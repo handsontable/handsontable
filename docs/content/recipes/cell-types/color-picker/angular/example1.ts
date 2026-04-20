@@ -3,8 +3,10 @@ import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angu
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
-  HotCellRendererAdvancedComponent,
+  HotCellRendererAdvancedComponent,,
+  HotTableModule
 } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 import Pickr from '@simonwep/pickr';
 import '@simonwep/pickr/dist/themes/nano.min.css';
 
@@ -24,6 +26,7 @@ const inputData = [
 const colorValidator = (value: string): boolean => /^#[0-9A-Fa-f]{6}$/.test(value);
 
 @Component({
+  standalone: true,
   selector: 'example1-color-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -35,11 +38,11 @@ const colorValidator = (value: string): boolean => /^#[0-9A-Fa-f]{6}$/.test(valu
   .color-picker-cell { display: flex; align-items: center; justify-content: center; }
   .color-picker-swatch { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.15); }
   `,
-  standalone: false,
 })
 export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
 
 @Component({
+  standalone: true,
   selector: 'example1-color-picker-editor',
   template: `
     <div #editorContainer style="width:100%;height:100%;position:relative;">
@@ -50,7 +53,6 @@ export class ColorRendererComponent extends HotCellRendererAdvancedComponent<str
   :host { width: 100%; height: 100%; }
   .color-picker-editor { width: 100%; height: 100%; border: none; outline: none; box-sizing: border-box !important; cursor: pointer; }
   `,
-  standalone: false,
 })
 export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<string> {
   @ViewChild('colorInput', { static: true }) colorInput!: ElementRef<HTMLInputElement>;
@@ -126,11 +128,12 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
 }
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'example1-color-picker',
-  standalone: false,
   template: `<div><hot-table [data]="data" [settings]="gridSettings"></hot-table></div>`,
 })
-export class Example1ColorPickerComponent {
+export class AppComponent {
   readonly data = inputData.map((el) => ({
     ...el,
     color: `#${Math.round(0x1000000 + 0xffffff * Math.random()).toString(16).slice(1).toUpperCase()}`,
@@ -161,37 +164,20 @@ export class Example1ColorPickerComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import {
-  Example1ColorPickerComponent,
-  ColorPickerEditorComponent,
-  ColorRendererComponent,
-} from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1ColorPickerComponent, ColorPickerEditorComponent, ColorRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1ColorPickerComponent],
-})
-export class AppModule {}
 /* end-file */
