@@ -34,10 +34,20 @@ function JasmineHtmlPlugin(options) {
     __isJasmineHtmlPlugin: true,
     apply(compiler) {
       compiler.hooks.afterEmit.tapAsync('JasmineHtmlPlugin', (compilation, callback) => {
+        // Collect the actual emitted JS asset filenames per entrypoint rather
+        // than reconstructing them from the entrypoint name. The `filename`
+        // template in the Rspack output can include hashes or suffixes
+        // (for example per-run IDs for parallel builds) that we cannot guess.
         const jsAssets = [];
 
-        compilation.entrypoints.forEach((_, name) => {
-          jsAssets.push(`${name}.entry.js`);
+        compilation.entrypoints.forEach((entrypoint) => {
+          const files = typeof entrypoint.getFiles === 'function' ? entrypoint.getFiles() : [];
+
+          files.forEach((file) => {
+            if (file.endsWith('.js')) {
+              jsAssets.push(file);
+            }
+          });
         });
 
         const html = generateHtml(config, jsAssets);

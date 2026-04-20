@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Message } from './Message';
 import { STARTER_SUGGESTIONS, WELCOME } from './constants';
-import { IconRetry, IconSend, IconStop } from './icons';
+import { IconRetry, IconSend, IconStop, IllustrationWelcome } from './icons';
 import type { ChatMessage } from './useAssistant';
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
   streaming: boolean;
   error: string | null;
   composerRef: React.RefObject<HTMLTextAreaElement>;
+  pendingDraft?: string | null;
+  onPendingDraftConsumed?: () => void;
   onSend: (text: string) => void;
   onStop: () => void;
   onRetry: () => void;
@@ -20,12 +22,22 @@ export function Thread({
   streaming,
   error,
   composerRef,
+  pendingDraft,
+  onPendingDraftConsumed,
   onSend,
   onStop,
   onRetry,
   onFeedback,
 }: Props) {
   const [draft, setDraft] = useState('');
+
+  useEffect(() => {
+    if (pendingDraft) {
+      setDraft(pendingDraft);
+      onPendingDraftConsumed?.();
+      setTimeout(() => composerRef.current?.focus(), 100);
+    }
+  }, [pendingDraft]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,8 +68,13 @@ export function Thread({
       <div className="da-scroll" ref={scrollRef}>
         {empty ? (
           <div className="da-welcome">
-            <h3>{WELCOME.headline}</h3>
-            <p>{WELCOME.sub}</p>
+            <div className="da-welcome-hero">
+              <div className="da-welcome-text">
+                <h3>{WELCOME.headline}</h3>
+                <p>{WELCOME.sub}</p>
+              </div>
+              <IllustrationWelcome className="da-welcome-illustration" />
+            </div>
             <div className="da-suggestions">
               {STARTER_SUGGESTIONS.map((s) => (
                 <button
@@ -67,7 +84,8 @@ export function Thread({
                   onClick={() => onSend(s)}
                   disabled={streaming}
                 >
-                  {s}
+                  <span>{s}</span>
+                  <span className="da-suggestion-arrow">→</span>
                 </button>
               ))}
             </div>
@@ -103,35 +121,37 @@ export function Thread({
           submit();
         }}
       >
-        <textarea
-          ref={composerRef}
-          className="da-input"
-          placeholder="Ask a question…"
-          rows={2}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={onKeyDown}
-          aria-label="Ask a question"
-        />
-        {streaming ? (
-          <button
-            type="button"
-            className="da-send is-stop"
-            aria-label="Stop generating"
-            onClick={onStop}
-          >
-            <IconStop />
-          </button>
-        ) : (
-          <button
-            type="submit"
-            className="da-send"
-            aria-label="Send message"
-            disabled={!draft.trim()}
-          >
-            <IconSend />
-          </button>
-        )}
+        <div className="da-input-wrap">
+          <textarea
+            ref={composerRef}
+            className="da-input"
+            placeholder="Ask a question..."
+            rows={2}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={onKeyDown}
+            aria-label="Ask a question"
+          />
+          {streaming ? (
+            <button
+              type="button"
+              className="da-send is-stop"
+              aria-label="Stop generating"
+              onClick={onStop}
+            >
+              <IconStop />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="da-send"
+              aria-label="Send message"
+              disabled={!draft.trim()}
+            >
+              <IconSend />
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

@@ -25,7 +25,7 @@ describe('exportFile XLSX type — API', () => {
       );
       expect(formatter.options.fileExtension).toBe('xlsx');
       expect(formatter.options.bom).toBe(false);
-      expect(formatter.options.columnHeaders).toBe(false);
+      expect(formatter.options.colHeaders).toBe(false);
       expect(formatter.options.rowHeaders).toBe(false);
       expect(formatter.options.exportHiddenColumns).toBe(false);
       expect(formatter.options.exportHiddenRows).toBe(false);
