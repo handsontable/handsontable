@@ -44,7 +44,17 @@ describe('DropdownMenu', () => {
       const readOnlyItemOffset = $readOnlyItem.offset();
 
       expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
-      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + 1);
+      // The tick sits flush with the menu's left content edge. The menu's
+      // outer-left to content-left gap equals the menu container border
+      // width, which is 1px on main and 0px on horizon. Derive it from the
+      // DOM so the assertion is theme-invariant.
+      const menuEl = $dropdownMenuRoot.filter(':visible')[0] || $dropdownMenuRoot[0];
+      const htMaster = menuEl.querySelector('.ht_master');
+      const borderLeft = htMaster
+        ? parseFloat(window.getComputedStyle(htMaster).borderLeftWidth) || 0
+        : 0;
+
+      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + borderLeft);
     });
   });
 });
