@@ -1,8 +1,16 @@
+const columnManagementItems = [
+  { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript'] },
+];
+
 const dataManagementItems = [
   { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-django/server-side-django', title: 'Server-side data with Django', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript'] },
+  { path: 'data-management/server-side-rails/server-side-rails', title: 'Server-side data with Ruby on Rails', onlyFor: ['javascript'] },
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript'] },
 ];
 
@@ -21,7 +29,7 @@ const cellTypesItems = [
   { path: 'cell-types/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
   { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] }
+  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
 ];
 
 const renderingStylingItems = [
@@ -35,6 +43,11 @@ const renderingStylingItems = [
     title: 'Sparkline cell renderer',
     onlyFor: ['javascript'],
   },
+  {
+    path: 'rendering-styling/conditional-row-coloring/conditional-row-coloring',
+    title: 'Conditional row coloring',
+    onlyFor: ['javascript'],
+  },
 ];
 
 const importExportItems = [
@@ -43,6 +56,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript'],
   },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript'] },
 ];
 
 const filteringAndSearchItems = [
@@ -57,6 +71,7 @@ const filteringAndSearchItems = [
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/ant-design/ant-design', title: 'Handsontable with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
   { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
 ];
@@ -77,6 +92,7 @@ const editingValidationItems = [
 module.exports = {
   sidebar: [
     'introduction',
+    { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {
@@ -103,7 +119,8 @@ module.exports = {
       collapsable: false,
       onlyFor: ['javascript'],
     },
-    { title: 'Rendering and styling',
+    {
+      title: 'Rendering and styling',
       path: 'rendering-styling',
       children: renderingStylingItems,
       collapsable: false,
