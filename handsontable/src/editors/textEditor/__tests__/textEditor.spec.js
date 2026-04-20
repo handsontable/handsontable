@@ -144,7 +144,11 @@ describe('TextEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
-    const overlayHeightPx = 240;
+    // Keep the container sized to fit the same number of data rows across themes (matches
+    // the original main-theme 240px configuration). This guarantees that 3 top + 3 bottom
+    // overlay rows plus the scrollable middle region remain within the viewport on horizon,
+    // where the row height is larger than on main.
+    const overlayHeightPx = containerHeightForRows(7, 1);
     const overlayWidthPx = 200;
 
     spec().$container[0].style.height = `${overlayHeightPx}px`;

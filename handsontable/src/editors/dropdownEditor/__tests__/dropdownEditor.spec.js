@@ -81,8 +81,11 @@ describe('DropdownEditor', () => {
   });
 
   it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
-    spec().$container[0].style.height =
-      `${252}px`;
+    // Keep the container sized to fit the same number of data rows across themes. The original
+    // main-theme 252px height corresponded to ~7.6 rows; containerHeightForRows(7, 1) produces
+    // the theme-appropriate pixel height so overlays and the scrollable middle region remain
+    // within the viewport on horizon, where the row height is larger than on main.
+    spec().$container[0].style.height = `${containerHeightForRows(7, 1)}px`;
 
     handsontable({
       data: createSpreadsheetData(8, 2),
