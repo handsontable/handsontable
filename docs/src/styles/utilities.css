@@ -99,12 +99,11 @@ html {
   font-weight: 600;
   text-decoration: none !important;
   border-radius: 4px;
-  transition: background-color 0.15s, opacity 0.15s;
+  transition: filter 0.15s;
 }
 
 .github-example-cta:hover {
-  background-color: var(--sl-color-accent-high, #1237c8);
-  opacity: 0.9;
+  filter: brightness(0.85);
 }
 
 .github-example-cta svg {
