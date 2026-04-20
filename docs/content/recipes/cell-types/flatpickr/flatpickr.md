@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: c757a3b3
 title: Flatpickr
 metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
@@ -19,6 +20,8 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
+This tutorial shows you how to integrate the Flatpickr date picker as a custom Handsontable cell editor, with per-column locale and format configuration.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps date-fns flatpickr
@@ -26,6 +29,28 @@ category: Cell Types
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.js)
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/flatpickr/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps date-fns flatpickr
+
+@[code](@/content/recipes/cell-types/flatpickr/react/example1.css)
+@[code](@/content/recipes/cell-types/flatpickr/react/example1.jsx)
+@[code](@/content/recipes/cell-types/flatpickr/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps date-fns flatpickr
+
+@[code](@/content/recipes/cell-types/flatpickr/angular/example1.ts)
+@[code](@/content/recipes/cell-types/flatpickr/angular/example1.html)
 
 :::
 
@@ -605,3 +630,13 @@ flatpickrSettings: {
 ---
 
 **Congratulations!** You've created a production-ready date picker with full localization support, dark theme toggling, and advanced configuration.
+
+## What you learned
+
+You integrated the Flatpickr date picker as a Handsontable cell editor. You used `editorFactory` to manage the editor lifecycle, `preventCloseElement` to keep the calendar open while the user picks a date, and `cellProperties` to drive per-column format and locale configuration.
+
+## Next steps
+
+- [Pikaday](/recipes/cell-types/pikaday) - An alternative date picker using Pikaday and Moment.js, with portal positioning.
+- [Moment.js date](/recipes/cell-types/moment-date) - A date cell type using Moment.js and Pikaday.
+- [Date picker (Angular)](/recipes/datepicker-angular) - A date editor built with Angular components and the native HTML5 date input.

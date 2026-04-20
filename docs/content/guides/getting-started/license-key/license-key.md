@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: zbx8ayzw
 title: License key
 metaTitle: License key - JavaScript Data Grid | Handsontable
@@ -186,3 +187,7 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
   - [`licenseKey`](@/api/options.md#licensekey)
 
 </div>
+
+## Result
+
+Your grid is now licensed. A valid commercial key removes the license notice from the grid header.

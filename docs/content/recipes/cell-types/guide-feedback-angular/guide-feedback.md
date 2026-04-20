@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 2rti5w12
 title: "Feedback Editor"
 metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cells
 ---
+
+This tutorial shows you how to build an emoji feedback cell in Angular using `HotCellEditorAdvancedComponent`, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for angular
 
@@ -68,18 +71,16 @@ npm install @handsontable/angular-wrapper
 ```typescript
 import { Component, ChangeDetectorRef } from "@angular/core";
 import { HotTableModule, HotCellEditorAdvancedComponent, KeyboardShortcutConfig } from "@handsontable/angular-wrapper";
-import { registerAllModules } from "handsontable/registry";
-
-registerAllModules();
 ```
 
 **What we're importing:**
 
 - [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - Base class for creating custom editors
-- `HotTableModule` - Angular wrapper module
+- `HotTableModule` - Angular module providing the `<hot-table>` component (imported in `AppComponent`)
 - `ChangeDetectorRef` - For manual change detection
 - `KeyboardShortcutConfig` - Type definitions for keyboard shortcuts
-- Handsontable styles
+
+`registerAllModules()` is called once in `app.config.ts`, not in component files.
 
 ## Step 2: Create the Editor Component
 
@@ -87,7 +88,8 @@ Create an Angular component that extends [`HotCellEditorAdvancedComponent`](@/gu
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `
     <div class="feedback-editor">
       @for (option of config; track option) {
@@ -189,13 +191,15 @@ The Angular wrapper automatically handles per-column configuration through the b
 
 ```typescript
 import { Component } from "@angular/core";
-import { GridSettings } from "@handsontable/angular-wrapper";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
 
 @Component({
-  selector: "app-example",
+  selector: "app-root",
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <hot-table [data]="data" [settings]="gridSettings"></hot-table> `,
 })
-export class ExampleComponent {
+export class AppComponent {
   readonly data = [
     { feature: "Dark Mode", category: "UI", priority: "High", feedback: "👍", votes: 124, status: "Planned" },
     { feature: "Bulk Edit", category: "Core", priority: "High", feedback: "👍", votes: 98, status: "In Progress" },
@@ -224,7 +228,8 @@ export class ExampleComponent {
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `...`,
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
@@ -260,7 +265,8 @@ Add keyboard navigation using the `shortcuts` property.
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `...`,
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
@@ -320,7 +326,8 @@ Put it all together:
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `
     <div class="feedback-editor">
       @for (option of config; track option) {
@@ -381,13 +388,15 @@ Use the editor component in your Angular component (same table structure as the 
 
 ```typescript
 import { Component } from "@angular/core";
-import { GridSettings } from "@handsontable/angular-wrapper";
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
 
 @Component({
-  selector: "app-example",
+  selector: "app-root",
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <hot-table [data]="data" [settings]="gridSettings"></hot-table> `,
 })
-export class ExampleComponent {
+export class AppComponent {
   readonly data = [
     { feature: "Dark Mode", category: "UI", priority: "High", feedback: "👍", votes: 124, status: "Planned" },
     { feature: "Bulk Edit", category: "Core", priority: "High", feedback: "👍", votes: 98, status: "In Progress" },
@@ -483,7 +492,8 @@ To read custom config from column definition, implement the `beforeOpen` lifecyc
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `...`,
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
@@ -573,7 +583,8 @@ HTML buttons are inherently accessible, but you can enhance them with ARIA attri
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `
     <div class="feedback-editor">
       @for (option of config; track $index) {
@@ -613,3 +624,13 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 ---
 
 **Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent), matching the look of the [Feedback recipe](@/recipes/cell-types/feedback) and perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor in Angular using `HotCellEditorAdvancedComponent`. You used Handsontable CSS tokens for theme-aware button styling, `override shortcuts` for keyboard navigation, and `ChangeDetectorRef` to trigger view updates after keyboard-driven value changes.
+
+## Next steps
+
+- [Feedback (JavaScript)](/recipes/cell-types/feedback) - The same concept using `editorFactory` with Handsontable CSS tokens.
+- [Feedback (React)](/recipes/cell-types/feedback-react) - The React version using `EditorComponent`.
+- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - Another Angular editor using `HotCellEditorAdvancedComponent` with SVG stars.

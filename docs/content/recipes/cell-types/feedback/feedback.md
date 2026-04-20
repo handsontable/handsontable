@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: e23f98e7
 title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
@@ -19,6 +20,8 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
+This tutorial shows you how to build an emoji feedback cell using Handsontable's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
@@ -26,6 +29,29 @@ category: Cell Types
 @[code](@/content/recipes/cell-types/feedback/javascript/example1.js)
 @[code](@/content/recipes/cell-types/feedback/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/feedback/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/feedback/react/example1.css)
+@[code](@/content/recipes/cell-types/feedback/react/example1.jsx)
+@[code](@/content/recipes/cell-types/feedback/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/feedback/angular/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/angular/example1.html)
+@[code](@/content/recipes/cell-types/feedback/angular/example1.css)
 
 :::
 
@@ -458,3 +484,13 @@ config: ['Positive', 'Negative', 'Neutral'],
 ---
 
 **Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Handsontable CSS tokens, perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor using Handsontable's `editorFactory` helper. You used Handsontable CSS custom properties to style the editor in a theme-aware way, and registered the result as a reusable cell type with `registerCellType`.
+
+## Next steps
+
+- [Feedback (React)](/recipes/cell-types/feedback-react) - The same pattern using React's `EditorComponent`.
+- [Feedback Editor (Angular)](/recipes/feedback-angular) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating](/recipes/cell-types/rating) - Another custom editor built with `editorFactory` and SVG stars.

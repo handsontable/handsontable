@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
@@ -15,6 +16,8 @@ searchCategory: Guides
 category: Cell types
 ---
 Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
+
+The checkbox cell type renders a boolean value as a clickable checkbox. Use it for yes/no, active/inactive, or any true/false data.
 
 [[toc]]
 
@@ -175,6 +178,10 @@ The `value` property of the `label` option can also be a function. The function 
 :::
 
 :::
+
+## Result
+
+After configuring the checkbox cell type, cells display an interactive checkbox. Clicking the checkbox or pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> toggles its state. The underlying data source stores the boolean value (or your custom `checkedTemplate`/`uncheckedTemplate` values).
 
 ## Related keyboard shortcuts
 

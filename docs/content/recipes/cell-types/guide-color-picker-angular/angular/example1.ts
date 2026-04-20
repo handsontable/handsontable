@@ -4,6 +4,7 @@ import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
+  HotTableModule,
 } from '@handsontable/angular-wrapper';
 
 export const inputData = [
@@ -208,7 +209,8 @@ const colorValidator = (value: string): boolean => {
     border: 1px solid rgba(0, 0, 0, 0.15);
   }
   `,
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
 
@@ -236,7 +238,8 @@ export class ColorRendererComponent extends HotCellRendererAdvancedComponent<str
     outline: none;
   }
   `,
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override afterClose(): void {
@@ -250,13 +253,14 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
 }
 
 @Component({
-  selector: 'example1-guide-color-picker-angular',
-  standalone: false,
+  selector: 'app-root',
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1GuideColorPickerAngularComponent {
+export class AppComponent {
   readonly data = inputData.map((el) => ({
     ...el,
     // eslint-disable-next-line no-mixed-operators
@@ -321,26 +325,16 @@ export class Example1GuideColorPickerAngularComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import {
-  Example1GuideColorPickerAngularComponent,
-  ColorPickerEditorComponent,
-  ColorRendererComponent,
-} from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -349,12 +343,4 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1GuideColorPickerAngularComponent, ColorPickerEditorComponent, ColorRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1GuideColorPickerAngularComponent],
-})
-export class AppModule {}
 /* end-file */
