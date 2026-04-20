@@ -243,9 +243,28 @@ export function useAssistant() {
     dispatch({ type: 'CLEAR' });
   }, []);
 
+  const clearAndSend = useCallback(
+    async (text: string) => {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      dispatch({ type: 'CLEAR' });
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      const userMessage: ChatMessage = {
+        id: uid(),
+        role: 'user',
+        content: trimmed,
+        ts: Date.now(),
+      };
+      dispatch({ type: 'ADD_USER', message: userMessage });
+      await sendInternal(trimmed, []);
+    },
+    [sendInternal]
+  );
+
   const setFeedback = useCallback((id: string, feedback: 'up' | 'down') => {
     dispatch({ type: 'SET_FEEDBACK', id, feedback });
   }, []);
 
-  return { state, send, stop, retry, clear, setFeedback };
+  return { state, send, stop, retry, clear, clearAndSend, setFeedback };
 }
