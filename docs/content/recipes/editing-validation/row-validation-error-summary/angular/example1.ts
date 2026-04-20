@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 const COLUMN_LABELS = ['Item', 'Quantity', 'Unit price'];
@@ -59,6 +59,8 @@ export class Example1RowValidationErrorSummaryComponent {
 
   readonly columnLabels = COLUMN_LABELS;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   invalidCells = new Set<string>();
   issues: { row: number; col: number; message: string }[] = [];
 
@@ -68,8 +70,6 @@ export class Example1RowValidationErrorSummaryComponent {
     { item: 'Gadget', qty: -1, price: 12 },
     { item: 'Cable', qty: 3, price: 0 },
   ];
-
-  constructor(private readonly cdr: ChangeDetectorRef) {}
 
   readonly gridSettings: GridSettings = {
     colHeaders: COLUMN_LABELS,
