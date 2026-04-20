@@ -18,6 +18,7 @@ const data = Array.from({ length: ROWS }, (_, row) => [
 @Component({
   selector: 'example1-export-to-pdf',
   standalone: false,
+  styleUrls: ['./example1.css'],
   template: `
     <div class="export-pdf-toolbar">
       <button type="button" class="export-pdf-btn" (click)="exportToPdf()">Export to PDF</button>
