@@ -5,7 +5,7 @@ import {
   HotCellRendererAdvancedComponent,
   GridSettings,
 } from '@handsontable/angular-wrapper';
-import { format, isDate, isValid } from 'date-fns';
+import { format, isDate, isValid, parseISO } from 'date-fns';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 
@@ -75,7 +75,7 @@ export class FlatpickrRendererComponent extends HotCellRendererAdvancedComponent
     if (!this.value) return '';
 
     try {
-      const d = new Date(this.value);
+      const d = parseISO(this.value);
 
       return isDate(d) && isValid(d)
         ? format(d, this.getProps().renderFormat || 'MM/dd/yyyy')
