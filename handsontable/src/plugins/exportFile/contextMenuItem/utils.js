@@ -1,7 +1,7 @@
 /**
  * Derives export options from the current Handsontable selection and settings.
  *
- * Always reflects the visible header state (`columnHeaders`, `rowHeaders`).
+ * Always reflects the visible header state (`colHeaders`, `rowHeaders`).
  * Returns an options object with a `range` property when the selection spans
  * more than one cell. Omits `range` (full-table export) when:
  * - there is no selection,
@@ -17,11 +17,11 @@
  */
 export function getExportOptions(hot) {
   const settings = hot.getSettings();
-  const columnHeaders = !!(settings.colHeaders || settings.nestedHeaders);
+  const colHeaders = !!(settings.colHeaders || settings.nestedHeaders);
   const rowHeaders = !!settings.rowHeaders;
   const range = hot.getSelectedRangeLast();
 
-  const opts = { columnHeaders, rowHeaders };
+  const opts = { colHeaders, rowHeaders };
 
   // No selection, single-cell cursor, or corner (select-all) → export entire table.
   if (!range || range.isSingleCell() || (range.from.row < 0 && range.from.col < 0)) {

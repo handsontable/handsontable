@@ -36,8 +36,8 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Handsontable with shadcn/ui](@/content/recipes/themes/custom-theme/custom-theme.md)
-- [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md)
+- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
+- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md)
 
 </div>
 

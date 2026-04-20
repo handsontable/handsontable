@@ -41,10 +41,24 @@ npm run test:e2e.puppeteer
 # Or, to do both in one command (also rebuilds UMD bundles):
 npm run test:e2e --testPathPattern=filters
 # NOTE: changing the pattern requires re-running test:e2e.dump — the pattern is compiled in.
+# NOTE: when invoking the two steps separately, pass --testPathPattern AND --theme to BOTH
+# commands. Each `npm run` is a separate npm process with its own env; puppeteer computes
+# the same hash as dump to locate the runner HTML, so the flags must match.
 
 # Coverage:
 npm run test:unit -- --coverage
 ```
+
+**Parallel E2E runs:**
+`test:e2e.dump` hashes `--testPathPattern` + `--theme` into a short `runId`. Each run's bundle and runner HTML are suffixed with that ID, so runs with different inputs do not clobber each other:
+
+- Rspack output: `handsontable/test/dist/main.entry.<runId>.js`
+- Per-run Puppeteer runner: `handsontable/test/E2ERunner-<runId>.html`
+- Generic dev runner (always regenerated alongside): `handsontable/test/E2ERunner.html`
+
+`run-puppeteer.mjs` computes the same hash from `npm_config_testpathpattern` / `npm_config_theme` and opens the matching HTML. It also binds the local HTTP server to the first free port starting at `8086` (retries on `EADDRINUSE`, up to 100 ports), so each concurrent run gets its own port. Any number of `npm run test:e2e --testPathPattern=<X>` invocations with distinct patterns (or themes) can run in parallel without further configuration -- the practical limit is machine resources, not the tooling.
+
+The helper that derives the hash lives in `handsontable/.config/helper/run-id.js` -- used by both the Rspack config and the Puppeteer script so they stay in lockstep.
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)

@@ -21,9 +21,9 @@ describe('ExportFile `exportAsBlob` method', () => {
     spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
     spyOn(plugin, '_createBlob').and.returnValue('blob');
 
-    const result = plugin.exportAsBlob('csv', { columnHeaders: true });
+    const result = plugin.exportAsBlob('csv', { colHeaders: true });
 
-    expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
+    expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { colHeaders: true });
     expect(plugin._createBlob).toHaveBeenCalledWith(formatter);
     expect(result).toBe('blob');
   });
