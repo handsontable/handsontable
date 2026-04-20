@@ -11,6 +11,12 @@ tags:
   - updateSettings
   - manualColumnMove
   - column management
+react:
+  id: c3d8e1f4
+  metaTitle: Freeze and unfreeze columns at runtime - React Data Grid | Handsontable
+angular:
+  id: a7b2c5d9
+  metaTitle: Freeze and unfreeze columns at runtime - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
 type: tutorial
@@ -22,6 +28,28 @@ type: tutorial
 
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.js)
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.html)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/column-management/freeze-columns/react/example1.jsx)
+@[code](@/content/recipes/column-management/freeze-columns/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/column-management/freeze-columns/angular/example1.ts)
+@[code](@/content/recipes/column-management/freeze-columns/angular/example1.html)
 
 :::
 
