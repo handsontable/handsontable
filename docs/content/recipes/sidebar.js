@@ -96,13 +96,14 @@ const editingValidationItems = [
 ];
 
 const accessibilityItems = [
+  { path: 'accessibility/keyboard-shortcuts/keyboard-shortcuts', title: 'Custom keyboard shortcuts', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'accessibility/aria-grid/aria-grid', title: 'ARIA grid', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 
 module.exports = {
   sidebar: [
     'introduction',
-    { title: 'Accessibility', path: 'accessibility', children: accessibilityItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
+    { title: 'Accessibility & UX', path: 'accessibility', children: accessibilityItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Real-time & Integrations', path: 'real-time', children: realTimeItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
