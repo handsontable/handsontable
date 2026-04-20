@@ -2213,6 +2213,9 @@ describe('MergeCells cooperation with hidden rows', () => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- 30 columns trigger a horizontal
+      // scrollbar whose OS-dependent height reduces the data area unpredictably; and the test
+      // intent is "viewport smaller than the 21-row merged span" with hidden rows interaction.
       height: scaleHeightWithScrollbar(248),
       viewportRowRenderingOffset: 0,
       mergeCells: {

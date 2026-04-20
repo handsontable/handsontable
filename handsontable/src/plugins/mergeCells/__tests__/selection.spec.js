@@ -347,6 +347,8 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- the scrollbar consumes a variable,
+      // OS-dependent slice of the height, so the visible row count is not predictable here.
       height: scaleHeightWithScrollbar(248),
       viewportRowRenderingOffset: 0,
       mergeCells: {
@@ -455,6 +457,9 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- test intent is "viewport smaller
+      // than the merged cell span" not a specific visible row count; the exact row count varies
+      // by theme and interacts with fixedRowsTop + viewportRowRenderingOffset in non-trivial ways.
       height: scaleHeight(248),
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
@@ -529,6 +534,8 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- same rationale as the sibling test
+      // above: intent is "viewport smaller than merged span" with fixedRowsTop complication.
       height: scaleHeight(200),
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
