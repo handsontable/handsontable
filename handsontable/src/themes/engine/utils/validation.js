@@ -368,6 +368,10 @@ const VALID_TOKEN_KEYS = new Set([
   'paginationButtonHoverForegroundColor',
   'paginationButtonHoverBackgroundColor',
   'paginationButtonDisabledForegroundColor',
+  'paginationButtonDisabledBackgroundColor',
+  'paginationButtonFocusBorderColor',
+  'paginationButtonFocusForegroundColor',
+  'paginationButtonFocusBackgroundColor',
   // Multiselect
   'chipBackground',
   'chipBorderRadius',
