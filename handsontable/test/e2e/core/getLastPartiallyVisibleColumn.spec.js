@@ -41,6 +41,9 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
       data: createSpreadsheetData(10, 100),
       width: 200,
       height: 200,
+      // Disable AutoColumnSize so every column is exactly 50px -- this keeps the
+      // scroll/viewport arithmetic deterministic regardless of the theme's font metrics.
+      autoColumnSize: false,
     });
 
     await scrollViewportHorizontally(780); // column 15 (P1) is partially visible
