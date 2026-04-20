@@ -47,6 +47,7 @@ describe('AutoColumnSize', () => {
     const range = document.createRange();
 
     range.selectNodeContents(cell);
+
     return range.getBoundingClientRect().width;
   }
 

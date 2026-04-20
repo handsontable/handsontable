@@ -237,7 +237,7 @@ describe('ColumnSorting', () => {
 
       // `top: 50%` resolves relative to the ::before's containing block (the sortedColumn span);
       // allow a 1px tolerance for sub-pixel rounding.
-      expect(Math.abs(topPx - spanRect.height / 2)).toBeLessThanOrEqual(1);
+      expect(Math.abs(topPx - (spanRect.height / 2))).toBeLessThanOrEqual(1);
 
       if (htmlDir === 'rtl' || layoutDirection === 'rtl') {
         // In RTL mode the indicator is anchored to the left of the span at exactly 2px.

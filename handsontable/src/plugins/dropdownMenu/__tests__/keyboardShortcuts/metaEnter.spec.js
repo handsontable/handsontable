@@ -79,10 +79,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, 1);
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
-      const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
       const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
@@ -114,11 +112,9 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, lastColumn);
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, lastColumn, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const menuWidth = $dropdownMenu.outerWidth();
-      const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
       const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
@@ -168,10 +164,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       await keyDownUp(['control/meta', 'enter']);
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
-      const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
       const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
@@ -199,10 +193,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       await listen();
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
-      const cellOffset = $(cell).offset();
       const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
       const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 

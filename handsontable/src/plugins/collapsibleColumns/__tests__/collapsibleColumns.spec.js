@@ -1705,6 +1705,7 @@ describe('CollapsibleColumns', () => {
           // contiguous visible children from the anchor.
           visibleChildren += 1;
           next += 1;
+
           // Protect against runaway loops for very wide viewports.
           if (visibleChildren > renderedColspan) {
             break;
