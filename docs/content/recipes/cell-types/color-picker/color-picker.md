@@ -34,6 +34,18 @@ This tutorial shows you how to integrate the Pickr color picker library as a cus
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps @simonwep/pickr
+
+@[code](@/content/recipes/cell-types/color-picker/react/example1.css)
+@[code](@/content/recipes/cell-types/color-picker/react/example1.jsx)
+@[code](@/content/recipes/cell-types/color-picker/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create a custom color picker cell using the [Pickr](https://github.com/Simonwep/pickr) library. Users can click a cell to open a color picker, select a color, and see it rendered with a colored background.

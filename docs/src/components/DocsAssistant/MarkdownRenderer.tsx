@@ -19,7 +19,11 @@ function CodeBlock({ lang, source }: CodeBlockProps) {
     const render = async () => {
       const theme = getCurrentTheme();
       if (lang === 'text') {
-        if (!cancelled) setHtml(`<pre><code>${escapeHtml(source)}</code></pre>`);
+        const lines = escapeHtml(source)
+          .split('\n')
+          .map((l) => `<span class="ec-line">${l}</span>`)
+          .join('\n');
+        if (!cancelled) setHtml(`<pre><code>${lines}</code></pre>`);
         return;
       }
       try {
@@ -27,6 +31,11 @@ function CodeBlock({ lang, source }: CodeBlockProps) {
         const out = hl.codeToHtml(source, {
           lang,
           theme: theme === 'dark' ? 'github-dark' : 'github-light',
+          transformers: [{
+            line(node) {
+              node.properties.class = 'ec-line';
+            },
+          }],
         });
         if (!cancelled) setHtml(out);
       } catch {
@@ -57,18 +66,15 @@ function CodeBlock({ lang, source }: CodeBlockProps) {
 
   return (
     <div className="da-code">
-      <div className="da-code-header">
-        <span className="da-code-lang">{lang === 'text' ? '' : lang}</span>
-        <button
-          type="button"
-          className="da-code-copy"
-          onClick={copy}
-          aria-label="Copy code to clipboard"
-        >
-          {copied ? <IconCheck /> : <IconCopy />}
-          <span>{copied ? 'Copied' : 'Copy'}</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        className={`da-code-copy${copied ? ' is-copied' : ''}`}
+        onClick={copy}
+        aria-label="Copy code to clipboard"
+      >
+        {copied ? <IconCheck /> : <IconCopy />}
+        <span>{copied ? 'Copied' : 'Copy'}</span>
+      </button>
       {/* Shiki output is HTML-escaped token spans. The fallback path (render
           failure) also escapes via escapeHtml above, so no user-controlled
           HTML ever reaches this node. */}

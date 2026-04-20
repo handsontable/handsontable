@@ -1,0 +1,52 @@
+.row-validation-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ht-gap, 12px);
+  width: 100%;
+}
+
+.row-validation-demo__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ht-gap, 8px);
+  align-items: center;
+}
+
+.row-validation-demo__submit {
+  padding: 6px 14px;
+  font-size: var(--ht-font-size, 14px);
+  border-radius: var(--ht-border-radius, 4px);
+  border: 1px solid var(--ht-border-color, #ccc);
+  background: var(--ht-accent-color, #1a42e8);
+  color: #fff;
+  cursor: pointer;
+}
+
+.row-validation-demo__submit:hover {
+  filter: brightness(1.05);
+}
+
+.row-validation-demo__summary-title {
+  margin: 0 0 8px;
+  font-size: var(--ht-font-size, 14px);
+  font-weight: 600;
+}
+
+.row-validation-demo__summary-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: var(--ht-font-size, 14px);
+  color: var(--ht-foreground-color, currentColor);
+}
+
+.row-validation-demo__summary-list:empty::before {
+  content: 'No issues. Click Submit orders to validate.';
+  display: block;
+  margin-left: -1.25rem;
+  color: currentColor;
+  opacity: 0.8;
+}
+
+.row-validation-demo .handsontable td.htInvalid {
+  background-color: var(--ht-cell-error-background-color, #ffe4e4) !important;
+}

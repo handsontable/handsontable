@@ -26,9 +26,13 @@ This section provides practical recipes for loading, syncing, and managing data 
 Current recipes:
 
 <div class="boxes-list">
+- [Load data from a GraphQL API](@/content/recipes/data-management/load-data-graphql/load-data-graphql.md)
 - [Sync two grids](@/content/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
 - [Undo / redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
 - [Server-side data with Django](@/content/recipes/data-management/server-side-django/server-side-django.md)
+- [Server-side data with Laravel](@/content/recipes/data-management/server-side-laravel/server-side-laravel.md)
+- [Server-side data with NestJS](@/content/recipes/data-management/server-side-nestjs/server-side-nestjs.md)
+- [Server-side data with Ruby on Rails](@/content/recipes/data-management/server-side-rails/server-side-rails.md)
 - [Server-side data with Spring Boot](@/content/recipes/data-management/server-side-spring/server-side-spring.md)
 </div>

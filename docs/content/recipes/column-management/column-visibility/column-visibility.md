@@ -25,6 +25,17 @@ category: Column Management
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/column-management/column-visibility/react/example1.jsx)
+@[code](@/content/recipes/column-management/column-visibility/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 **Difficulty:** Beginner

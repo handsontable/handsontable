@@ -34,6 +34,18 @@ This tutorial shows you how to build an interactive SVG star rating cell using `
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/rating/react/example1.css)
+@[code](@/content/recipes/cell-types/rating/react/example1.jsx)
+@[code](@/content/recipes/cell-types/rating/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create an interactive star rating cell using inline SVG stars. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.

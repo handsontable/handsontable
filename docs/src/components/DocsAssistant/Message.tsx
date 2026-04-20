@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ChatMessage } from './useAssistant';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { IconCheck, IconCopy, IconRetry, IconThumbDown, IconThumbUp } from './icons';
+import { IconCheck, IconCopy, IconRetry, IconThumbDown, IconThumbUp, LoaderBoxes } from './icons';
 
 interface Props {
   message: ChatMessage;
@@ -42,9 +42,7 @@ export function Message({ message, isLastAssistant, streaming, onRetry, onFeedba
       >
         {showTyping ? (
           <div className="da-typing" aria-label="Assistant is thinking">
-            <span className="da-dot" />
-            <span className="da-dot" />
-            <span className="da-dot" />
+            <LoaderBoxes />
           </div>
         ) : (
           <MarkdownRenderer content={message.content} />

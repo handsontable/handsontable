@@ -69,7 +69,10 @@ function preprocessMarkdown(content, framework) {
   //    Keep the code blocks inside so they render as plain fenced code.
   result = stripExampleContainers(result);
 
-  // 5. Convert ::: source-code-link URL to an HTML anchor
+  // 5. Convert ::: ask-about-api name|memberof to a button element
+  result = convertAskAboutApiButtons(result);
+
+  // 5b. Convert ::: source-code-link URL to an HTML anchor
   result = convertSourceCodeLinks(result);
 
   // 6. Fix $withBase('/path') → /path in image srcs and link hrefs
@@ -357,6 +360,52 @@ function convertInlineCodeInAsides(content) {
     }
 
     result.push(line);
+  }
+
+  return result.join('\n');
+}
+
+/**
+ * Converts ::: ask-about-api name|memberof ::: blocks to Ask AI button elements.
+ *
+ * @param {string} content
+ * @returns {string}
+ */
+function convertAskAboutApiButtons(content) {
+  const lines = content.split('\n');
+  const result = [];
+  let inBlock = false;
+  let optionData = '';
+
+  for (const line of lines) {
+    const openMatch = line.match(/^:::\s+ask-about-api\s+(\S+)\s*$/);
+
+    if (openMatch) {
+      inBlock = true;
+      optionData = openMatch[1];
+      continue;
+    }
+
+    if (inBlock && /^:::\s*$/.test(line)) {
+      inBlock = false;
+      const pipeIdx = optionData.indexOf('|');
+      const optionName = pipeIdx >= 0 ? optionData.slice(0, pipeIdx) : optionData;
+      // Strip namespace prefix (e.g. "module:Core" -> "Core")
+      const rawPlugin = pipeIdx >= 0 ? optionData.slice(pipeIdx + 1) : '';
+      const pluginName = rawPlugin.split(':').pop()?.split('~')[0]?.split('#')[0] || 'Handsontable';
+
+      if (optionName) {
+        result.push(
+          `<button type="button" class="ask-about-api-btn" data-option="${optionName}" data-plugin="${pluginName}" aria-label="Ask AI about ${optionName}">Ask AI</button>`
+        );
+      }
+      optionData = '';
+      continue;
+    }
+
+    if (!inBlock) {
+      result.push(line);
+    }
   }
 
   return result.join('\n');
