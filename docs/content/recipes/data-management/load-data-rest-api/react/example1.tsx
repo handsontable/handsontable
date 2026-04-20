@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { HotTable, HotTableProps } from '@handsontable/react-wrapper';
+import { useState, useEffect } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
@@ -26,17 +26,18 @@ const STATUS_LOADING = 'Loading users...';
 const STATUS_READY = 'Loaded users from REST API.';
 const STATUS_ERROR = 'Failed to load users. Try again.';
 
-const columns: HotTableProps['columns'] = [
-  { data: 'id', type: 'numeric', width: 70, readOnly: true },
-  { data: 'name', type: 'text', width: 190, readOnly: true },
-  { data: 'username', type: 'text', width: 150, readOnly: true },
-  { data: 'email', type: 'text', width: 220, readOnly: true },
-  { data: 'city', type: 'text', width: 140, readOnly: true },
-  { data: 'company', type: 'text', width: 180, readOnly: true },
-];
+async function fetchUsers(): Promise<ApiUser[]> {
+  const response = await fetch('https://jsonplaceholder.typicode.com/users');
 
-const mapUsersToRows = (users: ApiUser[]): UserRow[] =>
-  users.map((user) => ({
+  if (!response.ok) {
+    throw new Error(`Request failed with status: ${response.status}`);
+  }
+
+  return response.json() as Promise<ApiUser[]>;
+}
+
+function mapUsersToGridRows(users: ApiUser[]): UserRow[] {
+  return users.map((user) => ({
     id: user.id,
     name: user.name,
     username: user.username,
@@ -44,59 +45,55 @@ const mapUsersToRows = (users: ApiUser[]): UserRow[] =>
     city: user.address?.city ?? '',
     company: user.company?.name ?? '',
   }));
+}
 
 const ExampleComponent = () => {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [status, setStatus] = useState(STATUS_LOADING);
   const [hasError, setHasError] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const loadUsers = useCallback(async () => {
-    setLoading(true);
-    setHasError(false);
+  const loadUsers = async () => {
     setStatus(STATUS_LOADING);
+    setHasError(false);
 
     try {
-      const response = await fetch('https://jsonplaceholder.typicode.com/users');
+      const users = await fetchUsers();
 
-      if (!response.ok) {
-        throw new Error(`Request failed with status: ${response.status}`);
-      }
-
-      const users = (await response.json()) as ApiUser[];
-
-      setRows(mapUsersToRows(users));
+      setRows(mapUsersToGridRows(users));
       setStatus(STATUS_READY);
     } catch (_error) {
       setRows([]);
       setHasError(true);
       setStatus(STATUS_ERROR);
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    void loadUsers();
-  }, [loadUsers]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadUsers(); }, []);
 
   return (
-    <>
+    <div>
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
-        <p style={{ margin: 0, fontFamily: 'Arial, sans-serif', fontSize: '14px', color: hasError ? 'var(--ht-cell-error-foreground-color, #c62828)' : 'var(--ht-foreground-color, #202124)' }}>
+        <p style={{ margin: 0, fontFamily: 'Arial, sans-serif', fontSize: '14px', color: hasError ? '#c62828' : '#202124' }}>
           {status}
         </p>
         {hasError && (
-          <button type="button" disabled={loading} onClick={() => void loadUsers()}>
+          <button type="button" onClick={loadUsers}>
             Retry
           </button>
         )}
       </div>
-
       <HotTable
         data={rows}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}
-        columns={columns}
+        columns={[
+          { data: 'id', type: 'numeric', width: 70, readOnly: true },
+          { data: 'name', type: 'text', width: 190, readOnly: true },
+          { data: 'username', type: 'text', width: 150, readOnly: true },
+          { data: 'email', type: 'text', width: 220, readOnly: true },
+          { data: 'city', type: 'text', width: 140, readOnly: true },
+          { data: 'company', type: 'text', width: 180, readOnly: true },
+        ]}
         rowHeaders={true}
         height={360}
         width="100%"
@@ -104,7 +101,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         licenseKey="non-commercial-and-evaluation"
       />
-    </>
+    </div>
   );
 };
 

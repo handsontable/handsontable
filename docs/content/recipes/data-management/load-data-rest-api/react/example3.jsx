@@ -4,19 +4,10 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const columns = [
-  { data: 'id', type: 'numeric', width: 70, readOnly: true },
-  { data: 'name', type: 'text', width: 190, readOnly: true },
-  { data: 'username', type: 'text', width: 150, readOnly: true },
-  { data: 'email', type: 'text', width: 220, readOnly: true },
-  { data: 'city', type: 'text', width: 140, readOnly: true },
-  { data: 'company', type: 'text', width: 180, readOnly: true },
-];
-
 const ExampleComponent = () => {
   const cachedRowsRef = useRef(null);
   const [status, setStatus] = useState('Loading...');
-  const [statusColor, setStatusColor] = useState('var(--ht-foreground-color, #202124)');
+  const [statusColor, setStatusColor] = useState('#202124');
 
   const loadAllRows = useCallback(async (signal) => {
     if (cachedRowsRef.current !== null) {
@@ -81,37 +72,36 @@ const ExampleComponent = () => {
   const beforeDataProviderFetch = useCallback((params) => {
     if (!params.skipLoading) {
       setStatus('Loading...');
-      setStatusColor('var(--ht-foreground-color, #202124)');
+      setStatusColor('#202124');
     }
   }, []);
 
   const afterDataProviderFetch = useCallback(() => {
     setStatus('Loaded from REST API via dataProvider.');
-    setStatusColor('var(--ht-foreground-color, #202124)');
+    setStatusColor('#202124');
   }, []);
 
   const afterDataProviderFetchError = useCallback((error) => {
     setStatus(`Error: ${error.message}`);
-    setStatusColor('var(--ht-cell-error-foreground-color, #c62828)');
+    setStatusColor('#c62828');
   }, []);
 
   return (
-    <>
-      <p
-        style={{
-          margin: '0 0 8px',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '14px',
-          color: statusColor,
-        }}
-      >
+    <div>
+      <p style={{ margin: '0 0 8px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: statusColor }}>
         {status}
       </p>
-
       <HotTable
         dataProvider={dataProvider}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}
-        columns={columns}
+        columns={[
+          { data: 'id', type: 'numeric', width: 70, readOnly: true },
+          { data: 'name', type: 'text', width: 190, readOnly: true },
+          { data: 'username', type: 'text', width: 150, readOnly: true },
+          { data: 'email', type: 'text', width: 220, readOnly: true },
+          { data: 'city', type: 'text', width: 140, readOnly: true },
+          { data: 'company', type: 'text', width: 180, readOnly: true },
+        ]}
         pagination={{ pageSize: 5 }}
         columnSorting={true}
         emptyDataState={true}
@@ -125,7 +115,7 @@ const ExampleComponent = () => {
         afterDataProviderFetchError={afterDataProviderFetchError}
         licenseKey="non-commercial-and-evaluation"
       />
-    </>
+    </div>
   );
 };
 
