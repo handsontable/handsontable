@@ -3,14 +3,14 @@ const columnManagementItems = [
 ];
 
 const recipeDataManagementItems = [
-  { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript', 'react'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript', 'react'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript', 'react'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript', 'react'] },
   { path: 'data-management/server-side-django/server-side-django', title: 'Server-side data with Django', onlyFor: ['javascript', 'react'] },
+  { path: 'data-management/server-side-laravel/server-side-laravel', title: 'Server-side data with Laravel', onlyFor: ['javascript', 'react'] },
+  { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript', 'react'] },
   { path: 'data-management/server-side-rails/server-side-rails', title: 'Server-side data with Ruby on Rails', onlyFor: ['javascript'] },
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript', 'react'] },
-  { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript', 'react'] },
 ];
 
 const cellTypesItems = [
