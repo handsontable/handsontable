@@ -11,17 +11,20 @@ describe('MergeCells scrolling', () => {
   });
 
   it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked', async() => {
+    // Size the container tall enough to fully show the 2-row merged cell regardless of theme
+    // row height, plus some rows above and below so clicking does not trigger extra scrolling.
     handsontable({
       data: createSpreadsheetObjectData(10, 5),
       mergeCells: [
         { row: 5, col: 0, rowspan: 2, colspan: 2 }
       ],
-      height: 100,
+      height: containerHeightForRows(4, 0),
       width: 400
     });
 
-    // Scroll down to a position where the merged cell (row 5) is visible but not at the top.
-    const scrollPos = 4 * getDefaultRowHeight();
+    // Scroll so that the merged cell's first row (5) sits exactly at the top of the viewport.
+    // This makes the merged cell fully visible, so clicking it should NOT shift the scroll.
+    const scrollPos = 5 * getDefaultRowHeight();
 
     await scrollViewportVertically(scrollPos);
     await render();
