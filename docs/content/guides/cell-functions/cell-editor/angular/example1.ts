@@ -1,10 +1,10 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings, HotCellEditorComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import { GridSettings, HotCellEditorComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
-  imports: [HotTableModule],
+  imports: [],
   template: `<button (click)="toUpperCase()">Upper</button>
   <button (click)="toLowerCase()">Lower</button>`,
 })
@@ -24,6 +24,8 @@ export class EditorComponent extends HotCellEditorComponent<string> {
 
 @Component({
   selector: 'example1-cell-editor',
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,

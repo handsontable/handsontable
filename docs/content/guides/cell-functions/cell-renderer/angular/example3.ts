@@ -6,7 +6,7 @@ import {GridSettings, HotCellRendererComponent, HotTableModule} from '@handsonta
   selector: 'app-color-renderer',
   template: `<span [style.color]="textColor">{{value}}</span>`,
   standalone: true,
-  imports: [HotTableModule],
+  imports: [],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ColorRendererComponent extends HotCellRendererComponent<string, {
@@ -28,6 +28,8 @@ export class ColorRendererComponent extends HotCellRendererComponent<string, {
 
 @Component({
   selector: 'app-example3',
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <hot-table
       [settings]="hotSettings!" [data]="hotData">
