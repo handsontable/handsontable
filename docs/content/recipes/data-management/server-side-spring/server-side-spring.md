@@ -12,6 +12,9 @@ tags:
   - data-provider
   - java
   - recipes
+react:
+  id: tl8m1ydh
+  metaTitle: Server-side data with Spring Boot - React Data Grid | Handsontable
 angular:
   id: d7f9h1j3
   metaTitle: Server-side Data with Spring Boot - Angular Data Grid | Handsontable
@@ -234,6 +237,13 @@ With the server running on `http://localhost:8080`, configure Handsontable to us
 ::: only-for typescript
 
 @[code ts](@/content/recipes/data-management/server-side-spring/javascript/example1.ts)
+
+:::
+
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-spring/react/example1.jsx)
+:::
 
 :::
 

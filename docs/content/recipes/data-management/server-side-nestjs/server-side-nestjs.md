@@ -12,6 +12,9 @@ tags:
   - data-provider
   - typescript
   - recipes
+react:
+  id: 02t7jojx
+  metaTitle: Server-side data with NestJS - React Data Grid | Handsontable
 angular:
   id: n3p5r7t9
   metaTitle: Server-side Data with NestJS - Angular Data Grid | Handsontable
@@ -218,6 +221,13 @@ With the server running on `http://localhost:3000`, configure Handsontable to us
 ::: only-for typescript
 
 @[code ts](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
+
+:::
+
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-nestjs/react/example1.jsx)
+:::
 
 :::
 

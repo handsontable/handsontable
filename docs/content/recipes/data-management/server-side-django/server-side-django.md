@@ -11,6 +11,9 @@ tags:
   - server-side
   - data-provider
   - recipe
+react:
+  id: zdsrh5oc
+  metaTitle: Server-side data with Django - React Data Grid | Handsontable
 angular:
   id: q1s3u5w7
   metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
@@ -464,6 +467,13 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
+::: only-for react
+
+@[code jsx](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+:::
+
+:::
 
 ::: only-for angular
 

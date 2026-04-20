@@ -31,6 +31,16 @@ category: Data Management
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/auto-save-backend/react/example1.jsx)
+@[code](@/content/recipes/data-management/auto-save-backend/react/example1.tsx)
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2

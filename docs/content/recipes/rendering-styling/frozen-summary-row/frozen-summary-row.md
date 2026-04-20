@@ -33,6 +33,17 @@ category: Rendering and styling
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/react/example1.css)
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/react/example1.jsx)
+@[code](@/content/recipes/rendering-styling/frozen-summary-row/react/example1.tsx)
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2 --css 3

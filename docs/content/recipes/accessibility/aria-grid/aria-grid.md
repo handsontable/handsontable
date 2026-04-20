@@ -11,6 +11,9 @@ tags:
   - screen reader
   - wcag
   - recipes
+react:
+  id: 8fduuwvk
+  metaTitle: ARIA-Friendly Grid with Row Descriptions - React Data Grid | Handsontable
 angular:
   id: b3e9f1a2
   metaTitle: ARIA-Friendly Grid with Row Descriptions - Angular Data Grid | Handsontable
@@ -24,6 +27,16 @@ category: Accessibility & UX
 
 @[code](@/content/recipes/accessibility/aria-grid/javascript/example1.js)
 
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/accessibility/aria-grid/react/example1.jsx)
+@[code](@/content/recipes/accessibility/aria-grid/react/example1.tsx)
 :::
 
 :::
