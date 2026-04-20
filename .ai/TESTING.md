@@ -383,20 +383,15 @@ Changing a theme's `density` in that module propagates to all tests automaticall
 
 ### Fundamental rule
 
-All expectations must be **pure expressions over tokens + density tokens + sizing tokens**.
-Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are **forbidden** in every file.
-This is enforced by the ESLint rule `handsontable/no-pick-by-density-in-spec` (`no-pick-by-density-in-spec.js`), which flags:
-
-- `.pickByDensity()` calls in `*.spec.js` files
-- `.e2ePickForDensity()` calls in `*.spec.js` files
-- Object expressions containing all three keys (`compact`, `default`, `comfortable`) with literal values -- in **any** file
+All expectations must be **pure expressions over tokens + density tokens + sizing tokens**, or derived from live DOM measurements. Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere -- they were the old pattern and have been eliminated.
 
 ### Non-token-derivable values
 
-When a value cannot be derived from tokens (text shaping, autosize widths, pixel rounding), the spec uses:
+When a value cannot be derived from tokens (text shaping, autosize widths, pixel rounding), the spec uses one of:
 
-- `pending()` for non-main themes -- the test is skipped for that theme run
-- A hardcoded main-theme literal for the `main` theme run
+- **Live DOM measurement**: `getCell(r, c).offsetWidth`, `hot().getColWidth(col)`, `hot().getPlugin('autoColumnSize').getColumnWidth(col)`
+- **Relational assertion**: `expect(widthAfter).toBeGreaterThan(widthBefore)`, `expect(inputWidth).toBeLessThanOrEqual(menuWidth)`
+- **Tolerance-based comparison**: `toBeAroundValue(expected, 2)` or `Math.abs(actual - expected) <= 1`
 
 ### Adding a new theme -- checklist
 
@@ -443,9 +438,9 @@ expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
 
 ### Do not use
 
-- Numeric density triplets `{ compact: N, default: N, comfortable: N }` -- in any file (ESLint enforced)
-- `.pickByDensity()` or `.e2ePickForDensity()` in `*.spec.js` files (ESLint enforced)
-- Per-theme `switch` / `getLoadedTheme()` comparisons in **spec files** for layout numbers -- add or extend an `e2e*` helper in `themeLayoutE2eHelpers.js` (density-based) instead
+- Numeric density triplets `{ compact: N, default: N, comfortable: N }` -- the legacy pattern; derive from tokens or measure from DOM instead
+- `getLoadedTheme() !== 'main'` guards in spec files -- every test should run under every theme
+- Per-theme `switch` / `getLoadedTheme()` comparisons in spec files for layout numbers -- derive from tokens or add a token-formula helper in `themeLayoutE2eHelpers.js`
 - Per-theme `switch` statements in helpers for values derivable from tokens
 
 ## Coverage

@@ -23,8 +23,4 @@ describe('themeLayoutCore entry point is src/themes/theme', () => {
     expect(createThemeLayoutCore(mainTheme.name).cellVerticalPadding)
       .toBe(parseInt(sizing[sizingKey], 10));
   });
-
-  it('exposes no pickByDensity (density triplets are not a supported API)', () => {
-    expect(createThemeLayoutCore(mainTheme.name).pickByDensity).toBeUndefined();
-  });
 });

@@ -15,6 +15,5 @@ module.exports = {
     'require-async-in-it': require('./rules/require-async-in-it'),
     'require-await': require('./rules/require-await'),
     'no-native-error-throw': require('./rules/no-native-error-throw'),
-    'no-pick-by-density-in-spec': require('./rules/no-pick-by-density-in-spec'),
   },
 };

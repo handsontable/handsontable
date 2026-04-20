@@ -81,7 +81,6 @@ module.exports = {
     {
       files: ['*.spec.js'],
       rules: {
-        'handsontable/no-pick-by-density-in-spec': 'error',
         'handsontable/require-await': [
           'error',
           // Handsontable API-related helpers

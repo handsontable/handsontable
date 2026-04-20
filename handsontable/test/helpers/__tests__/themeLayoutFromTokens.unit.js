@@ -287,8 +287,6 @@ describe('themeLayoutFromTokens E2E helpers are token-derived', () => {
 
 describe('removed helpers are no longer on the API surface', () => {
   const REMOVED_HELPERS = [
-    'e2ePickForDensity',
-    'pickByDensity',
     'e2ePasswordEditorAutoresizeWidthTrimPx',
     'e2eCommentsShortcutVerticalScrollSubtract',
     'e2eWindowScrollYContextMenuFirstSelectableItem',

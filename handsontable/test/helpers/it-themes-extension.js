@@ -1,6 +1,6 @@
 /**
  * This extension marks specs as flaky. Theme-specific expectations belong in `getThemeLayout()`
- * (e.g. `e2ePickForDensity`, `e2e*` helpers) so each spec runs once per theme job.
+ * (e.g. `e2e*` helpers) so each spec runs once per theme job.
  *
  * @example
  * ```

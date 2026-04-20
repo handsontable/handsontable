@@ -57,9 +57,9 @@ Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpe
 
 **Entry point:** `themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.js`. Changing a theme's `density` in that module propagates to all tests automatically.
 
-**Fundamental rule:** All expectations must be pure expressions over tokens + density tokens + sizing tokens. Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are **forbidden** in every file (ESLint rule `handsontable/no-pick-by-density-in-spec` enforces this, and also flags `.pickByDensity()` and `.e2ePickForDensity()` calls in `*.spec.js` files).
+**Fundamental rule:** All expectations must be pure expressions over tokens + density tokens + sizing tokens, or derived from live DOM measurements. Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere.
 
-**When a value is not token-derivable** (text shaping, autosize widths, pixel rounding): use `pending()` for non-main themes and a hardcoded main-theme literal for the `main` theme run.
+**When a value is not token-derivable** (text shaping, autosize widths, pixel rounding): use a DOM measurement (`getCell().offsetWidth`, `hot().getColWidth()`, `hot().getPlugin('autoColumnSize').getColumnWidth()`), a relational assertion (`toBeGreaterThan`, `toBeLessThanOrEqual`), or a tolerance-based comparison (`toBeAroundValue(expected, 2)`).
 
 Prefer: primitives (`layout.defaultDataRowHeight`, `layout.overlayHeight()`, …), formulas (for example `layout.defaultDataRowHeight + 29`), and named **`layout.e2e*()`** / **`layout.e2eGcr_*()`** helpers. Add new `e2e*` helpers in `themeLayoutE2eHelpers.js` -- they branch on `layout.densityLevel` (or use token formulas), never on theme name. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived behavior, not bulk loops that only mirror helper outputs.
 
