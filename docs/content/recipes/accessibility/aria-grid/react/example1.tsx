@@ -58,8 +58,9 @@ const ExampleComponent = () => {
             col: number,
             prop: string | number,
             value: Handsontable.CellValue,
+            cellProperties: Handsontable.CellProperties,
           ): void {
-            getRenderer('text')(hotInstance, TD, row, col, prop, value);
+            getRenderer('text')(hotInstance, TD, row, col, prop, value, cellProperties);
             TD.setAttribute('aria-label', `${colHeaders[col]}: ${value || 'empty'}`);
           },
         };

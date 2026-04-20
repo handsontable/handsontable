@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import './example1.css';
 
 registerAllModules();
 
