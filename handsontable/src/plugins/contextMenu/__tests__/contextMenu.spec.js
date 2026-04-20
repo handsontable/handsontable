@@ -97,8 +97,17 @@ describe('ContextMenu', () => {
       await contextMenu();
       await sleep(300);
 
+      // The hider width is the theme-invariant MIN_WIDTH constant used by the
+      // menu plugin. The outer menu width equals hider width plus the menu
+      // container's horizontal borders, which differ between themes.
+      const menuEl = $menu.filter(':visible')[0] || $menu[0];
+      const htMaster = menuEl.querySelector('.ht_master');
+      const cs = htMaster ? window.getComputedStyle(htMaster) : null;
+      const bLM = cs ? (parseFloat(cs.borderLeftWidth) || 0) : 0;
+      const bRM = cs ? (parseFloat(cs.borderRightWidth) || 0) : 0;
+
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).toEqual(217);
+      expect($menu.width()).toEqual(215 + bLM + bRM);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
