@@ -16,6 +16,8 @@
 @import './components/asides.css';
 @import './components/pagination.css';
 @import './components/dropdowns.css';
+@import './components/not-found.css';
+@import './components/minesweeper.css';
 
 /* Mobile */
 @import './mobile/subbar.css';

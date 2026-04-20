@@ -741,7 +741,6 @@ export default defineConfig({
         Header: './src/components/Header.astro',
         Footer: './src/components/Footer.astro',
         MarkdownContent: './src/components/MarkdownContent.astro',
-        NotFound: './src/components/NotFound.astro',
         PageTitle: './src/components/PageTitle.astro',
         Sidebar: './src/components/Sidebar.astro',
         PageSidebar: './src/components/PageSidebar.astro',
