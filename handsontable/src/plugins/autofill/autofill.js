@@ -689,10 +689,16 @@ export class Autofill extends BasePlugin {
 
   /**
    * On before cell mouse over listener.
+   *
+   * @param {CellCoords} coords Cell coordinates.
    */
-  #onBeforeCellMouseOver() {
+  #onBeforeCellMouseOver(coords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
       this.handleDraggedCells += 1;
+
+      if (this.hot.selection.highlight.getFill().isEmpty()) {
+        this.redrawBorders(coords);
+      }
 
       this.addNewRowIfNeeded();
     }
