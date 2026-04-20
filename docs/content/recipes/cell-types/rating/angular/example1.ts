@@ -67,11 +67,14 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
     return (index + 1) === parseInt(this.getValue()?.toString() ?? '0', 10);
   }
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   override shortcuts?: KeyboardShortcutConfig[] = [
     {
       keys: [['1'], ['2'], ['3'], ['4'], ['5']],
       callback: (_editor, event) => {
         this.setValue(parseInt((event as KeyboardEvent).key, 10));
+        this.cdr.detectChanges();
       },
     },
     {
@@ -79,6 +82,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
       callback: (_editor, _event) => {
         if (parseInt(this.getValue()?.toString() ?? '0') < 5) {
           this.setValue(parseInt(this.getValue()?.toString() ?? '0') + 1);
+          this.cdr.detectChanges();
         }
       },
     },
@@ -87,12 +91,11 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
       callback: (_editor, _event) => {
         if (parseInt(this.getValue()?.toString() ?? '0') > 1) {
           this.setValue(parseInt(this.getValue()?.toString() ?? '0') - 1);
+          this.cdr.detectChanges();
         }
       },
     },
   ];
-
-  private readonly cdr = inject(ChangeDetectorRef);
 
   onMouseOver(event: MouseEvent): void {
     const star = (event.target as HTMLElement).closest('.rating-star') as HTMLElement | null;
