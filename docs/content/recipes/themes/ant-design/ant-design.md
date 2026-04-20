@@ -63,144 +63,182 @@ npm install handsontable @handsontable/react-wrapper antd
 
 (or `npm install` / `yarn add`).
 
-## Step 2: Register modules and create a base Ant theme
+## Step 2: Register modules, data, and the Ant-like theme
 
-Create a shared theme module, and register all Handsontable modules.
+Mirror the official example setup by registering modules, preparing row data, and creating a reusable theme instance.
 
 ```tsx
 import { registerAllModules } from 'handsontable/registry';
-import { registerTheme } from 'handsontable/themes';
+import { getTheme, hasTheme, horizonTheme, registerTheme } from 'handsontable/themes';
 import colorsAnt from 'handsontable/themes/static/variables/colors/ant';
-import iconsMain from 'handsontable/themes/static/variables/icons/main';
-import tokensMain from 'handsontable/themes/static/variables/tokens/main';
 
 registerAllModules();
 
-export const antDataGridTheme = registerTheme('ant-data-grid', {
-  icons: iconsMain,
-  colors: colorsAnt,
-  tokens: tokensMain,
-}).params({
-  tokens: {
-    wrapperBorderRadius: '8px',
-    wrapperBorderWidth: '1px',
-    wrapperBorderColor: 'tokens.borderColor',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-  },
-});
-```
-
-## Step 3: Map Ant Design tokens to Handsontable theme params
-
-Use Ant Design's token hook to keep Handsontable in sync with your active Ant Design theme.
-
-```tsx
-import { theme as antdTheme } from 'antd';
-import colorsAnt from 'handsontable/themes/static/variables/colors/ant';
-import { antDataGridTheme } from './theme';
-
-export function useAntHandsontableTheme() {
-  const { token } = antdTheme.useToken();
-
-  return antDataGridTheme.params({
-    colors: {
-      ...colorsAnt,
-      primary: {
-        ...colorsAnt.primary,
-        500: token.colorPrimary,
-        600: token.colorPrimaryHover,
-      },
-      white: token.colorBgContainer,
-      black: token.colorText,
-    },
-    tokens: {
-      backgroundColor: token.colorBgContainer,
-      backgroundSecondaryColor: token.colorFillAlter,
-      foregroundColor: token.colorText,
-      foregroundSecondaryColor: token.colorTextDescription,
-      borderColor: token.colorBorder,
-      accentColor: token.colorPrimary,
-      headerBackgroundColor: token.colorFillAlter,
-      headerForegroundColor: token.colorTextHeading,
-      cellHorizontalBorderColor: token.colorBorderSecondary,
-      cellVerticalBorderColor: token.colorBorderSecondary,
-      // Zebra rows like Ant Design tables.
-      rowCellOddBackgroundColor: token.colorFillAlter,
-      rowCellEvenBackgroundColor: token.colorBgContainer,
-      rowHeaderOddBackgroundColor: token.colorFillAlter,
-      rowHeaderEvenBackgroundColor: token.colorBgContainer,
-      // Ant-like compact spacing.
-      cellHorizontalPadding: `${token.paddingSM}px`,
-      cellVerticalPadding: `${token.paddingXS}px`,
-      wrapperBorderRadius: `${token.borderRadiusLG}px`,
-      wrapperBorderWidth: '1px',
-      wrapperBorderColor: token.colorBorderSecondary,
-      fontFamily: token.fontFamily,
-      fontSize: `${token.fontSize}px`,
-      lineHeight: `${token.lineHeight}px`,
-      headerFontWeight: `${token.fontWeightStrong}`,
-    },
-  });
-}
-```
-
-## Step 4: Create the grid component
-
-Pass the mapped theme to `HotTable`.
-
-```tsx
-import { HotTable } from '@handsontable/react-wrapper';
-import { useMemo } from 'react';
-import { useAntHandsontableTheme } from './useAntHandsontableTheme';
-
 const data = [
-  { name: 'Alice', role: 'Designer', country: 'USA' },
-  { name: 'Bob', role: 'Engineer', country: 'Germany' },
-  { name: 'Carla', role: 'Product', country: 'UK' },
+  {
+    key: '1',
+    name: 'John Brown',
+    age: 32,
+    address: 'New York No. 1 Lake Park',
+    tags: ['nice', 'developer'],
+    actionHint: null,
+  },
+  {
+    key: '2',
+    name: 'Jim Green',
+    age: 42,
+    address: 'London No. 1 Lake Park',
+    tags: ['loser'],
+    actionHint: null,
+  },
+  {
+    key: '3',
+    name: 'Joe Black',
+    age: 32,
+    address: 'Sydney No. 1 Lake Park',
+    tags: ['cool', 'teacher'],
+    actionHint: null,
+  },
 ];
 
-export function AntDesignGrid() {
-  const theme = useAntHandsontableTheme();
-  const columns = useMemo(() => ([
-    { data: 'name', title: 'Name' },
-    { data: 'role', title: 'Role' },
-    { data: 'country', title: 'Country' },
-  ]), []);
+const THEME_NAME = 'horizon-ant-table';
+
+const antTableTheme = (() => {
+  if (hasTheme(THEME_NAME)) {
+    return getTheme(THEME_NAME);
+  }
+
+  return registerTheme(THEME_NAME, horizonTheme)
+    .params({
+      colors: colorsAnt,
+      tokens: {
+        wrapperBorderColor: ['colors.palette.200', 'colors.palette.700'],
+        wrapperBorderRadius: '8px',
+        headerBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
+        headerFontWeight: '600',
+        cellHorizontalBorderColor: ['colors.palette.200', 'colors.palette.700'],
+        cellVerticalBorderColor: ['colors.palette.200', 'colors.palette.700'],
+        cellHorizontalPadding: '16px',
+        cellVerticalPadding: '8px',
+        rowCellEvenBackgroundColor: ['colors.white', 'colors.palette.950'],
+        rowCellOddBackgroundColor: ['colors.white', 'colors.palette.950'],
+        cellReadOnlyBackgroundColor: ['colors.white', 'colors.palette.950'],
+        foregroundColor: ['colors.palette.800', 'colors.palette.100'],
+        linkColor: ['colors.primary.200', 'colors.primary.100'],
+        linkHoverColor: ['colors.primary.100', 'colors.primary.200'],
+      },
+    })
+    .setColorScheme('light')
+    .setDensityType('comfortable');
+})();
+```
+
+## Step 3: Create custom Ant-like cell renderers
+
+Use Ant Design typography, tags, and spacing inside custom renderer components.
+
+```tsx
+import { Space, Tag, Typography } from 'antd';
+
+function NameCell({ value }) {
+  const label = value != null ? String(value) : '';
 
   return (
-    <HotTable
-      data={data}
-      colHeaders
-      columns={columns}
-      theme={theme}
-      height="auto"
-      licenseKey="non-commercial-and-evaluation"
-    />
+    <Typography.Link href="#" onClick={(event) => event.preventDefault()}>
+      {label}
+    </Typography.Link>
+  );
+}
+
+function TagsCell({ value }) {
+  const tags = Array.isArray(value) ? value : [];
+
+  if (tags.length === 0) {
+    return null;
+  }
+
+  return (
+    <Space size={4} wrap>
+      {tags.map((tag) => {
+        let color = tag.length > 5 ? 'geekblue' : 'green';
+
+        if (tag === 'loser') {
+          color = 'volcano';
+        }
+
+        return (
+          <Tag key={tag} color={color}>
+            {String(tag).toUpperCase()}
+          </Tag>
+        );
+      })}
+    </Space>
+  );
+}
+
+function ActionCell({ instance, row }) {
+  const rowData = instance.getSourceDataAtRow(row);
+
+  return (
+    <Space size="middle">
+      <Typography.Link href="#" onClick={(event) => event.preventDefault()}>
+        Invite {rowData?.name ?? ''}
+      </Typography.Link>
+      <Typography.Link href="#" onClick={(event) => event.preventDefault()}>
+        Delete
+      </Typography.Link>
+    </Space>
   );
 }
 ```
 
-## Step 5: Wrap with `ConfigProvider`
+## Step 4: Create the Handsontable grid component
 
-Control your Ant Design theme (light, dark, custom brand), and Handsontable will reuse those values through your token mapping.
+Build the Ant-like table layout with `HotTable`, fixed column widths, and read-only cells.
 
 ```tsx
-import { ConfigProvider, theme as antdTheme } from 'antd';
-import { AntDesignGrid } from './AntDesignGrid';
+import { useCallback } from 'react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 
-export function App() {
+function AntLikeGrid() {
+  const readOnlyCell = useCallback(() => ({ readOnly: true }), []);
+
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: antdTheme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#1677ff',
-          borderRadius: 8,
-        },
-      }}
+    <HotTable
+      theme={antTableTheme}
+      data={data}
+      colHeaders={['Name', 'Age', 'Address', 'Tags', 'Action']}
+      rowHeaders={false}
+      stretchH="all"
+      height="auto"
+      autoRowSize={false}
+      licenseKey="non-commercial-and-evaluation"
+      cells={readOnlyCell}
     >
-      <AntDesignGrid />
-    </ConfigProvider>
+      <HotColumn data="name" width={160} renderer={NameCell} />
+      <HotColumn data="age" width={72} type="numeric" />
+      <HotColumn data="address" width={280} />
+      <HotColumn data="tags" width={240} renderer={TagsCell} />
+      <HotColumn data="actionHint" width={220} renderer={ActionCell} />
+    </HotTable>
+  );
+}
+```
+
+## Step 5: Wrap the grid in Ant Design `Card`
+
+Render the final view with Ant Design card styling around the table component.
+
+```tsx
+import { Card, Typography } from 'antd';
+
+export default function App() {
+  return (
+    <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
+      <Card title={<Typography.Text strong>Handsontable with Ant Design theme tokens</Typography.Text>}>
+        <AntLikeGrid />
+      </Card>
+    </div>
   );
 }
 ```
