@@ -86,8 +86,9 @@
   border-right: none;
 }
 
-/* Source code link: rightmost in the group — no left border overlap */
+/* Source code link inside the container: flow as a flex item, no left border overlap */
 .api-member-actions .source-code-link {
+  position: static;
   border-left: none;
 }
 
