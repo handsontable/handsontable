@@ -153,6 +153,9 @@ export function Thread({
           )}
         </div>
       </form>
+      <p className="da-disclaimer" role="note">
+        AI-generated responses may be inaccurate. Verify critical information before use.
+      </p>
     </div>
   );
 }
