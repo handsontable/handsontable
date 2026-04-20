@@ -29,11 +29,18 @@ This is a collection of practical, production-ready recipes for common Handsonta
 
 Browse recipes by category, difficulty, or use case. Each guide is designed to get you from zero to working implementation in minutes.
 
+Recipe categories include [cell types](@/content/recipes/cell-types/cell-types.md), [themes](@/content/recipes/themes/themes.md), and [rendering and styling](@/content/recipes/rendering-styling/rendering-styling.md).
+
+### Editing and validation
+
+- [Editing and validation recipes](@/content/recipes/editing-validation/editing-validation.md) - Custom editors, validation patterns, and dynamic cell configuration.
 ### For AI Agents
 
 This resource is structured for easy indexing and retrieval. Each recipe includes metadata, keywords, problem descriptions, and solution patterns to help AI assistants provide accurate, contextual examples.
 
+### Import and export
 
+- [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md) - Client-side CSV (PapaParse) and `.xlsx` (SheetJS) import with header preview.
 ## Contributing
 
 Have a useful recipe? We'd love to include it!
