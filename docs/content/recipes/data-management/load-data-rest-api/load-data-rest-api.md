@@ -18,6 +18,9 @@ tags:
 react:
   id: 7c4d2e9a
   metaTitle: Load Data from a REST API - React Data Grid | Handsontable
+angular:
+  id: a3b8c2d1
+  metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---
@@ -32,6 +35,17 @@ This recipe shows how to fetch JSON from a REST API and populate Handsontable af
 
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example1.tsx)
 @[code](@/content/recipes/data-management/load-data-rest-api/react/example1.jsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/angular/example1.ts)
+@[code](@/content/recipes/data-management/load-data-rest-api/angular/example1.html)
 
 :::
 
@@ -70,6 +84,28 @@ This recipe shows how to fetch JSON from a REST API and populate Handsontable af
 The first example resets all grid state on every data load -- column sort order, selection, and column order all go back to defaults. This is fine when no user state exists yet, but it creates a jarring experience in a running app where the user has already sorted or filtered the data.
 
 `hot.updateData()` replaces the dataset while keeping every registered grid state intact. The second example demonstrates this: sort any column by clicking its header, then click **Refresh**. The sort order survives the data update.
+
+::: only-for react
+
+::: example #example2 :react-advanced --tsx 1 --jsx 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example2.tsx)
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example2.jsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/angular/example2.ts)
+@[code](@/content/recipes/data-management/load-data-rest-api/angular/example2.html)
+
+:::
+
+:::
 
 ::: only-for javascript
 
@@ -258,6 +294,28 @@ async function refreshUsers() {
 ## Using `dataProvider` for automatic pagination and sorting
 
 The first two examples manage the fetch lifecycle yourself: you call `loadData()` or `updateData()` at the right time and maintain loading state manually. Handsontable's `dataProvider` option flips this model -- you provide a `fetchRows` function and three CRUD callbacks, and the plugin drives everything else: initial load, pagination, column sorting, request cancellation, and loading overlays.
+
+::: only-for react
+
+::: example #example3 :react-advanced --tsx 1 --jsx 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example3.tsx)
+@[code](@/content/recipes/data-management/load-data-rest-api/react/example3.jsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/load-data-rest-api/angular/example3.ts)
+@[code](@/content/recipes/data-management/load-data-rest-api/angular/example3.html)
+
+:::
+
+:::
 
 ::: only-for javascript
 
