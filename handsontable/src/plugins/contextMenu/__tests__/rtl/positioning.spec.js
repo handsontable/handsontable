@@ -46,7 +46,10 @@ describe('ContextMenu (RTL mode)', () => {
       const readOnlyItemOffset = $readOnlyItem.offset();
 
       expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
-      expect(tickItemOffset.left).toBe(contextMenuOffset.left + 1);
+      // The tick sits just inside the context-menu's left border. Theme tokens
+      // shift the baseline by 0px or 1px depending on density/border width, so
+      // allow a 1px tolerance instead of per-theme hardcoded values.
+      expect(tickItemOffset.left).toBeAroundValue(contextMenuOffset.left, 1);
     });
   });
 });
