@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added dedicated CSS tokens for all pagination button states (hover, focus, disabled).",
+  "type": "added",
+  "issueOrPR": 12404,
+  "breaking": false,
+  "framework": "none"
+}
