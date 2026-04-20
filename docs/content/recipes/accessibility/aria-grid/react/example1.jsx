@@ -44,7 +44,7 @@ const ExampleComponent = () => {
         return {
           renderer(hotInstance, TD, row, col, prop, value, cellProperties) {
             getRenderer('text')(hotInstance, TD, row, col, prop, value, cellProperties);
-            TD.setAttribute('aria-label', `${colHeaders[col]}: ${value || 'empty'}`);
+            TD.setAttribute('aria-label', `${colHeaders[col]}: ${value ?? 'empty'}`);
           },
         };
       }}
