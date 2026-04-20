@@ -71,7 +71,7 @@ export class AppComponent {
     });
   }
 
-  downloadCSVWithNoSanitization() {
+  downloadCSVWithRegexpSanitization() {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
     exportPlugin.downloadFile('csv', {
