@@ -2,8 +2,7 @@ import { mainTheme } from '../../../src/themes/theme';
 import * as themeModules from '../../../src/themes/theme';
 import sizing from '../../../src/themes/static/variables/sizing';
 import density from '../../../src/themes/static/variables/density';
-import { E2E_REGISTERED_THEME_KEYS } from '../themeLayoutCore';
-import { themeLayoutFromTokens } from '../themeLayoutFromTokens';
+import { E2E_REGISTERED_THEME_KEYS, themeLayoutFromTokens } from '../themeLayoutFromTokens';
 
 const ALL_THEMES = Object.values(themeModules).filter(m => m && m.name);
 

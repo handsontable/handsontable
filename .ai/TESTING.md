@@ -55,7 +55,7 @@ npm run test:unit -- --coverage
 
 **Location:**
 - **Unit tests**: Co-located with source in `src/**/__tests__/` directories
-- **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and themeLayoutCore contract tests)
+- **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and its contract tests)
 - **E2E core tests**: `handsontable/test/e2e/` (top-level core tests)
 - **E2E core API tests**: `handsontable/test/e2e/core/` (per-method tests like `selectCell.spec.js`)
 - **E2E settings tests**: `handsontable/test/e2e/settings/` (per-setting tests like `colWidths.spec.js`)
@@ -369,13 +369,11 @@ Tests selection patterns by rendering an ASCII representation of the table's sel
 
 ## Data-Driven Theme Assertions
 
-Theme-dependent expected values in E2E tests come from a composed resolver:
+Theme-dependent expected values in E2E tests come from a single resolver:
 
 | File | Role |
 | --- | --- |
-| `test/helpers/themeLayoutCore.js` | Token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …); auto-discovers themes from `src/themes/theme/index.js` |
-| `test/helpers/themeLayoutE2eHelpers.js` | Hashed `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers (pure token formulas) |
-| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- merges core + E2E helpers; call via global `getThemeLayout()` in specs |
+| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …) plus hashed `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers; auto-discovers themes from `src/themes/theme/index.js`; call via global `getThemeLayout()` in specs |
 
 ### Entry point
 
@@ -408,7 +406,7 @@ See the `handsontable-css-dev` skill for the full four-layer token process. The 
 8. `TokenKey` union: `types/themes.d.ts` -- add any new token keys so TypeScript consumers get correct types.
 9. Add E2E matrix jobs in `.github/workflows/test.yml`.
 
-No edits needed to `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
+No edits needed to `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
 
 **Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml(key)` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. `E2E_REGISTERED_THEME_KEYS` is derived automatically from `src/themes/theme/index.js` -- no manual registration required.
 
@@ -436,7 +434,7 @@ From `getThemeLayout()`:
 - `densityLevel` -- `'compact' | 'default' | 'comfortable'` read from the theme module (exposed for diagnostic access; **do not branch on it** -- primitives already vary per theme)
 - `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
 - `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
-- **`e2e*()` / `e2eGcr_*()` / `e2eDensity_*()` helpers** -- shared regression geometry expressed as pure arithmetic expressions over the primitives above. No density-name branching, no hardcoded per-theme literals. Add new scenarios in `themeLayoutE2eHelpers.js` when multiple specs would otherwise embed the same formula. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
+- **`e2e*()` / `e2eGcr_*()` / `e2eDensity_*()` helpers** -- shared regression geometry expressed as pure arithmetic expressions over the primitives above. No density-name branching, no hardcoded per-theme literals. Add new scenarios in `themeLayoutFromTokens.js` (in the `buildThemeLayoutE2eHelpers` function) when multiple specs would otherwise embed the same formula. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
 
 Additional viewport helpers in `common.js` (globals in E2E):
 
@@ -460,7 +458,7 @@ Additional viewport helpers in `common.js` (globals in E2E):
 
 - Numeric density triplets `{ compact: N, default: N, comfortable: N }` -- the legacy pattern; derive from tokens or measure from DOM instead
 - `getLoadedTheme() !== 'main'` guards in spec files -- every test should run under every theme
-- Per-theme `switch` / `getLoadedTheme()` comparisons in spec files for layout numbers -- derive from tokens or add a token-formula helper in `themeLayoutE2eHelpers.js`
+- Per-theme `switch` / `getLoadedTheme()` comparisons in spec files for layout numbers -- derive from tokens or add a token-formula helper in `themeLayoutFromTokens.js`
 - Per-theme `switch` statements in helpers for values derivable from tokens
 
 ## Coverage
