@@ -1194,6 +1194,7 @@ export function frameworkLoader({ contentDir }) {
               + `</button>`
               + `<span class="minesweeper-mobile-hint">Tap to reveal, toggle to flag</span>`
             + `</div>`
+            + `<div class="minesweeper-footer">Minesweeper powered by Handsontable</div>`
           + `</div>`
           + `</div>`;
 

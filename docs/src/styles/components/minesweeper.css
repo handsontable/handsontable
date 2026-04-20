@@ -92,15 +92,29 @@
   padding: 0 4px;
 }
 
+/* ── Footer bar ──────────────────────────────────────────────────────────── */
+
+.minesweeper-footer {
+  margin: 0;
+  padding: 12px;
+  border-top: 1px solid var(--sl-color-gray-5);
+  font-size: 11px;
+  color: var(--sl-color-gray-3);
+  text-align: right;
+  user-select: none;
+  -webkit-user-select: none;
+  letter-spacing: 0.02em;
+}
+
 /* ── Grid container ───────────────────────────────────────────────────────── */
 
 .minesweeper-grid {
   line-height: 1;
   margin: -1px;
   overflow: hidden;
-  width: calc(9 * 36px);
-  height: calc(9 * 36px);
-  min-height: calc(9 * 36px);
+  width: 354px;
+  height: 353px;
+  min-height: 353px;
 }
 
 /* Reset HOT border-radius */
@@ -126,11 +140,30 @@
   overflow: hidden !important;
 }
 
-/* Hide the corner overlay and header elements -- pure cell grid */
-.minesweeper-grid .ht_clone_top,
-.minesweeper-grid .ht_clone_inline_start,
-.minesweeper-grid .ht_clone_top_inline_start_corner {
-  display: none !important;
+.minesweeper-grid .ht_clone_top.handsontable,
+.minesweeper-grid .ht_clone_top .wtHolder {
+  width: auto !important;
+}
+
+.minesweeper-grid .ht_clone_inline_start.handsontable,
+.minesweeper-grid .ht_clone_inline_start .wtHolder {
+  height: auto !important;
+}
+
+/* Style row & column headers to match the minesweeper aesthetic */
+.minesweeper-grid .handsontable th {
+  background: var(--sl-color-gray-6) !important;
+  color: var(--sl-color-gray-3) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.minesweeper-grid .handsontable span.rowHeader {
+  line-height: 26px;
 }
 
 /* ── Cell rendering ───────────────────────────────────────────────────────── */
@@ -165,7 +198,6 @@
 /* Revealed cell */
 .minesweeper-grid td.ms-revealed {
   background: var(--sl-color-bg) !important;
-  border: 1px solid var(--sl-color-gray-5) !important;
 }
 
 /* Flagged cell -- accent background with 3D borders */

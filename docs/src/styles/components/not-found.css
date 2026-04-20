@@ -8,7 +8,6 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--sl-color-gray-5);
-  min-height: 50vh;
 }
 
 /* ── Left column: text + button ───────────────────────────────────────────── */
