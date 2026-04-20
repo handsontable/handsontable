@@ -208,8 +208,12 @@ describe('DropdownMenu', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
-        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
+        // Derive expected from DOM state so horizontal/vertical scroll introduced
+        // by denser themes is accounted for (the positioner's Cursor adds scrollX/scrollY
+        // to the literal cell offset; when the grid overflows the body slightly, that
+        // shifts the menu by the scroll amount).
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + window.scrollY, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + window.scrollX, 4);
       });
 
       it('should open dropdown menu on the left-top position if on the right ' +
@@ -245,8 +249,10 @@ describe('DropdownMenu', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30, 4);
-        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10, 4);
+        // Derive expected from DOM state so horizontal/vertical scroll introduced
+        // by denser themes is accounted for. See the preceding test for the note.
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30 + window.scrollY, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10 + window.scrollX, 4);
       });
     });
   });

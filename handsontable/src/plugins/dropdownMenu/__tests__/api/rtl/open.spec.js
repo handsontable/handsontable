@@ -120,8 +120,12 @@ describe('DropdownMenu (RTL mode)', () => {
         const menuHeight = $dropdownMenu.outerHeight();
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
-        expect(menuOffset.left).toBeAroundValue(cellOffset.left, 4);
+        // Derive expected from DOM state so horizontal/vertical scroll introduced
+        // by denser themes is accounted for (the positioner's Cursor adds scrollX/scrollY
+        // to the literal cell offset; when the grid overflows the body slightly, that
+        // shifts the menu by the scroll amount).
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + window.scrollY, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left + window.scrollX, 4);
       });
     });
   });

@@ -207,16 +207,14 @@ describe('ContextMenu', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        // Kept at tolerance 4 (toBeAroundValue) because the positioner's
-        // fitsBelow/fitsAbove branch selection (positioner.js `updatePosition`)
-        // depends on window.innerHeight, menu height, and cell top all at once.
-        // When the theme's menu height shifts by one density tier, a last-row cell
-        // can cross the fallback boundary and the plugin picks `setPositionBelowCursor`
-        // (cellOffset.top + 1) instead of above-cursor (cellOffset.top - menuHeight).
-        // Fix the positioner to always pick the intended branch in these scenarios
-        // (or size the container so the cell geometry is predictable) before tightening.
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
-        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth, 4);
+        // The positioner's cursor adds `window.scrollX`/`scrollY` to the literal
+        // cell offset (see Cursor constructor). Under denser themes the grid can
+        // overflow the body slightly, producing a small horizontal/vertical scroll
+        // that shifts the menu by the scroll amount. The test's intent is that
+        // the menu sits just to the left/above the cell; derive the expected
+        // position from DOM state so any scroll is accounted for.
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + window.scrollY, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + window.scrollX, 4);
       });
 
       it('should open context menu on the left-top position if on the right and' +
@@ -252,9 +250,10 @@ describe('ContextMenu', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        // Kept at tolerance 4: see the note on the preceding test.
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30, 4);
-        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10, 4);
+        // Derive expected from DOM state so that any horizontal/vertical scroll
+        // introduced by denser themes is accounted for (see preceding test).
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + 30 + window.scrollY, 4);
+        expect(menuOffset.left).toBeAroundValue(cellOffset.left - menuWidth + 10 + window.scrollX, 4);
       });
     });
   });

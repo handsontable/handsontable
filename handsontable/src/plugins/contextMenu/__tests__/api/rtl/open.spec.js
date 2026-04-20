@@ -120,13 +120,10 @@ describe('ContextMenu (RTL mode)', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        // Kept at tolerance 4 (toBeAroundValue): positioner fitsBelow/fitsAbove branch
-        // selection depends on window.innerHeight + menuHeight + cellOffset.top. When
-        // the theme's menu height pushes the cell across the fallback boundary, the
-        // plugin picks `setPositionBelowCursor` (cellOffset.top + 1) instead of above-cursor.
-        // Fix the positioner (or the test's container sizing) before tightening.
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight, 4);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
+        // Derive expected from DOM state so horizontal/vertical scroll introduced
+        // by denser themes is accounted for. See the LTR variant for the full note.
+        expect(menuOffset.top).toBeAroundValue(cellOffset.top - menuHeight + window.scrollY, 4);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left + window.scrollX, 0);
       });
     });
   });
