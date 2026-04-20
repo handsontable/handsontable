@@ -40,44 +40,57 @@ describe('HandsontableEditor positioning', () => {
       ...createEditorSettings(),
     });
 
-    const scrollPositionBase = 151;
+    // Probe the rendered dropdown width once so scroll positions can sit clearly inside the
+    // "right-fits" and "right-does-not-fit" zones regardless of theme-specific font metrics.
+    await selectCell(1, 7);
+    await keyDownUp('enter');
+    const dropdownWidth = getActiveEditor().htContainer.getBoundingClientRect().width;
 
-    // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)
-    await scrollViewportHorizontally(scrollPositionBase);
+    await keyDownUp('escape');
+    await deselectCell();
 
+    // Cell 7 starts at 7 * 80 = 560 in data coords; workspace is 800 px wide; cells are 80 px.
+    // For a RIGHT placement, cell 7 needs to sit close to the LEFT edge so (800 - cellRight)
+    // >= dropdownWidth. For a LEFT placement (flip), cell 7 needs to sit close to the RIGHT
+    // edge so (800 - cellRight) < dropdownWidth AND spaceInlineStart > spaceInlineEnd.
+    const workspaceWidth = 800;
+    const colWidth = 80;
+    const cellDataLeft = 7 * colWidth;
+    const buffer = 20;
+    const rightScroll = cellDataLeft - Math.max(0, workspaceWidth - colWidth - dropdownWidth - buffer);
+    const leftScroll = Math.max(0, cellDataLeft - (workspaceWidth - dropdownWidth + buffer));
+
+    await scrollViewportHorizontally(rightScroll);
     await selectCell(1, 7);
     await keyDownUp('enter');
 
-    const relativeRect = getCell(2, 7).getBoundingClientRect();
-
     {
+      const relativeRect = getCell(2, 7).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
-      expect({
-        top: containerRect.top,
-        left: containerRect.left,
-      }).toEqual({
-        top: relativeRect.top,
-        left: relativeRect.left - 1,
-      });
+      // Right placement: container's left edge coincides with the cell's left edge
+      // (within the 1px editor border compensation -- see BaseEditor#getEditedCellRect).
+      expect(containerRect.top).toBe(relativeRect.top);
+      expect(Math.abs(containerRect.left - (relativeRect.left - 1))).toBeLessThanOrEqual(1);
+      expect(containerRect.left).toBeGreaterThanOrEqual(relativeRect.left - 1);
+      // The dropdown sits to the RIGHT of the cell, so its right edge is far past the cell's right edge.
+      expect(containerRect.right).toBeGreaterThan(relativeRect.right);
     }
 
     await keyDownUp('escape');
-    // scroll the viewport to the point where the editor may not be rendered on the right (there is not enough space)
-    // so it should be rendered on the left
-    await scrollViewportHorizontally(scrollPositionBase - 1);
+    await scrollViewportHorizontally(leftScroll);
     await keyDownUp('enter');
 
     {
+      const relativeRect = getCell(2, 7).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
-      expect({
-        top: containerRect.top,
-        right: containerRect.right,
-      }).toEqual({
-        top: relativeRect.top,
-        right: relativeRect.right + 1,
-      });
+      // Left (flipped) placement: container's right edge coincides with the cell's right edge
+      // (within the 1px editor border compensation).
+      expect(containerRect.top).toBe(relativeRect.top);
+      expect(Math.abs(containerRect.right - (relativeRect.right + 1))).toBeLessThanOrEqual(1);
+      // The dropdown sits to the LEFT of the cell, so its left edge is far before the cell's left edge.
+      expect(containerRect.left).toBeLessThan(relativeRect.left);
     }
   });
 
