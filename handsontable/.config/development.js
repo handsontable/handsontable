@@ -80,10 +80,12 @@ module.exports.create = function create(envArgs) {
       test: /dompurify/,
       use: [
         {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
+          loader: path.resolve(__dirname, 'loader/exports-to-window-loader-esm.js'),
           options: {
             globals: {
-              DOMPurify: 'dompurify',
+              moduleToExport: 'DOMPurify',
+              moduleName: 'dompurify',
+              defaultExport: true,
             }
           }
         }

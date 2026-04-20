@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 2d2b22ef
 title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable cell editor, with a swatch renderer and hex validation.
 
 ::: only-for javascript vue
 
@@ -534,3 +537,13 @@ theme: 'classic',
 ---
 
 **Congratulations!** You've created a fully functional color picker cell using the Pickr library (nano theme) with the `editorFactory` helper, a button to open the picker, a circle swatch renderer, and native Handsontable editor styling!
+
+## What you learned
+
+You integrated the Pickr color picker library as a Handsontable cell editor. You used `editorFactory` to manage the editor lifecycle, `rendererFactory` to display a color swatch, and Handsontable's CSS tokens to style the editor consistently with the rest of the grid.
+
+## Next steps
+
+- [Colorful Picker (React)](/recipes/cell-types/colorful-picker) - The same pattern using `react-colorful` and React's `EditorComponent`.
+- [Color Picker (Angular)](/recipes/color-picker-angular) - The same pattern using Angular components and the native HTML5 color input.
+- [Star Rating](/recipes/cell-types/rating) - Another custom editor built with `editorFactory` and SVG.

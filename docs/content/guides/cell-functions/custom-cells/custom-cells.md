@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: c2670b72
 title: Custom Cells
 metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
@@ -15,6 +16,7 @@ searchCategory: Guides
 category: Cell functions
 menuTag: new
 ---
+
 [[toc]]
 
 ## Overview
@@ -1007,7 +1009,7 @@ editorFactory<CustomProperties, CustomMethods = {}>({
 
 ## Lifecycle Methods
 
-Understanding when each method is called:
+Each method runs at a specific point in the editor lifecycle:
 
 1. **`init(editor)`** - Called once when the editor is created (singleton pattern)
    - Create your input element (assign to `editor.input`)
@@ -1048,7 +1050,7 @@ Understanding when each method is called:
    - In case of special `focus` management, add your logic in this hook
 
 9. **`render(editor)`** - Custom render function
-   - Optional - can be used for custom rendering logic
+   - Optional - use for custom rendering logic
    - Receives the editor instance as parameter
 
 10. **`value`** - Initial value property
@@ -1266,7 +1268,7 @@ editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>(
 ```
 
 **How it works:**
-- Keyboard shortcut `callback` is called for every key press when the editor is active (open)
+- Handsontable calls the keyboard shortcut `callback` for every key press when the editor is active (open)
 - Return `false` to prevent Handsontable's default behavior for that key
 - Return `true` (or nothing) to allow the default behavior
 - This gives you full control over keyboard interactions within your editor
@@ -1403,7 +1405,7 @@ new Handsontable(container, {
 
 ### 2. Positioning
 
-Positioning is handled automatically by `editorFactory`. You don't need to position the editor manually. The container is automatically positioned over the cell when `open()` is called.
+`editorFactory` handles positioning automatically. You don't need to position the editor manually. The container positions itself over the cell when `open()` runs.
 
 ### 3. Cleanup
 
@@ -1493,7 +1495,7 @@ const editor = editorFactory<{input: HTMLInputElement}>({
 
 - Container positioning is handled automatically
 - Check that `init()` creates `editor.input` element
-- Verify `afterOpen()` is called if you need to trigger UI elements
+- Verify `afterOpen()` runs if you need to trigger UI elements
 
 ### Value Not Saving
 
@@ -1517,3 +1519,16 @@ Have you created a useful custom cell? Consider contributing it as an example!
 ---
 
 *This approach aims to make Handsontable custom cells as accessible as possible, enabling teams to create custom cells in minutes rather than hours.*
+
+## What you learned
+
+- How `rendererFactory` and `editorFactory` simplify custom cell creation compared to the class-based approach.
+- How to use lifecycle hooks (`init`, `beforeOpen`, `afterOpen`, `afterClose`) to control editor behavior.
+- How to add per-cell configuration, keyboard shortcuts, and custom positioning strategies.
+- How `registerCellType` bundles a renderer, editor, and validator under a reusable alias.
+
+## Next steps
+
+- Browse the [recipes](@/recipes/introduction.md) for complete working examples such as color pickers, star ratings, and multi-select dropdowns.
+- Learn how the traditional class-based approach works in the [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) guide.
+- Explore [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) and [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) for standalone function-based customization.

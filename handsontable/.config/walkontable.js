@@ -3,8 +3,9 @@
  *  - walkontable.js
  */
 const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
+const rspack = require('@rspack/core');
+const compilationDoneMarker = require('./plugin/rspack/compilation-done-marker');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
@@ -23,18 +24,25 @@ module.exports.create = function create() {
       rules: [
         {
           test: /\.js$/,
-          loader: 'babel-loader',
+          loader: 'builtin:swc-loader',
           exclude: [
             /node_modules/,
           ],
           options: {
-            cacheDirectory: true,
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'ecmascript',
+              },
+            },
           },
         },
         {
           test: /\.(scss|css)$/,
           use: [
-            { loader: MiniCssExtractPlugin.loader },
+            { loader: rspack.CssExtractRspackPlugin.loader },
             { loader: 'css-loader' },
             { loader: 'sass-loader'},
             { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
@@ -43,7 +51,15 @@ module.exports.create = function create() {
       ]
     },
     plugins: [
-      new MiniCssExtractPlugin({ filename: 'walkontable.css' }),
+      new rspack.CssExtractRspackPlugin({ filename: 'walkontable.css' }),
+      new rspack.DefinePlugin({
+        'process.env.HOT_VERSION': JSON.stringify(process.env.HOT_VERSION),
+        'process.env.HOT_BUILD_DATE': JSON.stringify(process.env.HOT_BUILD_DATE),
+        'process.env.HOT_RELEASE_DATE': JSON.stringify(process.env.HOT_RELEASE_DATE),
+        'process.env.HOT_FILENAME': JSON.stringify(process.env.HOT_FILENAME),
+        'process.env.HOT_PACKAGE_NAME': JSON.stringify(process.env.HOT_PACKAGE_NAME),
+        'process.env.JEST_WORKER_ID': JSON.stringify(''),
+      }),
       compilationDoneMarker(),
     ],
   };

@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: o47p9rb3
 title: Formulas integration in Vue 3
 metaTitle: Formulas integration in Vue 3 - Vue 3 Data Grid | Handsontable
@@ -15,7 +16,7 @@ searchCategory: Guides
 category: Integrate with Vue 3
 menuTag: new
 ---
-Integrate the Formulas plugin with your Vue 3 data grid.
+In this tutorial, you will integrate the Formulas plugin (powered by HyperFormula) with Handsontable in a Vue 3 application.
 
 [[toc]]
 
@@ -71,3 +72,15 @@ This keeps the engine untouched and ensures it behaves exactly as intended.
   - [`afterSheetRenamed`](@/api/hooks.md#aftersheetrenamed)
 - Plugins:
   - [`Formulas`](@/api/formulas.md)
+
+## What you learned
+
+- How to install and configure the Formulas plugin in a Vue 3 application.
+- How to wrap a HyperFormula instance with `markRaw()` to prevent Vue from making it reactive.
+- How to reference named expressions and cross-sheet formulas.
+
+## Next steps
+
+- [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) -- learn the full Formulas plugin API.
+- [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md) -- reduce bundle size by importing only required modules.
+- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- configure columns declaratively.
