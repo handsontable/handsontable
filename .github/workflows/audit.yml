@@ -28,4 +28,6 @@ jobs:
 
       - name: NPM audit
         run: |
+          # npm retired the legacy audit endpoints used by pnpm's audit command.
+          # Keep this check non-blocking when the registry endpoint itself errors.
           pnpm audit --prod --ignore-unfixable --ignore-registry-errors

@@ -15,9 +15,21 @@ Any PR that changes source code needs a changelog entry. This includes bug fixes
 
 Add `[skip changelog]` in the PR description to explicitly skip.
 
+## Workflow: Create the PR First, Then the Changelog
+
+The changelog file is named after the GitHub PR number, so the PR must exist before the entry is written. Guessing the next available number by reading `.changelogs/` or the GitHub API is unreliable — another PR can be opened between the check and the push, and the filename will no longer match.
+
+Correct order:
+
+1. Commit the source code change on the feature branch.
+2. Push the branch and run `gh pr create` (see the `pr-creation` skill).
+3. Read the PR number from the URL `gh pr create` prints (e.g. `https://github.com/handsontable/handsontable/pull/12395` → `12395`).
+4. Create `.changelogs/<PR-number>.json` using that number, set `"issueOrPR"` to the same number.
+5. Commit the new file with a message like `DEV-xxx: Add changelog entry for PR #<number>` and push — the PR picks it up.
+
 ## JSON Format
 
-Create a file at `.changelogs/{issue-or-pr-number}.json`:
+Create a file at `.changelogs/{PR-number}.json` (using the PR number returned by `gh pr create`):
 
 ```json
 {
@@ -75,8 +87,10 @@ Create **one changelog entry per PR**, even if the PR fixes multiple issues. The
 
 ## Checklist
 
-1. Pick the correct `type` from the table above.
-2. Write a clear, user-facing `title` ending with a period.
-3. Set `breaking` to `true` only if the change breaks existing behavior.
-4. Set `framework` to match the affected package, or `"none"` for core.
-5. Name the file after the GitHub PR number (ask the user, never infer).
+1. Confirm the PR already exists (open or draft). Capture its number from the `gh pr create` output or the PR URL.
+2. Pick the correct `type` from the table above.
+3. Write a clear, user-facing `title` ending with a period.
+4. Set `breaking` to `true` only if the change breaks existing behavior.
+5. Set `framework` to match the affected package, or `"none"` for core.
+6. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR.
+7. Commit and push the new changelog file to the same feature branch so the open PR picks it up.

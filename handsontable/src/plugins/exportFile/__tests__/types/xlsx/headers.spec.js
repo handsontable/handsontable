@@ -35,7 +35,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).value).toBe('A');
       expect(ws.getRow(1).getCell(2).value).toBe('B');
@@ -49,7 +49,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).value).toBe('Name');
       expect(ws.getRow(1).getCell(2).value).toBe('Age');
@@ -107,7 +107,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true, rowHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
 
       expect(ws.getRow(1).getCell(1).value).toBe('');
       expect(ws.getRow(1).getCell(2).value).toBe('A');
@@ -134,7 +134,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
       const headerCell = ws.getRow(1).getCell(1);
 
       expect(headerCell.fill).toEqual(DEFAULT_FILL);
@@ -165,7 +165,7 @@ describe('exportFile XLSX type — headers', () => {
       });
 
       // Corner cell: row 1 (header row), col 1 (row-header column).
-      const ws = await parseXlsx({ columnHeaders: true, rowHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
       const cornerCell = ws.getRow(1).getCell(1);
 
       expect(cornerCell.fill).toEqual(DEFAULT_FILL);
@@ -179,7 +179,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true, headerStyle: { backgroundColor: '#4472C4' } });
+      const ws = await parseXlsx({ colHeaders: true, headerStyle: { backgroundColor: '#4472C4' } });
 
       expect(ws.getRow(1).getCell(1).fill).toEqual({
         type: 'pattern',
@@ -196,7 +196,7 @@ describe('exportFile XLSX type — headers', () => {
       });
 
       const ws = await parseXlsx({
-        columnHeaders: true,
+        colHeaders: true,
         headerStyle: { border: { style: 'medium', color: '#FF0000' } },
       });
       const expectedSide = { style: 'medium', color: { argb: 'FFFF0000' } };
@@ -214,7 +214,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true, rowHeaders: true, headerStyle: null });
+      const ws = await parseXlsx({ colHeaders: true, rowHeaders: true, headerStyle: null });
 
       // No fill or border should be set on either the corner cell or a column header cell.
       expect(ws.getRow(1).getCell(1).fill).toBeUndefined();
@@ -231,7 +231,7 @@ describe('exportFile XLSX type — headers', () => {
       });
 
       const ws = await parseXlsx({
-        columnHeaders: true,
+        colHeaders: true,
         headerStyle: { backgroundColor: '#F2F2F2', border: null },
       });
 
@@ -247,7 +247,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
       // Data row starts at row 2 when column headers are exported.
       const dataCell = ws.getRow(2).getCell(1);
 
@@ -263,7 +263,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).fill).toEqual(DEFAULT_FILL);
       expect(ws.getRow(1).getCell(1).border).toEqual(DEFAULT_BORDER);
@@ -284,7 +284,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).alignment).toEqual(
         jasmine.objectContaining({ horizontal: 'left' })
@@ -304,7 +304,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).alignment).toEqual(
         jasmine.objectContaining({ horizontal: 'center' })
@@ -319,7 +319,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).alignment).toBeUndefined();
     });
@@ -331,7 +331,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       expect(ws.getRow(1).getCell(1).alignment).toBeUndefined();
     });
@@ -348,7 +348,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       // First header layer
       expect(ws.getRow(1).getCell(1).value).toBe('Group A');
@@ -369,7 +369,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       // 'Span' spans columns 2-3 in Excel (B1:C1)
       expect(ws.model.merges).toContain('B1:C1');
@@ -385,7 +385,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       // With 2 header rows, data starts at row 3.
       expect(ws.getRow(3).getCell(1).value).toBe('value');
@@ -402,7 +402,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true, rowHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true, rowHeaders: true });
 
       // The row-header column (A) should be merged across the 2 nested header rows.
       expect(ws.model.merges).toContain('A1:A2');
@@ -410,7 +410,7 @@ describe('exportFile XLSX type — headers', () => {
       expect(ws.getRow(3).getCell(2).value).toBe('A1');
     });
 
-    it('should not export nested headers when columnHeaders option is false', async() => {
+    it('should not export nested headers when colHeaders option is false', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         nestedHeaders: [
@@ -422,7 +422,7 @@ describe('exportFile XLSX type — headers', () => {
 
       const ws = await parseXlsx();
 
-      // columnHeaders is false — data should start at row 1.
+      // colHeaders is false — data should start at row 1.
       expect(ws.rowCount).toBe(2);
       expect(ws.getRow(1).getCell(1).value).toBe('A1');
     });
@@ -441,7 +441,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true, exportHiddenColumns: 'hide' });
+      const ws = await parseXlsx({ colHeaders: true, exportHiddenColumns: 'hide' });
 
       // All 3 data columns are present (data starts at row 3 due to 2 header rows).
       expect(ws.getRow(3).getCell(1).value).toBe('A1');
@@ -472,7 +472,7 @@ describe('exportFile XLSX type — headers', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       // Only 2 data columns are present (hidden column omitted).
       expect(ws.getRow(3).getCell(1).value).toBe('A1');

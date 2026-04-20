@@ -1,25 +1,27 @@
 /* file: app.component.ts */
-import {AfterViewInit, ChangeDetectionStrategy, Component, OnInit, ViewChild} from '@angular/core';
-import {GridSettings, HotCellRendererComponent, HotTableComponent} from '@handsontable/angular-wrapper';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
+import {GridSettings, HotCellRendererComponent, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-cover-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<img [src]="value" (mousedown)="$event.preventDefault()"/>`,
-  standalone: false,
 })
 export class CoverRendererComponent extends HotCellRendererComponent<string> {
 }
 
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example1',
   template: `
-    <hot-table *ngIf="!!hotSettings"
-               [settings]="hotSettings!" [data]="hotData">
-    </hot-table>
+    @if (hotSettings) {
+      <hot-table [settings]="hotSettings!" [data]="hotData"></hot-table>
+    }
   `,
-  standalone: false
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
@@ -72,38 +74,22 @@ export class AppComponent implements OnInit, AfterViewInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent, CoverRendererComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent, CoverRendererComponent  ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

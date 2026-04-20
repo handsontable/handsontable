@@ -274,7 +274,7 @@ describe('exportFile XLSX type — layout', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       // 2 frozen data rows + 1 header row = ySplit 3
       expect(ws.views[0].ySplit).toBe(3);
@@ -369,7 +369,7 @@ describe('exportFile XLSX type — layout', () => {
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
-      const ws = await parseXlsx({ columnHeaders: true });
+      const ws = await parseXlsx({ colHeaders: true });
 
       // Header occupies row 1, so data merge starts at row 2.
       expect(ws.model.merges).toContain('A2:B3');

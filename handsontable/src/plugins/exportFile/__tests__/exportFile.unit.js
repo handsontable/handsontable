@@ -1,4 +1,5 @@
 import { ExportFile } from '../exportFile';
+import DataProvider from '../dataProvider';
 
 function fakeCtx(exportFileSettings) {
   return { hot: { getSettings: () => ({ exportFile: exportFileSettings }) } };
@@ -53,5 +54,23 @@ describe('ExportFile#_createBlob', () => {
     } finally {
       global.Blob = savedBlob;
     }
+  });
+});
+
+describe('DataProvider#setOptions', () => {
+  it('should support the deprecated `columnHeaders` alias', () => {
+    const dataProvider = new DataProvider({});
+
+    dataProvider.setOptions({ columnHeaders: true });
+
+    expect(dataProvider.options.colHeaders).toBe(true);
+  });
+
+  it('should prefer `colHeaders` when both aliases are provided', () => {
+    const dataProvider = new DataProvider({});
+
+    dataProvider.setOptions({ columnHeaders: true, colHeaders: false });
+
+    expect(dataProvider.options.colHeaders).toBe(false);
   });
 });
