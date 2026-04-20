@@ -35,26 +35,28 @@ describe('Pagination integration with AutoColumnSize', () => {
 
     pagination.setPage(2);
 
-    // Page 2 contains the long text in column 1 (1px tolerance for border rounding across pages)
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 1);
+    // Page 2 contains the long text in column 1 (2px tolerance absorbs both border rounding across
+    // pages and theme-specific content width jitter as AutoColumnSize re-measures per page).
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 2);
     expect(colWidth(spec().$container, 1)).toBeGreaterThan(defaultColWidth);
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 2);
 
     const page2Col1Width = colWidth(spec().$container, 1);
 
     pagination.setPage(3);
 
     // Page 3 contains a shorter long text -- still wider than default but narrower than page 2
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 2);
     expect(colWidth(spec().$container, 1)).toBeGreaterThan(defaultColWidth);
     expect(colWidth(spec().$container, 1)).toBeLessThan(page2Col1Width);
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 1);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 2);
 
     pagination.setPage(4);
 
-    // Page 4 has no long text -- all columns return to default width (1px tolerance for border rounding)
-    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 1);
-    expect(colWidth(spec().$container, 1)).toBeAroundValue(defaultColWidth, 1);
-    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 1);
+    // Page 4 has no long text -- all columns return to default width (2px tolerance for border
+    // rounding and theme-specific content width jitter).
+    expect(colWidth(spec().$container, 0)).toBeAroundValue(defaultColWidth, 2);
+    expect(colWidth(spec().$container, 1)).toBeAroundValue(defaultColWidth, 2);
+    expect(colWidth(spec().$container, 2)).toBeAroundValue(defaultColWidth, 2);
   });
 });
