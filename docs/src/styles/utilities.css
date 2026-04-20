@@ -84,6 +84,34 @@ html {
 }
 
 /* -------------------------------------------------------------------------
+ * GitHub example CTA button — used in recipe pages to link to the full
+ * runnable example in the handsontable/examples repository.
+ * ------------------------------------------------------------------------- */
+.github-example-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--sl-color-accent);
+  color: #fff !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  border-radius: 4px;
+  transition: background-color 0.15s, opacity 0.15s;
+}
+
+.github-example-cta:hover {
+  background-color: var(--sl-color-accent-high, #1237c8);
+  opacity: 0.9;
+}
+
+.github-example-cta svg {
+  flex-shrink: 0;
+}
+
+/* -------------------------------------------------------------------------
  * Screen-reader-only utility — visually hidden but accessible to AT
  * ------------------------------------------------------------------------- */
 .sr-only {
