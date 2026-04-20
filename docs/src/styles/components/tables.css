@@ -47,11 +47,6 @@
   align-items: stretch;
 }
 
-/* Source code link inside the container — position is handled by the container */
-.api-member-actions .source-code-link {
-  position: static;
-}
-
 /* Shared visual styles for both action buttons */
 .source-code-link,
 .ask-about-api-btn {
