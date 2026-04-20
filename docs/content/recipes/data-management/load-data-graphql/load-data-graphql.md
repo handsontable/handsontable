@@ -37,6 +37,28 @@ This recipe shows two GraphQL approaches for Handsontable. The first approach lo
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/load-data-graphql/react/example1.jsx)
+@[code](@/content/recipes/data-management/load-data-graphql/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/load-data-graphql/angular/example1.ts)
+@[code](@/content/recipes/data-management/load-data-graphql/angular/example1.html)
+
+:::
+
+:::
+
 ## Approach 1 - Client-side fetch with `loadData()` and `updateData()`
 
 - Sending a GraphQL POST request to `https://graphqlzero.almansi.me/api` from the browser.
@@ -66,6 +88,28 @@ The first example resets all grid state on every data load - column sort order, 
 
 @[code](@/content/recipes/data-management/load-data-graphql/javascript/example2.js)
 @[code](@/content/recipes/data-management/load-data-graphql/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/load-data-graphql/react/example2.jsx)
+@[code](@/content/recipes/data-management/load-data-graphql/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/load-data-graphql/angular/example2.ts)
+@[code](@/content/recipes/data-management/load-data-graphql/angular/example2.html)
 
 :::
 

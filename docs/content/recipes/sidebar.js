@@ -3,7 +3,7 @@ const columnManagementItems = [
 ];
 
 const dataManagementItems = [
-  { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript'] },
+  { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript'] },
@@ -93,7 +93,7 @@ module.exports = {
   sidebar: [
     'introduction',
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript'] },
-    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript'] },
+    { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     {
       title: 'Editing and Validation',

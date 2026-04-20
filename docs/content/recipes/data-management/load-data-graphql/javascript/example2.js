@@ -29,7 +29,11 @@ const STATUS_REFRESHING = 'Refreshing...';
 const STATUS_REFRESHED = 'Data refreshed -- column sort order was preserved.';
 const STATUS_ERROR = 'Failed to load users. Try again.';
 
-const rootContainer = document.querySelector('#example2');
+const container = document.querySelector('#example2');
+
+if (!container) {
+  throw new Error('Missing #example2 element.');
+}
 
 const statusBar = document.createElement('div');
 const statusLabel = document.createElement('p');
@@ -56,11 +60,11 @@ retryButton.textContent = 'Retry';
 retryButton.hidden = true;
 retryButton.style.marginBottom = '0';
 
-rootContainer.appendChild(statusBar);
+container.appendChild(statusBar);
 statusBar.appendChild(statusLabel);
 statusBar.appendChild(refreshButton);
 statusBar.appendChild(retryButton);
-rootContainer.appendChild(gridContainer);
+container.appendChild(gridContainer);
 
 // Step 1: Initialize the grid with columnSorting enabled and an empty dataset.
 const hot = new Handsontable(gridContainer, {
