@@ -7,8 +7,9 @@
  *
  * JS examples self-mount when their module is imported.
  * JSX examples export a default React component; the runner mounts it via createRoot.
- * Angular examples export an AppModule class; the runner bootstraps it via
- * platformBrowserDynamic after loading Zone.js and injecting the template HTML.
+ * Angular examples support two patterns:
+ *   - Legacy NgModule:  export class AppModule {}  (bootstrapped via platformBrowserDynamic)
+ *   - Modern standalone: export class AppComponent {} + export const appConfig  (bootstrapped via bootstrapApplication)
  */
 
 // ── Glob maps resolved by Vite at build time ──────────────────────────────
@@ -26,6 +27,32 @@ async function ensureZone(): Promise<void> {
   if (zoneLoaded) return;
   zoneLoaded = true;
   await import('zone.js');
+}
+
+// ── Angular bootstrap helper (NgModule + standalone) ─────────────────────
+
+/**
+ * Bootstraps an Angular example module.
+ *
+ * Supports two export conventions:
+ *  - Legacy NgModule:    { AppModule }         → platformBrowserDynamic().bootstrapModule()
+ *  - Modern standalone:  { AppComponent, appConfig? } → bootstrapApplication()
+ */
+async function bootstrapAngular(mod: Record<string, unknown>): Promise<void> {
+  if (mod.AppModule) {
+    const { platformBrowserDynamic } = await import('@angular/platform-browser-dynamic');
+
+    await platformBrowserDynamic().bootstrapModule(mod.AppModule as never, {
+      ngZoneEventCoalescing: true,
+    });
+  } else if (mod.AppComponent) {
+    const { bootstrapApplication } = await import('@angular/platform-browser');
+    const config = (mod.appConfig ?? { providers: [] }) as never;
+
+    await bootstrapApplication(mod.AppComponent as never, config);
+  } else {
+    throw new Error('Angular example must export AppModule (NgModule) or AppComponent (standalone)');
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -176,8 +203,6 @@ async function runExamples(): Promise<void> {
     // causing "JIT compiler not available" errors for partially-compiled libraries.
     await import('@angular/compiler');
 
-    const { platformBrowserDynamic } = await import('@angular/platform-browser-dynamic');
-
     for (const el of ngEls) {
       const src     = el.dataset.exampleAngular!;
       const htmlSrc = el.dataset.exampleHtml;
@@ -207,18 +232,8 @@ async function runExamples(): Promise<void> {
           }
         }
 
-        const mod = await loader() as { AppModule: unknown };
-        const AppModule = mod.AppModule;
-
-        if (!AppModule) {
-          console.warn('[hot-example] Angular module has no AppModule export:', src);
-          markLoaded(el);
-          continue;
-        }
-
-        await platformBrowserDynamic().bootstrapModule(AppModule as never, {
-          ngZoneEventCoalescing: true,
-        });
+        const mod = await loader() as Record<string, unknown>;
+        await bootstrapAngular(mod);
         markLoaded(el);
       } catch (err) {
         console.error('[hot-example] Angular failed:', src, err);
