@@ -55,6 +55,7 @@ npm run test:unit -- --coverage
 
 **Location:**
 - **Unit tests**: Co-located with source in `src/**/__tests__/` directories
+- **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and themeLayoutCore contract tests)
 - **E2E core tests**: `handsontable/test/e2e/` (top-level core tests)
 - **E2E core API tests**: `handsontable/test/e2e/core/` (per-method tests like `selectCell.spec.js`)
 - **E2E settings tests**: `handsontable/test/e2e/settings/` (per-setting tests like `colWidths.spec.js`)
@@ -395,11 +396,19 @@ When a value cannot be derived from tokens (text shaping, autosize widths, pixel
 
 ### Adding a new theme -- checklist
 
-1. Create `handsontable/src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`.
-2. Re-export from `src/themes/theme/index.js`.
-3. Ensure the theme build produces `styles/ht-theme-<name>.css`.
-4. Add E2E matrix jobs in `.github/workflows/test.yml`.
-5. No edits needed to: `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
+See the `handsontable-css-dev` skill for the full four-layer token process. The steps specific to E2E test infrastructure are:
+
+1. Token JS: `src/themes/static/variables/tokens/<name>.js` -- camelCase token keys, values reference other tokens or primitives.
+2. Colors JS: `src/themes/static/variables/colors/<name>.js` -- color palette for the theme.
+3. Icons JS: `src/themes/static/variables/icons/<name>.js` -- icon definitions (or re-export an existing one if icons are shared).
+4. CSS source: `src/themes/static/css/theme/ht-theme-<name>.css` + `ht-theme-<name>-no-icons.css` -- declare all `--ht-*` variables for the new theme.
+5. Theme module: `src/themes/theme/<name>.js` -- exports `{ name, density, icons, colors, tokens }`.
+6. Re-export from `src/themes/theme/index.js` so auto-discovery picks it up.
+7. Validation allow-list: `src/themes/engine/utils/validation.js` (`VALID_TOKEN_KEYS` Set) -- add any new token keys introduced by the theme.
+8. `TokenKey` union: `types/themes.d.ts` -- add any new token keys so TypeScript consumers get correct types.
+9. Add E2E matrix jobs in `.github/workflows/test.yml`.
+
+No edits needed to `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
 
 **Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml(key)` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. `E2E_REGISTERED_THEME_KEYS` is derived automatically from `src/themes/theme/index.js` -- no manual registration required.
 

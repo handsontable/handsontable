@@ -1,6 +1,6 @@
 ---
 name: handsontable-e2e-testing
-description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, and plugin lifecycle testing patterns
+description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, plugin lifecycle testing patterns, and token-driven theme-specific expectations via getThemeLayout() (viewport helpers, DOM measurements, and relational assertions that work across all themes)
 ---
 
 # Handsontable E2E Testing Guide
@@ -76,7 +76,7 @@ Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpe
 
 Prefer, in order: (1) named `layout.e2e*()` / `layout.e2eGcr_*()` helpers when a shared formula exists, (2) a direct formula in primitives (`layout.defaultDataRowHeight + layout.cellBorderWidth`), (3) a DOM/plugin-API read, (4) a relational assertion. **Do not** branch on `layout.densityLevel` or theme name in specs -- the primitives already vary per theme.
 
-**Adding a new theme:** Create `src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`, re-export from `src/themes/theme/index.js`, add the stylesheet build, and add E2E matrix jobs in `.github/workflows/test.yml`. No edits needed to `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, or any spec file -- auto-discovery handles the rest.
+**Adding a new theme:** See the `handsontable-css-dev` skill for the full four-layer token process. E2E-specific steps: (1) tokens JS at `src/themes/static/variables/tokens/<name>.js`, (2) colors JS at `src/themes/static/variables/colors/<name>.js`, (3) icons JS at `src/themes/static/variables/icons/<name>.js` (or reuse an existing one), (4) CSS source `src/themes/static/css/theme/ht-theme-<name>.css` + `-no-icons.css` variant, (5) theme module `src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`, (6) re-export from `src/themes/theme/index.js`, (7) add any new token keys to the `VALID_TOKEN_KEYS` allow-list in `src/themes/engine/utils/validation.js`, (8) add any new token keys to the `TokenKey` union in `types/themes.d.ts`, (9) add E2E matrix jobs in `.github/workflows/test.yml`. No edits needed to `themeLayoutCore.js`, `themeLayoutE2eHelpers.js`, `themeLayoutFromTokens.js`, `common.js`, or any spec file -- auto-discovery handles the rest.
 
 **Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Every test should run under every theme. For inner Handsontable editor lists (dropdown / handsontable / autocomplete), use global **`expectInnerHandsontableEditorListClientBoxMatchesSettings()`** from `test/helpers/common.js`. For **`getEditedCellRect`**, use **`expectGetEditedCellRectFromPartial`** with **`layout.e2eGcr_*`**; pass **`getE2eDocumentViewport()`** when the helper needs document scroll or viewport height.
 

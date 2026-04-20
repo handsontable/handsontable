@@ -1135,16 +1135,19 @@ describe('CustomBorders', () => {
     it('should render borders only for rendered rows', async() => {
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
+      const containerHeight = containerHeightForRows(5, 0);
       const instance = handsontable({
         data,
         customBorders,
-        height: containerHeightForRows(5, 0),
+        height: containerHeight,
         viewportRowRenderingOffset: 0
       });
 
       const renderedRows = instance.countRenderedRows();
 
-      expect(renderedRows).toBeLessThan(data.length);
+      // Container was sized to fit 5 fully visible rows; rendered rows include a partial
+      // row below (see Core_count.spec.js), so the count is exactly `expectedVisibleRows + 1`.
+      expect(renderedRows).toBe(expectedVisibleRows(containerHeight, 0) + 1);
       expect(countVisibleCustomBorders()).toEqual(renderedRows);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
@@ -1152,18 +1155,24 @@ describe('CustomBorders', () => {
     it('should render borders only for rendered rows, after scrolling', async() => {
       const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
+      const containerHeight = containerHeightForRows(5, 0);
       const instance = handsontable({
         data,
         customBorders,
-        height: containerHeightForRows(5, 0),
+        height: containerHeight,
         viewportRowRenderingOffset: 0
       });
 
       await scrollViewportVertically(400);
 
       const renderedRows = instance.countRenderedRows();
+      const expectedVisible = expectedVisibleRows(containerHeight, 0);
 
-      expect(renderedRows).toBeLessThan(data.length);
+      // Container was sized to fit `expectedVisible` fully visible rows. After scrolling, the
+      // count is `expectedVisible + 1` (partial row at bottom) and at most `expectedVisible + 2`
+      // when a partial row is also exposed at the top due to sub-pixel scroll offsets.
+      expect(renderedRows).toBeGreaterThanOrEqual(expectedVisible + 1);
+      expect(renderedRows).toBeLessThanOrEqual(expectedVisible + 2);
       expect(countVisibleCustomBorders()).toEqual(renderedRows);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
     });
