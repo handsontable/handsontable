@@ -1,10 +1,13 @@
-/* Sync Handsontable theme with docs theme toggle (override browser default).
-   Exclude .disable-auto-theme containers that manage their own color scheme. */
-[data-theme="dark"] .ht-theme-main:not(.disable-auto-theme *) {
-  color-scheme: dark;
-}
-[data-theme="light"] .ht-theme-main:not(.disable-auto-theme *) {
-  color-scheme: light;
+/* Sync Handsontable theme color-scheme with the docs theme toggle.
+   Wrapped in @layer so the ThemeManager's unlayered runtime injection
+   always wins for demos that control their own color scheme. */
+@layer docs-ht-theme-sync {
+  [data-theme="dark"] .ht-theme-main {
+    color-scheme: dark;
+  }
+  [data-theme="light"] .ht-theme-main {
+    color-scheme: light;
+  }
 }
 
 /* ── Hooks example: border below the grid ────────────────────────────── */
