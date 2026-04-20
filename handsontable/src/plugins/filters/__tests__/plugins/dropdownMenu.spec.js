@@ -10,6 +10,49 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     }
   });
 
+  /**
+   * Sum horizontal box-model contributions (padding, border, margin) that subtract from
+   * content width as we walk up from a child element to (but not including) an ancestor TD.
+   *
+   * @param {HTMLElement} child The element whose width is being measured.
+   * @param {HTMLElement} td The ancestor TD whose content width bounds the child.
+   * @returns {number} Sum of paddings, borders, and margins that reduce available width.
+   */
+  function sumHorizontalBoxDelta(child, td) {
+    let delta = 0;
+    const win = child.ownerDocument.defaultView;
+    // Contribution from the child itself (its own borders + paddings).
+    const childStyle = win.getComputedStyle(child);
+
+    delta += parseFloat(childStyle.borderLeftWidth) || 0;
+    delta += parseFloat(childStyle.borderRightWidth) || 0;
+    delta += parseFloat(childStyle.paddingLeft) || 0;
+    delta += parseFloat(childStyle.paddingRight) || 0;
+    // Walk up ancestors until we reach the TD. For each intermediate element add
+    // its own margins + borders + paddings. For the TD add only its paddings.
+    let node = child.parentElement;
+
+    while (node && node !== td) {
+      const style = win.getComputedStyle(node);
+
+      delta += parseFloat(style.marginLeft) || 0;
+      delta += parseFloat(style.marginRight) || 0;
+      delta += parseFloat(style.borderLeftWidth) || 0;
+      delta += parseFloat(style.borderRightWidth) || 0;
+      delta += parseFloat(style.paddingLeft) || 0;
+      delta += parseFloat(style.paddingRight) || 0;
+      node = node.parentElement;
+    }
+    if (node === td) {
+      const tdStyle = win.getComputedStyle(td);
+
+      delta += parseFloat(tdStyle.paddingLeft) || 0;
+      delta += parseFloat(tdStyle.paddingRight) || 0;
+    }
+
+    return delta;
+  }
+
   it('should scale text input showed after condition selection (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
@@ -35,13 +78,12 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     await selectDropdownByConditionMenuOption('Begins with');
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
+    const inputEl = $(dropdownMenuRootElement()).find('input')[0];
+    const widthOfInput = $(inputEl).width();
+    const tdEl = $(inputEl).closest('td')[0];
+    const parentsPaddings = sumHorizontalBoxDelta(inputEl, tdEl);
 
-    // The input should fill most of the menu width (minus paddings/borders/margins).
-    // Exact padding differs per density so we verify the input is within a reasonable
-    // range of the menu width rather than computing exact padding from CSS.
-    expect(widthOfInput).toBeGreaterThan(widthOfMenu * 0.8);
-    expect(widthOfInput).toBeLessThanOrEqual(widthOfMenu);
+    expect(widthOfInput).toBeAroundValue(widthOfMenu - parentsPaddings, 1);
   });
 
   it('should scale a condition select (pixel perfect)', async() => {
@@ -66,10 +108,12 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfSelect = $(conditionSelectRootElements().first).width();
+    const selectEl = $(conditionSelectRootElements().first)[0];
+    const widthOfSelect = $(selectEl).width();
+    const tdEl = $(selectEl).closest('td')[0];
+    const parentsPaddings = sumHorizontalBoxDelta(selectEl, tdEl);
 
-    expect(widthOfSelect).toBeGreaterThan(widthOfMenu * 0.8);
-    expect(widthOfSelect).toBeLessThanOrEqual(widthOfMenu);
+    expect(widthOfSelect).toBeAroundValue(widthOfMenu - parentsPaddings, 1);
   });
 
   it('should scale search input of the value box (pixel perfect)', async() => {
@@ -94,10 +138,12 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
-    const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
+    const inputEl = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input')[0];
+    const widthOfInput = $(inputEl).width();
+    const tdEl = $(inputEl).closest('td')[0];
+    const parentsPaddings = sumHorizontalBoxDelta(inputEl, tdEl);
 
-    expect(widthOfInput).toBeGreaterThan(widthOfMenu * 0.8);
-    expect(widthOfInput).toBeLessThanOrEqual(widthOfMenu);
+    expect(widthOfInput).toBeAroundValue(widthOfMenu - parentsPaddings, 1);
   });
 
   it('should scale the value box element (pixel perfect)', async() => {
