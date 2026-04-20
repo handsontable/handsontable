@@ -32,6 +32,18 @@ category: Data Management
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/react/example1.css)
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/react/example1.jsx)
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to connect external **Undo** and **Redo** buttons to Handsontable's built-in undo/redo stack. The buttons stay disabled until an action is available, and they update after every change, undo, and redo.

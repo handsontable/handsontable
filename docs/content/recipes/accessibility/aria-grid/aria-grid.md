@@ -25,6 +25,17 @@ category: Accessibility & UX
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/accessibility/aria-grid/react/example1.jsx)
+@[code](@/content/recipes/accessibility/aria-grid/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to configure Handsontable so screen readers can navigate the grid meaningfully. You will enable ARIA roles on grid elements, add descriptive `aria-label` attributes to every cell, expose sort state on column headers, and configure keyboard navigation to match screen reader conventions.

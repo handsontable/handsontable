@@ -47,7 +47,7 @@ export function DocsAssistantWidget() {
   const [pendingDraft, setPendingDraft] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const resizingRef = useRef(false);
-  const { state, send, stop, retry, clear, setFeedback } = useAssistant();
+  const { state, send, stop, retry, clear, clearAndSend, setFeedback } = useAssistant();
 
   useEffect(() => {
     try {
@@ -88,6 +88,18 @@ export function DocsAssistantWidget() {
     tocBtn.addEventListener('click', handleAskAboutPage);
     return () => tocBtn.removeEventListener('click', handleAskAboutPage);
   }, [clear]);
+
+  // "Ask AI about this API" buttons on API reference pages — opens assistant
+  // and auto-submits the prefilled question without user interaction.
+  useEffect(() => {
+    const handleAskAboutApi = (e: Event) => {
+      const { question } = (e as CustomEvent<{ question: string }>).detail;
+      setOpen(true);
+      clearAndSend(question);
+    };
+    window.addEventListener('docs-assistant:ask', handleAskAboutApi);
+    return () => window.removeEventListener('docs-assistant:ask', handleAskAboutApi);
+  }, [clearAndSend]);
 
   useEffect(() => {
     if (!open) return;

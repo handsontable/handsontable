@@ -1,8 +1,10 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild, ElementRef, OnDestroy } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example5',
   template: `
     <div class="example-controls-container">
@@ -18,14 +20,17 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
             <span>{{ selectedLabel }}</span>
             <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
           </button>
-          <ul class="theme-dropdown-menu" role="listbox" *ngIf="isOpen">
-            <li
-              *ngFor="let opt of backgroundOptions"
-              role="option"
-              [attr.aria-selected]="selected === opt.value"
-              (click)="selectBackground(opt.value)"
-            >{{ opt.label }}</li>
-          </ul>
+          @if (isOpen) {
+            <ul class="theme-dropdown-menu" role="listbox">
+              @for (opt of backgroundOptions; track opt.value) {
+                <li
+                  role="option"
+                  [attr.aria-selected]="selected === opt.value"
+                  (click)="selectBackground(opt.value)"
+                >{{ opt.label }}</li>
+              }
+            </ul>
+          }
         </div>
       </div>
     </div>
@@ -36,7 +41,6 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     >
     </hot-table>
   `,
-  standalone: false
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
@@ -192,38 +196,22 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

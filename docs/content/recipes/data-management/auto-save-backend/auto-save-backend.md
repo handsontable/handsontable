@@ -31,6 +31,17 @@ category: Data Management
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/data-management/auto-save-backend/react/example1.jsx)
+@[code](@/content/recipes/data-management/auto-save-backend/react/example1.tsx)
+
+:::
+
+:::
+
 ## Overview
 
 This recipe shows how to auto-save edited rows to a backend with `afterChange`, an 800 ms debounce, and row-level dirty tracking. It sends only modified rows, ignores `loadData` changes, and reports save status in the UI.

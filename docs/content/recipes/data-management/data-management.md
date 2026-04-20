@@ -27,6 +27,7 @@ Current recipes:
 
 <div class="boxes-list">
 - [Load data from a REST API](@/content/recipes/data-management/load-data-rest-api/load-data-rest-api.md)
+- [Load data from a GraphQL API](@/content/recipes/data-management/load-data-graphql/load-data-graphql.md)
 - [Sync two grids](@/content/recipes/data-management/sync-two-grids/sync-two-grids.md)
 - [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md)
 - [Undo / redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
