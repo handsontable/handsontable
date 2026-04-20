@@ -24,7 +24,7 @@ category: Cell Types
 
 This tutorial shows you how to create a custom date cell type using Moment.js and the Pikaday calendar picker, with format auto-correction and per-column configuration.
 
-::: only-for javascript vue angular
+::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
 
