@@ -39,7 +39,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
   it('should return first partially visible row index (scrolled viewport)', async() => {
     const rowHeight = getDefaultRowHeight();
     // scroll partway through row 15 so that it is partially visible
-    const scrollAmount = rowHeight * 15 + Math.ceil(rowHeight / 2);
+    const scrollAmount = (rowHeight * 15) + Math.ceil(rowHeight / 2);
 
     handsontable({
       data: createSpreadsheetData(100, 10),

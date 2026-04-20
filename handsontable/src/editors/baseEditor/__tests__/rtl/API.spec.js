@@ -70,7 +70,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => ({
+            expectGetEditedCellRectFromPartial(L => ({
               start: 0,
               top: 0,
               width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -188,7 +188,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => ({
+            expectGetEditedCellRectFromPartial(L => ({
               start: 0,
               top: 0,
               width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -221,7 +221,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, 1);
 
-            expectGetEditedCellRectFromPartial((L) => ({
+            expectGetEditedCellRectFromPartial(L => ({
               start: L.defaultColumnWidth - L.cellBorderWidth,
               top: L.defaultDataRowHeight,
               width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -305,7 +305,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            expectGetEditedCellRectFromPartial((L) => ({
+            expectGetEditedCellRectFromPartial(L => ({
               start: 0,
               top: 0,
               width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -430,7 +430,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => ({
+            expectGetEditedCellRectFromPartial(L => ({
               start: 0,
               top: document.documentElement.clientHeight - L.overlayHeight({ rows: 2 }),
               width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -550,7 +550,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(countRows() - 2, 0);
 
-            expectGetEditedCellRectFromPartial((L) => ({
+            expectGetEditedCellRectFromPartial(L => ({
               start: 0,
               top: document.documentElement.clientHeight - L.overlayHeight({ rows: 2 }),
               width: L.defaultColumnWidth + L.cellBorderWidth,

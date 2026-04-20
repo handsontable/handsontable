@@ -196,7 +196,6 @@ describe('Comments', () => {
 
       it('should display the comment editor on the right of the cell when the ' +
         'viewport is scrolled (the Window object is not a scrollable element)', async() => {
-        const layout = getThemeLayout();
         const width = 500;
         const height = 250;
         const colFromEnd = 8;

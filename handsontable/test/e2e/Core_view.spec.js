@@ -583,8 +583,8 @@ describe('Core_view', () => {
 
     $(getCell(1, 2))
       .simulate('mouseover', {
-        clientX: Math.round(cell12Rect.left + cell12Rect.width / 2),
-        clientY: Math.round(cell12Rect.top + cell12Rect.height / 2),
+        clientX: Math.round(cell12Rect.left + (cell12Rect.width / 2)),
+        clientY: Math.round(cell12Rect.top + (cell12Rect.height / 2)),
       })
       .simulate('mouseup')
       .simulate('click');

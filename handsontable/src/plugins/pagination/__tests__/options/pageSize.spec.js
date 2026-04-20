@@ -585,7 +585,7 @@ describe('Pagination `pageSize` option', () => {
       expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
 
       let pagData = plugin.getPaginationData();
-      let totalPages = pagData.totalPages;
+      const totalPages = pagData.totalPages;
 
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',

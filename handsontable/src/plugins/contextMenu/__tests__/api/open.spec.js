@@ -181,7 +181,6 @@ describe('ContextMenu', () => {
 
       it('should open context menu on the left-top position if on the right and ' +
         'bottom there is no space left', async() => {
-        const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
 
@@ -214,7 +213,6 @@ describe('ContextMenu', () => {
 
       it('should open context menu on the left-top position if on the right and' +
         ' bottom there is no space left (including offset)', async() => {
-        const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
 

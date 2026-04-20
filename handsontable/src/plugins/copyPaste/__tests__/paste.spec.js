@@ -599,8 +599,6 @@ describe('CopyPaste', () => {
     });
 
     it('should paste data without scrolling the viewport', async() => {
-      const layout = getThemeLayout();
-
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,

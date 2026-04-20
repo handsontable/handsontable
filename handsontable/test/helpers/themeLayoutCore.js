@@ -83,7 +83,7 @@ export function createThemeLayoutCore(themeName) {
   if (!densityConfig) {
     throw new Error(
       `themeLayoutCore: theme "${resolvedName}" declares density "${densityLevel}" ` +
-      `but density module has no such entry`
+      'but density module has no such entry'
     );
   }
 

@@ -182,7 +182,6 @@ describe('DropdownMenu', () => {
 
       it('should open dropdown menu on the left-top position if on the right and' +
         ' bottom there is no space left', async() => {
-        const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
 
@@ -215,7 +214,6 @@ describe('DropdownMenu', () => {
 
       it('should open dropdown menu on the left-top position if on the right ' +
         'and bottom there is no space left (including offset)', async() => {
-        const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
 

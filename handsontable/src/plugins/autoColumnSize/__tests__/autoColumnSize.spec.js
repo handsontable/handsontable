@@ -617,7 +617,6 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    const acs = getPlugin('autoColumnSize');
     const shortW = colWidth(spec().$container, 0);
     const longerW = colWidth(spec().$container, 1);
     const longestW = colWidth(spec().$container, 2);

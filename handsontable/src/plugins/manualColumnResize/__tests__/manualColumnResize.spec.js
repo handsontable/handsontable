@@ -457,7 +457,6 @@ describe('manualColumnResize', () => {
       colWidths: [45, 120, 160, 60, 80],
     });
 
-    const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
     let autoWidth0;
 
     {

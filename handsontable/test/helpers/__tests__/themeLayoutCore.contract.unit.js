@@ -1,5 +1,6 @@
 import { mainTheme, classicTheme, horizonTheme } from '../../../src/themes/theme';
 import density from '../../../src/themes/static/variables/density';
+import sizing from '../../../src/themes/static/variables/sizing';
 import { createThemeLayoutCore, E2E_REGISTERED_THEME_KEYS } from '../themeLayoutCore';
 
 describe('themeLayoutCore entry point is src/themes/theme', () => {
@@ -18,7 +19,6 @@ describe('themeLayoutCore entry point is src/themes/theme', () => {
 
   it('resolves cellVerticalPadding from density[theme.density].cellVertical', () => {
     const sizingKey = density[mainTheme.density].cellVertical.replace('sizing.', '');
-    const sizing = require('../../../src/themes/static/variables/sizing').default;
 
     expect(createThemeLayoutCore(mainTheme.name).cellVerticalPadding)
       .toBe(parseInt(sizing[sizingKey], 10));

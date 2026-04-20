@@ -95,7 +95,6 @@ describe('ContextMenu (RTL mode)', () => {
 
       it('should open context menu on the right-top position if on the left and ' +
         'bottom there is no space left', async() => {
-        const layout = getThemeLayout();
         const rowDivisor = getDefaultRowHeight();
         const colDivisor = getDefaultColumnWidth();
 

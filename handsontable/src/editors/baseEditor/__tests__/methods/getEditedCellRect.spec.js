@@ -65,7 +65,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => ({
+          expectGetEditedCellRectFromPartial(L => ({
             start: 0,
             top: 0,
             width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -187,7 +187,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => ({
+          expectGetEditedCellRectFromPartial(L => ({
             start: 0,
             top: 0,
             width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -304,7 +304,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => ({
+          expectGetEditedCellRectFromPartial(L => ({
             start: 0,
             top: 0,
             width: L.defaultColumnWidth + L.cellBorderWidth,

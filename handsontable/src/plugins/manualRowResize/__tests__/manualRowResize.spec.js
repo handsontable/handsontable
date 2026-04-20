@@ -1227,7 +1227,6 @@ describe('manualRowResize', () => {
 
       await waitForNextAnimationFrames(7);
 
-      const layout = getThemeLayout();
       const mousemoveDelta = ($resizer.height() / 2) - 50;
       const expectedBump = 6;
 
