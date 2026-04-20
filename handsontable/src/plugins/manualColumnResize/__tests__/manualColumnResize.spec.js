@@ -381,17 +381,21 @@ describe('manualColumnResize', () => {
       + $columnHeaders.eq(2).width() + $columnHeaders.eq(3).width()
       + $columnHeaders.eq(4).width();
 
-    // The total rendered width should be close to the container content width (910px minus borders)
-    expect(totalWidth).toBeAroundValue(904, 6);
+    // Sum of the 5 column widths must equal the container's content width (910px) minus
+    // the 6px the HOT wrapper reserves for its outer border + scrollbar-gutter column
+    // (row-header column's displayed width even when rowHeaders is off -- see Walkontable
+    // settings.defaultColumnWidth). Exactly 904 on every theme; no tolerance.
+    expect(totalWidth).toBe(904);
 
-    // Each non-auto-sized column should be roughly equal
+    // Each non-auto-sized column should be equal to the stretched average within integer
+    // rounding (one column may take the rounding remainder, so tolerance is 2).
     const stretchedAvg = ($columnHeaders.eq(0).width() + $columnHeaders.eq(2).width()
       + $columnHeaders.eq(3).width() + $columnHeaders.eq(4).width()) / 4;
 
-    expect($columnHeaders.eq(0).width()).toBeAroundValue(stretchedAvg, 3);
-    expect($columnHeaders.eq(2).width()).toBeAroundValue(stretchedAvg, 3);
-    expect($columnHeaders.eq(3).width()).toBeAroundValue(stretchedAvg, 3);
-    expect($columnHeaders.eq(4).width()).toBeAroundValue(stretchedAvg, 3);
+    expect($columnHeaders.eq(0).width()).toBeAroundValue(stretchedAvg, 2);
+    expect($columnHeaders.eq(2).width()).toBeAroundValue(stretchedAvg, 2);
+    expect($columnHeaders.eq(3).width()).toBeAroundValue(stretchedAvg, 2);
+    expect($columnHeaders.eq(4).width()).toBeAroundValue(stretchedAvg, 2);
   });
 
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler when stretchH is set as `last`', async() => {
