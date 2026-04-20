@@ -1,0 +1,14 @@
+/* Flash animation applied to cells updated by an external data source (e.g., a WebSocket feed). */
+@keyframes cellFlash {
+  0% {
+    background-color: rgba(255, 220, 0, 0.75);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+.ht-cell-flash {
+  animation: cellFlash 0.8s ease-out;
+}

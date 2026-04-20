@@ -12,6 +12,12 @@ tags:
   - setDataAtCell
   - tutorial
   - recipes
+react:
+  id: c4f8a2e7
+  metaTitle: Real-time WebSocket Updates - React Data Grid | Handsontable
+angular:
+  id: d9b1e5f3
+  metaTitle: Real-time WebSocket Updates - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time & Integrations
 type: tutorial
@@ -23,6 +29,30 @@ type: tutorial
 
 @[code](@/content/recipes/real-time/websocket-updates/javascript/example1.js)
 @[code](@/content/recipes/real-time/websocket-updates/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/real-time/websocket-updates/react/example1.css)
+@[code](@/content/recipes/real-time/websocket-updates/react/example1.jsx)
+@[code](@/content/recipes/real-time/websocket-updates/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/real-time/websocket-updates/angular/example1.ts)
+@[code](@/content/recipes/real-time/websocket-updates/angular/example1.html)
+@[code](@/content/recipes/real-time/websocket-updates/angular/example1.css)
 
 :::
 
