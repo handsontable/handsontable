@@ -34,7 +34,17 @@ describe('ContextMenu keyboard shortcut', () => {
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
 
-      expect(window.scrollY).toBe(9);
+      // After the plugin scrolls the viewport, the first item should be
+      // visible at (or near) the top. The exact scrollY depends on the menu
+      // container's top padding which is theme-dependent, so assert that the
+      // first item is within the viewport instead of hardcoding a pixel.
+      const firstItemRect = $('.htContextMenu:visible')
+        .find('.ht_master .htCore tbody td').not('.htSeparator')[0]
+        .getBoundingClientRect();
+
+      expect(window.scrollY).toBeLessThan(1000); // scrolled from initial 1000
+      expect(firstItemRect.top).toBeGreaterThanOrEqual(0);
+      expect(firstItemRect.top).toBeLessThan(firstItemRect.height);
     });
 
     it('should move the menu item selection to the next item (skipping `disabled` items)', async() => {
