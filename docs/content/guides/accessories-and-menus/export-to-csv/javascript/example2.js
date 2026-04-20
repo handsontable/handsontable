@@ -32,7 +32,7 @@ button.addEventListener('click', () => {
   const exportedBlob = exportPlugin.exportAsBlob('csv', {
     bom: false,
     columnDelimiter: ',',
-    columnHeaders: false,
+    colHeaders: false,
     exportHiddenColumns: true,
     exportHiddenRows: true,
     mimeType: 'text/csv',
