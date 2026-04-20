@@ -579,16 +579,20 @@ describe('NestedHeaders', () => {
 
       // Structure check: no columns are hidden here, so the count of visible
       // bottom-row headers must equal the rendered column count, and each label
-      // must match `getColHeader(col, lastHeaderLevel)` for the rendered range.
+      // must match `getColHeader(visualCol, lastHeaderLevel)` for the rendered
+      // range (mapped from renderable to visual so the check is robust to any
+      // hidden-column setup).
       const renderedCols = countRenderedCols();
-      const startCol = hot().view._wt.wtTable.getFirstRenderedColumn();
+      const startRenderable = hot().view._wt.wtTable.getFirstRenderedColumn();
       const lastHeaderLevel = hot().view._wt.wtTable.THEAD.querySelectorAll('tr').length - 1;
 
       expect(bottomRowHeaders.length).toBe(renderedCols);
       const expectedLabels = [];
 
       for (let i = 0; i < renderedCols; i++) {
-        expectedLabels.push(getColHeader(startCol + i, lastHeaderLevel));
+        const visualCol = columnIndexMapper().getVisualFromRenderableIndex(startRenderable + i);
+
+        expectedLabels.push(getColHeader(visualCol, lastHeaderLevel));
       }
       const actualLabels = bottomRowHeaders.toArray().map((th) => {
         const colHeader = th.querySelector('.colHeader');
