@@ -319,16 +319,28 @@ export class DragToScroll extends BasePlugin {
       });
     }
 
-    this.setCallback((diffX, diffY) => {
+    this.setCallback((scrollX, scrollY) => {
       const { selection } = this.hot;
+      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
+      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
 
-      // Suppress the irrelevant scroll axis for header-based selections.
-      // Column header drags should only scroll horizontally (not vertically),
-      // and row header drags should only scroll vertically (not horizontally).
-      const x = selection.isSelectedByRowHeader() ? 0 : diffX;
-      const y = selection.isSelectedByColumnHeader() ? 0 : diffY;
+      if (scrollX !== 0 || scrollY !== 0) {
+        // Suppress the irrelevant scroll axis for header-based selections:
+        // row header drags only need vertical scrolling, column header drags only horizontal.
+        const x = selection.isSelectedByRowHeader() ? 0 : scrollX;
+        const y = selection.isSelectedByColumnHeader() ? 0 : scrollY;
 
-      this.#autoScroller.update({ x, y });
+        this.#autoScroller.update({ x, y });
+      }
+
+      // Always call scroll() to maintain the same side-effects as the
+      // legacy direct-scroll approach. When the mouse is inside the viewport
+      // (scrollX/scrollY = 0) this is a no-op but still fires the scroll
+      // event that other plugins (e.g. manualRowMove) may rely on.
+      scrollHandler.scroll(
+        horizontalScrollValue + (Math.sign(scrollX) * 50),
+        verticalScrollValue + (Math.sign(scrollY) * 20)
+      );
     });
 
     this.listen();
