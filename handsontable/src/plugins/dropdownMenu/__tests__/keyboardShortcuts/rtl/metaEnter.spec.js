@@ -41,7 +41,12 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
+        // Menu top aligns with the dropdown button's bottom; button geometry
+        // is theme-dependent so read it from the DOM.
+        const buttonBottomDoc = cell.querySelector('.changeType')
+          .getBoundingClientRect().bottom + window.scrollY;
+
+        expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
       });
@@ -71,7 +76,12 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).toBeAroundValue(cellOffset.top + cell.clientHeight - 1, 2);
+        // Menu top aligns with the dropdown button's bottom; button geometry
+        // is theme-dependent so read it from the DOM.
+        const buttonBottomDoc = cell.querySelector('.changeType')
+          .getBoundingClientRect().bottom + window.scrollY;
+
+        expect(menuOffset.top).toBeCloseTo(buttonBottomDoc, 0);
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
