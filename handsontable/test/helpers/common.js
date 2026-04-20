@@ -180,14 +180,28 @@ export function getLoadedTheme() {
   return __ENV_ARGS__.HOT_THEME;
 }
 
+// Module-level cache so specs that call getThemeLayout() hundreds of times per suite
+// do not re-run the full token-resolution pipeline on every call.
+// The cache is busted whenever the loaded theme name changes (e.g. between theme matrix runs).
+let _cachedThemeLayout = null;
+let _cachedThemeName = null;
+
 /**
  * Returns the resolved theme layout metrics for the currently loaded theme.
  * Use this in specs to get data-driven expected values instead of hard-coding per-theme numbers.
+ * The result is memoized per theme name -- switching themes (e.g. in matrix runs) busts the cache.
  *
  * @returns {object} Layout metrics from themeLayoutFromTokens.
  */
 export function getThemeLayout() {
-  return themeLayoutFromTokens(getLoadedTheme());
+  const currentTheme = getLoadedTheme();
+
+  if (_cachedThemeLayout === null || _cachedThemeName !== currentTheme) {
+    _cachedThemeLayout = themeLayoutFromTokens(currentTheme);
+    _cachedThemeName = currentTheme;
+  }
+
+  return _cachedThemeLayout;
 }
 
 export { E2E_REGISTERED_THEME_KEYS };
