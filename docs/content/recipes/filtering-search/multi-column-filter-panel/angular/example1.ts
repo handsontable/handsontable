@@ -30,11 +30,11 @@ const sourceData: Product[] = [
       <div class="filter-panel">
         <label class="filter-label filter-label--wide">
           Product name
-          <input type="text" placeholder="Contains..." (input)="onNameFilter($event)" />
+          <input type="text" [value]="enteredName" placeholder="Contains..." (input)="onNameFilter($event)" />
         </label>
         <label class="filter-label filter-label--wide">
           Category
-          <select (change)="onCategoryFilter($event)">
+          <select [value]="selectedCategory" (change)="onCategoryFilter($event)">
             <option value="">All categories</option>
             <option value="Bikes">Bikes</option>
             <option value="Safety">Safety</option>
@@ -45,11 +45,11 @@ const sourceData: Product[] = [
         </label>
         <label class="filter-label">
           Min price
-          <input type="number" min="0" placeholder="0" (input)="onMinPriceFilter($event)" />
+          <input type="number" min="0" [value]="minPrice" placeholder="0" (input)="onMinPriceFilter($event)" />
         </label>
         <label class="filter-label">
           Max price
-          <input type="number" min="0" placeholder="2500" (input)="onMaxPriceFilter($event)" />
+          <input type="number" min="0" [value]="maxPrice" placeholder="2500" (input)="onMaxPriceFilter($event)" />
         </label>
         <button type="button" (click)="clearFilters()">Clear all filters</button>
       </div>
@@ -79,10 +79,10 @@ export class Example1MultiColumnFilterPanelComponent {
     autoWrapCol: true,
   };
 
-  private enteredName = '';
-  private selectedCategory = '';
-  private minPrice = '';
-  private maxPrice = '';
+  enteredName = '';
+  selectedCategory = '';
+  minPrice = '';
+  maxPrice = '';
 
   onNameFilter(event: Event): void {
     this.enteredName = (event.target as HTMLInputElement).value.trim();
