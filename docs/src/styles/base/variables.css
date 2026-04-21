@@ -64,7 +64,7 @@
 /* Light mode accent colours + pure neutral gray palette */
 :root[data-theme='light'] {
   --sl-color-accent-low:  #e6f3ff;
-  --sl-color-accent:      #1565c0;
+  --sl-color-accent:      #1A42E8;
   --sl-color-accent-high: #0d47a1;
 
   /* Pure gray palette for light mode */

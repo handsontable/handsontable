@@ -1,9 +1,12 @@
+import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 /* file: app.component.ts */
 import { Component, OnInit, ViewChild } from "@angular/core";
 import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
 import { FormControl } from "@angular/forms";
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: "app-example6",
   template: `
     <div class="example-controls-container">
@@ -36,7 +39,6 @@ import { FormControl } from "@angular/forms";
       margin-top: 20px;
     }
   `,
-  standalone: false,
 })
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
@@ -164,38 +166,23 @@ export class AppComponent implements OnInit {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { ReactiveFormsModule } from "@angular/forms";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
 
-/* start:skip-in-compilation */
-import { AppComponent } from "./app.component";
-/* end:skip-in-compilation */
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule, ReactiveFormsModule],
-  declarations: [AppComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
 /* end-file */

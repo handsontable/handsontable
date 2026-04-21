@@ -12,6 +12,12 @@ tags:
   - data-management
   - recipes
   - dataprovider
+react:
+  id: 1qclffzb
+  metaTitle: Server-side data with Laravel - React Data Grid | Handsontable
+angular:
+  id: v9x1z3b5
+  metaTitle: Server-side data with Laravel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---
@@ -19,6 +25,11 @@ category: Data Management
 ## Overview
 
 This recipe shows how to connect Handsontable's `dataProvider` plugin to a Laravel backend. You will build a product inventory grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a Laravel database.
+
+<a class="github-example-cta" href="https://github.com/handsontable/examples/tree/master/server-examples/laravel" target="_blank" rel="noopener noreferrer">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+  View full example on GitHub
+</a>
 
 **Difficulty:** Intermediate  
 **Time:** ~30 minutes  
@@ -210,6 +221,23 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 
 :::
 
+::: only-for react
+
+@[code](@/content/recipes/data-management/server-side-laravel/react/example1.jsx)
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.html)
+
+:::
+
+:::
+
 **What's happening:**
 
 ### `buildUrl` helper
@@ -304,15 +332,46 @@ Cell edits appear in the grid immediately (optimistic update). If the server ret
 ### `beforeRowsMutation`
 
 ```javascript
+let removeConfirmed = false;
+
+// ...
+
 beforeRowsMutation(operation, payload) {
-  if (operation === 'remove') {
+  if (operation === 'remove' && !removeConfirmed) {
     const count = payload.rowsRemove.length;
-    return window.confirm(`Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`);
+    const notification = hot.getPlugin('notification');
+    const id = notification.showMessage({
+      variant: 'warning',
+      title: 'Delete rows',
+      message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+      duration: 0,
+      actions: [
+        {
+          label: 'Delete',
+          type: 'primary',
+          callback: () => {
+            notification.hide(id);
+            removeConfirmed = true;
+            hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
+              removeConfirmed = false;
+            });
+          },
+        },
+        {
+          label: 'Cancel',
+          type: 'secondary',
+          callback: () => notification.hide(id),
+        },
+      ],
+    });
+    return false;
   }
 },
 ```
 
 `beforeRowsMutation` fires before any create, update, or remove operation. Returning `false` cancels the operation -- `onRowsRemove` is not called and no rows are deleted on the server.
+
+Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` return, you cannot use `window.confirm()` or other async dialogs. Instead, cancel the first attempt by returning `false`, show a notification with **Delete** and **Cancel** actions, and on **Delete** re-issue the remove via the DataProvider API. The `removeConfirmed` flag lets the second pass through without re-prompting.
 
 ### `notification: true` and `emptyDataState: true`
 

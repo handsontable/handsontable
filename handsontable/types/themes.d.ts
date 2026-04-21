@@ -380,6 +380,11 @@ export type TokenKey =
   | 'paginationButtonHoverForegroundColor'
   | 'paginationButtonHoverBackgroundColor'
   | 'paginationButtonDisabledForegroundColor'
+  | 'paginationButtonDisabledBackgroundColor'
+  | 'paginationButtonDisabledBorderColor'
+  | 'paginationButtonFocusBorderColor'
+  | 'paginationButtonFocusForegroundColor'
+  | 'paginationButtonFocusBackgroundColor'
   // Multiselect
   | 'chipBackground'
   | 'chipBorderRadius'

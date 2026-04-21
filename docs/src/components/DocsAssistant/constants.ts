@@ -2,6 +2,7 @@ export const STORAGE_KEYS = {
   thread: 'hot-docs-chat-thread',
   open: 'hot-docs-chat-open',
   width: 'hot-docs-chat-width',
+  threadId: 'hot-docs-chat-thread-id',
 } as const;
 
 export const WIDTH = {
@@ -17,7 +18,7 @@ export const STARTER_SUGGESTIONS = [
 ];
 
 export const WELCOME = {
-  headline: 'Ask me anything about Handsontable',
+  headline: 'How can I help?',
   sub: 'I search the docs to answer questions about APIs, configuration, and usage. I say "I don\'t know" when the docs don\'t cover it.',
 };
 

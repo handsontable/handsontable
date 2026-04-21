@@ -64,7 +64,6 @@ if (container instanceof HTMLElement) {
 
   const hot = new Handsontable(container, {
     data,
-    rowHeaders: true,
     colHeaders: ['ID', 'Product', 'Stock', 'Price', 'Status'],
     columns: [
       { data: 'id', type: 'numeric', readOnly: true, width: 70 },

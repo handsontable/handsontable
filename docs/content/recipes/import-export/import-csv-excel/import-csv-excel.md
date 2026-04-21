@@ -52,6 +52,29 @@ This recipe shows a small UI with:
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/import-export/import-csv-excel/react/example1.css)
+@[code](@/content/recipes/import-export/import-csv-excel/react/example1.jsx)
+@[code](@/content/recipes/import-export/import-csv-excel/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps papaparse xlsx
+
+@[code](@/content/recipes/import-export/import-csv-excel/angular/example1.ts)
+@[code](@/content/recipes/import-export/import-csv-excel/angular/example1.html)
+@[code](@/content/recipes/import-export/import-csv-excel/angular/example1.css)
+
+:::
+
+:::
+
 ## CDN scripts (no bundler)
 
 For a plain HTML page, load Handsontable plus the parsers from a CDN (pin versions to match what you test):

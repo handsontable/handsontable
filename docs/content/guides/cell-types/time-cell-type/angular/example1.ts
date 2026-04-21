@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ViewEncapsulation, HostListener, ElementRef } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 interface ShiftData {
   shift: string;
@@ -11,7 +11,8 @@ interface ShiftData {
 
 @Component({
   selector: 'example1-time-cell-type',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <div class="example-controls-container">
       <div class="controls">
@@ -26,16 +27,17 @@ interface ShiftData {
             <span>{{ selectedLabel }}</span>
             <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
           </button>
-          <ul class="theme-dropdown-menu" role="listbox" *ngIf="isOpen">
-            <li
-              *ngFor="let opt of localeOptions"
-              role="option"
-              [attr.aria-selected]="locale === opt.value"
-              (click)="selectLocale(opt.value)"
-            >
-              {{ opt.label }}
-            </li>
-          </ul>
+          @if (isOpen) {
+            <ul class="theme-dropdown-menu" role="listbox">
+              @for (opt of localeOptions; track opt.value) {
+                <li
+                  role="option"
+                  [attr.aria-selected]="locale === opt.value"
+                  (click)="selectLocale(opt.value)"
+                >{{ opt.label }}</li>
+              }
+            </ul>
+          }
         </div>
       </div>
     </div>
@@ -45,7 +47,7 @@ interface ShiftData {
   `,
   encapsulation: ViewEncapsulation.None
 })
-export class Example1TimeCellTypeComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   isOpen = false;
@@ -158,37 +160,22 @@ export class Example1TimeCellTypeComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1TimeCellTypeComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1TimeCellTypeComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1TimeCellTypeComponent ]
-})
-
-export class AppModule { }
 /* end-file */

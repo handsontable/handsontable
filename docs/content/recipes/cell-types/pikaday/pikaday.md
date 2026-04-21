@@ -34,6 +34,28 @@ This tutorial shows you how to integrate the Pikaday date picker as a custom Han
 
 :::
 
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps moment @handsontable/pikaday
+
+@[code](@/content/recipes/cell-types/pikaday/react/example1.css)
+@[code](@/content/recipes/cell-types/pikaday/react/example1.jsx)
+@[code](@/content/recipes/cell-types/pikaday/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps moment @handsontable/pikaday
+
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.ts)
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.html)
+
+:::
+
+:::
+
 ## Overview
 
 This guide shows how to create a custom date picker cell using [Pikaday](https://github.com/Pikaday/Pikaday), a lightweight, no-dependencies date picker library. **This guide is essential for migration** - the built-in `date` cell type with Pikaday will be removed in the next Handsontable release. Use this recipe to maintain Pikaday functionality in your application.

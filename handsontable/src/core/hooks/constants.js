@@ -1028,7 +1028,7 @@ export const REGISTERED_HOOKS = [
   'afterSelectionFocusSet',
 
   /**
-   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   * Fired before one or more columns are selected (e.g. during mouse header click or {@link Core#selectColumns} API call).
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectColumns

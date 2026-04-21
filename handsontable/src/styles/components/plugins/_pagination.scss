@@ -119,6 +119,8 @@
             cursor: default;
             pointer-events: none;
             color: var(--ht-pagination-button-disabled-foreground-color);
+            background-color: var(--ht-pagination-button-disabled-background-color);
+            border-color: var(--ht-pagination-button-disabled-border-color);
           }
 
           &:hover:not(:disabled) {
@@ -129,7 +131,9 @@
 
           &:focus {
             outline: none;
-            border: 1px solid var(--ht-accent-color)
+            border-color: var(--ht-pagination-button-focus-border-color);
+            color: var(--ht-pagination-button-focus-foreground-color);
+            background-color: var(--ht-pagination-button-focus-background-color);
           }
         }
 
