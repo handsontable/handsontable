@@ -137,11 +137,9 @@ describe('MergeCells open editor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
-      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 52, left: 50 });
-        main.toEqual({ top: 58, left: 50 });
-        horizon.toEqual({ top: 74, left: 50 });
-      });
+      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).toEqual(
+        getThemeLayout().e2eMergeCellsOpenEditorWideMergeTextareaParentOffset(),
+      );
     });
 
     it('should render the editor correctly after scroll for very high merged cell', async() => {
@@ -166,11 +164,18 @@ describe('MergeCells open editor', () => {
       await waitForNextAnimationFrames(2);
 
       expect(isEditorVisible()).toBe(true);
-      expect($(getActiveEditor().TEXTAREA_PARENT).offset()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ top: 27, left: 99 });
-        main.toEqual({ top: 30, left: 100 });
-        horizon.toEqual({ top: 38, left: 108 });
-      });
+
+      // The editor opens at the top-left of the visible area of the merged cell.
+      // After scrolling to row 90, the merge's visible portion is at the top of the data area.
+      const editorOffset = $(getActiveEditor().TEXTAREA_PARENT).offset();
+
+      // The left aligns with the start of column 1 (rowHeaderWidth + col0Width).
+      // The top is just below the column header.
+      expect(editorOffset.top).toBeAroundValue(getDefaultColumnHeaderHeight() + 2, 1);
+      // Left = row header width + actual rendered width of col 0.
+      expect(editorOffset.left).toBeAroundValue(
+        getDefaultRowHeaderWidth() + hot().getColWidth(0), 2
+      );
     });
   });
 });

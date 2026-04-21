@@ -1,7 +1,7 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import { getRenderer } from 'handsontable/renderers';
 
 const colHeaders = ['Name', 'Department', 'Role', 'Salary', 'Start Date'];
@@ -26,8 +26,6 @@ const data = [
   `,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
-
   readonly data = data;
 
   readonly gridSettings: GridSettings = {

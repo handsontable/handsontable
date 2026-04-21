@@ -174,7 +174,13 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 ### Related blog articles
 
+<div class="boxes-list">
+
+- [Handsontable 15.1.0: Performance and stability improvements](https://handsontable.com/blog/handsontable-15.1.0-performance-and-stability-improvements)
+- [Handsontable 14.5.0: Improved performance and flexible column header class](https://handsontable.com/blog/handsontable-14.5.0-improved-performance-and-flexible-column-header-class)
 - [Handsontable 10.0.0: Improved performance and consistency](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
+
+</div>
 
 ### Related API reference
 

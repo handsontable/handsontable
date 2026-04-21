@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 
 type ColumnConfig = {
   data: string;
@@ -52,18 +51,17 @@ const data = [
   selector: 'example1-column-visibility',
   template: `
     <div style="margin-bottom: 10px;">
-      <label
-        *ngFor="let col of allColumns; let i = index"
-        style="margin-right: 12px; display: inline-flex; align-items: center; gap: 4px;"
-      >
-        <input
-          type="checkbox"
-          [checked]="visibleIndices.has(i)"
-          [disabled]="visibleIndices.size === 1 && visibleIndices.has(i)"
-          (change)="toggleColumn(i, $event)"
-        />
-        {{ col.title }}
-      </label>
+      @for (col of allColumns; track col.data; let i = $index) {
+        <label style="margin-right: 12px; display: inline-flex; align-items: center; gap: 4px;">
+          <input
+            type="checkbox"
+            [checked]="visibleIndices.has(i)"
+            [disabled]="visibleIndices.size === 1 && visibleIndices.has(i)"
+            (change)="toggleColumn(i, $event)"
+          />
+          {{ col.title }}
+        </label>
+      }
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,

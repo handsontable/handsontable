@@ -280,6 +280,7 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 
 <div class="boxes-list gray">
 
+- [Handsontable 14.3.0: Enhanced navigation and bug fixes](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
 - [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
 
 </div>

@@ -38,9 +38,7 @@ describe('Pagination `uiContainer` option', () => {
     expect(paginationContainer).toHaveClass('handsontable');
     expect(paginationContainer).toHaveClass('ht-pagination--bordered');
 
-    if (getLoadedTheme() !== 'classic') {
-      expect(paginationContainer).toHaveClass(`ht-theme-${getLoadedTheme()}`);
-    }
+    expect(paginationContainer).toHaveClass(`ht-theme-${getLoadedTheme()}`);
 
     expect(externalContainer.className).toBe('');
     expect(visualizePageSections(externalContainer)).toEqual([

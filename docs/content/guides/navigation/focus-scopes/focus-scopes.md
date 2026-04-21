@@ -378,6 +378,14 @@ For the complete API reference, see the following pages:
 
 After registering a focus scope, Handsontable automatically activates it when the user clicks inside the container or tabs to it. The associated shortcuts context switches accordingly, and tab navigation flows through your registered scopes in the correct order.
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 14.3.0: Enhanced navigation and bug fixes](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
+
+</div>
+
 ## Troubleshooting
 
 Didn't find what you need? Try this:

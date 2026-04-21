@@ -135,6 +135,13 @@ const ExampleComponent = () => {
   const [dotColors, setDotColors] = useState({ fg: '', bg: '', accent: '' });
 
   useEffect(() => {
+    const [, colorScheme] = themeName.split('-');
+    const container = document.getElementById('exampleTheme');
+
+    if (container) container.dataset.colorScheme = colorScheme || 'auto';
+  }, [themeName]);
+
+  useEffect(() => {
     const gridEl = hotRef.current?.hotInstance?.rootElement;
 
     if (gridEl) {

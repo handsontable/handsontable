@@ -194,6 +194,14 @@ Each method takes two parameters. The first, `format`, is required. The second, 
 | `rowHeaders`           | `Boolean`, default `false`              | Include row headers. |
 | `sanitizeValues`       | `Boolean` \| `RegExp` \| `Function`, default `false` | Value sanitization. `true` = [OWASP CSV injection](https://owasp.org/www-community/attacks/CSV_Injection) rules; `RegExp` = escape matching values; `Function` = replace with return value. |
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+</div>
+
 ## Related API reference
 
 **Plugins**

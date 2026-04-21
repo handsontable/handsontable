@@ -12,8 +12,8 @@ describe('manualColumnMove', () => {
     }
   });
 
-  it.forTheme('classic')('should retain the cell border on the first rendered column ' +
-    'with `autoRowSize` enabled (dev-2512)', () => {
+  it('should retain the cell border on the first rendered column ' +
+    'with `autoRowSize` enabled (dev-2512)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,

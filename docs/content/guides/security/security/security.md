@@ -130,3 +130,11 @@ Security of our software and its application in our customers' system is our top
 ## Bug bounty
 
 We don't offer a bug bounty program, but we sincerely appreciate the work done by security researchers and independent developers.
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+</div>

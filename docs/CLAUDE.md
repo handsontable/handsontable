@@ -343,6 +343,48 @@ Content for React only.
 :::
 ```
 
+### Angular component rules (standalone pattern)
+
+All Angular docs examples use `standalone: true` bootstrapped via `bootstrapApplication`. The Angular JIT compiler runs in the browser and **cannot resolve file-based resources at runtime**. Violating these rules causes the component to silently fail to render.
+
+**Never do this:**
+```typescript
+@Component({
+  standalone: true,
+  styleUrls: ['./example1.css'],  // ❌ JIT cannot fetch files at runtime
+  templateUrl: './example1.html', // ❌ JIT cannot fetch files at runtime
+})
+```
+
+**Always do this instead:**
+
+- **CSS**: Put styles in the `--css` slot of the example directive (the example-runner injects them as a global `<style>` tag). Do **not** reference them in `styleUrls`. If the CSS must live in the component, use inline `styles: ['...']` with `ViewEncapsulation.None`.
+- **Template**: Always use an inline `template: \`...\`` in the `@Component` decorator. The `angular/example1.html` file is the **outer wrapper** (contains the selector tag) loaded by the example-runner, not the component's internal template.
+- **Constructor DI**: Never inject services via the constructor. Use the `inject()` function instead -- constructors are not processed by Angular JIT without TypeScript decorator metadata.
+- **Lifecycle hooks**: Put `afterInit`, `afterChange`, and other Handsontable hook functions inside `gridSettings`, not as template event bindings (e.g., `(afterInit)="..."` fails in JIT mode).
+- **`@ViewChild`**: Safe to use. It is populated after the component view is initialized.
+- **Control flow**: Use `@for`, `@if`, `@switch` (Angular 17+ built-in control flow). Do **not** use `*ngFor`, `*ngIf`, or `*ngSwitch` with structural directives — they require importing `NgFor`, `NgIf`, etc. from `@angular/common`, which is error-prone. The built-in control flow syntax requires no imports.
+- **Imports**: Only import symbols you actually use. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
+
+Correct standalone component skeleton:
+```typescript
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  selector: 'example1-feature-name',
+  template: `
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+    </div>
+  `,
+  // No styleUrls, no templateUrl
+})
+export class AppComponent {
+  readonly data = [...];
+  readonly gridSettings: GridSettings = { ... };
+}
+```
+
 ---
 
 ## 2.6 Frontmatter Schema

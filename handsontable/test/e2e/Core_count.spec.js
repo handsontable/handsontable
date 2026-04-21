@@ -11,34 +11,14 @@ describe('Core_count', () => {
   });
 
   describe('countVisibleRows', () => {
-    it.forTheme('classic')('should return number of visible rows', async() => {
+    it('should return number of visible rows', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
         height: 125,
         width: 600
       });
 
-      expect(instance.countVisibleRows()).toEqual(4);
-    });
-
-    it.forTheme('main')('should return number of visible rows', async() => {
-      const instance = handsontable({
-        data: createSpreadsheetData(10, 10),
-        height: 125,
-        width: 600
-      });
-
-      expect(instance.countVisibleRows()).toEqual(4);
-    });
-
-    it.forTheme('horizon')('should return number of visible rows', async() => {
-      const instance = handsontable({
-        data: createSpreadsheetData(10, 10),
-        height: 161,
-        width: 600
-      });
-
-      expect(instance.countVisibleRows()).toEqual(4);
+      expect(instance.countVisibleRows()).toEqual(expectedVisibleRows(125, 0));
     });
 
     it('should return -1 if table is not rendered', async() => {
@@ -53,37 +33,18 @@ describe('Core_count', () => {
   });
 
   describe('countRenderedRows', () => {
-    it.forTheme('classic')('should return number of rendered rows', async() => {
+    it('should return number of rendered rows', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
         height: 125,
         viewportRowRenderingOffset: 0
       });
 
-      expect(instance.countRenderedRows()).toEqual(5);
+      // rendered rows = visible rows + 1 (partially visible row at the bottom)
+      expect(instance.countRenderedRows()).toEqual(expectedVisibleRows(125, 0) + 1);
     });
 
-    it.forTheme('main')('should return number of rendered rows', async() => {
-      const instance = handsontable({
-        data: createSpreadsheetData(10, 10),
-        height: 125,
-        viewportRowRenderingOffset: 0
-      });
-
-      expect(instance.countRenderedRows()).toEqual(5);
-    });
-
-    it.forTheme('horizon')('should return number of rendered rows', async() => {
-      const instance = handsontable({
-        data: createSpreadsheetData(10, 10),
-        height: 161,
-        viewportRowRenderingOffset: 0
-      });
-
-      expect(instance.countRenderedRows()).toEqual(5);
-    });
-
-    it.forTheme('classic')('should return number of rendered rows, including rows rendered ' +
+    it('should return number of rendered rows, including rows rendered ' +
       'because of viewportRowRenderingOffset', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(50, 10),
@@ -91,29 +52,8 @@ describe('Core_count', () => {
         viewportRowRenderingOffset: 20
       });
 
-      expect(instance.countRenderedRows()).toEqual(25);
-    });
-
-    it.forTheme('main')('should return number of rendered rows, including rows rendered ' +
-      'because of viewportRowRenderingOffset', async() => {
-      const instance = handsontable({
-        data: createSpreadsheetData(50, 10),
-        height: 125,
-        viewportRowRenderingOffset: 20
-      });
-
-      expect(instance.countRenderedRows()).toEqual(25);
-    });
-
-    it.forTheme('horizon')('should return number of rendered rows, including rows rendered ' +
-      'because of viewportRowRenderingOffset', async() => {
-      const instance = handsontable({
-        data: createSpreadsheetData(50, 10),
-        height: 161,
-        viewportRowRenderingOffset: 20
-      });
-
-      expect(instance.countRenderedRows()).toEqual(25);
+      // rendered rows = visible rows + offset (capped at available rows)
+      expect(instance.countRenderedRows()).toEqual(expectedVisibleRows(125, 0) + 1 + 20);
     });
 
     it('should return -1 if table is not rendered', async() => {

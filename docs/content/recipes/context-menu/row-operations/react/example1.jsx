@@ -93,28 +93,23 @@ const ExampleComponent = () => {
     setSelectedRow(newRow);
   };
 
-  const handleSelectionEnd = (_row, _col, row2) => {
-    const hot = getHot();
-    const selected = hot?.getSelected();
-
-    if (!selected || selected.length === 0) {
-      setSelectedRow(null);
-
-      return;
-    }
-
-    const [[r1, , r2_val]] = selected;
-
-    setSelectedRow(r1 === r2_val ? Math.min(r1, row2) : null);
+  const handleSelectionEnd = (row, _col, row2) => {
+    setSelectedRow(row === row2 ? row : null);
   };
 
   const handleDeselect = () => {
     setSelectedRow(null);
   };
 
+  const toolbarRef = useRef(null);
+
+  const outsideClickDeselects = (target) => {
+    return !toolbarRef.current?.contains(target);
+  };
+
   return (
     <>
-      <div className="row-toolbar">
+      <div className="row-toolbar" ref={toolbarRef}>
         <button type="button" onClick={handleAddRow}>
           Add Row
         </button>
@@ -140,6 +135,7 @@ const ExampleComponent = () => {
         height="auto"
         width="100%"
         manualRowMove={true}
+        outsideClickDeselects={outsideClickDeselects}
         afterSelectionEnd={handleSelectionEnd}
         afterDeselect={handleDeselect}
         licenseKey="non-commercial-and-evaluation"

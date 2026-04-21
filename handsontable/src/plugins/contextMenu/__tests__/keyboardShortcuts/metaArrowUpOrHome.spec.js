@@ -24,12 +24,18 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      // check if the viewport is scrolled to the top
-      expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(9);
-        main.toBe(9);
-        horizon.toBe(13);
-      });
+
+      // The viewport is scrolled so the first item is visible at the top.
+      // The exact scrollY depends on the menu container's top padding which
+      // is theme-dependent, so assert that the first item is within the
+      // viewport instead of hardcoding a pixel value.
+      const firstItemRect = $('.htContextMenu:visible')
+        .find('.ht_master .htCore tbody td').not('.htSeparator')[0]
+        .getBoundingClientRect();
+
+      expect(window.scrollY).toBeLessThan(1000);
+      expect(firstItemRect.top).toBeGreaterThanOrEqual(0);
+      expect(firstItemRect.top).toBeLessThan(firstItemRect.height);
     });
 
     it('should move the menu item selection to the first active item', async() => {

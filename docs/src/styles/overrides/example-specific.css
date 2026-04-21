@@ -7,6 +7,20 @@
   color-scheme: light;
 }
 
+/* For demo containers that manage their own theme, override the static ht-theme-*.css
+   color-scheme declarations (specificity 0,1,0) using data-color-scheme set by the demo JS.
+   Specificity (0,3,0) wins; the ThemeManager's :where() injection alone is not enough
+   because static CSS bundles ship .ht-theme-main { color-scheme: light } at (0,1,0). */
+.disable-auto-theme[data-color-scheme="dark"] [class*="ht-theme-"] {
+  color-scheme: dark;
+}
+.disable-auto-theme[data-color-scheme="light"] [class*="ht-theme-"] {
+  color-scheme: light;
+}
+.disable-auto-theme[data-color-scheme="auto"] [class*="ht-theme-"] {
+  color-scheme: light dark;
+}
+
 /* ── Hooks example: border below the grid ────────────────────────────── */
 
 .example-container .example-table-container {

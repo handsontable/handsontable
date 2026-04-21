@@ -202,6 +202,7 @@ const setTheme = (value: string) => {
   const [themeName, colorScheme] = value.split('-');
 
   hotInstance.updateSettings({ theme: getTheme(themeName).setColorScheme(colorScheme || 'auto') });
+  example.dataset.colorScheme = colorScheme || 'auto';
 
   // Update trigger label
   const item = menu.querySelector(`[data-value="${value}"]`);
