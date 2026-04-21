@@ -47,7 +47,8 @@ const ExampleComponent = () => {
   const isLoading = useRef(false);
   const hasMore = useRef(true);
   const loadedData = useRef<TaskRow[]>([...INITIAL_DATA]);
-  const [statusText, setStatusText] = useState('');
+  // Always visible -- no blinking; text only changes at end-of-data or on error
+  const [statusText, setStatusText] = useState('Scroll table to load more records');
 
   const fetchNextPage = useCallback(async (): Promise<void> => {
     if (isLoading.current || !hasMore.current) {
@@ -55,7 +56,7 @@ const ExampleComponent = () => {
     }
 
     isLoading.current = true;
-    setStatusText('Loading more tasks...');
+    hotRef.current?.hotInstance?.getPlugin('loading').show();
 
     try {
       const nextPage = currentPage.current + 1;
@@ -77,16 +78,17 @@ const ExampleComponent = () => {
         loadedData.current = [...loadedData.current, ...newRows];
         // `updateData()` appends rows without resetting scroll position
         hotRef.current?.hotInstance?.updateData(loadedData.current);
-        setStatusText('');
       }
     } catch {
       setStatusText('Failed to load more tasks. Scroll down to retry.');
       isLoading.current = false;
+      hotRef.current?.hotInstance?.getPlugin('loading').hide();
 
       return;
     }
 
     isLoading.current = false;
+    hotRef.current?.hotInstance?.getPlugin('loading').hide();
   }, []);
 
   useEffect(() => {
@@ -98,10 +100,9 @@ const ExampleComponent = () => {
       <HotTable
         ref={hotRef}
         data={INITIAL_DATA}
-        colHeaders={['ID', 'Task Title', 'Status', 'Assignee']}
+        colHeaders={['Task Title', 'Status', 'Assignee']}
         columns={[
-          { data: 'id', type: 'numeric', width: 60, readOnly: true },
-          { data: 'title', type: 'text', width: 340 },
+          { data: 'title', type: 'text', width: 400 },
           { data: 'completed', type: 'checkbox', width: 80, className: 'htCenter' },
           { data: 'userId', type: 'numeric', width: 100 },
         ]}
@@ -110,6 +111,7 @@ const ExampleComponent = () => {
         width="100%"
         stretchH="all"
         autoWrapRow={true}
+        loading={true}
         afterScrollVertically={function (this: Handsontable) {
           const lastVisibleRow = this.view.getLastFullyVisibleRow();
           const totalRows = this.countRows();
@@ -120,11 +122,9 @@ const ExampleComponent = () => {
         }}
         licenseKey="non-commercial-and-evaluation"
       />
-      {statusText && (
-        <div style={{ padding: '8px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
-          {statusText}
-        </div>
-      )}
+      <div style={{ padding: '8px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
+        {statusText}
+      </div>
     </>
   );
 };

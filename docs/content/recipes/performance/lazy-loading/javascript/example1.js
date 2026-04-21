@@ -42,13 +42,12 @@ const TOTAL_PAGES = 10;
 
 const container = document.querySelector('#example1');
 
-// Create and inject a loading indicator element directly below the grid
-const loadingIndicator = document.createElement('div');
+// Persistent status line below the grid -- always visible, never blinks
+const statusEl = document.createElement('div');
 
-loadingIndicator.style.cssText =
-  'display:none; padding:8px; text-align:center; color:#666; font-size:13px;';
-loadingIndicator.textContent = 'Loading more tasks...';
-container.insertAdjacentElement('afterend', loadingIndicator);
+statusEl.style.cssText = 'padding:8px; text-align:center; color:#666; font-size:13px;';
+statusEl.textContent = 'Scroll table to load more records';
+container.insertAdjacentElement('afterend', statusEl);
 
 /**
  * Fetches the next page of tasks from the JSONPlaceholder API and appends
@@ -61,7 +60,7 @@ async function fetchNextPage() {
   }
 
   isLoading = true;
-  loadingIndicator.style.display = 'block';
+  hot.getPlugin('loading').show();
 
   try {
     const nextPage = currentPage + 1;
@@ -77,8 +76,7 @@ async function fetchNextPage() {
 
     if (newRows.length === 0 || nextPage >= TOTAL_PAGES) {
       hasMore = false;
-      loadingIndicator.textContent = 'All tasks loaded.';
-      loadingIndicator.style.display = 'block';
+      statusEl.textContent = 'All tasks loaded.';
     } else {
       currentPage = nextPage;
       loadedData = [...loadedData, ...newRows];
@@ -87,33 +85,23 @@ async function fetchNextPage() {
       hot.updateData(loadedData);
     }
   } catch {
-    loadingIndicator.textContent = 'Failed to load more tasks. Scroll down to retry.';
-    loadingIndicator.style.display = 'block';
-    // Reset isLoading so the user can retry by scrolling again
+    statusEl.textContent = 'Failed to load more tasks. Scroll down to retry.';
     isLoading = false;
+    hot.getPlugin('loading').hide();
 
     return;
   }
 
   isLoading = false;
-
-  if (hasMore) {
-    loadingIndicator.style.display = 'none';
-  }
+  hot.getPlugin('loading').hide();
 }
 
 const hot = new Handsontable(container, {
   data: loadedData,
-  colHeaders: ['ID', 'Task Title', 'Status', 'Assignee'],
+  colHeaders: ['Task Title', 'Status', 'Assignee'],
   columns: [
-    { data: 'id', type: 'numeric', width: 60, readOnly: true },
-    { data: 'title', type: 'text', width: 340 },
-    {
-      data: 'completed',
-      type: 'checkbox',
-      width: 80,
-      className: 'htCenter',
-    },
+    { data: 'title', type: 'text', width: 400 },
+    { data: 'completed', type: 'checkbox', width: 80, className: 'htCenter' },
     { data: 'userId', type: 'numeric', width: 100 },
   ],
   rowHeaders: true,
@@ -121,6 +109,7 @@ const hot = new Handsontable(container, {
   width: '100%',
   stretchH: 'all',
   autoWrapRow: true,
+  loading: true,
   afterScrollVertically() {
     // `lastVisibleRow` is the visual index of the last fully visible row.
     const lastVisibleRow = this.view.getLastFullyVisibleRow();

@@ -44,7 +44,7 @@ const TOTAL_PAGES = 10;
   imports: [HotTableModule],
   selector: 'example1-lazy-loading',
   styles: [`
-    .loading-indicator {
+    .status-line {
       padding: 8px;
       text-align: center;
       color: #666;
@@ -53,26 +53,24 @@ const TOTAL_PAGES = 10;
   `],
   template: `
     <hot-table [data]="loadedData" [settings]="gridSettings"></hot-table>
-    @if (statusText) {
-      <div class="loading-indicator">{{ statusText }}</div>
-    }
+    <div class="status-line">{{ statusText }}</div>
   `,
 })
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   loadedData: TaskRow[] = [...INITIAL_DATA];
-  statusText = '';
+  // Always visible -- no blinking; text only changes at end-of-data or on error
+  statusText = 'Scroll table to load more records';
 
   private currentPage = 1;
   private isLoading = false;
   private hasMore = true;
 
   readonly gridSettings: GridSettings = {
-    colHeaders: ['ID', 'Task Title', 'Status', 'Assignee'],
+    colHeaders: ['Task Title', 'Status', 'Assignee'],
     columns: [
-      { data: 'id', type: 'numeric', width: 60, readOnly: true },
-      { data: 'title', type: 'text', width: 340 },
+      { data: 'title', type: 'text', width: 400 },
       { data: 'completed', type: 'checkbox', width: 80, className: 'htCenter' },
       { data: 'userId', type: 'numeric', width: 100 },
     ],
@@ -81,6 +79,7 @@ export class AppComponent implements OnInit {
     width: '100%',
     stretchH: 'all',
     autoWrapRow: true,
+    loading: true,
     afterScrollVertically: () => {
       const hot = this.hotTable?.hotInstance;
 
@@ -107,7 +106,7 @@ export class AppComponent implements OnInit {
     }
 
     this.isLoading = true;
-    this.statusText = 'Loading more tasks...';
+    this.hotTable?.hotInstance?.getPlugin('loading').show();
 
     try {
       const nextPage = this.currentPage + 1;
@@ -130,16 +129,17 @@ export class AppComponent implements OnInit {
         newRows.forEach((row) => this.loadedData.push(row));
         // `updateData()` appends rows without resetting scroll position
         this.hotTable?.hotInstance?.updateData(this.loadedData);
-        this.statusText = '';
       }
     } catch {
       this.statusText = 'Failed to load more tasks. Scroll down to retry.';
       this.isLoading = false;
+      this.hotTable?.hotInstance?.getPlugin('loading').hide();
 
       return;
     }
 
     this.isLoading = false;
+    this.hotTable?.hotInstance?.getPlugin('loading').hide();
   }
 }
 /* end-file */
