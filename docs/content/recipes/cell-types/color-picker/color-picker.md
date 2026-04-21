@@ -492,7 +492,7 @@ const hot = new Handsontable(container, hotOptions);
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays a colored circle swatch
-2. **User Double-Clicks or F2**: Editor opens with a styled input and an "Open color picker" button
+2. **User Double-Clicks or <kbd>F2</kbd>**: Editor opens with a styled input and an "Open color picker" button
 3. **Color Picker Opens**: `afterOpen` sets the current color and calls `pickr.show()`
 4. **User Selects Color**: Pickr updates the preview; the `change` event updates `editor.input.value` with the hex from `color.toHEXA().toString()`
 5. **User Closes Picker (or presses Tab)**: The `hide` event fires (or Tab triggers `pickr.hide()`), we call `editor.finishEditing()`

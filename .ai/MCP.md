@@ -72,6 +72,50 @@ Once connected, the following tools are available to AI assistants:
 
 ---
 
+## code-review-graph MCP
+
+A Tree-sitter knowledge graph over the full codebase (28k+ nodes, 419k+ edges). Used by AI agents for cross-file structural queries -- finding all callers of a function, tracing imports, and getting blast-radius counts without reading individual files. See the `MCP Tools: code-review-graph` section in `AGENTS.md` for when to use it vs. plain grep.
+
+### Prerequisites
+
+- `pipx` (Python equivalent of `npx`). Standard on most Python developer machines. Install:
+  - macOS: `brew install pipx && pipx ensurepath`
+  - Linux: `python3 -m pip install --user pipx && pipx ensurepath`
+
+No manual `code-review-graph` install is required. The `.mcp.json` configuration invokes it via `pipx run code-review-graph==2.3.2 serve`, which fetches and caches the package on first use (~10s one-time download, instant on subsequent starts).
+
+### Verifying the setup
+
+Run `/mcp` in Claude Code and confirm `code-review-graph` appears with status `connected`. On first session the startup is slower while pipx downloads the package.
+
+### Rebuild after switching branches
+
+The graph is built against a specific git commit. After switching branches, rebuild so tools like `detect_changes` don't report function names from unrelated files:
+
+```bash
+pipx run code-review-graph==2.3.2 build
+```
+
+The `PostToolUse` hook in `.claude/settings.json` runs `pipx run code-review-graph==2.3.2 update --skip-flows` after each `Edit` or `Write` to keep the graph in sync during a session. The `--skip-flows` flag skips execution-flow re-analysis for speed -- flows are only re-indexed on a full `build`. A rebuild is only needed after `git checkout`, `git pull`, or large merges.
+
+The hooks are guarded with `command -v pipx >/dev/null 2>&1 && ... || true` so machines without `pipx` installed (or air-gapped sessions where PyPI is unreachable) do not error on every session start or file edit.
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `code-review-graph` not listed in `/mcp` | Check `pipx --version` is installed; run `pipx run code-review-graph==2.3.2 --version` manually to confirm |
+| First session is slow (~10s hang at start) | Expected -- pipx is downloading the package. Subsequent sessions use the cached venv |
+| `detect_changes` reports wrong function names | Graph is stale on the wrong branch. Run `pipx run code-review-graph==2.3.2 build` |
+| `tests_for` returns 0 for files with known tests | Known limitation -- use grep for `.spec.js` / `.unit.js` files instead |
+| `get_architecture_overview` fails with token-limit error | Do not call this tool -- it produces 3.9M characters. Use `list_communities` + `get_community` for specific areas |
+
+### Do not re-run `code-review-graph install`
+
+The `install` subcommand would re-append boilerplate instructions to `CLAUDE.md` / `AGENTS.md` that have been hand-corrected for accuracy, and may overwrite fixes in `.claude/skills/` and `.claude/settings.json`. The MCP server is already configured in `.mcp.json`; nothing else needs to run.
+
+---
+
 ## Other MCP servers in this repo
 
 The `.cursor/mcp.json` and `.mcp.json` files also configure:
@@ -81,3 +125,4 @@ The `.cursor/mcp.json` and `.mcp.json` files also configure:
 | `github` | Read/write GitHub issues, PRs, and checks via `GITHUB_TOKEN` |
 | `filesystem_workspace` | Read/write access to the full repo workspace |
 | `filesystem_docs` | Read/write access to `./docs/content` only |
+| `code-review-graph` | Knowledge graph over the codebase (see above) |
