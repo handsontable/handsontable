@@ -37,21 +37,13 @@ const ExampleComponent = () => {
 
   const freezeUpTo = useCallback((n) => {
     const hot = hotRef.current?.hotInstance;
+    const total = hot ? hot.countCols() : colHeaders.length;
 
-    if (!hot) return;
-    const total = hot.countCols();
-    const newCount = Math.min(n, total);
-
-    setFrozenCount(newCount);
-    hot.updateSettings({ fixedColumnsStart: newCount });
+    setFrozenCount(Math.min(n, total));
   }, []);
 
   const unfreezeAll = useCallback(() => {
-    const hot = hotRef.current?.hotInstance;
-
-    if (!hot) return;
     setFrozenCount(0);
-    hot.updateSettings({ fixedColumnsStart: 0 });
   }, []);
 
   const statusText = frozenCount === 0
@@ -82,7 +74,7 @@ const ExampleComponent = () => {
         data={data}
         colHeaders={colHeaders}
         columns={columns}
-        fixedColumnsStart={0}
+        fixedColumnsStart={frozenCount}
         manualColumnMove={true}
         rowHeaders={true}
         height="auto"
