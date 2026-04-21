@@ -83,7 +83,7 @@ describe('MergeCells scrolling', () => {
     await render();
     await simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().e2eDensity_8992c845e6());
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().overlayHeight({ rows: 5 }));
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked (virtualized is on)', async() => {

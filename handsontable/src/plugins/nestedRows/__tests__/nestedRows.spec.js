@@ -107,7 +107,7 @@ describe('NestedRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).toBe(getThemeLayout().e2eDensity_e145a29131());
+      expect(getCell(0, -1).offsetWidth).toBe(nestedRowsLevel0HeaderWidth(getThemeLayout()));
     });
 
     it('should take into account the `rowHeaderWidth` option when nested rows are enabled', async() => {

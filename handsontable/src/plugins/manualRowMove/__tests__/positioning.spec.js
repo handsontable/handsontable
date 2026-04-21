@@ -403,7 +403,7 @@ describe('manualRowMove', () => {
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
-      expect(backlight.outerHeight()).toBe(getThemeLayout().e2eDensity_f464e90e18());
+      expect(backlight.outerHeight()).toBe((2 * getThemeLayout().defaultDataRowHeight));
       expect(backlight.offset().top).toBe(TH.offset().top);
     });
   });

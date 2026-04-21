@@ -245,10 +245,11 @@ describe('AutoRowSize', () => {
     spec().$container.css('display', 'block');
     await render();
 
-    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
+    const L = getThemeLayout();
 
-    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().e2eDensity_5e8f2219da());
+    expect(rowHeight(spec().$container, 0)).toBe(L.firstRenderedRowDefaultHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(L.lineHeight + L.defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(L.defaultDataRowHeight + (5 * L.lineHeight));
   });
 
   it('should be possible to disable plugin using updateSettings', async() => {
@@ -456,7 +457,7 @@ describe('AutoRowSize', () => {
       }
     });
 
-    expect(parseInt(getCell(1, 0).style.height || 0, 10)).toBe(getThemeLayout().e2eDensity_9d03a9eba0());
+    expect(parseInt(getCell(1, 0).style.height || 0, 10)).toBe(autoRowSizeRowHeightWith100pxPadding(getThemeLayout()));
   });
 
   it('should destroy temporary element', async() => {
@@ -537,18 +538,19 @@ describe('AutoRowSize', () => {
     });
 
     const plugin = getPlugin('manualColumnMove');
+    const L = getThemeLayout();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_682da48dd2());
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_1369f821b5());
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.lineHeight + L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(L.defaultDataRowHeight + (4 * L.lineHeight));
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
     plugin.moveColumn(0, 1);
 
     await render();
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_ed183d57c9());
-    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_5e8f2219da());
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(L.lineHeight + L.defaultDataRowHeight);
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBe(L.defaultDataRowHeight + (5 * L.lineHeight));
   });
 
   it('should recalculate heights with manualRowResize when changing text to multiline', async() => {
@@ -561,14 +563,16 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    const L = getThemeLayout();
+
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
     await setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
-    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
-    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_1369f821b5());
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(L.firstRenderedRowDefaultHeight);
+    expect(parseInt(getCell(1, -1).style.height, 10)).toBe(L.defaultDataRowHeight + (4 * L.lineHeight));
     expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
   });
 
@@ -614,7 +618,9 @@ describe('AutoRowSize', () => {
       height: 300
     });
 
-    expect(rowHeight(spec().$container, -1)).toBeAroundValue(getThemeLayout().e2eDensity_9b92431d49());
+    const L = getThemeLayout();
+
+    expect(rowHeight(spec().$container, -1)).toBeAroundValue(L.cellContentHeight + (3 * L.lineHeight));
   });
 
   it('should properly count height', async() => {
@@ -628,8 +634,9 @@ describe('AutoRowSize', () => {
     await waitForNextAnimationFrames(2);
 
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
+    const L = getThemeLayout();
 
-    expect(cloneLeft.height()).toEqual(getThemeLayout().e2eDensity_a24230f0bc());
+    expect(cloneLeft.height()).toEqual((3 * L.defaultDataRowHeight) - (2 * L.cellVerticalPadding));
   });
 
   it('should not calculate any row heights, if there are no rows in the dataset', async() => {

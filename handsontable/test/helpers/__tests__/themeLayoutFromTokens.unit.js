@@ -3,6 +3,10 @@ import * as themeModules from '../../../src/themes/theme';
 import sizing from '../../../src/themes/static/variables/sizing';
 import density from '../../../src/themes/static/variables/density';
 import { E2E_REGISTERED_THEME_KEYS, themeLayoutFromTokens } from '../themeLayoutFromTokens';
+import {
+  rtlEditorRectAtColumnStart234,
+  rtlEditorRectAtColumnStart4949SnapBottom,
+} from '../../../src/editors/baseEditor/__tests__/helpers/editedCellRect';
 
 const ALL_THEMES = Object.values(themeModules).filter(m => m && m.name);
 
@@ -77,20 +81,21 @@ describe('themeLayoutFromTokens reads from src/themes/theme modules', () => {
   });
 });
 
-// GCR scenario tests are kept because they assert hardcoded column-offset constants
-// (234 px, 4949 px) that would catch a change in the test data setup. The formula-derived
-// fields (top, width, height) are tautological but are part of the same assertion block.
-describe('themeLayoutFromTokens GCR scenario helpers', () => {
+// Scenario helpers for the baseEditor RTL spec: their hardcoded column-offset constants
+// (234 px, 4949 px) are part of the test data setup -- these unit tests would catch a
+// change in that setup. The formula-derived fields (top, width, height) are tautological
+// but are part of the same assertion block.
+describe('baseEditor RTL scenario helpers', () => {
   ALL_THEMES.forEach((theme) => {
-    describe(`GCR helpers for "${theme.name}"`, () => {
+    describe(`helpers for "${theme.name}"`, () => {
       let l;
 
       beforeEach(() => {
         l = themeLayoutFromTokens(theme.name);
       });
 
-      it('e2eGcr_8b522d5d5b encodes column offset 234', () => {
-        const r = l.e2eGcr_8b522d5d5b();
+      it('rtlEditorRectAtColumnStart234 encodes column offset 234', () => {
+        const r = rtlEditorRectAtColumnStart234(l);
         const colOuter = l.defaultColumnWidth + l.cellBorderWidth;
 
         expect(r.start).toBe(234);
@@ -100,9 +105,9 @@ describe('themeLayoutFromTokens GCR scenario helpers', () => {
         expect(r.height).toBe(l.cellContentHeight + (2 * l.cellBorderWidth));
       });
 
-      it('e2eGcr_3dc880f3f2 encodes column offset 4949 and snaps to bottom of viewport', () => {
+      it('rtlEditorRectAtColumnStart4949SnapBottom encodes offset 4949 and snaps to bottom', () => {
         const viewport = { offsetHeight: 600 };
-        const r = l.e2eGcr_3dc880f3f2(viewport);
+        const r = rtlEditorRectAtColumnStart4949SnapBottom(l, viewport);
         const topSnap = l.defaultDataRowHeight + (2 * l.cellBorderWidth);
         const colOuter = l.defaultColumnWidth + l.cellBorderWidth;
 
@@ -140,6 +145,27 @@ describe('removed helpers are no longer on the API surface', () => {
     'e2eGcr_660b0bbbb1',
     'e2eGcr_4ef37f8511',
     'e2eGcr_5ac91379aa',
+    // Relocated to plugin- or editor-local helper files (see PR review r3111060616).
+    'e2eDensity_0051ca7391',
+    'e2eDensity_8992c845e6',
+    'e2eDensity_f2d3fe1fc0',
+    'e2eDensity_f464e90e18',
+    'e2eDensity_9639197594',
+    'e2eDensity_9a971c3cfe',
+    'e2eGcr_8b522d5d5b',
+    'e2eGcr_3dc880f3f2',
+    'e2eDensity_dcb53105f5',
+    'e2eDensity_1369f821b5',
+    'e2eDensity_5e8f2219da',
+    'e2eDensity_9d03a9eba0',
+    'e2eDensity_ed183d57c9',
+    'e2eDensity_682da48dd2',
+    'e2eDensity_e145a29131',
+    'e2eDensity_c1a868f9c9',
+    'e2eDensity_a24230f0bc',
+    'e2eDensity_10071d8a47',
+    'e2eDensity_f0a5ff56db',
+    'e2eDensity_9b92431d49',
   ];
 
   it('removed helpers are not on the API surface', () => {

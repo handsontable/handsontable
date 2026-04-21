@@ -752,7 +752,7 @@ describe('TextEditor', () => {
 
     expect(parseInt(getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
     expect(parseInt(getActiveEditor().textareaParentStyle.top, 10)).toBeAroundValue(
-      getThemeLayout().e2eDensity_dcb53105f5(),
+      (getThemeLayout().overlayHeight({ rows: 3 }) - (3 * getThemeLayout().defaultColumnWidth)),
     );
     expect(parseInt(getActiveEditor().textareaParentStyle.left, 10)).toBeAroundValue(
       expectedLeft,

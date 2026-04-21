@@ -416,7 +416,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(getThemeLayout().e2eDensity_f0a5ff56db());
+          expect($backlight.height()).toBe((3 * getThemeLayout().defaultDataRowHeight));
         });
 
         it('should get correct position and size while grabing the row placed before hidden rows', async() => {
@@ -470,7 +470,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).toBe(getThemeLayout().e2eDensity_f0a5ff56db());
+          expect($backlight.height()).toBe((3 * getThemeLayout().defaultDataRowHeight));
         });
       });
 

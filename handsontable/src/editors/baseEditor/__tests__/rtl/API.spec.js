@@ -106,7 +106,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
             await selectCell(1, countRows() - 1);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation(L => L.e2eGcr_8b522d5d5b());
+            const { rect, expected, wh } = getEditedCellRectExpectation(rtlEditorRectAtColumnStart234);
 
             expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
           });
@@ -666,7 +666,7 @@ describe('BaseEditor API (RTL mode)', () => {
             await selectCell(countRows() - 1, countCols() - 1);
 
             const { rect, expected, wh } = getEditedCellRectExpectation(
-              L => L.e2eGcr_3dc880f3f2(getE2eDocumentViewport())
+              L => rtlEditorRectAtColumnStart4949SnapBottom(L, getE2eDocumentViewport())
             );
 
             expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));

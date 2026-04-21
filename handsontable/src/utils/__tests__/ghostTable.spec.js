@@ -113,13 +113,15 @@ describe('GhostTable', () => {
       gt.addRow(2, samples);
       gt.getHeights(heightSpy);
 
+      const L = getThemeLayout();
+
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(heightSpy.calls.argsFor(0)[1]).toBe(getThemeLayout().defaultDataRowHeight);
+      expect(heightSpy.calls.argsFor(0)[1]).toBe(L.defaultDataRowHeight);
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(heightSpy.calls.argsFor(1)[1]).toBe(getThemeLayout().e2eDensity_c1a868f9c9());
+      expect(heightSpy.calls.argsFor(1)[1]).toBe(L.defaultDataRowHeight + (2 * L.lineHeight));
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(heightSpy.calls.argsFor(2)[1]).toBe(getThemeLayout().e2eDensity_ed183d57c9());
+      expect(heightSpy.calls.argsFor(2)[1]).toBe(L.lineHeight + L.defaultDataRowHeight);
     });
   });
 

@@ -1318,14 +1318,14 @@ describe('MergeCells', () => {
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(
-        getThemeLayout().e2eDensity_9639197594(),
+        ((2 * getThemeLayout().defaultDataRowHeight) + getThemeLayout().cellBorderWidth),
       );
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(
-        getThemeLayout().e2eDensity_f464e90e18(),
+        (2 * getThemeLayout().defaultDataRowHeight),
       );
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
@@ -1340,27 +1340,29 @@ describe('MergeCells', () => {
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetHeight).toBe(
-        getThemeLayout().e2eDensity_9639197594(),
+        ((2 * getThemeLayout().defaultDataRowHeight) + getThemeLayout().cellBorderWidth),
       );
       expect(getCell(0, 1).innerText).toBe('A1');
       expect(getDataAtCell(0, 0)).toBe('A1');
       // Previously populated merged cell.
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(2) td:eq(0)')[0].offsetHeight).toBe(
-        getThemeLayout().e2eDensity_f464e90e18(),
+        (2 * getThemeLayout().defaultDataRowHeight),
       );
       expect(getCell(2, 1).innerText).toBe('A1');
       expect(getDataAtCell(2, 0)).toBe('A1');
       // Already populated merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetWidth).toBe(100);
       expect(spec().$container.find('tr:eq(0) td:eq(2)')[0].offsetHeight).toBe(
-        getThemeLayout().e2eDensity_9639197594(),
+        ((2 * getThemeLayout().defaultDataRowHeight) + getThemeLayout().cellBorderWidth),
       );
       expect(getCell(0, 3).innerText).toBe('A1');
       expect(getDataAtCell(0, 2)).toBe('A1');
 
       expect($(getHtCore())[0].offsetWidth).toBe(5 * 50);
-      expect($(getHtCore())[0].offsetHeight).toBe(getThemeLayout().e2eDensity_f2d3fe1fc0());
+      const L = getThemeLayout();
+
+      expect($(getHtCore())[0].offsetHeight).toBe(L.firstRenderedRowDefaultHeight + (4 * L.defaultDataRowHeight));
     });
   });
 
@@ -1477,7 +1479,7 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).toBe(getThemeLayout().e2eDensity_9a971c3cfe());
+    expect(getCell(0, 0).offsetHeight).toBe(getThemeLayout().overlayHeight({ rows: 3 }));
   });
 
   it('should not collapse the left overlay height when the merge cell covers all overlay cells width', async() => {
@@ -1491,19 +1493,19 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().e2eDensity_8992c845e6());
+    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().overlayHeight({ rows: 5 }));
 
     await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().e2eDensity_8992c845e6());
+    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().overlayHeight({ rows: 5 }));
 
     await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
     });
 
-    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().e2eDensity_8992c845e6());
+    expect(getInlineStartClone().find('.htCore').height()).toBe(getThemeLayout().overlayHeight({ rows: 5 }));
   });
 
   xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', async() => {
@@ -1546,8 +1548,8 @@ describe('MergeCells', () => {
       ],
     });
 
-    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().e2eDensity_9a971c3cfe());
-    expect(getTopClone().height()).toBe(getThemeLayout().e2eDensity_9a971c3cfe());
+    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().overlayHeight({ rows: 3 }));
+    expect(getTopClone().height()).toBe(getThemeLayout().overlayHeight({ rows: 3 }));
     expect(getInlineStartClone().height()).toBe(400);
   });
 
@@ -1571,8 +1573,11 @@ describe('MergeCells', () => {
     getActiveEditor().TEXTAREA.value = 'test\n\ntest';
     await keyDownUp('enter');
 
-    expect(getTopInlineStartClone().height()).toBe(getThemeLayout().e2eDensity_0051ca7391());
-    expect(getTopClone().height()).toBe(getThemeLayout().e2eDensity_0051ca7391());
+    const L = getThemeLayout();
+    const expectedCloneHeight = L.overlayHeight({ rows: 3 }) + (2 * L.lineHeight);
+
+    expect(getTopInlineStartClone().height()).toBe(expectedCloneHeight);
+    expect(getTopClone().height()).toBe(expectedCloneHeight);
     expect(getInlineStartClone().height()).toBe(400);
   });
 
