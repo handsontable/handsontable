@@ -71,7 +71,7 @@ A cell that:
 - Displays emoji feedback buttons (rounded) when editing
 - Shows the selected emoji when viewing
 - Uses Handsontable CSS tokens for theme-aware styling
-- Supports keyboard navigation (arrow keys, Tab)
+- Supports keyboard navigation (arrow keys, <kbd>Tab</kbd>)
 - Provides click-to-select functionality
 - Works without any external libraries
 
@@ -234,8 +234,8 @@ shortcuts: [
 ```
 
 **What's happening:**
-- **ArrowRight**: Move to next option (wraps to first if at end)
-- **ArrowLeft**: Move to previous option (wraps to last if at start)
+- <kbd>ArrowRight</kbd>: Move to next option (wraps to first if at end)
+- <kbd>ArrowLeft</kbd>: Move to previous option (wraps to last if at start)
 - Finds current index in config array
 - Updates value and triggers render automatically
 
@@ -354,7 +354,7 @@ const cellDefinition = {
 **What's happening:**
 - **config**: Array of emoji options (`👍`, `👎`, `🤷`)
 - **value**: Default/initial value
-- **shortcuts**: Keyboard navigation (ArrowLeft/Right cycle options, Tab cycles and prevents default)
+- **shortcuts**: Keyboard navigation (<kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd> cycle options, <kbd>Tab</kbd> cycles and prevents default)
 - **render**: Creates button HTML with `active` CSS class for the selected option
 - **init**: Sets up the container with `feedback-editor` class and click handler
 - **beforeOpen**: Initializes editor with the current cell value
@@ -406,13 +406,13 @@ const hot = new Handsontable(container, hotOptions);
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷)
-2. **User Double-Clicks or Enter**: Editor opens over cell showing three rounded buttons with the Handsontable blue border
+2. **User Double-Clicks or <kbd>Enter</kbd>**: Editor opens over cell showing three rounded buttons with the Handsontable blue border
 3. **Button Display**: All options visible, current value highlighted using `--ht-accent-color`
 4. **User Interaction**:
    - Click a button: Selects value and closes editor
-   - Press ArrowLeft/Right: Cycles through options
-   - Press Tab: Cycles through options (stays in editor)
-   - Enter key saves value and closes editor
+   - Press <kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd>: Cycles through options
+   - Press <kbd>Tab</kbd>: Cycles through options (stays in editor)
+   - <kbd>Enter</kbd> key saves value and closes editor
 5. **Visual Feedback**: Selected button highlighted with accent color
 6. **Save**: Value saved to cell
 7. **Editor Closes**: Cell shows selected emoji
@@ -475,10 +475,10 @@ config: ['Positive', 'Negative', 'Neutral'],
 ## Accessibility
 
 **Keyboard navigation:**
-- **Tab**: Cycles through feedback options (stays in editor)
-- **Arrow Left/Right**: Cycles through options
-- **Enter**: Saves value and closes editor
-- **Escape**: Cancels editing
+- <kbd>Tab</kbd>: Cycles through feedback options (stays in editor)
+- <kbd>ArrowLeft</kbd> / <kbd>ArrowRight</kbd>: Cycles through options
+- <kbd>Enter</kbd>: Saves value and closes editor
+- <kbd>Escape</kbd>: Cancels editing
 - **Click**: Direct selection
 
 ---

@@ -363,8 +363,8 @@ shortcuts: [
 - Gets key value from keyboard event
 
 ### Arrow Keys:
-- **ArrowRight**: Increase rating (max 5)
-- **ArrowLeft**: Decrease rating (min 1)
+- <kbd>ArrowRight</kbd>: Increase rating (max 5)
+- <kbd>ArrowLeft</kbd>: Decrease rating (min 1)
 - Bounded within valid range
 - Smooth incremental adjustment
 
@@ -503,7 +503,7 @@ const hot = new Handsontable(container, hotOptions);
 4. **Mouse Hover**: User hovers over stars → preview rating updates in real-time (detected via `closest()`)
 5. **Click Selection**: User clicks → rating selected and editor closes
 6. **Keyboard Input**: User presses 1-5 keys → rating set directly
-7. **Arrow Navigation**: User presses ArrowLeft/Right → rating increments/decrements
+7. **Arrow Navigation**: User presses <kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd> → rating increments/decrements
 8. **Validation**: Validator checks the value is valid
 9. **Save**: Valid value saved to cell
 10. **Editor Closes**: Cell shows updated star rating
@@ -591,10 +591,10 @@ Change colors by overriding CSS for specific columns:
 
 **Keyboard navigation:**
 - **Number keys (1-5)**: Direct rating selection
-- **Arrow Right**: Increase rating (max 5)
-- **Arrow Left**: Decrease rating (min 1)
-- **Enter**: Confirm selection and finish editing
-- **Escape**: Cancel editing
+- <kbd>ArrowRight</kbd>: Increase rating (max 5)
+- <kbd>ArrowLeft</kbd>: Decrease rating (min 1)
+- <kbd>Enter</kbd>: Confirm selection and finish editing
+- <kbd>Escape</kbd>: Cancel editing
 
 ---
 
