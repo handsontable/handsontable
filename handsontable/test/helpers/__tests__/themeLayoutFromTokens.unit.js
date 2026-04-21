@@ -82,9 +82,9 @@ describe('themeLayoutFromTokens reads from src/themes/theme modules', () => {
 });
 
 // Scenario helpers for the baseEditor RTL spec: their hardcoded column-offset constants
-// (234 px, 4949 px) are part of the test data setup -- these unit tests would catch a
-// change in that setup. The formula-derived fields (top, width, height) are tautological
-// but are part of the same assertion block.
+// (234 px, 4949 px) are part of the test data setup -- these unit tests catch a change in
+// that setup. `width` / `height` intentionally come from the live TD at the E2E call site
+// (not from these helpers), since those fields are not cleanly token-derivable across themes.
 describe('baseEditor RTL scenario helpers', () => {
   ALL_THEMES.forEach((theme) => {
     describe(`helpers for "${theme.name}"`, () => {
@@ -100,9 +100,7 @@ describe('baseEditor RTL scenario helpers', () => {
 
         expect(r.start).toBe(234);
         expect(r.top).toBe(l.defaultDataRowHeight);
-        expect(r.width).toBe(colOuter);
         expect(r.maxWidth).toBe(colOuter);
-        expect(r.height).toBe(l.cellContentHeight + (2 * l.cellBorderWidth));
       });
 
       it('rtlEditorRectAtColumnStart4949SnapBottom encodes offset 4949 and snaps to bottom', () => {
@@ -113,9 +111,7 @@ describe('baseEditor RTL scenario helpers', () => {
 
         expect(r.start).toBe(4949);
         expect(r.top).toBe(600 - topSnap);
-        expect(r.width).toBe(colOuter);
         expect(r.maxWidth).toBe(colOuter);
-        expect(r.height).toBe(l.cellContentHeight + (2 * l.cellBorderWidth));
       });
     });
   });

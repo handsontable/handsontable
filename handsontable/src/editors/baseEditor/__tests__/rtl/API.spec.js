@@ -44,15 +44,13 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
+            const { rect, expected, wh } = getEditedCellRectExpectation(() => {
               const sb = Handsontable.dom.getScrollbarWidth(document);
 
               return {
                 start: 0,
                 top: 0,
-                width: L.defaultColumnWidth,
                 maxWidth: 300 - sb,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
                 maxHeight: 200 - sb,
               };
             });
@@ -72,12 +70,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
+            const { rect, expected, wh } = getEditedCellRectExpectation(() => ({
               start: 0,
               top: 0,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: document.documentElement.clientHeight,
             }));
 
@@ -143,9 +139,7 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: scrollLeftAbs + v.clientWidth - lastColWidth,
                 top: v.offsetHeight - v.clientHeight + L.defaultDataRowHeight,
-                width: lastColWidth,
                 maxWidth: lastColWidth,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
               };
             });
 
@@ -169,15 +163,13 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
+            const { rect, expected, wh } = getEditedCellRectExpectation(() => {
               const sb = Handsontable.dom.getScrollbarWidth(document);
 
               return {
                 start: 0,
                 top: 0,
-                width: L.defaultColumnWidth,
                 maxWidth: 300 - sb,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
                 maxHeight: 200 - sb,
               };
             });
@@ -198,12 +190,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
+            const { rect, expected, wh } = getEditedCellRectExpectation(() => ({
               start: 0,
               top: 0,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: document.documentElement.clientHeight,
             }));
 
@@ -238,8 +228,6 @@ describe('BaseEditor API (RTL mode)', () => {
               // beyond `defaultColumnWidth` under themes with wider fonts.
               start: hot().getColWidth(0) - L.cellBorderWidth,
               top: L.defaultDataRowHeight,
-              width: hot().getColWidth(1) + L.cellBorderWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
             }));
 
             expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
@@ -273,8 +261,6 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: scrollLeftAbs + col1Start,
                 top: v.offsetHeight - v.clientHeight + L.defaultDataRowHeight,
-                width: hot().getColWidth(1) + (2 * L.cellBorderWidth),
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
               };
             });
 
@@ -297,15 +283,13 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
+            const { rect, expected, wh } = getEditedCellRectExpectation(() => {
               const sb = Handsontable.dom.getScrollbarWidth(document);
 
               return {
                 start: 0,
                 top: 0,
-                width: L.defaultColumnWidth,
                 maxWidth: 300 - sb,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
                 maxHeight: 200 - sb,
               };
             });
@@ -325,12 +309,10 @@ describe('BaseEditor API (RTL mode)', () => {
 
             await selectCell(0, 0);
 
-            const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
+            const { rect, expected, wh } = getEditedCellRectExpectation(() => ({
               start: 0,
               top: 0,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: document.documentElement.clientHeight,
             }));
 
@@ -368,8 +350,6 @@ describe('BaseEditor API (RTL mode)', () => {
                 // beyond `defaultColumnWidth` under themes with wider fonts.
                 start: hot().getColWidth(0) - L.cellBorderWidth,
                 top: 200 - sb - cellOuterHeight,
-                width: hot().getColWidth(1) + L.cellBorderWidth,
-                height: cellOuterHeight,
                 maxHeight: cellOuterHeight,
               };
             });
@@ -405,8 +385,6 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: scrollLeftAbs + col1Start,
                 top: v.offsetHeight - cellOuterHeight,
-                width: hot().getColWidth(1) + (2 * L.cellBorderWidth),
-                height: cellOuterHeight,
                 maxHeight: cellOuterHeight,
               };
             });
@@ -438,9 +416,7 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: 0,
                 top: 200 - sb - bottomOverlayHeight,
-                width: L.defaultColumnWidth,
                 maxWidth: 300 - sb,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
               };
             });
 
@@ -463,9 +439,7 @@ describe('BaseEditor API (RTL mode)', () => {
             const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
               start: 0,
               top: document.documentElement.clientHeight - L.overlayHeight({ rows: 2 }),
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
             }));
 
             expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
@@ -501,8 +475,6 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: 0,
                 top: 200 - sb - bottomOverlayHeight,
-                width: L.defaultColumnWidth,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
               };
             });
 
@@ -536,8 +508,6 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: scrollLeftAbs,
                 top: v.offsetHeight - bottomOverlayHeight - L.cellBorderWidth,
-                width: L.defaultColumnWidth + L.cellBorderWidth,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
               };
             });
 
@@ -567,9 +537,7 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: 0,
                 top: 200 - sb - bottomOverlayHeight,
-                width: L.defaultColumnWidth,
                 maxWidth: 300 - sb,
-                height: L.cellContentHeight + (2 * L.cellBorderWidth),
               };
             });
 
@@ -591,9 +559,7 @@ describe('BaseEditor API (RTL mode)', () => {
             const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
               start: 0,
               top: document.documentElement.clientHeight - L.overlayHeight({ rows: 2 }),
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
             }));
 
             expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
@@ -629,9 +595,7 @@ describe('BaseEditor API (RTL mode)', () => {
               return {
                 start: 300 - sb - colOuter,
                 top: 200 - sb - cellOuterHeight,
-                width: colOuter,
                 maxWidth: colOuter,
-                height: cellOuterHeight,
               };
             });
 

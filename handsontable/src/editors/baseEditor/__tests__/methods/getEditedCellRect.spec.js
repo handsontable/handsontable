@@ -41,15 +41,13 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation(() => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
 
             return {
               start: 0,
               top: 0,
-              width: L.defaultColumnWidth,
               maxWidth: 300 - sb,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: 200 - sb,
             };
           });
@@ -67,12 +65,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
+          const { rect, expected, wh } = getEditedCellRectExpectation(() => ({
             start: 0,
             top: 0,
-            width: L.defaultColumnWidth + L.cellBorderWidth,
             maxWidth: document.documentElement.clientWidth,
-            height: L.cellContentHeight + (2 * L.cellBorderWidth),
             maxHeight: document.documentElement.clientHeight,
           }));
 
@@ -106,9 +102,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 300 - sb - colOuter,
               top: L.defaultDataRowHeight,
-              width: colOuter,
               maxWidth: colOuter,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: 200 - sb - L.defaultDataRowHeight,
             };
           });
@@ -145,9 +139,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: v.scrollLeft + v.clientWidth - lastColWidth,
               top: v.offsetHeight - v.clientHeight + L.defaultDataRowHeight,
-              width: lastColWidth,
               maxWidth: lastColWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: v.clientHeight - L.defaultDataRowHeight,
             };
           });
@@ -170,15 +162,13 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation(() => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
 
             return {
               start: 0,
               top: 0,
-              width: L.defaultColumnWidth,
               maxWidth: 300 - sb,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: 200 - sb,
             };
           });
@@ -197,12 +187,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
+          const { rect, expected, wh } = getEditedCellRectExpectation(() => ({
             start: 0,
             top: 0,
-            width: L.defaultColumnWidth + L.cellBorderWidth,
             maxWidth: document.documentElement.clientWidth,
-            height: L.cellContentHeight + (2 * L.cellBorderWidth),
             maxHeight: document.documentElement.clientHeight,
           }));
 
@@ -235,15 +223,12 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             // Use the live rendered column widths rather than the default because AutoColumnSize
             // may widen data columns beyond `defaultColumnWidth` under themes with wider fonts.
             const col0Width = hot().getColWidth(0);
-            const col1Width = hot().getColWidth(1);
             const col1Start = col0Width - L.cellBorderWidth;
 
             return {
               start: col1Start,
               top: L.defaultDataRowHeight,
-              width: col1Width + L.cellBorderWidth,
               maxWidth: 300 - sb - col1Start,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: 200 - sb - L.defaultDataRowHeight,
             };
           });
@@ -276,9 +261,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: v.scrollLeft + col1Start,
               top: v.offsetHeight - v.clientHeight + L.defaultDataRowHeight,
-              width: hot().getColWidth(1) + (2 * L.cellBorderWidth),
               maxWidth: v.clientWidth - col1Start,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: v.clientHeight - L.defaultDataRowHeight,
             };
           });
@@ -300,15 +283,13 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation(() => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
 
             return {
               start: 0,
               top: 0,
-              width: L.defaultColumnWidth,
               maxWidth: 300 - sb,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: 200 - sb,
             };
           });
@@ -326,12 +307,10 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
+          const { rect, expected, wh } = getEditedCellRectExpectation(() => ({
             start: 0,
             top: 0,
-            width: L.defaultColumnWidth + L.cellBorderWidth,
             maxWidth: document.documentElement.clientWidth,
-            height: L.cellContentHeight + (2 * L.cellBorderWidth),
             maxHeight: document.documentElement.clientHeight,
           }));
 
@@ -364,15 +343,12 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             // Use the live rendered column widths rather than the default because AutoColumnSize
             // may widen data columns beyond `defaultColumnWidth` under themes with wider fonts.
             const col0Width = hot().getColWidth(0);
-            const col1Width = hot().getColWidth(1);
             const col1Start = col0Width - L.cellBorderWidth;
 
             return {
               start: col1Start,
               top: 200 - sb - cellOuterHeight,
-              width: col1Width + L.cellBorderWidth,
               maxWidth: 300 - sb - col1Start,
-              height: cellOuterHeight,
               maxHeight: cellOuterHeight,
             };
           });
@@ -405,9 +381,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: v.scrollLeft + col1Start,
               top: v.offsetHeight - cellOuterHeight,
-              width: hot().getColWidth(1) + (2 * L.cellBorderWidth),
               maxWidth: v.clientWidth - col1Start,
-              height: cellOuterHeight,
               maxHeight: cellOuterHeight,
             };
           });
@@ -437,9 +411,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 0,
               top: 200 - sb - bottomOverlayHeight,
-              width: L.defaultColumnWidth,
               maxWidth: 300 - sb,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: bottomOverlayHeight,
             };
           });
@@ -465,9 +437,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 0,
               top: document.documentElement.clientHeight - bottomOverlayHeight,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: bottomOverlayHeight + sb,
             };
           });
@@ -503,9 +473,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 0,
               top: 200 - sb - bottomOverlayHeight,
-              width: L.defaultColumnWidth,
               maxWidth: 300 - sb,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: bottomOverlayHeight,
             };
           });
@@ -538,9 +506,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: v.scrollLeft,
               top: v.offsetHeight - bottomOverlayHeight - L.cellBorderWidth,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: v.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: bottomOverlayHeight + sb,
             };
           });
@@ -569,9 +535,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 0,
               top: 200 - sb - bottomOverlayHeight,
-              width: L.defaultColumnWidth,
               maxWidth: 300 - sb,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: bottomOverlayHeight,
             };
           });
@@ -596,9 +560,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 0,
               top: document.documentElement.clientHeight - bottomOverlayHeight,
-              width: L.defaultColumnWidth + L.cellBorderWidth,
               maxWidth: document.documentElement.clientWidth,
-              height: L.cellContentHeight + (2 * L.cellBorderWidth),
               maxHeight: bottomOverlayHeight + sb,
             };
           });
@@ -634,9 +596,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 300 - sb - colOuter,
               top: 200 - sb - cellOuterHeight,
-              width: colOuter,
               maxWidth: colOuter,
-              height: cellOuterHeight,
               maxHeight: cellOuterHeight,
             };
           });
@@ -678,9 +638,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             return {
               start: 4949,
               top: v.offsetHeight - cellOuterHeight - L.cellBorderWidth,
-              width: colOuter,
               maxWidth: colOuter,
-              height: cellOuterHeight,
               maxHeight: cellOuterHeight + sb,
             };
           });
