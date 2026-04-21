@@ -102,19 +102,18 @@ const ExampleComponent = () => {
     setSelectedRow(null);
   };
 
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Keep the grid selected when clicking toolbar buttons. Without this,
+  // Handsontable treats toolbar clicks as outside clicks and deselects,
+  // which clears selectedRow before the button's onClick handler runs.
+  const outsideClickDeselects = (target: HTMLElement): boolean => {
+    return !toolbarRef.current?.contains(target);
+  };
+
   return (
     <>
-      {/* Prevent toolbar mousedown from stealing focus away from the grid.
-          Without this, clicking a button triggers afterDeselect, which clears
-          selectedRow before the button's onClick handler runs. */}
-      <div
-        className="row-toolbar"
-        onMouseDown={(e) => {
-          if ((e.target as HTMLElement).tagName === 'BUTTON') {
-            e.preventDefault();
-          }
-        }}
-      >
+      <div className="row-toolbar" ref={toolbarRef}>
         <button type="button" onClick={handleAddRow}>
           Add Row
         </button>
@@ -140,6 +139,7 @@ const ExampleComponent = () => {
         height="auto"
         width="100%"
         manualRowMove={true}
+        outsideClickDeselects={outsideClickDeselects}
         afterSelectionEnd={handleSelectionEnd}
         afterDeselect={handleDeselect}
         licenseKey="non-commercial-and-evaluation"

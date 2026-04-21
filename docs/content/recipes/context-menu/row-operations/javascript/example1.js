@@ -29,15 +29,6 @@ toolbar.innerHTML = `
 `;
 container.before(toolbar);
 
-// Prevent toolbar button clicks from stealing focus away from the grid.
-// Without this, clicking a button triggers afterDeselect, which clears
-// selectedRow before the button's click handler runs.
-toolbar.addEventListener('mousedown', (event) => {
-  if (event.target.tagName === 'BUTTON') {
-    event.preventDefault();
-  }
-});
-
 const hot = new Handsontable(container, {
   data,
   colHeaders: ['Task', 'Assignee', 'Priority', 'Status'],
@@ -45,6 +36,12 @@ const hot = new Handsontable(container, {
   height: 'auto',
   width: '100%',
   manualRowMove: true,
+  // Keep the grid selected when clicking toolbar buttons. Without this,
+  // Handsontable treats toolbar clicks as outside clicks and deselects,
+  // which clears selectedRow before the button's click handler runs.
+  outsideClickDeselects(target) {
+    return !toolbar.contains(target);
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 

@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
@@ -20,7 +20,7 @@ const INITIAL_DATA: string[][] = [
   imports: [HotTableModule],
   selector: 'example1-row-operations',
   template: `
-    <div class="row-toolbar" (mousedown)="preventDeselect($event)">
+    <div class="row-toolbar" #toolbar>
       <button type="button" (click)="addRow()">Add Row</button>
       <button type="button" (click)="deleteRow()" [disabled]="selectedRow === null">Delete Row</button>
       <button type="button" (click)="moveUp()" [disabled]="selectedRow === null || selectedRow === 0">Move Up</button>
@@ -31,6 +31,7 @@ const INITIAL_DATA: string[][] = [
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+  @ViewChild('toolbar', { static: true }) readonly toolbarRef!: ElementRef<HTMLElement>;
 
   readonly hotData: string[][] = [...INITIAL_DATA];
 
@@ -48,6 +49,12 @@ export class AppComponent {
     height: 'auto',
     width: '100%',
     manualRowMove: true,
+    // Keep the grid selected when clicking toolbar buttons. Without this,
+    // Handsontable treats toolbar clicks as outside clicks and deselects,
+    // which clears selectedRow before the button's click handler runs.
+    outsideClickDeselects: (target: HTMLElement) => {
+      return !this.toolbarRef?.nativeElement?.contains(target);
+    },
     afterSelectionEnd: (row: number, _col: number, row2: number) => {
       this.selectedRow = row === row2 ? Math.min(row, row2) : null;
     },
@@ -55,15 +62,6 @@ export class AppComponent {
       this.selectedRow = null;
     },
   };
-
-  // Prevent toolbar button clicks from stealing focus away from the grid.
-  // Without this, clicking a button triggers afterDeselect, which clears
-  // selectedRow before the button's click handler runs.
-  preventDeselect(event: MouseEvent): void {
-    if ((event.target as HTMLElement).tagName === 'BUTTON') {
-      event.preventDefault();
-    }
-  }
 
   addRow(): void {
     const hot = this.hotTable?.hotInstance;
