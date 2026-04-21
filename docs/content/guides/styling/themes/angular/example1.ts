@@ -1389,6 +1389,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.hotTable.hotInstance?.updateSettings({
       theme: getTheme(themeName)?.setColorScheme(scheme)
     });
+
+    const container = this.colorBox.nativeElement.closest('.disable-auto-theme') as HTMLElement | null;
+
+    if (container) container.dataset['colorScheme'] = colorScheme ?? 'auto';
   };
 }
 /* end-file */
