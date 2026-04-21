@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed bottom fixed rows scrolling with browser zoom and display scaling.",
+  "type": "fixed",
+  "issueOrPR": 12429,
+  "breaking": false,
+  "framework": "none"
+}
