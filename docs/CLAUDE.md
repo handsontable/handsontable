@@ -364,7 +364,7 @@ All Angular docs examples use `standalone: true` bootstrapped via `bootstrapAppl
 - **Lifecycle hooks**: Put `afterInit`, `afterChange`, and other Handsontable hook functions inside `gridSettings`, not as template event bindings (e.g., `(afterInit)="..."` fails in JIT mode).
 - **`@ViewChild`**: Safe to use. It is populated after the component view is initialized.
 - **Control flow**: Use `@for`, `@if`, `@switch` (Angular 17+ built-in control flow). Do **not** use `*ngFor`, `*ngIf`, or `*ngSwitch` with structural directives — they require importing `NgFor`, `NgIf`, etc. from `@angular/common`, which is error-prone. The built-in control flow syntax requires no imports.
-- **Imports**: Only import symbols you actually use. Unused imports (e.g., `RowObject` from `handsontable/common`, `ViewChild` when `hotTable` is unused) can cause module resolution errors or compilation failures.
+- **Imports**: Only import symbols you actually use. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
 
 Correct standalone component skeleton:
 ```typescript
