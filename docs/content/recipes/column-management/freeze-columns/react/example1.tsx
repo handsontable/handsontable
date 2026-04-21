@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import type { HotTableRef } from '@handsontable/react-wrapper';
+import './example1.css';
 
 registerAllModules();
 
@@ -71,8 +72,8 @@ const ExampleComponent = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: '8px' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
+      <div className="freeze-controls">
+        <div className="freeze-controls__freeze-btns">
           {colHeaders.map((header, index) => (
             <button
               key={header}
@@ -83,8 +84,10 @@ const ExampleComponent = () => {
             </button>
           ))}
         </div>
-        <button type="button" onClick={unfreezeAll}>Unfreeze all</button>
-        <span style={{ marginLeft: '12px', fontStyle: 'italic' }}>{statusText}</span>
+        <div className="freeze-controls__footer">
+          <button type="button" onClick={unfreezeAll}>Unfreeze all</button>
+          <span className="freeze-controls__status">{statusText}</span>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

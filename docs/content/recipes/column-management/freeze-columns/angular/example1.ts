@@ -33,9 +33,10 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
   standalone: true,
   imports: [HotTableModule, NgFor],
   selector: 'example1-freeze-columns',
+  styleUrls: ['./example1.css'],
   template: `
-    <div style="margin-bottom: 8px;">
-      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
+    <div class="freeze-controls">
+      <div class="freeze-controls__freeze-btns">
         <button
           *ngFor="let header of colHeaders; let i = index"
           type="button"
@@ -44,8 +45,10 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
           Freeze up to "{{ header }}"
         </button>
       </div>
-      <button type="button" (click)="unfreezeAll()">Unfreeze all</button>
-      <span style="margin-left: 12px; font-style: italic;">{{ statusText }}</span>
+      <div class="freeze-controls__footer">
+        <button type="button" (click)="unfreezeAll()">Unfreeze all</button>
+        <span class="freeze-controls__status">{{ statusText }}</span>
+      </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,
