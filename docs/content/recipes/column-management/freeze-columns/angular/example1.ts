@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { NgFor } from '@angular/common';
 
 /* start:skip-in-preview */
 type CampaignRow = {
@@ -31,19 +30,19 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
 
 @Component({
   standalone: true,
-  imports: [HotTableModule, NgFor],
+  imports: [HotTableModule],
   selector: 'example1-freeze-columns',
-  styleUrls: ['./example1.css'],
   template: `
     <div class="freeze-controls">
       <div class="freeze-controls__freeze-btns">
-        <button
-          *ngFor="let header of colHeaders; let i = index"
-          type="button"
-          (click)="freezeUpTo(i + 1)"
-        >
-          Freeze up to "{{ header }}"
-        </button>
+        @for (header of colHeaders; track header; let i = $index) {
+          <button
+            type="button"
+            (click)="freezeUpTo(i + 1)"
+          >
+            Freeze up to "{{ header }}"
+          </button>
+        }
       </div>
       <div class="freeze-controls__footer">
         <button type="button" (click)="unfreezeAll()">Unfreeze all</button>

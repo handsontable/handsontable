@@ -74,7 +74,6 @@ const App = () => {
 - Use `app.config.ts` (not `app.module.ts`) with `ApplicationConfig`, `provideZoneChangeDetection({ eventCoalescing: true })`, and global `HOT_GLOBAL_CONFIG` for the license key.
 - Do **not** add `licenseKey` to individual `<hot-table>` bindings -- it is set globally in `app.config.ts`.
 - Template control flow: use `@if` / `@for (x of list; track x.id)` -- never `*ngIf` / `*ngFor`.
-- Row data type: use `RowObject[]` from `handsontable/common`, not `any[]`.
 - Name the component class `AppComponent` in every example.
 
 **Critical Angular JIT restrictions** — the docs site bootstraps Angular examples with JIT in the browser. JIT cannot load external files at runtime:
@@ -83,6 +82,7 @@ const App = () => {
 - ❌ **Never use `templateUrl`**. Always define the component's template inline with `template: \`...\``. The `angular/example1.html` file is the **outer wrapper** (selector tag) consumed by the example-runner -- it is not the component's template.
 - ❌ **Never inject services via the constructor**. Use `inject()` instead. JIT mode lacks TypeScript decorator metadata, so constructor DI throws `NG0202`.
 - ❌ **Never bind Handsontable hooks in the template** (`(afterInit)="handler()"`). Put hook functions inside `gridSettings` instead.
+- ❌ **Only import symbols you actually use**. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
 
 The `.ts` file contains both `app.component.ts` and `app.config.ts` as separate `/* file: ... */` sections within a single file:
 
@@ -90,7 +90,6 @@ The `.ts` file contains both `app.component.ts` and `app.config.ts` as separate 
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 
 @Component({
   standalone: true,
@@ -103,7 +102,7 @@ import { RowObject } from 'handsontable/common';
   `,
 })
 export class AppComponent {
-  readonly data: RowObject[] = [...];
+  readonly data = [...];
   readonly gridSettings: GridSettings = { ... };
 }
 /* end-file */
