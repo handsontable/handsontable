@@ -127,7 +127,12 @@ describe('Focus selection scroll', () => {
   });
 
   it('should scroll the viewport horizontally', async() => {
-    // the viewport width shows exactly 4 columns + 1 header col + 15px (scrollbar) + 1px (border left)
+    // The viewport width shows exactly 4 columns + 1 header col + 15px (scrollbar) + 1px (grid
+    // left-frame border). The 1px slack makes the scroll positions below land on exact
+    // `colWidths` multiples on every theme -- themes that render a 1px cell border-left
+    // consume that slack; themes without it leave it as a 1px gap. Do not re-introduce a
+    // theme-specific `+ 1` on the expected scroll values; the container width already
+    // normalizes the difference.
     const colWidths = 60;
     const width = getDefaultRowHeaderWidth() + (4 * colWidths) + 16;
 
