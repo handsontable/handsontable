@@ -462,8 +462,27 @@ describe('Multiple selection scroll', () => {
       await scrollViewportVertically(5);
       await selectCells([[11, 0, 10, 0]]);
 
-      // the viewport should have scrolled to make cell(11, 0) visible
-      expect(topOverlay().getScrollPosition()).toBeGreaterThan(5);
+      // The viewport should have scrolled to make cell(11, 0) visible. Derive the minimum scroll
+      // needed from tokens (row 11's bottom in data coords must fit within the scrollable data
+      // area) and bound the actual scroll within [min, min + one data-row height]. That bound
+      // is specific enough to catch a gross regression (e.g. no-scroll, massive overshoot) but
+      // theme-agnostic so the assertion stays valid on any theme.
+      const L = getThemeLayout();
+      const scrollbarHeight = Handsontable.dom.getScrollbarWidth();
+      const headerHeight = L.defaultColumnHeaderHeight + L.cellBorderWidth;
+      const dataAreaHeight = 300 - headerHeight - scrollbarHeight;
+      const row11BottomInData = 12 * L.defaultDataRowHeight;
+      const minScrollForRow11 = Math.max(0, row11BottomInData - dataAreaHeight);
+      const preScroll = 5;
+
+      if (minScrollForRow11 > preScroll) {
+        expect(topOverlay().getScrollPosition()).toBeGreaterThanOrEqual(minScrollForRow11);
+        expect(topOverlay().getScrollPosition())
+          .toBeLessThanOrEqual(minScrollForRow11 + L.defaultDataRowHeight);
+      } else {
+        // Row 11 already fit inside the viewport; scroll stays at the pre-scroll baseline.
+        expect(topOverlay().getScrollPosition()).toBe(preScroll);
+      }
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
