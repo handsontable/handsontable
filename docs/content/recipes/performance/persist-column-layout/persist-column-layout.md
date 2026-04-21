@@ -14,6 +14,12 @@ tags:
   - afterColumnResize
   - afterColumnMove
   - performance
+react:
+  id: a8c2f1e9
+  metaTitle: Persist and restore column widths and order - React Data Grid | Handsontable
+angular:
+  id: b5d3e7f0
+  metaTitle: Persist and restore column widths and order - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance
 type: tutorial
@@ -25,6 +31,28 @@ type: tutorial
 
 @[code](@/content/recipes/performance/persist-column-layout/javascript/example1.js)
 @[code](@/content/recipes/performance/persist-column-layout/javascript/example1.html)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code](@/content/recipes/performance/persist-column-layout/react/example1.jsx)
+@[code](@/content/recipes/performance/persist-column-layout/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/performance/persist-column-layout/angular/example1.ts)
+@[code](@/content/recipes/performance/persist-column-layout/angular/example1.html)
 
 :::
 
