@@ -27,7 +27,6 @@ const flaggedRows = new Set<number>();
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>
   `,
-  styleUrls: ['./example1.css'],
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
