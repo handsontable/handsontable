@@ -402,7 +402,10 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await sleep(64);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -421,7 +424,10 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await sleep(64);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should open editor with the correct size when there is scrollbar on the list and table', async() => {
@@ -441,7 +447,10 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should set textarea caret position at the end of the input, after moving scrollbar', async() => {

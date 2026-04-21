@@ -899,7 +899,10 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    expectInnerHandsontableEditorListClientBoxMatchesSettings();
+    const box = getInnerEditorListBox();
+
+    expect(box.clientWidth).toBe(box.settingsWidth);
+    expect(box.clientHeight).toBe(box.settingsHeight);
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -929,6 +932,9 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    expectInnerHandsontableEditorListClientBoxMatchesSettings();
+    const box = getInnerEditorListBox();
+
+    expect(box.clientWidth).toBe(box.settingsWidth);
+    expect(box.clientHeight).toBe(box.settingsHeight);
   });
 });

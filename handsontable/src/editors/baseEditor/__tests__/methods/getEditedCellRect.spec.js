@@ -41,7 +41,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
 
             return {
@@ -53,6 +53,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: 200 - sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -65,7 +67,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial(L => ({
+          const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
             start: 0,
             top: 0,
             width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -73,6 +75,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             height: L.cellContentHeight + (2 * L.cellBorderWidth),
             maxHeight: document.documentElement.clientHeight,
           }));
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -95,7 +99,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, countRows() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const colOuter = L.defaultColumnWidth + L.cellBorderWidth;
 
@@ -108,6 +112,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: 200 - sb - L.defaultDataRowHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -132,7 +138,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const v = getE2eDocumentViewport();
             const lastColWidth = hot().getColWidth(countCols() - 1) + L.cellBorderWidth;
 
@@ -145,6 +151,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: v.clientHeight - L.defaultDataRowHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -162,7 +170,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
 
             return {
@@ -174,6 +182,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: 200 - sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -187,7 +197,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial(L => ({
+          const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
             start: 0,
             top: 0,
             width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -195,6 +205,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             height: L.cellContentHeight + (2 * L.cellBorderWidth),
             maxHeight: document.documentElement.clientHeight,
           }));
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -218,7 +230,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             // Use the live rendered column widths rather than the default because AutoColumnSize
             // may widen data columns beyond `defaultColumnWidth` under themes with wider fonts.
@@ -235,6 +247,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: 200 - sb - L.defaultDataRowHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -254,7 +268,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const v = getE2eDocumentViewport();
             const col0Width = hot().getColWidth(0);
             const col1Start = col0Width - L.cellBorderWidth;
@@ -268,6 +282,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: v.clientHeight - L.defaultDataRowHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -284,7 +300,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
 
             return {
@@ -296,6 +312,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: 200 - sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -308,7 +326,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(0, 0);
 
-          expectGetEditedCellRectFromPartial(L => ({
+          const { rect, expected, wh } = getEditedCellRectExpectation(L => ({
             start: 0,
             top: 0,
             width: L.defaultColumnWidth + L.cellBorderWidth,
@@ -316,6 +334,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
             height: L.cellContentHeight + (2 * L.cellBorderWidth),
             maxHeight: document.documentElement.clientHeight,
           }));
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -338,7 +358,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const cellOuterHeight = L.cellContentHeight + (2 * L.cellBorderWidth);
             // Use the live rendered column widths rather than the default because AutoColumnSize
@@ -356,6 +376,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: cellOuterHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -374,7 +396,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const v = getE2eDocumentViewport();
             const cellOuterHeight = L.cellContentHeight + (2 * L.cellBorderWidth);
             const col0Width = hot().getColWidth(0);
@@ -389,6 +411,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: cellOuterHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -406,7 +430,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(8, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const bottomOverlayHeight = L.overlayHeight({ rows: 2 });
 
@@ -419,6 +443,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: bottomOverlayHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -432,7 +458,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const bottomOverlayHeight = L.overlayHeight({ rows: 2 });
 
@@ -445,6 +471,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: bottomOverlayHeight + sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -468,7 +496,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const bottomOverlayHeight = L.overlayHeight({ rows: 2 });
 
@@ -481,6 +509,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: bottomOverlayHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -500,7 +530,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const v = getE2eDocumentViewport();
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const bottomOverlayHeight = L.overlayHeight({ rows: 2 });
@@ -514,6 +544,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: bottomOverlayHeight + sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -530,7 +562,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const bottomOverlayHeight = L.overlayHeight({ rows: 2 });
 
@@ -543,6 +575,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: bottomOverlayHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -555,7 +589,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
           await selectCell(countRows() - 2, 0);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const bottomOverlayHeight = L.overlayHeight({ rows: 2 });
 
@@ -568,6 +602,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: bottomOverlayHeight + sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
 
@@ -590,7 +626,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const colOuter = L.defaultColumnWidth + L.cellBorderWidth;
             const cellOuterHeight = L.cellContentHeight + (2 * L.cellBorderWidth);
@@ -604,6 +640,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: cellOuterHeight,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
 
         it('and the scrollable element is the Window object', async() => {
@@ -631,7 +669,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
           });
           await selectCell(countRows() - 1, countCols() - 1);
 
-          expectGetEditedCellRectFromPartial((L) => {
+          const { rect, expected, wh } = getEditedCellRectExpectation((L) => {
             const v = getE2eDocumentViewport();
             const sb = Handsontable.dom.getScrollbarWidth(document);
             const colOuter = L.defaultColumnWidth + L.cellBorderWidth;
@@ -646,6 +684,8 @@ describe('BaseEditor methods - getEditedCellRect', () => {
               maxHeight: cellOuterHeight + sb,
             };
           });
+
+          expect(rect).toEqual(jasmine.objectContaining({ ...expected, ...wh }));
         });
       });
     });

@@ -531,28 +531,6 @@ export function scaleHeightWithScrollbar(mainThemeHeight) {
 }
 
 /**
- * Width and height for {@link BaseEditor#getEditedCellRect} (outer box + border compensation), derived from the
- * active editor TD. Matches BaseEditor#getEditedCellRect math for any theme.
- *
- * @returns {{ width: number, height: number }}
- */
-export function activeEditorEditedCellRectWidthHeightFromTd() {
-  const editor = getActiveEditor();
-  const hotInstance = hot();
-  const TD = editor.TD;
-  const rootWindow = hotInstance.rootWindow;
-  const cs = rootWindow.getComputedStyle(TD);
-  const borderPhysicalWidthProp = hotInstance.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-  const inlineStartBorderCompensation = parseInt(cs[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
-  const topBorderCompensation = parseInt(cs.borderTopWidth, 10) > 0 ? 0 : 1;
-
-  return {
-    width: Handsontable.dom.outerWidth(TD) + inlineStartBorderCompensation,
-    height: Handsontable.dom.outerHeight(TD) + topBorderCompensation,
-  };
-}
-
-/**
  * Snapshot of `document.documentElement` for `themeLayoutFromTokens` `e2eGcr_*` helpers that must stay
  * free of direct DOM reads (E2E browser context only).
  *
@@ -570,38 +548,22 @@ export function getE2eDocumentViewport() {
 }
 
 /**
- * Asserts BaseEditor#getEditedCellRect matches theme-specific partial rects from getThemeLayout(),
- * with `width` / `height` taken from the live TD (same approach as autocomplete inner-list vs getSettings checks).
+ * Returns the inner Handsontable instance (dropdown / handsontable / autocomplete editor list) client box
+ * and the corresponding `getSettings()` width/height so specs can assert inline.
  *
- * @param {function(object): object} buildExpected Receives the layout from getThemeLayout(); return the
- *   expected rect partial for the active theme (use layout.e2eGcr_* helpers). Pass
- *   `getE2eDocumentViewport()` into helpers that need `scrollLeft` / `offsetHeight`.
+ * @returns {{ clientWidth: number, clientHeight: number, settingsWidth: number, settingsHeight: number }}
  */
-export function expectGetEditedCellRectFromPartial(buildExpected) {
-  const base = buildExpected(getThemeLayout());
-  const wh = activeEditorEditedCellRectWidthHeightFromTd();
-  const rect = getActiveEditor().getEditedCellRect();
-
-  if (base && typeof base.asymmetricMatch === 'function') {
-    expect(rect).toEqual(jasmine.objectContaining(wh));
-    expect(rect).toEqual(base);
-  } else {
-    // Subset match: `getEditedCellRect()` may include maxWidth/maxHeight when theme helpers omit them
-    // (RTL and known edge cases; see comments in e2eGcr_* blocks, e.g. issue #9206).
-    expect(rect).toEqual(jasmine.objectContaining({ ...base, ...wh }));
-  }
-}
-
-/**
- * Inner Handsontable instance (dropdown / handsontable / autocomplete editor list) client box matches `getSettings()`.
- */
-export function expectInnerHandsontableEditorListClientBoxMatchesSettings() {
+export function getInnerEditorListBox() {
   const editor = getActiveEditor();
   const inner = editor.htEditor;
   const root = editor.htContainer;
 
-  expect(root.clientWidth).toBe(inner.getSettings().width);
-  expect(root.clientHeight).toBe(inner.getSettings().height);
+  return {
+    clientWidth: root.clientWidth,
+    clientHeight: root.clientHeight,
+    settingsWidth: inner.getSettings().width,
+    settingsHeight: inner.getSettings().height,
+  };
 }
 
 /**

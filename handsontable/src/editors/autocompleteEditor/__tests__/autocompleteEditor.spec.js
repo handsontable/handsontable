@@ -411,7 +411,10 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should open editor with the correct size when there is no scrollbar on the list (trimDropdown: false)', async() => {
@@ -431,7 +434,10 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should open editor with the correct size when there is scrollbar on the list', async() => {
@@ -450,7 +456,10 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should open editor with the correct size when there is scrollbar on the list and table overflow is hidden', async() => {
@@ -470,7 +479,10 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should open editor with the correct size when there is scrollbar on the list (trimDropdown: false)', async() => {
@@ -490,7 +502,10 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it.flaky('should not take excessive time to open the editor if the choice list is very long (dev-handsontable#2313)', async() => {
@@ -1092,7 +1107,10 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(2, 0)));
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should limit the list to the space size left above the editor (table has defined size)', async() => {
@@ -1109,7 +1127,10 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(getCell(6, 0)));
       await waitForNextAnimationFrames(2);
 
-      expectInnerHandsontableEditorListClientBoxMatchesSettings();
+      const box = getInnerEditorListBox();
+
+      expect(box.clientWidth).toBe(box.settingsWidth);
+      expect(box.clientHeight).toBe(box.settingsHeight);
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has not defined size)', async() => {
