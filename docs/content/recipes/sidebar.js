@@ -38,6 +38,14 @@ const cellTypesItems = [
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
 ];
 
+const performanceItems = [
+  { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular'] },
+];
+
+const contextMenuInteractionItems = [
+  { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular'] },
+];
+
 const renderingStylingItems = [
   {
     path: 'rendering-styling/frozen-summary-row/frozen-summary-row',
@@ -108,6 +116,8 @@ module.exports = {
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
+    { title: 'Context Menu and Interaction', path: 'context-menu', children: contextMenuInteractionItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     {
       title: 'Editing and Validation',
       path: 'editing-validation',
