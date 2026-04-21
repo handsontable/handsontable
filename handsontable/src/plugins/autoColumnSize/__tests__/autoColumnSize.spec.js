@@ -52,22 +52,26 @@ describe('AutoColumnSize', () => {
   }
 
   /**
-   * Asserts that every data cell in a column fits its rendered content without horizontal
-   * overflow (`scrollWidth <= clientWidth`). This is the core content-based guard used to
-   * supplement the DOM==plugin tautology -- it catches regressions where the column gets
-   * sized too small for its data.
+   * Returns per-row `{ row, scrollWidth, clientWidth }` for every rendered data cell in a column.
+   * Callers use it with an inline `expect(...).withContext(`row ${row}`).toBeLessThanOrEqual(...)`
+   * so failure stacks point at the spec and the comparison is visible at the call site.
    *
    * @param {number} col Visual column index.
    * @param {number} rows Number of data rows to scan.
+   * @returns {Array<{ row: number, scrollWidth: number, clientWidth: number }>}
    */
-  function assertColumnFitsContent(col, rows) {
+  function getCellOverflowMetrics(col, rows) {
+    const metrics = [];
+
     for (let row = 0; row < rows; row++) {
       const cell = getCell(row, col);
 
       if (cell) {
-        expect(cell.scrollWidth).toBeLessThanOrEqual(cell.clientWidth);
+        metrics.push({ row, scrollWidth: cell.scrollWidth, clientWidth: cell.clientWidth });
       }
     }
+
+    return metrics;
   }
 
   /**
@@ -131,9 +135,15 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 2)).toBe(acs.getColumnWidth(2));
 
     // Content-based check: each column must fit the widest rendered data cell before the edit.
-    assertColumnFitsContent(0, 1);
-    assertColumnFitsContent(1, 1);
-    assertColumnFitsContent(2, 1);
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(1, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(2, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
 
     const widthBefore0 = colWidth(spec().$container, 0);
     const widthBefore2 = colWidth(spec().$container, 2);
@@ -146,8 +156,11 @@ describe('AutoColumnSize', () => {
     expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore0);
     expect(colWidth(spec().$container, 1)).toBe(getDefaultColumnWidth());
     expect(colWidth(spec().$container, 2)).toBe(widthBefore2);
+
     // Content-based check: column 0 must fit the new wider text post-edit.
-    assertColumnFitsContent(0, 1);
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should correctly detect column widths with colHeaders', async() => {
@@ -169,7 +182,10 @@ describe('AutoColumnSize', () => {
     const headerCell = spec().$container.find('thead th')[0];
 
     expect(headerCell.scrollWidth).toBeLessThanOrEqual(headerCell.clientWidth);
-    assertColumnFitsContent(0, 1);
+
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', async() => {
@@ -270,7 +286,10 @@ describe('AutoColumnSize', () => {
     const headerCell = spec().$container.find('thead th')[0];
 
     expect(headerCell.scrollWidth).toBeLessThanOrEqual(headerCell.clientWidth);
-    assertColumnFitsContent(0, 1);
+
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should correctly detect column widths after update columns.title', async() => {
@@ -317,7 +336,10 @@ describe('AutoColumnSize', () => {
     const headerCell = spec().$container.find('thead th')[0];
 
     expect(headerCell.scrollWidth).toBeLessThanOrEqual(headerCell.clientWidth);
-    assertColumnFitsContent(0, 1);
+
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should not change the column width after toggling the state of the checkbox cell type', async() => {
@@ -380,10 +402,13 @@ describe('AutoColumnSize', () => {
     });
 
     expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
     // Content-based check: all rows have identically-wide text; the column must fit it on one
     // line. This also guards against wrapping regressions that the row-height checks below
     // cover from the vertical direction.
-    assertColumnFitsContent(0, 5);
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 5)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
     expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().defaultDataRowHeight);
     expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().defaultDataRowHeight);
@@ -1068,10 +1093,13 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 0)).toBeGreaterThan(60);
+
       // Content-based check: every row's content must fit (no overflow) and the column must
       // not be grossly oversized. With samplingRatio: 4 the "WWWWW" row must be sampled so the
       // column fits the widest rendered row.
-      assertColumnFitsContent(0, 4);
+      for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 4)) {
+        expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+      }
       assertColumnNotOversized(0, 4, 12);
     });
   });
@@ -1138,8 +1166,11 @@ describe('AutoColumnSize', () => {
       // Custom renderer displays full name; column should be wider than default to fit it.
       expect(colWidth(spec().$container, 0)).toBeGreaterThan(getDefaultColumnWidth());
       expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
       // Content-based check: the widest rendered name ("English (United Kingdom)") must fit.
-      assertColumnFitsContent(0, 4);
+      for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 4)) {
+        expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+      }
     });
   });
 
