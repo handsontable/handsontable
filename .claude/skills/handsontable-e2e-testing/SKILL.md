@@ -55,7 +55,7 @@ These are injected automatically. Do not import them manually.
 
 Every test must pass under every theme. Never branch on `getLoadedTheme()` or hardcode per-theme pixel values in specs -- use `getThemeLayout()` token helpers or live DOM measurements instead.
 
-Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpers/themeLayoutFromTokens.js`, which exposes token primitives, `overlayHeight` / `verticalScrollForRow` helpers, and scenario-specific `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers).
+Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpers/themeLayoutFromTokens.js`, which exposes token primitives, `overlayHeight` / `verticalScrollForRow` helpers, and scenario-specific `e2e*` regression helpers with descriptive names like `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`, etc.).
 
 **Entry point:** `themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.js`. Changing a theme's `density` in that module propagates to all tests automatically.
 
@@ -76,11 +76,11 @@ Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpe
 - `scaleHeight(mainThemeHeight)` / `scaleHeightWithScrollbar(mainThemeHeight)` -- scale a main-theme pixel height proportionally to the current theme's row height (useful when porting tests that used a fixed height)
 - `getPaginationContainerHeight()` -- measures the live pagination bar height; theme/density/token independent
 
-Prefer, in order: (1) named `layout.e2e*()` / `layout.e2eGcr_*()` helpers when a shared formula exists, (2) a direct formula in primitives (`layout.defaultDataRowHeight + layout.cellBorderWidth`), (3) a DOM/plugin-API read, (4) a relational assertion. **Do not** branch on `layout.densityLevel` or theme name in specs -- the primitives already vary per theme.
+Prefer, in order: (1) named `layout.e2e*()` helpers when a shared formula exists (e.g. `layout.e2eGcrEditedCellOuterHeight()`), (2) a direct formula in primitives (`layout.defaultDataRowHeight + layout.cellBorderWidth`), (3) a DOM/plugin-API read, (4) a relational assertion. **Do not** branch on `layout.densityLevel` or theme name in specs -- the primitives already vary per theme.
 
 **Adding a new theme:** See the `handsontable-css-dev` skill for the full four-layer token process. E2E-specific steps: (1) tokens JS at `src/themes/static/variables/tokens/<name>.js`, (2) colors JS at `src/themes/static/variables/colors/<name>.js`, (3) icons JS at `src/themes/static/variables/icons/<name>.js` (or reuse an existing one), (4) CSS source `src/themes/static/css/theme/ht-theme-<name>.css` + `-no-icons.css` variant, (5) theme module `src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`, (6) re-export from `src/themes/theme/index.js`, (7) add any new token keys to the `VALID_TOKEN_KEYS` allow-list in `src/themes/engine/utils/validation.js`, (8) add any new token keys to the `TokenKey` union in `types/themes.d.ts`, (9) add E2E matrix jobs in `.github/workflows/test.yml`. No edits needed to `themeLayoutFromTokens.js`, `common.js`, or any spec file -- auto-discovery handles the rest.
 
-**Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Every test should run under every theme. For inner Handsontable editor lists (dropdown / handsontable / autocomplete), use global **`expectInnerHandsontableEditorListClientBoxMatchesSettings()`** from `test/helpers/common.js`. For **`getEditedCellRect`**, use **`expectGetEditedCellRectFromPartial`** with **`layout.e2eGcr_*`**; pass **`getE2eDocumentViewport()`** when the helper needs document scroll or viewport height.
+**Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Every test should run under every theme.
 
 See `.ai/TESTING.md` ("Data-Driven Theme Assertions") for full details and all available metrics.
 

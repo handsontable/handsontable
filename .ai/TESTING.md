@@ -373,7 +373,7 @@ Theme-dependent expected values in E2E tests come from a single resolver:
 
 | File | Role |
 | --- | --- |
-| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …) plus hashed `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers; auto-discovers themes from `src/themes/theme/index.js`; call via global `getThemeLayout()` in specs |
+| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …) plus scenario-specific `e2e*` regression helpers with descriptive names (e.g. `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`); auto-discovers themes from `src/themes/theme/index.js`; call via global `getThemeLayout()` in specs |
 
 ### Entry point
 
@@ -434,7 +434,7 @@ From `getThemeLayout()`:
 - `densityLevel` -- `'compact' | 'default' | 'comfortable'` read from the theme module (exposed for diagnostic access; **do not branch on it** -- primitives already vary per theme)
 - `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
 - `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
-- **`e2e*()` / `e2eGcr_*()` / `e2eDensity_*()` helpers** -- shared regression geometry expressed as pure arithmetic expressions over the primitives above. No density-name branching, no hardcoded per-theme literals. Add new scenarios in `themeLayoutFromTokens.js` (in the `buildThemeLayoutE2eHelpers` function) when multiple specs would otherwise embed the same formula. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
+- **`e2e*()` helpers** -- shared regression geometry with descriptive names (e.g. `e2eGcrEditedCellOuterHeight()`, `e2eManualRowResizerPositionFixedTopMasterFourthRow()`) expressed as pure arithmetic expressions over the primitives above. No density-name branching, no hardcoded per-theme literals. Add new scenarios in `themeLayoutFromTokens.js` (in the `buildThemeLayoutE2eHelpers` function) when multiple specs would otherwise embed the same formula. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
 
 Additional viewport helpers in `common.js` (globals in E2E):
 
@@ -450,9 +450,7 @@ Additional viewport helpers in `common.js` (globals in E2E):
 - **Scroll to row:** `layout.verticalScrollForRow(rowIndex)`
 - **Overlay heights:** `layout.overlayHeight({ rows: N })`
 - **Cell clientHeight:** `layout.cellContentHeight`
-- **Named E2E expectations:** `layout.e2e*()` / `layout.e2eGcr_*()` helpers instead of `if (getLoadedTheme() === '…')` branches in spec files
-- **Inner Handsontable editor lists (dropdown / handsontable / autocomplete):** `expectInnerHandsontableEditorListClientBoxMatchesSettings()` in `test/helpers/common.js` (global in E2E) -- asserts list root client box matches `getActiveEditor().htEditor.getSettings()`.
-- **getEditedCellRect (E2E):** `expectGetEditedCellRectFromPartial((L) => L.e2eGcr_*())` merges the returned partial with `activeEditorEditedCellRectWidthHeightFromTd()` so `width` / `height` always come from the live TD. Helpers that need layout viewport metrics take a snapshot from **`getE2eDocumentViewport()`** in the spec (for example `const v = getE2eDocumentViewport(); return L.e2eGcr_*(v.clientWidth, v.clientHeight, v)`) so `themeLayoutFromTokens` stays free of `document.documentElement` reads.
+- **Named E2E expectations:** `layout.e2e*()` helpers with descriptive names (e.g. `layout.e2eGcrEditedCellOuterHeight()`) instead of `if (getLoadedTheme() === '…')` branches in spec files
 
 ### Do not use
 
