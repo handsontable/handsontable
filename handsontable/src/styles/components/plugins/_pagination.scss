@@ -120,6 +120,7 @@
             pointer-events: none;
             color: var(--ht-pagination-button-disabled-foreground-color);
             background-color: var(--ht-pagination-button-disabled-background-color);
+            border-color: var(--ht-pagination-button-disabled-border-color);
           }
 
           &:hover:not(:disabled) {

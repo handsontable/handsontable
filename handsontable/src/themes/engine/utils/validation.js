@@ -369,6 +369,7 @@ const VALID_TOKEN_KEYS = new Set([
   'paginationButtonHoverBackgroundColor',
   'paginationButtonDisabledForegroundColor',
   'paginationButtonDisabledBackgroundColor',
+  'paginationButtonDisabledBorderColor',
   'paginationButtonFocusBorderColor',
   'paginationButtonFocusForegroundColor',
   'paginationButtonFocusBackgroundColor',

@@ -381,6 +381,7 @@ export type TokenKey =
   | 'paginationButtonHoverBackgroundColor'
   | 'paginationButtonDisabledForegroundColor'
   | 'paginationButtonDisabledBackgroundColor'
+  | 'paginationButtonDisabledBorderColor'
   | 'paginationButtonFocusBorderColor'
   | 'paginationButtonFocusForegroundColor'
   | 'paginationButtonFocusBackgroundColor'
