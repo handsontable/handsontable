@@ -1,0 +1,32 @@
+.row-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.row-toolbar button {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 4px;
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-text);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.row-toolbar button:hover:not(:disabled) {
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-white);
+}
+
+.row-toolbar button:focus-visible {
+  outline: 1px solid var(--sl-color-accent);
+  outline-offset: 1px;
+}
+
+.row-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
