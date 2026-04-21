@@ -75,15 +75,18 @@ describe('AutoColumnSize', () => {
   }
 
   /**
-   * Asserts the column width is close to, but no larger than, the widest rendered content plus
-   * cell padding and border. Use this only for tests where no header decoration contributes
-   * to the computed width (e.g. no colHeaders, no hidden-column indicator, no sort indicator).
+   * Computes the upper bound the column width must not exceed: widest rendered cell text plus
+   * cell padding and border, plus a small slack. Use this only for tests where no header
+   * decoration contributes to the computed width (e.g. no colHeaders, no hidden-column
+   * indicator, no sort indicator). Callers assert inline so the threshold is visible at the
+   * call site and failure stacks point at the spec.
    *
    * @param {number} col Visual column index.
    * @param {number} rows Number of data rows to scan.
    * @param {number} [slackPx=12] Extra tolerance above widest text + paddingAndBorder.
+   * @returns {number} Upper bound in CSS pixels.
    */
-  function assertColumnNotOversized(col, rows, slackPx = 12) {
+  function measureColumnUpperBound(col, rows, slackPx = 12) {
     const layout = getThemeLayout();
     const paddingAndBorder = (2 * layout.cellHorizontalPadding) + layout.cellBorderWidth;
     let widestText = 0;
@@ -92,16 +95,11 @@ describe('AutoColumnSize', () => {
       const cell = getCell(row, col);
 
       if (cell) {
-        const w = measureCellTextWidth(cell);
-
-        if (w > widestText) {
-          widestText = w;
-        }
+        widestText = Math.max(widestText, measureCellTextWidth(cell));
       }
     }
 
-    expect(colWidth(spec().$container, col))
-      .toBeLessThanOrEqual(Math.ceil(widestText + paddingAndBorder) + slackPx);
+    return Math.ceil(widestText + paddingAndBorder) + slackPx;
   }
 
   it('should apply auto size by default', async() => {
@@ -1100,7 +1098,10 @@ describe('AutoColumnSize', () => {
       for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 4)) {
         expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
       }
-      assertColumnNotOversized(0, 4, 12);
+
+      const upperBound = measureColumnUpperBound(0, 4, 12);
+
+      expect(colWidth(spec().$container, 0)).toBeLessThanOrEqual(upperBound);
     });
   });
 
