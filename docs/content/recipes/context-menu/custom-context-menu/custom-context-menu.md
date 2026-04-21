@@ -10,17 +10,47 @@ tags:
   - tutorial
   - context menu
   - custom actions
+react:
+  id: b8d2f419
+  metaTitle: Custom context menu actions - React Data Grid | Handsontable
+angular:
+  id: c5e3a907
+  metaTitle: Custom context menu actions - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu
 type: tutorial
 ---
 
-::: only-for javascript
+::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --css 2
 
 @[code](@/content/recipes/context-menu/custom-context-menu/javascript/example1.js)
 @[code](@/content/recipes/context-menu/custom-context-menu/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/context-menu/custom-context-menu/react/example1.css)
+@[code](@/content/recipes/context-menu/custom-context-menu/react/example1.jsx)
+@[code](@/content/recipes/context-menu/custom-context-menu/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/context-menu/custom-context-menu/angular/example1.ts)
+@[code](@/content/recipes/context-menu/custom-context-menu/angular/example1.html)
+@[code](@/content/recipes/context-menu/custom-context-menu/angular/example1.css)
 
 :::
 
