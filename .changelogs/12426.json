@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed missing dimensions refresh after browser zoom changes by reacting to `visualViewport` resize events.",
+  "type": "fixed",
+  "issueOrPR": 12426,
+  "breaking": false,
+  "framework": "none"
+}
