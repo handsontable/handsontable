@@ -61,14 +61,13 @@ describe('AutoRowSize', () => {
    * accept either height here and rely on the surrounding ordering assertions
    * (`height0 < height1 < height2`) to detect regressions.
    *
-   * @param {number} heightPx Measured row height.
+   * @returns {number[]} Allowed heights: `[singleLine, doubleLine]`.
    */
-  function expectThirdRowHeaderHeightAmbiguous(heightPx) {
+  function allowedThirdRowHeaderHeights() {
     const layout = getThemeLayout();
     const singleLine = layout.defaultDataRowHeight;
-    const doubleLine = singleLine + layout.lineHeight;
 
-    expect(heightPx).toBeInArray([singleLine, doubleLine]);
+    return [singleLine, singleLine + layout.lineHeight];
   }
 
   it('should apply auto size by default', async() => {
@@ -541,7 +540,7 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_682da48dd2());
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_1369f821b5());
-    expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
     plugin.moveColumn(0, 1);
 
@@ -564,13 +563,13 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
-    expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
     await setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().e2eDensity_1369f821b5());
-    expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
   });
 
   it('should recalculate heights after moved row', async() => {
@@ -586,7 +585,7 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(50);
-    expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
 
     const plugin = getPlugin('manualRowMove');
 
@@ -596,7 +595,7 @@ describe('AutoRowSize', () => {
 
     expect(parseInt(getCell(0, -1).style.height, 10)).toBe(50);
     expect(parseInt(getCell(1, -1).style.height, 10)).toBe(getThemeLayout().defaultDataRowHeight);
-    expectThirdRowHeaderHeightAmbiguous(parseInt(getCell(2, -1).style.height, 10));
+    expect(parseInt(getCell(2, -1).style.height, 10)).toBeInArray(allowedThirdRowHeaderHeights());
   });
 
   it('should resize the column headers properly, according the their content sizes', async() => {
