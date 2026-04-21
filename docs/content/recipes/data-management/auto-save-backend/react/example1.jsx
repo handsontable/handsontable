@@ -113,7 +113,6 @@ const ExampleComponent = () => {
       <HotTable
         ref={hotRef}
         data={data}
-        rowHeaders={true}
         colHeaders={['ID', 'Product', 'Stock', 'Price', 'Status']}
         columns={[
           { data: 'id', type: 'numeric', readOnly: true, width: 70 },
