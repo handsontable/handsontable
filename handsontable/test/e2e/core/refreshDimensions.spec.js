@@ -101,6 +101,10 @@ describe('Core.await refreshDimensions()', () => {
       return;
     }
 
+    let visualViewportScale = window.visualViewport.scale;
+
+    spyOnProperty(window.visualViewport, 'scale', 'get').and.callFake(() => visualViewportScale);
+
     const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
 
     handsontable({
@@ -114,6 +118,7 @@ describe('Core.await refreshDimensions()', () => {
 
     const callsBeforeResize = beforeRefreshDimensions.calls.count();
 
+    visualViewportScale += 0.1;
     window.visualViewport.dispatchEvent(new Event('resize'));
     await sleep(50);
 
