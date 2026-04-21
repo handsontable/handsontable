@@ -410,8 +410,7 @@ class Overlays {
     });
 
     let resizeTimeout;
-
-    this.eventManager.addEventListener(rootWindow, 'resize', () => {
+    const onViewportResize = () => {
       requestAnimationFrame(() => {
         clearTimeout(resizeTimeout);
         this.wtSettings.getSetting('onWindowResize');
@@ -421,7 +420,13 @@ class Overlays {
           this.#containerDomResizeCount = 0;
         }, 200);
       });
-    });
+    };
+
+    this.eventManager.addEventListener(rootWindow, 'resize', onViewportResize);
+
+    if (rootWindow.visualViewport) {
+      this.eventManager.addEventListener(rootWindow.visualViewport, 'resize', onViewportResize);
+    }
 
     if (!isScrollOnWindow) {
       this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);

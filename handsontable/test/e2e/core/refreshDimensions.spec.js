@@ -95,4 +95,28 @@ describe('Core.await refreshDimensions()', () => {
     expect(hot.view.adjustElementsSize).toHaveBeenCalledBefore(hot.render);
     expect(hot.view.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
+
+  it('should refresh dimensions after `visualViewport` resize', async() => {
+    if (!window.visualViewport) {
+      return;
+    }
+
+    const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
+
+    handsontable({
+      data: createSpreadsheetData(50, 5),
+      width: 320,
+      height: 200,
+      beforeRefreshDimensions,
+    });
+
+    await sleep(50);
+
+    const callsBeforeResize = beforeRefreshDimensions.calls.count();
+
+    window.visualViewport.dispatchEvent(new Event('resize'));
+    await sleep(50);
+
+    expect(beforeRefreshDimensions.calls.count()).toBe(callsBeforeResize + 1);
+  });
 });
