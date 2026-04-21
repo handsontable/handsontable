@@ -94,19 +94,8 @@ const ExampleComponent = () => {
     setSelectedRow(newRow);
   };
 
-  const handleSelectionEnd = (_row: number, _col: number, row2: number): void => {
-    const hot = getHot();
-    const selected = hot?.getSelected();
-
-    if (!selected || selected.length === 0) {
-      setSelectedRow(null);
-
-      return;
-    }
-
-    const [[r1, , r2_val]] = selected;
-
-    setSelectedRow(r1 === r2_val ? Math.min(r1, row2) : null);
+  const handleSelectionEnd = (row: number, _col: number, row2: number): void => {
+    setSelectedRow(row === row2 ? row : null);
   };
 
   const handleDeselect = (): void => {
