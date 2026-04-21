@@ -7,6 +7,11 @@ const columnManagementItems = [
   { path: 'column-management/column-visibility/column-visibility', title: 'Dynamic column visibility', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 
+const contextMenuItems = [
+  { path: 'context-menu/custom-context-menu/custom-context-menu', title: 'Custom context menu actions', onlyFor: ['javascript', 'react', 'angular'] },
+  { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular'] },
+];
+
 const dataManagementItems = [
   { path: 'data-management/load-data-rest-api/load-data-rest-api', title: 'Load data from a REST API', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript', 'react', 'angular'] },
@@ -40,10 +45,6 @@ const cellTypesItems = [
 
 const performanceItems = [
   { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular'] },
-];
-
-const contextMenuInteractionItems = [
-  { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular'] },
 ];
 
 const renderingStylingItems = [
@@ -121,7 +122,7 @@ module.exports = {
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
     { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
-    { title: 'Context Menu and Interaction', path: 'context-menu', children: contextMenuInteractionItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
+    { title: 'Context Menu', path: 'context-menu', children: contextMenuItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     {
       title: 'Editing and Validation',
       path: 'editing-validation',
