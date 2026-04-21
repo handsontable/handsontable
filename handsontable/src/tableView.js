@@ -488,6 +488,37 @@ class TableView {
       parentWindow = getParentWindow(parentWindow);
     }
 
+    const visualViewport = rootWindow.visualViewport;
+
+    if (visualViewport && rootWindow.top === rootWindow) {
+      let lastVisualViewportState = {
+        width: visualViewport.width,
+        height: visualViewport.height,
+        scale: visualViewport.scale,
+      };
+
+      this.eventManager.addEventListener(visualViewport, 'resize', () => {
+        const currentVisualViewportState = {
+          width: visualViewport.width,
+          height: visualViewport.height,
+          scale: visualViewport.scale,
+        };
+        const isVisualViewportChanged = currentVisualViewportState.width !== lastVisualViewportState.width ||
+          currentVisualViewportState.height !== lastVisualViewportState.height ||
+          currentVisualViewportState.scale !== lastVisualViewportState.scale;
+
+        if (!isVisualViewportChanged) {
+          return;
+        }
+
+        lastVisualViewportState = currentVisualViewportState;
+
+        if (this.hot && !this.hot.isDestroyed && isVisible(this.hot.rootElement)) {
+          this.hot.refreshDimensions();
+        }
+      });
+    }
+
     this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
       if (this.settings.fragmentSelection || isInput(event.target)) {
         return;
