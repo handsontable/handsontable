@@ -26,6 +26,12 @@ class DataProvider {
    * @param {object} options Object with specified options.
    */
   setOptions(options) {
+    if (options && 'columnHeaders' in options && !('colHeaders' in options)) {
+      this.options = { ...options, colHeaders: options.columnHeaders };
+
+      return;
+    }
+
     this.options = options;
   }
 
@@ -103,7 +109,7 @@ class DataProvider {
   getColumnHeaders() {
     const headers = [];
 
-    if (this.options.columnHeaders) {
+    if (this.options.colHeaders) {
       const { startCol, endCol } = this._getDataRange();
       const colHeaders = this.hot.getColHeader();
 
@@ -563,7 +569,7 @@ class DataProvider {
    * @returns {string[]}
    */
   getColumnHeadersClassNames() {
-    if (!this.options.columnHeaders) {
+    if (!this.options.colHeaders) {
       return [];
     }
 

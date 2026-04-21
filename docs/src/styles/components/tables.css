@@ -9,33 +9,47 @@
 }
 
 /* -------------------------------------------------------------------------
- * API method header — heading + source code link in a visual row.
- * A client-side script moves the <a class="source-code-link"> inside the
+ * API method header — heading + action buttons (source code + Ask AI) in a
+ * visual row. A client-side script groups .source-code-link and
+ * .ask-about-api-btn into an .api-member-actions container inside the
  * preceding heading, enabling absolute positioning within it.
  * ------------------------------------------------------------------------- */
-/* Before JS moves the link: hide the standalone <p> wrapper to prevent FOUC */
-.sl-markdown-content :is(h2, h3, h4):has(+ p > .source-code-link) {
+
+/* Before JS moves elements: apply heading border/padding early to prevent FOUC */
+.sl-markdown-content :is(h2, h3, h4):has(+ p > .source-code-link),
+.sl-markdown-content :is(h2, h3, h4):has(+ p > .ask-about-api-btn) {
   border-top: 1px solid var(--sl-color-gray-5);
   padding-top: 1rem;
   margin-bottom: 0;
 }
 
-.sl-markdown-content p:has(> .source-code-link:only-child) {
+/* Before JS: hide standalone <p> wrappers to prevent flash */
+.sl-markdown-content p:has(> .source-code-link:only-child),
+.sl-markdown-content p:has(> .ask-about-api-btn:only-child) {
   display: none;
 }
 
-/* After JS moves the link inside the heading */
-.sl-markdown-content :is(h2, h3, h4):has(> .source-code-link) {
+/* After JS: heading with the actions container */
+.sl-markdown-content :is(h2, h3, h4):has(> .api-member-actions) {
   position: relative;
   border-top: 1px solid var(--sl-color-gray-5);
   padding-top: 1rem;
   margin-bottom: 0;
 }
 
-.source-code-link {
+/* Actions container — positioned at the top-right of the heading */
+.api-member-actions {
   position: absolute;
   top: 0;
   right: 0;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* Shared visual styles for both action buttons */
+.source-code-link,
+.ask-about-api-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -52,6 +66,27 @@
   transition: color 0.15s, background-color 0.15s;
 }
 
+/* Source code link: standalone absolute position (no container) */
+.source-code-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Ask AI button: reset default button styles */
+.ask-about-api-btn {
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+  border-right: none;
+}
+
+/* Source code link inside the container: flow as a flex item, no left border overlap */
+.api-member-actions .source-code-link {
+  position: static;
+  border-left: none;
+}
+
 .source-code-link::before {
   content: '';
   display: inline-block;
@@ -64,7 +99,21 @@
   flex-shrink: 0;
 }
 
-.source-code-link:hover {
+/* Ask AI button icon — chat bubble */
+.ask-about-api-btn::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.source-code-link:hover,
+.ask-about-api-btn:hover {
   color: var(--sl-color-white);
   background-color: var(--sl-color-gray-6);
 }

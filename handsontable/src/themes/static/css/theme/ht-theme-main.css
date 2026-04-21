@@ -298,6 +298,13 @@
   --ht-pagination-bar-background-color: var(--ht-bar-background-color);
   --ht-pagination-bar-horizontal-padding: var(--ht-bar-horizontal-padding);
   --ht-pagination-bar-vertical-padding: var(--ht-bar-vertical-padding);
+  --ht-pagination-button-border-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-foreground-color: var(--ht-secondary-button-foreground-color);
+  --ht-pagination-button-background-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-hover-border-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-hover-foreground-color: var(--ht-secondary-button-foreground-color);
+  --ht-pagination-button-hover-background-color: var(--ht-secondary-button-hover-background-color);
+  --ht-pagination-button-disabled-foreground-color: var(--ht-secondary-button-disabled-foreground-color);
   --ht-dialog-semi-transparent-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-dialog-semi-transparent-background-opacity: 80%;
   --ht-dialog-solid-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));

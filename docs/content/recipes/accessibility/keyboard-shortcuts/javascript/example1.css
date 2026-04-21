@@ -1,0 +1,29 @@
+#shortcut-status {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: #1a42e8;
+  color: #fff;
+  font-family: monospace;
+  font-size: 13px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+#shortcut-status.visible {
+  opacity: 1;
+}
+
+#submit-log {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #f4f5f7;
+  border-left: 3px solid #1a42e8;
+  font-family: monospace;
+  font-size: 13px;
+  color: #333;
+  min-height: 38px;
+  border-radius: 0 4px 4px 0;
+}

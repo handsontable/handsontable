@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: b5f02fb2
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
@@ -19,6 +20,8 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
+This tutorial shows you how to build an interactive SVG star rating cell using `editorFactory` and `rendererFactory`, with hover preview and keyboard shortcuts - no external libraries required.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
@@ -26,6 +29,29 @@ category: Cell Types
 @[code](@/content/recipes/cell-types/rating/javascript/example1.js)
 @[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/rating/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/rating/react/example1.css)
+@[code](@/content/recipes/cell-types/rating/react/example1.jsx)
+@[code](@/content/recipes/cell-types/rating/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/rating/angular/example1.ts)
+@[code](@/content/recipes/cell-types/rating/angular/example1.html)
+@[code](@/content/recipes/cell-types/rating/angular/example1.css)
 
 :::
 
@@ -573,3 +599,13 @@ Change colors by overriding CSS for specific columns:
 ---
 
 **Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Handsontable CSS tokens, perfect for intuitive 1-5 star ratings in your data grid!
+
+## What you learned
+
+You built an SVG star rating cell using `editorFactory` and `rendererFactory`. You used Handsontable CSS tokens for theme-aware styling, `closest()` for reliable hover detection on inline SVG elements, and keyboard shortcuts for direct number-key and arrow-key selection.
+
+## Next steps
+
+- [Star Rating (React)](/recipes/cell-types/react-rating) - The same concept using React's `EditorComponent` and `react-star-rating-component`.
+- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Feedback](/recipes/cell-types/feedback) - Another no-library custom editor using `editorFactory` and CSS tokens.

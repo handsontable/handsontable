@@ -9,6 +9,7 @@ const columnManagementItems = [
 
 const contextMenuItems = [
   { path: 'context-menu/custom-context-menu/custom-context-menu', title: 'Custom context menu actions', onlyFor: ['javascript', 'react', 'angular'] },
+  { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular'] },
 ];
 
 const dataManagementItems = [
@@ -40,6 +41,10 @@ const cellTypesItems = [
   { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
   { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
+];
+
+const performanceItems = [
+  { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular'] },
 ];
 
 const renderingStylingItems = [
@@ -108,11 +113,12 @@ module.exports = {
   sidebar: [
     'introduction',
     { title: 'Accessibility & UX', path: 'accessibility', children: accessibilityItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
-    { title: 'Context Menu', path: 'context-menu', children: contextMenuItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Real-time & Integrations', path: 'real-time', children: realTimeItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
+    { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
+    { title: 'Context Menu', path: 'context-menu', children: contextMenuItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     {
       title: 'Editing and Validation',
       path: 'editing-validation',

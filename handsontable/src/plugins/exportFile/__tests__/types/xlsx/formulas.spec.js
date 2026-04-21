@@ -198,7 +198,7 @@ describe('exportFile XLSX type — formulas', () => {
 
       // With one header row, data row 0 maps to Excel row 2, so the
       // source range A1:A2 in data space becomes A2:A3 in Excel.
-      const ws = await parseXlsx({ columnHeaders: true, exportFormulas: true });
+      const ws = await parseXlsx({ colHeaders: true, exportFormulas: true });
 
       expect(ws.getRow(4).getCell(1).value?.formula).toBe('SUM(A2:A3)');
     });
@@ -312,7 +312,7 @@ describe('exportFile XLSX type — formulas', () => {
 
       // With one header row, data row 0 starts at Excel row 2.
       // HyperFormula formula =SUM(A1:A2) refers to HOT rows 0-1, which are Excel rows 2-3.
-      const ws = await parseXlsx({ columnHeaders: true, exportFormulas: true });
+      const ws = await parseXlsx({ colHeaders: true, exportFormulas: true });
 
       expect(ws.getRow(4).getCell(1).value?.formula).toBe('SUM(A2:A3)');
     });
