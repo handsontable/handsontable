@@ -513,7 +513,11 @@ class TableView {
 
         lastVisualViewportState = currentVisualViewportState;
 
-        if (this.hot && !this.hot.isDestroyed && isVisible(this.hot.rootElement)) {
+        const { left, right, top, bottom } = this.hot.rootElement.getBoundingClientRect();
+        const isOutsideViewport = right <= 0 || left >= visualViewport.width ||
+          bottom <= 0 || top >= visualViewport.height;
+
+        if (this.hot && !this.hot.isDestroyed && this.isVisible() && !isOutsideViewport) {
           this.hot.refreshDimensions();
         }
       });
