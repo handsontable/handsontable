@@ -1,4 +1,5 @@
-import { getCompareFunctionFactory, DO_NOT_SWAP } from '../columnSorting/sortService';
+import { getCompareFunctionFactory } from '../columnSorting/sortService/registry';
+import { DO_NOT_SWAP } from '../columnSorting/sortService/engine';
 
 /**
  * Sort comparator handled by conventional sort algorithm.

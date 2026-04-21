@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, NgZone, ViewChild, inject } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 import type {
   DataProviderFilterColumn,
@@ -266,6 +266,8 @@ function createInventoryDemoServer(): InventoryDemoServer {
 }
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example1',
   template: `
     <div class="example-controls-container">
@@ -282,7 +284,6 @@ function createInventoryDemoServer(): InventoryDemoServer {
       </hot-table>
     </div>
   `,
-  standalone: false,
 })
 export class AppComponent {
   @ViewChild('hot') private hotTable?: HotTableComponent;
@@ -362,36 +363,22 @@ export class AppComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
 
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+
+// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [AppComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
-})
-
-export class AppModule {}
 /* end-file */

@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 5864kf8v
 title: Custom editor in Vue 3
 metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
@@ -14,7 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-Create a custom cell editor, and use it in your Vue 3 data grid by declaring it as a class.
+In this tutorial, you will create a custom cell editor as a Vue 3 component. You will learn to extend the BaseEditor class and register your editor with Handsontable.
 
 [[toc]]
 
@@ -87,3 +88,15 @@ The following example implements the `@handsontable/vue3` component with a custo
 - [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
 
 </div>
+
+## What you learned
+
+- How to extend the `BaseEditor` class to build a custom editor.
+- How to register a custom editor with a Handsontable column or the entire grid.
+- How to pass a `key` attribute to differentiate between multiple editor instances.
+
+## Next steps
+
+- [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) -- read the full editor API documentation.
+- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- declare editors per column using HotColumn.
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md) -- complement your editor with a custom renderer.

@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: ibewekco
 title: "Star Rating Editor"
 metaTitle: "Star Rating Editor - JavaScript Data Grid | Handsontable"
@@ -18,6 +19,8 @@ angular:
 searchCategory: Recipes
 category: Cell Types
 ---
+
+This tutorial shows you how to build an interactive SVG star rating cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`, with hover preview and keyboard shortcuts.
 
 ::: only-for angular
 
@@ -60,18 +63,17 @@ import { DomSanitizer } from "@angular/platform-browser";
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
+  HotTableModule,
   KeyboardShortcutConfig,
   HotCellRendererAdvancedComponent,
 } from "@handsontable/angular-wrapper";
-import { registerAllModules } from "handsontable/registry";
-
-registerAllModules();
 ```
 
 **What we're importing:**
 
 - [`HotCellRendererAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcellrendereradvancedcomponent) - Base class for custom renderers
 - [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent) - Base class for custom editors with advanced features
+- `HotTableModule` - Angular module providing the `<hot-table>` component (imported in `AppComponent`)
 - `KeyboardShortcutConfig` - Type for keyboard shortcuts configuration
 - `GridSettings` - Type for Handsontable configuration
 - `DomSanitizer` - Required so we can render SVG via `[innerHTML]` (Angular strips SVG by default)
@@ -101,7 +103,8 @@ const starSvg =
       }
     </div>`,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -225,7 +228,8 @@ The editor component extends [`HotCellEditorAdvancedComponent`](@/guides/cell-fu
 
 ```typescript
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `
     <div
       class="rating-editor"
@@ -436,8 +440,9 @@ Put it all together in your Angular component:
 
 ```typescript
 @Component({
-  selector: "app-star-rating",
-  standalone: false,
+  selector: "app-root",
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -470,23 +475,20 @@ export class AppComponent {
 }
 ```
 
-## Step 10: Register in Angular Module
+## Step 10: Configure app.config.ts
 
-Declare all components in your Angular module:
+Configure Handsontable globally in `app.config.ts`. With standalone components, no `@NgModule` is needed.
 
 ```typescript
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
-import { AppComponent, StarEditorComponent, StarRendererComponent } from "./app.component";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -495,21 +497,13 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [AppComponent, StarEditorComponent, StarRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
 ```
 
 **Important steps:**
 
-1. **Import HotTableModule** - Provides `<hot-table>` directive
-2. **Declare all components** - Main component, renderer, and editor
-3. **Register Handsontable modules** - Call `registerAllModules()` before module creation
+1. **HotTableModule in AppComponent** - Add to `imports: [HotTableModule]` in the main component's `@Component` decorator
+2. **Standalone sub-components** - `StarRendererComponent` and `StarEditorComponent` use `standalone: true, imports: []`
+3. **Register Handsontable modules** - Call `registerAllModules()` once in `app.config.ts`
 4. **Configure global settings** - Use `HOT_GLOBAL_CONFIG` provider for theme and license
 
 ## Enhancements
@@ -532,7 +526,8 @@ Display the numeric rating alongside stars:
     </div>
   `,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererWithNumberComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -560,7 +555,8 @@ Change star color based on rating value:
     </div>
   `,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererColoredComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -597,7 +593,8 @@ Support half-star ratings (0.5 increments):
     </div>
   `,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererHalfComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -640,7 +637,8 @@ Configurable number of stars per column using `rendererProps`:
     </div>
   `,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererCustomComponent extends HotCellRendererAdvancedComponent<number, { maxStars?: number }> {
   readonly starSvgMarkup = inject(DomSanitizer).bypassSecurityTrustHtml(starSvg);
@@ -682,7 +680,8 @@ Add text labels like "Excellent", "Good", etc.:
     </div>
   `,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererLabelsComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -726,7 +725,8 @@ Add ARIA attributes for screen readers:
     </div>
   `,
   styleUrls: ["./example1.css"],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -762,3 +762,13 @@ export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponen
 ---
 
 **Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Angular components, perfect for intuitive 1-5 star ratings in your data grid!
+
+## What you learned
+
+You built an SVG star rating cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`. You used `DomSanitizer` to render inline SVG safely, `closest()` for reliable star hover detection, and `KeyboardShortcutConfig` for number-key and arrow-key selection.
+
+## Next steps
+
+- [Star Rating (JavaScript)](/recipes/cell-types/rating) - The same concept using `editorFactory` and `rendererFactory`.
+- [Star Rating (React)](/recipes/cell-types/react-rating) - The React version using `EditorComponent` and `react-star-rating-component`.
+- [Feedback Editor (Angular)](/recipes/feedback-angular) - Another Angular editor using `HotCellEditorAdvancedComponent`.

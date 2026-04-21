@@ -66,6 +66,10 @@ These are the most frequent mistakes. Read this section first.
 | Using `.bind(this)` for hook/event callbacks | Use arrow-function class fields (`#onAfterX = () => { ... }`) instead. |
 | Direct cross-plugin imports | Use hooks for inter-plugin communication or `hot.getPlugin('{Name}')` if API access is required. |
 | Confusing the context menu with the column (dropdown) menu | These are two separate plugins. See [Context menu vs column menu](#context-menu-vs-column-menu). |
+| Using `standalone: false` or `AppModule` in Angular examples | All Angular docs examples use `standalone: true` with `imports: [HotTableModule]` and `app.config.ts`. See skill `angular-wrapper-dev`. |
+| Adding `licenseKey` to individual `<hot-table>` in Angular examples | Set it globally via `HOT_GLOBAL_CONFIG` in `app.config.ts`. Never put it on each component. |
+| Using `*ngIf` / `*ngFor` in Angular templates | Use Angular 17+ built-in control flow: `@if (cond) { }` and `@for (x of list; track x.id) { }`. |
+| Typing Angular row data as `any[]` | Use `RowObject[]` imported from `handsontable/common`. |
 | Expecting built-in DataProvider error UI from `dialog: true` alone | Enable `notification: true` (or a `notification` config object). DataProvider uses the Notification plugin for fetch/CRUD failures. Dialog stays for blocking modals (for example Loading plugin, ExportFile binary export overlay, custom `show` content). |
 
 ---
@@ -172,7 +176,7 @@ Every code change **must** satisfy all of the following:
 2. Use "you" not "we". Oxford comma.
 3. No evaluative adjectives ("easy", "simple", "obvious").
 4. Use hyphens (`-`) or double hyphens (`--`) to separate clauses. Do not use typographic en dashes or em dashes. Use straight quotes (`"` and `'`) only -- no curly/smart quotes or smart apostrophes. Stick to standard ASCII characters.
-5. Consistent naming: `Node.js`, `webpack`, `TypeScript`.
+5. Consistent naming: `Node.js`, `Rspack`, `SWC`, `TypeScript`.
 
 ---
 

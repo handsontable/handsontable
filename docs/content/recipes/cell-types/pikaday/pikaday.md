@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 01620d5a
 title: Pikaday
 metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
@@ -19,6 +20,8 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
+This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
@@ -26,6 +29,28 @@ category: Cell Types
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.js)
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps moment @handsontable/pikaday
+
+@[code](@/content/recipes/cell-types/pikaday/react/example1.css)
+@[code](@/content/recipes/cell-types/pikaday/react/example1.jsx)
+@[code](@/content/recipes/cell-types/pikaday/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps moment @handsontable/pikaday
+
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.ts)
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.html)
 
 :::
 
@@ -807,3 +832,13 @@ Pikaday automatically adds ARIA attributes for screen readers.
 ---
 
 **Congratulations!** You've created a production-ready Pikaday date picker cell with full customization options, keyboard navigation, and proper lifecycle management. This recipe ensures you can continue using Pikaday even after the built-in date cell type is removed!
+
+## What you learned
+
+You integrated the Pikaday date picker as a Handsontable cell editor. You used `editorFactory` with `position: 'portal'` for correct z-index handling, Moment.js for date formatting and parsing, and `cellProperties.datePickerConfig` to drive per-column Pikaday configuration.
+
+## Next steps
+
+- [Moment.js date](/recipes/cell-types/moment-date) - A date cell type combining Moment.js and Pikaday in a registered `moment-date` cell type.
+- [Flatpickr](/recipes/cell-types/flatpickr) - An alternative date picker using the Flatpickr library.
+- [Date picker (Angular)](/recipes/datepicker-angular) - A date editor built with Angular components and the native HTML5 date input.

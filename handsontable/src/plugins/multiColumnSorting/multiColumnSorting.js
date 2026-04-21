@@ -2,7 +2,7 @@ import {
   APPEND_COLUMN_CONFIG_STRATEGY,
   ColumnSorting
 } from '../columnSorting';
-import { registerRootComparator } from '../columnSorting/sortService';
+import { registerRootComparator } from '../columnSorting/sortService/registry';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';

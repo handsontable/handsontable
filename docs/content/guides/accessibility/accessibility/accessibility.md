@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: o4qhm1bg
 title: Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
@@ -26,7 +27,9 @@ angular:
 searchCategory: Guides
 category: Accessibility
 ---
-Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities. 
+Handsontable supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
+
+Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities.
 
 [[toc]]
 
@@ -298,3 +301,7 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
+
+## Result
+
+Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.

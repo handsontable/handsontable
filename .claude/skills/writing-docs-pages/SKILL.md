@@ -111,11 +111,13 @@ Use `onlyFor: ['react']` or `onlyFor: ['angular']` if the page is framework-spec
 
 ## 8. Code Example Generation
 
-Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant by running:
+Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant from the `docs/` directory:
 
 ```bash
-npm run docs:code-examples:generate-js <path-to-ts-file>
+cd docs && npm run docs:code-examples:generate-js -- <path-to-ts-file>
 ```
+
+Use a path relative to `docs/` (for example `content/recipes/foo/javascript/example1.ts`).
 
 ## Reference
 

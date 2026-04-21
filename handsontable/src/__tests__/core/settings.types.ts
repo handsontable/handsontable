@@ -126,7 +126,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     onRowsRemove: async () => {},
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
-  dateFormat: 'foo',
+  dateFormat: oneOf('foo', { year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
   datePickerConfig: {
     firstDay: 0,
     showWeekNumber: true,

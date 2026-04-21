@@ -1,0 +1,4 @@
+/* Keep sparkline cells vertically centered and tall enough for the SVG */
+.handsontable td.sparkline-cell {
+  vertical-align: middle;
+}
