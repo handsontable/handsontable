@@ -51,7 +51,9 @@ These are injected automatically. Do not import them manually.
 - **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` -- from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutFromTokens.js`, auto-discovered from `src/themes/theme/index.js` (add a theme there and the list updates automatically).
 - Full list in `test/helpers/common.js`.
 
-## Theme-specific expected values
+## Theme-agnostic assertions
+
+Every test must pass under every theme. Never branch on `getLoadedTheme()` or hardcode per-theme pixel values in specs -- use `getThemeLayout()` token helpers or live DOM measurements instead.
 
 Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpers/themeLayoutFromTokens.js`, which exposes token primitives, `overlayHeight` / `verticalScrollForRow` helpers, and scenario-specific `e2e*` / `e2eGcr_*` / `e2eDensity_*` regression helpers).
 
