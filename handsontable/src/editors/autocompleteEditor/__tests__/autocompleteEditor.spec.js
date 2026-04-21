@@ -4,20 +4,13 @@ describe('AutocompleteEditor', () => {
 
   const E2E_DOM_RECT_EPSILON_PX = 2;
 
-  function expectDropdownBoundingRectAboveEditedCell() {
+  function getDropdownVsEditedCell() {
     const editor = getActiveEditor();
-    const ddRect = editor.htContainer.getBoundingClientRect();
-    const tdRect = editor.TD.getBoundingClientRect();
 
-    expect(ddRect.bottom).toBeLessThanOrEqual(tdRect.top + E2E_DOM_RECT_EPSILON_PX);
-  }
-
-  function expectDropdownBoundingRectBelowEditedCell() {
-    const editor = getActiveEditor();
-    const ddRect = editor.htContainer.getBoundingClientRect();
-    const tdRect = editor.TD.getBoundingClientRect();
-
-    expect(ddRect.top).toBeGreaterThanOrEqual(tdRect.bottom - E2E_DOM_RECT_EPSILON_PX);
+    return {
+      dd: editor.htContainer.getBoundingClientRect(),
+      td: editor.TD.getBoundingClientRect(),
+    };
   }
 
   beforeEach(function() {
@@ -1151,7 +1144,9 @@ describe('AutocompleteEditor', () => {
       await mouseDoubleClick($(cell));
       await waitForNextAnimationFrames(2);
 
-      expectDropdownBoundingRectAboveEditedCell();
+      const { dd, td } = getDropdownVsEditedCell();
+
+      expect(dd.bottom).toBeLessThanOrEqual(td.top + E2E_DOM_RECT_EPSILON_PX); // above the edited cell
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size)', async() => {
@@ -1179,14 +1174,22 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expectDropdownBoundingRectAboveEditedCell();
+      {
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.bottom).toBeLessThanOrEqual(td.top + E2E_DOM_RECT_EPSILON_PX); // above the edited cell
+      }
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expectDropdownBoundingRectBelowEditedCell();
+      {
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.top).toBeGreaterThanOrEqual(td.bottom - E2E_DOM_RECT_EPSILON_PX); // below the edited cell
+      }
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has not defined size, scrolled viewport)', async() => {
@@ -1212,14 +1215,22 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('r');
       await waitForNextAnimationFrames(2);
 
-      expectDropdownBoundingRectAboveEditedCell();
+      {
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.bottom).toBeLessThanOrEqual(td.top + E2E_DOM_RECT_EPSILON_PX); // above the edited cell
+      }
 
       editor.TEXTAREA.value = 're';
 
       await keyDownUp('e');
       await waitForNextAnimationFrames(2);
 
-      expectDropdownBoundingRectBelowEditedCell();
+      {
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.top).toBeGreaterThanOrEqual(td.bottom - E2E_DOM_RECT_EPSILON_PX); // below the edited cell
+      }
     });
 
     it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
