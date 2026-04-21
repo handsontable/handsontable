@@ -2,5 +2,31 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pipx run code-review-graph==2.3.2 update --skip-flows",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pipx run code-review-graph==2.3.2 status",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }
