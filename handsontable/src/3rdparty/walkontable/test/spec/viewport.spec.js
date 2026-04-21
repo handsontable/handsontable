@@ -373,4 +373,31 @@ describe('WalkontableViewport', () => {
       expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
     });
   });
+
+  describe('createRowsCalculator()', () => {
+    it('should include horizontal scrollbar height when holder dimensions are rounded to the same value', async() => {
+      createDataArray(50, 10);
+
+      spec().$wrapper.width(514).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      const scrollbarWidth = getScrollbarWidth(spec().$table[0].ownerDocument);
+
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
+
+      spyOnProperty(wt.wtTable.holder, 'clientHeight', 'get').and.returnValue(wt.wtTable.holder.offsetHeight);
+
+      const rowsCalculator = wt.wtViewport.createRowsCalculator(['rendered']);
+
+      expect(rowsCalculator.horizontalScrollbarHeight).toBe(scrollbarWidth);
+    });
+  });
 });
