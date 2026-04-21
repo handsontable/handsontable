@@ -48,6 +48,13 @@ function csrfToken() {
 }
 
 const ExampleComponent = () => {
+  const hotTableRef = useCallback((hotInstance) => {
+    if (hotInstance) {
+      // Store reference to the instance
+      ExampleComponent._hotInstance = hotInstance;
+    }
+  }, []);
+
   // fetchRows is called on every page change, sort, and filter.
   // queryParameters: { page, pageSize, sort, filters }
   // signal: AbortSignal — pass it to fetch() so stale requests cancel
@@ -67,11 +74,12 @@ const ExampleComponent = () => {
   // onRowsCreate fires when the user inserts rows from the context menu.
   // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
   const onRowsCreate = useCallback(async (payload) => {
-    await fetch('/api/products', {
+    const res = await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
       body: JSON.stringify(payload),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }, []);
 
   // onRowsUpdate fires after a cell edit, paste, or autofill batch.
@@ -79,21 +87,23 @@ const ExampleComponent = () => {
   // Changes appear in the grid immediately (optimistic update) and roll back
   // if this callback throws or rejects.
   const onRowsUpdate = useCallback(async (rows) => {
-    await fetch('/api/products', {
+    const res = await fetch('/api/products', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
       body: JSON.stringify(rows),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }, []);
 
   // onRowsRemove fires after the user confirms deletion.
   // rowIds is an array of stable row IDs (values of the rowId field).
   const onRowsRemove = useCallback(async (rowIds) => {
-    await fetch('/api/products', {
+    const res = await fetch('/api/products', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
       body: JSON.stringify(rowIds),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }, []);
 
   const dataProvider = useMemo(
@@ -109,19 +119,50 @@ const ExampleComponent = () => {
     [fetchRows, onRowsCreate, onRowsUpdate, onRowsRemove]
   );
 
-  // beforeRowsMutation fires before any create, update, or remove operation.
-  // Return false to cancel. Here it adds a confirm dialog before deletes.
+  // beforeRowsMutation is sync (checks for a strict `=== false` return), so
+  // we cannot await an async prompt inline. Instead: cancel the original
+  // attempt, show a notification with Delete/Cancel actions, and on Delete
+  // re-issue the remove via the DataProvider API. A ref tracks confirmation.
+  const removeConfirmedRef = { current: false };
   const beforeRowsMutation = useCallback((operation, payload) => {
-    if (operation === 'remove') {
+    if (operation === 'remove' && !removeConfirmedRef.current) {
       const count = payload.rowsRemove.length;
-      // eslint-disable-next-line no-alert
-      return window.confirm(`Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`);
+      const hot = ExampleComponent._hotInstance;
+      if (!hot) return false;
+
+      const notification = hot.getPlugin('notification');
+      const id = notification.showMessage({
+        variant: 'warning',
+        title: 'Delete rows',
+        message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+        duration: 0,
+        actions: [
+          {
+            label: 'Delete',
+            type: 'primary',
+            callback: () => {
+              notification.hide(id);
+              removeConfirmedRef.current = true;
+              hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
+                removeConfirmedRef.current = false;
+              });
+            },
+          },
+          {
+            label: 'Cancel',
+            type: 'secondary',
+            callback: () => notification.hide(id),
+          },
+        ],
+      });
+      return false;
     }
   }, []);
 
   return (
     <div>
       <HotTable
+        ref={hotTableRef}
         dataProvider={dataProvider}
         // beforeRowsMutation fires before any create, update, or remove operation.
         beforeRowsMutation={beforeRowsMutation}

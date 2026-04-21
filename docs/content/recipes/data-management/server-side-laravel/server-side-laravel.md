@@ -315,15 +315,46 @@ Cell edits appear in the grid immediately (optimistic update). If the server ret
 ### `beforeRowsMutation`
 
 ```javascript
+let removeConfirmed = false;
+
+// ...
+
 beforeRowsMutation(operation, payload) {
-  if (operation === 'remove') {
+  if (operation === 'remove' && !removeConfirmed) {
     const count = payload.rowsRemove.length;
-    return window.confirm(`Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`);
+    const notification = hot.getPlugin('notification');
+    const id = notification.showMessage({
+      variant: 'warning',
+      title: 'Delete rows',
+      message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+      duration: 0,
+      actions: [
+        {
+          label: 'Delete',
+          type: 'primary',
+          callback: () => {
+            notification.hide(id);
+            removeConfirmed = true;
+            hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
+              removeConfirmed = false;
+            });
+          },
+        },
+        {
+          label: 'Cancel',
+          type: 'secondary',
+          callback: () => notification.hide(id),
+        },
+      ],
+    });
+    return false;
   }
 },
 ```
 
 `beforeRowsMutation` fires before any create, update, or remove operation. Returning `false` cancels the operation -- `onRowsRemove` is not called and no rows are deleted on the server.
+
+Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` return, you cannot use `window.confirm()` or other async dialogs. Instead, cancel the first attempt by returning `false`, show a notification with **Delete** and **Cancel** actions, and on **Delete** re-issue the remove via the DataProvider API. The `removeConfirmed` flag lets the second pass through without re-prompting.
 
 ### `notification: true` and `emptyDataState: true`
 
