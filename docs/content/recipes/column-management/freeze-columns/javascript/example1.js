@@ -22,7 +22,7 @@ let frozenCount = 0;
 const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions', 'CPC ($)', 'Revenue ($)', 'ROI'];
 
 const container = document.querySelector('#example1');
-const controlsContainer = document.querySelector('#freeze-controls');
+const controlsContainer = document.querySelector('#freeze-buttons');
 const statusEl = document.querySelector('#freeze-status');
 
 const hot = new Handsontable(container, {

@@ -24,10 +24,11 @@ type: tutorial
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --html 2
+::: example #example1 :hot-recipe --js 1 --html 2 --css 3
 
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.js)
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.html)
+@[code](@/content/recipes/column-management/freeze-columns/javascript/example1.css)
 
 :::
 
@@ -35,8 +36,9 @@ type: tutorial
 
 ::: only-for react
 
-::: example #example1 :react-advanced --js 1 --ts 2
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
 
+@[code](@/content/recipes/column-management/freeze-columns/react/example1.css)
 @[code](@/content/recipes/column-management/freeze-columns/react/example1.jsx)
 @[code](@/content/recipes/column-management/freeze-columns/react/example1.tsx)
 
@@ -46,8 +48,9 @@ type: tutorial
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --css 1 --ts 2 --html 3
 
+@[code](@/content/recipes/column-management/freeze-columns/angular/example1.css)
 @[code](@/content/recipes/column-management/freeze-columns/angular/example1.ts)
 @[code](@/content/recipes/column-management/freeze-columns/angular/example1.html)
 
