@@ -1,6 +1,6 @@
 ---
 name: handsontable-e2e-testing
-description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage - covers the standard boilerplate, global test helpers, async/await requirements, mouse and keyboard event simulation, plugin lifecycle testing patterns, and token-driven theme-specific expectations via getThemeLayout() (viewport helpers, DOM measurements, and relational assertions that work across all themes)
+description: Use when writing or modifying Jasmine/Puppeteer E2E tests (*.spec.js) for Handsontable, or when a bug fix or feature change needs E2E test coverage. Covers standard boilerplate, async/await rules, global helpers, event simulation, plugin lifecycle patterns, and writing theme-agnostic assertions that pass under all themes without branching on theme name.
 ---
 
 # Handsontable E2E Testing Guide
