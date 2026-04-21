@@ -6,11 +6,11 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|Bash",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "pipx run code-review-graph==2.3.2 update --skip-flows",
+            "command": "command -v pipx >/dev/null 2>&1 && pipx run code-review-graph==2.3.2 update --skip-flows || true",
             "timeout": 30
           }
         ]
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pipx run code-review-graph==2.3.2 status",
+            "command": "command -v pipx >/dev/null 2>&1 && pipx run code-review-graph==2.3.2 status || true",
             "timeout": 30
           }
         ]

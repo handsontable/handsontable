@@ -19,11 +19,6 @@ Use the code-review-graph MCP tools to explore and understand the codebase.
 ### Tips
 
 - Do NOT call `get_architecture_overview` -- it returns 3.9M characters and will overflow context.
-- Use `children_of` on a fully-qualified class name (e.g. `path/to/file.js::ClassName`), not bare names.
-- Always pass `detail_level: "minimal"` -- standard mode repeats the full path per node and inflates output 6x.
 - For single-file structure, grep is faster and cheaper than `children_of`.
 
-## Token Efficiency Rules
-- ALWAYS start with `get_minimal_context(task="<your task>")` before any other graph tool.
-- Use `detail_level="minimal"` on all calls. Only escalate to "standard" when minimal is insufficient.
-- Target: complete any review/debug/refactor task in ≤5 tool calls and ≤800 total output tokens.
+See `AGENTS.md` "MCP Tools: code-review-graph" for the full set of rules (detail_level, qualified names, when to use grep instead). Target: complete any exploration task in ≤5 tool calls.

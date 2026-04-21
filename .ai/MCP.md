@@ -93,10 +93,12 @@ Run `/mcp` in Claude Code and confirm `code-review-graph` appears with status `c
 The graph is built against a specific git commit. After switching branches, rebuild so tools like `detect_changes` don't report function names from unrelated files:
 
 ```bash
-code-review-graph build
+pipx run code-review-graph==2.3.2 build
 ```
 
-The `PostToolUse` hook in `.claude/settings.json` runs `pipx run code-review-graph==2.3.2 update --skip-flows` after each file edit, keeping the graph in sync during a session. A full rebuild is only needed after `git checkout`, `git pull`, or large merges.
+The `PostToolUse` hook in `.claude/settings.json` runs `pipx run code-review-graph==2.3.2 update --skip-flows` after each `Edit` or `Write` to keep the graph in sync during a session. The `--skip-flows` flag skips execution-flow re-analysis for speed -- flows are only re-indexed on a full `build`. A rebuild is only needed after `git checkout`, `git pull`, or large merges.
+
+The hooks are guarded with `command -v pipx >/dev/null 2>&1 && ... || true` so machines without `pipx` installed (or air-gapped sessions where PyPI is unreachable) do not error on every session start or file edit.
 
 ### Troubleshooting
 
@@ -104,7 +106,7 @@ The `PostToolUse` hook in `.claude/settings.json` runs `pipx run code-review-gra
 |---|---|
 | `code-review-graph` not listed in `/mcp` | Check `pipx --version` is installed; run `pipx run code-review-graph==2.3.2 --version` manually to confirm |
 | First session is slow (~10s hang at start) | Expected -- pipx is downloading the package. Subsequent sessions use the cached venv |
-| `detect_changes` reports wrong function names | Graph is stale on the wrong branch. Run `code-review-graph build` |
+| `detect_changes` reports wrong function names | Graph is stale on the wrong branch. Run `pipx run code-review-graph==2.3.2 build` |
 | `tests_for` returns 0 for files with known tests | Known limitation -- use grep for `.spec.js` / `.unit.js` files instead |
 | `get_architecture_overview` fails with token-limit error | Do not call this tool -- it produces 3.9M characters. Use `list_communities` + `get_community` for specific areas |
 
