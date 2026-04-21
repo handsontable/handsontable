@@ -20,7 +20,7 @@ const INITIAL_DATA: string[][] = [
   imports: [HotTableModule],
   selector: 'example1-row-operations',
   template: `
-    <div class="row-toolbar">
+    <div class="row-toolbar" (mousedown)="preventDeselect($event)">
       <button type="button" (click)="addRow()">Add Row</button>
       <button type="button" (click)="deleteRow()" [disabled]="selectedRow === null">Delete Row</button>
       <button type="button" (click)="moveUp()" [disabled]="selectedRow === null || selectedRow === 0">Move Up</button>
@@ -55,6 +55,15 @@ export class AppComponent {
       this.selectedRow = null;
     },
   };
+
+  // Prevent toolbar button clicks from stealing focus away from the grid.
+  // Without this, clicking a button triggers afterDeselect, which clears
+  // selectedRow before the button's click handler runs.
+  preventDeselect(event: MouseEvent): void {
+    if ((event.target as HTMLElement).tagName === 'BUTTON') {
+      event.preventDefault();
+    }
+  }
 
   addRow(): void {
     const hot = this.hotTable?.hotInstance;

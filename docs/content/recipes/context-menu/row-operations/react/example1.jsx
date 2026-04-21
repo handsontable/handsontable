@@ -103,7 +103,17 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="row-toolbar">
+      {/* Prevent toolbar mousedown from stealing focus away from the grid.
+          Without this, clicking a button triggers afterDeselect, which clears
+          selectedRow before the button's onClick handler runs. */}
+      <div
+        className="row-toolbar"
+        onMouseDown={(e) => {
+          if (e.target.tagName === 'BUTTON') {
+            e.preventDefault();
+          }
+        }}
+      >
         <button type="button" onClick={handleAddRow}>
           Add Row
         </button>

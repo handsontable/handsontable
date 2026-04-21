@@ -29,6 +29,15 @@ toolbar.innerHTML = `
 `;
 container.before(toolbar);
 
+// Prevent toolbar button clicks from stealing focus away from the grid.
+// Without this, clicking a button triggers afterDeselect, which clears
+// selectedRow before the button's click handler runs.
+toolbar.addEventListener('mousedown', (event) => {
+  if (event.target.tagName === 'BUTTON') {
+    event.preventDefault();
+  }
+});
+
 const hot = new Handsontable(container, {
   data,
   colHeaders: ['Task', 'Assignee', 'Priority', 'Status'],
