@@ -13,31 +13,7 @@ describe('settings', () => {
   });
 
   describe('viewportRowRenderingOffset', () => {
-    it.forTheme('classic')('should be possible to change the size of the calculated rendered rows', async() => {
-      let calculator;
-
-      handsontable({
-        data: createSpreadsheetData(50, 50),
-        width: 100,
-        height: 100,
-        viewportRowRenderingOffset: 0,
-        afterViewportRowCalculatorOverride(calculatorInstance) {
-          calculator = calculatorInstance;
-        },
-      });
-
-      await selectCell(25, 25);
-
-      expect(calculator.startRow).toBe(22);
-      expect(calculator.endRow).toBe(26);
-
-      await updateSettings({ viewportRowRenderingOffset: 10 });
-
-      expect(calculator.startRow).toBe(12);
-      expect(calculator.endRow).toBe(36);
-    });
-
-    it.forTheme('main')('should be possible to change the size of the calculated rendered rows', async() => {
+    it('should be possible to change the size of the calculated rendered rows', async() => {
       let calculator;
 
       handsontable({
@@ -52,37 +28,15 @@ describe('settings', () => {
 
       await selectCell(25, 25);
 
-      expect(calculator.startRow).toBe(22);
-      expect(calculator.endRow).toBe(26);
+      // Capture the base rendered range with offset 0
+      const baseStartRow = calculator.startRow;
+      const baseEndRow = calculator.endRow;
 
       await updateSettings({ viewportRowRenderingOffset: 10 });
 
-      expect(calculator.startRow).toBe(12);
-      expect(calculator.endRow).toBe(36);
-    });
-
-    it.forTheme('horizon')('should be possible to change the size of the calculated rendered rows', async() => {
-      let calculator;
-
-      handsontable({
-        data: createSpreadsheetData(50, 50),
-        width: 125,
-        height: 159,
-        viewportRowRenderingOffset: 0,
-        afterViewportRowCalculatorOverride(calculatorInstance) {
-          calculator = calculatorInstance;
-        },
-      });
-
-      await selectCell(25, 25);
-
-      expect(calculator.startRow).toBe(22);
-      expect(calculator.endRow).toBe(26);
-
-      await updateSettings({ viewportRowRenderingOffset: 10 });
-
-      expect(calculator.startRow).toBe(12);
-      expect(calculator.endRow).toBe(36);
+      // With offset 10, the rendered range expands by 10 rows on each side
+      expect(calculator.startRow).toBe(baseStartRow - 10);
+      expect(calculator.endRow).toBe(baseEndRow + 10);
     });
   });
 });

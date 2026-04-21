@@ -16,50 +16,24 @@ describe('StretchColumns cooperation with columns altering', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
     await alter('insert_col_end', null, 1);
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(90);
-      horizon.toBe(85);
-    });
+    // available = 320 - 50 = 270; 270 / 3 = 90
+    expect(getColWidth(0)).toBe(90);
+    expect(getColWidth(1)).toBe(90);
+    expect(getColWidth(2)).toBe(90);
 
     await alter('insert_col_start', null, 1);
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(68);
-      main.toBe(68);
-      horizon.toBe(64);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(68);
-      main.toBe(68);
-      horizon.toBe(64);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(68);
-      main.toBe(68);
-      horizon.toBe(64);
-    });
-    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(66);
-      main.toBe(66);
-      horizon.toBe(63);
-    });
+    // 270 / 4: round(50 * 270/200) = 68; last = 270 - 3*68 = 66
+    expect(getColWidth(0)).toBe(68);
+    expect(getColWidth(1)).toBe(68);
+    expect(getColWidth(2)).toBe(68);
+    expect(getColWidth(3)).toBe(66);
   });
 
   it('should re-stretch all columns after removing a column', async() => {
@@ -68,12 +42,13 @@ describe('StretchColumns cooperation with columns altering', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
     await alter('remove_col');
 
+    // 6 cols * 50 = 300 > 270 available (320 - 50 rowHeader), so horizontal scroll appears
     expect(tableView().hasHorizontalScroll()).toBe(true);
 
     expect(getColWidth(0)).toBe(50);
@@ -85,33 +60,14 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('remove_col', 1);
 
+    // 5 cols, available = 270; 270 / 5 = 54
     expect(tableView().hasHorizontalScroll()).toBe(false);
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
+    expect(getColWidth(0)).toBe(54);
+    expect(getColWidth(1)).toBe(54);
+    expect(getColWidth(2)).toBe(54);
+    expect(getColWidth(3)).toBe(54);
+    expect(getColWidth(4)).toBe(54);
   });
 
   it('should stop stretching the columns when the sum of columns widths is wider than the viewport', async() => {
@@ -120,41 +76,23 @@ describe('StretchColumns cooperation with columns altering', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
     });
 
     await alter('insert_col_end', null, 3);
 
+    // 5 cols, available = 270; 270 / 5 = 54
     expect(tableView().hasHorizontalScroll()).toBe(false);
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
-    expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(54);
-      horizon.toBe(51);
-    });
+    expect(getColWidth(0)).toBe(54);
+    expect(getColWidth(1)).toBe(54);
+    expect(getColWidth(2)).toBe(54);
+    expect(getColWidth(3)).toBe(54);
+    expect(getColWidth(4)).toBe(54);
 
     await alter('insert_col_end', null, 1);
 
+    // 6 cols * 50 = 300 > 270, no stretching
     expect(tableView().hasHorizontalScroll()).toBe(true);
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);

@@ -83,16 +83,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 1);
-        main.toBe(THNext.offset().top - 1);
-        horizon.toBe(THNext.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THNext.offset().top - 1);
     });
 
     it('should move backlight and guideline element with the movement of the mouse (move bottom)', async() => {
@@ -121,16 +113,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 1);
-        main.toBe(THNext.offset().top - 1);
-        horizon.toBe(THNext.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THNext.offset().top - 1);
     });
 
     it('should move guideline element to the last header when the mouse exceeds half of the height of that header', async() => {
@@ -161,16 +145,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THLast.offset().top - dropOffset);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THLast.offset().top - 1);
-        main.toBe(THLast.offset().top - 1);
-        horizon.toBe(THLast.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THLast.offset().top - 1);
     });
 
     it('should draw backlight element properly when the table is scrolled (overflow: hidden)', async() => {
@@ -238,16 +214,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 1);
-        main.toBe(THNext.offset().top - 1);
-        horizon.toBe(THNext.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THNext.offset().top - 1);
     });
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
@@ -286,16 +254,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 1);
-        main.toBe(THNext.offset().top - 1);
-        horizon.toBe(THNext.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THNext.offset().top - 1);
     });
 
     it('should draw backlight element properly when the table is scrolled (window as scrollable element)', async() => {
@@ -359,16 +319,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 1);
-        main.toBe(THNext.offset().top - 1);
-        horizon.toBe(THNext.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THNext.offset().top - 1);
     });
 
     it('should move backlight and guideline element with the movement of the mouse when the table is scrolled ' +
@@ -405,16 +357,8 @@ describe('manualRowMove', () => {
 
       expect(backlight.outerHeight()).toBe(TH.outerHeight());
       expect(backlight.offset().top).toBe(THNext.offset().top);
-      expect(guideline.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(1);
-        horizon.toBe(1);
-      });
-      expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(THNext.offset().top - 1);
-        main.toBe(THNext.offset().top - 1);
-        horizon.toBe(THNext.offset().top - 1);
-      });
+      expect(guideline.outerHeight()).toBe(1);
+      expect(guideline.offset().top).toBe(THNext.offset().top - 1);
     });
 
     it('should draw backlight element properly when rowHeights is defined', async() => {
@@ -459,11 +403,7 @@ describe('manualRowMove', () => {
 
       const backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
-      expect(backlight.outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(52);
-        main.toBe(58);
-        horizon.toBe(74);
-      });
+      expect(backlight.outerHeight()).toBe((2 * getThemeLayout().defaultDataRowHeight));
       expect(backlight.offset().top).toBe(TH.offset().top);
     });
   });

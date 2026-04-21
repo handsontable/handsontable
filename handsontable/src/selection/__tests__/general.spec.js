@@ -921,6 +921,7 @@ describe('Selection', () => {
       handsontable({
         startRows: 21,
         startCols: 30,
+        height: (getDefaultRowHeight() * 21) + getDefaultColumnHeaderHeight(),
         selectionMode: 'multiple',
         afterSelection: hooks.afterSelection,
         afterSelectionEnd: hooks.afterSelectionEnd,
@@ -1075,6 +1076,7 @@ describe('Selection', () => {
 
       handsontable({
         data: createSpreadsheetObjectData(21, 30),
+        height: (getDefaultRowHeight() * 21) + getDefaultColumnHeaderHeight(),
         selectionMode: 'multiple',
         afterSelectionByProp: hooks.afterSelection,
         afterSelectionEndByProp: hooks.afterSelectionEnd,
@@ -1781,13 +1783,7 @@ describe('Selection', () => {
       const doc = this.$iframe[0].contentDocument;
 
       doc.open('text/html', 'replace');
-      doc.write(`
-        <!doctype html>
-        <head>
-          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-          <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
-        </head>`);
+      doc.write(`<!doctype html><html><head>${getE2eThemeStylesheetLinkTagsHtml()}</head><body></body></html>`);
       doc.close();
 
       this.$iframeContainer = $('<div/>').appendTo(doc.body);
@@ -1813,11 +1809,9 @@ describe('Selection', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('26px');
-        main.toEqual('29px');
-        horizon.toEqual('37px');
-      });
+      expect(spec().$iframeContainer.find('.wtBorder.current')[0].style.top).toEqual(
+        `${getThemeLayout().defaultDataRowHeight}px`
+      );
     });
   });
 });

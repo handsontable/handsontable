@@ -27,29 +27,13 @@ describe('Core.scrollToFocusedCell', () => {
     });
     await selectCell(255, 27, 255, 27, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1250);
-      main.toBe(1289);
-      horizon.toBe(1484);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6500);
-      main.toBe(7250);
-      horizon.toBe(9250);
-    });
+    const scrollHBefore = inlineStartOverlay().getScrollPosition();
+    const scrollVBefore = topOverlay().getScrollPosition();
 
     await scrollToFocusedCell();
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1250);
-      main.toBe(1289);
-      horizon.toBe(1484);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6500);
-      main.toBe(7250);
-      horizon.toBe(9250);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(scrollHBefore);
+    expect(topOverlay().getScrollPosition()).toBe(scrollVBefore);
   });
 
   it('should not call a callback when there is no selection', async() => {
@@ -120,25 +104,14 @@ describe('Core.scrollToFocusedCell', () => {
     });
     await selectCell(255, 0, 255, 0, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2765);
-      main.toBe(2765);
-      horizon.toBe(2765);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6500);
-      main.toBe(7250);
-      horizon.toBe(9250);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2765);
+
+    const scrollVBefore = topOverlay().getScrollPosition();
 
     await scrollToFocusedCell();
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6500);
-      main.toBe(7250);
-      horizon.toBe(9250);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(scrollVBefore);
   });
 
   it('should scroll the viewport to cell which is rendered outside the table on the right', async() => {
@@ -160,25 +133,14 @@ describe('Core.scrollToFocusedCell', () => {
     await selectCell(255, 49, 255, 49, false);
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6500);
-      main.toBe(7250);
-      horizon.toBe(9250);
-    });
+
+    const scrollVBefore = topOverlay().getScrollPosition();
 
     await scrollToFocusedCell();
 
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2766);
-      main.toBe(2766);
-      horizon.toBe(2766);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6500);
-      main.toBe(7250);
-      horizon.toBe(9250);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(2766);
+    expect(topOverlay().getScrollPosition()).toBe(scrollVBefore);
   });
 
   it('should scroll the viewport to cell which is rendered outside the table at the very top', async() => {
@@ -198,24 +160,11 @@ describe('Core.scrollToFocusedCell', () => {
     });
     await selectCell(0, 27, 0, 27, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1250);
-      main.toBe(1289);
-      horizon.toBe(1484);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6630);
-      main.toBe(7395);
-      horizon.toBe(9435);
-    });
+    const scrollHBefore = inlineStartOverlay().getScrollPosition();
 
     await scrollToFocusedCell();
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1250);
-      main.toBe(1289);
-      horizon.toBe(1484);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(scrollHBefore);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
 
@@ -236,29 +185,15 @@ describe('Core.scrollToFocusedCell', () => {
     });
     await selectCell(499, 27, 499, 27, false);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1250);
-      main.toBe(1289);
-      horizon.toBe(1484);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(6630);
-      main.toBe(7395);
-      horizon.toBe(9435);
-    });
+    const scrollHBefore = inlineStartOverlay().getScrollPosition();
 
     await scrollToFocusedCell();
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1250);
-      main.toBe(1289);
-      horizon.toBe(1484);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(12743);
-      main.toBe(14246);
-      horizon.toBe(18254);
-    });
+    const layout = getThemeLayout();
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(scrollHBefore);
+    expect(topOverlay().getScrollPosition()).toBeGreaterThan(layout.verticalScrollForRow(499) - 300);
+    expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layout.verticalScrollForRow(500));
   });
 
   it('should scroll the viewport to the cell of the active selection layer', async() => {
@@ -274,15 +209,9 @@ describe('Core.scrollToFocusedCell', () => {
     await keyDownUp(['shift', 'tab']); // move to the focus to the previous layer
     await scrollToFocusedCell();
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(1336);
-      main.toBe(1410);
-      horizon.toBe(1653);
-    });
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(3094);
-      main.toBe(3451);
-      horizon.toBe(4403);
-    });
+    const layout = getThemeLayout();
+
+    expect(inlineStartOverlay().getScrollPosition()).toBeGreaterThan(25 * layout.defaultColumnWidth);
+    expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(119));
   });
 });

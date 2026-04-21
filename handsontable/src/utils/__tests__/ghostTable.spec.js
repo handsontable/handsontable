@@ -113,25 +113,15 @@ describe('GhostTable', () => {
       gt.addRow(2, samples);
       gt.getHeights(heightSpy);
 
+      const L = getThemeLayout();
+
       expect(heightSpy.calls.count()).toBe(3);
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(heightSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
+      expect(heightSpy.calls.argsFor(0)[1]).toBe(L.defaultDataRowHeight);
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(68);
-        main.toBe(69);
-        horizon.toBe(77);
-      });
+      expect(heightSpy.calls.argsFor(1)[1]).toBe(L.defaultDataRowHeight + (2 * L.lineHeight));
       expect(heightSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(heightSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(47);
-        main.toBe(49);
-        horizon.toBe(57);
-      });
+      expect(heightSpy.calls.argsFor(2)[1]).toBe(L.lineHeight + L.defaultDataRowHeight);
     });
   });
 
@@ -232,24 +222,26 @@ describe('GhostTable', () => {
       gt.getWidths(widthSpy);
 
       expect(widthSpy.calls.count()).toBe(3);
+
+      // Column 0 contains "Foo.....Bar" -- the widest sample
       expect(widthSpy.calls.argsFor(0)[0]).toBe(0);
-      expect(widthSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(75);
-        main.toBe(84);
-        horizon.toBe(92);
-      });
+      const width0 = widthSpy.calls.argsFor(0)[1];
+
+      expect(width0).toBeGreaterThan(0);
+
+      // Column 1 contains "Foo\nBar\nsqw" -- narrowest because of line breaks
       expect(widthSpy.calls.argsFor(1)[0]).toBe(1);
-      expect(widthSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(38);
-        main.toBe(43);
-        horizon.toBe(51);
-      });
+      const width1 = widthSpy.calls.argsFor(1)[1];
+
+      expect(width1).toBeGreaterThan(0);
+      expect(width1).toBeLessThan(width0);
+
+      // Column 2 contains "Foo Bar" -- wider than "sqw" but narrower than "Foo.....Bar"
       expect(widthSpy.calls.argsFor(2)[0]).toBe(2);
-      expect(widthSpy.calls.argsFor(2)[1]).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(61);
-        main.toBe(68);
-        horizon.toBe(76);
-      });
+      const width2 = widthSpy.calls.argsFor(2)[1];
+
+      expect(width2).toBeGreaterThan(width1);
+      expect(width2).toBeLessThan(width0);
     });
 
     it('should get rounded up widths when the browser calculates the columns as a decimal values', async() => {

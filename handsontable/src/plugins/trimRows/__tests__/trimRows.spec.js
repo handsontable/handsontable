@@ -1243,10 +1243,9 @@ describe('TrimRows', () => {
   });
 
   describe('regression check - headers resizing', () => {
-    const DEFAULT_ROW_HEIGHT = getDefaultRowHeight();
-
-    it.forTheme('classic')('should resize container for headers properly after insertion (pixel perfect)', async() => {
+    it('should resize container for headers properly after insertion (pixel perfect)', async() => {
       const insertedRows = 6;
+      const rowH = getThemeLayout().defaultDataRowHeight;
 
       handsontable({
         rowHeaders: true,
@@ -1266,61 +1265,12 @@ describe('TrimRows', () => {
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * DEFAULT_ROW_HEIGHT));
+      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * rowH));
     });
 
-    it.forTheme('main')('should resize container for headers properly after insertion (pixel perfect)', async() => {
-      const THEME_ROW_HEIGHT = 29;
-      const insertedRows = 6;
-
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        trimRows: [0],
-        startCols: 4,
-        startRows: 3
-      });
-
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      await render(); // Extra `render` needed.
-
-      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
-
-      await alter('insert_row_above', 0, insertedRows);
-
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * THEME_ROW_HEIGHT));
-    });
-
-    it.forTheme('horizon')('should resize container for headers properly after insertion (pixel perfect)', async() => {
-      const THEME_ROW_HEIGHT = 37;
-      const insertedRows = 6;
-
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        trimRows: [0],
-        startCols: 4,
-        startRows: 3
-      });
-
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      await render(); // Extra `render` needed.
-
-      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
-
-      await alter('insert_row_above', 0, insertedRows);
-
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * THEME_ROW_HEIGHT));
-    });
-
-    it.forTheme('classic')('should resize container for headers properly after removal (pixel perfect)', async() => {
+    it('should resize container for headers properly after removal (pixel perfect)', async() => {
       const removedRows = 6;
+      const rowH = getThemeLayout().defaultDataRowHeight;
 
       handsontable({
         rowHeaders: true,
@@ -1340,86 +1290,12 @@ describe('TrimRows', () => {
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * DEFAULT_ROW_HEIGHT));
+      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * rowH));
     });
 
-    it.forTheme('main')('should resize container for headers properly after removal (pixel perfect)', async() => {
-      const THEME_ROW_HEIGHT = 29;
-      const removedRows = 6;
-
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        trimRows: [0],
-        startCols: 4,
-        startRows: 10
-      });
-
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      await render(); // Extra `render` needed.
-
-      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
-
-      await alter('remove_row', 0, removedRows);
-
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * THEME_ROW_HEIGHT));
-    });
-
-    it.forTheme('horizon')('should resize container for headers properly after removal (pixel perfect)', async() => {
-      const THEME_ROW_HEIGHT = 37;
-      const removedRows = 6;
-
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        trimRows: [0],
-        startCols: 4,
-        startRows: 10
-      });
-
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      await render(); // Extra `render` needed.
-
-      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
-
-      await alter('remove_row', 0, removedRows);
-
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * THEME_ROW_HEIGHT));
-    });
-
-    it.forTheme('classic')('should resize container for headers properly after untrimming row ' +
+    it('should resize container for headers properly after untrimming row ' +
       '(pixel perfect) #6276', async() => {
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        trimRows: [0],
-        startCols: 4,
-        startRows: 10
-      });
-
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      await render(); // Extra `render` needed.
-
-      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
-
-      getPlugin('trimRows').untrimAll();
-      await render();
-
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + DEFAULT_ROW_HEIGHT);
-    });
-
-    it.forTheme('main')('should resize container for headers properly after untrimming row ' +
-      '(pixel perfect) #6276', async() => {
-      const THEME_ROW_HEIGHT = 29;
+      const rowH = getThemeLayout().defaultDataRowHeight;
 
       handsontable({
         rowHeaders: true,
@@ -1440,33 +1316,7 @@ describe('TrimRows', () => {
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + THEME_ROW_HEIGHT);
-    });
-
-    it.forTheme('horizon')('should resize container for headers properly after untrimming row ' +
-      '(pixel perfect) #6276', async() => {
-      const THEME_ROW_HEIGHT = 37;
-
-      handsontable({
-        rowHeaders: true,
-        colHeaders: true,
-        trimRows: [0],
-        startCols: 4,
-        startRows: 10
-      });
-
-      const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      await render(); // Extra `render` needed.
-
-      expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
-
-      getPlugin('trimRows').untrimAll();
-      await render();
-
-      const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
-
-      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + THEME_ROW_HEIGHT);
+      expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + rowH);
     });
   });
 });
