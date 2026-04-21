@@ -19,32 +19,6 @@ const INITIAL_DATA: string[][] = [
   standalone: true,
   imports: [HotTableModule],
   selector: 'example1-row-operations',
-  styles: [`
-    .row-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .row-toolbar button {
-      padding: 6px 14px;
-      font-size: 13px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: #fff;
-      cursor: pointer;
-    }
-
-    .row-toolbar button:hover:not(:disabled) {
-      background: #f0f0f0;
-    }
-
-    .row-toolbar button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  `],
   template: `
     <div class="row-toolbar">
       <button type="button" (click)="addRow()">Add Row</button>

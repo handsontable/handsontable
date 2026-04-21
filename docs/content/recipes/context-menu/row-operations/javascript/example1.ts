@@ -16,7 +16,7 @@ const data = [
 ];
 /* end:skip-in-preview */
 
-const container = document.querySelector('#example1');
+const container = document.querySelector('#example1')!;
 
 const toolbar = document.createElement('div');
 
@@ -39,14 +39,14 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const btnAddRow = toolbar.querySelector('#btn-add-row');
-const btnDeleteRow = toolbar.querySelector('#btn-delete-row');
-const btnMoveUp = toolbar.querySelector('#btn-move-up');
-const btnMoveDown = toolbar.querySelector('#btn-move-down');
+const btnAddRow = toolbar.querySelector('#btn-add-row') as HTMLButtonElement;
+const btnDeleteRow = toolbar.querySelector('#btn-delete-row') as HTMLButtonElement;
+const btnMoveUp = toolbar.querySelector('#btn-move-up') as HTMLButtonElement;
+const btnMoveDown = toolbar.querySelector('#btn-move-down') as HTMLButtonElement;
 
-let selectedRow = null;
+let selectedRow: number | null = null;
 
-function updateButtonStates() {
+function updateButtonStates(): void {
   const hasSelection = selectedRow !== null;
   const isFirst = selectedRow === 0;
   const isLast = selectedRow === hot.countRows() - 1;
@@ -56,7 +56,7 @@ function updateButtonStates() {
   btnMoveDown.disabled = !hasSelection || isLast;
 }
 
-hot.addHook('afterSelectionEnd', (row, col, row2) => {
+hot.addHook('afterSelectionEnd', (row: number, _col: number, row2: number) => {
   selectedRow = row === row2 ? Math.min(row, row2) : null;
   updateButtonStates();
 });
@@ -77,7 +77,7 @@ btnDeleteRow.addEventListener('click', () => {
     return;
   }
 
-  const rowSet = new Set();
+  const rowSet = new Set<number>();
 
   selected.forEach(([r1, , r2]) => {
     const from = Math.min(r1, r2);
