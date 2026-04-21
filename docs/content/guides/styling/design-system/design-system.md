@@ -70,6 +70,14 @@ The design system is our primary reference when planning new features or redesig
 
 - The legacy style is not part of the design system. Starting from version 17.0.0, legacy styles are no longer supported and you need to migrate to the Classic theme.
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [From components to tables: Designing a data table component in your design system](https://handsontable.com/blog/from-components-to-tables-designing-a-data-table-component-in-your-design-system)
+
+</div>
+
 ## Troubleshooting
 
 Didn't find what you need? Try this:

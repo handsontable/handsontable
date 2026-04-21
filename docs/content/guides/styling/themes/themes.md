@@ -532,6 +532,7 @@ In some cases, global styles enforced by the browser or operating system can imp
 
 <div class="boxes-list gray">
 
+- [From components to tables: Designing a data table component in your design system](https://handsontable.com/blog/from-components-to-tables-designing-a-data-table-component-in-your-design-system)
 - [Handsontable 15.0.0: Introducing Themes and Functional React Wrapper](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper)
 - [Handsontable 16.2.0: Simplified Theming and Advanced User Notifications](https://handsontable.com/blog/handsontable-16.2.0-simplified-theming-and-advanced-user-notifications)
 

@@ -774,6 +774,11 @@ details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 
 <div class="boxes-list">
 
+- [HyperFormula 3.2.0: Expanding Excel parity and removing scalability limits](https://handsontable.com/blog/hyperformula-3.2.0-expanding-excel-parity-and-removing-scalability-limits)
+- [HyperFormula 3.1.1: Improved lazy computations and easier sheet dependency handling](https://handsontable.com/blog/hyperformula-3.1.1-improved-lazy-computations-and-easier-sheet-dependency-handling)
+- [HyperFormula 3.1.0: Improved cross-sheet operations, easier APIs, and clearer docs](https://handsontable.com/blog/hyperformula-3.1.0-improved-cross-sheet-operations-easier-apis-and-clearer-docs)
+- [HyperFormula 3.0.1: Community fixes, improved docs, and roadmap insights](https://handsontable.com/blog/hyperformula-3.0.1-community-fixes-improved-docs-and-roadmap-insights)
+- [HyperFormula 3.0: Introducing the XLOOKUP function](https://handsontable.com/blog/hyperformula-3-0-introducing-the-xlookup-function)
 - [Handsontable 9.0.0: New formula plugin](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin)
 - [8 examples of useful Excel functions in HyperFormula](https://handsontable.com/blog/8-examples-of-useful-excel-functions-in-hyperformula)
 

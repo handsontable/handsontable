@@ -767,3 +767,12 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledForegroundColor` </div>   | Icon color of pagination navigation button when disabled |
 
 </div>
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [From components to tables: Designing a data table component in your design system](https://handsontable.com/blog/from-components-to-tables-designing-a-data-table-component-in-your-design-system)
+- [Handsontable 14.6.0: Easier styling and enhanced undo-redo](https://handsontable.com/blog/handsontable-14-6-0-easier-styling-and-enhanced-undo-redo)
+
+</div>

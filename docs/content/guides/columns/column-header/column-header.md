@@ -223,6 +223,14 @@ More complex data structures can be displayed with multiple headers, each repres
 
 </div>
 
+**Related blog articles**
+
+<div class="boxes-list">
+
+- [Handsontable 14.5.0: Improved performance and flexible column header class](https://handsontable.com/blog/handsontable-14.5.0-improved-performance-and-flexible-column-header-class)
+
+</div>
+
 **Configuration options**
 
 <div class="boxes-list">
