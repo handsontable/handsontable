@@ -46,6 +46,7 @@ const cellTypesItems = [
 
 const performanceItems = [
   { path: 'performance/lazy-loading/lazy-loading', title: 'Lazy loading with pagination', onlyFor: ['javascript', 'react', 'angular'] },
+  { path: 'performance/persist-column-layout/persist-column-layout', title: 'Persist column layout', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 
 const renderingStylingItems = [
@@ -84,10 +85,6 @@ const filteringAndSearchItems = [
   },
 ];
 
-const performanceItems = [
-  { path: 'performance/persist-column-layout/persist-column-layout', title: 'Persist column layout', onlyFor: ['javascript', 'angular', 'react'] },
-];
-
 const themesItems = [
   { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
   { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
@@ -122,7 +119,6 @@ module.exports = {
     { title: 'Column Management', path: 'column-management', children: columnManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Data Management', path: 'data-management', children: dataManagementItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
     { title: 'Cell Types', path: 'cell-types', children: cellTypesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
-    { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Context Menu', path: 'context-menu', children: contextMenuItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     {
       title: 'Editing and Validation',
@@ -155,7 +151,7 @@ module.exports = {
       collapsable: false,
       onlyFor: ['javascript', 'angular', 'react'],
     },
-    { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'angular', 'react'] },
+    { title: 'Performance', path: 'performance', children: performanceItems, collapsable: false, onlyFor: ['javascript', 'react', 'angular'] },
     { title: 'Themes', path: 'themes', children: themesItems, collapsable: false, onlyFor: ['react', 'javascript', 'angular'] },
   ],
 };
