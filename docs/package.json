@@ -22,6 +22,7 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
     "@astrojs/starlight": "^0.38.2",
+    "chart.js": "^4.5.1",
     "@expressive-code/plugin-collapsible-sections": "^0.41.7",
     "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@handsontable/pikaday": "^1.0.0",

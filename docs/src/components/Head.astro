@@ -35,6 +35,10 @@ import Default from '@astrojs/starlight/components/Head.astro';
 </script>
 
 <script>
+  import '../scripts/minesweeper-404';
+</script>
+
+<script>
   // Code block copy button: swap icon to checkmark after copying (matches Copy Markdown UX).
   document.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest('.expressive-code .copy button');
@@ -45,16 +49,40 @@ import Default from '@astrojs/starlight/components/Head.astro';
 </script>
 
 <script>
-  // Move source-code-link elements inside their preceding heading for
-  // absolute positioning. The preprocessor emits them as standalone <a> tags
-  // (wrapped in <p> by Astro), but CSS absolute positioning requires a
-  // parent–child relationship.
-  document.querySelectorAll<HTMLAnchorElement>('.source-code-link').forEach((link) => {
-    const p = link.parentElement;
-    if (!p || p.tagName !== 'P') return;
-    const heading = p.previousElementSibling;
-    if (!heading || !/^H[2-4]$/.test(heading.tagName)) return;
-    heading.appendChild(link);
-    p.remove();
+  // Group .source-code-link and .ask-about-api-btn elements into an
+  // .api-member-actions container inside their preceding heading.
+  // The preprocessor emits them as standalone elements (wrapped in <p> by Astro),
+  // so we scan each heading for consecutive action-element paragraphs and
+  // move them into a flex container for side-by-side layout.
+  document.querySelectorAll<HTMLElement>('.sl-markdown-content :is(h2, h3, h4)').forEach((heading) => {
+    const actions: HTMLElement[] = [];
+    const parasToRemove: HTMLElement[] = [];
+
+    let next = heading.nextElementSibling as HTMLElement | null;
+    while (next && next.tagName === 'P') {
+      const actionEl = next.querySelector<HTMLElement>('.source-code-link, .ask-about-api-btn');
+      if (!actionEl) break;
+      actions.push(actionEl);
+      parasToRemove.push(next);
+      next = next.nextElementSibling as HTMLElement | null;
+    }
+
+    if (actions.length === 0) return;
+
+    const container = document.createElement('div');
+    container.className = 'api-member-actions';
+    actions.forEach((el) => container.appendChild(el));
+    heading.appendChild(container);
+    parasToRemove.forEach((p) => p.remove());
+  });
+
+  // Wire up ask-about-api buttons to dispatch the docs-assistant:ask event.
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('.ask-about-api-btn');
+    if (!btn) return;
+    const option = btn.dataset.option ?? '';
+    const plugin = btn.dataset.plugin ?? 'Handsontable';
+    const question = `Tell me what ${option} in ${plugin} is responsible for and give me an example use case.`;
+    window.dispatchEvent(new CustomEvent('docs-assistant:ask', { detail: { question } }));
   });
 </script>

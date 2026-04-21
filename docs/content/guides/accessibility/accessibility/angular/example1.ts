@@ -1,20 +1,22 @@
 /* file: app.component.ts */
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {GridSettings, HotTableComponent} from '@handsontable/angular-wrapper';
+import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 
 @Component({
   selector: 'app-example1',
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <hot-table
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
-  standalone: false
 })
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
-  hotData: any[];
+  hotData: RowObject[] = [];
 
   hotSettings!: GridSettings;
 
@@ -487,7 +489,7 @@ export class AppComponent implements OnInit {
       }
 
       return [...acc, curr.country];
-    }, [] as any);
+    }, [] as string[]);
 
     this.hotData = [...products];
 
@@ -511,7 +513,7 @@ export class AppComponent implements OnInit {
           data: 'sellDate',
           type: 'intl-date',
           locale: 'en-GB',
-          dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
+          dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' } as unknown as string,
         },
         {
           data: 'inStock',
@@ -552,14 +554,14 @@ export class AppComponent implements OnInit {
 
     // Initialize the Handsontable instance with the specified configuration options
 
-    const setupCheckbox = (element: any, callback: any) =>
-      element.addEventListener('click', () => callback(element.checked));
+    const setupCheckbox = (element: HTMLInputElement | null, callback: (checked: boolean) => void) =>
+      element?.addEventListener('click', () => callback(element.checked));
 
     // Set up event listeners for various checkboxes to update Handsontable settings.
     // This allows us to change the Handsontable settings from the UI, showcasing
     // the flexibility of Handsontable in configuring according to your needs.
     // Checkbox: Enable/Disable Tab Navigation
-    setupCheckbox(document.querySelector('#enable-tab-navigation'), (checked: boolean) => {
+    setupCheckbox(document.querySelector<HTMLInputElement>('#enable-tab-navigation'), (checked: boolean) => {
       this.hotSettings.tabNavigation = checked;
       this.hotTable.hotInstance!.updateSettings({
         tabNavigation: this.hotSettings.tabNavigation,
@@ -571,7 +573,7 @@ export class AppComponent implements OnInit {
     });
     // Checkbox: Enable/Disable Header Navigation
     setupCheckbox(
-      document.querySelector('#enable-header-navigation'),
+      document.querySelector<HTMLInputElement>('#enable-header-navigation'),
       (checked: boolean) => {
         this.hotSettings.navigableHeaders = checked;
         this.hotTable.hotInstance!.updateSettings({
@@ -586,24 +588,21 @@ export class AppComponent implements OnInit {
 
     // Checkbox: Enable/Disable Cell Virtualization
     setupCheckbox(
-      document.querySelector('#enable-cell-virtualization'),
+      document.querySelector<HTMLInputElement>('#enable-cell-virtualization'),
       (checked: boolean) => {
-        this.hotTable.hotInstance!.destroy();
-        // TODO how to reinitialize hot-table?
-        // this.hotTable.hotInstance! = new Handsontable(document.getElementById('example1'), {
-        //   ...this.hotSettings,
-        //   renderAllRows: !checked,
-        //   renderAllColumns: !checked,
-        // });
+        this.hotTable.hotInstance!.updateSettings({
+          renderAllRows: !checked,
+          renderAllColumns: !checked,
+        });
         console.log('Updated virtualization settings:', {
           renderAllRows: this.hotTable.hotInstance!.getSettings().renderAllRows,
           renderAllColumns: this.hotTable.hotInstance!.getSettings().renderAllColumns,
-      });
+        });
       }
     );
     // Checkbox: Enable/Disable Cell Enter Editing
     setupCheckbox(
-      document.querySelector('#enable-cell-enter-editing'),
+      document.querySelector<HTMLInputElement>('#enable-cell-enter-editing'),
       (checked: boolean) => {
         this.hotSettings.enterBeginsEditing = checked;
         this.hotTable.hotInstance!.updateSettings({
@@ -617,7 +616,7 @@ export class AppComponent implements OnInit {
     );
     // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
     setupCheckbox(
-      document.querySelector('#enable-arrow-rl-first-last-column'),
+      document.querySelector<HTMLInputElement>('#enable-arrow-rl-first-last-column'),
       (checked: boolean) => {
         this.hotSettings.autoWrapRow = checked;
         this.hotTable.hotInstance!.updateSettings({
@@ -631,7 +630,7 @@ export class AppComponent implements OnInit {
     );
     // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
     setupCheckbox(
-      document.querySelector('#enable-arrow-td-first-last-column'),
+      document.querySelector<HTMLInputElement>('#enable-arrow-td-first-last-column'),
       (checked: boolean) => {
         this.hotSettings.autoWrapCol = checked;
         this.hotTable.hotInstance!.updateSettings({
@@ -645,7 +644,7 @@ export class AppComponent implements OnInit {
     );
     // Checkbox: Enable/Disable Enter Key Focus for Editing
     setupCheckbox(
-      document.querySelector('#enable-enter-focus-editing'),
+      document.querySelector<HTMLInputElement>('#enable-enter-focus-editing'),
       (checked: boolean) => {
         this.hotSettings.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
         this.hotTable.hotInstance!.updateSettings({
@@ -659,38 +658,21 @@ export class AppComponent implements OnInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

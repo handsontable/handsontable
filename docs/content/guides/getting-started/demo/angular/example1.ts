@@ -1,6 +1,9 @@
-/* file: app-demo.component.ts */
+/* file: app.component.ts */
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable/base';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { CellValue } from 'handsontable/common';
+import { CellProperties } from 'handsontable/settings';
+import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 
 // constants.ts
 export const data = [
@@ -1213,9 +1216,9 @@ export function addClassesToRows(
   TD: HTMLTableCellElement,
   row: number,
   column: number,
-  _prop: any,
-  _value: any,
-  cellProperties: any
+  _prop: string | number,
+  _value: CellValue,
+  cellProperties: CellProperties
 ) {
   // Adding classes to `TR` just while rendering first visible `TD` element
   if (column !== 0) {
@@ -1245,14 +1248,13 @@ export function addClassesToRows(
 
 @Component({
   selector: 'example1-demo',
-  standalone: false,
-  template: ` <div>
-    <hot-table [data]="initialData" [settings]="gridSettings"></hot-table>
-  </div>`,
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [data]="initialData" [settings]="gridSettings"></hot-table>`,
 })
-export class Example1DemoComponent {
-  initialData = data;
-  gridSettings = {
+export class AppComponent {
+  readonly initialData = data;
+  readonly gridSettings: GridSettings = {
     height: 450,
     colWidths: [180, 220, 140, 120, 120, 120, 140],
     colHeaders: [
@@ -1275,7 +1277,7 @@ export class Example1DemoComponent {
       'alignment',
       'make_read_only',
       'clear_column',
-    ],
+    ] as PredefinedMenuItemKey[],
     dropdownMenu: true,
     hiddenColumns: {
       indicators: true,
@@ -1306,36 +1308,21 @@ export class Example1DemoComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-/* start:skip-in-compilation */
-import { Example1DemoComponent } from './app-demo.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1DemoComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1DemoComponent ]
-})
-
-export class AppModule { }
 /* end-file */

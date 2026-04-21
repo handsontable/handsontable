@@ -1,6 +1,7 @@
 import { useState, useEffect, ComponentProps, useCallback } from 'react';
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import './example1.css';
 
 // register Handsontable's modules
 registerAllModules();

@@ -1,0 +1,22 @@
+.row-validation-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.row-validation-demo__submit {
+  padding: 6px 14px;
+  background: var(--ht-accent-color, #1a42e8);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.row-validation-demo__summary-list:empty::before {
+  content: 'No issues. Click Submit orders to validate.';
+}
+
+.handsontable td.htInvalid {
+  background-color: var(--ht-cell-error-background-color, #ffe4e4) !important;
+}

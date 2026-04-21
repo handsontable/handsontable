@@ -5,11 +5,11 @@ import ExcelJS from 'exceljs';
 registerAllModules();
 
 const hotData = [
-  ['Alice Martin',  'North', 142000, true ],
-  ['Bob Chen',      'East',   98500, true ],
-  ['Carol Davies',  'South',  76200, false],
-  ['David Kim',     'West',  115300, true ],
-  ['Eva Rossi',     'North',  54800, false],
+  ['Laptop Pro 15"',   'Electronics',  1299.99, 38,  true ],
+  ['Wireless Mouse',   'Accessories',    29.99, 214, true ],
+  ['USB-C Hub 7-in-1', 'Accessories',    49.99, 87,  true ],
+  ['Monitor 27" 4K',   'Electronics',   449.99, 12,  false],
+  ['Mech Keyboard',    'Accessories',   119.99, 65,  true ],
 ];
 
 const ExampleComponent = () => (
@@ -21,15 +21,16 @@ const ExampleComponent = () => (
       data={hotData}
       columns={[
         { type: 'text' },
-        { type: 'dropdown', source: ['North', 'South', 'East', 'West'] },
+        { type: 'dropdown', source: ['Electronics', 'Accessories', 'Software'] },
         {
           type: 'numeric',
           locale: 'en-US',
           numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
         },
+        { type: 'numeric' },
         { type: 'checkbox' },
       ]}
-      colHeaders={['Name', 'Region', 'Revenue ($)', 'Hit Target?']}
+      colHeaders={['Product', 'Category', 'Unit Price', 'Stock', 'Active?']}
       rowHeaders={true}
       height="auto"
       autoWrapRow={true}

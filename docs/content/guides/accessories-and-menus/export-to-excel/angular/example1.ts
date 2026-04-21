@@ -1,9 +1,11 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import ExcelJS from 'exceljs';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example1',
   template: `
     <div class="example-controls-container">
@@ -12,10 +14,9 @@ import ExcelJS from 'exceljs';
       </div>
     </div>
 
-    <hot-table [settings]="hotSettings!" [data]="hotData" (afterInit)="onAfterInit()">
+    <hot-table [settings]="hotSettings" [data]="hotData">
     </hot-table>
   `,
-  standalone: false,
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
@@ -71,14 +72,15 @@ export class AppComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     exportFile: { engines: { xlsx: ExcelJS } },
+    afterInit() {
+      const hot = this;
+
+      // @ts-ignore
+      hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
+      // @ts-ignore
+      hot.render();
+    },
   };
-
-  onAfterInit(): void {
-    const hot = this.hotTable.hotInstance!;
-
-    hot.setCellMeta(0, 4, 'comment', { value: 'Top sales rep — review for promotion.' });
-    hot.render();
-  }
 
   async exportFile(): Promise<void> {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
@@ -94,36 +96,22 @@ export class AppComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
-
+// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [AppComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
 /* end-file */

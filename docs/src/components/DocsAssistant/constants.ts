@@ -2,6 +2,7 @@ export const STORAGE_KEYS = {
   thread: 'hot-docs-chat-thread',
   open: 'hot-docs-chat-open',
   width: 'hot-docs-chat-width',
+  threadId: 'hot-docs-chat-thread-id',
 } as const;
 
 export const WIDTH = {

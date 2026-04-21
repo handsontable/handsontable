@@ -1,10 +1,11 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-batch-operation',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div class="example-controls-container">
       <div class="controls">
         <button
@@ -30,7 +31,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
       <hot-table [data]="dataInit" [settings]="gridSettings"></hot-table>
     </div>`,
 })
-export class Example1BatchOperationComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   dataInit = [
@@ -120,37 +121,22 @@ export class Example1BatchOperationComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1BatchOperationComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1BatchOperationComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1BatchOperationComponent ]
-})
-
-export class AppModule { }
 /* end-file */
