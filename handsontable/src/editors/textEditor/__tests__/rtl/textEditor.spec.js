@@ -201,7 +201,9 @@ describe('TextEditor (RTL mode)', () => {
 
     it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays ' +
       'and the first row of each overlay is hidden', async() => {
-      const overlayHeightPx = 240;
+      // 2 rows hidden out of 8, so 6 visible rows. Match sizing across themes with
+      // `containerHeightForRows(6, 1)` so horizon's taller rows still fit.
+      const overlayHeightPx = containerHeightForRows(6, 1);
       const overlayWidthPx = 200;
 
       spec().$container[0].style.height = `${overlayHeightPx}px`;
