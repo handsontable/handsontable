@@ -1,5 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
+import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -185,19 +186,17 @@ export class AppComponent {
     colHeaders: true,
     columnSorting: true,
     // `afterColumnSort()` is a Handsontable hook: it's fired after each sorting
-    afterColumnSort() {
-
-      // @ts-ignore
-      const lastRowIndex = hot.countRows() - 1;
+    afterColumnSort(this: Handsontable) {
+      const lastRowIndex = this.countRows() - 1;
 
       // after each sorting, take row 1 and change its index to 0
       // @ts-ignore
-      hot.rowIndexMapper.moveIndexes(hot.toVisualRow(0), 0);
+      this.rowIndexMapper.moveIndexes(this.toVisualRow(0), 0);
       // after each sorting, take row 16 and change its index to 15
       // @ts-ignore
-      hot.rowIndexMapper.moveIndexes(hot.toVisualRow(lastRowIndex), lastRowIndex);
+      this.rowIndexMapper.moveIndexes(this.toVisualRow(lastRowIndex), lastRowIndex);
     },
-    cells(row) {
+    cells(row: number) {
       const lastRowIndex = this.instance.countRows() - 1;
 
       if (row === 0) {

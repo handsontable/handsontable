@@ -41,8 +41,8 @@ export class AppComponent {
         _instance: Handsontable,
         _row: number,
         _col: number,
-        _value: any,
-        result: any
+        _value: Handsontable.CellValue,
+        result: boolean
       ) => this.searchResultCounter(_instance, _row, _col, _value, result),
     },
     height: 'auto',
@@ -68,8 +68,8 @@ export class AppComponent {
     _instance: Handsontable,
     _row: number,
     _col: number,
-    _value: any,
-    result: any
+    _value: Handsontable.CellValue,
+    result: boolean
   ): void {
     _instance.getCellMeta(_row, _col).isSearchResult = result;
     if (result) {

@@ -1,5 +1,6 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
+import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
@@ -33,10 +34,9 @@ export class AppComponent implements OnInit {
       },
       items: {
         row_above: {
-          disabled(): boolean {
+          disabled(this: Handsontable): boolean {
             // `disabled` can be a boolean or a function
             // Disable option when first row was clicked
-            // @ts-ignore
             return this.getSelectedLast()?.[0] === 0; // `this` === hot
           },
         },
@@ -53,10 +53,9 @@ export class AppComponent implements OnInit {
             // `name` can be a string or a function
             return '<b>Custom option</b>'; // Name can contain HTML
           },
-          hidden(): boolean {
+          hidden(this: Handsontable): boolean {
             // `hidden` can be a boolean or a function
             // Hide the option when the first column was clicked
-            // @ts-ignore
             return this.getSelectedLast()?.[1] == 0; // `this` === hot
           },
           callback() {

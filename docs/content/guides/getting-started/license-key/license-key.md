@@ -83,11 +83,13 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 
 ::: only-for angular
 
+Pass the license key through `GridSettings` in your component:
+
 ```ts
 import { GridSettings } from "@handsontable/angular-wrapper";
 
-gridSettings: GridSettings = {
-  licenseKey = "00000-00000-00000-00000-00000",
+readonly gridSettings: GridSettings = {
+  licenseKey: '00000-00000-00000-00000-00000',
 };
 ```
 
@@ -95,7 +97,22 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
-or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
+Or set it globally for all tables via `HOT_GLOBAL_CONFIG` in `app.config.ts`:
+
+```ts
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from "@handsontable/angular-wrapper";
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: { license: '00000-00000-00000-00000-00000' } as HotGlobalConfig,
+    },
+  ],
+};
+```
 
 :::
 
@@ -127,14 +144,16 @@ const settings = {
 
 ::: only-for angular
 
+Pass the license key through `GridSettings` in your component:
+
 ```ts
 import {
   GridSettings,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
 
-gridSettings: GridSettings = {
-  licenseKey = NON_COMMERCIAL_LICENSE, // the value for this const is 'non-commercial-and-evaluation'
+readonly gridSettings: GridSettings = {
+  licenseKey: NON_COMMERCIAL_LICENSE,
 };
 ```
 
@@ -142,7 +161,27 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
-or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
+Or set it globally for all tables via `HOT_GLOBAL_CONFIG` in `app.config.ts`:
+
+```ts
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
+import {
+  HOT_GLOBAL_CONFIG,
+  HotGlobalConfig,
+  NON_COMMERCIAL_LICENSE,
+} from "@handsontable/angular-wrapper";
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
+  ],
+};
+```
+
 :::
 
 ## The validation process

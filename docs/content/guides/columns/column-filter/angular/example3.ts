@@ -1,5 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
+import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -111,23 +112,20 @@ export class AppComponent {
       items: {
         filter_by_value: {
           // hide the 'Filter by value' list from all columns but the first one
-          hidden() {
-            // @ts-ignore
-            return this.getSelectedRangeLast().to.col > 0;
+          hidden(this: Handsontable) {
+            return this.getSelectedRangeLast()?.to.col > 0;
           },
         },
         filter_action_bar: {
           // hide the 'OK' and 'Cancel' buttons from all columns but the first one
-          hidden() {
-            // @ts-ignore
-            return this.getSelectedRangeLast().to.col > 0;
+          hidden(this: Handsontable) {
+            return this.getSelectedRangeLast()?.to.col > 0;
           },
         },
         clear_column: {
           // hide the 'Clear column' menu item from the first column
-          hidden() {
-            // @ts-ignore
-            return this.getSelectedRangeLast().to.col < 1;
+          hidden(this: Handsontable) {
+            return this.getSelectedRangeLast()?.to.col < 1;
           },
         },
       },
@@ -143,8 +141,7 @@ export class AppComponent {
           return;
         }
 
-        // @ts-ignore
-        button.parentElement.removeChild(button);
+        button.parentElement?.removeChild(button);
       }
     },
     height: 'auto',
