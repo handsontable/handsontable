@@ -1,8 +1,0 @@
-{
-    "issuesOrigin": "public",
-    "title": "Change the columnHeaders property name to colHeaders in the exportFile plugin",
-    "type": "changed",
-    "issueOrPR": 12224,
-    "breaking": false,
-    "framework": "none"
-}

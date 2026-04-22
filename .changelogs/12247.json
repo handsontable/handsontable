@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where `currentRowClassName` and `currentColClassName` could not be changed dynamically using `updateSettings`.",
-  "type": "fixed",
-  "issueOrPR": 12247,
-  "breaking": false,
-  "framework": "none"
-}

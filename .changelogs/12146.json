@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix ThemeBuilder false unknown token warning on initialization",
-  "type": "fixed",
-  "issueOrPR": 12146,
-  "breaking": false,
-  "framework": "none"
-}

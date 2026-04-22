@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed `setDataAtRowProp` ignoring the `source` parameter in array-form calls, causing `beforeChange` and `afterChange` hooks to always receive `'edit'` instead of the provided source string.",
-  "type": "fixed",
-  "issueOrPR": 12300,
-  "breaking": false,
-  "framework": "none"
-}

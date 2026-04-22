@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a one-pixel horizontal misalignment of the left pagination caret in the Pagination plugin.",
-  "type": "fixed",
-  "issueOrPR": 2791,
-  "breaking": false,
-  "framework": "none"
-}

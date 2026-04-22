@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed incorrect return types for in some hooks",
-  "type": "fixed",
-  "issueOrPR": 12309,
-  "breaking": false,
-  "framework": "none"
-}

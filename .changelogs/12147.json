@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added the DataProvider plugin and `dataProvider` table option for server-side row loading and mutations.",
-  "type": "added",
-  "issueOrPR": 12147,
-  "breaking": false,
-  "framework": "none"
-}

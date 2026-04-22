@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed portal-based popups (e.g., date picker) closing immediately on touch devices (Android) due to outside-click detection not accounting for rootPortalElement.",
-  "type": "fixed",
-  "issueOrPR": 12298,
-  "breaking": false,
-  "framework": "none"
-}
