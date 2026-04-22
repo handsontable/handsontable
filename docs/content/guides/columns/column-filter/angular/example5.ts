@@ -1,5 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
+import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -108,11 +109,9 @@ export class AppComponent {
     // enable the column menu
     dropdownMenu: true,
     // `afterInit()` is a Handsontable hook: it's fired after the Handsontable instance is initiated
-    afterInit() {
-      const handsontableInstance = this;
+    afterInit(this: Handsontable) {
       // get the `Filters` plugin, so you can use its API
-      // @ts-ignore
-      const filters = handsontableInstance.getPlugin('filters');
+      const filters = this.getPlugin('filters');
 
       // filter data by the 'Price' column (column at index 2)
       // to display only items that are less than ('lt') $200

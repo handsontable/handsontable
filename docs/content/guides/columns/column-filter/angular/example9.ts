@@ -1,5 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
+import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -186,8 +187,7 @@ export class AppComponent {
     filters: true,
     // enable the column menu
     dropdownMenu: true,
-    afterFilter() {
-      // @ts-ignore
+    afterFilter(this: Handsontable) {
       const filtersPlugin = this.getPlugin('filters');
       const filtersRowsMap = filtersPlugin.filtersRowsMap;
 

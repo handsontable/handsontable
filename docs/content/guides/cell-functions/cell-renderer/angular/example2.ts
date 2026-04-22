@@ -17,7 +17,7 @@ import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
   `,
 })
 export class AppComponent implements OnInit {
-  @ViewChild('myCellTpl', { static: true }) myCellTpl!: TemplateRef<any>;
+  @ViewChild('myCellTpl', { static: true }) myCellTpl!: TemplateRef<HTMLInputElement>;
 
   readonly hotData = [
     {
