@@ -601,9 +601,14 @@ export class Comments extends BasePlugin {
 
     const { rowIndexMapper, columnIndexMapper } = this.hot;
     const { row: visualRow, col: visualColumn } = this.#getRangeCoords();
+    // When the cell is part of a merged range, anchor the editor at the merge parent so the
+    // popup aligns with the merged cell's border instead of the hidden inner cell's position.
+    const mergeParent = this.#getMergeParent(visualRow, visualColumn);
+    const anchorRow = mergeParent ? mergeParent.row : visualRow;
+    const anchorColumn = mergeParent ? mergeParent.col : visualColumn;
 
-    let renderableRow = rowIndexMapper.getRenderableFromVisualIndex(visualRow);
-    let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
+    let renderableRow = rowIndexMapper.getRenderableFromVisualIndex(anchorRow);
+    let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(anchorColumn);
     // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
     const targetingPreviousRow = renderableRow === null;
 
@@ -613,12 +618,12 @@ export class Comments extends BasePlugin {
 
     if (renderableRow === null) {
       renderableRow = rowIndexMapper
-        .getRenderableFromVisualIndex(rowIndexMapper.getNearestNotHiddenIndex(visualRow, -1));
+        .getRenderableFromVisualIndex(rowIndexMapper.getNearestNotHiddenIndex(anchorRow, -1));
     }
 
     if (renderableColumn === null) {
       renderableColumn = columnIndexMapper
-        .getRenderableFromVisualIndex(columnIndexMapper.getNearestNotHiddenIndex(visualColumn, -1));
+        .getRenderableFromVisualIndex(columnIndexMapper.getNearestNotHiddenIndex(anchorColumn, -1));
     }
 
     const isBeforeRenderedRows = renderableRow === null;
@@ -632,7 +637,7 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+    const cellMeta = this.hot.getCellMeta(anchorRow, anchorColumn);
     const metaColspan = cellMeta.colspan ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
@@ -927,6 +932,25 @@ export class Comments extends BasePlugin {
     }
 
     return this.hot._createCellCoords(this.range.from.row, this.range.from.col);
+  }
+
+  /**
+   * Returns the merge parent descriptor for a cell, or `null` when the cell is not part
+   * of a merged range or when the MergeCells plugin is disabled.
+   *
+   * @param {number} visualRow Visual row index.
+   * @param {number} visualColumn Visual column index.
+   * @returns {MergedCellCoords | null}
+   */
+  #getMergeParent(visualRow, visualColumn) {
+    const mergeCellsPlugin = this.hot.getPlugin('mergeCells');
+
+    if (!mergeCellsPlugin?.enabled) {
+      return null;
+    }
+
+    // `mergedCellsCollection.get()` returns `false` on miss, so coerce to `null`.
+    return mergeCellsPlugin.mergedCellsCollection.get(visualRow, visualColumn) || null;
   }
 
   /**

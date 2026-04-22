@@ -254,6 +254,31 @@ describe('Comments (RTL mode)', () => {
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 1, 0);
       });
+
+      it('should display the comment editor at the merged cell border when opened for a cell nested inside the merge (#11901)', async() => {
+        handsontable({
+          layoutDirection,
+          data: createSpreadsheetData(6, 6),
+          comments: true,
+          mergeCells: [
+            { row: 1, col: 1, rowspan: 3, colspan: 3 },
+          ],
+          cell: [
+            { row: 2, col: 2, comment: { value: 'More comments' } },
+          ],
+        });
+
+        const plugin = getPlugin('comments');
+        const $editor = $(plugin.getEditorInputElement());
+        const $mergedCell = $(getCell(1, 1));
+
+        plugin.showAtCell(2, 2);
+
+        // The extra `-2` accounts for the merged-cell border compensation (-1) and the
+        // textarea's negative `margin-left` (-1) relative to its container.
+        expect($editor.offset().top).toBeCloseTo($mergedCell.offset().top, 0);
+        expect($editor.offset().left).toBeCloseTo($mergedCell.offset().left - $editor.outerWidth() - 2, 0);
+      });
     });
 
     describe('Displaying comment after `mouseover` event', () => {
