@@ -1884,7 +1884,10 @@ describe('ContextMenu', () => {
     it('should disable Remove col in context menu when rows are selected by headers', async() => {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
-        height: 100,
+        // Use containerHeightForRows(3) so that rows 0-2 are fully rendered in every theme.
+        // height: 100 was too small for themes with larger row heights (e.g. horizon) and left
+        // row headers for rows 1-2 out of the DOM, breaking the drag selection simulation.
+        height: containerHeightForRows(3),
         colHeaders: true,
         rowHeaders: true
       });
