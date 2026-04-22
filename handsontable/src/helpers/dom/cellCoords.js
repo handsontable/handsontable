@@ -108,8 +108,18 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   const tableViewportTop = tableOffset.top;
   const columnHeaderHeight = hotInstance.hasColHeaders() ? view.getColumnHeaderHeight() : 0;
   const rowHeaderWidth = hotInstance.hasRowHeaders() ? view.getRowHeaderWidth() : 0;
-  const tableViewportRight = tableViewportLeft + view.getViewportWidth() + rowHeaderWidth;
-  const tableViewportBottom = tableViewportTop + view.getViewportHeight() + columnHeaderHeight;
+  // When the window is the scroll container, tableOffset.top/left can be negative (the
+  // table has been scrolled above/left of the viewport). The naive formula
+  // `tableOffset.top + workspaceHeight` then evaluates to a small-or-negative number,
+  // clamping any below-window mouse Y to a row near the viewport top and causing the
+  // selection to jump upward on drag. Use the physical window bounds instead.
+  const { rootWindow } = hotInstance;
+  const tableViewportRight = view.isHorizontallyScrollableByWindow()
+    ? Math.min(tableOffset.right, rootWindow.innerWidth)
+    : tableViewportLeft + view.getViewportWidth() + rowHeaderWidth;
+  const tableViewportBottom = view.isVerticallyScrollableByWindow()
+    ? Math.min(tableOffset.bottom, rootWindow.innerHeight)
+    : tableViewportTop + view.getViewportHeight() + columnHeaderHeight;
 
   const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
   const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
