@@ -207,7 +207,7 @@ switch (shellCommand) {
 
     const examplesFolders = getExamplesFolders(versionedDir);
 
-    spawnProcess('http-server . - 8080');
+    spawnProcess('http-server . -p 8080');
 
     examplesFolders.forEach((exampleDir, i) => {
       if (i < examplesFolders.length) {
