@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
-import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
+import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
 
@@ -310,9 +310,9 @@ export class DragToScroll extends BasePlugin {
 
       this.setBoundaries({
         left: boundaries.left + this.hot.view.getRowHeaderWidth(),
-        right: boundaries.right - getScrollbarWidth(),
+        right: boundaries.right,
         top: boundaries.top + this.hot.view.getColumnHeaderHeight(),
-        bottom: boundaries.bottom - getScrollbarWidth(),
+        bottom: boundaries.bottom,
       });
     }
 
@@ -346,12 +346,17 @@ export class DragToScroll extends BasePlugin {
    * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
    */
   #scrollHorizontal(distance) {
-    const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
-    const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
     const shouldAdvance = this.hot.isRtl() ? distance < 0 : distance > 0;
-    const scrollColumn = shouldAdvance ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
+    // Advancing (scroll right in LTR): snap the next column to the start of the viewport so the
+    // current first visible column scrolls fully off screen — one clean column step.
+    // Retreating (scroll left in LTR): snap the column before the first partially visible one to
+    // the end of the viewport so it enters from the left — matching the pixel-based ±colWidth feel.
+    const scrollColumn = shouldAdvance
+      ? this.hot.getFirstFullyVisibleColumn() + 1
+      : this.hot.getFirstPartiallyVisibleColumn() - 1;
+    const horizontalSnap = shouldAdvance ? 'start' : 'end';
 
-    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn });
+    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn, horizontalSnap });
 
     if (!isScrolled) {
       this.#autoScroller.stopHorizontal();
