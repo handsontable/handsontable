@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed comment editor positioning for cells inside a merged range. The editor now aligns with the merged cell's border instead of appearing over the hidden inner cell.",
+  "type": "fixed",
+  "issueOrPR": 12433,
+  "breaking": false,
+  "framework": "none"
+}
