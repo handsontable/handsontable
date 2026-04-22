@@ -20,6 +20,7 @@ angular:
   metaTitle: Drag to scroll - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: new
 ---
 
 Drag any cell selection or fill handle outside the visible viewport to scroll the grid automatically while extending the selection.
