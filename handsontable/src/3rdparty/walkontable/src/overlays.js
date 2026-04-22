@@ -410,10 +410,44 @@ class Overlays {
     });
 
     let resizeTimeout;
-
-    this.eventManager.addEventListener(rootWindow, 'resize', () => {
+    let resizeRafPending = false;
+    // Full-page browser zoom and window resize both fire `window.resize` and
+    // `visualViewport.resize`. Listening to `visualViewport.resize` covers
+    // cases where `window.resize` does not fire reliably (seen on browser
+    // zoom with percentage-sized tables -- see #12093). The shared
+    // `resizeRafPending` flag coalesces both events into a single refresh
+    // per animation frame so hooks don't fire twice.
+    const scheduleRefresh = () => {
+      if (resizeRafPending) {
+        return;
+      }
+      resizeRafPending = true;
       requestAnimationFrame(() => {
+        resizeRafPending = false;
         clearTimeout(resizeTimeout);
+
+        // Break out of horizontal intrinsic-sizing feedback loops where a
+        // CSS Grid or Flex container latches onto HOT's own explicit
+        // holder width and keeps the root element from ever measuring
+        // smaller after viewport shrink (classic symptom of #12093:
+        // columns stuck at their zoomed-out stretched widths after zoom
+        // restore). Clearing the inline width and forcing a layout lets
+        // the container reflow to its real available width before
+        // `refreshDimensions` re-measures. Height is intentionally left
+        // alone: in the common `height: auto` CSS Grid track case the
+        // track legitimately sizes to HOT's natural content height, and
+        // clearing the holder height there would just let the content
+        // expand further.
+        const { holder, hider } = this.wtTable;
+
+        if (holder) {
+          holder.style.width = '';
+        }
+        if (hider) {
+          hider.style.width = '';
+        }
+        void this.wtTable.wtRootElement.offsetWidth;
+
         this.wtSettings.getSetting('onWindowResize');
 
         resizeTimeout = setTimeout(() => {
@@ -421,7 +455,34 @@ class Overlays {
           this.#containerDomResizeCount = 0;
         }, 200);
       });
-    });
+    };
+
+    this.eventManager.addEventListener(rootWindow, 'resize', scheduleRefresh);
+
+    const { visualViewport } = rootWindow;
+
+    if (visualViewport) {
+      // `visualViewport` also fires `resize` when scrollbars appear or
+      // disappear or when mobile chrome (address bar, on-screen keyboard)
+      // shifts. Guard those out by requiring a real width/height/scale
+      // change -- otherwise stacking with the ResizeObserver produces extra
+      // refresh cycles for element-size changes that don't affect zoom.
+      let lastVvWidth = visualViewport.width;
+      let lastVvHeight = visualViewport.height;
+      let lastVvScale = visualViewport.scale;
+
+      this.eventManager.addEventListener(visualViewport, 'resize', () => {
+        if (visualViewport.width === lastVvWidth
+            && visualViewport.height === lastVvHeight
+            && visualViewport.scale === lastVvScale) {
+          return;
+        }
+        lastVvWidth = visualViewport.width;
+        lastVvHeight = visualViewport.height;
+        lastVvScale = visualViewport.scale;
+        scheduleRefresh();
+      });
+    }
 
     if (!isScrollOnWindow) {
       this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);

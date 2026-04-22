@@ -488,41 +488,6 @@ class TableView {
       parentWindow = getParentWindow(parentWindow);
     }
 
-    const visualViewport = rootWindow.visualViewport;
-
-    if (visualViewport && rootWindow.top === rootWindow) {
-      let lastVisualViewportState = {
-        width: visualViewport.width,
-        height: visualViewport.height,
-        scale: visualViewport.scale,
-      };
-
-      this.eventManager.addEventListener(visualViewport, 'resize', () => {
-        const currentVisualViewportState = {
-          width: visualViewport.width,
-          height: visualViewport.height,
-          scale: visualViewport.scale,
-        };
-        const isVisualViewportChanged = currentVisualViewportState.width !== lastVisualViewportState.width ||
-          currentVisualViewportState.height !== lastVisualViewportState.height ||
-          currentVisualViewportState.scale !== lastVisualViewportState.scale;
-
-        if (!isVisualViewportChanged) {
-          return;
-        }
-
-        lastVisualViewportState = currentVisualViewportState;
-
-        const { left, right, top, bottom } = this.hot.rootElement.getBoundingClientRect();
-        const isOutsideViewport = right <= 0 || left >= visualViewport.width ||
-          bottom <= 0 || top >= visualViewport.height;
-
-        if (this.hot && !this.hot.isDestroyed && this.isVisible() && !isOutsideViewport) {
-          this.hot.refreshDimensions();
-        }
-      });
-    }
-
     this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
       if (this.settings.fragmentSelection || isInput(event.target)) {
         return;
@@ -974,9 +939,31 @@ class TableView {
       selections: this.hot.selection.highlight,
       hideBorderOnMouseDownOver: () => this.settings.fragmentSelection,
       onWindowResize: () => {
-        if (this.hot && !this.hot.isDestroyed) {
-          this.hot.refreshDimensions();
+        if (!this.hot || this.hot.isDestroyed || !isVisible(this.hot.rootElement)) {
+          return;
         }
+
+        // Skip the refresh when the table is entirely outside the visual
+        // viewport (for example a window-controlled instance that is below
+        // or above the scrolled-into-view area). Without this guard, any
+        // `visualViewport.resize` that fires due to scroll-related
+        // scrollbar changes would trigger a full re-render even though the
+        // table is not on screen -- see #12093 and
+        // `Core_render.spec.js` "fast render when scrolling out of
+        // viewport" regressions.
+        const rootWindow = this.hot.rootWindow;
+        const visualViewport = rootWindow.visualViewport;
+        const viewportWidth = visualViewport ? visualViewport.width : rootWindow.innerWidth;
+        const viewportHeight = visualViewport ? visualViewport.height : rootWindow.innerHeight;
+        const { left, right, top, bottom } = this.hot.rootElement.getBoundingClientRect();
+        const isOutsideViewport = right <= 0 || left >= viewportWidth
+          || bottom <= 0 || top >= viewportHeight;
+
+        if (isOutsideViewport) {
+          return;
+        }
+
+        this.hot.refreshDimensions();
       },
       onContainerElementResize: () => {
         if (this.hot && !this.hot.isDestroyed && isVisible(this.hot.rootElement)) {
