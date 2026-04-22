@@ -63,14 +63,14 @@ describe('AutoFill borders rendering', () => {
 
     // mouse points to the end of the next row (no border change)
     simulateFillHandleDragMove(getCell(2, 1), {
-      offsetY: Math.floor(getDefaultRowHeight() / 2),
+      offsetY: Math.floor((getDefaultRowHeight() - 1) / 2),
     });
 
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 1,1 from: 1,1 to: 2,1');
 
     // mouse points 1px below the next row (border change)
     simulateFillHandleDragMove(getCell(2, 1), {
-      offsetY: Math.floor(getDefaultRowHeight() / 2) + 1,
+      offsetY: Math.floor((getDefaultRowHeight() - 1) / 2) + 1,
     });
 
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 1,1 from: 1,1 to: 3,1');
@@ -111,14 +111,14 @@ describe('AutoFill borders rendering', () => {
 
     // mouse points to the end of the next row (no border change)
     simulateFillHandleDragMove(getCell(9, 8), {
-      offsetY: Math.floor(getDefaultRowHeight() / 2),
+      offsetY: Math.floor((getDefaultRowHeight() - 1) / 2),
     });
 
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 9,8');
 
     // mouse points 1px below the next row (border change)
     simulateFillHandleDragMove(getCell(9, 8), {
-      offsetY: Math.floor(getDefaultRowHeight() / 2) + 1,
+      offsetY: Math.floor((getDefaultRowHeight() - 1) / 2) + 1,
     });
 
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 10,8');

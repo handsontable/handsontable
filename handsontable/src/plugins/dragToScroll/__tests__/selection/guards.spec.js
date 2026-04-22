@@ -47,7 +47,7 @@ describe('DragToScroll selection — guards', () => {
     // first visible rows. A small offset (< one row height) is acceptable
     // as Walkontable may adjust alignment, but the viewport must not
     // advance by multiple rows as DragToScroll would do.
-    expect(scrollTopAfter).toBeLessThan(23);
+    expect(scrollTopAfter).toBeLessThan(getDefaultRowHeight());
   });
 
   it('should not scroll or extend the selection when selectionMode is single', async() => {
