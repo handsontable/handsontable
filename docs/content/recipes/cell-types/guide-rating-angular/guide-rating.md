@@ -87,7 +87,7 @@ import {
 
 ## Step 2: Create the Renderer Component
 
-The renderer displays 5 SVG stars wrapped in a flex container using CSS classes for color control (same approach as the [Star Rating recipe](@/recipes/cell-types/rating)).
+The renderer displays 5 SVG stars wrapped in a flex container using CSS classes for color control (same approach as the [Star Rating recipe](@/recipes/cell-types/rating/rating.md)).
 
 ```typescript
 const starSvg =
@@ -262,7 +262,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 
 **What's happening:**
 
-- **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/recipes/cell-types/rating) (blue border, padding, background via CSS tokens)
+- **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/recipes/cell-types/rating/rating.md) (blue border, padding, background via CSS tokens)
 - **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (gold), `.current` for the selected star (accent color)
 - **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so we use a component method to compare the current value with the star index
 - **getValue()** - Method from base class returns current editor value
