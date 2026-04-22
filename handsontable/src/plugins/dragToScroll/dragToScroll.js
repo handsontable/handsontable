@@ -28,13 +28,11 @@ export class DragToScroll extends BasePlugin {
 
   static get DEFAULT_SETTINGS() {
     return {
-      autoScroll: {
-        interval: {
-          min: 20,
-          max: 500,
-        },
-        rampDistance: 120,
+      interval: {
+        min: 20,
+        max: 500,
       },
+      rampDistance: 120,
     };
   }
 
@@ -64,7 +62,9 @@ export class DragToScroll extends BasePlugin {
    *
    * @type {AutoScroller}
    */
-  #autoScroller = new AutoScroller((...args) => this.hot._registerTimeout(...args));
+  #autoScroller = new AutoScroller((...args) => this.hot._registerTimeout(...args))
+    .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
+    .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
   /**
    * Flag indicates if the mouse is outside the viewport.
    *
@@ -121,12 +121,9 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#autoScroller.configure({
-      intervalRange: this.getSetting('autoScroll.interval'),
-      rampDistance: this.getSetting('autoScroll.rampDistance'),
+      intervalRange: this.getSetting('interval'),
+      rampDistance: this.getSetting('rampDistance'),
     });
-    this.#autoScroller
-      .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
-      .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
 
     this.addHook('beforeOnCellMouseDown',
       (event, coords, TD, controller) => this.#setupListening('cell', event, controller));
@@ -321,8 +318,6 @@ export class DragToScroll extends BasePlugin {
 
     this.setCallback((scrollX, scrollY) => {
       const { selection } = this.hot;
-      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
-      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
 
       if (scrollX !== 0 || scrollY !== 0) {
         // Suppress the irrelevant scroll axis for header-based selections:
@@ -332,15 +327,6 @@ export class DragToScroll extends BasePlugin {
 
         this.#autoScroller.update({ x, y });
       }
-
-      // Always call scroll() to maintain the same side-effects as the
-      // legacy direct-scroll approach. When the mouse is inside the viewport
-      // (scrollX/scrollY = 0) this is a no-op but still fires the scroll
-      // event that other plugins (e.g. manualRowMove) may rely on.
-      scrollHandler.scroll(
-        horizontalScrollValue + (Math.sign(scrollX) * 50),
-        verticalScrollValue + (Math.sign(scrollY) * 20)
-      );
     });
 
     this.listen();
