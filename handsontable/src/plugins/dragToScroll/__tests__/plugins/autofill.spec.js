@@ -72,7 +72,7 @@ describe('DragToScroll — autofill integration', () => {
 
         expect(scrollTopAfter).toBeGreaterThan(0);
         expect(fillRange).toBeTruthy();
-        expect(fillRange.to.row).toBeGreaterThan(5);
+        expect(fillRange.to.row).toBeGreaterThan(expectedLastFullyVisibleRow(150));
       });
   });
 
