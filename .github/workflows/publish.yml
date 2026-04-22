@@ -323,85 +323,6 @@ jobs:
           done
           echo "All packages published successfully."
 
-      - name: Prepare Slack message
-        if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-          RC_VERSION: ${{ needs.first-rc-build.outputs.rc-version }}
-          RELEASE_BRANCH: ${{ needs.first-rc-build.outputs.release-branch }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
-        run: |
-          if [ "$JOB_STATUS" = "success" ]; then
-            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
-          else
-            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
-          fi
-          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
-
-          jq -n \
-            --arg version       "${RC_VERSION}" \
-            --arg branch        "${RELEASE_BRANCH}" \
-            --arg status        "$STATUS" \
-            --arg npm_status    "$NPM_STATUS" \
-            --arg npm_ok        "$NPM_OK" \
-            --arg changelog_url "$CHANGELOG_URL" \
-            --arg repo_url      "${REPO_URL}" \
-            --arg run_url       "${RUN_URL}" \
-          '{
-            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
-            blocks: [
-              (if $npm_ok == "true" then
-                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
-              else
-                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
-              end),
-              {
-                type: "section",
-                text: { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not intended for production use." }
-              },
-              {
-                type: "section",
-                fields: [
-                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
-                  { type: "mrkdwn", text: "*Type*\n🔖 Pre-release" },
-                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
-                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
-                ]
-              },
-              { type: "divider" },
-              {
-                type: "section",
-                fields: [
-                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
-                  { type: "mrkdwn", text: $npm_status }
-                ]
-              },
-              { type: "divider" },
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
-                }
-              },
-              {
-                type: "context",
-                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
-              }
-            ]
-          }' > /tmp/slack-payload.json
-          echo "Slack payload:"
-          cat /tmp/slack-payload.json
-
-      - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-        with:
-          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload-file-path: /tmp/slack-payload.json
-
   # ============================================================
   # Scenario B.1 — First RC NuGet build and publish
   # ============================================================
@@ -485,6 +406,93 @@ jobs:
           dotnet nuget push "$NUPKG" \
             --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json
+
+  first-rc-notify:
+    name: Notify Slack (first RC)
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.first-rc-publish.result != 'skipped' }}
+    needs: [first-rc-build, first-rc-publish, first-rc-publish-nuget]
+    steps:
+      - name: Prepare and send Slack message
+        env:
+          RC_VERSION: ${{ needs.first-rc-build.outputs.rc-version }}
+          RELEASE_BRANCH: ${{ needs.first-rc-build.outputs.release-branch }}
+          NPM_RESULT: ${{ needs.first-rc-publish.result }}
+          NUGET_RESULT: ${{ needs.first-rc-publish-nuget.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if [ "$NPM_RESULT" = "success" ]; then
+            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
+          else
+            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
+          fi
+          if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
+          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+
+          jq -n \
+            --arg version       "${RC_VERSION}" \
+            --arg branch        "${RELEASE_BRANCH}" \
+            --arg status        "$STATUS" \
+            --arg npm_status    "$NPM_STATUS" \
+            --arg npm_ok        "$NPM_OK" \
+            --arg nuget_status  "$NUGET_STATUS" \
+            --arg changelog_url "$CHANGELOG_URL" \
+            --arg repo_url      "${REPO_URL}" \
+            --arg run_url       "${RUN_URL}" \
+          '{
+            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
+            blocks: [
+              (if $npm_ok == "true" then
+                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
+              else
+                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
+              end),
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not intended for production use." }
+              },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
+                  { type: "mrkdwn", text: "*Type*\n🔖 Pre-release" },
+                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
+                  { type: "mrkdwn", text: $npm_status },
+                  { type: "mrkdwn", text: $nuget_status }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                }
+              },
+              {
+                type: "context",
+                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
+              }
+            ]
+          }' > /tmp/slack-payload.json
+          echo "Slack payload:"
+          cat /tmp/slack-payload.json
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-payload.json
 
   # ============================================================
   # Scenario C — Subsequent RC (push to release/**)
@@ -767,127 +775,6 @@ jobs:
           done
           echo "All packages published successfully."
 
-      - name: Prepare Slack message
-        if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-          RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
-        run: |
-          if [ "$JOB_STATUS" = "success" ]; then
-            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
-          else
-            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
-          fi
-
-          # Build commit list since previous RC tag
-          BASE_VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
-          RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
-          PREV_TAG="${BASE_VERSION}-rc$((RC_NUMBER - 1))"
-          RELEASE_BRANCH="${{ github.ref_name }}"
-          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
-
-          git fetch --unshallow 2>/dev/null || true
-          git fetch --tags --quiet
-
-          COMMITS_TEXT=""
-
-          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
-            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%H %s" --no-merges)
-
-            if [ -n "$COMMITS" ]; then
-              while IFS= read -r line; do
-                SHA=$(echo "$line" | cut -d' ' -f1)
-                MSG=$(echo "$line" | cut -d' ' -f2-)
-                COMMITS_TEXT="${COMMITS_TEXT}• <${REPO_URL}/commit/${SHA}|${MSG}>"$'\n'
-              done <<< "$COMMITS"
-            fi
-          fi
-
-          if [ -z "$COMMITS_TEXT" ]; then
-            COMMITS_TEXT="No commits found since \`${PREV_TAG}\`."
-          fi
-
-          CHANGELOG_SYNCED='${{ needs.rc-build.outputs.changelog-synced }}'
-
-          jq -n \
-            --arg version          "${RC_VERSION}" \
-            --arg branch           "${RELEASE_BRANCH}" \
-            --arg status           "$STATUS" \
-            --arg npm_status       "$NPM_STATUS" \
-            --arg npm_ok           "$NPM_OK" \
-            --arg prev_tag         "${PREV_TAG}" \
-            --arg commits          "$COMMITS_TEXT" \
-            --arg changelog_synced "${CHANGELOG_SYNCED}" \
-            --arg changelog_url    "$CHANGELOG_URL" \
-            --arg run_url          "${RUN_URL}" \
-            --arg repo_url         "${REPO_URL}" \
-          '{
-            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
-            blocks: [
-              (if $npm_ok == "true" then
-                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
-              else
-                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
-              end),
-              {
-                type: "section",
-                text: { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not intended for production use." }
-              },
-              {
-                type: "section",
-                fields: [
-                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
-                  { type: "mrkdwn", text: "*Type*\n🔖 Pre-release" },
-                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
-                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
-                ]
-              },
-              { type: "divider" },
-              {
-                type: "section",
-                fields: [
-                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
-                  { type: "mrkdwn", text: $npm_status }
-                ]
-              },
-              { type: "divider" },
-              {
-                type: "section",
-                text: { type: "mrkdwn", text: ("*Commits since `" + $prev_tag + "`*\n" + $commits) }
-              },
-              if $changelog_synced == "true" then
-                {
-                  type: "context",
-                  elements: [{ type: "mrkdwn", text: "❗ *Changelog extended with new entries!*" }]
-                }
-              else empty end,
-              { type: "divider" },
-              {
-                type: "section",
-                text: {
-                  type: "mrkdwn",
-                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
-                }
-              },
-              {
-                type: "context",
-                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
-              }
-            ]
-          }' > /tmp/slack-payload.json
-          echo "Slack payload:"
-          cat /tmp/slack-payload.json
-
-      - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
-        with:
-          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload-file-path: /tmp/slack-payload.json
-
   # ============================================================
   # Scenario C.1 — Subsequent RC NuGet build and publish
   # ============================================================
@@ -971,6 +858,138 @@ jobs:
           dotnet nuget push "$NUPKG" \
             --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" \
             --source https://api.nuget.org/v3/index.json
+
+  rc-notify:
+    name: Notify Slack (RC)
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.rc-publish.result != 'skipped' }}
+    needs: [rc-build, rc-publish, rc-publish-nuget]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Prepare and send Slack message
+        env:
+          RC_VERSION: ${{ needs.rc-build.outputs.rc-version }}
+          CHANGELOG_SYNCED: ${{ needs.rc-build.outputs.changelog-synced }}
+          NPM_RESULT: ${{ needs.rc-publish.result }}
+          NUGET_RESULT: ${{ needs.rc-publish-nuget.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if [ "$NPM_RESULT" = "success" ]; then
+            STATUS=":white_check_mark: Success"; NPM_STATUS=":white_check_mark: :npm: *npm*"; NPM_OK="true"
+          else
+            STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
+          fi
+          if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
+
+          BASE_VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
+          RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
+          PREV_TAG="${BASE_VERSION}-rc$((RC_NUMBER - 1))"
+          RELEASE_BRANCH="${{ github.ref_name }}"
+          CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
+
+          git fetch --unshallow 2>/dev/null || true
+          git fetch --tags --quiet
+
+          COMMITS_TEXT=""
+
+          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"%H %s" --no-merges)
+
+            if [ -n "$COMMITS" ]; then
+              while IFS= read -r line; do
+                SHA=$(echo "$line" | cut -d' ' -f1)
+                MSG=$(echo "$line" | cut -d' ' -f2-)
+                COMMITS_TEXT="${COMMITS_TEXT}• <${REPO_URL}/commit/${SHA}|${MSG}>"$'\n'
+              done <<< "$COMMITS"
+            fi
+          fi
+
+          if [ -z "$COMMITS_TEXT" ]; then
+            COMMITS_TEXT="No commits found since \`${PREV_TAG}\`."
+          fi
+
+          jq -n \
+            --arg version          "${RC_VERSION}" \
+            --arg branch           "${RELEASE_BRANCH}" \
+            --arg status           "$STATUS" \
+            --arg npm_status       "$NPM_STATUS" \
+            --arg npm_ok           "$NPM_OK" \
+            --arg nuget_status     "$NUGET_STATUS" \
+            --arg prev_tag         "${PREV_TAG}" \
+            --arg commits          "$COMMITS_TEXT" \
+            --arg changelog_synced "${CHANGELOG_SYNCED}" \
+            --arg changelog_url    "$CHANGELOG_URL" \
+            --arg run_url          "${RUN_URL}" \
+            --arg repo_url         "${REPO_URL}" \
+          '{
+            text: (if $npm_ok == "true" then "🚀 Version " + $version + " released!" else "❌ Release of version " + $version + " failed." end),
+            blocks: [
+              (if $npm_ok == "true" then
+                { type: "header", text: { type: "plain_text", text: ("🚀 Version " + $version + " released!"), emoji: true } }
+              else
+                { type: "section", text: { type: "mrkdwn", text: (":x: *Release of version " + $version + " failed.* Check the <" + $run_url + "|GitHub Actions run> for details.") } }
+              end),
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: "⚠️ *This is a pre-release.* Not intended for production use." }
+              },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ("*Status*\n" + $status) },
+                  { type: "mrkdwn", text: "*Type*\n🔖 Pre-release" },
+                  { type: "mrkdwn", text: ("*Version*\n<https://www.npmjs.com/package/handsontable/v/" + $version + "|" + $version + ">") },
+                  { type: "mrkdwn", text: ("*Branch*\n<" + $repo_url + "/tree/" + $branch + "|" + $branch + ">") }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                fields: [
+                  { type: "mrkdwn", text: ":white_check_mark: :github: *GitHub*" },
+                  { type: "mrkdwn", text: $npm_status },
+                  { type: "mrkdwn", text: $nuget_status }
+                ]
+              },
+              { type: "divider" },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: ("*Commits since `" + $prev_tag + "`*\n" + $commits) }
+              },
+              if $changelog_synced == "true" then
+                {
+                  type: "context",
+                  elements: [{ type: "mrkdwn", text: "❗ *Changelog extended with new entries!*" }]
+                }
+              else empty end,
+              { type: "divider" },
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                }
+              },
+              {
+                type: "context",
+                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
+              }
+            ]
+          }' > /tmp/slack-payload.json
+          echo "Slack payload:"
+          cat /tmp/slack-payload.json
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-payload.json
 
   # ============================================================
   # Scenario D — Stable release (release event, not prerelease)
