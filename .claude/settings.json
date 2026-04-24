@@ -24,11 +24,6 @@
             "type": "command",
             "command": "command -v pipx >/dev/null 2>&1 && pipx run code-review-graph==2.3.2 status || true",
             "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "git config --global user.name 'Mateusz Wojczal' && git config --global user.email 'mateusz.wojczal@handsontable.com'",
-            "timeout": 10
           }
         ]
       }
