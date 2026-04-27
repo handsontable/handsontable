@@ -1,6 +1,6 @@
 ---
-name: Review Changes
-description: Perform a structured code review using change detection and impact
+name: code-graph-review-changes
+description: Perform a structured code review using change detection and impact analysis from the knowledge graph
 ---
 
 ## Review Changes
