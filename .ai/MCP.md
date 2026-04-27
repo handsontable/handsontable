@@ -19,14 +19,14 @@ To get a personal API token: ClickUp Settings > Apps > API Token > Generate.
 
 Project-level MCP servers are configured in `.mcp.json` at the repo root. This file is committed and shared with the team.
 
-The bearer token is **not** stored in `.mcp.json`. Store it as a secret:
+The bearer token is **not** stored in `.mcp.json`. Set it as a shell environment variable before starting Claude Code:
 
 ```bash
-# Store the token once (saved in Claude Code's local secrets store)
-claude secrets set CLICKUP_API_TOKEN pk_your_token_here
+# Add to your shell profile (~/.zshrc, ~/.bashrc, etc.) so it persists
+export CLICKUP_API_TOKEN=pk_your_token_here
 ```
 
-The `.mcp.json` file references the secret via `${CLICKUP_API_TOKEN}`. Claude Code expands secrets at startup.
+The `.mcp.json` file references the variable via `${CLICKUP_API_TOKEN}`. Claude Code expands environment variables at startup.
 
 If you prefer OAuth instead of a bearer token, remove the `headers` block from `.mcp.json`. Claude Code will prompt for OAuth on first use.
 
@@ -66,7 +66,7 @@ Once connected, the following tools are available to AI assistants:
 | Symptom | Fix |
 |---|---|
 | `clickup` server not listed in `/mcp` | Run `claude mcp list` to check config; verify `.mcp.json` exists at repo root |
-| `401 Unauthorized` errors | Token is wrong or expired; re-run `claude secrets set CLICKUP_API_TOKEN` |
+| `401 Unauthorized` errors | Token is wrong or expired; update `CLICKUP_API_TOKEN` in your shell profile and restart Claude Code |
 | OAuth prompt keeps appearing | Switch to bearer token auth (set `CLICKUP_API_TOKEN` and add `headers` block) |
 | Cursor shows server as disconnected | Check that `CLICKUP_API_TOKEN` is set in Cursor secrets or shell env |
 
