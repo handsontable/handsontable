@@ -57,6 +57,9 @@
 &nbsp;&nbsp;✅&nbsp; [Hiding rows and columns](https://handsontable.com/docs/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/context-menu/) <br>
 &nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/javascript-data-grid/rows-pagination/) <br>
+&nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/javascript-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/javascript-data-grid/notification/) <br>
+&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/javascript-data-grid/export-to-excel/) <br>
 
 <br>
 
@@ -65,9 +68,9 @@
 ## 🪄 Installation
 Below, you'll find the installation guide for the JavaScript component. If you're using a specific framework, refer to its dedicated wrapper for installation instructions:
 
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/react-icon.svg" width="12" height="12"><a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper"> React</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="12" height="12" alt="Angular"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper"> Angular</a>
-- <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/vue-icon.svg" width="12" height="12" alt="Vue"> <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3"> Vue</a>
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper">React</a>
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/angular-wrapper">Angular</a>
+- <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/vue3">Vue</a>
 
 ---
 
