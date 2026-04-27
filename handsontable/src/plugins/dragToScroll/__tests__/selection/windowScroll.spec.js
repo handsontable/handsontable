@@ -10,9 +10,10 @@ describe('DragToScroll selection — window scroll', () => {
     if (!styleElement) {
       styleElement = document.createElement('style');
       styleElement.id = styleId;
-      // Forces the browser window to have scrollbars so the window becomes the scroll container.
+      // Forces the browser window to have scrollbars in both axes so the window
+      // becomes the scroll container for vertical AND horizontal drag-to-scroll.
       styleElement.textContent = `
-        body { margin-bottom: 2000px; }
+        body { margin-bottom: 2000px; margin-right: 2000px; }
         #${id} { position: absolute; top: 500px; left: 0; }
       `;
       document.head.appendChild(styleElement);
@@ -26,6 +27,8 @@ describe('DragToScroll selection — window scroll', () => {
     }
 
     document.getElementById(styleId)?.remove();
+    // Reset window scroll position so tests do not bleed into each other.
+    window.scrollTo(0, 0);
   });
 
   it('should extend the selection downward (not upward) when dragging below the window viewport', async() => {
@@ -76,5 +79,185 @@ describe('DragToScroll selection — window scroll', () => {
     // The selection end row must be >= anchor — dragging DOWN should never push the
     // end row ABOVE the anchor row (which was the bug when the window was the scroll container).
     expect(selectedAfter[2]).toBeGreaterThanOrEqual(anchorRow);
+  });
+
+  it('should extend the selection upward when dragging above the window viewport', async() => {
+    handsontable({
+      data: createSpreadsheetData(80, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      dragToScroll: true,
+    });
+
+    // Scroll down so that the first few rows are off-screen above the viewport.
+    await scrollViewportTo({
+      row: 20,
+      col: 0,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    const anchorRow = getFirstFullyVisibleRow();
+    const $anchorCell = $(getCell(anchorRow, 0, true));
+    const anchorRect = $anchorCell[0].getBoundingClientRect();
+
+    $anchorCell.simulate('mousedown', {
+      clientX: anchorRect.left + 2,
+      clientY: anchorRect.top + 2,
+    });
+
+    // Place the mouse ABOVE the window's top edge to trigger upward auto-scroll.
+    $(document.body)
+      .simulate('mouseover')
+      .simulate('mousemove', {
+        clientX: anchorRect.left + 2,
+        clientY: -50,
+      });
+
+    await sleep(400);
+
+    $(document.body).simulate('mouseup');
+
+    const selectedAfter = getSelectedLast();
+
+    // Anchor row must be unchanged.
+    expect(selectedAfter[0]).toBe(anchorRow);
+    // Dragging UP should extend the selection end above the anchor.
+    expect(selectedAfter[2]).toBeLessThanOrEqual(anchorRow);
+  });
+
+  it('should extend the selection rightward when dragging past the right edge of the window viewport', async() => {
+    // 100 columns with no fixed width makes the table wider than the window,
+    // which forces the window to be the horizontal scroll container.
+    handsontable({
+      data: createSpreadsheetData(5, 100),
+      rowHeaders: true,
+      colHeaders: true,
+      dragToScroll: true,
+    });
+
+    const anchorCol = getFirstFullyVisibleColumn();
+    const $anchorCell = $(getCell(0, anchorCol, true));
+    const anchorRect = $anchorCell[0].getBoundingClientRect();
+
+    $anchorCell.simulate('mousedown', {
+      clientX: anchorRect.left + 2,
+      clientY: anchorRect.top + 2,
+    });
+
+    // Place the mouse PAST the window's right edge to trigger rightward auto-scroll.
+    $(document.body)
+      .simulate('mouseover')
+      .simulate('mousemove', {
+        clientX: window.innerWidth + 50,
+        clientY: anchorRect.top + 2,
+      });
+
+    await sleep(400);
+
+    $(document.body).simulate('mouseup');
+
+    const selectedAfter = getSelectedLast();
+
+    // Anchor column must be unchanged.
+    expect(selectedAfter[1]).toBe(anchorCol);
+    // The selection end column must be further right than the anchor.
+    expect(selectedAfter[3]).toBeGreaterThan(anchorCol);
+    // The window must have scrolled right.
+    expect(window.scrollX).toBeGreaterThan(0);
+  });
+
+  it('should extend the selection leftward when dragging past the left edge of the window viewport', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 100),
+      rowHeaders: true,
+      colHeaders: true,
+      dragToScroll: true,
+    });
+
+    // Scroll right so there are columns to the left that are off-screen.
+    await scrollViewportTo({
+      row: 0,
+      col: 50,
+      verticalSnap: 'top',
+      horizontalSnap: 'start',
+    });
+
+    expect(window.scrollX).toBeGreaterThan(0);
+
+    const anchorCol = getFirstFullyVisibleColumn();
+    const $anchorCell = $(getCell(0, anchorCol, true));
+    const anchorRect = $anchorCell[0].getBoundingClientRect();
+
+    $anchorCell.simulate('mousedown', {
+      clientX: anchorRect.left + 2,
+      clientY: anchorRect.top + 2,
+    });
+
+    // Place the mouse PAST the window's left edge to trigger leftward auto-scroll.
+    $(document.body)
+      .simulate('mouseover')
+      .simulate('mousemove', {
+        clientX: -50,
+        clientY: anchorRect.top + 2,
+      });
+
+    await sleep(400);
+
+    $(document.body).simulate('mouseup');
+
+    const selectedAfter = getSelectedLast();
+
+    // Anchor column must be unchanged.
+    expect(selectedAfter[1]).toBe(anchorCol);
+    // The selection end column must be to the left of the anchor.
+    expect(selectedAfter[3]).toBeLessThan(anchorCol);
+  });
+
+  it('should stop scrolling when the mouse returns inside the window viewport', async() => {
+    handsontable({
+      data: createSpreadsheetData(200, 5),
+      rowHeaders: true,
+      colHeaders: true,
+      dragToScroll: true,
+    });
+
+    const $cell = $(getCell(0, 0, true));
+    const cellRect = $cell[0].getBoundingClientRect();
+
+    $cell.simulate('mousedown', {
+      clientX: cellRect.left + 2,
+      clientY: cellRect.top + 2,
+    });
+
+    // Move below the window to start auto-scroll.
+    $(document.body)
+      .simulate('mouseover')
+      .simulate('mousemove', {
+        clientX: cellRect.left + 2,
+        clientY: window.innerHeight + 50,
+      });
+
+    await sleep(300);
+
+    const scrollYWhenOutside = window.scrollY;
+
+    expect(scrollYWhenOutside).toBeGreaterThan(0);
+
+    // Move the mouse back inside the window — the auto-scroller must stop immediately.
+    $(document.body).simulate('mousemove', {
+      clientX: cellRect.left + 2,
+      clientY: window.innerHeight / 2,
+    });
+
+    // Give the scheduler a moment; if the scroller did NOT stop it would keep
+    // advancing scrollY during this delay.
+    await sleep(300);
+
+    const scrollYAfterReturn = window.scrollY;
+
+    $(document.body).simulate('mouseup');
+
+    expect(scrollYAfterReturn).toBe(scrollYWhenOutside);
   });
 });

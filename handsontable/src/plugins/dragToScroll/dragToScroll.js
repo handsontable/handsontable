@@ -319,14 +319,14 @@ export class DragToScroll extends BasePlugin {
     this.setCallback((scrollX, scrollY) => {
       const { selection } = this.hot;
 
-      if (scrollX !== 0 || scrollY !== 0) {
-        // Suppress the irrelevant scroll axis for header-based selections:
-        // row header drags only need vertical scrolling, column header drags only horizontal.
-        const x = selection.isSelectedByRowHeader() ? 0 : scrollX;
-        const y = selection.isSelectedByColumnHeader() ? 0 : scrollY;
+      // Suppress the irrelevant scroll axis for header-based selections:
+      // row header drags only need vertical scrolling, column header drags only horizontal.
+      const x = selection.isSelectedByRowHeader() ? 0 : scrollX;
+      const y = selection.isSelectedByColumnHeader() ? 0 : scrollY;
 
-        this.#autoScroller.update({ x, y });
-      }
+      // Always call update — passing (0, 0) stops the timers when the mouse
+      // returns inside the viewport.
+      this.#autoScroller.update({ x, y });
     });
 
     this.listen();
@@ -347,14 +347,14 @@ export class DragToScroll extends BasePlugin {
    */
   #scrollHorizontal(distance) {
     const shouldAdvance = this.hot.isRtl() ? distance < 0 : distance > 0;
-    // Advancing (scroll right in LTR): snap the next column to the start of the viewport so the
-    // current first visible column scrolls fully off screen — one clean column step.
-    // Retreating (scroll left in LTR): snap the column before the first partially visible one to
-    // the end of the viewport so it enters from the left — matching the pixel-based ±colWidth feel.
+    // Both directions snap to 'start' so the target column appears at the left edge
+    // of the viewport — one clean column step in either direction.
+    // Advancing (right in LTR): bring the column after the first fully visible one into view.
+    // Retreating (left in LTR): bring the column before the first partially visible one into view.
     const scrollColumn = shouldAdvance
       ? this.hot.getFirstFullyVisibleColumn() + 1
       : this.hot.getFirstPartiallyVisibleColumn() - 1;
-    const horizontalSnap = shouldAdvance ? 'start' : 'end';
+    const horizontalSnap = 'start';
 
     // The no-op callback causes hot.scrollViewportTo to call view.render() after scrolling,
     // which ensures afterScroll fires even in environments where programmatic window.scrollTo()
