@@ -78,7 +78,7 @@ export function setVersion(version, packages = workspacePackages) {
 
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
-    if (packagesLocation.includes('examples')) {
+    if (packagesLocation.includes('examples') || packagesLocation === 'docs') {
       return;
     }
 
