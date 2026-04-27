@@ -1039,4 +1039,120 @@ describe('WalkontableOverlay', () => {
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
+
+  describe('hider bottom anchoring', () => {
+    const buildScrolledToBottomGrid = () => {
+      createDataArray(50, 10);
+      spec().$wrapper.width(300).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        rowHeaders: [
+          (row, TH) => { TH.innerHTML = row; },
+        ],
+        columnHeaders: [
+          (col, TH) => { TH.innerHTML = col; },
+        ],
+      });
+
+      wt.draw();
+      wt.scrollViewportVertically(getTotalRows() - 1);
+      wt.draw();
+
+      return wt;
+    };
+
+    it('should keep the master spreader flush with the hider bottom when scrolled to the last row', async() => {
+      const wt = buildScrolledToBottomGrid();
+      const { spreader, hider } = wt.wtTable;
+      const calc = wt.wtViewport.rowsRenderCalculator;
+
+      expect(calc.endRow).toBe(getTotalRows() - 1);
+      // The rendered table is shorter than `sumCellSizes` predicts (border-collapse + browser
+      // fractional-zoom rounding), so without the bottom-anchor adjustment the spreader bottom
+      // would fall short of the hider bottom and leave a visible gap below the last row. The
+      // 1px tolerance absorbs sub-pixel mismatches from headless Chrome rendering.
+      const spreaderBottom = spreader.offsetTop + spreader.offsetHeight;
+
+      expect(spreaderBottom).toBeGreaterThanOrEqual(hider.offsetHeight - 1);
+      expect(spreaderBottom).toBeLessThanOrEqual(hider.offsetHeight + 1);
+    });
+
+    it('should keep the inlineStart-clone spreader aligned with the master spreader when scrolled to the last row', async() => {
+      const wt = buildScrolledToBottomGrid();
+      const masterSpreader = wt.wtTable.spreader;
+      const inlineStartCloneSpreader = wt.wtOverlays.inlineStartOverlay.clone.wtTable.spreader;
+
+      // The row-headers column (inlineStart clone) must follow the same bottom anchoring as the
+      // master spreader, otherwise headers would visually drift away from their data rows.
+      expect(parseInt(inlineStartCloneSpreader.style.top, 10))
+        .toBe(parseInt(masterSpreader.style.top, 10));
+    });
+
+    it('should not anchor when the holder is taller than the data (no vertical scroll)', async() => {
+      // 5 rows in a 300px holder fits without scrolling. `endRow === totalRows - 1` is still
+      // true, but anchoring would create an empty band above the data instead of closing one
+      // below it. The spreader must stay at `calc.startPosition` (= 0).
+      createDataArray(5, 5);
+      spec().$wrapper.width(300).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const calc = wt.wtViewport.rowsRenderCalculator;
+      const { spreader } = wt.wtTable;
+
+      expect(calc.endRow).toBe(getTotalRows() - 1);
+      expect(wt.wtViewport.hasVerticalScroll()).toBe(false);
+      expect(parseInt(spreader.style.top, 10)).toBe(calc.startPosition);
+    });
+
+    it('should not anchor when the rendered range does not include the last row', async() => {
+      // After drawing without scrolling, the rendered range starts at row 0 and does not reach
+      // the end of a long dataset. The anchor adjustment must be a no-op so the spreader stays
+      // at `calc.startPosition`.
+      createDataArray(200, 10);
+      spec().$wrapper.width(300).height(300);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const calc = wt.wtViewport.rowsRenderCalculator;
+      const { spreader } = wt.wtTable;
+
+      expect(calc.endRow).toBeLessThan(getTotalRows() - 1);
+      expect(parseInt(spreader.style.top, 10)).toBe(calc.startPosition);
+    });
+
+    it('should not anchor while sticky-scroll is active', async() => {
+      // The StickyScrollStrategy sets `position: sticky` with its own offset during native
+      // scrollbar drag. The anchor adjustment would overwrite the sticky offset and break the
+      // sticky behavior, so it must skip when the strategy reports active.
+      const wt = buildScrolledToBottomGrid();
+      const { spreader } = wt.wtTable;
+      const calc = wt.wtViewport.rowsRenderCalculator;
+
+      spyOn(wt.wtOverlays.getStickyScrollStrategy(), 'isActive').and.returnValue(true);
+
+      wt.wtOverlays.applyToDOM();
+
+      // The per-overlay `applyToDOM` calls write `calc.startPosition` to `spreader.style.top`.
+      // If the anchor adjustment ran, it would overwrite that with `hider.height - spreader.height`
+      // (a strictly larger value). Verifying the style.top stayed at `calc.startPosition`
+      // proves the sticky guard short-circuited the adjustment.
+      expect(parseInt(spreader.style.top, 10)).toBe(calc.startPosition);
+    });
+  });
 });

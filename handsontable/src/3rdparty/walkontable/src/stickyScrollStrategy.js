@@ -87,6 +87,15 @@ export class StickyScrollStrategy {
   }
 
   /**
+   * Whether sticky-scroll mode is currently active.
+   *
+   * @returns {boolean}
+   */
+  isActive() {
+    return this.#active;
+  }
+
+  /**
    * Recalculates and applies sticky offsets on all spreaders. Called after
    * every render (both full and fast draws) to keep the sticky offset in
    * sync with the current scroll position.

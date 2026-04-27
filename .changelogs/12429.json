@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed bottom fixed rows scrolling with browser zoom and display scaling.",
+  "title": "Fixed bottom fixed rows scrolling with browser zoom and display scaling, and removed the empty gap below the last row when scrolled to the bottom.",
   "type": "fixed",
   "issueOrPR": 12429,
   "breaking": false,

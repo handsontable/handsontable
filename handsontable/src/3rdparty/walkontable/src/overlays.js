@@ -878,6 +878,115 @@ class Overlays {
 
     this.inlineStartOverlay.applyToDOM();
     this.#stickyScroll.syncOffsets();
+    this.#anchorSpreadersToHiderBottom();
+  }
+
+  /**
+   * Returns the StickyScrollStrategy instance. Exposed for testing.
+   *
+   * @returns {StickyScrollStrategy}
+   */
+  getStickyScrollStrategy() {
+    return this.#stickyScroll;
+  }
+
+  /**
+   * Closes the residual gap that can appear below the last rendered row when scrolled to the
+   * bottom of the table.
+   *
+   * The hider's height is computed from `sumCellSizes`, which uses the idealized default row
+   * height (e.g., 30px). With `border-collapse: collapse`, every row beyond the first shares its
+   * top border with the row above, so the actually-rendered table is up to `(totalRows - 1)`px
+   * shorter. Browser fractional-zoom rounding can introduce additional sub-pixel mismatches.
+   * Themes that use `border-collapse: separate` are unaffected by the per-row term, but the
+   * adjustment is still safe to apply because it only fires when the rendered table is actually
+   * shorter than the hider.
+   *
+   * Without compensation the master spreader sits at `calc.startPosition` and falls short of the
+   * hider's bottom, leaving an empty band below the last data row. When the rendered range ends
+   * at the last row AND the user has scrolled to the bottom of the scrollable element, this
+   * method shifts the master spreader and the inlineStart-clone spreader (the row-header column)
+   * downwards just enough to make their bottoms flush with their hider bottoms.
+   *
+   * Skipped while the StickyScrollStrategy is active -- that strategy positions the spreader
+   * with `position: sticky` using a different reference point, and overwriting its offset would
+   * make the spreader visibly jump on every fast draw during scrollbar drag.
+   */
+  #anchorSpreadersToHiderBottom() {
+    if (this.#stickyScroll.isActive()) {
+      return;
+    }
+
+    const calc = this.wot.wtViewport.rowsRenderCalculator;
+
+    if (!calc || typeof calc.startPosition !== 'number') {
+      return;
+    }
+
+    const totalRows = this.wtSettings.getSetting('totalRows');
+
+    if (calc.endRow !== totalRows - 1) {
+      return;
+    }
+
+    if (!this.#isScrolledToBottom()) {
+      return;
+    }
+
+    this.#anchorSpreaderToHiderBottom(this.wtTable, calc.startPosition);
+
+    if (this.inlineStartOverlay.needFullRender) {
+      this.#anchorSpreaderToHiderBottom(this.inlineStartOverlay.clone.wtTable, calc.startPosition);
+    }
+  }
+
+  /**
+   * Whether the scrollable element is actually overflowing AND scrolled to (or within 1px of)
+   * its bottom edge. Used to gate the bottom-anchor adjustment -- when the holder is taller
+   * than the data, no scroll is needed and `endRow === totalRows - 1` would otherwise fire the
+   * anchor and create a 1px gap above the data instead of closing one below it.
+   *
+   * @returns {boolean}
+   */
+  #isScrolledToBottom() {
+    const { rootDocument, rootWindow } = this.domBindings;
+
+    if (this.scrollableElement === rootWindow) {
+      const documentElement = rootDocument.documentElement;
+      const { clientHeight, scrollHeight } = documentElement;
+
+      if (scrollHeight <= clientHeight) {
+        return false;
+      }
+
+      return rootWindow.scrollY + clientHeight >= scrollHeight - 1;
+    }
+
+    const { scrollTop, clientHeight, scrollHeight } = this.scrollableElement;
+
+    if (scrollHeight <= clientHeight) {
+      return false;
+    }
+
+    return scrollTop + clientHeight >= scrollHeight - 1;
+  }
+
+  /**
+   * Adjusts a spreader's `top` style so its bottom aligns with the hider's bottom edge,
+   * unless it is already positioned below that point. Never moves the spreader upwards.
+   *
+   * @param {object} wtTable A walkontable table whose spreader/hider should be aligned.
+   * @param {number} minTop The lower bound for the spreader's top -- typically
+   *   `calc.startPosition`. Prevents shifting the spreader above its calculated start (which
+   *   would cause rendered rows to overlap the column-header overlay).
+   */
+  #anchorSpreaderToHiderBottom(wtTable, minTop) {
+    const { spreader, hider } = wtTable;
+    const requiredTop = hider.offsetHeight - spreader.offsetHeight;
+
+    if (requiredTop > minTop) {
+      spreader.style.top = `${requiredTop}px`;
+    }
   }
 
   /**
