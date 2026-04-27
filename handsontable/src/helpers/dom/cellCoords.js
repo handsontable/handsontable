@@ -114,11 +114,19 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   // innerHeight) instead so the clamped position stays fixed and the cell lookup always
   // resolves to the edge cell of the CURRENT viewport.
   const { rootWindow } = hotInstance;
+  // When the window is the scroll container and the table's left/top edge has been
+  // scrolled PAST the viewport origin (tableOffset.left/top > 0, e.g. RTL at max-left
+  // scroll where tableOffset.left can be 4809 while innerWidth = 1100), clamping to
+  // tableOffset.left produces clamp(min > max) which always returns the minimum,
+  // making scrollRelativeX negative and mapping every mouse position to the wrong edge
+  // column. Clamp to 0 in that case so the boundary aligns with the viewport edge.
+  // When the table is partially off-screen in the opposite direction (tableOffset < 0),
+  // keep the original tableOffset so the relative position calculation remains correct.
   const tableViewportLeft = view.isHorizontallyScrollableByWindow()
-    ? 0
+    ? Math.min(0, tableOffset.left)
     : tableOffset.left;
   const tableViewportTop = view.isVerticallyScrollableByWindow()
-    ? 0
+    ? Math.min(0, tableOffset.top)
     : tableOffset.top;
   const tableViewportRight = view.isHorizontallyScrollableByWindow()
     ? rootWindow.innerWidth

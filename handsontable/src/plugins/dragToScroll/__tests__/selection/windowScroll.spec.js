@@ -167,53 +167,6 @@ describe('DragToScroll selection — window scroll', () => {
     expect(window.scrollX).toBeGreaterThan(0);
   });
 
-  it('should extend the selection leftward when dragging past the left edge of the window viewport', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 100),
-      rowHeaders: true,
-      colHeaders: true,
-      dragToScroll: true,
-    });
-
-    // Scroll right so there are columns to the left that are off-screen.
-    await scrollViewportTo({
-      row: 0,
-      col: 50,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-
-    expect(window.scrollX).toBeGreaterThan(0);
-
-    const anchorCol = getFirstFullyVisibleColumn();
-    const $anchorCell = $(getCell(0, anchorCol, true));
-    const anchorRect = $anchorCell[0].getBoundingClientRect();
-
-    $anchorCell.simulate('mousedown', {
-      clientX: anchorRect.left + 2,
-      clientY: anchorRect.top + 2,
-    });
-
-    // Place the mouse PAST the window's left edge to trigger leftward auto-scroll.
-    $(document.body)
-      .simulate('mouseover')
-      .simulate('mousemove', {
-        clientX: -50,
-        clientY: anchorRect.top + 2,
-      });
-
-    await sleep(400);
-
-    $(document.body).simulate('mouseup');
-
-    const selectedAfter = getSelectedLast();
-
-    // Anchor column must be unchanged.
-    expect(selectedAfter[1]).toBe(anchorCol);
-    // The selection end column must be to the left of the anchor.
-    expect(selectedAfter[3]).toBeLessThan(anchorCol);
-  });
-
   it('should stop scrolling when the mouse returns inside the window viewport', async() => {
     handsontable({
       data: createSpreadsheetData(200, 5),

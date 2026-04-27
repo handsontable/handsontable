@@ -253,4 +253,54 @@ describe('getCellCoordsFromMousePosition', () => {
       expect(coords.col).toBe(25);
     });
   });
+
+  describe('window-scroll horizontal boundary — RTL max-left scroll (tableOffset.left > innerWidth)', () => {
+    // Regression: at max-left RTL scroll the browser has scrolled so far that
+    // tableOffset.left (4809) exceeds window.innerWidth (1100). The old code used
+    // tableOffset.left as the clamp minimum, so clamp(mouseX, 4809, 1100) always
+    // returned 4809 (min > max case). This made scrollRelativeX negative, falling
+    // back to firstPartiallyVisibleColumn for EVERY mouse position — including cells
+    // that were clearly visible in the viewport. It also made isOutside=true for all
+    // viewport positions, firing onCellMouseOverOutside with the wrong column.
+    const maxLeftScrollGeometry = {
+      isRtl: true,
+      isWindowScrollH: true,
+      // tableRect.left = 4809 > innerWidth = 1100 is the key reproduction condition.
+      tableRect: { left: 4809, top: 0, right: 5878, bottom: 400 },
+      innerWidth: 1100,
+      innerHeight: 720,
+      viewportWidth: 1100,
+      viewportHeight: 400,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 83, // lowest-indexed visible col (rightmost in RTL at max-left position)
+      lastCol: 99, // highest-indexed visible col (leftmost in RTL at max-left position)
+      rowHeight: 30,
+      colWidth: 60,
+    };
+
+    it('does not return firstPartiallyVisibleColumn for a mouse inside the viewport', () => {
+      const hot = buildHot(maxLeftScrollGeometry);
+      // Mouse at clientX=100, well inside the viewport (0-1100).
+      // Old code: clamp(100, 4809, 1100) = 4809 → scrollRelativeX < 0 → col 83 (wrong).
+      // New code: clamp(100, 0, 1100) = 100 → correct column lookup.
+      const coords = getCellCoordsFromMousePosition(hot, 100, 15);
+
+      expect(coords.col).not.toBe(83); // firstPartiallyVisibleColumn — the old wrong result
+      expect(coords.col).toBeGreaterThanOrEqual(83);
+      expect(coords.col).toBeLessThanOrEqual(99);
+    });
+
+    it('returns a column within the visible range for any mouseX inside the viewport', () => {
+      const hot = buildHot(maxLeftScrollGeometry);
+
+      // Test several positions across the viewport width.
+      [50, 300, 600, 900, 1050].forEach((mouseX) => {
+        const coords = getCellCoordsFromMousePosition(hot, mouseX, 15);
+
+        expect(coords.col).toBeGreaterThanOrEqual(83);
+        expect(coords.col).toBeLessThanOrEqual(99);
+      });
+    });
+  });
 });

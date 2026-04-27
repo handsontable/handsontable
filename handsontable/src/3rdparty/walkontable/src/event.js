@@ -388,19 +388,29 @@ class Event {
       const lastPartiallyVisibleColumn = wot.wtScroll.getLastPartiallyVisibleColumn();
       const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
 
-      const tableViewportLeft = tableOffset.left;
-      const tableViewportTop = tableOffset.top;
       const hasColHeaders = this.#wtSettings.getSetting('columnHeaders').length > 0;
       const hasRowHeaders = this.#wtSettings.getSetting('rowHeaders').length > 0;
       const columnHeaderHeight = hasColHeaders ? wot.wtViewport.getColumnHeaderHeight() : 0;
       const rowHeaderWidth = hasRowHeaders ? wot.wtViewport.getRowHeaderWidth() : 0;
       const { rootWindow } = this.#domBindings;
+      // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL
+      // at max-left scroll where tableOffset.left can exceed innerWidth), using it as the
+      // clamp minimum causes clamp(min > max) to always return min, mapping every mouse
+      // position to the wrong edge column. Math.min(0, tableOffset) corrects this while
+      // preserving the original boundary when the table is partially off-screen to the
+      // left/top (tableOffset < 0), which is the normal scrolled-past-origin case.
+      const tableViewportLeft = wot.wtViewport.isHorizontallyScrollableByWindow()
+        ? Math.min(0, tableOffset.left)
+        : tableOffset.left;
+      const tableViewportTop = wot.wtViewport.isVerticallyScrollableByWindow()
+        ? Math.min(0, tableOffset.top)
+        : tableOffset.top;
       const tableViewportRight = wot.wtViewport.isHorizontallyScrollableByWindow()
         ? rootWindow.innerWidth
-        : tableViewportLeft + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
+        : tableOffset.left + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
       const tableViewportBottom = wot.wtViewport.isVerticallyScrollableByWindow()
         ? rootWindow.innerHeight
-        : tableViewportTop + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
+        : tableOffset.top + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
 
       const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
       const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
