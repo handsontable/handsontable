@@ -39,9 +39,9 @@ function buildHot({
   colWidth = 80,
 } = {}) {
   // Cell top for row r (viewport-relative, accounting for column header and table top).
-  const cellTop = r => tableRect.top + colHeaderHeight + (r - firstRow) * rowHeight;
+  const cellTop = r => tableRect.top + colHeaderHeight + ((r - firstRow) * rowHeight);
   // Cell left for col c (viewport-relative, accounting for row header and table left).
-  const cellLeft = c => tableRect.left + rowHeaderWidth + (c - firstCol) * colWidth;
+  const cellLeft = c => tableRect.left + rowHeaderWidth + ((c - firstCol) * colWidth);
 
   const hot = {
     rootWindow: { innerWidth, innerHeight },
@@ -71,11 +71,11 @@ function buildHot({
     _createCellCoords: (row, col) => ({ row, col }),
     columnIndexMapper: {
       getVisualFromRenderableIndex: n => n,
-      getNearestNotHiddenIndex: (n) => n,
+      getNearestNotHiddenIndex: n => n,
     },
     rowIndexMapper: {
       getVisualFromRenderableIndex: n => n,
-      getNearestNotHiddenIndex: (n) => n,
+      getNearestNotHiddenIndex: n => n,
       getNotHiddenIndexesLength: () => lastRow + 1,
     },
     view: {
@@ -190,7 +190,7 @@ describe('getCellCoordsFromMousePosition', () => {
       viewportHeight: 400,
       firstRow: 0,
       lastRow: 9,
-      firstCol: 3,   // scrolled so col 3 is first visible
+      firstCol: 3, // scrolled so col 3 is first visible
       lastCol: 18,
       rowHeight: 30,
       colWidth: 80,
