@@ -1,0 +1,75 @@
+name: Angular Wrapper Compatibility
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  push:
+    branches:
+      - 'master'
+      - 'develop'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-scope:
+    name: Check the scope
+    runs-on: ubuntu-latest
+    outputs:
+      run-tests: ${{
+          endsWith(github.ref, '/master') ||
+          endsWith(github.ref, '/develop') ||
+          contains(github.ref, '/release/') ||
+          steps.path-filter.outputs.angular-compat == 'true'
+        }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # https://github.com/dorny/paths-filter/releases/tag/v3.0.2
+        id: path-filter
+        with:
+          filters: |
+            angular-compat:
+              - 'wrappers/angular-wrapper/**'
+              - 'handsontable/src/**'
+              - 'handsontable-integration-tests/angular-wrapper/**'
+              - '.github/workflows/angular-wrapper-compatibility.yml'
+
+  test-angular-wrapper-integration:
+    name: "[TEST] Angular Wrapper: Integration (ng16–20 API patterns)"
+    runs-on: ubuntu-latest
+    needs: [ check-scope ]
+    if: needs.check-scope.outputs.run-tests == 'true'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - run: pnpm install && pnpm -r rebuild
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: "true"
+
+      - name: Build Handsontable (ES + CJS)
+        run: |
+          cd handsontable
+          npm run build:es
+          npm run build:commonjs
+          npm run build:languages.es
+          npm run build:languages
+          npm run build:languages.min
+          npm run postbuild
+
+      - name: Test
+        working-directory: wrappers/angular-wrapper
+        run: NODE_OPTIONS=--openssl-legacy-provider node_modules/.bin/jest --config ../../handsontable-integration-tests/angular-wrapper/jest.config.js --no-coverage

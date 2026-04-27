@@ -1,0 +1,85 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "es2020",
+    "lib": ["es2018", "dom"],
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": false,
+    "types": ["jest", "node"],
+    "baseUrl": ".",
+    "typeRoots": [
+      "../../wrappers/angular-wrapper/node_modules/@types"
+    ],
+    "paths": {
+      "jest-preset-angular/*": [
+        "../../wrappers/angular-wrapper/node_modules/jest-preset-angular/*"
+      ],
+      "@handsontable/angular-wrapper": [
+        "../../wrappers/angular-wrapper/projects/hot-table/src/public-api.ts"
+      ],
+      "@angular/core": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/core"
+      ],
+      "@angular/core/*": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/core/*"
+      ],
+      "@angular/common": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/common"
+      ],
+      "@angular/common/*": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/common/*"
+      ],
+      "@angular/platform-browser": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/platform-browser"
+      ],
+      "@angular/platform-browser/*": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/platform-browser/*"
+      ],
+      "@angular/platform-browser-dynamic": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/platform-browser-dynamic"
+      ],
+      "@angular/platform-browser-dynamic/*": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/platform-browser-dynamic/*"
+      ],
+      "rxjs": [
+        "../../wrappers/angular-wrapper/node_modules/rxjs"
+      ],
+      "rxjs/*": [
+        "../../wrappers/angular-wrapper/node_modules/rxjs/*"
+      ],
+      "handsontable": [
+        "../../wrappers/angular-wrapper/node_modules/handsontable"
+      ],
+      "handsontable/*": [
+        "../../wrappers/angular-wrapper/node_modules/handsontable/*"
+      ],
+      "zone.js": [
+        "../../wrappers/angular-wrapper/node_modules/zone.js"
+      ],
+      "zone.js/*": [
+        "../../wrappers/angular-wrapper/node_modules/zone.js/*"
+      ],
+      "@angular/forms": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/forms"
+      ],
+      "@angular/forms/*": [
+        "../../wrappers/angular-wrapper/node_modules/@angular/forms/*"
+      ]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": false,
+    "strictTemplates": false
+  },
+  "include": ["src/**/*.ts", "setup-jest.ts"],
+  "exclude": ["node_modules"]
+}

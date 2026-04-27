@@ -1,0 +1,10 @@
+{
+  "name": "@handsontable/angular-wrapper-integration-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Integration tests verifying @handsontable/angular-wrapper compatibility with Angular 16–20 authoring patterns",
+  "scripts": {
+    "test": "cd ..\\..\\wrappers\\angular-wrapper && node_modules\\.bin\\cross-env.CMD NODE_OPTIONS=--openssl-legacy-provider node_modules\\.bin\\jest.cmd --config ..\\..\\handsontable-integration-tests\\angular-wrapper\\jest.config.js --verbose",
+    "test:ci": "cd ..\\..\\wrappers\\angular-wrapper && node_modules\\.bin\\cross-env.CMD NODE_OPTIONS=--openssl-legacy-provider node_modules\\.bin\\jest.cmd --config ..\\..\\handsontable-integration-tests\\angular-wrapper\\jest.config.js --no-coverage"
+  }
+}
