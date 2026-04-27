@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { CHAT_ENDPOINT, STORAGE_KEYS } from './constants';
+import { CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
 import { buildContextualMessage } from './pageContext';
 
 export interface ChatMessage {
@@ -181,6 +181,14 @@ export function useAssistant() {
     persistThread(state.messages);
   }, [state.messages]);
 
+  // Mirror of state.messages so setFeedback can read the current value without
+  // listing it in deps. Including it would re-create the callback on every
+  // streaming chunk and force every <Message> to re-render its action bar.
+  const messagesRef = useRef(state.messages);
+  useEffect(() => {
+    messagesRef.current = state.messages;
+  }, [state.messages]);
+
   const stop = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -332,7 +340,40 @@ export function useAssistant() {
   );
 
   const setFeedback = useCallback((id: string, feedback: 'up' | 'down') => {
+    const messages = messagesRef.current;
+    const target = messages.find((m) => m.id === id);
+    if (!target || target.role !== 'assistant') return;
+    if (target.feedback === feedback) return;
+
+    const threadId = threadIdRef.current;
+    if (!threadId) {
+      // No thread id means no AI message has been received yet, so there is
+      // nothing to rate. Defensive guard; should not happen in practice.
+      return;
+    }
+
+    const assistantMessageIndex = messages
+      .filter((m) => m.role === 'assistant')
+      .findIndex((m) => m.id === id);
+    if (assistantMessageIndex < 0) return;
+
     dispatch({ type: 'SET_FEEDBACK', id, feedback });
+
+    fetch(FEEDBACK_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ threadId, assistantMessageIndex, feedback }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          // eslint-disable-next-line no-console
+          console.error(`docs-assistant feedback failed: ${res.status} ${res.statusText}`);
+        }
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error('docs-assistant feedback failed', err);
+      });
   }, []);
 
   return { state, send, stop, retry, clear, clearAndSend, setFeedback };
