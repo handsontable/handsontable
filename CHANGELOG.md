@@ -446,6 +446,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed the top overlay misalignment issue, visible after vertical scrollbar disappeared. [#11289](https://github.com/handsontable/handsontable/pull/11289)
 - React: Made the build scripts of `@handsontable/react-wrapper` place the TS type definitions in the configured directory. [#11296](https://github.com/handsontable/handsontable/pull/11296)
 
+## [14.6.2] - 2025-02-10
+
+#### Fixed
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
+
 ## [14.6.1] - 2024-10-17
 
 ### Removed
