@@ -34,7 +34,7 @@ jobs:
         with:
          python-version: ${{ env.PYTHON_VERSION }}
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -71,7 +71,7 @@ jobs:
           mkdir D:/Temp -Force
           mkdir D:/npm-cache -Force
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
         with:
           version: 10 # On Windows the `packageManager` field of `package.json` seems to not be recognized.
