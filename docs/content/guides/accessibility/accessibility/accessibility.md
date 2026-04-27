@@ -285,6 +285,7 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 
 <div class="boxes-list gray">
 
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
 - [What's new in Handsontable 14: Improvements to accessibility](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility)
 
 </div>

@@ -18,6 +18,17 @@ const data = [
 
 const container = document.querySelector('#example1');
 
+const toolbar = document.createElement('div');
+
+toolbar.classList.add('row-toolbar');
+toolbar.innerHTML = `
+  <button id="btn-add-row" type="button">Add Row</button>
+  <button id="btn-delete-row" type="button">Delete Row</button>
+  <button id="btn-move-up" type="button">Move Up</button>
+  <button id="btn-move-down" type="button">Move Down</button>
+`;
+container.before(toolbar);
+
 const hot = new Handsontable(container, {
   data,
   colHeaders: ['Task', 'Assignee', 'Priority', 'Status'],
@@ -25,16 +36,20 @@ const hot = new Handsontable(container, {
   height: 'auto',
   width: '100%',
   manualRowMove: true,
+  // Keep the grid selected when clicking toolbar buttons. Without this,
+  // Handsontable treats toolbar clicks as outside clicks and deselects,
+  // which clears selectedRow before the button's click handler runs.
+  outsideClickDeselects(target) {
+    return !toolbar.contains(target);
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Button references
-const btnAddRow = document.querySelector('#btn-add-row');
-const btnDeleteRow = document.querySelector('#btn-delete-row');
-const btnMoveUp = document.querySelector('#btn-move-up');
-const btnMoveDown = document.querySelector('#btn-move-down');
+const btnAddRow = toolbar.querySelector('#btn-add-row');
+const btnDeleteRow = toolbar.querySelector('#btn-delete-row');
+const btnMoveUp = toolbar.querySelector('#btn-move-up');
+const btnMoveDown = toolbar.querySelector('#btn-move-down');
 
-// Track the currently selected single row (used by move buttons)
 let selectedRow = null;
 
 function updateButtonStates() {
@@ -47,9 +62,7 @@ function updateButtonStates() {
   btnMoveDown.disabled = !hasSelection || isLast;
 }
 
-// Sync button states whenever the selection changes
 hot.addHook('afterSelectionEnd', (row, col, row2) => {
-  // Only enable move buttons for single-row selection
   selectedRow = row === row2 ? Math.min(row, row2) : null;
   updateButtonStates();
 });
@@ -59,12 +72,10 @@ hot.addHook('afterDeselect', () => {
   updateButtonStates();
 });
 
-// Add Row: append a blank row at the bottom
 btnAddRow.addEventListener('click', () => {
   hot.alter('insert_row_below', hot.countRows() - 1);
 });
 
-// Delete Row(s): remove all rows covered by the current selection
 btnDeleteRow.addEventListener('click', () => {
   const selected = hot.getSelected();
 
@@ -72,7 +83,6 @@ btnDeleteRow.addEventListener('click', () => {
     return;
   }
 
-  // Collect every row index touched by any selection range
   const rowSet = new Set();
 
   selected.forEach(([r1, , r2]) => {
@@ -84,7 +94,6 @@ btnDeleteRow.addEventListener('click', () => {
     }
   });
 
-  // Delete from bottom to top so earlier indices stay valid
   const rows = [...rowSet].sort((a, b) => b - a);
 
   rows.forEach(row => hot.alter('remove_row', row, 1));
@@ -92,7 +101,6 @@ btnDeleteRow.addEventListener('click', () => {
   updateButtonStates();
 });
 
-// Move Up: move the selected row one position earlier
 btnMoveUp.addEventListener('click', () => {
   if (selectedRow === null || selectedRow === 0) {
     return;
@@ -104,7 +112,6 @@ btnMoveUp.addEventListener('click', () => {
   hot.selectRows(selectedRow);
 });
 
-// Move Down: move the selected row one position later
 // ManualRowMove inserts BEFORE the target index, so moving row N down
 // requires a target of N + 2 (the slot after the next row).
 btnMoveDown.addEventListener('click', () => {

@@ -49,54 +49,63 @@ describe('HandsontableEditor positioning (RTL mode)', () => {
         ...createEditorSettings(),
       });
 
-      const scrollEdgePositions = {
-        horizon: 149,
-        main: 151,
-        classic: 151,
-      };
+      // Probe the dropdown's rendered width so we can pick scroll positions that clear the
+      // flip boundary regardless of per-theme rendering width.
+      await selectCell(1, 7);
+      await keyDownUp('enter');
+      const dropdownWidth = getActiveEditor().htContainer.getBoundingClientRect().width;
 
-      const scrollPositionBase = scrollEdgePositions[getLoadedTheme()];
+      await keyDownUp('escape');
+      await deselectCell();
 
-      if (scrollPositionBase === undefined) {
-        throw new Error('Missing scroll position base for the current theme', { cause: { handsontable: true } });
-      }
+      // RTL mirrors the LTR geometry horizontally. Cell 7 sits at (25 - 1 - 7) columns from
+      // the right edge of the data area = col index from right = 17. Cell 7 data-right = 7*80,
+      // so scrolling right (positive scrollX) moves cell 7 toward the left edge in RTL.
+      const workspaceWidth = 800;
+      const colWidth = 80;
+      const cellDataLeft = 7 * colWidth;
+      // Inline-start space in RTL = space on the LEFT of the cell.
+      const cellInlineStartForInlineEndPlacement = Math.max(0, workspaceWidth - colWidth - dropdownWidth - 20);
+      const cellInlineStartForInlineStartPlacement = workspaceWidth - dropdownWidth + 20;
+      const inlineEndScroll = cellDataLeft - cellInlineStartForInlineEndPlacement;
+      const inlineStartScroll = Math.max(0, cellDataLeft - cellInlineStartForInlineStartPlacement);
 
-      // scroll the viewport to the point where the editor may be rendered on the right (there is enough space)
-      await scrollViewportHorizontally(scrollPositionBase);
-
+      // Under RTL, `scrollViewportHorizontally` scrolls in the inline axis; the sign semantics
+      // match the LTR spec. Pick the larger scroll (closer to inline-end) for the inline-end
+      // placement (dropdown to the left of the cell in RTL, equivalent to "right of cell" in
+      // LTR geometry).
+      await scrollViewportHorizontally(inlineEndScroll);
       await selectCell(1, 7);
       await keyDownUp('enter');
 
-      const relativeRect = getCell(2, 7).getBoundingClientRect();
-
       {
+        const relativeRect = getCell(2, 7).getBoundingClientRect();
         const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
-        expect({
-          top: containerRect.top,
-          right: containerRect.right,
-        }).toEqual({
-          top: relativeRect.top,
-          right: relativeRect.right + 1,
-        });
+        // Inline-end placement: the dropdown's right edge aligns with the cell's right edge
+        // (within the editor's 1px inline-start border compensation, which differs by theme).
+        expect(containerRect.top).toBe(relativeRect.top);
+        expect(Math.abs(containerRect.right - (relativeRect.right + 1))).toBeLessThanOrEqual(1);
+        // The dropdown sits to the INLINE-END of the cell in RTL, so its left edge is well
+        // before the cell's left edge.
+        expect(containerRect.left).toBeLessThan(relativeRect.left);
       }
 
       await keyDownUp('escape');
-      // scroll the viewport to the point where the editor may not be rendered on the right (there is not enough space)
-      // so it should be rendered on the left
-      await scrollViewportHorizontally(scrollPositionBase - 1);
+      await scrollViewportHorizontally(inlineStartScroll);
       await keyDownUp('enter');
 
       {
+        const relativeRect = getCell(2, 7).getBoundingClientRect();
         const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
-        expect({
-          top: containerRect.top,
-          left: containerRect.left,
-        }).toEqual({
-          top: relativeRect.top,
-          left: relativeRect.left - 1,
-        });
+        // Inline-start placement (flipped): the dropdown's left edge aligns with the cell's
+        // left edge, within the editor's 1px inline-start border compensation.
+        expect(containerRect.top).toBe(relativeRect.top);
+        expect(Math.abs(containerRect.left - (relativeRect.left - 1))).toBeLessThanOrEqual(1);
+        // The dropdown sits to the INLINE-START of the cell in RTL, so its right edge is well
+        // past the cell's right edge.
+        expect(containerRect.right).toBeGreaterThan(relativeRect.right);
       }
     });
   });

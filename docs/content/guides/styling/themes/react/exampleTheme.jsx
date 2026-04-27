@@ -135,6 +135,13 @@ const ExampleComponent = () => {
   const [dotColors, setDotColors] = useState({ fg: '', bg: '', accent: '' });
 
   useEffect(() => {
+    const [, colorScheme] = themeName.split('-');
+    const container = document.getElementById('exampleTheme');
+
+    if (container) container.dataset.colorScheme = colorScheme || 'auto';
+  }, [themeName]);
+
+  useEffect(() => {
     const gridEl = hotRef.current?.hotInstance?.rootElement;
 
     if (gridEl) {
@@ -275,15 +282,7 @@ const ExampleComponent = () => {
         manualColumnResize={true}
         navigableHeaders={true}
         licenseKey="non-commercial-and-evaluation"
-      >
-        <HotColumn data={1} />
-        <HotColumn data={3} />
-        <HotColumn data={4} type="intl-date" />
-        <HotColumn data={6} type="checkbox" className="htCenter" />
-        <HotColumn data={7} type="numeric" />
-        <HotColumn data={5} />
-        <HotColumn data={2} />
-      </HotTable>
+      />
     </>
   );
 };

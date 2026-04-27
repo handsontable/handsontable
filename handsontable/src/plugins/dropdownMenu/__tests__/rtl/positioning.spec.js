@@ -40,16 +40,20 @@ describe('DropdownMenu (RTL mode)', () => {
       const $dropdownMenuRoot = $('.htDropdownMenu');
       const dropdownMenuOffset = $dropdownMenuRoot.offset();
 
-      expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(139);
-        main.toBe(155);
-        horizon.toBe(194);
-      });
-      expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(dropdownMenuOffset.left + 1);
-        main.toBe(dropdownMenuOffset.left + 1);
-        horizon.toBe(dropdownMenuOffset.left);
-      });
+      const readOnlyItemOffset = $readOnlyItem.offset();
+
+      expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
+      // The tick sits flush with the menu's left content edge. The menu's
+      // outer-left to content-left gap equals the menu container border
+      // width, which is 1px on main and 0px on horizon. Derive it from the
+      // DOM so the assertion is theme-invariant.
+      const menuEl = $dropdownMenuRoot.filter(':visible')[0] || $dropdownMenuRoot[0];
+      const htMaster = menuEl.querySelector('.ht_master');
+      const borderLeft = htMaster
+        ? parseFloat(window.getComputedStyle(htMaster).borderLeftWidth) || 0
+        : 0;
+
+      expect(tickItemOffset.left).toBe(dropdownMenuOffset.left + borderLeft);
     });
   });
 });

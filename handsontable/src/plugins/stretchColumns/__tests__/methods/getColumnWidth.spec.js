@@ -27,46 +27,32 @@ describe('StretchColumns', () => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         width: 200,
-        height: 100,
+        height: containerHeightForRows(3, 0),
         stretchH: 'all',
       });
 
       const plugin = getPlugin('stretchColumns');
 
-      expect(plugin.getColumnWidth(0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(67);
-        horizon.toBe(62);
-      });
-      expect(plugin.getColumnWidth(1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(67);
-        horizon.toBe(62);
-      });
-      expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(66);
-        main.toBe(66);
-        horizon.toBe(61);
-      });
+      // 200 / 3: round(50 * 200/150) = 67; last = 200 - 2*67 = 66
+      expect(plugin.getColumnWidth(0)).toBe(67);
+      expect(plugin.getColumnWidth(1)).toBe(67);
+      expect(plugin.getColumnWidth(2)).toBe(66);
     });
 
     it('should return correct column widths when stretching "last" is enabled', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         width: 200,
-        height: 100,
+        height: containerHeightForRows(3, 0),
         stretchH: 'last',
       });
 
       const plugin = getPlugin('stretchColumns');
 
+      // Only last col stretched: 200 - 50 - 50 = 100
       expect(plugin.getColumnWidth(0)).toBe(null);
       expect(plugin.getColumnWidth(1)).toBe(null);
-      expect(plugin.getColumnWidth(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(100);
-        main.toBe(100);
-        horizon.toBe(85);
-      });
+      expect(plugin.getColumnWidth(2)).toBe(100);
     });
   });
 });

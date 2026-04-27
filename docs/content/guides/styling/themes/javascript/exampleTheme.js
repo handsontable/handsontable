@@ -200,6 +200,11 @@ const setTheme = (value) => {
 
   hotInstance.updateSettings({ theme: getTheme(themeName).setColorScheme(colorScheme || 'auto') });
 
+  // Propagate the selected color scheme to the container so the docs CSS can read it
+  // via data-color-scheme and apply the right color-scheme property with higher specificity
+  // than the static ht-theme-*.css declarations.
+  example.dataset.colorScheme = colorScheme || 'auto';
+
   // Update trigger label
   const item = menu.querySelector(`[data-value="${value}"]`);
 

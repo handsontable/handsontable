@@ -29,3 +29,5 @@ docs/.env
 # Playwright screenshots (created by Claude Code sessions)
 /*.png
 /docs/*.png
+# Added by code-review-graph
+.code-review-graph/

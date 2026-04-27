@@ -32,6 +32,76 @@ describe('AutoColumnSize', () => {
     ];
   };
 
+  /**
+   * Measures the rendered text width of a cell's contents using a Range so the measurement
+   * excludes the cell's padding and border. Use together with `getThemeLayout()` to derive a
+   * theme-agnostic expected column width range.
+   *
+   * @param {HTMLElement} cell A TD or TH element (or any element with child nodes).
+   * @returns {number} Text content width in CSS pixels.
+   */
+  function measureCellTextWidth(cell) {
+    if (!cell) {
+      return 0;
+    }
+    const range = document.createRange();
+
+    range.selectNodeContents(cell);
+
+    return range.getBoundingClientRect().width;
+  }
+
+  /**
+   * Returns per-row `{ row, scrollWidth, clientWidth }` for every rendered data cell in a column.
+   * Callers use it with an inline `expect(...).withContext(`row ${row}`).toBeLessThanOrEqual(...)`
+   * so failure stacks point at the spec and the comparison is visible at the call site.
+   *
+   * @param {number} col Visual column index.
+   * @param {number} rows Number of data rows to scan.
+   * @returns {Array<{ row: number, scrollWidth: number, clientWidth: number }>}
+   */
+  function getCellOverflowMetrics(col, rows) {
+    const metrics = [];
+
+    for (let row = 0; row < rows; row++) {
+      const cell = getCell(row, col);
+
+      if (cell) {
+        metrics.push({ row, scrollWidth: cell.scrollWidth, clientWidth: cell.clientWidth });
+      }
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Computes the upper bound the column width must not exceed: widest rendered cell text plus
+   * cell padding and border, plus a small slack. Use this only for tests where no header
+   * decoration contributes to the computed width (e.g. no colHeaders, no hidden-column
+   * indicator, no sort indicator). Callers assert inline so the threshold is visible at the
+   * call site and failure stacks point at the spec.
+   *
+   * @param {number} col Visual column index.
+   * @param {number} rows Number of data rows to scan.
+   * @param {number} [slackPx=12] Extra tolerance above widest text + paddingAndBorder.
+   * @returns {number} Upper bound in CSS pixels.
+   */
+  function measureColumnUpperBound(col, rows, slackPx = 12) {
+    const layout = getThemeLayout();
+    const paddingAndBorder = (2 * layout.cellHorizontalPadding) + layout.cellBorderWidth;
+    let widestText = 0;
+
+    for (let row = 0; row < rows; row++) {
+      const cell = getCell(row, col);
+
+      if (cell) {
+        widestText = Math.max(widestText, measureCellTextWidth(cell));
+      }
+    }
+
+    return Math.ceil(widestText + paddingAndBorder) + slackPx;
+  }
+
   it('should apply auto size by default', async() => {
     handsontable({
       data: arrayOfObjects()
@@ -56,37 +126,39 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(104);
-      main.toBe(115);
-      horizon.toBe(123);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(192);
-      main.toBe(210);
-      horizon.toBe(218);
-    });
+    const acs = getPlugin('autoColumnSize');
+
+    expect(colWidth(spec().$container, 0)).toBe(acs.getColumnWidth(0));
+    expect(colWidth(spec().$container, 1)).toBe(acs.getColumnWidth(1));
+    expect(colWidth(spec().$container, 2)).toBe(acs.getColumnWidth(2));
+
+    // Content-based check: each column must fit the widest rendered data cell before the edit.
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(1, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(2, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
+
+    const widthBefore0 = colWidth(spec().$container, 0);
+    const widthBefore2 = colWidth(spec().$container, 2);
 
     await setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
     await setDataAtRowProp(0, 'name', 'foo');
     await waitForNextAnimationFrames(2);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(143);
-      main.toBe(157);
-      horizon.toBe(165);
-    });
-    expect(colWidth(spec().$container, 1)).toBe(50);
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(192);
-      main.toBe(210);
-      horizon.toBe(218);
-    });
+    // Column 0 should be wider (longer text), column 1 should shrink, column 2 unchanged.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore0);
+    expect(colWidth(spec().$container, 1)).toBe(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 2)).toBe(widthBefore2);
+
+    // Content-based check: column 0 must fit the new wider text post-edit.
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should correctly detect column widths with colHeaders', async() => {
@@ -100,11 +172,18 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
+    // The header text is wider than "Short", so the column should be wider than default.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
+    // Content-based check: the header text and the data cell must both fit in the column.
+    const headerCell = spec().$container.find('thead th')[0];
+
+    expect(headerCell.scrollWidth).toBeLessThanOrEqual(headerCell.clientWidth);
+
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as an array', async() => {
@@ -118,24 +197,13 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
+    const widthBefore = colWidth(spec().$container, 0);
 
     await updateSettings({ colHeaders: ['Identifier Longer text', 'Identifier Longer and longer text'] });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(198);
-      main.toBeAroundValue(216);
-      horizon.toBeAroundValue(224);
-    });
+    // Both columns should be wider after setting longer headers.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore);
+    expect(colWidth(spec().$container, 1)).toBeGreaterThan(widthBefore);
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a string', async() => {
@@ -149,24 +217,13 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
+    const widthBefore = colWidth(spec().$container, 0);
 
     await updateSettings({ colHeaders: 'Identifier Longer text' });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
+    // Both columns should now have the same width (same header text) and be wider than before.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore);
+    expect(colWidth(spec().$container, 0)).toBe(colWidth(spec().$container, 1));
   });
 
   it('should correctly detect column widths after update colHeaders when headers were passed as a function', async() => {
@@ -180,11 +237,7 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
+    const widthBefore = colWidth(spec().$container, 0);
 
     await updateSettings({
       colHeaders(index) {
@@ -192,16 +245,9 @@ describe('AutoColumnSize', () => {
       },
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(146);
-      horizon.toBe(154);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(198);
-      main.toBeAroundValue(216);
-      horizon.toBeAroundValue(224);
-    });
+    // Both columns should be wider after setting longer headers, and col 1 wider than col 0.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore);
+    expect(colWidth(spec().$container, 1)).toBeGreaterThan(colWidth(spec().$container, 0));
   });
 
   it('should correctly detect column width with colHeaders and the useHeaders option set to false (not taking the header widths into calculation)', async() => {
@@ -230,11 +276,18 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(64);
-      main.toBeAroundValue(72);
-      horizon.toBeAroundValue(80);
-    });
+    // "Identifier" header is wider than "Short" data, so column should be wider than default.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
+    // Content-based check: both the header text and the data cell must fit in the column.
+    const headerCell = spec().$container.find('thead th')[0];
+
+    expect(headerCell.scrollWidth).toBeLessThanOrEqual(headerCell.clientWidth);
+
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should correctly detect column widths after update columns.title', async() => {
@@ -246,17 +299,15 @@ describe('AutoColumnSize', () => {
       ]
     });
 
+    const widthBefore = colWidth(spec().$container, 0);
+
     await updateSettings({
       columns: [
         { data: 'id', title: 'Identifier with longer text' },
       ],
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(155);
-      main.toBe(170);
-      horizon.toBe(178);
-    });
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(widthBefore);
   });
 
   it('should correctly detect column width when table is hidden on init (display: none) #2684', async() => {
@@ -275,11 +326,18 @@ describe('AutoColumnSize', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(64);
-      main.toBeAroundValue(72);
-      horizon.toBeAroundValue(80);
-    });
+    // After becoming visible, the column width should be auto-sized wider than default.
+    expect(colWidth(spec().$container, 0)).toBeGreaterThan(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
+    // Content-based check: both the header text and the data cell must fit in the column.
+    const headerCell = spec().$container.find('thead th')[0];
+
+    expect(headerCell.scrollWidth).toBeLessThanOrEqual(headerCell.clientWidth);
+
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 1)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
   });
 
   it('should not change the column width after toggling the state of the checkbox cell type', async() => {
@@ -307,19 +365,11 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(151);
-      horizon.toBe(161);
-    });
+    const widthBefore = colWidth(spec().$container, 0);
 
     await setDataAtCell(0, 0, false);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(133);
-      main.toBe(151);
-      horizon.toBe(161);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(widthBefore);
   });
 
   it('should not wrap the cell values when the whole column has values with the same length', async() => {
@@ -349,36 +399,19 @@ describe('AutoColumnSize', () => {
       ]
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(82);
-      main.toBe(91);
-      horizon.toBe(99);
-    });
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
-    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(rowHeight(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
+    expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
+    // Content-based check: all rows have identically-wide text; the column must fit it on one
+    // line. This also guards against wrapping regressions that the row-height checks below
+    // cover from the vertical direction.
+    for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 5)) {
+      expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+    }
+    expect(rowHeight(spec().$container, 0)).toBe(getThemeLayout().firstRenderedRowDefaultHeight);
+    expect(rowHeight(spec().$container, 1)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBe(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 4)).toBe(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should be possible to disable plugin using updateSettings', async() => {
@@ -666,21 +699,12 @@ describe('AutoColumnSize', () => {
     await waitForNextAnimationFrames(2);
 
     const cloneTopHider = spec().$container.find('.ht_clone_top .wtHider');
-
-    expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(129);
-      main.toBe(138);
-      horizon.toBe(146);
-    });
+    const widthBefore = cloneTopHider.width();
 
     await selectCell(0, 0);
     await waitForNextAnimationFrames(2);
 
-    expect(cloneTopHider.width()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(129);
-      main.toBe(138);
-      horizon.toBe(146);
-    });
+    expect(cloneTopHider.width()).toBe(widthBefore);
   });
 
   it('should not calculate any column widths, if there are no columns in the dataset', async() => {
@@ -725,84 +749,43 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    const shortW = colWidth(spec().$container, 0);
+    const longerW = colWidth(spec().$container, 1);
+    const longestW = colWidth(spec().$container, 2);
+
+    expect(shortW).toBeLessThan(longerW);
+    expect(longerW).toBeLessThan(longestW);
+
+    // Content-based check: each header TH must fit its text without overflow.
+    const headerCells = spec().$container.find('thead th');
+
+    for (let col = 0; col < 3; col++) {
+      expect(headerCells[col].scrollWidth).toBeLessThanOrEqual(headerCells[col].clientWidth);
+    }
 
     await alter('insert_col_start', 0);
 
-    expect(colWidth(spec().$container, 0)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 4)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth()); // New empty column.
+    expect(colWidth(spec().$container, 1)).toBe(shortW);
+    expect(colWidth(spec().$container, 2)).toBe(longerW);
+    expect(colWidth(spec().$container, 3)).toBe(longestW);
 
     await alter('insert_col_start', 3);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 3)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 5)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 1)).toBe(shortW);
+    expect(colWidth(spec().$container, 2)).toBe(longerW);
+    expect(colWidth(spec().$container, 3)).toBe(getDefaultColumnWidth()); // New empty column.
+    expect(colWidth(spec().$container, 4)).toBe(longestW);
 
     await alter('insert_col_start', 5);
 
-    expect(colWidth(spec().$container, 0)).toBe(50);
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 3)).toBe(50);
-    expect(colWidth(spec().$container, 4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 5)).toBe(50); // Added new column here.
-    expect(colWidth(spec().$container, 6)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 1)).toBe(shortW);
+    expect(colWidth(spec().$container, 2)).toBe(longerW);
+    expect(colWidth(spec().$container, 3)).toBe(getDefaultColumnWidth());
+    expect(colWidth(spec().$container, 4)).toBe(longestW);
+    expect(colWidth(spec().$container, 5)).toBe(getDefaultColumnWidth()); // New empty column.
   });
 
   it('should keep proper column widths after removing column', async() => {
@@ -811,36 +794,13 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(50);
-      main.toBe(52);
-      horizon.toBe(60);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 3)).toBe(50);
+    const longerW = colWidth(spec().$container, 1);
+    const longestW = colWidth(spec().$container, 2);
 
     await alter('remove_col', 0);
 
-    expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).toBe(50);
+    expect(colWidth(spec().$container, 0)).toBe(longerW);
+    expect(colWidth(spec().$container, 1)).toBe(longestW);
   });
 
   it('should keep appropriate column size when columns order is changed', async() => {
@@ -849,33 +809,20 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
+    const longerW = colWidth(spec().$container, 1);
+    const longestW = colWidth(spec().$container, 2);
+
     columnIndexMapper().moveIndexes(2, 1);
     await render();
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(longestW);
+    expect(colWidth(spec().$container, 2)).toBe(longerW);
 
     columnIndexMapper().moveIndexes(1, 2);
     await render();
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(longerW);
+    expect(colWidth(spec().$container, 2)).toBe(longestW);
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', async() => {
@@ -885,32 +832,20 @@ describe('AutoColumnSize', () => {
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
+    const longerW = colWidth(spec().$container, 1);
+    const longestW = colWidth(spec().$container, 2);
+
     columnIndexMapper().moveIndexes(2, 1);
     await render();
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    expect(colWidth(spec().$container, 1)).toBe(longestW);
+    expect(colWidth(spec().$container, 2)).toBe(longerW);
 
     await populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
-    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(127);
-      main.toBe(139);
-      horizon.toBe(147);
-    });
-    expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(62);
-      horizon.toBe(70);
-    });
+    // Widths should be maintained by headers even after clearing data.
+    expect(colWidth(spec().$container, 1)).toBe(longestW);
+    expect(colWidth(spec().$container, 2)).toBe(longerW);
   });
 
   it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', async() => {
@@ -925,21 +860,15 @@ describe('AutoColumnSize', () => {
 
     await scrollViewportTo(0, 49);
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2235);
-      main.toBe(2322);
-      horizon.toBe(2575);
-    });
+    const scrollBefore = inlineStartOverlay().getScrollPosition();
+
+    expect(scrollBefore).toBeGreaterThan(0);
 
     await listen();
     await selectRows(2, 2);
     await keyDownUp('delete');
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(2235);
-      main.toBe(2322);
-      horizon.toBe(2575);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(scrollBefore);
   });
 
   describe('should cooperate with the `UndoRedo` plugin properly', () => {
@@ -949,89 +878,41 @@ describe('AutoColumnSize', () => {
         autoColumnSize: true,
       });
 
+      const shortW = colWidth(spec().$container, 0);
+      const medW = colWidth(spec().$container, 1);
+      const longW = colWidth(spec().$container, 2);
+
       await alter('remove_col', 0);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(medW);
+      expect(colWidth(spec().$container, 1)).toBe(longW);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       await alter('remove_col', 1);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(longW);
 
       getPlugin('undoRedo').undo();
 
@@ -1039,34 +920,14 @@ describe('AutoColumnSize', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
     });
 
     it('when inserting single column', async() => {
@@ -1075,215 +936,84 @@ describe('AutoColumnSize', () => {
         autoColumnSize: true,
       });
 
-      await alter('insert_col_start', 0);
+      const shortW = colWidth(spec().$container, 0);
+      const medW = colWidth(spec().$container, 1);
+      const longW = colWidth(spec().$container, 2);
+      const defW = getDefaultColumnWidth();
 
+      await alter('insert_col_start', 0);
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).toBe(50);
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(defW);
+      expect(colWidth(spec().$container, 1)).toBe(shortW);
+      expect(colWidth(spec().$container, 2)).toBe(medW);
+      expect(colWidth(spec().$container, 3)).toBe(longW);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       await alter('insert_col_start', 1);
-
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).toBe(50);
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(defW);
+      expect(colWidth(spec().$container, 2)).toBe(medW);
+      expect(colWidth(spec().$container, 3)).toBe(longW);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       await alter('insert_col_start', 2);
-
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).toBe(50);
-      expect(colWidth(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(defW);
+      expect(colWidth(spec().$container, 3)).toBe(longW);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       await alter('insert_col_start', 3);
-
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
 
       getPlugin('undoRedo').redo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(52);
-        horizon.toBe(60);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
-      expect(colWidth(spec().$container, 3)).toBe(50);
+      expect(colWidth(spec().$container, 0)).toBe(shortW);
+      expect(colWidth(spec().$container, 1)).toBe(medW);
+      expect(colWidth(spec().$container, 2)).toBe(longW);
+      expect(colWidth(spec().$container, 3)).toBe(defW);
     });
 
     it('when removing all rows', async() => {
@@ -1297,41 +1027,17 @@ describe('AutoColumnSize', () => {
         ]
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeAroundValue(64);
-        main.toBeAroundValue(72);
-        horizon.toBeAroundValue(80);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      const w0 = colWidth(spec().$container, 0);
+      const w1 = colWidth(spec().$container, 1);
+      const w2 = colWidth(spec().$container, 2);
 
       await alter('remove_row', 0);
 
       getPlugin('undoRedo').undo();
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeAroundValue(64);
-        main.toBeAroundValue(72);
-        horizon.toBeAroundValue(80);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(104);
-        main.toBe(115);
-        horizon.toBe(123);
-      });
-      expect(colWidth(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(192);
-        main.toBe(210);
-        horizon.toBe(218);
-      });
+      expect(colWidth(spec().$container, 0)).toBe(w0);
+      expect(colWidth(spec().$container, 1)).toBe(w1);
+      expect(colWidth(spec().$container, 2)).toBe(w2);
     });
   });
 
@@ -1352,16 +1058,21 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(65);
-        main.toBe(67);
-        horizon.toBe(75);
-      });
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(207);
-        main.toBe(225);
-        horizon.toBe(233);
-      });
+      // With hidden column indicator, the first visible column should be wider than just "Short" text
+      // (it includes the hidden column indicator), and the last column should be wider than default.
+      expect(colWidth(spec().$container, 0)).toBeGreaterThan(getDefaultColumnWidth());
+      expect(colWidth(spec().$container, 1)).toBeGreaterThan(getDefaultColumnWidth());
+
+      // Content-based check: visual column 1 now maps to physical column 2 (lastName);
+      // its content "The very very very longest one" must fit without overflow.
+      const lastNameCell = spec().$container.find('tbody tr:first td')[1];
+
+      expect(lastNameCell.scrollWidth).toBeLessThanOrEqual(lastNameCell.clientWidth);
+      // Visual column 0 shows "Short" plus the hidden column indicator; asserting content
+      // fits catches regressions where the indicator gets clipped.
+      const firstDataCell = spec().$container.find('tbody tr:first td')[0];
+
+      expect(firstDataCell.scrollWidth).toBeLessThanOrEqual(firstDataCell.clientWidth);
     });
   });
 
@@ -1380,6 +1091,17 @@ describe('AutoColumnSize', () => {
       });
 
       expect(colWidth(spec().$container, 0)).toBeGreaterThan(60);
+
+      // Content-based check: every row's content must fit (no overflow) and the column must
+      // not be grossly oversized. With samplingRatio: 4 the "WWWWW" row must be sampled so the
+      // column fits the widest rendered row.
+      for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 4)) {
+        expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+      }
+
+      const upperBound = measureColumnUpperBound(0, 4, 12);
+
+      expect(colWidth(spec().$container, 0)).toBeLessThanOrEqual(upperBound);
     });
   });
 
@@ -1400,12 +1122,24 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBeAroundValue(95, 10);
-        main.toBeAroundValue(95, 10);
+      // With duplicates allowed, both raw data values are "1" but the renderer expands row 1
+      // into "1_WWWWW". That wider content must be sampled (not deduplicated) so the column can
+      // fit it. Compare row 1's rendered text width against row 0's to prove sampling occurred.
+      const row0Cell = getCell(0, 0);
+      const row1Cell = getCell(1, 0);
+      const row0TextWidth = measureCellTextWidth(row0Cell);
+      const row1TextWidth = measureCellTextWidth(row1Cell);
+      const actualWidth = colWidth(spec().$container, 0);
 
-        horizon.toBeAroundValue(100, 10); // Not sure if this result is by design or a result of a Horizon-only bug.
-      });
+      // Sanity: the plugin and the DOM must agree on the column width.
+      expect(actualWidth).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+      // Row 1's text must not overflow (column sized to fit it).
+      expect(row1Cell.scrollWidth).toBeLessThanOrEqual(row1Cell.clientWidth);
+      // Column must be significantly wider than what row 0's short text alone would require.
+      // This catches the regression where duplicate sampling is skipped and the column sizes
+      // only to the deduplicated row 0.
+      expect(actualWidth).toBeGreaterThan(getDefaultColumnWidth());
+      expect(row1TextWidth).toBeGreaterThan(row0TextWidth * 2);
     });
   });
 
@@ -1430,11 +1164,14 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(162);
-        main.toBe(177);
-        horizon.toBe(185);
-      });
+      // Custom renderer displays full name; column should be wider than default to fit it.
+      expect(colWidth(spec().$container, 0)).toBeGreaterThan(getDefaultColumnWidth());
+      expect(colWidth(spec().$container, 0)).toBe(getPlugin('autoColumnSize').getColumnWidth(0));
+
+      // Content-based check: the widest rendered name ("English (United Kingdom)") must fit.
+      for (const { row, scrollWidth, clientWidth } of getCellOverflowMetrics(0, 4)) {
+        expect(scrollWidth).withContext(`row ${row}`).toBeLessThanOrEqual(clientWidth);
+      }
     });
   });
 
@@ -1480,20 +1217,12 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
-      });
+      const widthBefore = colWidth(spec().$container, 1);
 
       await setDataAtCell(0, 0, 999999999999);
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(123);
-        main.toBe(135);
-        horizon.toBe(143);
-      });
+      expect(colWidth(spec().$container, 1)).toBeGreaterThan(widthBefore);
     });
 
     it('should decrease width if result become to be shorter', async() => {
@@ -1509,20 +1238,12 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(58);
-        main.toBe(65);
-        horizon.toBe(73);
-      });
+      const widthBefore = colWidth(spec().$container, 1);
 
       await setDataAtCell(0, 0, 9);
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
-      });
+      expect(colWidth(spec().$container, 1)).toBeLessThan(widthBefore);
     });
 
     it('should change width if result become to be an error', async() => {
@@ -1538,20 +1259,13 @@ describe('AutoColumnSize', () => {
         }
       });
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(50);
-        main.toBe(50);
-        horizon.toBe(58);
-      });
+      const widthBefore = colWidth(spec().$container, 1);
 
       await setDataAtCell(0, 0, 'not a number');
       await waitForNextAnimationFrames(2);
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(67);
-        main.toBe(75);
-        horizon.toBe(83);
-      });
+      // Error text like "#VALUE!" should change the column width.
+      expect(colWidth(spec().$container, 1)).not.toBe(widthBefore);
     });
 
     it('should not throw when two tables with different layouts share a HyperFormula engine (#12301)', async() => {

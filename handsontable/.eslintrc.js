@@ -44,6 +44,7 @@ module.exports = {
         '*.unit.js',
         '*.spec.js',
         'src/plugins/**/__tests__/helpers/**',
+        'src/editors/**/__tests__/helpers/**',
       ],
       rules: {
         'handsontable/no-native-error-throw': 'off',

@@ -116,6 +116,14 @@ Use separate buttons for save, error recovery, and warnings. Primary and seconda
 
 Hooks: `beforeNotificationShow`, `afterNotificationShow`, `beforeNotificationHide`, and `afterNotificationHide`. Returning `false` from `beforeNotificationShow` cancels `showMessage` (no id, nothing enqueued). That hook runs once per call to `showMessage`, including when the toast is queued because `stackLimit` is full; it does not run again when a queued toast mounts. Returning `false` from `beforeNotificationHide` keeps the toast visible and stops automatic dismissal for that toast.
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 16.2.0: Simplified theming and advanced user notifications](https://handsontable.com/blog/handsontable-16.2.0-simplified-theming-and-advanced-user-notifications)
+
+</div>
+
 ## Read more
 
 - [`Notification`](@/api/notification.md) plugin reference.

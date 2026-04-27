@@ -47,8 +47,8 @@ describe('Core.selectAll', () => {
   it('should not scroll the viewport when all cells without headers are selected', async() => {
     handsontable({
       data: createSpreadsheetObjectData(15, 20),
-      width: getDefaultColumnHeaderHeight() + (getDefaultColumnWidth() * 3),
-      height: getDefaultRowHeaderWidth() + (getDefaultRowHeight() * 3),
+      width: getDefaultRowHeaderWidth() + (getDefaultColumnWidth() * 3),
+      height: getDefaultColumnHeaderHeight() + (getDefaultRowHeight() * 3),
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,
@@ -69,8 +69,8 @@ describe('Core.selectAll', () => {
   it('should not scroll the viewport when all cells with headers are selected', async() => {
     handsontable({
       data: createSpreadsheetObjectData(15, 20),
-      width: getDefaultColumnHeaderHeight() + (getDefaultColumnWidth() * 3),
-      height: getDefaultRowHeaderWidth() + (getDefaultRowHeight() * 3),
+      width: getDefaultRowHeaderWidth() + (getDefaultColumnWidth() * 3),
+      height: getDefaultColumnHeaderHeight() + (getDefaultRowHeight() * 3),
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,

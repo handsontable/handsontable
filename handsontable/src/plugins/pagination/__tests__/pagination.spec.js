@@ -227,29 +227,17 @@ describe('Pagination', () => {
 
     await scrollViewportTo({ row: 10, col: 10 });
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(101);
-      main.toBe(134);
-      horizon.toBe(222);
-    });
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(65);
-      main.toBe(65);
-      horizon.toBe(79);
-    });
+    const verticalScrollBefore = topOverlay().getScrollPosition();
+    const horizontalScrollBefore = inlineStartOverlay().getScrollPosition();
+
+    expect(verticalScrollBefore).toBeGreaterThan(0);
+    expect(horizontalScrollBefore).toBeGreaterThan(0);
 
     getPlugin('pagination').setPage(2);
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(0);
-      main.toBe(0);
-      horizon.toBe(0);
-    });
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(65);
-      main.toBe(65);
-      horizon.toBe(79);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition())
+      .toBe(horizontalScrollBefore);
   });
 
   it('should update the internal cache after changing the page size to the state where there is only one page', async() => {

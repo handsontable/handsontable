@@ -69,6 +69,7 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 
 **Location:**
 - **Unit tests**: Co-located with source in `src/**/__tests__/` directories
+- **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and its contract tests)
 - **E2E core tests**: `handsontable/test/e2e/` (top-level core tests)
 - **E2E core API tests**: `handsontable/test/e2e/core/` (per-method tests like `selectCell.spec.js`)
 - **E2E settings tests**: `handsontable/test/e2e/settings/` (per-setting tests like `colWidths.spec.js`)
@@ -379,6 +380,98 @@ export function getColumnsForFilters() { /* ... */ }
 
 **ASCII Table Selection Testing** (from `test/helpers/asciiTable.js`):
 Tests selection patterns by rendering an ASCII representation of the table's selection state using symbols like `#` (current), `0` (area), `r` (row), `c` (column).
+
+## Data-Driven Theme Assertions
+
+Theme-dependent expected values in E2E tests come from a single resolver:
+
+| File | Role |
+| --- | --- |
+| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …) plus scenario-specific `e2e*` regression helpers with descriptive names (e.g. `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`); auto-discovers themes from `src/themes/theme/index.js`; call via global `getThemeLayout()` in specs |
+
+### Entry point
+
+`themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.js`.
+Changing a theme's `density` in that module propagates to all tests automatically -- no edits to test helpers are needed.
+
+### Fundamental rule
+
+All expectations must be **pure expressions over tokens + density tokens + sizing tokens**, or derived from live DOM measurements. Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere -- they were the old pattern and have been eliminated.
+
+### Non-token-derivable values
+
+When a value cannot be derived from tokens (text shaping, autosize widths, pixel rounding), the spec uses one of:
+
+- **Live DOM measurement**: `getCell(r, c).offsetWidth`, `hot().getColWidth(col)`, `hot().getPlugin('autoColumnSize').getColumnWidth(col)`
+- **Relational assertion**: `expect(widthAfter).toBeGreaterThan(widthBefore)`, `expect(inputWidth).toBeLessThanOrEqual(menuWidth)`
+- **Tolerance-based comparison**: `toBeAroundValue(expected, 2)` or `Math.abs(actual - expected) <= 1`
+
+### Adding a new theme -- checklist
+
+See the `handsontable-css-dev` skill for the full four-layer token process. The steps specific to E2E test infrastructure are:
+
+1. Token JS: `src/themes/static/variables/tokens/<name>.js` -- camelCase token keys, values reference other tokens or primitives.
+2. Colors JS: `src/themes/static/variables/colors/<name>.js` -- color palette for the theme.
+3. Icons JS: `src/themes/static/variables/icons/<name>.js` -- icon definitions (or re-export an existing one if icons are shared).
+4. CSS source: `src/themes/static/css/theme/ht-theme-<name>.css` + `ht-theme-<name>-no-icons.css` -- declare all `--ht-*` variables for the new theme.
+5. Theme module: `src/themes/theme/<name>.js` -- exports `{ name, density, icons, colors, tokens }`.
+6. Re-export from `src/themes/theme/index.js` so auto-discovery picks it up.
+7. Validation allow-list: `src/themes/engine/utils/validation.js` (`VALID_TOKEN_KEYS` Set) -- add any new token keys introduced by the theme.
+8. `TokenKey` union: `types/themes.d.ts` -- add any new token keys so TypeScript consumers get correct types.
+9. Add E2E matrix jobs in `.github/workflows/test.yml`.
+
+No edits needed to `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
+
+**Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml(key)` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. `E2E_REGISTERED_THEME_KEYS` is derived automatically from `src/themes/theme/index.js` -- no manual registration required.
+
+### Usage in specs
+
+```js
+const layout = getThemeLayout(); // global, backed by themeLayoutFromTokens(getLoadedTheme())
+
+expect(getRowHeight(0)).toBe(layout.defaultDataRowHeight);
+expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 3 }));
+expect(topOverlay().getScrollPosition()).toBe(layout.verticalScrollForRow(250));
+```
+
+### Available metrics
+
+From `getThemeLayout()`:
+
+- `defaultDataRowHeight` -- outer height of a data row (content + 1px border)
+- `defaultColumnHeaderHeight` -- content height of column header (no border)
+- `firstRenderedRowDefaultHeight` -- first row in an overlay (extra 1px compensation)
+- `defaultColumnWidth` -- 50px (Walkontable constant)
+- `defaultRowHeaderWidth` -- 50px for every theme (Walkontable default row-header column width; used for E2E container width math so horizontal viewport matches across themes)
+- `cellContentHeight` -- same as defaultColumnHeaderHeight (TD clientHeight)
+- `lineHeight`, `cellVerticalPadding`, `cellHorizontalPadding`, `cellBorderWidth` -- token primitives to compose formulas from
+- `densityLevel` -- `'compact' | 'default' | 'comfortable'` read from the theme module (exposed for diagnostic access; **do not branch on it** -- primitives already vary per theme)
+- `overlayHeight({ rows, includeFirstRowCompensation })` -- compute overlay section height
+- `verticalScrollForRow(rowIndex)` -- compute vertical scroll for row-at-top snap
+- **`e2e*()` helpers** -- shared regression geometry with descriptive names (e.g. `e2eGcrEditedCellOuterHeight()`, `e2eManualRowResizerPositionFixedTopMasterFourthRow()`) expressed as pure arithmetic expressions over the primitives above. No density-name branching, no hardcoded per-theme literals. Add new scenarios in `themeLayoutFromTokens.js` (in the `buildThemeLayoutE2eHelpers` function) when multiple specs would otherwise embed the same formula. Add **targeted** unit tests in `themeLayoutFromTokens.unit.js` for token-derived formulas (not bulk loops that only restate helper return values).
+
+Additional viewport helpers in `common.js` (globals in E2E):
+
+- `expectedVisibleRows(containerHeight, colHeaderRows = 1)` -- number of fully visible data rows for a given container height
+- `expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1)` -- 0-based index of the last fully visible data row
+- `containerHeightForRows(rowCount, colHeaderRows = 1)` -- container height that guarantees exactly `rowCount` fully visible data rows (prefer this over hardcoded `height:` literals when the test's intent is "N rows visible")
+- `scaleHeight(mainThemeHeight)` / `scaleHeightWithScrollbar(mainThemeHeight)` -- scale a main-theme pixel height proportionally to the current theme's row height
+- `getPaginationContainerHeight()` -- returns the pagination bar's rendered `offsetHeight` measured live from the DOM once per run; theme/density/token independent
+
+### Preferred patterns
+
+- **Scroll unchanged:** Capture position before action, assert same after
+- **Scroll to row:** `layout.verticalScrollForRow(rowIndex)`
+- **Overlay heights:** `layout.overlayHeight({ rows: N })`
+- **Cell clientHeight:** `layout.cellContentHeight`
+- **Named E2E expectations:** `layout.e2e*()` helpers with descriptive names (e.g. `layout.e2eGcrEditedCellOuterHeight()`) instead of `if (getLoadedTheme() === '…')` branches in spec files
+
+### Do not use
+
+- Numeric density triplets `{ compact: N, default: N, comfortable: N }` -- the legacy pattern; derive from tokens or measure from DOM instead
+- `getLoadedTheme() !== 'main'` guards in spec files -- every test should run under every theme
+- Per-theme `switch` / `getLoadedTheme()` comparisons in spec files for layout numbers -- derive from tokens or add a token-formula helper in `themeLayoutFromTokens.js`
+- Per-theme `switch` statements in helpers for values derivable from tokens
 
 ## Coverage
 

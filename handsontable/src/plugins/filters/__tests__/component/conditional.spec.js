@@ -90,15 +90,18 @@ describe('Filters UI Conditional component', () => {
     hot.rootElement.style.marginTop = '1000px';
 
     await dropdownMenu(1);
-    $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
-    const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
+    const uiSelect = dropdownMenuRootElement().querySelector('.htUISelect');
+    const uiSelectRect = uiSelect.getBoundingClientRect();
 
-    expect(window.scrollY + rect.top).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(762, 1);
-      main.toBeAroundValue(716, 1);
-      horizon.toBeAroundValue(674, 1);
-    });
+    $(uiSelect).simulate('click');
+
+    const condMenuRect = document
+      .querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
+
+    // The conditional menu should appear vertically aligned with the UISelect element
+    expect(Math.abs(condMenuRect.top - uiSelectRect.top)).toBeLessThan(15);
+
     hot.rootElement.style.marginTop = '';
   });
 

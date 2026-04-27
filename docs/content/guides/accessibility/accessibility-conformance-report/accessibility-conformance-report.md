@@ -62,7 +62,7 @@ WCAG 2.2, published October 2023, supersedes WCAG 2.1. It removes Success Criter
 
 Handsontable supports two primary keyboard navigation paradigms configurable by the developer:
 
-- **Spreadsheet Mode** (default) - Tab/Shift+Tab as primary navigation, emulating Microsoft Excel and Google Sheets behavior.
+- **Spreadsheet Mode** (default) - <kbd>Tab</kbd>/<kbd>Shift+Tab</kbd> as primary navigation, emulating Microsoft Excel and Google Sheets behavior.
 - **Data Grid Mode** - Arrow-key navigation with a single tab stop; navigable headers via [`navigableHeaders: true`](@/api/options.md#navigableheaders); Tab navigation disabled via [`tabNavigation: false`](@/api/options.md#tabnavigation).
 
 Row and column virtualization is enabled by default. For complete assistive technology support, [`renderAllRows: true`](@/api/options.md#renderallrows) and [`renderAllColumns: true`](@/api/options.md#renderallcolumns) are recommended, which ensures a complete accessibility tree is available to screen readers.

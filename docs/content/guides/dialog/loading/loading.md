@@ -195,6 +195,7 @@ To learn more about the translation mechanism, see the [Languages guide](@/guide
 
 <div class="boxes-list gray">
 
+- [Handsontable 16.2.0: Simplified theming and advanced user notifications](https://handsontable.com/blog/handsontable-16.2.0-simplified-theming-and-advanced-user-notifications)
 - [Handsontable 16.1: Row Pagination, Loading Plugin, and Long-Term Support Policy](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
 
 </div>

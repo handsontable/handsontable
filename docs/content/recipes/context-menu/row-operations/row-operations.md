@@ -22,9 +22,10 @@ type: tutorial
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --css 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
 @[code](@/content/recipes/context-menu/row-operations/javascript/example1.js)
+@[code](@/content/recipes/context-menu/row-operations/javascript/example1.ts)
 @[code](@/content/recipes/context-menu/row-operations/javascript/example1.css)
 
 :::
@@ -45,10 +46,11 @@ type: tutorial
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/context-menu/row-operations/angular/example1.ts)
 @[code](@/content/recipes/context-menu/row-operations/angular/example1.html)
+@[code](@/content/recipes/context-menu/row-operations/angular/example1.css)
 
 :::
 

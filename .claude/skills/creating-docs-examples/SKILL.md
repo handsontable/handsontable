@@ -70,16 +70,44 @@ const App = () => {
 ```
 
 **Angular:**
-- Component logic goes in the `.ts` file; template markup goes in the `.html` file using `<hot-table>`.
 - All components must be **standalone** (`standalone: true`, `imports: [HotTableModule]`).
 - Use `app.config.ts` (not `app.module.ts`) with `ApplicationConfig`, `provideZoneChangeDetection({ eventCoalescing: true })`, and global `HOT_GLOBAL_CONFIG` for the license key.
 - Do **not** add `licenseKey` to individual `<hot-table>` bindings -- it is set globally in `app.config.ts`.
 - Template control flow: use `@if` / `@for (x of list; track x.id)` -- never `*ngIf` / `*ngFor`.
-- Row data type: use `RowObject[]` from `handsontable/common`, not `any[]`.
 - Name the component class `AppComponent` in every example.
 
-`app.config.ts` template:
+**Critical Angular JIT restrictions** — the docs site bootstraps Angular examples with JIT in the browser. JIT cannot load external files at runtime:
+
+- ❌ **Never use `styleUrls`** in standalone components. CSS is injected globally by the example-runner via the `--css` slot. If you need component-scoped styles, use inline `styles: ['...']`.
+- ❌ **Never use `templateUrl`**. Always define the component's template inline with `template: \`...\``. The `angular/example1.html` file is the **outer wrapper** (selector tag) consumed by the example-runner -- it is not the component's template.
+- ❌ **Never inject services via the constructor**. Use `inject()` instead. JIT mode lacks TypeScript decorator metadata, so constructor DI throws `NG0202`.
+- ❌ **Never bind Handsontable hooks in the template** (`(afterInit)="handler()"`). Put hook functions inside `gridSettings` instead.
+- ❌ **Only import symbols you actually use**. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
+
+The `.ts` file contains both `app.component.ts` and `app.config.ts` as separate `/* file: ... */` sections within a single file:
+
 ```typescript
+/* file: app.component.ts */
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  selector: 'example1-feature-name',
+  template: `
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+    </div>
+  `,
+})
+export class AppComponent {
+  readonly data = [...];
+  readonly gridSettings: GridSettings = { ... };
+}
+/* end-file */
+
+/* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
 import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
@@ -92,23 +120,14 @@ export const appConfig: ApplicationConfig = {
     { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig },
   ],
 };
+/* end-file */
 ```
 
-Component template:
-```typescript
-import { Component } from '@angular/core';
-import { HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
-
-@Component({
-  selector: 'app-example1',
-  standalone: true,
-  imports: [HotTableModule],
-  templateUrl: './example1.html',
-})
-export class AppComponent {
-  hotData: RowObject[] = [];
-}
+The `angular/example1.html` file is the outer wrapper (not the component template):
+```html
+<div>
+  <example1-feature-name></example1-feature-name>
+</div>
 ```
 
 See skill `angular-wrapper-dev` for the full reference.

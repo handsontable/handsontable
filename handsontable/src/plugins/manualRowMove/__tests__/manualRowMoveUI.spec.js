@@ -108,11 +108,7 @@ describe('manualRowMove', () => {
         $headers[0].simulate('mousemove');
 
         expect(spec().$container.find('.ht__manualRowMove--guideline')[0].offsetTop)
-          .forThemes(({ classic, main, horizon }) => {
-            classic.toBe(0);
-            main.toBe(0);
-            horizon.toBe(0);
-          });
+          .toBe(0);
       });
     });
 
