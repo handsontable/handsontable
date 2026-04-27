@@ -19,14 +19,12 @@ To get a personal API token: ClickUp Settings > Apps > API Token > Generate.
 
 Project-level MCP servers are configured in `.mcp.json` at the repo root. This file is committed and shared with the team.
 
-The bearer token is **not** stored in `.mcp.json`. Store it as a secret:
+The bearer token is **not** stored in `.mcp.json`. Set it as an environment variable — Claude Code expands `${CLICKUP_API_TOKEN}` from the environment at startup:
 
 ```bash
-# Store the token once (saved in Claude Code's local secrets store)
-claude secrets set CLICKUP_API_TOKEN pk_your_token_here
+# Add to your shell profile (~/.zshrc or ~/.bashrc)
+export CLICKUP_API_TOKEN=pk_your_token_here
 ```
-
-The `.mcp.json` file references the secret via `${CLICKUP_API_TOKEN}`. Claude Code expands secrets at startup.
 
 If you prefer OAuth instead of a bearer token, remove the `headers` block from `.mcp.json`. Claude Code will prompt for OAuth on first use.
 
