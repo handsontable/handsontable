@@ -1,5 +1,5 @@
 ---
-name: Explore Codebase
+name: code-graph-explore-codebase
 description: Navigate and understand codebase structure using the knowledge graph
 ---
 

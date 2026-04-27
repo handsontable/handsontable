@@ -1,5 +1,5 @@
 ---
-name: Debug Issue
+name: code-graph-debug-issue
 description: Systematically debug issues using graph-powered code navigation
 ---
 

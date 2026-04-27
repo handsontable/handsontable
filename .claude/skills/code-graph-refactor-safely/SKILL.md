@@ -1,6 +1,6 @@
 ---
-name: Refactor Safely
-description: Plan and execute safe refactoring using dependency analysis
+name: code-graph-refactor-safely
+description: Plan and execute safe refactoring using dependency analysis from the knowledge graph
 ---
 
 ## Refactor Safely
