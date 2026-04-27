@@ -17,11 +17,13 @@ import { getCellCoordsFromMousePosition } from 'handsontable/helpers/dom/cellCoo
  * @param {number}   opts.lastRow          Index of the last partially visible row.
  * @param {number}   opts.firstCol         Index of the first partially visible column.
  * @param {number}   opts.lastCol          Index of the last partially visible column.
+ * @param {boolean}  opts.isRtl            Whether the table is in RTL layout.
  * @param {number}   opts.rowHeight        Uniform row height in pixels.
  * @param {number}   opts.colWidth         Uniform column width in pixels.
  * @returns {object} Stubbed HOT instance.
  */
 function buildHot({
+  isRtl = false,
   isWindowScrollV = false,
   isWindowScrollH = false,
   tableRect = { left: 0, top: 0, right: 500, bottom: 500 },
@@ -40,6 +42,8 @@ function buildHot({
 } = {}) {
   // Cell top for row r (viewport-relative, accounting for column header and table top).
   const cellTop = r => tableRect.top + colHeaderHeight + ((r - firstRow) * rowHeight);
+  // Cell right for col c in RTL (columns grow leftward from the right edge of the viewport).
+  const cellRight = c => tableRect.right - rowHeaderWidth - ((c - firstCol) * colWidth);
   // Cell left for col c (viewport-relative, accounting for row header and table left).
   const cellLeft = c => tableRect.left + rowHeaderWidth + ((c - firstCol) * colWidth);
 
@@ -48,7 +52,7 @@ function buildHot({
     rootElement: {
       getBoundingClientRect: () => ({ ...tableRect }),
     },
-    isRtl: () => false,
+    isRtl: () => isRtl,
     hasColHeaders: () => colHeaderHeight > 0,
     hasRowHeaders: () => rowHeaderWidth > 0,
     getFirstPartiallyVisibleRow: () => firstRow,
@@ -60,12 +64,23 @@ function buildHot({
     getCell: (row, col) => ({
       offsetHeight: rowHeight,
       offsetWidth: colWidth,
-      getBoundingClientRect: () => ({
-        top: cellTop(row),
-        left: cellLeft(col),
-        bottom: cellTop(row) + rowHeight,
-        right: cellLeft(col) + colWidth,
-      }),
+      getBoundingClientRect() {
+        if (isRtl) {
+          return {
+            top: cellTop(row),
+            right: cellRight(col),
+            bottom: cellTop(row) + rowHeight,
+            left: cellRight(col) - colWidth,
+          };
+        }
+
+        return {
+          top: cellTop(row),
+          left: cellLeft(col),
+          bottom: cellTop(row) + rowHeight,
+          right: cellLeft(col) + colWidth,
+        };
+      },
     }),
     getCellMeta: () => ({ rowspan: 1, colspan: 1 }),
     _createCellCoords: (row, col) => ({ row, col }),
@@ -203,6 +218,39 @@ describe('getCellCoordsFromMousePosition', () => {
 
       // Last partially visible column is 18.
       expect(coords.col).toBe(18);
+    });
+  });
+
+  describe('window-scroll horizontal boundary — RTL left edge', () => {
+    // RTL geometry: table extends far to the left (scrolled so col 35 is the leftmost
+    // visible). tableRect.left is positive because in RTL the browser has scrolled
+    // rightward, pushing the table's left edge into positive viewport space.
+    // This reproduces the bug where clamping to tableOffset.left caused the computed
+    // column to stay constant as the table scrolled, so the selection never advanced.
+    const rtlLeftEdgeGeometry = {
+      isWindowScrollH: true,
+      tableRect: { left: 322, top: 0, right: 1422, bottom: 400 },
+      innerWidth: 1100,
+      innerHeight: 720,
+      viewportWidth: 1100,
+      viewportHeight: 400,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 6, // lowest-indexed visible col (rightmost in RTL)
+      lastCol: 25, // highest-indexed visible col (leftmost in RTL)
+      rowHeight: 30,
+      colWidth: 50,
+    };
+
+    it('returns the leftmost visible column when mouseX is past the left viewport edge in RTL window-scroll', () => {
+      const hot = buildHot({ ...rtlLeftEdgeGeometry, isRtl: true });
+      // Mouse is 100px past the left viewport edge — simulates dragging leftward in RTL.
+      const coords = getCellCoordsFromMousePosition(hot, -100, 15);
+
+      // Must return the leftmost visible column (lastCol = 25), not a mid-viewport column.
+      // The old bug caused this to return col ~19 because clamping to tableRect.left
+      // (322) kept scrollRelativeX constant across scroll ticks.
+      expect(coords.col).toBe(25);
     });
   });
 });

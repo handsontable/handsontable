@@ -104,22 +104,28 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   const lastPartiallyVisibleColumn = hotInstance.getLastPartiallyVisibleColumn();
   const tableOffset = hotInstance.rootElement.getBoundingClientRect();
 
-  const tableViewportLeft = tableOffset.left;
-  const tableViewportTop = tableOffset.top;
   const columnHeaderHeight = hotInstance.hasColHeaders() ? view.getColumnHeaderHeight() : 0;
   const rowHeaderWidth = hotInstance.hasRowHeaders() ? view.getRowHeaderWidth() : 0;
-  // When the window is the scroll container, tableOffset.top/left can be negative (the
-  // table has been scrolled above/left of the viewport). The naive formula
-  // `tableOffset.top + workspaceHeight` then evaluates to a small-or-negative number,
-  // clamping any below-window mouse Y to a row near the viewport top and causing the
-  // selection to jump upward on drag. Use the physical window bounds instead.
+  // When the window is the scroll container, tableOffset.top/left can be positive (RTL) or
+  // negative (LTR after scrolling) relative to the viewport. The naive formula using
+  // tableOffset as the viewport boundary causes the clamped mouse position to shift with
+  // each scroll tick, locking getCellCoordsFromMousePosition onto the same column/row
+  // regardless of scroll position. Use the physical window bounds (0 / innerWidth /
+  // innerHeight) instead so the clamped position stays fixed and the cell lookup always
+  // resolves to the edge cell of the CURRENT viewport.
   const { rootWindow } = hotInstance;
+  const tableViewportLeft = view.isHorizontallyScrollableByWindow()
+    ? 0
+    : tableOffset.left;
+  const tableViewportTop = view.isVerticallyScrollableByWindow()
+    ? 0
+    : tableOffset.top;
   const tableViewportRight = view.isHorizontallyScrollableByWindow()
     ? rootWindow.innerWidth
-    : tableViewportLeft + view.getViewportWidth() + rowHeaderWidth;
+    : tableOffset.left + view.getViewportWidth() + rowHeaderWidth;
   const tableViewportBottom = view.isVerticallyScrollableByWindow()
     ? rootWindow.innerHeight
-    : tableViewportTop + view.getViewportHeight() + columnHeaderHeight;
+    : tableOffset.top + view.getViewportHeight() + columnHeaderHeight;
 
   const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
   const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
