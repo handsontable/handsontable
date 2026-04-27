@@ -7,7 +7,6 @@ canonicalUrl: /recipes/column-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
 id: z7g9h1i3
 react:
   id: a8h0i2j4
@@ -28,7 +27,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Build a dynamic column visibility toggle](@/recipes/column-management/column-visibility/column-visibility.md)
-- [Freeze and unfreeze columns at runtime](@/recipes/column-management/freeze-columns/freeze-columns.md)
+- [Build a dynamic column visibility toggle](@/content/recipes/column-management/column-visibility/column-visibility.md)
+- [Freeze and unfreeze columns at runtime](@/content/recipes/column-management/freeze-columns/freeze-columns.md)
 
 </div>

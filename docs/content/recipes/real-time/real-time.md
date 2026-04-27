@@ -7,7 +7,6 @@ canonicalUrl: /recipes/real-time
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
 id: w4d6e8f0
 react:
   id: x5e7f9g1
@@ -28,7 +27,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Real-time cell updates via WebSocket](@/recipes/real-time/websocket-updates/websocket-updates.md)
-- [Sync rows to a Chart.js chart](@/recipes/real-time/chartjs-sync/chartjs-sync.md)
+- [Real-time cell updates via WebSocket](@/content/recipes/real-time/websocket-updates/websocket-updates.md)
+- [Sync rows to a Chart.js chart](@/content/recipes/real-time/chartjs-sync/chartjs-sync.md)
 
 </div>

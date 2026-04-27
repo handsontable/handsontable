@@ -7,7 +7,6 @@ canonicalUrl: /recipes/context-menu
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
 id: c0j2k4l6
 react:
   id: d1k3l5m7
@@ -28,7 +27,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Custom context menu actions](@/recipes/context-menu/custom-context-menu/custom-context-menu.md)
-- [Programmatic row operations](@/recipes/context-menu/row-operations/row-operations.md)
+- [Custom context menu actions](@/content/recipes/context-menu/custom-context-menu/custom-context-menu.md)
+- [Programmatic row operations](@/content/recipes/context-menu/row-operations/row-operations.md)
 
 </div>

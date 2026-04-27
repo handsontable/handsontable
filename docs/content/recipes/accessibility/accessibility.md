@@ -7,7 +7,6 @@ canonicalUrl: /recipes/accessibility
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
 id: t1a3b5c7
 react:
   id: u2b4c6d8
@@ -28,7 +27,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Custom keyboard shortcuts](@/recipes/accessibility/keyboard-shortcuts/keyboard-shortcuts.md)
-- [ARIA-friendly grid](@/recipes/accessibility/aria-grid/aria-grid.md)
+- [Custom keyboard shortcuts](@/content/recipes/accessibility/keyboard-shortcuts/keyboard-shortcuts.md)
+- [ARIA-friendly grid](@/content/recipes/accessibility/aria-grid/aria-grid.md)
 
 </div>
