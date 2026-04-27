@@ -34,4 +34,4 @@ jobs:
         run: CI=true pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm --filter handsontable-documentation run docs:lint
+        run: npm run test --prefix docs run docs:lint
