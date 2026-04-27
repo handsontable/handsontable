@@ -39,6 +39,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Detect release branch
         id: release-info
@@ -126,13 +127,9 @@ jobs:
             🏗️ Preview documentation is being built/rebuilt.
             Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
-      - name: Install the documentation dependencies
+      - name: Install the monorepo dependencies (including docs) and build the packages
+        working-directory: .
         run: |
-          npm ci --legacy-peer-deps
-
-      - name: Install the monorepo dependencies and build the packages
-        run: |
-          cd ..
           pnpm install
           npm run all build -- --e examples visual-tests
 
