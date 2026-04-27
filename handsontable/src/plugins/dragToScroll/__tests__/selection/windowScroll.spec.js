@@ -62,7 +62,10 @@ describe('DragToScroll selection — window scroll', () => {
         clientY: window.innerHeight + 50,
       });
 
-    await waitForNextAnimationFrames(12);
+    // Use sleep instead of waitForNextAnimationFrames. The DragToScroll auto-scroller uses
+    // setTimeout (via hot._registerTimeout), so sleep() reliably yields to both the first
+    // immediate auto-scroll tick and any subsequent ticks — no rAF needed.
+    await sleep(400);
 
     $(document.body).simulate('mouseup');
 

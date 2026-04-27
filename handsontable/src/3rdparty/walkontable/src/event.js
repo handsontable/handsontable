@@ -394,8 +394,13 @@ class Event {
       const hasRowHeaders = this.#wtSettings.getSetting('rowHeaders').length > 0;
       const columnHeaderHeight = hasColHeaders ? wot.wtViewport.getColumnHeaderHeight() : 0;
       const rowHeaderWidth = hasRowHeaders ? wot.wtViewport.getRowHeaderWidth() : 0;
-      const tableViewportRight = tableViewportLeft + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
-      const tableViewportBottom = tableViewportTop + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
+      const { rootWindow } = this.#domBindings;
+      const tableViewportRight = wot.wtViewport.isHorizontallyScrollableByWindow()
+        ? rootWindow.innerWidth
+        : tableViewportLeft + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
+      const tableViewportBottom = wot.wtViewport.isVerticallyScrollableByWindow()
+        ? rootWindow.innerHeight
+        : tableViewportTop + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
 
       const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
       const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);

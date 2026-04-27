@@ -356,7 +356,10 @@ export class DragToScroll extends BasePlugin {
       : this.hot.getFirstPartiallyVisibleColumn() - 1;
     const horizontalSnap = shouldAdvance ? 'start' : 'end';
 
-    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn, horizontalSnap });
+    // The no-op callback causes hot.scrollViewportTo to call view.render() after scrolling,
+    // which ensures afterScroll fires even in environments where programmatic window.scrollTo()
+    // does not emit a native `scroll` DOM event (e.g. headless Chrome without scroll-event support).
+    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn, horizontalSnap }, () => {});
 
     if (!isScrolled) {
       this.#autoScroller.stopHorizontal();
@@ -374,7 +377,8 @@ export class DragToScroll extends BasePlugin {
     const lastVisibleRow = this.hot.getLastFullyVisibleRow();
     const scrollRow = distance > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
 
-    const isScrolled = this.hot.scrollViewportTo({ row: scrollRow });
+    // See the comment in #scrollHorizontal for why a no-op callback is passed.
+    const isScrolled = this.hot.scrollViewportTo({ row: scrollRow }, () => {});
 
     if (!isScrolled) {
       this.#autoScroller.stopVertical();

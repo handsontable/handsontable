@@ -115,10 +115,10 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   // selection to jump upward on drag. Use the physical window bounds instead.
   const { rootWindow } = hotInstance;
   const tableViewportRight = view.isHorizontallyScrollableByWindow()
-    ? Math.min(tableOffset.right, rootWindow.innerWidth)
+    ? rootWindow.innerWidth
     : tableViewportLeft + view.getViewportWidth() + rowHeaderWidth;
   const tableViewportBottom = view.isVerticallyScrollableByWindow()
-    ? Math.min(tableOffset.bottom, rootWindow.innerHeight)
+    ? rootWindow.innerHeight
     : tableViewportTop + view.getViewportHeight() + columnHeaderHeight;
 
   const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
