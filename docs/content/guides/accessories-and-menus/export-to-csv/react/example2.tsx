@@ -27,10 +27,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button id="export-blob" onClick={() => buttonClickCallback()}>
-          Export as a Blob
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="export-blob" onClick={() => buttonClickCallback()}>
+            Export as a Blob
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

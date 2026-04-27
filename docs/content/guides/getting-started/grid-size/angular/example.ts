@@ -6,14 +6,16 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
   selector: 'example-grid-size',
   standalone: true,
   imports: [HotTableModule],
-  template: `<div class="controls">
-      <button
-        id="triggerBtn"
-        class="button button--primary"
-        (click)="btnClick()"
-      >
-        {{ isContainerExpanded ? 'Collapse container' : 'Expand container' }}
-      </button>
+  template: `<div class="example-controls-container">
+      <div class="controls">
+        <button
+          id="triggerBtn"
+          class="button button--primary"
+          (click)="btnClick()"
+        >
+          {{ isContainerExpanded ? 'Collapse container' : 'Expand container' }}
+        </button>
+      </div>
     </div>
     <div class="table-container" [style.height.px]="currentHeight">
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
