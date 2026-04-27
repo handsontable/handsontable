@@ -122,7 +122,7 @@ The `.cursor/mcp.json` and `.mcp.json` files also configure:
 
 | Server | Purpose |
 |---|---|
-| `github` | Read/write GitHub issues, PRs, and checks via `GITHUB_TOKEN` |
+| `github` | Read/write GitHub issues, PRs, and checks via `GITHUB_PERSONAL_ACCESS_TOKEN` (the package reads this env var — `GITHUB_TOKEN` is silently ignored) |
 | `filesystem_workspace` | Read/write access to the full repo workspace |
 | `filesystem_docs` | Read/write access to `./docs/content` only |
 | `code-review-graph` | Knowledge graph over the codebase (see above) |
