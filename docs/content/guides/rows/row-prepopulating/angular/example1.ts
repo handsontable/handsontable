@@ -47,13 +47,13 @@ export class AppComponent implements AfterViewInit {
     }
 
     const defaultValueRenderer = (
-      instance: any,
-      td: any,
-      row: any,
-      col: any,
-      prop: any,
-      value: any,
-      cellProperties: any
+      instance: Handsontable,
+      td: HTMLTableCellElement,
+      row: number,
+      col: number,
+      prop: string | number,
+      value: Handsontable.CellValue,
+      cellProperties: Handsontable.CellMeta
     ) => {
       if (value === null && isEmptyRow(instance, row)) {
         value = templateValues[col];
@@ -88,8 +88,8 @@ export class AppComponent implements AfterViewInit {
       beforeChange: function (changes) {
         const instance = hot;
         const columns = instance.countCols();
-        const rowColumnSeen = {};
-        const rowsToFill = {};
+        const rowColumnSeen: Record<string, boolean> = {};
+        const rowsToFill: Record<string, boolean> = {};
         const ch = changes === null ? [] : changes!;
 
         for (let i = 0; i < changes.length; i++) {
@@ -97,10 +97,8 @@ export class AppComponent implements AfterViewInit {
           if (ch[i]![2] === null && ch[i]![3] !== null) {
             if (isEmptyRow(instance, ch[i]![0])) {
               // add this row/col combination to the cache so it will not be overwritten by the template
-              // @ts-ignore
               rowColumnSeen[`${ch[i]![0]}/${ch[i]![1]}`] = true;
-              // @ts-ignore
-              rowsToFill[ch[i][0]] = true;
+              rowsToFill[String(ch[i]![0])] = true;
             }
           }
         }
@@ -109,7 +107,6 @@ export class AppComponent implements AfterViewInit {
           if (rowsToFill.hasOwnProperty(r)) {
             for (let c = 0; c < columns; c++) {
               // if it is not provided by user in this change set, take the value from the template
-              // @ts-ignore
               if (!rowColumnSeen[`${r}/${c}`]) {
                 changes.push([Number(r), c, null, templateValues[c]]);
               }

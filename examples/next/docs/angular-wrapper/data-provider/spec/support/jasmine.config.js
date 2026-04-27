@@ -1,5 +1,6 @@
 // setup Jasmine
 const path = require('path');
+const { spawn } = require('child_process');
 const { createServer } = require('http-server');
 const Jasmine = require('jasmine');
 
@@ -33,20 +34,38 @@ jasmine.env.clearReporters();
 jasmine.addReporter(reporter);
 jasmine.execute();
 
+const EXAMPLE_ROOT = path.resolve(__dirname, '../..');
+const node = process.execPath;
 let server;
+let restServer;
+let graphqlServer;
 
-beforeAll(() => {
+beforeAll((done) => {
+  restServer = spawn(node, [path.join(EXAMPLE_ROOT, 'server-rest.mjs')], {
+    stdio: 'inherit',
+    env: { ...process.env, PORT: process.env.REST_PORT || '4010' },
+  });
+  graphqlServer = spawn(node, [path.join(EXAMPLE_ROOT, 'server-graphql.mjs')], {
+    stdio: 'inherit',
+    env: { ...process.env, PORT: process.env.GRAPHQL_PORT || '4011' },
+  });
+
   if (!process.env.TEST_URL) {
     server = createServer({
-      root: path.resolve(`${__dirname}`, '../../dist'),
+      root: path.resolve(EXAMPLE_ROOT, 'dist'),
       showDir: true,
       autoIndex: true,
     });
 
     server.listen('8080');
   }
+
+  // Give the backend servers a moment to start accepting connections.
+  setTimeout(done, 2000);
 });
 
 afterAll(() => {
+  restServer?.kill('SIGTERM');
+  graphqlServer?.kill('SIGTERM');
   server?.close();
 });

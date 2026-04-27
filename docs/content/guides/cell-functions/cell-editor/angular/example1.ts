@@ -12,12 +12,12 @@ export class EditorComponent extends HotCellEditorComponent<string> {
   override onFocus(): void {}
 
   toUpperCase(): void {
-    this.setValue(this.getValue().toUpperCase());
+    this.setValue((this.getValue() ?? '').toUpperCase());
     this.finishEdit.emit();
   }
 
   toLowerCase(): void {
-    this.setValue(this.getValue().toLowerCase());
+    this.setValue((this.getValue() ?? '').toLowerCase());
     this.finishEdit.emit();
   }
 }

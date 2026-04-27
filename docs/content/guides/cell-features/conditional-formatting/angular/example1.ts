@@ -10,9 +10,9 @@ const firstRowRenderer = (
   td: HTMLTableCellElement,
   row: number,
   col: number,
-  prop: any,
-  value: any,
-  cellProperties: any
+  prop: string | number,
+  value: Handsontable.CellValue,
+  cellProperties: Handsontable.CellMeta
 ) => {
   textRenderer(
     instance,
@@ -33,9 +33,9 @@ const negativeValueRenderer = (
   td: HTMLTableCellElement,
   row: number,
   col: number,
-  prop: any,
-  value: any,
-  cellProperties: any
+  prop: string | number,
+  value: Handsontable.CellValue,
+  cellProperties: Handsontable.CellMeta
 ) => {
   textRenderer(
     instance,
