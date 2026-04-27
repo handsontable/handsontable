@@ -1,8 +1,7 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE, HotTableModule} from '@handsontable/angular-wrapper';
 import {PredefinedMenuItemKey} from 'handsontable/plugins/contextMenu';
-import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme, ThemeColorScheme} from 'handsontable/themes';
 
 registerTheme(mainTheme);
@@ -1215,46 +1214,36 @@ export const data = [
 
 @Component({
   standalone: true,
-  imports: [HotTableModule, ReactiveFormsModule],
+  imports: [HotTableModule],
   selector: 'app-example1',
-  styles: `
-  .color-select {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .color-box {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    padding: 3px 5px;
-    border-radius: 10px;
-    background: var(--sl-color-gray-5);
-    pointer-events: none;
-  }
-  .color-box .color {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    border: 1px solid var(--sl-color-gray-4);
-  }
-  `,
   template: `
     <div class="example-controls-container">
       <div class="controls">
-        <label class="color-select">
-          <select [formControl]="themeControl" id="themeSelect">
-            @for (option of themeOptions; track option.value) {
-              <option [value]="option.value">{{option.label}}</option>
-            }
-          </select>
-          <div #colorBox id="colorBox" class="color-box">
-            <span class="color" style="background: var(--ht-foreground-color);"></span>
-            <span class="color" style="background: var(--ht-background-color);"></span>
-            <span class="color" style="background: var(--ht-accent-color);"></span>
-          </div>
-        </label>
+        <div class="theme-dropdown" (click)="$event.stopPropagation()">
+          <button class="theme-dropdown-trigger" type="button" aria-haspopup="listbox" [attr.aria-expanded]="menuOpen" (click)="menuOpen = !menuOpen">
+            <span class="theme-dropdown-colors">
+              <span class="color" [style.background]="triggerColors.fg"></span>
+              <span class="color" [style.background]="triggerColors.bg"></span>
+              <span class="color" [style.background]="triggerColors.accent"></span>
+            </span>
+            <span class="theme-dropdown-label">{{currentThemeLabel}}</span>
+            <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          @if (menuOpen) {
+            <ul class="theme-dropdown-menu" role="listbox">
+              @for (option of themeOptions; track option.value) {
+                <li role="option" [attr.aria-selected]="option.value === selectedTheme" (click)="selectTheme(option.value)">
+                  <span [class]="'theme-dropdown-colors ' + option.themeClass">
+                    <span class="color" style="background: var(--ht-foreground-color);"></span>
+                    <span class="color" style="background: var(--ht-background-color);"></span>
+                    <span class="color" style="background: var(--ht-accent-color);"></span>
+                  </span>
+                  {{option.label}}
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </div>
     </div>
     <hot-table
@@ -1265,22 +1254,27 @@ export const data = [
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
-  @ViewChild('colorBox', {static: true}) colorBox!: ElementRef;
 
   readonly hotData = data;
 
   hotSettings!: GridSettings;
 
-  themeControl = new FormControl('main');
+  menuOpen = false;
+  selectedTheme = 'horizon-light';
+  triggerColors: {fg: string; bg: string; accent: string} = {fg: '', bg: '', accent: ''};
 
-  themeOptions: Array<{value: string; label: string}> = [
-    { value: 'main-light', label: 'Main Light' },
-    { value: 'main-dark', label: 'Main Dark' },
-    { value: 'horizon-light', label: 'Horizon Light' },
-    { value: 'horizon-dark', label: 'Horizon Dark' },
-    { value: 'classic-light', label: 'Classic Light' },
-    { value: 'classic-dark', label: 'Classic Dark' }
+  themeOptions: Array<{value: string; label: string; themeClass: string}> = [
+    { value: 'main-light', label: 'Main Light', themeClass: 'ht-theme-main' },
+    { value: 'main-dark', label: 'Main Dark', themeClass: 'ht-theme-main-dark' },
+    { value: 'horizon-light', label: 'Horizon Light', themeClass: 'ht-theme-horizon' },
+    { value: 'horizon-dark', label: 'Horizon Dark', themeClass: 'ht-theme-horizon-dark' },
+    { value: 'classic-light', label: 'Classic Light', themeClass: 'ht-theme-classic' },
+    { value: 'classic-dark', label: 'Classic Dark', themeClass: 'ht-theme-classic-dark' }
   ];
+
+  get currentThemeLabel(): string {
+    return this.themeOptions.find(o => o.value === this.selectedTheme)?.label ?? '';
+  }
 
   ngOnInit() {
     this.hotSettings = {
@@ -1373,26 +1367,50 @@ export class AppComponent implements OnInit, AfterViewInit {
       ? 'horizon-dark'
       : 'horizon-light';
 
-    this.themeControl.setValue(currentTheme);
+    this.selectedTheme = currentTheme;
     this.setTheme(currentTheme);
+  }
 
-    this.themeControl.valueChanges.subscribe(themeName => {
-      this.setTheme(themeName!);
-    });
+  selectTheme(value: string): void {
+    this.selectedTheme = value;
+    this.menuOpen = false;
+    this.setTheme(value);
   }
 
   setTheme = (theme: string) => {
     const [themeName, colorScheme] = theme.split('-');
     const scheme: ThemeColorScheme = (colorScheme as ThemeColorScheme) ?? 'auto';
 
-    this.colorBox.nativeElement.classList.value = `color-box ht-theme-${themeName}`;
     this.hotTable.hotInstance?.updateSettings({
       theme: getTheme(themeName)?.setColorScheme(scheme)
     });
 
-    const container = this.colorBox.nativeElement.closest('.disable-auto-theme') as HTMLElement | null;
+    const gridEl = this.hotTable.hotInstance?.rootElement;
 
-    if (container) container.dataset['colorScheme'] = colorScheme ?? 'auto';
+    if (gridEl) {
+      const helper = document.createElement('div');
+
+      helper.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+      gridEl.appendChild(helper);
+
+      const resolve = (varName: string) => {
+        helper.style.color = `var(${varName})`;
+
+        return getComputedStyle(helper).color;
+      };
+
+      this.triggerColors = {
+        fg: resolve('--ht-foreground-color'),
+        bg: resolve('--ht-background-color'),
+        accent: resolve('--ht-accent-color'),
+      };
+
+      gridEl.removeChild(helper);
+
+      const container = gridEl.closest('.disable-auto-theme') as HTMLElement | null;
+
+      if (container) container.dataset['colorScheme'] = colorScheme ?? 'auto';
+    }
   };
 }
 /* end-file */
