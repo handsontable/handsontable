@@ -1,11 +1,13 @@
 ---
 name: code-graph-review-changes
-description: Perform a structured code review using change detection and impact analysis from the knowledge graph
+description: Use when reviewing a branch, PR, or set of recent changes - get change detection with risk scoring, affected execution flows, and impact radius across files. Prefer over manually walking the diff line-by-line. Trigger on phrases like "review this PR", "review my changes", "what's the risk of this branch", "what does this change affect", "are there regressions in", "review the diff", or any request to assess the safety or quality of pending changes.
 ---
 
 ## Review Changes
 
 Perform a thorough, risk-aware code review using the knowledge graph.
+
+**Before the first graph call in a session**, load the tool schemas: call `ToolSearch` with `query: "select:mcp__code-review-graph__detect_changes_tool,mcp__code-review-graph__get_affected_flows_tool,mcp__code-review-graph__get_impact_radius_tool"` (or whichever tools you plan to call). Graph MCP tools are deferred at session start, so calling them without this bootstrap fails with `InputValidationError`. One cheap call unblocks every subsequent graph query for the rest of the session.
 
 ### Steps
 
