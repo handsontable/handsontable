@@ -61,27 +61,18 @@ function buildHot({
     getLastPartiallyVisibleColumn: () => lastCol,
     countRows: () => lastRow + 1,
     countCols: () => lastCol + 1,
-    getCell: (row, col) => ({
-      offsetHeight: rowHeight,
-      offsetWidth: colWidth,
-      getBoundingClientRect() {
-        if (isRtl) {
-          return {
-            top: cellTop(row),
-            right: cellRight(col),
-            bottom: cellTop(row) + rowHeight,
-            left: cellRight(col) - colWidth,
-          };
-        }
+    getCell: (row, col) => {
+      const el = document.createElement('td');
+      const rect = isRtl
+        ? { top: cellTop(row), right: cellRight(col), bottom: cellTop(row) + rowHeight, left: cellRight(col) - colWidth }
+        : { top: cellTop(row), left: cellLeft(col), bottom: cellTop(row) + rowHeight, right: cellLeft(col) + colWidth };
 
-        return {
-          top: cellTop(row),
-          left: cellLeft(col),
-          bottom: cellTop(row) + rowHeight,
-          right: cellLeft(col) + colWidth,
-        };
-      },
-    }),
+      Object.defineProperty(el, 'offsetHeight', { get: () => rowHeight });
+      Object.defineProperty(el, 'offsetWidth', { get: () => colWidth });
+      el.getBoundingClientRect = () => rect;
+
+      return el;
+    },
     getCellMeta: () => ({ rowspan: 1, colspan: 1 }),
     _createCellCoords: (row, col) => ({ row, col }),
     columnIndexMapper: {
