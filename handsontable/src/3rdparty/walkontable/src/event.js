@@ -283,6 +283,12 @@ class Event {
     }
   }
 
+  /**
+   * OnMouseMove callback.
+   *
+   * @private
+   * @param {MouseEvent} event The mouse event object.
+   */
   onMouseMove(event) {
     const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
 

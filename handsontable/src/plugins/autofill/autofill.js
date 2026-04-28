@@ -48,10 +48,6 @@ export class Autofill extends BasePlugin {
     ];
   }
 
-  static get PLUGIN_OPTION_KEY() {
-    return SETTING_KEY;
-  }
-
   static get DEFAULT_SETTINGS() {
     return {
       direction: undefined,

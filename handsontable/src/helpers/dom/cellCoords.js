@@ -145,41 +145,47 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
     const firstFixedColumn = columnIndexMapper.getVisualFromRenderableIndex(0);
     const firstNonHiddenColumn = columnIndexMapper.getNearestNotHiddenIndex(firstFixedColumn, 1);
     const fixedCell = hotInstance.getCell(firstPartiallyVisibleRow, firstNonHiddenColumn, true);
-    const fixedCellRect = fixedCell.getBoundingClientRect();
-    const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
 
-    foundColumn = findColumnAtX(
-      hotInstance,
-      firstPartiallyVisibleRow,
-      firstNonHiddenColumn,
-      columnIndexMapper.getVisualFromRenderableIndex(numberOfFixedColumnsStart - 1),
-      fixedRelativeX,
-    );
+    if (fixedCell instanceof HTMLElement) {
+      const fixedCellRect = fixedCell.getBoundingClientRect();
+      const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
+
+      foundColumn = findColumnAtX(
+        hotInstance,
+        firstPartiallyVisibleRow,
+        firstNonHiddenColumn,
+        columnIndexMapper.getVisualFromRenderableIndex(numberOfFixedColumnsStart - 1),
+        fixedRelativeX,
+      );
+    }
   }
 
   // If not in fixed columns, check scrollable columns (main table)
   if (foundColumn === null) {
     const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
-    const scrollCellRect = scrollCell.getBoundingClientRect();
-    const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
 
-    foundColumn = findColumnAtX(
-      hotInstance,
-      firstPartiallyVisibleRow,
-      firstPartiallyVisibleColumn,
-      lastPartiallyVisibleColumn,
-      scrollRelativeX,
-    );
+    if (scrollCell instanceof HTMLElement) {
+      const scrollCellRect = scrollCell.getBoundingClientRect();
+      const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
 
-    // Fallback to edge columns if still not found.
-    // If `lastPartiallyVisibleColumn` is null (e.g., the HoT is positioned off-screen and
-    // viewport queries return invalid indexes), fall back to the global column bounds.
-    if (foundColumn === null) {
-      if (scrollRelativeX < 0) {
-        foundColumn = firstPartiallyVisibleColumn ?? 0;
-      } else {
-        foundColumn = lastPartiallyVisibleColumn ?? (hotInstance.countCols() - 1);
+      foundColumn = findColumnAtX(
+        hotInstance,
+        firstPartiallyVisibleRow,
+        firstPartiallyVisibleColumn,
+        lastPartiallyVisibleColumn,
+        scrollRelativeX,
+      );
+
+      // Fallback to edge columns if still not found.
+      // If `lastPartiallyVisibleColumn` is null (e.g., the HoT is positioned off-screen and
+      // viewport queries return invalid indexes), fall back to the global column bounds.
+      if (foundColumn === null) {
+        foundColumn = scrollRelativeX < 0
+          ? firstPartiallyVisibleColumn ?? 0
+          : lastPartiallyVisibleColumn ?? (hotInstance.countCols() - 1);
       }
+    } else {
+      foundColumn = firstPartiallyVisibleColumn ?? 0;
     }
   }
 
@@ -190,16 +196,19 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
     const firstFixedRow = rowIndexMapper.getVisualFromRenderableIndex(0);
     const firstNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(firstFixedRow, 1);
     const fixedCell = hotInstance.getCell(firstNonHiddenRow, firstPartiallyVisibleColumn, true);
-    const fixedCellRect = fixedCell.getBoundingClientRect();
-    const fixedRelativeY = clampedY - fixedCellRect.top;
 
-    foundRow = findRowAtY(
-      hotInstance,
-      firstPartiallyVisibleColumn,
-      firstNonHiddenRow,
-      rowIndexMapper.getVisualFromRenderableIndex(numberOfFixedRowsTop - 1),
-      fixedRelativeY,
-    );
+    if (fixedCell instanceof HTMLElement) {
+      const fixedCellRect = fixedCell.getBoundingClientRect();
+      const fixedRelativeY = clampedY - fixedCellRect.top;
+
+      foundRow = findRowAtY(
+        hotInstance,
+        firstPartiallyVisibleColumn,
+        firstNonHiddenRow,
+        rowIndexMapper.getVisualFromRenderableIndex(numberOfFixedRowsTop - 1),
+        fixedRelativeY,
+      );
+    }
   }
 
   // Check fixed bottom rows if not found in fixed top rows
@@ -210,20 +219,23 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
     const bottomStartNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(bottomStartRow, 1);
     const bottomEndNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(bottomEndRow, -1);
     const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, firstPartiallyVisibleColumn, true);
-    const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
-    const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
-    if (fixedBottomRelativeY >= 0) {
-      foundRow = findRowAtY(
-        hotInstance,
-        firstPartiallyVisibleColumn,
-        bottomStartNonHiddenRow,
-        bottomEndNonHiddenRow,
-        fixedBottomRelativeY
-      );
+    if (fixedBottomCell instanceof HTMLElement) {
+      const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
+      const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
-      if (foundRow === null) {
-        foundRow = bottomEndNonHiddenRow;
+      if (fixedBottomRelativeY >= 0) {
+        foundRow = findRowAtY(
+          hotInstance,
+          firstPartiallyVisibleColumn,
+          bottomStartNonHiddenRow,
+          bottomEndNonHiddenRow,
+          fixedBottomRelativeY
+        );
+
+        if (foundRow === null) {
+          foundRow = bottomEndNonHiddenRow;
+        }
       }
     }
   }
@@ -231,25 +243,28 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   // Check scrollable rows (main table)
   if (foundRow === null) {
     const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
-    const scrollCellRect = scrollCell.getBoundingClientRect();
-    const scrollRelativeY = clampedY - scrollCellRect.top;
 
-    foundRow = findRowAtY(
-      hotInstance,
-      firstPartiallyVisibleColumn,
-      firstPartiallyVisibleRow,
-      lastPartiallyVisibleRow,
-      scrollRelativeY,
-    );
+    if (scrollCell instanceof HTMLElement) {
+      const scrollCellRect = scrollCell.getBoundingClientRect();
+      const scrollRelativeY = clampedY - scrollCellRect.top;
 
-    // Fallback to edge rows if still not found. If the viewport query returns null
-    // (off-screen HoT edge case), use the global row bounds.
-    if (foundRow === null) {
-      if (scrollRelativeY < 0) {
-        foundRow = firstPartiallyVisibleRow ?? 0;
-      } else {
-        foundRow = lastPartiallyVisibleRow ?? (hotInstance.countRows() - 1);
+      foundRow = findRowAtY(
+        hotInstance,
+        firstPartiallyVisibleColumn,
+        firstPartiallyVisibleRow,
+        lastPartiallyVisibleRow,
+        scrollRelativeY,
+      );
+
+      // Fallback to edge rows if still not found. If the viewport query returns null
+      // (off-screen HoT edge case), use the global row bounds.
+      if (foundRow === null) {
+        foundRow = scrollRelativeY < 0
+          ? firstPartiallyVisibleRow ?? 0
+          : lastPartiallyVisibleRow ?? (hotInstance.countRows() - 1);
       }
+    } else {
+      foundRow = firstPartiallyVisibleRow ?? 0;
     }
   }
 
