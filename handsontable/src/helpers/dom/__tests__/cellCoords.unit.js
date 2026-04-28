@@ -64,8 +64,18 @@ function buildHot({
     getCell: (row, col) => {
       const el = document.createElement('td');
       const rect = isRtl
-        ? { top: cellTop(row), right: cellRight(col), bottom: cellTop(row) + rowHeight, left: cellRight(col) - colWidth }
-        : { top: cellTop(row), left: cellLeft(col), bottom: cellTop(row) + rowHeight, right: cellLeft(col) + colWidth };
+        ? {
+          top: cellTop(row),
+          right: cellRight(col),
+          bottom: cellTop(row) + rowHeight,
+          left: cellRight(col) - colWidth,
+        }
+        : {
+          top: cellTop(row),
+          left: cellLeft(col),
+          bottom: cellTop(row) + rowHeight,
+          right: cellLeft(col) + colWidth,
+        };
 
       Object.defineProperty(el, 'offsetHeight', { get: () => rowHeight });
       Object.defineProperty(el, 'offsetWidth', { get: () => colWidth });
