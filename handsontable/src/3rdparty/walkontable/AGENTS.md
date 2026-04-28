@@ -31,7 +31,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 ## Testing
 
 Separate test runner - do NOT mix with main E2E tests:
-`pnpm --filter handsontable run test:walkontable`
+`npm run test:walkontable --prefix handsontable`
 
 Tests in: `src/3rdparty/walkontable/test/`
 
