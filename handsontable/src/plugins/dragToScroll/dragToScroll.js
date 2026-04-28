@@ -346,20 +346,37 @@ export class DragToScroll extends BasePlugin {
    * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
    */
   #scrollHorizontal(distance) {
+    // Same idea as #scrollVertical: nudge by one full column toward the side the mouse left the viewport.
+    // "Advance" (e.g. past the right edge in LTR) must target the first column *past* the last fully
+    // visible one — *not* firstVisible + 1, which is often still in view, so scrollViewportTo
+    // no-ops and the grid never follows the drag.
+    const maxCol = this.hot.countCols() - 1;
+
+    if (maxCol < 0) {
+      this.#autoScroller.stopHorizontal();
+      return;
+    }
+
     const shouldAdvance = this.hot.isRtl() ? distance < 0 : distance > 0;
-    // Both directions snap to 'start' so the target column appears at the left edge
-    // of the viewport — one clean column step in either direction.
-    // Advancing (right in LTR): bring the column after the first fully visible one into view.
-    // Retreating (left in LTR): bring the column before the first partially visible one into view.
-    const scrollColumn = shouldAdvance
-      ? this.hot.getFirstFullyVisibleColumn() + 1
-      : this.hot.getFirstPartiallyVisibleColumn() - 1;
-    const horizontalSnap = 'start';
+    const firstVisible = this.hot.getFirstFullyVisibleColumn();
+    const lastVisible = this.hot.getLastFullyVisibleColumn();
+
+    if (shouldAdvance) {
+      if (lastVisible >= maxCol) {
+        this.#autoScroller.stopHorizontal();
+        return;
+      }
+    } else if (firstVisible <= 0) {
+      this.#autoScroller.stopHorizontal();
+      return;
+    }
+
+    const scrollColumn = shouldAdvance ? lastVisible + 1 : firstVisible - 1;
 
     // The no-op callback causes hot.scrollViewportTo to call view.render() after scrolling,
     // which ensures afterScroll fires even in environments where programmatic window.scrollTo()
     // does not emit a native `scroll` DOM event (e.g. headless Chrome without scroll-event support).
-    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn, horizontalSnap }, () => {});
+    const isScrolled = this.hot.scrollViewportTo({ col: scrollColumn }, () => {});
 
     if (!isScrolled) {
       this.#autoScroller.stopHorizontal();

@@ -127,10 +127,12 @@ describe('DragToScroll selection — window scroll', () => {
   });
 
   it('should extend the selection rightward when dragging past the right edge of the window viewport', async() => {
-    // 100 columns with no fixed width makes the table wider than the window,
-    // which forces the window to be the horizontal scroll container.
+    // 100 columns and a fixed width so horizontal scroll is required. Horizontal
+    // scrolling may be the window or the table holder, depending on layout.
     handsontable({
       data: createSpreadsheetData(5, 100),
+      width: 300,
+      height: 200,
       rowHeaders: true,
       colHeaders: true,
       dragToScroll: true,
@@ -163,8 +165,8 @@ describe('DragToScroll selection — window scroll', () => {
     expect(selectedAfter[1]).toBe(anchorCol);
     // The selection end column must be further right than the anchor.
     expect(selectedAfter[3]).toBeGreaterThan(anchorCol);
-    // The window must have scrolled right.
-    expect(window.scrollX).toBeGreaterThan(0);
+    // The horizontal scroll offset must have increased (window and holder differ by layout).
+    expect(hot().view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBeGreaterThan(0);
   });
 
   it('should stop scrolling when the mouse returns inside the window viewport', async() => {
