@@ -18,7 +18,6 @@ angular:
   metaTitle: Custom builds - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
 Handsontable's building process transforms the source files located in the code repository into dedicated packages.
 

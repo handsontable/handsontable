@@ -30,7 +30,6 @@ angular:
   metaTitle: Themes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
-menuTag: updated
 ---
 Use Handsontable's built-in themes or customize its look using the Theme API or CSS variables.
 
