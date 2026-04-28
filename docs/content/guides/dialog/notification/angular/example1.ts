@@ -1,35 +1,35 @@
 /* file: app.component.ts */
 import { Component, AfterViewInit, ViewChild } from '@angular/core';
-import Handsontable from 'handsontable/base';
-import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'notification-example',
-  template: `<hot-table #hotTable [settings]="hotSettings"></hot-table>`,
+  template: `<hot-table #hotTable [data]="hotData" [settings]="hotSettings"></hot-table>`,
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable', { static: false }) hotTable: HotTableComponent;
 
-  hotSettings: Handsontable.GridSettings = {
-    data: [
-      ['Review pricing sheet', 'Draft', 'Apr 12', 'Morgan Lee', 'Medium', 'Finance'],
-      ['Ship partner samples', 'In progress', 'Apr 14', 'Jordan Kim', 'High', 'Sales'],
-      ['Q2 revenue forecast', 'Done', 'Apr 8', 'Avery Chen', 'Low', 'Finance'],
-      ['New client onboarding', 'Blocked', 'Apr 18', 'Riley Patel', 'High', 'Success'],
-      ['Update documentation', 'Draft', 'Apr 20', 'Casey Ruiz', 'Low', 'Engineering'],
-      ['Audit vendor contracts', 'In progress', 'Apr 22', 'Morgan Lee', 'Medium', 'Legal'],
-      ['Refresh brand assets', 'Draft', 'Apr 25', 'Sam Okafor', 'Low', 'Marketing'],
-      ['Fix login timeout bug', 'In progress', 'Apr 16', 'Devon Walsh', 'High', 'Engineering'],
-      ['Prep board deck', 'Done', 'Apr 10', 'Jordan Kim', 'Medium', 'Exec'],
-      ['Migrate legacy CRM rows', 'Blocked', 'Apr 28', 'Alex Rivera', 'High', 'Engineering'],
-      ['Schedule user interviews', 'Draft', 'Apr 19', 'Riley Patel', 'Medium', 'Product'],
-      ['Approve expense policy', 'In progress', 'Apr 21', 'Morgan Lee', 'Low', 'Finance'],
-      ['Localize help center', 'Draft', 'May 2', 'Sam Okafor', 'Medium', 'Marketing'],
-      ['Load test checkout API', 'In progress', 'Apr 17', 'Devon Walsh', 'High', 'Engineering'],
-      ['Quarterly OKR check-in', 'Done', 'Apr 9', 'Avery Chen', 'Low', 'Exec'],
-    ],
+  readonly hotData = [
+    ['Review pricing sheet', 'Draft', 'Apr 12', 'Morgan Lee', 'Medium', 'Finance'],
+    ['Ship partner samples', 'In progress', 'Apr 14', 'Jordan Kim', 'High', 'Sales'],
+    ['Q2 revenue forecast', 'Done', 'Apr 8', 'Avery Chen', 'Low', 'Finance'],
+    ['New client onboarding', 'Blocked', 'Apr 18', 'Riley Patel', 'High', 'Success'],
+    ['Update documentation', 'Draft', 'Apr 20', 'Casey Ruiz', 'Low', 'Engineering'],
+    ['Audit vendor contracts', 'In progress', 'Apr 22', 'Morgan Lee', 'Medium', 'Legal'],
+    ['Refresh brand assets', 'Draft', 'Apr 25', 'Sam Okafor', 'Low', 'Marketing'],
+    ['Fix login timeout bug', 'In progress', 'Apr 16', 'Devon Walsh', 'High', 'Engineering'],
+    ['Prep board deck', 'Done', 'Apr 10', 'Jordan Kim', 'Medium', 'Exec'],
+    ['Migrate legacy CRM rows', 'Blocked', 'Apr 28', 'Alex Rivera', 'High', 'Engineering'],
+    ['Schedule user interviews', 'Draft', 'Apr 19', 'Riley Patel', 'Medium', 'Product'],
+    ['Approve expense policy', 'In progress', 'Apr 21', 'Morgan Lee', 'Low', 'Finance'],
+    ['Localize help center', 'Draft', 'May 2', 'Sam Okafor', 'Medium', 'Marketing'],
+    ['Load test checkout API', 'In progress', 'Apr 17', 'Devon Walsh', 'High', 'Engineering'],
+    ['Quarterly OKR check-in', 'Done', 'Apr 9', 'Avery Chen', 'Low', 'Exec'],
+  ];
+
+  readonly hotSettings: GridSettings = {
     colHeaders: ['Task', 'Status', 'Due', 'Owner', 'Priority', 'Team'],
     columns: [
       { data: 0, type: 'text', width: 200 },
@@ -43,7 +43,6 @@ export class AppComponent implements AfterViewInit {
     width: '100%',
     height: 420,
     notification: true,
-    licenseKey: 'non-commercial-and-evaluation',
   };
 
   ngAfterViewInit(): void {
