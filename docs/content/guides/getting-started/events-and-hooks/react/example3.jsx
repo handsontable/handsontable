@@ -40,30 +40,32 @@ const ExampleComponent = () => {
 
   return (
     <div>
-      <div className="controls">
-        <label>
-          <input onChange={handleChange('fixedRowsTop', [0, 2])} type="checkbox" />
-          Add fixed rows
-        </label>
-        <br />
+      <div className="example-controls-container">
+        <div className="controls">
+          <label>
+            <input onChange={handleChange('fixedRowsTop', [0, 2])} type="checkbox" />
+            Add fixed rows
+          </label>
+          <br />
 
-        <label>
-          <input onChange={handleChange('fixedColumnsStart', [0, 2])} type="checkbox" />
-          Add fixed columns
-        </label>
-        <br />
+          <label>
+            <input onChange={handleChange('fixedColumnsStart', [0, 2])} type="checkbox" />
+            Add fixed columns
+          </label>
+          <br />
 
-        <label>
-          <input onChange={handleChange('rowHeaders', [false, true])} type="checkbox" />
-          Enable row headers
-        </label>
-        <br />
+          <label>
+            <input onChange={handleChange('rowHeaders', [false, true])} type="checkbox" />
+            Enable row headers
+          </label>
+          <br />
 
-        <label>
-          <input onChange={handleChange('colHeaders', [false, true])} type="checkbox" />
-          Enable column headers
-        </label>
-        <br />
+          <label>
+            <input onChange={handleChange('colHeaders', [false, true])} type="checkbox" />
+            Enable column headers
+          </label>
+          <br />
+        </div>
       </div>
 
       <HotTable id="hot" {...settings} />

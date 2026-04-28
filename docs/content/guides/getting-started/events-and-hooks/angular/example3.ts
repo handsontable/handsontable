@@ -6,42 +6,44 @@ import { HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper'
   selector: 'example3-events-hooks',
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="controls">
-      <label>
-        <input
-          (change)="handleChange('fixedRowsTop', [0, 2], $event)"
-          type="checkbox"
-        />
-        Add fixed rows
-      </label>
-      <br />
+  template: ` <div class="example-controls-container">
+      <div class="controls">
+        <label>
+          <input
+            (change)="handleChange('fixedRowsTop', [0, 2], $event)"
+            type="checkbox"
+          />
+          Add fixed rows
+        </label>
+        <br />
 
-      <label>
-        <input
-          (change)="handleChange('fixedColumnsStart', [0, 2], $event)"
-          type="checkbox"
-        />
-        Add fixed columns
-      </label>
-      <br />
+        <label>
+          <input
+            (change)="handleChange('fixedColumnsStart', [0, 2], $event)"
+            type="checkbox"
+          />
+          Add fixed columns
+        </label>
+        <br />
 
-      <label>
-        <input
-          (change)="handleChange('rowHeaders', [false, true], $event)"
-          type="checkbox"
-        />
-        Enable row headers
-      </label>
-      <br />
+        <label>
+          <input
+            (change)="handleChange('rowHeaders', [false, true], $event)"
+            type="checkbox"
+          />
+          Enable row headers
+        </label>
+        <br />
 
-      <label>
-        <input
-          (change)="handleChange('colHeaders', [false, true], $event)"
-          type="checkbox"
-        />
-        Enable column headers
-      </label>
-      <br />
+        <label>
+          <input
+            (change)="handleChange('colHeaders', [false, true], $event)"
+            type="checkbox"
+          />
+          Enable column headers
+        </label>
+        <br />
+      </div>
     </div>
     <div style="max-width: 440px">
       <hot-table [data]="data" [settings]="initialState"></hot-table>

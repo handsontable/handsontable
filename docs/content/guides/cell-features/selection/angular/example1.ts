@@ -6,31 +6,33 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
   selector: 'example1-selection',
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="controls">
-      <div class="theme-dropdown" #dropdownRef>
-        <button
-          class="theme-dropdown-trigger"
-          type="button"
-          aria-haspopup="listbox"
-          [attr.aria-expanded]="isOpen"
-          (click)="toggleDropdown()"
-        >
-          <span>{{ selectedLabel }}</span>
-          <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
-        </button>
-        @if (isOpen) {
-          <ul class="theme-dropdown-menu" role="listbox">
-            @for (opt of options; track opt.value) {
-              <li
-                role="option"
-                [attr.aria-selected]="selected === opt.value"
-                (click)="selectOption(opt.value)"
-              >
-                {{ opt.label }}
-              </li>
-            }
-          </ul>
-        }
+  template: ` <div class="example-controls-container">
+      <div class="controls">
+        <div class="theme-dropdown" #dropdownRef>
+          <button
+            class="theme-dropdown-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isOpen"
+            (click)="toggleDropdown()"
+          >
+            <span>{{ selectedLabel }}</span>
+            <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          @if (isOpen) {
+            <ul class="theme-dropdown-menu" role="listbox">
+              @for (opt of options; track opt.value) {
+                <li
+                  role="option"
+                  [attr.aria-selected]="selected === opt.value"
+                  (click)="selectOption(opt.value)"
+                >
+                  {{ opt.label }}
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </div>
     </div>
     <div>

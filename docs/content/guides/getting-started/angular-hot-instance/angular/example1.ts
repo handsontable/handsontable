@@ -6,8 +6,10 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
   selector: 'example1-instance-access',
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="controls">
-      <button (click)="selectCell()">Select cell B2</button>
+  template: ` <div class="example-controls-container">
+      <div class="controls">
+        <button (click)="selectCell()">Select cell B2</button>
+      </div>
     </div>
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>

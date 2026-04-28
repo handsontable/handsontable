@@ -30,10 +30,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button id="triggerBtn" className="button button--primary" onClick={() => triggerBtnClickCallback()}>
-          {isContainerExpanded ? 'Collapse container' : 'Expand container'}
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="triggerBtn" className="button button--primary" onClick={() => triggerBtnClickCallback()}>
+            {isContainerExpanded ? 'Collapse container' : 'Expand container'}
+          </button>
+        </div>
       </div>
       <div id="exampleParent" className="exampleParent">
         <HotTable
