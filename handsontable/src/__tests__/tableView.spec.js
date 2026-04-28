@@ -884,6 +884,29 @@ describe('TableView', () => {
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
 
+    it('should select the long-pressed cell before the context menu opens', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      const cell = getCell(3, 3);
+
+      await fireTouchStart(cell);
+
+      // Wait past LONG_PRESS_DELAY (500ms) so the timer fires synchronously with
+      // the synthetic contextmenu dispatch. That path must still select the cell.
+      await sleep(600);
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+
+      await fireTouchEnd(cell);
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+    });
+
     it('should select a new cell on a tap performed after a scroll gesture', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

@@ -385,7 +385,8 @@ class Event {
    * @param {TouchEvent} event The touch event object.
    */
   onTouchEnd(event) {
-    const isTap = !this.#touchWasMoved && !this.#longPressFired && this.#deferredTouchStartEvent !== null;
+    const wasScrolled = this.#touchWasMoved;
+    const isTap = !wasScrolled && !this.#longPressFired && this.#deferredTouchStartEvent !== null;
     const deferredTouchStartEvent = this.#deferredTouchStartEvent;
 
     this.#cancelLongPressTimer();
@@ -425,7 +426,10 @@ class Event {
       }
     }
 
-    if (isTap) {
+    // Fire mouseUp for both tap and long-press (matches pre-fix behavior so plugins
+    // listening to onCellMouseUp / before/after hooks still run). Suppress only for
+    // pure scroll gestures, where onMouseDown was never fired in the first place.
+    if (!wasScrolled) {
       this.onMouseUp(event);
     }
 
@@ -457,6 +461,11 @@ class Event {
       this.#longPressTimeout = null;
       this.#longPressFired = true;
       this.#touchStartCoords = null;
+
+      // Select the long-pressed cell so context-menu commands (e.g. "Insert row above")
+      // operate on it. With the deferred-mousedown flow, touchend skips onMouseDown
+      // when #longPressFired is true, so we fire it here before opening the menu.
+      this.onMouseDown(event);
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
