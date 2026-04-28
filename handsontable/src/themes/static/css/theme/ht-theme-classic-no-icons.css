@@ -304,9 +304,9 @@
   --ht-pagination-button-hover-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-pagination-button-hover-foreground-color: var(--ht-foreground-color);
   --ht-pagination-button-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-800));
+  --ht-pagination-button-disabled-border-color: var(--ht-pagination-bar-background-color);
   --ht-pagination-button-disabled-foreground-color: var(--ht-disabled-color);
   --ht-pagination-button-disabled-background-color: var(--ht-pagination-bar-background-color);
-  --ht-pagination-button-disabled-border-color: var(--ht-pagination-bar-background-color);
   --ht-pagination-button-focus-border-color: var(--ht-accent-color);
   --ht-pagination-button-focus-foreground-color: var(--ht-foreground-color);
   --ht-pagination-button-focus-background-color: var(--ht-pagination-bar-background-color);
