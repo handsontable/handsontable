@@ -884,6 +884,29 @@ describe('TableView', () => {
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
 
+    it('should treat a native scroll during touch as a scroll gesture even if no touchmove crossed the threshold', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 5),
+        height: 200,
+      });
+
+      await selectCell(0, 0);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      const cell = getCell(3, 3);
+
+      await fireTouchStart(cell);
+
+      // Browsers start native scrolling at ~8px movement, before the 10px
+      // LONG_PRESS_MOVE_THRESHOLD that onTouchMove watches. Simulate the
+      // resulting holder `scroll` callback firing during an active touch.
+      tableView()._wt.wtEvent.onHolderScroll();
+
+      await fireTouchEnd(cell);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
     it('should select the long-pressed cell before the context menu opens', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

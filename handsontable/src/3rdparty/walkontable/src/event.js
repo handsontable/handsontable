@@ -119,27 +119,7 @@ class Event {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend', event => this.onTouchEnd(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.onTouchMove(event));
-
-      if (!this.momentumScrolling) {
-        this.momentumScrolling = {};
-      }
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => {
-        this.#cancelLongPressTimer();
-        clearTimeout(this.momentumScrolling._timeout);
-
-        if (!this.momentumScrolling.ongoing) {
-          this.#wtSettings.getSetting('onBeforeTouchScroll');
-        }
-        this.momentumScrolling.ongoing = true;
-
-        this.momentumScrolling._timeout = setTimeout(() => {
-          if (!this.touchApplied) {
-            this.momentumScrolling.ongoing = false;
-
-            this.#wtSettings.getSetting('onAfterMomentumScroll');
-          }
-        }, 200);
-      });
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => this.onHolderScroll());
     };
 
     const initMouseEvents = () => {
@@ -487,6 +467,39 @@ class Event {
   }
 
   /**
+   * Holder `scroll` callback. Cancels the long-press timer and runs the momentum-scroll
+   * bookkeeping. When called during an active touch sequence it also marks the gesture
+   * as a scroll so the deferred mousedown is not fired on `touchend` - native scrolling
+   * can start at ~8px, before the 10px LONG_PRESS_MOVE_THRESHOLD that `onTouchMove`
+   * watches (issue #11659).
+   *
+   * @private
+   */
+  onHolderScroll() {
+    if (!this.momentumScrolling) {
+      this.momentumScrolling = {};
+    }
+    if (this.touchApplied) {
+      this.#touchWasMoved = true;
+    }
+    this.#cancelLongPressTimer();
+    clearTimeout(this.momentumScrolling._timeout);
+
+    if (!this.momentumScrolling.ongoing) {
+      this.#wtSettings.getSetting('onBeforeTouchScroll');
+    }
+    this.momentumScrolling.ongoing = true;
+
+    this.momentumScrolling._timeout = setTimeout(() => {
+      if (!this.touchApplied) {
+        this.momentumScrolling.ongoing = false;
+
+        this.#wtSettings.getSetting('onAfterMomentumScroll');
+      }
+    }, 200);
+  }
+
+  /**
    * Cancels the pending long-press timer.
    *
    * @private
@@ -553,6 +566,10 @@ class Event {
     clearTimeout(this.#dblClickTimeout[0]);
     clearTimeout(this.#dblClickTimeout[1]);
     this.#cancelLongPressTimer();
+
+    if (this.momentumScrolling) {
+      clearTimeout(this.momentumScrolling._timeout);
+    }
 
     this.#eventManager.destroy();
   }
