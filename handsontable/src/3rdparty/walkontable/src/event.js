@@ -378,6 +378,8 @@ class Event {
         if (foundColumn === null) {
           foundColumn = scrollRelativeX < 0 ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
         }
+      } else {
+        foundColumn = firstPartiallyVisibleColumn;
       }
     }
 
@@ -432,6 +434,8 @@ class Event {
         if (foundRow === null) {
           foundRow = lastPartiallyVisibleRow;
         }
+      } else {
+        foundRow = firstPartiallyVisibleRow;
       }
     }
 
