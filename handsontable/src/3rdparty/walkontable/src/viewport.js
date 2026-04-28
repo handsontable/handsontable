@@ -332,7 +332,7 @@ class Viewport {
    * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
-    const { wtSettings, wtTable } = this;
+    const { wtSettings } = this;
     const totalRows = wtSettings.getSetting('totalRows');
 
     let height = this.getViewportHeight();
@@ -358,12 +358,8 @@ class Viewport {
       height -= fixedRowsHeight;
     }
 
-    if (wtTable.holder.clientHeight !== wtTable.holder.offsetHeight) {
+    if (this.hasHorizontalScroll()) {
       scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
-
-    } else if (fixedRowsBottom && this.hasHorizontalScroll() && this.hasVerticalScroll()) {
-      scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
-
     } else {
       scrollbarHeight = 0;
     }
