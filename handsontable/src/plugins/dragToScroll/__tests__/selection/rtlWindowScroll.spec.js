@@ -270,11 +270,8 @@ describe('DragToScroll selection — RTL scroll directions', () => {
 
     $(document.body).simulate('mouseup');
 
-    const selectedAfter = getSelectedLast();
-
-    expect(selectedAfter[1]).toBe(anchorCol);
-    // Must select exactly the adjacent column, not a far-away column produced by
-    // incorrect isOutside=true classification of a visible cell.
-    expect(selectedAfter[3]).toBe(adjacentCol);
+    expect(getSelectedRangeLast()).toEqualCellRange(
+      `highlight: 0,${anchorCol} from: 0,${anchorCol} to: 0,${adjacentCol}`
+    );
   });
 });
