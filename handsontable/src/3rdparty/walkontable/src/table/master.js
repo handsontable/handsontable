@@ -44,9 +44,13 @@ class MasterTable extends Table {
       const { scrollWidth, scrollHeight } = trimmingElement;
       let width = trimmingElement.offsetWidth;
       let height = trimmingElement.offsetHeight;
-      const overflow = ['auto', 'hidden', 'scroll', 'clip'];
+      const overflowValues = ['auto', 'hidden', 'scroll', 'clip'];
+      // getStyle() may return a compound value (e.g. 'auto hidden') when overflow-x and
+      // overflow-y are set independently. Split on whitespace so each token is checked.
+      const hasScrollOverflow = trimmingOverflow.split(' ').some(v => overflowValues.includes(v));
+      let useAutoHeight = (trimmingHeight === 'auto');
 
-      if (trimmingElementParent && overflow.includes(trimmingOverflow)) {
+      if (trimmingElementParent && hasScrollOverflow) {
         const cloneNode = trimmingElement.cloneNode(false);
 
         // Before calculating the height of the trimming element, set overflow: auto to hide scrollbars.
@@ -56,6 +60,12 @@ class MasterTable extends Table {
         // Issue #9545 shows problem with calculating height for HOT on Firefox while placing instance in some
         // flex containers and setting overflow for some `div` section.
         cloneNode.style.position = 'absolute';
+        // Reset border and padding so border-box sizing does not contribute to the measured height.
+        // Without this, a container with a visible border (e.g. border: 1px solid) produces
+        // cloneHeight = 2 even though it has no intrinsic height, preventing the zero-height
+        // detection that guards against the feedback-loop bug. See issue #3119.
+        cloneNode.style.border = '0';
+        cloneNode.style.padding = '0';
 
         if (trimmingElement.nextElementSibling) {
           trimmingElementParent.insertBefore(cloneNode, trimmingElement.nextElementSibling);
@@ -69,11 +79,22 @@ class MasterTable extends Table {
 
         if (cloneHeight === 0) {
           height = 0;
+
+          // The trimming container has no intrinsic height — its size is driven entirely by
+          // its content (HOT instances). For containers with scrollable overflow (auto/scroll),
+          // setting the holder to a fixed pixel value creates a height feedback loop when
+          // multiple HOT instances share the same parent, expanding it to the browser's
+          // CSS height limit (~2^25 px). Using 'auto' lets the holder size to its content
+          // (the hider element) instead. For non-scrollable overflow (hidden/clip), keep
+          // height=0 to signal that the table has no defined size. See issue #3119.
+          if (trimmingOverflow.split(' ').some(v => v === 'auto' || v === 'scroll')) {
+            useAutoHeight = true;
+          }
         }
       }
 
       height = Math.min(height, scrollHeight);
-      holderStyle.height = trimmingHeight === 'auto' ? 'auto' : `${height}px`;
+      holderStyle.height = useAutoHeight ? 'auto' : `${height}px`;
 
       width = Math.min(width, scrollWidth);
       holderStyle.width = `${width}px`;
