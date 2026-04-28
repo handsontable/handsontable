@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange, SimpleChanges } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, SimpleChange, SimpleChanges } from '@angular/core';
 import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
@@ -12,8 +12,6 @@ import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
 registerPlugin(CopyPaste);
 
 describe('HotTableComponent', () => {
-  let zone;
-
   let fixture: ComponentFixture<HotTableComponent>;
   const settings = <GridSettings>{
     licenseKey: NON_COMMERCIAL_LICENSE,
@@ -21,11 +19,10 @@ describe('HotTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HotTableModule.forRoot()],
+      imports: [HotTableModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
-    zone = TestBed.inject(NgZone)
   });
 
   it(`should render 'hot-table'`, () => {
@@ -92,7 +89,7 @@ describe('HotTableComponent', () => {
 
       component.ngOnChanges(changes);
 
-      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings, zone);
+      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings);
       expect(updateHotTableSpy).toHaveBeenCalledWith(newSettings, false);
     });
 
