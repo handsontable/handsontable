@@ -74,13 +74,14 @@
     "@angular/compiler": "^19.2.20",
     "@angular/compiler-cli": "^19.2.20",
     "@angular/core": "^19.2.20",
+    "@angular/forms": "^19.2.20",
     "@angular/platform-browser": "^19.2.20",
     "@angular/platform-browser-dynamic": "^19.2.20",
     "@types/jest": "^29.5.4",
     "@types/node": "^20.17.57",
-    "@typescript-eslint/eslint-plugin": "7.3.1",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
     "@typescript-eslint/eslint-plugin-tslint": "^7.0.2",
-    "@typescript-eslint/parser": "7.3.1",
+    "@typescript-eslint/parser": "^7.11.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "eslint-plugin-import": "^2.29.1",
@@ -92,7 +93,8 @@
     "jest-preset-angular": "^14.3.0",
     "ng-packagr": "^19.2.2",
     "ts-jest": "^29.1.1",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "vite": "^6.0.0"
   },
   "publishConfig": {
     "directory": "dist/hot-table",
