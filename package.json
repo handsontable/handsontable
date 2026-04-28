@@ -97,7 +97,8 @@
       "pacote>tar": "^7.5.11",
       "node-gyp>tar": "^7.5.11",
       "cacache>tar": "^7.5.11",
-      "undici": "^6.24.0"
+      "undici": "^6.24.0",
+      "react-star-rating-component>react": "18.3.1"
     }
   },
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -108,7 +109,8 @@
     "handsontable",
     "wrappers/*",
     "visual-tests",
-    "examples"
+    "examples",
+    "docs"
   ],
   "packageManager": "pnpm@10.30.2"
 }

@@ -1,5 +1,5 @@
 /**
- * Clear the projects' node_modules nad lock files.
+ * Clear the projects' node_modules and lock files.
  */
 import { cleanNodeModules } from './utils/index.mjs';
 
