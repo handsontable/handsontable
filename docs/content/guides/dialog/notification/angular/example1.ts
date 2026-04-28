@@ -7,7 +7,7 @@ import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper
   standalone: true,
   imports: [HotTableModule],
   selector: 'notification-example',
-  templateUrl: './example1.html',
+  template: `<hot-table #hotTable [settings]="hotSettings"></hot-table>`,
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable', { static: false }) hotTable: HotTableComponent;

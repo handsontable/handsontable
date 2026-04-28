@@ -7,7 +7,14 @@ import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper
   standalone: true,
   imports: [HotTableModule],
   selector: 'notification-example-2',
-  templateUrl: './example2.html',
+  template: `
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <button type="button" (click)="onSave()">Save</button>
+      <button type="button" (click)="onSyncError()">Sync error</button>
+      <button type="button" (click)="onLowStock()">Low stock</button>
+    </div>
+    <hot-table #hotTable [settings]="hotSettings"></hot-table>
+  `,
 })
 export class AppComponent {
   @ViewChild('hotTable', { static: false }) hotTable: HotTableComponent;
