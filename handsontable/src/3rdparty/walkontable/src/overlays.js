@@ -878,6 +878,7 @@ class Overlays {
 
     this.inlineStartOverlay.applyToDOM();
     this.#stickyScroll.syncOffsets();
+    this.#hideMasterRowsCoveredByBottomOverlay();
     this.#anchorSpreadersToHiderBottom();
   }
 
@@ -908,6 +909,11 @@ class Overlays {
    * method shifts the master spreader and the inlineStart-clone spreader (the row-header column)
    * downwards just enough to make their bottoms flush with their hider bottoms.
    *
+   * When `fixedRowsBottom > 0` the bottom overlay sits above the hider's bottom, so the spreader
+   * is anchored to the overlay's top instead -- this keeps the master's last visible row flush
+   * with the overlay's first row and avoids a 1-2px mismatch caused by border-collapse drift
+   * (#11972).
+   *
    * Skipped while the StickyScrollStrategy is active -- that strategy positions the spreader
    * with `position: sticky` using a different reference point, and overwriting its offset would
    * make the spreader visibly jump on every fast draw during scrollbar drag.
@@ -924,8 +930,13 @@ class Overlays {
     }
 
     const totalRows = this.wtSettings.getSetting('totalRows');
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+    const bottomClone = this.bottomOverlay.clone;
+    const masterLastRow = (fixedRowsBottom && bottomClone)
+      ? totalRows - fixedRowsBottom - 1
+      : totalRows - 1;
 
-    if (calc.endRow !== totalRows - 1) {
+    if (calc.endRow < masterLastRow) {
       return;
     }
 
@@ -933,10 +944,85 @@ class Overlays {
       return;
     }
 
-    this.#anchorSpreaderToHiderBottom(this.wtTable, calc.startPosition);
+    const anchorBottom = bottomClone
+      ? this.wtTable.hider.offsetHeight - bottomClone.wtTable.holder.parentNode.offsetHeight
+      : this.wtTable.hider.offsetHeight;
+
+    this.#anchorSpreaderToBottom(this.wtTable, calc.startPosition, anchorBottom);
 
     if (this.inlineStartOverlay.needFullRender) {
-      this.#anchorSpreaderToHiderBottom(this.inlineStartOverlay.clone.wtTable, calc.startPosition);
+      this.#anchorSpreaderToBottom(
+        this.inlineStartOverlay.clone.wtTable, calc.startPosition, anchorBottom);
+    }
+  }
+
+  /**
+   * Hides master rows that the bottom overlay also renders, so the two layers do not visually
+   * overlap when the user has scrolled all the way to the bottom.
+   *
+   * The viewport calculator iterates up to `totalRows - 1`, so at the bottom of the scroll
+   * range the master ends up rendering the same rows as the bottom overlay. Master rows in the
+   * middle of the table use border-collapse (29px each), while the overlay's first row has a
+   * full top border (30px). At fractional browser zoom or display-scaling levels the 1-2px
+   * drift exposes part of a master row above the overlay, producing a visible "duplicate" of
+   * the first fixed-bottom row (#11972).
+   *
+   * `display: none` removes the duplicate master TRs from layout entirely, so the spreader's
+   * `offsetHeight` reflects only the still-visible body rows. The subsequent spreader-to-
+   * overlay-top anchor then places those rows flush against the overlay.
+   *
+   * Hiding is gated on `#isScrolledToBottom()` so that, when the holder is taller than the
+   * data, the master's all-rows render still lines up with the overlay (both are flush against
+   * the same hider bottom and contain the same TR positions, so they overlap perfectly).
+   * Without that gate, hiding the master's last fixed-bottom rows in the unscrolled case would
+   * leave the master TABLE shorter than the overlay TABLE, which existing tests (and the
+   * no-scroll layout) rely on.
+   */
+  #hideMasterRowsCoveredByBottomOverlay() {
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+    const calc = this.wot.wtViewport.rowsRenderCalculator;
+
+    if (
+      !fixedRowsBottom
+      || !this.bottomOverlay.clone
+      || !calc
+      || calc.startRow === null
+    ) {
+      return;
+    }
+
+    const hideFromRow = this.wtSettings.getSetting('totalRows') - fixedRowsBottom;
+    const shouldHide =
+      !this.#stickyScroll.isActive()
+      && calc.endRow >= hideFromRow
+      && this.#isScrolledToBottom();
+
+    this.#updateRowVisibility(this.wtTable.TBODY, calc.startRow, hideFromRow, shouldHide);
+
+    if (this.inlineStartOverlay.needFullRender) {
+      this.#updateRowVisibility(
+        this.inlineStartOverlay.clone.wtTable.TBODY, calc.startRow, hideFromRow, shouldHide);
+    }
+  }
+
+  /**
+   * Toggles `display: none` on TRs whose absolute row index is in the fixed-bottom range,
+   * but only when `shouldHide` is set. Otherwise resets every TR to its default display so
+   * that previous hiding does not persist after the user scrolls back up.
+   *
+   * @param {HTMLTableSectionElement} tbody The TBODY element whose rows to update.
+   * @param {number} firstRenderedRow The absolute row index of `tbody.children[0]`.
+   * @param {number} hideFromRow The first absolute row index that belongs to the bottom overlay.
+   * @param {boolean} shouldHide Whether the duplicate rows are currently overlapping the
+   *   overlay (i.e., the user is scrolled to the bottom).
+   */
+  #updateRowVisibility(tbody, firstRenderedRow, hideFromRow, shouldHide) {
+    const trs = tbody.children;
+
+    for (let i = 0; i < trs.length; i++) {
+      const inOverlayRange = (firstRenderedRow + i) >= hideFromRow;
+
+      trs[i].style.display = (shouldHide && inOverlayRange) ? 'none' : '';
     }
   }
 
@@ -972,17 +1058,20 @@ class Overlays {
   }
 
   /**
-   * Adjusts a spreader's `top` style so its bottom aligns with the hider's bottom edge,
-   * unless it is already positioned below that point. Never moves the spreader upwards.
+   * Adjusts a spreader's `top` style so its bottom aligns with the supplied anchor (the hider's
+   * bottom, or the bottom overlay's top when fixed bottom rows are present), unless the
+   * spreader is already positioned below that point. Never moves the spreader upwards.
    *
-   * @param {object} wtTable A walkontable table whose spreader/hider should be aligned.
+   * @param {object} wtTable A walkontable table whose spreader should be aligned.
    * @param {number} minTop The lower bound for the spreader's top -- typically
    *   `calc.startPosition`. Prevents shifting the spreader above its calculated start (which
    *   would cause rendered rows to overlap the column-header overlay).
+   * @param {number} anchorBottom The Y coordinate (in spreader-parent space) where the
+   *   spreader's bottom should land.
    */
-  #anchorSpreaderToHiderBottom(wtTable, minTop) {
-    const { spreader, hider } = wtTable;
-    const requiredTop = hider.offsetHeight - spreader.offsetHeight;
+  #anchorSpreaderToBottom(wtTable, minTop, anchorBottom) {
+    const { spreader } = wtTable;
+    const requiredTop = anchorBottom - spreader.offsetHeight;
 
     if (requiredTop > minTop) {
       spreader.style.top = `${requiredTop}px`;

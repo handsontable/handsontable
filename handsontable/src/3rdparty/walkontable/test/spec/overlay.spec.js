@@ -1154,5 +1154,99 @@ describe('WalkontableOverlay', () => {
       // proves the sticky guard short-circuited the adjustment.
       expect(parseInt(spreader.style.top, 10)).toBe(calc.startPosition);
     });
+
+    describe('with fixedRowsBottom', () => {
+      const buildScrolledToBottomGridWithFixedBottom = (fixedRowsBottom = 2) => {
+        createDataArray(50, 10);
+        spec().$wrapper.width(300).height(300);
+
+        const wt = walkontable({
+          data: getData,
+          totalRows: getTotalRows,
+          totalColumns: getTotalColumns,
+          fixedRowsBottom,
+          rowHeaders: [
+            (row, TH) => { TH.innerHTML = row; },
+          ],
+          columnHeaders: [
+            (col, TH) => { TH.innerHTML = col; },
+          ],
+        });
+
+        wt.draw();
+        wt.scrollViewportVertically(getTotalRows() - 1);
+        wt.draw();
+
+        return wt;
+      };
+
+      it('should hide master rows that the bottom overlay also renders when scrolled to the bottom', async() => {
+        // Without this guard, the master TBODY contains TRs for the same rows the bottom
+        // overlay renders (its `endRow` reaches `totalRows - 1`). Border-collapse drift then
+        // exposes 1-2px of those master rows above the overlay at fractional zoom levels,
+        // producing a visible duplicate of the first fixed-bottom row (#11972). Hiding the
+        // duplicates removes the overlap entirely.
+        const wt = buildScrolledToBottomGridWithFixedBottom(2);
+        const totalRows = getTotalRows();
+        const masterTRs = Array.from(wt.wtTable.TBODY.children);
+        const calc = wt.wtViewport.rowsRenderCalculator;
+        const firstRenderedRow = calc.startRow;
+        const hideFromRow = totalRows - 2;
+
+        // Every TR whose absolute row index is in the bottom-overlay range must be hidden;
+        // every TR before that range must remain visible.
+        masterTRs.forEach((tr, i) => {
+          const rowIndex = firstRenderedRow + i;
+
+          if (rowIndex >= hideFromRow) {
+            expect(tr.style.display).toBe('none');
+          } else {
+            expect(tr.style.display).not.toBe('none');
+          }
+        });
+      });
+
+      it('should restore display when the user scrolls back up', async() => {
+        // The hide is gated on `#isScrolledToBottom`; once the user scrolls away from the
+        // bottom, the duplicate-rows condition no longer holds and the previously-hidden TRs
+        // must become visible again. Otherwise a fast scroll up would leave a permanent gap
+        // at the bottom of the master.
+        const wt = buildScrolledToBottomGridWithFixedBottom(2);
+
+        wt.scrollViewportVertically(0);
+        wt.draw();
+
+        const masterTRs = Array.from(wt.wtTable.TBODY.children);
+
+        masterTRs.forEach((tr) => {
+          expect(tr.style.display).not.toBe('none');
+        });
+      });
+
+      it('should keep the master TABLE flush with the bottom overlay\'s TABLE when no scroll is needed', async() => {
+        // Existing layout invariant (the equivalent test in `bottomOverlay.spec.js` covers it
+        // without the hide code path): when the holder is taller than the data, the master
+        // renders all rows naturally and the bottom overlay sits flush against the data's
+        // bottom. The hide must NOT fire here, otherwise the master TABLE would end higher
+        // than the overlay TABLE.
+        createDataArray(6, 6);
+        spec().$wrapper.width(400).height(300);
+
+        const wt = walkontable({
+          data: getData,
+          totalRows: getTotalRows,
+          totalColumns: getTotalColumns,
+          fixedRowsBottom: 2,
+        });
+
+        wt.draw();
+
+        const masterTRs = Array.from(wt.wtTable.TBODY.children);
+
+        masterTRs.forEach((tr) => {
+          expect(tr.style.display).not.toBe('none');
+        });
+      });
+    });
   });
 });
