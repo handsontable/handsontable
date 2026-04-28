@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Updated the Angular wrapper to support standalone components, OnPush change detection, and Angular 17–19 features including Signals and new control flow syntax. Replaced `HotTableModule.forRoot()` with plain `HotTableModule` import. Reduced `peerDependencies` to only `@angular/core`, `handsontable`, and `rxjs` — removed `@angular/animations`, `@angular/common`, `@angular/compiler`, `@angular/forms`, `@angular/platform-browser`, `@angular/platform-browser-dynamic`, and `@angular/router` as peer dependencies (these are part of every Angular project and do not need to be declared explicitly); tightened `@angular/core` peer range to `>=16.0.0 <22.0.0`; added `rxjs ^7.0.0` as a peer dependency. Updated dev dependencies: added `eslint-plugin-import` and `eslint-plugin-jsdoc`; updated `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` to `^7.11.0`; added `vite ^6.0.0`; removed unused `ts-node`, `moment`, `resize-observer-polyfill`.",
+  "type": "changed",
+  "issueOrPR": 12451,
+  "breaking": false,
+  "framework": "angular"
+}
