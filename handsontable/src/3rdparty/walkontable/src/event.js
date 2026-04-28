@@ -57,11 +57,32 @@ class Event {
    */
   #longPressTimeout = null;
   /**
-   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press).
+   * Marks that the long-press contextmenu gesture has been triggered for the current touch.
+   *
+   * @type {boolean}
+   */
+  #longPressFired = false;
+  /**
+   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press
+   * and to distinguish a tap from a scroll).
    *
    * @type {{ x: number, y: number }|null}
    */
   #touchStartCoords = null;
+  /**
+   * Marks that the current touch gesture has moved beyond the threshold and should be treated
+   * as a scroll rather than a tap.
+   *
+   * @type {boolean}
+   */
+  #touchWasMoved = false;
+  /**
+   * The original `touchstart` event captured so the synthesized mousedown can be deferred to
+   * `touchend` and only fired when the gesture is a tap (not a scroll).
+   *
+   * @type {TouchEvent|null}
+   */
+  #deferredTouchStartEvent = null;
 
   /**
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
@@ -97,7 +118,7 @@ class Event {
     const initTouchEvents = () => {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend', event => this.onTouchEnd(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.#onTouchMove(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.onTouchMove(event));
 
       if (!this.momentumScrolling) {
         this.momentumScrolling = {};
@@ -338,7 +359,9 @@ class Event {
   }
 
   /**
-   * OnTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Captures the gesture start so the synthesized mousedown can be
+   * deferred to `touchend`; this lets a touch-drag gesture scroll the grid without
+   * re-triggering the cell selection (see issue #11659).
    *
    * @private
    * @param {TouchEvent} event The touch event object.
@@ -346,19 +369,31 @@ class Event {
   onTouchStart(event) {
     this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection().cellRange;
     this.touchApplied = true;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
+    this.#deferredTouchStartEvent = event;
 
-    this.onMouseDown(event);
     this.#startLongPressTimer(event);
   }
 
   /**
-   * OnTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Fires the deferred mousedown only when the gesture is a tap
+   * (no movement past the threshold and no long-press); for a scroll gesture the
+   * selection stays untouched (see issue #11659).
    *
    * @private
    * @param {TouchEvent} event The touch event object.
    */
   onTouchEnd(event) {
+    const isTap = !this.#touchWasMoved && !this.#longPressFired && this.#deferredTouchStartEvent !== null;
+    const deferredTouchStartEvent = this.#deferredTouchStartEvent;
+
     this.#cancelLongPressTimer();
+    this.#deferredTouchStartEvent = null;
+
+    if (isTap) {
+      this.onMouseDown(deferredTouchStartEvent);
+    }
 
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
@@ -390,9 +425,13 @@ class Event {
       }
     }
 
-    this.onMouseUp(event);
+    if (isTap) {
+      this.onMouseUp(event);
+    }
 
     this.touchApplied = false;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
   }
 
   /**
@@ -416,6 +455,7 @@ class Event {
 
     this.#longPressTimeout = setTimeout(() => {
       this.#longPressTimeout = null;
+      this.#longPressFired = true;
       this.#touchStartCoords = null;
 
       this.#dblClickOrigin[0] = null;
@@ -451,19 +491,21 @@ class Event {
   }
 
   /**
-   * OnTouchMove callback. Cancels the long-press timer if the finger moves beyond the threshold.
+   * OnTouchMove callback. Once the finger moves beyond the threshold, marks the gesture as a
+   * scroll so `touchend` skips firing the deferred mousedown, and cancels the long-press timer.
    *
    * @private
    * @param {TouchEvent} event The touch event object.
    */
-  #onTouchMove(event) {
-    if (this.#longPressTimeout === null || this.#touchStartCoords === null) {
+  onTouchMove(event) {
+    if (this.#touchStartCoords === null) {
       return;
     }
 
     const touch = event.touches[0];
 
     if (!touch) {
+      this.#touchWasMoved = true;
       this.#cancelLongPressTimer();
 
       return;
@@ -473,6 +515,7 @@ class Event {
     const dy = Math.abs(touch.clientY - this.#touchStartCoords.y);
 
     if (dx > LONG_PRESS_MOVE_THRESHOLD || dy > LONG_PRESS_MOVE_THRESHOLD) {
+      this.#touchWasMoved = true;
       this.#cancelLongPressTimer();
     }
   }
