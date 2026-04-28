@@ -75,16 +75,12 @@ class Event {
    */
   constructor(facadeGetter, domBindings, wtSettings, eventManager, wtTable, selectionManager, parent = null) {
     this.#wtSettings = wtSettings;
-    this.wtSettings = wtSettings;
     this.#domBindings = domBindings;
     this.#wtTable = wtTable;
-    this.wtTable = wtTable;
     this.#selectionManager = selectionManager;
     this.#parent = parent;
-    this.parent = parent;
     this.#eventManager = eventManager;
     this.#facadeGetter = facadeGetter;
-    this.facadeGetter = facadeGetter;
 
     this.registerEvents();
   }
