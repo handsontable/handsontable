@@ -6,10 +6,12 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
   selector: 'example3-selection',
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="controls">
-      <button id="set-data-action" (click)="buttonClick()">
-        Click to modify the selected cells
-      </button>
+  template: ` <div class="example-controls-container">
+      <div class="controls">
+        <button id="set-data-action" (click)="buttonClick()">
+          Click to modify the selected cells
+        </button>
+      </div>
     </div>
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>

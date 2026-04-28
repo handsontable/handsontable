@@ -48,32 +48,34 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <div className="theme-dropdown" ref={dropdownRef}>
-          <button
-            className="theme-dropdown-trigger"
-            type="button"
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            <span>{selectedLabel}</span>
-            <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
-          </button>
-          {isOpen && (
-            <ul className="theme-dropdown-menu" role="listbox">
-              {options.map((opt) => (
-                <li
-                  key={opt.value}
-                  role="option"
-                  aria-selected={selected === opt.value}
-                  onClick={() => handleSelect(opt.value)}
-                >
-                  {opt.label}
-                </li>
-              ))}
-            </ul>
-          )}
+      <div className="example-controls-container">
+        <div className="controls">
+          <div className="theme-dropdown" ref={dropdownRef}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <span>{selectedLabel}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            {isOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {options.map((opt) => (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={selected === opt.value}
+                    onClick={() => handleSelect(opt.value)}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
       <HotTable
