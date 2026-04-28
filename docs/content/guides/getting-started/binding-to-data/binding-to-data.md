@@ -18,7 +18,6 @@ angular:
   metaTitle: Binding to data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
 Fill your data grid with various data structures, including an array of arrays or an array of objects.
 

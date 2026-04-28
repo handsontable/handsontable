@@ -14,7 +14,6 @@ angular:
   metaTitle: Cell functions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
-menuTag: updated
 ---
 
 A cell function is one of three components -- renderer, editor, or validator -- that controls how a cell displays, accepts, and validates data.

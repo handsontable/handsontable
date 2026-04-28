@@ -18,7 +18,6 @@ angular:
   metaTitle: Configuration options - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 

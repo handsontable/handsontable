@@ -26,7 +26,6 @@ angular:
   metaTitle: Column filter - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
-menuTag: updated
 ---
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
