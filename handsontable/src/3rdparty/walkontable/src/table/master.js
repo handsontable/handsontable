@@ -81,13 +81,26 @@ class MasterTable extends Table {
           height = 0;
 
           // The trimming container has no intrinsic height — its size is driven entirely by
-          // its content (HOT instances). For containers with scrollable overflow (auto/scroll),
-          // setting the holder to a fixed pixel value creates a height feedback loop when
-          // multiple HOT instances share the same parent, expanding it to the browser's
+          // its content (HOT instances). When overflow-y is non-scrollable (hidden/clip),
+          // the container cannot be scrolled vertically, so its height grows with content.
+          // Setting the holder to a fixed pixel value in this case creates a feedback loop
+          // when multiple HOT instances share the same parent, expanding it to the browser's
           // CSS height limit (~2^25 px). Using 'auto' lets the holder size to its content
-          // (the hider element) instead. For non-scrollable overflow (hidden/clip), keep
-          // height=0 to signal that the table has no defined size. See issue #3119.
-          if (trimmingOverflow.split(' ').some(v => v === 'auto' || v === 'scroll')) {
+          // (the hider element) and breaks the loop. When overflow-y is scrollable (auto/
+          // scroll), the container IS a vertical scroll viewport and height=0 correctly
+          // signals that it has no defined size. See issue #3119.
+          const computedStyle = rootWindow.getComputedStyle(trimmingElement);
+          const overflowX = computedStyle.overflowX;
+          const overflowY = computedStyle.overflowY;
+
+          // Only switch to auto-height for horizontal-scroll containers where:
+          // - overflow-x is scrollable (auto/scroll) — the container is intentionally wider than its content
+          // - overflow-y is non-scrollable (hidden/clip) — the container height is content-driven
+          // This is the exact pattern that triggers the height feedback loop (issue #3119).
+          // All-axis scroll/auto containers (overflow: scroll/auto) keep height=0 to correctly
+          // signal no defined size. Similarly, overflow: hidden on both axes keeps height=0.
+          if ((overflowX === 'auto' || overflowX === 'scroll') &&
+              (overflowY !== 'auto' && overflowY !== 'scroll')) {
             useAutoHeight = true;
           }
         }
