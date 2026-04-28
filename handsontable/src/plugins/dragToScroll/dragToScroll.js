@@ -346,32 +346,16 @@ export class DragToScroll extends BasePlugin {
    * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
    */
   #scrollHorizontal(distance) {
-    // Same idea as #scrollVertical: nudge by one full column toward the side the mouse left the viewport.
-    // "Advance" (e.g. past the right edge in LTR) must target the first column *past* the last fully
-    // visible one — *not* firstVisible + 1, which is often still in view, so scrollViewportTo
-    // no-ops and the grid never follows the drag.
-    const maxCol = this.hot.countCols() - 1;
-
-    if (maxCol < 0) {
-      this.#autoScroller.stopHorizontal();
-      return;
-    }
-
     const shouldAdvance = this.hot.isRtl() ? distance < 0 : distance > 0;
-    const firstVisible = this.hot.getFirstFullyVisibleColumn();
-    const lastVisible = this.hot.getLastFullyVisibleColumn();
-
-    if (shouldAdvance) {
-      if (lastVisible >= maxCol) {
-        this.#autoScroller.stopHorizontal();
-        return;
-      }
-    } else if (firstVisible <= 0) {
-      this.#autoScroller.stopHorizontal();
-      return;
-    }
-
-    const scrollColumn = shouldAdvance ? lastVisible + 1 : firstVisible - 1;
+    // Advance (right in LTR / left in RTL): target the first column past the last fully visible one.
+    // Retreat (left in LTR / right in RTL): target the column before the first partially visible one.
+    // No explicit horizontalSnap — auto-snapping in scrollViewportHorizontally detects which side the
+    // target column is on and snaps accordingly: off-screen right → 'end' (right edge), off-screen
+    // left → 'start' (left edge). This keeps the selection stuck to whichever viewport edge the
+    // mouse pushed past, and works correctly for both LTR and RTL layouts.
+    const scrollColumn = shouldAdvance
+      ? this.hot.getLastFullyVisibleColumn() + 1
+      : this.hot.getFirstPartiallyVisibleColumn() - 1;
 
     // The no-op callback causes hot.scrollViewportTo to call view.render() after scrolling,
     // which ensures afterScroll fires even in environments where programmatic window.scrollTo()
