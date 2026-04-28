@@ -14,7 +14,6 @@ angular:
   metaTitle: Cell editor - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
-menuTag: updated
 ---
 
 Create custom cell editors to fully control how values are entered in your data grid.

@@ -14,6 +14,7 @@ angular:
   metaTitle: Migrate from 17.x to 18.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
+menuTag: new
 ---
 
 # Migrate from 17.x to 18.0

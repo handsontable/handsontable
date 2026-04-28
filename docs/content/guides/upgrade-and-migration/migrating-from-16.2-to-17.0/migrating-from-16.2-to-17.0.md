@@ -15,7 +15,6 @@ angular:
   metaTitle: Migrate from 16.2 to 17.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
-menuTag: new
 ---
 Migrate from Handsontable 16.2 to Handsontable 17.0, released on March 09, 2025.
 

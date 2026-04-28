@@ -15,7 +15,6 @@ angular:
 searchCategory: Guides
 onlyFor: angular
 category: Getting started
-menuTag: updated
 ---
 Use @ViewChild to get a reference to the Handsontable instance from your Angular component, then call API methods programmatically.
 

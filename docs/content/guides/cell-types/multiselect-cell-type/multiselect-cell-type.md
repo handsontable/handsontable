@@ -14,7 +14,6 @@ angular:
   metaTitle: MultiSelect cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
-menuTag: new
 ---
 Collect user input with a list of multiple-selection choices, by using the MultiSelect cell type.
 
