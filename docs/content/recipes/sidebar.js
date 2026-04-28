@@ -27,21 +27,24 @@ const dataManagementItems = [
 ];
 
 const cellTypesItems = [
-  { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/feedback-react/feedback-react', title: 'Simple Feedback', onlyFor: ['react'] },
+  // JavaScript
+  { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript'] },
+  { path: 'cell-types/feedback/feedback', title: 'Feedback', onlyFor: ['javascript'] },
+  { path: 'cell-types/flatpickr/flatpickr', title: 'Flatpickr', onlyFor: ['javascript'] },
+  { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript'] },
+  { path: 'cell-types/moment-time/moment-time', title: 'Moment.js-based time', onlyFor: ['javascript'] },
+  { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript'] },
+  { path: 'cell-types/pikaday/pikaday', title: 'Pikaday', onlyFor: ['javascript'] },
+  { path: 'cell-types/rating/rating', title: 'Star Rating', onlyFor: ['javascript'] },
+  // React
+  { path: 'cell-types/feedback-react/feedback-react', title: 'Feedback', onlyFor: ['react'] },
   { path: 'cell-types/colorful-picker/colorful-picker', title: 'Colorful Picker', onlyFor: ['react'] },
   { path: 'cell-types/react-rating/react-rating', title: 'Star Rating', onlyFor: ['react'] },
-  { path: 'cell-types/feedback/feedback', title: 'Simple Feedback', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/flatpickr/flatpickr', title: 'Datetime `flatpickr` picker', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/moment-time/moment-time', title: 'Moment.js-based time', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/pikaday/pikaday', title: 'Date picker pikaday', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/rating/rating', title: 'Stars Rating', onlyFor: ['javascript', 'angular', 'react'] },
-  { path: 'cell-types/guide-feedback-angular/guide-feedback', title: 'Simple Feedback', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Stars Rating', onlyFor: ['angular'] },
+  // Angular
+  { path: 'cell-types/guide-feedback-angular/guide-feedback', title: 'Feedback Editor', onlyFor: ['angular'] },
+  { path: 'cell-types/guide-rating-angular/guide-rating', title: 'Star Rating Editor', onlyFor: ['angular'] },
   { path: 'cell-types/guide-color-picker-angular/guide-color-picker', title: 'Color picker', onlyFor: ['angular'] },
-  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Datetime picker', onlyFor: ['angular'] },
+  { path: 'cell-types/guide-datepicker-angular/guide-datepicker', title: 'Date picker', onlyFor: ['angular'] },
 ];
 
 const performanceItems = [
