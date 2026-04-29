@@ -6,5 +6,9 @@ import { HotTableComponent } from './hot-table.component';
   exports: [HotTableComponent],
 })
 export class HotTableModule {
-  static readonly version = '17.0.1';
+  /**
+   * Placeholder for the library version.
+   * Replaced automatically during the pre-build/post-build process.
+   */
+  static readonly version = '0.0.0-VERSION';
 }
