@@ -793,4 +793,167 @@ describe('TableView', () => {
       expect(getSelected()).toBeUndefined();
     });
   });
+
+  describe('touch gesture vs scroll', () => {
+    // Direct calls to walkontable's Event handlers are used because the headless
+    // Chrome that runs E2E tests does not expose `'ontouchstart' in window`,
+    // so touch listeners are not registered. Calling the handlers directly
+    // exercises the same code path real mobile browsers trigger.
+    const fireTouchStart = async(cell, x, y) => {
+      const evt = await triggerTouchEvent('touchstart', cell, x, y);
+
+      tableView()._wt.wtEvent.onTouchStart(evt);
+    };
+    const fireTouchMove = async(cell, x, y) => {
+      const evt = await triggerTouchEvent('touchmove', cell, x, y);
+
+      tableView()._wt.wtEvent.onTouchMove(evt);
+    };
+    const fireTouchEnd = async(cell, x, y) => {
+      const evt = await triggerTouchEvent('touchend', cell, x, y);
+
+      tableView()._wt.wtEvent.onTouchEnd(evt);
+    };
+
+    it('should select a cell on a tap (touchstart + touchend with no movement)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const cell = getCell(2, 2);
+
+      await fireTouchStart(cell);
+      await fireTouchEnd(cell);
+
+      expect(getSelected()).toEqual([[2, 2, 2, 2]]);
+    });
+
+    it('should not change selection when touch moves beyond threshold (scroll gesture)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      const cell = getCell(2, 2);
+      const rect = cell.getBoundingClientRect();
+      const startX = Math.round(rect.left + 5);
+      const startY = Math.round(rect.top + 5);
+
+      await fireTouchStart(cell, startX, startY);
+      await fireTouchMove(cell, startX, startY + 50);
+      await fireTouchEnd(cell, startX, startY + 50);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should not select a previously unselected cell when the gesture is a scroll', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      expect(getSelected()).toBeUndefined();
+
+      const cell = getCell(2, 2);
+      const rect = cell.getBoundingClientRect();
+      const startX = Math.round(rect.left + 5);
+      const startY = Math.round(rect.top + 5);
+
+      await fireTouchStart(cell, startX, startY);
+      await fireTouchMove(cell, startX + 40, startY);
+      await fireTouchEnd(cell, startX + 40, startY);
+
+      expect(getSelected()).toBeUndefined();
+    });
+
+    it('should still select when the touch moves within the threshold (small jitter)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const cell = getCell(1, 1);
+      const rect = cell.getBoundingClientRect();
+      const startX = Math.round(rect.left + 5);
+      const startY = Math.round(rect.top + 5);
+
+      await fireTouchStart(cell, startX, startY);
+      await fireTouchMove(cell, startX + 4, startY + 4);
+      await fireTouchEnd(cell, startX + 4, startY + 4);
+
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('should treat a native scroll during touch as a scroll gesture even if no touchmove crossed the threshold', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 5),
+        height: 200,
+      });
+
+      await selectCell(0, 0);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      const cell = getCell(3, 3);
+
+      await fireTouchStart(cell);
+
+      // Browsers start native scrolling at ~8px movement, before the 10px
+      // LONG_PRESS_MOVE_THRESHOLD that onTouchMove watches. Simulate the
+      // resulting holder `scroll` callback firing during an active touch.
+      tableView()._wt.wtEvent.onHolderScroll();
+
+      await fireTouchEnd(cell);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should select the long-pressed cell before the context menu opens', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      const cell = getCell(3, 3);
+
+      await fireTouchStart(cell);
+
+      // Wait past LONG_PRESS_DELAY (500ms) so the timer fires synchronously with
+      // the synthetic contextmenu dispatch. That path must still select the cell.
+      await sleep(600);
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+
+      await fireTouchEnd(cell);
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+    });
+
+    it('should select a new cell on a tap performed after a scroll gesture', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      const scrollCell = getCell(2, 2);
+      const scrollRect = scrollCell.getBoundingClientRect();
+      const startX = Math.round(scrollRect.left + 5);
+      const startY = Math.round(scrollRect.top + 5);
+
+      await fireTouchStart(scrollCell, startX, startY);
+      await fireTouchMove(scrollCell, startX, startY + 60);
+      await fireTouchEnd(scrollCell, startX, startY + 60);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      const tapCell = getCell(3, 3);
+
+      await fireTouchStart(tapCell);
+      await fireTouchEnd(tapCell);
+
+      expect(getSelected()).toEqual([[3, 3, 3, 3]]);
+    });
+  });
 });

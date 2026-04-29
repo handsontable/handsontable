@@ -57,11 +57,32 @@ class Event {
    */
   #longPressTimeout = null;
   /**
-   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press).
+   * Marks that the long-press contextmenu gesture has been triggered for the current touch.
+   *
+   * @type {boolean}
+   */
+  #longPressFired = false;
+  /**
+   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press
+   * and to distinguish a tap from a scroll).
    *
    * @type {{ x: number, y: number }|null}
    */
   #touchStartCoords = null;
+  /**
+   * Marks that the current touch gesture has moved beyond the threshold and should be treated
+   * as a scroll rather than a tap.
+   *
+   * @type {boolean}
+   */
+  #touchWasMoved = false;
+  /**
+   * The original `touchstart` event captured so the synthesized mousedown can be deferred to
+   * `touchend` and only fired when the gesture is a tap (not a scroll).
+   *
+   * @type {TouchEvent|null}
+   */
+  #deferredTouchStartEvent = null;
 
   /**
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
@@ -97,28 +118,8 @@ class Event {
     const initTouchEvents = () => {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend', event => this.onTouchEnd(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.#onTouchMove(event));
-
-      if (!this.momentumScrolling) {
-        this.momentumScrolling = {};
-      }
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => {
-        this.#cancelLongPressTimer();
-        clearTimeout(this.momentumScrolling._timeout);
-
-        if (!this.momentumScrolling.ongoing) {
-          this.#wtSettings.getSetting('onBeforeTouchScroll');
-        }
-        this.momentumScrolling.ongoing = true;
-
-        this.momentumScrolling._timeout = setTimeout(() => {
-          if (!this.touchApplied) {
-            this.momentumScrolling.ongoing = false;
-
-            this.#wtSettings.getSetting('onAfterMomentumScroll');
-          }
-        }, 200);
-      });
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.onTouchMove(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => this.onHolderScroll());
     };
 
     const initMouseEvents = () => {
@@ -338,7 +339,9 @@ class Event {
   }
 
   /**
-   * OnTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Captures the gesture start so the synthesized mousedown can be
+   * deferred to `touchend`; this lets a touch-drag gesture scroll the grid without
+   * re-triggering the cell selection (see issue #11659).
    *
    * @private
    * @param {TouchEvent} event The touch event object.
@@ -346,19 +349,32 @@ class Event {
   onTouchStart(event) {
     this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection().cellRange;
     this.touchApplied = true;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
+    this.#deferredTouchStartEvent = event;
 
-    this.onMouseDown(event);
     this.#startLongPressTimer(event);
   }
 
   /**
-   * OnTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Fires the deferred mousedown only when the gesture is a tap
+   * (no movement past the threshold and no long-press); for a scroll gesture the
+   * selection stays untouched (see issue #11659).
    *
    * @private
    * @param {TouchEvent} event The touch event object.
    */
   onTouchEnd(event) {
+    const wasScrolled = this.#touchWasMoved;
+    const isTap = !wasScrolled && !this.#longPressFired && this.#deferredTouchStartEvent !== null;
+    const deferredTouchStartEvent = this.#deferredTouchStartEvent;
+
     this.#cancelLongPressTimer();
+    this.#deferredTouchStartEvent = null;
+
+    if (isTap) {
+      this.onMouseDown(deferredTouchStartEvent);
+    }
 
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
@@ -390,9 +406,19 @@ class Event {
       }
     }
 
-    this.onMouseUp(event);
+    // Fire mouseUp whenever the gesture also produced a mouseDown - either a tap
+    // (deferred mousedown above) or a long-press (mousedown fired from the timer
+    // callback). Skipping it for a long-press that ended in a scroll would leave
+    // an unpaired mousedown and break plugins listening to onCellMouseUp /
+    // before/after hooks (e.g. nestedHeaders, ContextMenu close logic).
+    // Suppress only for pure scroll gestures, where onMouseDown was never fired.
+    if (!wasScrolled || this.#longPressFired) {
+      this.onMouseUp(event);
+    }
 
     this.touchApplied = false;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
   }
 
   /**
@@ -416,7 +442,13 @@ class Event {
 
     this.#longPressTimeout = setTimeout(() => {
       this.#longPressTimeout = null;
+      this.#longPressFired = true;
       this.#touchStartCoords = null;
+
+      // Select the long-pressed cell so context-menu commands (e.g. "Insert row above")
+      // operate on it. With the deferred-mousedown flow, touchend skips onMouseDown
+      // when #longPressFired is true, so we fire it here before opening the menu.
+      this.onMouseDown(event);
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
@@ -438,6 +470,39 @@ class Event {
   }
 
   /**
+   * Holder `scroll` callback. Cancels the long-press timer and runs the momentum-scroll
+   * bookkeeping. When called during an active touch sequence it also marks the gesture
+   * as a scroll so the deferred mousedown is not fired on `touchend` - native scrolling
+   * can start at ~8px, before the 10px LONG_PRESS_MOVE_THRESHOLD that `onTouchMove`
+   * watches (issue #11659).
+   *
+   * @private
+   */
+  onHolderScroll() {
+    if (!this.momentumScrolling) {
+      this.momentumScrolling = {};
+    }
+    if (this.touchApplied) {
+      this.#touchWasMoved = true;
+    }
+    this.#cancelLongPressTimer();
+    clearTimeout(this.momentumScrolling._timeout);
+
+    if (!this.momentumScrolling.ongoing) {
+      this.#wtSettings.getSetting('onBeforeTouchScroll');
+    }
+    this.momentumScrolling.ongoing = true;
+
+    this.momentumScrolling._timeout = setTimeout(() => {
+      if (!this.touchApplied) {
+        this.momentumScrolling.ongoing = false;
+
+        this.#wtSettings.getSetting('onAfterMomentumScroll');
+      }
+    }, 200);
+  }
+
+  /**
    * Cancels the pending long-press timer.
    *
    * @private
@@ -451,19 +516,21 @@ class Event {
   }
 
   /**
-   * OnTouchMove callback. Cancels the long-press timer if the finger moves beyond the threshold.
+   * OnTouchMove callback. Once the finger moves beyond the threshold, marks the gesture as a
+   * scroll so `touchend` skips firing the deferred mousedown, and cancels the long-press timer.
    *
    * @private
    * @param {TouchEvent} event The touch event object.
    */
-  #onTouchMove(event) {
-    if (this.#longPressTimeout === null || this.#touchStartCoords === null) {
+  onTouchMove(event) {
+    if (this.#touchStartCoords === null) {
       return;
     }
 
     const touch = event.touches[0];
 
     if (!touch) {
+      this.#touchWasMoved = true;
       this.#cancelLongPressTimer();
 
       return;
@@ -473,6 +540,7 @@ class Event {
     const dy = Math.abs(touch.clientY - this.#touchStartCoords.y);
 
     if (dx > LONG_PRESS_MOVE_THRESHOLD || dy > LONG_PRESS_MOVE_THRESHOLD) {
+      this.#touchWasMoved = true;
       this.#cancelLongPressTimer();
     }
   }
@@ -501,6 +569,10 @@ class Event {
     clearTimeout(this.#dblClickTimeout[0]);
     clearTimeout(this.#dblClickTimeout[1]);
     this.#cancelLongPressTimer();
+
+    if (this.momentumScrolling) {
+      clearTimeout(this.momentumScrolling._timeout);
+    }
 
     this.#eventManager.destroy();
   }
