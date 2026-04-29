@@ -6,7 +6,6 @@ canonicalUrl: /recipes/themes
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
 id: a8f2d91c
 description: Practical recipes for integrating Handsontable with design systems and UI libraries.
 react:
@@ -24,11 +23,11 @@ This section provides practical, ready-to-use recipes for matching Handsontable 
 
 ## Getting Started
 
-Read the [Themes guide](@/guides/styling/themes/themes.md) first to understand the Theme API, built-in themes, and how to apply or customize themes programmatically.
+Before diving into specific recipes, we recommend reading our [Themes guide](@/guides/styling/themes/themes.md) to understand the Theme API, built-in themes, and how to apply or customize themes programmatically.
 
 ## Available Recipes
 
-Recipes in this section cover common use cases and demonstrate best practices for:
+Our recipes cover common use cases and demonstrate best practices for:
 
 - **Design system integration** – Match the grid to shadcn/ui, Fluent UI, Tailwind, or other design systems
 - **Theme API** – Register and configure themes with colors, density, and dark mode

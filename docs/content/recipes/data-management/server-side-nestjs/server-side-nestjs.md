@@ -1,9 +1,9 @@
 ---
-type: how-to
+type: tutorial
 id: a3f82c91
 title: Server-side Data with NestJS
 metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
-description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM.
+description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations using an in-memory store.
 permalink: /recipes/data-management/server-side-nestjs
 canonicalUrl: /recipes/data-management/server-side-nestjs
 tags:
@@ -22,8 +22,6 @@ searchCategory: Recipes
 category: Data Management
 ---
 
-This tutorial shows how to wire Handsontable's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using an in-memory store.
-
 ::: tip Handsontable sponsors NestJS
 Handsontable is a proud sponsor of NestJS. You can support the project on [Open Collective](https://opencollective.com/handsontable-javascript-data-grid).
 :::
@@ -35,39 +33,40 @@ Handsontable is a proud sponsor of NestJS. You can support the project on [Open 
   View full example on GitHub
 </a>
 
-This recipe shows how to connect Handsontable's `dataProvider` plugin to a NestJS 10 backend. You will build a support-tickets grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a PostgreSQL database via TypeORM.
+This recipe shows how to connect Handsontable's `dataProvider` plugin to a NestJS 10 backend. You will build a support-tickets grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to an in-memory store.
 
 **Difficulty:** Intermediate
 **Time:** ~40 minutes
-**Stack:** NestJS 10, TypeScript, TypeORM 0.3, PostgreSQL 16, `class-validator`, `class-transformer`, Handsontable `dataProvider`
+**Stack:** NestJS 10, TypeScript, `class-validator`, `class-transformer`, Handsontable `dataProvider`
 
 ## What You'll Build
 
 A support-tickets data grid that:
 - Fetches paginated rows from a NestJS REST API on every page, sort, or filter change
-- Applies filters on the server using TypeORM QueryBuilder predicates -- the browser never loads the full dataset
+- Applies filters on the server using an in-memory array predicate -- the browser never loads the full dataset
 - Creates, updates, and deletes rows via dedicated endpoints
 - Serializes Handsontable's sort and filter objects as bracket-notation query parameters -- decoded in NestJS with `@Query()` and `class-transformer`
-- Seeds the database with 12 realistic support tickets via a migration
+- Seeds the store with 12 realistic support tickets on startup
 
 ## Before you begin
 
-- Docker and Docker Compose installed
-- Node.js 18 or later and npm installed
+- Node.js 18 or later installed
+- NestJS CLI installed: `npm install -g @nestjs/cli`
 - Basic familiarity with NestJS modules, controllers, and services
+- A Handsontable project with the `dataProvider` plugin available
 
-## Step 1: Start the project
+## Step 1: Scaffold the NestJS project
 
-Run the one-command bootstrap script, which starts PostgreSQL, runs TypeORM migrations, seeds 12 sample tickets, starts the NestJS backend, and opens the Vite dev server:
+Create a new NestJS application and install the validation libraries:
 
 ```shell
-bash setup.sh
-# or: make setup
+nest new tickets-api --package-manager npm
+cd tickets-api
+npm install class-validator class-transformer
 ```
 
-The project uses `class-validator` and `class-transformer` for request validation:
-
 **What's happening:**
+- `nest new` scaffolds a complete NestJS project with `AppModule`, `AppController`, and `AppService`. You will replace the default controller and service with a `TicketsController` and `TicketsService`.
 - `class-transformer` converts query-string values -- which are always strings -- into the TypeScript types declared in your DTO. For example, `page=2` in the query string becomes the number `2`.
 - `class-validator` then validates those typed values against constraints such as `@IsInt()` and `@Min(1)`, and rejects invalid requests with a `400` response before they reach your service.
 
@@ -77,26 +76,21 @@ Together these two libraries give you end-to-end type safety from the HTTP reque
 
 Copy `ticket.entity.ts` into `src/tickets/`:
 
-:::example #ts-ticket-entity
-
-@[code ts](@/content/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
-
-:::
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
 
 **What's happening:**
 - `TicketStatus` and `TicketPriority` are union types that match the `source` arrays in the Handsontable column definitions. Sharing these types between server and client prevents mismatched values.
-- `TicketEntity` is a TypeORM entity backed by a PostgreSQL table. The `@Entity('tickets')` decorator maps the class to the `tickets` table. Twelve seed rows are inserted by a migration so pagination and filtering are meaningful from the first load.
-- The `id` field is a UUID string generated by PostgreSQL (`gen_random_uuid()`). Handsontable's `dataProvider.rowId` option identifies rows by string, so a UUID id requires no conversion.
+- `ticketsStore` is an in-memory array that acts as the database for this recipe. Twelve realistic support-ticket rows make pagination and filtering meaningful from the first load.
+- The `id` field is a string rather than a number because Handsontable's `dataProvider.rowId` option tracks rows by string identity. Converting numbers to strings at the database boundary keeps the rest of the code consistent.
+
+**Switching to TypeORM:**
+Replace the interface and array with a `@Entity()` class and inject `Repository<TicketEntity>` into the service. The `findAndCount()`, `save()`, and `delete()` calls map directly to the array operations in this recipe.
 
 ## Step 3: Create the fetch DTO
 
 Copy `fetch-tickets.dto.ts` into `src/tickets/dto/`:
 
-:::example #ts-fetch-tickets-dto
-
-@[code ts](@/content/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
-
-:::
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
 
 **What's happening:**
 
@@ -126,11 +120,7 @@ A filter condition can carry one or two values depending on the condition type (
 
 Copy `main.ts` into `src/`:
 
-:::example #ts-main
-
-@[code ts](@/content/recipes/data-management/server-side-nestjs/server/main.ts)
-
-:::
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/main.ts)
 
 **What's happening:**
 
@@ -166,44 +156,40 @@ export class AppModule {}
 
 Copy `tickets.service.ts` into `src/tickets/`:
 
-:::example #ts-tickets-service
-
-@[code ts](@/content/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
-
-:::
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
 
 **What's happening:**
 
 ### Filtering -- condition mapping
 
-Handsontable's Filters plugin sends condition names such as `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. The `switch` statement maps each name to a TypeORM QueryBuilder `WHERE` clause:
+Handsontable's Filters plugin sends condition names such as `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. The `switch` statement maps each name to a JavaScript string predicate. With TypeORM, you would map the same names to `WHERE` clauses instead:
 
 ```typescript
 case 'contains':
-  qb.andWhere(`LOWER(${col}::text) LIKE LOWER(:${param}) ESCAPE '!'`, { [param]: `%${esc(val)}%` });
+  queryBuilder.andWhere(`ticket.${filter.prop} LIKE :val`, { val: `%${filter.value[0]}%` });
   break;
 ```
 
-All string comparisons use `LOWER()` so filtering is case-insensitive. LIKE metacharacters (`%`, `_`, `!`) in user input are escaped to prevent them from being interpreted as wildcards. Multiple filter conditions are combined with `AND` using repeated `andWhere()` calls.
-
 ### Sorting
 
-Handsontable sends `sort[column]=status&sort[order]=asc` as query params. The DTO maps this to `{ column: 'status', order: 'asc' }`. The service calls `qb.orderBy()` with the column name and uppercased direction. Without a sort param, rows fall back to `createdAt ASC`.
+Handsontable sends `{ column: 'status', order: 'asc' }` for the active sort. The service reads `column` and `order` from the DTO and calls `localeCompare` for consistent alphabetical ordering. The result is negated for `'desc'`.
 
 ### Pagination
 
 ```typescript
-const [rows, totalRows] = await qb
-  .skip((dto.page - 1) * dto.pageSize)
-  .take(dto.pageSize)
-  .getManyAndCount();
+const start = (dto.page - 1) * dto.pageSize;
+return { rows: tickets.slice(start, start + dto.pageSize), totalRows };
 ```
 
-Handsontable sends a 1-based `page` index. Subtracting 1 converts it to a 0-based SQL offset. `getManyAndCount()` runs the data query and a `COUNT(*)` in one round trip. `totalRows` is the count of matching rows *before* pagination -- Handsontable uses this number to render the correct number of pages in the pagination bar.
+Handsontable sends a 1-based `page` index. Subtracting 1 converts it to a 0-based offset for `Array.slice()`. `totalRows` is the count of matching rows *before* slicing -- Handsontable uses this number to render the correct number of pages in the pagination bar.
 
-### ID generation
+### ID generation with an incrementing counter
 
-PostgreSQL generates a UUID for each new row via `DEFAULT gen_random_uuid()`. The service calls `this.repo.save(ticket)`, which runs the `INSERT` and returns the entity with its database-assigned `id`. Batch creates call `this.repo.save()` once per row inside `Promise.all()`, so each row receives a unique UUID regardless of timing.
+```typescript
+let nextId = ticketsStore.length + 1;
+```
+
+Using an incrementing counter rather than `Date.now()` avoids duplicate IDs when `onRowsCreate` sends a batch of rows. All calls in the batch happen within the same millisecond, so `Date.now()` would return the same value for every row in the batch.
 
 ### `create` must return the created row
 
@@ -213,11 +199,7 @@ After inserting a row the service returns it with its server-assigned `id`. The 
 
 Copy `tickets.controller.ts` into `src/tickets/`:
 
-:::example #ts-tickets-controller
-
-@[code ts](@/content/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
-
-:::
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
 
 **What's happening:**
 - `@Controller('tickets')` sets the base path. All four endpoints share the `/tickets` prefix.
@@ -237,41 +219,29 @@ Copy `tickets.controller.ts` into `src/tickets/`:
 
 ## Step 7: Wire up Handsontable
 
-Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The NestJS API runs on `http://localhost:3000`; Vite proxies all `/tickets` requests to it. The complete frontend code is below.
+With the server running on `http://localhost:3000`, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is below.
 
 ::: only-for javascript
-
-::: example #javascript-nestjs --code-only
 
 @[code js](@/content/recipes/data-management/server-side-nestjs/javascript/example1.js)
 
 :::
 
-:::
-
 ::: only-for typescript
-
-::: example #typescript-nestjs --code-only
 
 @[code ts](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
 
 :::
 
-:::
-
 ::: only-for react
-
-::: example #react-nestjs --code-only
 
 @[code](@/content/recipes/data-management/server-side-nestjs/react/example1.jsx)
 
 :::
 
-:::
-
 ::: only-for angular
 
-::: example #angular-nestjs --code-only
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/recipes/data-management/server-side-nestjs/angular/example1.ts)
 @[code](@/content/recipes/data-management/server-side-nestjs/angular/example1.html)
@@ -284,44 +254,108 @@ Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`)
 
 ### `buildUrl` helper
 
-`buildUrl` converts Handsontable's `DataProviderQueryParameters` object into the bracket-notation query string that NestJS parses correctly. Key points:
-- Sort uses `sort[column]` mapped from `params.sort.prop` — NestJS's `@Query()` + `class-transformer` parses bracket notation directly into the typed `SortDto`.
-- Filters are flattened from `DataProviderFilterColumn[]` (each with `prop` and `conditions: [{name, args}]`) into one indexed entry per condition. This is the opposite of the Django/Laravel approach, which sends a JSON string — NestJS bracket notation maps directly to the `FilterConditionDto[]` via `@Query()`.
+```javascript
+function buildUrl(base, params) {
+  const query = new URLSearchParams();
+
+  query.set('page', String(params.page));
+  query.set('pageSize', String(params.pageSize));
+
+  if (params.sort) {
+    query.set('sort[column]', params.sort.column);
+    query.set('sort[order]', params.sort.order);
+  }
+
+  if (params.filters?.length) {
+    params.filters.forEach((filter, i) => {
+      query.set(`filters[${i}][prop]`, filter.prop);
+      query.set(`filters[${i}][condition]`, filter.condition);
+      filter.value.forEach((v, j) => query.set(`filters[${i}][value][${j}]`, String(v)));
+    });
+  }
+
+  return `${base}?${query.toString()}`;
+}
+```
+
+`buildUrl` converts Handsontable's `DataProviderQueryParameters` object into the bracket-notation query string that NestJS parses correctly. The key difference from the Laravel recipe is the notation style: NestJS expects `sort[column]=status` while Laravel accepts a flat JSON string. The bracket notation maps directly to the nested `SortDto` object via `@Query()` and `class-transformer`.
 
 ### `fetchRows`
+
+```javascript
+fetchRows: async (params, { signal }) => {
+  const url = buildUrl('http://localhost:3000/tickets', params);
+  const res = await fetch(url, { signal });
+
+  if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+  return res.json();
+},
+```
 
 Handsontable calls `fetchRows` whenever the user changes the page, sorts a column, or applies a filter. The `AbortSignal` from the second argument is passed to `fetch()`. When the user changes the page before the current request finishes, Handsontable aborts the in-flight request. Without the signal, a slow previous response can arrive after a faster one and overwrite the displayed data.
 
 ### `onRowsCreate`
 
-`onRowsCreate` receives `{ rowsAmount }` — the number of rows the user wants to add. The frontend builds an array of default objects (one per row) and sends them to `POST /tickets`. The server inserts each row, PostgreSQL assigns a UUID, and the created rows are returned. Handsontable uses the returned `id` values to replace the temporary client-side IDs -- without this the grid loses track of newly created rows.
+```javascript
+onRowsCreate: async (payload) => {
+  const res = await fetch('http://localhost:3000/tickets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return res.json(); // Must return created rows with server-assigned IDs.
+},
+```
+
+Handsontable passes a `payload` object with the new row data keyed by the column `data` properties. The server creates the row, assigns a string `id`, and returns the created row. Handsontable uses the returned `id` to replace the temporary client-side ID -- without this the grid loses track of the row.
 
 ### `onRowsUpdate`
 
-`dataProvider` passes each updated row as `{ id, changes }` where `changes` contains only the modified columns. The frontend flattens this into `{ id, ...changes }` before sending to the API. The service finds each row by `id`, calls `repo.update(id, rest)`, and returns the updated entities.
+```javascript
+onRowsUpdate: async (rows) => {
+  await fetch('http://localhost:3000/tickets', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rows),
+  });
+},
+```
+
+Handsontable batches all cell edits from a single user action into one array. Each element is a partial row object that includes the row `id` and only the columns the user changed. The service applies the changes selectively using `Object.assign`.
 
 ### `onRowsRemove`
 
+```javascript
+onRowsRemove: async (rowIds) => {
+  await fetch('http://localhost:3000/tickets', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rowIds),
+  });
+},
+```
+
 Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The controller deserializes them as `string[]` and passes them to `ticketsService.removeMany()`.
 
-### `beforeRowsMutation`
-
-`beforeRowsMutation` is a synchronous hook that fires before any mutation is sent. Returning `false` cancels the operation. Because the hook is synchronous it cannot await a native browser `confirm()` or a promise — instead it shows a non-blocking notification with **Delete** and **Cancel** actions. The `removeConfirmed` flag lets the second call (issued by the **Delete** action) bypass the guard and proceed.
-
 ### `notification: true` and `emptyDataState: true`
+
+```javascript
+notification: true,
+emptyDataState: true,
+```
 
 `notification: true` enables the built-in error toast. When `fetchRows` or a mutation callback throws, Handsontable shows a dismissible error message. Fetch failures also add a **Refetch** action that calls `fetchRows` again.
 
 `emptyDataState: true` shows a placeholder message when the current filter combination returns zero rows, instead of leaving the grid blank.
-
-`contextMenu: true` enables the right-click context menu with "Insert row above / below" and "Remove row" items.
 
 ## How It Works -- Complete Flow
 
 1. **Initial load**: Handsontable calls `fetchRows` with `{ page: 1, pageSize: 5 }`.
 2. **Frontend builds**: `GET /tickets?page=1&pageSize=5`.
 3. **NestJS routes** the request to `TicketsController.findAll` via `FetchTicketsDto`.
-4. **Service queries**: runs SQL with `skip(0).take(5).getManyAndCount()` and returns `{ rows: [...5 tickets...], totalRows: 12 }`.
+4. **Service queries**: slices the in-memory store to rows 0--4 and returns `{ rows: [...5 tickets...], totalRows: 12 }`.
 5. **User sorts by priority**: `fetchRows` called with `sort: { column: 'priority', order: 'asc' }`.
 6. **Frontend builds**: `GET /tickets?page=1&pageSize=5&sort[column]=priority&sort[order]=asc`.
 7. **Service sorts** the store using `localeCompare` and returns the first page of sorted results.
@@ -329,22 +363,21 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 9. **Frontend builds**: `GET /tickets?...&filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open`.
 10. **DTO deserializes**: `class-transformer` maps bracket notation to `FilterConditionDto[]`; the `switch` maps `eq` to a strict equality predicate.
 11. **User edits assignee**: `onRowsUpdate([{ id: '3', assignee: 'Li Wei' }])` sent via `PATCH /tickets`.
-12. **Service updates**: `repo.update(id, { assignee: 'Li Wei' })` -- only the changed column is written to the database.
+12. **Service updates**: `Object.assign(ticketsStore[idx], { assignee: 'Li Wei' })` -- only the changed column is written.
 
 ## What you learned
 
 - How to use `class-validator` and `class-transformer` in a NestJS `ValidationPipe` to parse and validate Handsontable's query parameters.
 - How bracket-notation serialization maps Handsontable's sort and filter objects to NestJS `@Query()` DTOs -- `sort[column]=status` becomes `{ sort: { column: 'status' } }`.
-- How to map Handsontable filter condition names (`eq`, `contains`, `begins_with`, etc.) to TypeORM QueryBuilder `WHERE` clauses with case-insensitive `LOWER()` and LIKE-safe escaping.
-- How PostgreSQL UUID generation (`gen_random_uuid()`) handles ID assignment for batch creates without requiring an application-level counter.
+- How to map Handsontable filter condition names (`eq`, `contains`, `begins_with`, etc.) to array predicates or TypeORM `WHERE` clauses.
+- How to use an incrementing counter for ID generation to avoid duplicate IDs in batch creates.
 - Why `onRowsCreate` must return the created rows with server-assigned IDs.
 - How `notification: true` provides automatic error toasts with a **Refetch** button for fetch failures.
 - How `emptyDataState: true` shows a placeholder when no rows match the active filters.
 
 ## Next steps
 
-- Swap PostgreSQL for a different database by updating the TypeORM `DataSource` config and the Flyway-equivalent migration file.
+- Replace the in-memory store with TypeORM + SQLite (zero extra config) or PostgreSQL.
 - Add authentication -- pass a `Bearer` token in the `fetchRows` fetch headers and protect mutation endpoints with a NestJS `AuthGuard`.
 - Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
 - Compare with the [Spring Boot recipe](@/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.
-- Compare with the [Symfony recipe](@/recipes/data-management/server-side-symfony/server-side-symfony.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.

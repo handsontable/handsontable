@@ -27,7 +27,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Custom keyboard shortcuts](@/content/recipes/accessibility/keyboard-shortcuts/keyboard-shortcuts.md)
-- [ARIA-friendly grid](@/content/recipes/accessibility/aria-grid/aria-grid.md)
+- [Custom keyboard shortcuts](@/recipes/accessibility/keyboard-shortcuts/keyboard-shortcuts.md)
+- [ARIA-friendly grid](@/recipes/accessibility/aria-grid/aria-grid.md)
 
 </div>
