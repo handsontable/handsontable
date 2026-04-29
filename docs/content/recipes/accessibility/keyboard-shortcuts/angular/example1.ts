@@ -24,6 +24,7 @@ const employees = [
     <span class="shortcut-status" [class.visible]="statusMessage">{{ statusMessage }}</span>
     <div class="submit-log">{{ submitLog }}</div>
   `,
+  styleUrls: ['./example1.css'],
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
