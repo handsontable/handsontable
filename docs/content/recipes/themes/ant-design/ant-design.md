@@ -261,11 +261,11 @@ export default function App() {
 
 ## Next steps
 
-- Explore [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
-- Explore [Handsontable with shadcn/ui](@/content/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
+- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
+- Explore [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
 
 ## Related
 
 - [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Theme Recipes](@/content/recipes/themes/themes.md) - More recipes for design-system integration.
+- [Theme Recipes](@/recipes/themes/themes.md) - More recipes for design-system integration.

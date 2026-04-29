@@ -128,5 +128,5 @@ Use this wrapper around your search handler when needed.
 
 ## Next steps
 
-- Explore [highlight search matches](@/content/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md) to wrap matched text in `<mark>` tags instead of using the default cell highlight class.
-- Add [multi-column filtering](@/content/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md) to let users filter by multiple columns at once through an external panel.
+- Explore [highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md) to wrap matched text in `<mark>` tags instead of using the default cell highlight class.
+- Add [multi-column filtering](@/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md) to let users filter by multiple columns at once through an external panel.

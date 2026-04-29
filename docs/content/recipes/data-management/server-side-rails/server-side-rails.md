@@ -482,6 +482,6 @@ const hot = new Handsontable(container, {
 
 - [Server-side data with Django](@/recipes/data-management/server-side-django/server-side-django.md)
 - [Server-side data with Spring Boot](@/recipes/data-management/server-side-spring/server-side-spring.md)
-- [Rows pagination guide](@/content/guides/rows/rows-pagination/rows-pagination.md)
-- [Column filter guide](@/content/guides/columns/column-filter/column-filter.md)
-- [Rows sorting guide](@/content/guides/rows/rows-sorting/rows-sorting.md)
+- [Rows pagination guide](@/guides/rows/rows-pagination/rows-pagination.md)
+- [Column filter guide](@/guides/columns/column-filter/column-filter.md)
+- [Rows sorting guide](@/guides/rows/rows-sorting/rows-sorting.md)

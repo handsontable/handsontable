@@ -69,7 +69,7 @@ php artisan make:seeder ProductSeeder
 
 Replace the generated migration's `up()` method with the products schema:
 
-@[code php](@/content/recipes/data-management/server-side-laravel/server/migration.php)
+@[code php](@/recipes/data-management/server-side-laravel/server/migration.php)
 
 **What's happening:**
 - `id()` creates an auto-increment primary key. This is the value Handsontable uses as `rowId`.
@@ -87,7 +87,7 @@ php artisan migrate
 
 Open `app/Models/Product.php` and set `$fillable` and `$casts`:
 
-@[code php](@/content/recipes/data-management/server-side-laravel/server/Product.php)
+@[code php](@/recipes/data-management/server-side-laravel/server/Product.php)
 
 **What's happening:**
 - `$fillable` lists the columns that `Product::create()` and `update()` may write to, protecting the `id` from mass-assignment.
@@ -97,7 +97,7 @@ Open `app/Models/Product.php` and set `$fillable` and `$casts`:
 
 Open `database/seeders/ProductSeeder.php` and add at least 50 rows so that pagination spans multiple pages:
 
-@[code php](@/content/recipes/data-management/server-side-laravel/server/seeder.php)
+@[code php](@/recipes/data-management/server-side-laravel/server/seeder.php)
 
 **What's happening:**
 - `Product::create($data)` inserts each row through Eloquent so the `$fillable` guard and timestamps apply.
@@ -113,7 +113,7 @@ php artisan db:seed --class=ProductSeeder
 
 `ProductController` handles all four HTTP verbs. Each method maps to one Handsontable `dataProvider` callback:
 
-@[code php](@/content/recipes/data-management/server-side-laravel/server/ProductController.php)
+@[code php](@/recipes/data-management/server-side-laravel/server/ProductController.php)
 
 **What's happening:**
 
@@ -177,7 +177,7 @@ After a cell edit, `onRowsUpdate` calls `PATCH /api/products` with:
 
 Open `routes/api.php` and add the four product routes:
 
-@[code php](@/content/recipes/data-management/server-side-laravel/server/routes-api.php)
+@[code php](@/recipes/data-management/server-side-laravel/server/routes-api.php)
 
 **What's happening:**
 - All four routes share the same `/api/products` path. Laravel matches them by HTTP method.
@@ -209,13 +209,13 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 
 ::: only-for javascript
 
-@[code js](@/content/recipes/data-management/server-side-laravel/javascript/example1.js)
+@[code js](@/recipes/data-management/server-side-laravel/javascript/example1.js)
 
 :::
 
 ::: only-for typescript
 
-@[code ts](@/content/recipes/data-management/server-side-laravel/javascript/example1.ts)
+@[code ts](@/recipes/data-management/server-side-laravel/javascript/example1.ts)
 
 :::
 

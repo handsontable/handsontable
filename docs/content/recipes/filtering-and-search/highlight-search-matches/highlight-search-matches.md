@@ -281,5 +281,5 @@ searchField.addEventListener('input', (event) => {
 
 ## Next steps
 
-- Explore [external search box](@/content/recipes/filtering-and-search/external-search-box/external-search-box.md) for a simpler approach using the default `htSearchResult` highlight class without a custom renderer.
+- Explore [external search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md) for a simpler approach using the default `htSearchResult` highlight class without a custom renderer.
 - Extend the renderer to also highlight matches in the column header row by overriding `afterGetColHeader`.

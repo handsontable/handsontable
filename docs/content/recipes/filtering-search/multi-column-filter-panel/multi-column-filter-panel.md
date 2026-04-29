@@ -165,5 +165,5 @@ The full implementation is available in the runnable example above.
 
 ## Next steps
 
-- Explore [external search box](@/content/recipes/filtering-and-search/external-search-box/external-search-box.md) to add a text search that works alongside the filter panel.
+- Explore [external search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md) to add a text search that works alongside the filter panel.
 - Read the [Filters plugin API](@/api/filters.md) reference for the full list of built-in condition types (between, contains, begins with, and more).

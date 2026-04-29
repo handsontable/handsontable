@@ -167,4 +167,4 @@ The source check prevents re-entrant updates if synced writes trigger hooks, and
 
 - Extend the sync to work in both directions so either grid can serve as the master.
 - Add a field mapping function to transform values (for example, format currency in the detail grid) before applying the sync.
-- Explore the [undo/redo recipe](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert synchronized changes.
+- Explore the [undo/redo recipe](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert synchronized changes.

@@ -129,7 +129,7 @@ Prefer Handsontable theme variables (for example `--ht-background-color-extra-li
 
 ## Next steps
 
-- Explore [conditional row coloring](@/content/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) to style data rows based on cell values while keeping the summary row fixed.
+- Explore [conditional row coloring](@/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) to style data rows based on cell values while keeping the summary row fixed.
 - Explore the [ColumnSummary plugin](@/api/columnSummary.md) for a declarative, built-in alternative to a custom summary row.
 
 ## API reference

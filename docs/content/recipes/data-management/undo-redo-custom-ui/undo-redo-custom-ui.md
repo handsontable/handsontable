@@ -236,4 +236,4 @@ syncHistoryButtons();
 ## Next steps
 
 - Add keyboard shortcuts (`Ctrl+Z`, `Ctrl+Shift+Z`) using the [ShortcutManager](@/guides/navigation/custom-shortcuts/custom-shortcuts.md) to supplement the buttons.
-- Explore [auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md) to persist changes after each successful undo/redo cycle.
+- Explore [auto-save changes to a backend](@/recipes/data-management/auto-save-backend/auto-save-backend.md) to persist changes after each successful undo/redo cycle.

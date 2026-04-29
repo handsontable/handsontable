@@ -298,5 +298,5 @@ hot.updateData(mapUsersToGridRows(users)); // refresh query
 
 ## Next steps
 
-- Explore [Load data from a REST API](@/content/recipes/data-management/load-data-rest-api/load-data-rest-api.md) for the same client-side and server-side approaches with a REST backend.
+- Explore [Load data from a REST API](@/recipes/data-management/load-data-rest-api/load-data-rest-api.md) for the same client-side and server-side approaches with a REST backend.
 - Read the [Server-side data guides](@/guides/getting-started/server-side-data/server-side-data.md) for the full `dataProvider` configuration reference.

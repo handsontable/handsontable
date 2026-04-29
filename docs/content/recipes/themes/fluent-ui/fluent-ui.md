@@ -233,11 +233,11 @@ export default function App() {
 
 ## Next steps
 
-- Explore [Handsontable with Ant Design](@/content/recipes/themes/ant-design/ant-design.md) for the same token-mapping approach with Ant Design.
-- Explore [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md) for Material UI integration.
+- Explore [Handsontable with Ant Design](@/recipes/themes/ant-design/ant-design.md) for the same token-mapping approach with Ant Design.
+- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for Material UI integration.
 
 ## Related
 
 - [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Theme Recipes](@/content/recipes/themes/themes.md) - Practical design-system recipes for Handsontable.
+- [Theme Recipes](@/recipes/themes/themes.md) - Practical design-system recipes for Handsontable.

@@ -523,7 +523,7 @@ const hot = new Handsontable(container, {
 
 ## Next steps
 
-- [Server-side data documentation](@/content/guides/getting-started/binding-to-data/binding-to-data.md) -- full `dataProvider` API reference
-- [Rows pagination guide](@/content/guides/rows/rows-pagination/rows-pagination.md)
-- [Column filter guide](@/content/guides/columns/column-filter/column-filter.md)
-- [Rows sorting guide](@/content/guides/rows/rows-sorting/rows-sorting.md)
+- [Server-side data documentation](@/guides/getting-started/binding-to-data/binding-to-data.md) -- full `dataProvider` API reference
+- [Rows pagination guide](@/guides/rows/rows-pagination/rows-pagination.md)
+- [Column filter guide](@/guides/columns/column-filter/column-filter.md)
+- [Rows sorting guide](@/guides/rows/rows-sorting/rows-sorting.md)

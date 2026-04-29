@@ -333,5 +333,5 @@ You can capture the grid DOM with [html2canvas](https://github.com/niklasvh/html
 
 ## Next steps
 
-- Explore [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md) to add the complementary import flow alongside your export feature.
+- Explore [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md) to add the complementary import flow alongside your export feature.
 - Explore the [ExportFile plugin](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for built-in Excel export support without a third-party library.

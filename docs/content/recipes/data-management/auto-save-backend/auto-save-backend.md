@@ -348,5 +348,5 @@ if (container instanceof HTMLElement) {
 ## Next steps
 
 - Replace the mock save with a real `fetch` call to your API endpoint.
-- Add [undo/redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert changes before they are auto-saved.
-- Explore [server-side data with NestJS](@/content/recipes/data-management/server-side-nestjs/server-side-nestjs.md) for a full server-driven CRUD approach with the `dataProvider` plugin.
+- Add [undo/redo with a custom UI](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert changes before they are auto-saved.
+- Explore [server-side data with NestJS](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md) for a full server-driven CRUD approach with the `dataProvider` plugin.

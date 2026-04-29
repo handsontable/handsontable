@@ -297,8 +297,8 @@ You can combine both: use `cells` for row-level classes and a custom renderer on
 
 ## Next steps
 
-- Explore [frozen summary row](@/content/recipes/rendering-styling/frozen-summary-row/frozen-summary-row.md) to pin a styled totals row at the bottom while keeping the data rows color-coded.
-- Explore [sparkline cell renderer](@/content/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) for a more advanced renderer that draws SVG charts inside individual cells.
+- Explore [frozen summary row](@/recipes/rendering-styling/frozen-summary-row/frozen-summary-row.md) to pin a styled totals row at the bottom while keeping the data rows color-coded.
+- Explore [sparkline cell renderer](@/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) for a more advanced renderer that draws SVG charts inside individual cells.
 
 ## Related
 

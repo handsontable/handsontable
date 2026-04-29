@@ -105,5 +105,5 @@ submitBtn.addEventListener('click', () => {
 
 ## Next steps
 
-- Combine this pattern with [dependent dropdowns](@/content/recipes/editing-validation/dependent-dropdowns/dependent-dropdowns.md) to validate that the selected child value is consistent with its parent.
+- Combine this pattern with [dependent dropdowns](@/recipes/editing-validation/dependent-dropdowns/dependent-dropdowns.md) to validate that the selected child value is consistent with its parent.
 - Explore [cell validators](@/guides/cell-functions/cell-validator/cell-validator.md) for async, per-cell validation that runs on every edit instead of on Submit.

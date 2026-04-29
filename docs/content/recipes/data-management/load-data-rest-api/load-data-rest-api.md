@@ -534,5 +534,5 @@ afterDataProviderFetchError: (error) => {
 
 ## Next steps
 
-- Explore [Load data from a GraphQL API](@/content/recipes/data-management/load-data-graphql/load-data-graphql.md) for the same patterns with a GraphQL backend.
-- Explore [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md) to persist grid edits automatically after a debounce delay.
+- Explore [Load data from a GraphQL API](@/recipes/data-management/load-data-graphql/load-data-graphql.md) for the same patterns with a GraphQL backend.
+- Explore [Auto-save changes to a backend](@/recipes/data-management/auto-save-backend/auto-save-backend.md) to persist grid edits automatically after a debounce delay.

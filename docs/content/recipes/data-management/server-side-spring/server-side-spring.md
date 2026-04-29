@@ -116,7 +116,7 @@ Create or update `src/main/resources/application.properties`:
 
 ## Step 3: Create the Product entity
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/Product.java)
+@[code java](@/recipes/data-management/server-side-spring/server/Product.java)
 
 **What's happening:**
 - `@Entity` and `@Table(name = "products")` tell JPA to map this class to the `products` table.
@@ -129,7 +129,7 @@ Each field maps directly to a column the Handsontable grid displays. Adding only
 
 ## Step 4: Add the repository interface
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/ProductRepository.java)
+@[code java](@/recipes/data-management/server-side-spring/server/ProductRepository.java)
 
 **What's happening:**
 - `JpaRepository<Product, Long>` provides `save`, `findById`, `deleteAllById`, and `count` methods -- everything needed for CRUD without writing any SQL.
@@ -137,7 +137,7 @@ Each field maps directly to a column the Handsontable grid displays. Adding only
 
 ## Step 5: Seed the database
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/DataInitializer.java)
+@[code java](@/recipes/data-management/server-side-spring/server/DataInitializer.java)
 
 **What's happening:**
 - `CommandLineRunner` is a Spring Boot callback that runs after the application context starts. Returning it from a `@Bean` method registers it automatically.
@@ -149,7 +149,7 @@ The default `pagination.pageSize` is 10, so 55 rows creates 6 pages. This makes 
 
 ## Step 6: Build the service
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/ProductService.java)
+@[code java](@/recipes/data-management/server-side-spring/server/ProductService.java)
 
 **What's happening:**
 
@@ -201,7 +201,7 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 
 ## Step 7: Create the REST controller
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/ProductController.java)
+@[code java](@/recipes/data-management/server-side-spring/server/ProductController.java)
 
 **What's happening:**
 - `@RestController` combines `@Controller` and `@ResponseBody`, so every method return value is serialized to JSON automatically.
@@ -220,7 +220,7 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 
 ## Step 8: Configure CORS
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/CorsConfig.java)
+@[code java](@/recipes/data-management/server-side-spring/server/CorsConfig.java)
 
 **What's happening:**
 - `WebMvcConfigurer` is a Spring MVC callback interface. Implementing `addCorsMappings` is the idiomatic way to configure CORS globally without annotations on every controller.
@@ -233,13 +233,13 @@ With the server running on `http://localhost:8080`, configure Handsontable to us
 
 ::: only-for javascript
 
-@[code js](@/content/recipes/data-management/server-side-spring/javascript/example1.js)
+@[code js](@/recipes/data-management/server-side-spring/javascript/example1.js)
 
 :::
 
 ::: only-for typescript
 
-@[code ts](@/content/recipes/data-management/server-side-spring/javascript/example1.ts)
+@[code ts](@/recipes/data-management/server-side-spring/javascript/example1.ts)
 
 :::
 

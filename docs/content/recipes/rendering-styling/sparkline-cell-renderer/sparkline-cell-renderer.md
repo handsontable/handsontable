@@ -108,7 +108,7 @@ Use `registerRenderer('sparklineBar', sparklineRenderer)` and set `renderer: 'sp
 
 ## Next steps
 
-- Explore [conditional row coloring](@/content/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) for a simpler styling approach using CSS classes instead of custom SVG output.
+- Explore [conditional row coloring](@/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) for a simpler styling approach using CSS classes instead of custom SVG output.
 - Read the [cell renderer guide](@/guides/cell-functions/cell-renderer/cell-renderer.md) for the full renderer API and lifecycle.
 
 ## Related

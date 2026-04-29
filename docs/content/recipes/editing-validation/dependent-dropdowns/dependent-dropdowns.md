@@ -109,4 +109,4 @@ const dependencyMap: Record<string, string[]> = {
 ## Next steps
 
 - Extend the pattern to three-level dependent dropdowns (Region → Country → City) by chaining additional `afterChange` handlers.
-- Explore [row validation with error summary](@/content/recipes/editing-validation/row-validation-error-summary/row-validation-error-summary.md) to validate that the selected subcategory is always consistent with its parent.
+- Explore [row validation with error summary](@/recipes/editing-validation/row-validation-error-summary/row-validation-error-summary.md) to validate that the selected subcategory is always consistent with its parent.

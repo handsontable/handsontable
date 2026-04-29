@@ -539,7 +539,7 @@ Use the **Sample CSV** textarea in the example and click **Parse sample CSV**, o
 
 ## Next steps
 
-- Explore [Export to PDF](@/content/recipes/import-export/export-to-pdf/export-to-pdf.md) to add a complementary export flow alongside this import feature.
+- Explore [Export to PDF](@/recipes/import-export/export-to-pdf/export-to-pdf.md) to add a complementary export flow alongside this import feature.
 - Explore the [ExportFile plugin](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for built-in Excel export.
 
 ## Related guides
