@@ -1,24 +1,7 @@
 /* file: app.component.ts */
-import {
-  Component,
-  ViewChild,
-  ViewEncapsulation,
-  CUSTOM_ELEMENTS_SCHEMA,
-} from '@angular/core';
-import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
-import type {
-  DataProviderQueryParameters,
-  RowsCreatePayload,
-  RowUpdatePayload,
-  RowMutationPayload,
-  RowMutationRemovePayload,
-} from 'handsontable/plugins/dataProvider';
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
-// Vite proxies /api/* → http://localhost:8000, so we use a relative URL.
-const API_BASE = '/api/employees/';
-
-// Django sets the csrftoken cookie on every response; read it and forward it
-// as X-CSRFToken on mutating requests.
 function getCsrfToken(): string {
   return (
     document.cookie
@@ -28,171 +11,136 @@ function getCsrfToken(): string {
   );
 }
 
-// Django REST Framework reads sort as sort[prop]/sort[order] and filters as
-// a JSON-encoded array (parsed in views.py with json.loads).
-function buildUrl(params: DataProviderQueryParameters): string {
-  const query = new URLSearchParams({
-    page: String(params.page),
-    pageSize: String(params.pageSize),
-  });
+function buildUrl(base: string, params: { page: unknown; pageSize: unknown; sort?: unknown; filters?: unknown }): string {
+  const query = new URLSearchParams();
 
-  if (params.sort) {
-    query.set('sort[prop]', params.sort.prop);
-    query.set('sort[order]', params.sort.order);
+  query.set('page', String(params.page));
+  query.set('pageSize', String(params.pageSize));
+
+  const sort = params.sort as { prop?: string; order?: string } | undefined;
+
+  if (sort?.prop) {
+    query.set('sort[prop]', sort.prop);
+    query.set('sort[order]', sort.order ?? 'asc');
   }
 
-  if (params.filters?.length) {
-    query.set('filters', JSON.stringify(params.filters));
+  const filters = params.filters as Array<{ prop: string; value: unknown; condition: string }> | undefined;
+
+  if (filters?.length) {
+    filters.forEach(({ prop, value, condition }, i) => {
+      query.set(`filters[${i}][prop]`, prop);
+      query.set(`filters[${i}][value]`, String(value));
+      query.set(`filters[${i}][condition]`, condition);
+    });
   }
 
-  return `${API_BASE}?${query.toString()}`;
+  return `${base}?${query.toString()}`;
 }
 
 @Component({
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
   imports: [HotTableModule],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   selector: 'example1-server-side-django',
   template: `
     <div>
-      <hot-table [settings]="settings"></hot-table>
+      <hot-table [settings]="gridSettings"></hot-table>
     </div>
   `,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent) readonly hotRef!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private removeConfirmed = false;
-
-  settings = {
+  readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
-
-      // Called on every page change, sort, and filter.
-      fetchRows: async (queryParameters: DataProviderQueryParameters, { signal }: { signal: AbortSignal }) => {
-        const res = await fetch(buildUrl(queryParameters), { signal });
-
-        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-
-        // EmployeePagination returns { rows, totalRows } directly.
-        return res.json();
-      },
-
-      // Fires when the user inserts rows via the context menu.
-      // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
-      onRowsCreate: async ({ rowsAmount }: RowsCreatePayload) => {
-        const res = await fetch(`${API_BASE}create-rows/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-          body: JSON.stringify({ rowsAmount }),
-        });
-
-        if (!res.ok) throw new Error(`Create failed: ${res.status}`);
-
-        const data = await res.json();
-        const info = data.map((r: { id: number }) => `(id: ${r.id})`).join(', ');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (this.hotRef.hotInstance!.getPlugin('notification') as any).showMessage({
-          variant: 'success',
-          title: 'Row added',
-          message: `Created: ${info}`,
-          duration: 3000,
-        });
-
-        return data;
-      },
-
-      // Fires after a cell edit, paste, or autofill batch.
-      // rows: [{ id, changes: { field: value } }, ...]
-      onRowsUpdate: async (rows: RowUpdatePayload[]) => {
-        const res = await fetch(`${API_BASE}update-rows/`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-          body: JSON.stringify(rows),
-        });
-
-        if (!res.ok) throw new Error(`Update failed: ${res.status}`);
-      },
-
-      // Fires after the user confirms deletion.
-      onRowsRemove: async (rowIds: unknown[]) => {
-        const res = await fetch(`${API_BASE}remove-rows/`, {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-          body: JSON.stringify(rowIds),
-        });
-
-        if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
-      },
+      fetchRows: (params: unknown, { signal }: { signal: AbortSignal }) =>
+        this.fetchRows(params as Record<string, unknown>, signal),
+      onRowsCreate: (rows: unknown) => this.onRowsCreate(rows),
+      onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
+      onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
     },
-
-    // beforeRowsMutation is sync (checks for a strict `=== false` return), so
-    // we can't await an async prompt inline. Instead: cancel the original
-    // attempt, show a notification with Delete/Cancel actions, and on Delete
-    // re-issue the remove via the DataProvider API. The flag lets the second
-    // pass through without re-prompting.
-    beforeRowsMutation: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload): false | void => {
-      if (operation === 'remove' && !this.removeConfirmed) {
-        const { rowsRemove } = payload as RowMutationRemovePayload;
-        const hot = this.hotRef.hotInstance!;
-        const count = rowsRemove.length;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const notification = (hot.getPlugin('notification') as any);
-        const id = notification.showMessage({
-          variant: 'warning',
-          title: 'Delete rows',
-          message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
-          duration: 0,
-          actions: [
-            {
-              label: 'Delete',
-              type: 'primary',
-              callback: () => {
-                notification.hide(id);
-                this.removeConfirmed = true;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (hot.getPlugin('dataProvider') as any)
-                  .removeRows(rowsRemove)
-                  .finally(() => {
-                    this.removeConfirmed = false;
-                  });
-              },
-            },
-            {
-              label: 'Cancel',
-              type: 'secondary',
-              callback: () => notification.hide(id),
-            },
-          ],
-        });
-        return false;
-      }
-    },
-
     pagination: { pageSize: 10 },
     columnSorting: true,
     filters: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dropdownMenu: ['filter_by_condition', 'filter_action_bar'] as any,
-    contextMenu: true,
+    dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
     emptyDataState: true,
     notification: true,
-    dialog: true,
     colHeaders: ['First Name', 'Last Name', 'Department', 'Role', 'Salary'],
     columns: [
       { data: 'first_name', type: 'text' },
-      { data: 'last_name',  type: 'text' },
+      { data: 'last_name', type: 'text' },
       { data: 'department', type: 'text' },
-      { data: 'role',       type: 'text' },
-      { data: 'salary',     type: 'numeric', numericFormat: { pattern: '$0,0' } },
+      { data: 'role', type: 'text' },
+      { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
     ],
     rowHeaders: true,
     height: 400,
     width: '100%',
     autoWrapRow: true,
-    licenseKey: 'non-commercial-and-evaluation',
   };
+
+  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
+    const url = buildUrl('http://localhost:8000/api/employees/', {
+      page: params['page'],
+      pageSize: params['pageSize'],
+      sort: params['sort'],
+      filters: params['filters'],
+    });
+    const res = await fetch(url, { signal });
+
+    if (!res.ok) {
+      throw new Error(`Fetch failed: ${res.status}`);
+    }
+
+    return res.json();
+  }
+
+  async onRowsCreate(rows: unknown): Promise<unknown> {
+    const res = await fetch('http://localhost:8000/api/employees/create-rows/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify(rows),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Create failed: ${res.status}`);
+    }
+
+    return res.json();
+  }
+
+  async onRowsUpdate(rows: unknown): Promise<void> {
+    const res = await fetch('http://localhost:8000/api/employees/update-rows/', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify(rows),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Update failed: ${res.status}`);
+    }
+  }
+
+  async onRowsRemove(rowIds: unknown): Promise<void> {
+    const res = await fetch('http://localhost:8000/api/employees/remove-rows/', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCsrfToken(),
+      },
+      body: JSON.stringify(rowIds),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Delete failed: ${res.status}`);
+    }
+  }
 }
 /* end-file */
 

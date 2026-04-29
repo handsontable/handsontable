@@ -38,13 +38,14 @@ function mapUsersToGridRows(users: Array<{
   standalone: true,
   imports: [HotTableModule],
   template: `
-    <div class="example-controls-container">
-      <div class="controls">
-        @if (hasError) {
-          <button type="button" [disabled]="loading" (click)="loadUsers()">Retry</button>
-        }
-      </div>
-      <output [class.is-error]="hasError">{{ statusMessage }}</output>
+    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+      <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px;"
+         [style.color]="hasError ? 'var(--ht-cell-error-foreground-color, #c62828)' : 'var(--ht-foreground-color, #202124)'">
+        {{ statusMessage }}
+      </p>
+      @if (hasError) {
+        <button type="button" [disabled]="loading" (click)="loadUsers()">Retry</button>
+      }
     </div>
     <hot-table [settings]="gridSettings"></hot-table>
   `,

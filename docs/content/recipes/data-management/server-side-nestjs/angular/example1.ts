@@ -1,46 +1,34 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
-import type {
-  DataProviderQueryParameters,
-  RowsCreatePayload,
-  RowUpdatePayload,
-} from 'handsontable/plugins/dataProvider';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
-// NestJS reads sort as sort[column]/sort[order] and filters as flattened
-// array entries: filters[N][prop], filters[N][condition], filters[N][value][0].
-function buildUrl(params: DataProviderQueryParameters): string {
+function buildUrl(base: string, params: Record<string, unknown>): string {
   const query = new URLSearchParams();
 
-  query.set('page', String(params.page));
-  query.set('pageSize', String(params.pageSize));
+  query.set('page', String(params['page']));
+  query.set('pageSize', String(params['pageSize']));
 
-  if (params.sort) {
-    query.set('sort[column]', params.sort.prop);
-    query.set('sort[order]', params.sort.order);
+  const sort = params['sort'] as { column: string; order: string } | undefined;
+
+  if (sort) {
+    query.set('sort[column]', sort.column);
+    query.set('sort[order]', sort.order);
   }
 
-  if (params.filters?.length) {
-    let idx = 0;
+  const filters = params['filters'] as Array<{ prop: string; condition: string; value: unknown[] }> | undefined;
 
-    params.filters.forEach(({ prop, conditions }) => {
-      conditions.forEach((cond) => {
-        query.set(`filters[${idx}][prop]`, prop);
+  if (filters && filters.length > 0) {
+    filters.forEach((filter, i) => {
+      query.set(`filters[${i}][prop]`, filter.prop);
+      query.set(`filters[${i}][condition]`, filter.condition);
 
-        if (cond?.name) {
-          query.set(`filters[${idx}][condition]`, cond.name);
-        }
-
-        cond?.args.forEach((v, j) => {
-          query.set(`filters[${idx}][value][${j}]`, String(v));
-        });
-
-        idx++;
+      filter.value.forEach((v, j) => {
+        query.set(`filters[${i}][value][${j}]`, String(v));
       });
     });
   }
 
-  return `/tickets?${query.toString()}`;
+  return `${base}?${query.toString()}`;
 }
 
 @Component({
@@ -49,72 +37,22 @@ function buildUrl(params: DataProviderQueryParameters): string {
   selector: 'example1-server-side-nestjs',
   template: `
     <div>
-      <hot-table [settings]="settings"></hot-table>
+      <hot-table [settings]="gridSettings"></hot-table>
     </div>
   `,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent) readonly hotRef!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  settings = {
+  readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
-
-      // Called on every page change, sort, and filter.
-      fetchRows: async (queryParameters: DataProviderQueryParameters, { signal }: { signal: AbortSignal }) => {
-        const res = await fetch(buildUrl(queryParameters), { signal });
-
-        if (!res.ok) throw new Error(`Server error ${res.status}`);
-
-        return res.json();
-      },
-
-      // Fires when the user inserts rows via the context menu.
-      // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
-      onRowsCreate: async ({ rowsAmount }: RowsCreatePayload) => {
-        const rows = Array.from({ length: rowsAmount }, () => ({
-          subject: '',
-          status: 'open',
-          priority: 'medium',
-          assignee: '',
-          createdAt: new Date().toISOString().slice(0, 10),
-        }));
-
-        const res = await fetch('/tickets', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(rows),
-        });
-
-        if (!res.ok) throw new Error(`Create failed: ${res.status}`);
-
-        return res.json();
-      },
-
-      // Fires after a cell edit, paste, or autofill batch.
-      onRowsUpdate: async (rows: RowUpdatePayload[]) => {
-        const payload = rows.map(({ id, changes }) => ({ id, ...changes }));
-        const res = await fetch('/tickets', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) throw new Error(`Update failed: ${res.status}`);
-      },
-
-      // Fires after the user confirms deletion.
-      onRowsRemove: async (rowIds: unknown[]) => {
-        const res = await fetch('/tickets', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(rowIds),
-        });
-
-        if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
-      },
+      fetchRows: (params: unknown, { signal }: { signal: AbortSignal }) =>
+        this.fetchRows(params as Record<string, unknown>, signal),
+      onRowsCreate: (payload: unknown) => this.onRowsCreate(payload),
+      onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
+      onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
     },
-
     pagination: { pageSize: 5 },
     columnSorting: true,
     filters: true,
@@ -145,6 +83,55 @@ export class AppComponent {
     width: '100%',
     autoWrapRow: true,
   };
+
+  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
+    const url = buildUrl('http://localhost:3000/tickets', params);
+    const res = await fetch(url, { signal });
+
+    if (!res.ok) {
+      throw new Error(`Server error ${res.status}`);
+    }
+
+    return res.json();
+  }
+
+  async onRowsCreate(payload: unknown): Promise<unknown> {
+    const res = await fetch('http://localhost:3000/tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Create failed: ${res.status}`);
+    }
+
+    return res.json();
+  }
+
+  async onRowsUpdate(rows: unknown): Promise<void> {
+    const res = await fetch('http://localhost:3000/tickets', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rows),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Update failed: ${res.status}`);
+    }
+  }
+
+  async onRowsRemove(rowIds: unknown): Promise<void> {
+    const res = await fetch('http://localhost:3000/tickets', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rowIds),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Delete failed: ${res.status}`);
+    }
+  }
 }
 /* end-file */
 
