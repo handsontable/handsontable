@@ -474,6 +474,36 @@ describe('Core_view', () => {
     spec().$container.unwrap();
   });
 
+  it('should not expand the parent container to the browser CSS height limit when parent has overflow-y:hidden and no explicit height (#3119)', async() => {
+    const wrapper = $('<div></div>').css({
+      border: '1px solid red',
+      width: '350px',
+      overflowX: 'auto',
+      overflowY: 'hidden',
+    });
+
+    spec().$container.wrap(wrapper);
+
+    handsontable({
+      data: [
+        { car: 'Mercedes A 160', year: 2011, price: 7000 },
+        { car: 'Citroen C4 Coupe', year: 2012, price: 8330 },
+        { car: 'Audi A4 Avant', year: 2013, price: 33900 },
+        { car: 'Opel Astra', year: 2014, price: 5000 },
+        { car: 'BMW 320i Coupe', year: 2015, price: 30500 },
+      ],
+      colHeaders: true,
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    const outerWrapper = spec().$container.parent()[0];
+
+    expect(outerWrapper.offsetHeight).toBeLessThan(window.innerHeight * 2);
+
+    spec().$container.unwrap();
+  });
+
   it('should fire beforeViewRender event after table has been scrolled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';

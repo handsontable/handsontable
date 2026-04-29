@@ -103,7 +103,15 @@ class Viewport {
       const elemHeight = outerHeight(trimmingContainer);
 
       // returns height without DIV scrollbar
-      height = (elemHeight > 0 && trimmingContainer.clientHeight > 0) ? trimmingContainer.clientHeight : Infinity;
+      if (elemHeight > 0 && trimmingContainer.clientHeight > 0) {
+        height = trimmingContainer.clientHeight;
+      } else {
+        // Fall back to window height when the trimming container has zero client height
+        // (e.g. a parent with overflow set but no explicit height). Returning Infinity
+        // previously caused an unbounded viewport, expanding the parent to the browser's
+        // ~2^25 px CSS height limit. See issue #3119.
+        height = Math.max(currentDocument.documentElement.clientHeight, 1);
+      }
     }
 
     return height;
@@ -114,10 +122,6 @@ class Viewport {
    */
   getViewportHeight() {
     let containerHeight = this.getWorkspaceHeight();
-
-    if (containerHeight === Infinity) {
-      return containerHeight;
-    }
 
     const columnHeaderHeight = this.getColumnHeaderHeight();
 
@@ -165,10 +169,6 @@ class Viewport {
    */
   getViewportWidth() {
     const containerWidth = this.getWorkspaceWidth();
-
-    if (containerWidth === Infinity) {
-      return containerWidth;
-    }
 
     const rowHeaderWidth = this.getRowHeaderWidth();
 

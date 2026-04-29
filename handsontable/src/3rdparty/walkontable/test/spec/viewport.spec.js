@@ -123,6 +123,50 @@ describe('WalkontableViewport', () => {
 
       expect(wt.wtViewport.getWorkspaceHeight()).toBe(200);
     });
+
+    it('should return a finite value bounded by window height when the trimming container has overflow set but no explicit height (#3119)', async() => {
+      spec().$wrapper
+        .css('overflow-x', 'auto')
+        .css('overflow-y', 'hidden')
+        .css('width', '350px')
+        .css('height', '');
+
+      createDataArray(10, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      const workspaceHeight = wt.wtViewport.getWorkspaceHeight();
+
+      expect(isFinite(workspaceHeight)).toBe(true);
+      expect(workspaceHeight).toBeGreaterThan(0);
+      expect(workspaceHeight).toBeLessThanOrEqual(window.innerHeight);
+    });
+
+    it('should not render all rows when the trimming container has overflow set but no explicit height (#3119)', async() => {
+      spec().$wrapper
+        .css('overflow-x', 'auto')
+        .css('overflow-y', 'hidden')
+        .css('width', '350px')
+        .css('height', '');
+
+      createDataArray(1000, 10);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtTable.getRenderedRowsCount()).toBeLessThan(100);
+    });
   });
 
   describe('getViewportWidth()', () => {
