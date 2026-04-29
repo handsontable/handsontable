@@ -333,6 +333,8 @@ class Event {
           this.callListener('onCellMouseOverOutside', event, coords, TD);
         }
       }
+    } else {
+      this.#mouseOverOutsideLastCoords = null;
     }
   }
 
