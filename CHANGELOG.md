@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [17.1.0-rc3] - 2026-04-27
+## [17.1.0-rc4] - 2026-04-29
 
 ### Added
 - Added a hit area for dropdown menu and collapsible buttons [#12070](https://github.com/handsontable/handsontable/pull/12070)
@@ -28,6 +28,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Improve the rendering performance [#12189](https://github.com/handsontable/handsontable/pull/12189)
 - Change the columnHeaders property name to colHeaders in the exportFile plugin [#12224](https://github.com/handsontable/handsontable/issues/12224)
 - Improve rendering performance for fast scrollbar movements [#12235](https://github.com/handsontable/handsontable/pull/12235)
+- Angular: Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling. [#12451](https://github.com/handsontable/handsontable/issues/12451)
 
 ### Fixed
 - Fixed an issue where the Nested Rows plugin was disabled after calling updateSettings with an empty data array. [#10556](https://github.com/handsontable/handsontable/issues/10556)

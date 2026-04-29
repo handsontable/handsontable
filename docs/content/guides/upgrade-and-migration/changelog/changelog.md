@@ -27,9 +27,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 17.1.0-rc3
+## 17.1.0-rc4
 
-Released on April 27th, 2026
+Released on April 29th, 2026
 
 For more information about this release, see:
 - [Documentation (17.1)](https://handsontable.com/docs/17.1)
@@ -51,6 +51,7 @@ For more information about this release, see:
 - Improve the rendering performance [#12189](https://github.com/handsontable/handsontable/pull/12189)
 - Change the columnHeaders property name to colHeaders in the exportFile plugin [#12224](https://github.com/handsontable/handsontable/issues/12224)
 - Improve rendering performance for fast scrollbar movements [#12235](https://github.com/handsontable/handsontable/pull/12235)
+- Angular: Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling. [#12451](https://github.com/handsontable/handsontable/issues/12451)
 
 #### Fixed
 - Fixed an issue where the Nested Rows plugin was disabled after calling updateSettings with an empty data array. [#10556](https://github.com/handsontable/handsontable/issues/10556)
