@@ -31,8 +31,8 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [External search box](@/content/recipes/filtering-and-search/external-search-box/external-search-box.md)
-- [Highlight search matches](@/content/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md)
+- [External search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md)
+- [Highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md)
 
 </div>
 

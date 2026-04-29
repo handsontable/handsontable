@@ -38,10 +38,10 @@ Current recipes:
 
 - [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md)
 - [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md)
+- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md)
+- [Handsontable with Ant Design](@/recipes/themes/ant-design/ant-design.md)
+- [Handsontable with Fluent UI](@/recipes/themes/fluent-ui/fluent-ui.md)
 
 </div>
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips to help you integrate Handsontable with your app's look and feel.
-
-- [Handsontable with shadcn/ui](/recipes/themes/custom-theme)
-- [Handsontable with Base Web](/recipes/themes/base-theme)
