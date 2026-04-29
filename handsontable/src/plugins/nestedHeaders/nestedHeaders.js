@@ -1268,11 +1268,19 @@ export class NestedHeaders extends BasePlugin {
   /**
    * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
    *
+   * When `autoColumnSize` is explicitly disabled, the user opts out of auto-sizing
+   * columns based on content; the plugin respects user-provided widths and does
+   * not override them with the ghost-table-measured header label width.
+   *
    * @param {number} width Width from hook.
    * @param {number} column Visual index of an column.
    * @returns {number}
    */
   #onModifyColWidth(width, column) {
+    if (this.hot.getSettings().autoColumnSize === false) {
+      return width;
+    }
+
     const cachedWidth = this.ghostTable.getWidth(column);
 
     return width > cachedWidth ? width : cachedWidth;
