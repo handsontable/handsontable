@@ -406,10 +406,13 @@ class Event {
       }
     }
 
-    // Fire mouseUp for both tap and long-press (matches pre-fix behavior so plugins
-    // listening to onCellMouseUp / before/after hooks still run). Suppress only for
-    // pure scroll gestures, where onMouseDown was never fired in the first place.
-    if (!wasScrolled) {
+    // Fire mouseUp whenever the gesture also produced a mouseDown - either a tap
+    // (deferred mousedown above) or a long-press (mousedown fired from the timer
+    // callback). Skipping it for a long-press that ended in a scroll would leave
+    // an unpaired mousedown and break plugins listening to onCellMouseUp /
+    // before/after hooks (e.g. nestedHeaders, ContextMenu close logic).
+    // Suppress only for pure scroll gestures, where onMouseDown was never fired.
+    if (!wasScrolled || this.#longPressFired) {
       this.onMouseUp(event);
     }
 
