@@ -195,6 +195,6 @@ function updateStatus() {
 
 ## Next steps
 
-- Combine this pattern with the [column visibility toggle](@/content/recipes/column-management/column-visibility/column-visibility.md) recipe to build a full column-management toolbar.
+- Combine this pattern with the [column visibility toggle](@/recipes/column-management/column-visibility/column-visibility.md) recipe to build a full column-management toolbar.
 - Persist the `frozenCount` value to `localStorage` using the `afterUpdateSettings` hook so the freeze state survives a page refresh.
 - Replace the individual freeze buttons with a single numeric input (`<input type="number">`) to let users type a freeze count directly.

@@ -390,4 +390,4 @@ emptyDataState: true,
 - Replace H2 with a persistent database (PostgreSQL, MySQL) by swapping the datasource in `application.properties` and changing `ddl-auto` to `validate`.
 - Add `@Valid` to the controller DTOs and define Bean Validation constraints (e.g. `@NotBlank` on `name`, `@Positive` on `price`) to return structured error responses when the user saves invalid data.
 - Secure the API with Spring Security: require authentication for mutation endpoints while keeping `GET /api/products` public.
-- Compare with the [Laravel recipe](@/content/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.
+- Compare with the [Laravel recipe](@/recipes/data-management/server-side-laravel/server-side-laravel.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.

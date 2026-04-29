@@ -126,6 +126,7 @@ const navigationAndAccessibilityItems = [
 
 const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/context-menu/context-menu' },
+  { path: 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll' },
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },

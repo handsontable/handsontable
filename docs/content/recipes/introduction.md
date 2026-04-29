@@ -31,7 +31,7 @@ Build custom cell editors, renderers, and validators using third-party libraries
 
 ## Themes
 
-Align Handsontable with your design system by mapping design tokens to the Theme API.
+Recipe categories include [cell types](@/recipes/cell-types/cell-types.md), [themes](@/recipes/themes/themes.md), and [rendering and styling](@/recipes/rendering-styling/rendering-styling.md).
 
 - [Handsontable with Ant Design](@/content/recipes/themes/ant-design/ant-design.md) - Map Ant Design tokens to Handsontable Theme API parameters in a React app.
 - [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md) - Match Material UI colors, typography, and spacing in a React app.
@@ -39,7 +39,8 @@ Align Handsontable with your design system by mapping design tokens to the Theme
 - [Handsontable with shadcn/ui](@/content/recipes/themes/custom-theme/custom-theme.md) - Integrate with shadcn/ui and Tailwind CSS, including dark mode support.
 - [Handsontable with Base Web](@/content/recipes/themes/base-theme/base-theme.md) - Map Base Web design tokens to the Handsontable Theme API.
 
-## Rendering and styling
+- [Editing and validation recipes](@/recipes/editing-validation/editing-validation.md) - Custom editors, validation patterns, and dynamic cell configuration.
+### For AI Agents
 
 Control how cells look using custom renderers, CSS classes, and row-level styling.
 
@@ -47,7 +48,8 @@ Control how cells look using custom renderers, CSS classes, and row-level stylin
 - [Frozen summary row](@/content/recipes/rendering-styling/frozen-summary-row/frozen-summary-row.md) - Pin a read-only totals row at the bottom with `fixedRowsBottom`.
 - [Sparkline cell renderer](@/content/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) - Draw inline SVG bar charts from arrays of numbers in individual cells.
 
-## Data management
+- [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md) - Client-side CSV (PapaParse) and `.xlsx` (SheetJS) import with header preview.
+## Contributing
 
 Load, save, sync, and undo data in Handsontable grids.
 

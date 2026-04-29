@@ -671,6 +671,19 @@ export const REGISTERED_HOOKS = [
   'afterOnCellMouseOut',
 
   /**
+   * Fired after the mouse cursor moves outside the visible viewport while a mouse button is held down
+   * (e.g. during a drag-to-scroll operation). The event fires once per mousemove tick for as long as
+   * the cursor remains outside the viewport.
+   *
+   * @event Hooks#afterOnCellMouseOverOutside
+   * @since 17.2.0
+   * @param {Event} event `mousemove` event object.
+   * @param {CellCoords} coords Visual coordinates of the nearest viewport-edge cell.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
+   */
+  'afterOnCellMouseOverOutside',
+
+  /**
    * Fired after one or more columns are removed.
    *
    * When consecutive columns are removed, this hook is fired once with the `amount` reflecting
@@ -1662,6 +1675,21 @@ export const REGISTERED_HOOKS = [
    * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellMouseOut',
+
+  /**
+   * Fired when the mouse cursor moves outside the visible viewport while a mouse button is held down
+   * (e.g. during a drag-to-scroll operation), before selection changes are applied. Use the `controller`
+   * object to suppress row, column, or cell selection changes for this tick.
+   *
+   * @event Hooks#beforeOnCellMouseOverOutside
+   * @since 17.2.0
+   * @param {Event} event `mousemove` event object.
+   * @param {CellCoords} coords Visual coordinates of the nearest viewport-edge cell.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
+   * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
+   *                            a boolean value that allows or disallows changing the selection for that particular area.
+   */
+  'beforeOnCellMouseOverOutside',
 
   /**
    * Fired before one or more columns are about to be removed.

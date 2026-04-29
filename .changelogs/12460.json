@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `alter('remove_row', null, N)` not removing the last rows when rows were trimmed.",
+  "type": "fixed",
+  "issueOrPR": 12460,
+  "breaking": false,
+  "framework": "none"
+}
