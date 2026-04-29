@@ -23,5 +23,5 @@ This section collects recipes focused on editing behavior, validation, and keepi
 
 ## Available recipes
 
-- **[Dependent dropdowns](@/content/recipes/editing-validation/dependent-dropdowns/dependent-dropdowns.md)** - Update a child column's `dropdown` source when a parent value changes.
-- **[Row validation with error summary](@/content/recipes/editing-validation/row-validation-error-summary/row-validation-error-summary.md)** - Validate all rows on Submit, show an external issue list, and highlight invalid cells with `htInvalid`.
+- **[Dependent dropdowns](@/recipes/editing-validation/dependent-dropdowns/dependent-dropdowns.md)** - Update a child column's `dropdown` source when a parent value changes.
+- **[Row validation with error summary](@/recipes/editing-validation/row-validation-error-summary/row-validation-error-summary.md)** - Validate all rows on Submit, show an external issue list, and highlight invalid cells with `htInvalid`.
