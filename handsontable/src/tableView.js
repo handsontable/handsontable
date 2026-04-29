@@ -139,14 +139,6 @@ class TableView {
    */
   #mouseDownLastPos = null;
   /**
-   * The last visual coords seen in the onCellMouseOverOutside callback. Used to
-   * deduplicate repeated document-level mousemove events that land on the same
-   * edge cell so that setRangeEnd is not called on every pointer micro-movement.
-   *
-   * @type {{ row: number, col: number } | null}
-   */
-  #mouseOverOutsideLastCoords = null;
-  /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
    * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
    * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
@@ -969,7 +961,6 @@ class TableView {
         this.activeWt = wt;
         this.#mouseDown = true;
         this.#mouseDownLastPos = { x: event.clientX, y: event.clientY };
-        this.#mouseOverOutsideLastCoords = null;
 
         this.hot.runHooks('beforeOnCellMouseDown', event, visualCoords, TD, controller);
 
@@ -1073,19 +1064,12 @@ class TableView {
           return;
         }
 
-        if (this.#mouseDown) {
-          const lastCoords = this.#mouseOverOutsideLastCoords;
-
-          if (!lastCoords || lastCoords.row !== visualCoords.row || lastCoords.col !== visualCoords.col) {
-            this.#mouseOverOutsideLastCoords = { row: visualCoords.row, col: visualCoords.col };
-            handleMouseEvent(event, {
-              coords: visualCoords,
-              selection: this.hot.selection,
-              controller,
-              cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
-            });
-          }
-        }
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          controller,
+          cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
+        });
 
         this.hot.runHooks('afterOnCellMouseOverOutside', event, visualCoords, TD);
         this.activeWt = this._wt;

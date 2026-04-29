@@ -64,6 +64,18 @@ class Event {
    * @type {{ x: number, y: number }|null}
    */
   #touchStartCoords = null;
+  /**
+   * @type {boolean}
+   */
+  #mouseDown = false;
+  /**
+   * The last renderable coords seen in `onMouseMove` while the mouse was outside the viewport.
+   * Used to skip the `onCellMouseOverOutside` listener call (and therefore `setRangeEnd`) when
+   * repeated mousemove events land on the same edge cell.
+   *
+   * @type {{ row: number, col: number } | null}
+   */
+  #mouseOverOutsideLastCoords = null;
 
   /**
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
@@ -101,6 +113,14 @@ class Event {
         this.#domBindings.rootDocument,
         'mousemove',
         event => this.onMouseMove(event)
+      );
+      this.#eventManager.addEventListener(
+        this.#domBindings.rootDocument,
+        'mouseup',
+        () => {
+          this.#mouseDown = false;
+          this.#mouseOverOutsideLastCoords = null;
+        }
       );
     }
 
@@ -227,8 +247,13 @@ class Event {
     if (hasClass(realTarget, 'corner')) {
       this.#wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
 
-    } else if (cell.TD && this.#wtSettings.has('onCellMouseDown')) {
-      this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
+    } else if (cell.TD) {
+      this.#mouseDown = true;
+      this.#mouseOverOutsideLastCoords = null;
+
+      if (this.#wtSettings.has('onCellMouseDown')) {
+        this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
+      }
     }
 
     // doubleclick reacts only for left mouse button or from touch events
@@ -290,10 +315,19 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseMove(event) {
+    if (!this.#mouseDown) {
+      return;
+    }
+
     const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
 
     if (isOutside) {
-      this.callListener('onCellMouseOverOutside', event, coords, this.#wtTable.getCell(coords, true));
+      const lastCoords = this.#mouseOverOutsideLastCoords;
+
+      if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
+        this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
+        this.callListener('onCellMouseOverOutside', event, coords, this.#wtTable.getCell(coords, true));
+      }
     }
   }
 
@@ -480,6 +514,9 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
+    this.#mouseDown = false;
+    this.#mouseOverOutsideLastCoords = null;
+
     const cell = this.parentCell(event.target);
 
     if (cell.TD && this.#wtSettings.has('onCellMouseUp')) {

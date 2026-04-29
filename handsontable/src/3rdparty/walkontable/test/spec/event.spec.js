@@ -877,4 +877,148 @@ describe('WalkontableEvent', () => {
 
     expect(onDraw).toHaveBeenCalledTimes(1);
   });
+
+  describe('`onCellMouseOverOutside` callback', () => {
+    it('should not be called when no mousedown is in progress (drag guard)', async() => {
+      const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onCellMouseOverOutside,
+      });
+
+      wt.draw();
+
+      const holderRect = spec().$table.parents('.wtHolder')[0].getBoundingClientRect();
+
+      $(document.body).simulate('mousemove', {
+        clientX: holderRect.right + 30,
+        clientY: holderRect.top + 10,
+      });
+
+      expect(onCellMouseOverOutside).toHaveBeenCalledTimes(0);
+    });
+
+    it('should be called when the mouse moves outside the viewport during a drag', async() => {
+      const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onCellMouseOverOutside,
+      });
+
+      wt.draw();
+
+      const $td = spec().$table.find('tbody tr:first td:first');
+      const holderRect = spec().$table.parents('.wtHolder')[0].getBoundingClientRect();
+
+      $td.simulate('mousedown');
+
+      $(document.body).simulate('mousemove', {
+        clientX: holderRect.right + 30,
+        clientY: holderRect.top + 10,
+      });
+
+      $(document.body).simulate('mouseup');
+
+      expect(onCellMouseOverOutside).toHaveBeenCalledTimes(1);
+      expect(onCellMouseOverOutside).toHaveBeenCalledWith(
+        jasmine.any(MouseEvent),
+        jasmine.any(Walkontable.CellCoords),
+        jasmine.any(HTMLElement),
+        jasmine.any(wt.constructor)
+      );
+    });
+
+    it('should be called only once for repeated mousemoves that land on the same edge cell', async() => {
+      const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onCellMouseOverOutside,
+      });
+
+      wt.draw();
+
+      const $td = spec().$table.find('tbody tr:first td:first');
+      const holderRect = spec().$table.parents('.wtHolder')[0].getBoundingClientRect();
+      const outsideX = holderRect.right + 30;
+      const outsideY = holderRect.top + 10;
+
+      $td.simulate('mousedown');
+
+      $(document.body).simulate('mousemove', { clientX: outsideX, clientY: outsideY });
+      $(document.body).simulate('mousemove', { clientX: outsideX, clientY: outsideY });
+      $(document.body).simulate('mousemove', { clientX: outsideX, clientY: outsideY });
+
+      $(document.body).simulate('mouseup');
+
+      expect(onCellMouseOverOutside).toHaveBeenCalledTimes(1);
+    });
+
+    it('should be called again when the mouse moves to a different edge cell', async() => {
+      const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onCellMouseOverOutside,
+      });
+
+      wt.draw();
+
+      const $td = spec().$table.find('tbody tr:first td:first');
+      const holderRect = spec().$table.parents('.wtHolder')[0].getBoundingClientRect();
+
+      $td.simulate('mousedown');
+
+      $(document.body).simulate('mousemove', {
+        clientX: holderRect.right + 30,
+        clientY: holderRect.top + 10,
+      });
+
+      $(document.body).simulate('mousemove', {
+        clientX: holderRect.left + 10,
+        clientY: holderRect.bottom + 30,
+      });
+
+      $(document.body).simulate('mouseup');
+
+      expect(onCellMouseOverOutside).toHaveBeenCalledTimes(2);
+    });
+
+    it('should reset dedup state on a new mousedown so the callback fires again on the next drag', async() => {
+      const onCellMouseOverOutside = jasmine.createSpy('onCellMouseOverOutside');
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onCellMouseOverOutside,
+      });
+
+      wt.draw();
+
+      const $td = spec().$table.find('tbody tr:first td:first');
+      const holderRect = spec().$table.parents('.wtHolder')[0].getBoundingClientRect();
+      const outsideX = holderRect.right + 30;
+      const outsideY = holderRect.top + 10;
+
+      // First drag
+      $td.simulate('mousedown');
+      $(document.body).simulate('mousemove', { clientX: outsideX, clientY: outsideY });
+      $(document.body).simulate('mouseup');
+
+      const callsAfterFirstDrag = onCellMouseOverOutside.calls.count();
+
+      // Second drag from the same anchor to the same outside position
+      $td.simulate('mousedown');
+      $(document.body).simulate('mousemove', { clientX: outsideX, clientY: outsideY });
+      $(document.body).simulate('mouseup');
+
+      expect(onCellMouseOverOutside.calls.count() - callsAfterFirstDrag).toBeGreaterThanOrEqual(1);
+    });
+  });
 });

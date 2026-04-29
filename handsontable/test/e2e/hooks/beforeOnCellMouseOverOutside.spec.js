@@ -41,27 +41,6 @@ describe('The beforeOnCellMouseOverOutside hook', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
-  it('should be triggered even when no mousedown has been initiated', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      width: 200,
-      height: 100,
-    });
-
-    const spy = jasmine.createSpy('beforeOnCellMouseOverOutside');
-
-    hot().addHook('beforeOnCellMouseOverOutside', spy);
-
-    const tableRect = getMaster()[0].getBoundingClientRect();
-
-    $(document.body).simulate('mousemove', {
-      clientX: tableRect.right + 30,
-      clientY: tableRect.top + 10,
-    });
-
-    expect(spy).toHaveBeenCalledTimes(1);
-  });
-
   it('should receive the event, visual coords, TD element, and controller as arguments', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
@@ -99,7 +78,7 @@ describe('The beforeOnCellMouseOverOutside hook', () => {
     expect(controller).toEqual({ row: false, column: false, cell: false });
   });
 
-  it('should be triggered for every mousemove outside, including repeated same-position moves', async() => {
+  it('should be triggered once for repeated mousemoves that land on the same edge cell', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       width: 200,
@@ -126,7 +105,7 @@ describe('The beforeOnCellMouseOverOutside hook', () => {
 
     $(document.body).simulate('mouseup');
 
-    expect(spy).toHaveBeenCalledTimes(3);
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it('should call setRangeEnd only once for repeated mousemoves on the same edge cell (dedup regression)', async() => {
