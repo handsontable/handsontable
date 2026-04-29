@@ -20,7 +20,10 @@ angular:
   metaTitle: Auto-save changes to a backend - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+type: tutorial
 ---
+
+In this tutorial, you will build an auto-save flow that sends grid edits to a backend after a debounce delay. You will learn how to use `afterChange`, dirty row tracking, and save status feedback to give users real-time confirmation of their changes.
 
 ::: only-for javascript vue
 
@@ -334,3 +337,16 @@ if (container instanceof HTMLElement) {
 - Replace the mock save with authenticated `fetch` calls and server-side validation.
 - Add retry or backoff logic for transient network failures.
 - Show the last successful save timestamp for better user confidence.
+
+## What you learned
+
+- How to use `afterChange` to react to grid edits and skip system-generated changes by checking the `source` argument.
+- How debouncing limits the number of save requests when the user edits many cells in quick succession.
+- How dirty row tracking lets you send only changed rows instead of the full dataset.
+- How to provide visual feedback with a save status element that reflects idle, saving, saved, and error states.
+
+## Next steps
+
+- Replace the mock save with a real `fetch` call to your API endpoint.
+- Add [undo/redo with a custom UI](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert changes before they are auto-saved.
+- Explore [server-side data with NestJS](@/content/recipes/data-management/server-side-nestjs/server-side-nestjs.md) for a full server-driven CRUD approach with the `dataProvider` plugin.

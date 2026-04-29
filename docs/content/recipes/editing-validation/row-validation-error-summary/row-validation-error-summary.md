@@ -18,7 +18,10 @@ angular:
   metaTitle: Row Validation Error Summary Recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
+type: tutorial
 ---
+
+In this tutorial, you will validate every row when the user clicks Submit and list all failures in an error summary outside the grid. You will learn how to highlight invalid cells with `htInvalid` and clear the error state automatically when the user corrects a cell.
 
 ::: only-for javascript vue
 
@@ -92,3 +95,15 @@ submitBtn.addEventListener('click', () => {
   // clear old highlights, scan all rows, renderSummary(issues), applyHighlights(hot, issues)
 });
 ```
+
+## What you learned
+
+- How to run synchronous validation over all rows by looping `hot.countRows()` and applying a rule map keyed by visual column index.
+- How `hot.setCellMeta(row, col, 'className', 'htInvalid')` highlights an invalid cell and `removeCellMeta` clears it when the user corrects the value.
+- How to use `afterChange` to clear a cell's invalid state as soon as the user fixes the value, rather than waiting for the next Submit.
+- How to render an error summary outside the grid that lists each problem with the row number, column label, and error message.
+
+## Next steps
+
+- Combine this pattern with [dependent dropdowns](@/content/recipes/editing-validation/dependent-dropdowns/dependent-dropdowns.md) to validate that the selected child value is consistent with its parent.
+- Explore [cell validators](@/guides/cell-functions/cell-validator/cell-validator.md) for async, per-cell validation that runs on every edit instead of on Submit.

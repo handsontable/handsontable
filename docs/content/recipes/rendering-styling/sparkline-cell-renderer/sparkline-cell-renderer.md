@@ -18,7 +18,10 @@ angular:
   metaTitle: Sparkline cell renderer - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
+type: tutorial
 ---
+
+In this tutorial, you will build a custom cell renderer that draws an inline SVG bar chart from an array of numbers in each cell. You will learn how to register a named renderer with `registerRenderer` and assign it to a read-only sparkline column.
 
 ::: only-for javascript vue
 
@@ -95,6 +98,18 @@ Use `registerRenderer('sparklineBar', sparklineRenderer)` and set `renderer: 'sp
 | All week values missing | Em dash, tooltip "No data" |
 | All zeros | Em dash, tooltip "All values are zero" |
 | Mixed valid numbers | Bars scale to the maximum absolute value |
+
+## What you learned
+
+- How to register a named custom renderer with `registerRenderer` and reference it by name in column settings.
+- How to build an inline SVG bar chart from an array of numbers, normalizing bar heights to the maximum absolute value in each row.
+- How to handle edge cases -- null values, all-zero arrays, and empty arrays -- so the renderer degrades gracefully to a placeholder instead of crashing.
+- How keeping the sparkline column `readOnly` while leaving the data columns editable triggers a fresh render with updated bars after each edit.
+
+## Next steps
+
+- Explore [conditional row coloring](@/content/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) for a simpler styling approach using CSS classes instead of custom SVG output.
+- Read the [cell renderer guide](@/guides/cell-functions/cell-renderer/cell-renderer.md) for the full renderer API and lifecycle.
 
 ## Related
 

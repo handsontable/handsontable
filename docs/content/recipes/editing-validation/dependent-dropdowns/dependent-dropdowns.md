@@ -19,7 +19,10 @@ angular:
   metaTitle: Dependent Dropdowns Recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
+type: tutorial
 ---
+
+In this tutorial, you will drive a child column dropdown from a parent column using a dependency map. You will learn how to use `afterChange`, `setCellMeta`, and `render` to update dropdown source options dynamically when the user selects a value in the parent column.
 
 ::: only-for javascript vue
 
@@ -95,3 +98,15 @@ const dependencyMap: Record<string, string[]> = {
 - Changing **Category** updates the **Subcategory** list for that row.
 - **Subcategory** clears when **Category** changes.
 - Each parent key in `dependencyMap` shows only its mapped children in the dropdown.
+
+## What you learned
+
+- How to use `afterChange` to detect when a parent column changes and update the child column's dropdown source for that specific row.
+- How `setCellMeta(row, col, 'source', newOptions)` replaces the dropdown options for a single cell without affecting other rows.
+- How `afterInit` initializes each row's child dropdown from the current parent value so the grid is consistent on load.
+- Why calling `hot.render()` after `setCellMeta` is necessary to apply the updated source to the visible cells.
+
+## Next steps
+
+- Extend the pattern to three-level dependent dropdowns (Region → Country → City) by chaining additional `afterChange` handlers.
+- Explore [row validation with error summary](@/content/recipes/editing-validation/row-validation-error-summary/row-validation-error-summary.md) to validate that the selected subcategory is always consistent with its parent.

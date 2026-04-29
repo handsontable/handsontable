@@ -19,9 +19,10 @@ angular:
   metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
+type: tutorial
 ---
 
-Let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, preview column headers, then load rows into Handsontable with `loadData` while updating `colHeaders` and `columns` from the detected header row.
+In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and SheetJS to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.
 
 [[toc]]
 
@@ -528,6 +529,18 @@ Use the **Sample CSV** textarea in the example and click **Parse sample CSV**, o
 7. **User confirms** -- clicking **Load into grid** calls `hot.updateSettings` followed by `hot.loadData`.
 8. **Grid renders** -- Handsontable re-renders with the new columns and data.
 9. **Errors at any step** -- caught by `handleFile` or the sample-parse path (plus the apply-button guard), then shown in the error panel while pending preview state is cleared.
+
+## What you learned
+
+- How to detect the file type by extension and route CSV files through PapaParse and Excel files through SheetJS with a single handler function.
+- How to present a header preview before loading data, so users can confirm the detected columns match their expectations.
+- How to call `hot.updateSettings({ colHeaders, columns })` followed by `hot.loadData(rows)` to replace both the column configuration and the data in one step.
+- How to handle errors at each stage -- file size, parsing, and grid load -- and surface them in a dedicated error panel.
+
+## Next steps
+
+- Explore [Export to PDF](@/content/recipes/import-export/export-to-pdf/export-to-pdf.md) to add a complementary export flow alongside this import feature.
+- Explore the [ExportFile plugin](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for built-in Excel export.
 
 ## Related guides
 

@@ -17,7 +17,10 @@ angular:
   metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
+type: tutorial
 ---
+
+In this tutorial, you will export grid data to a downloadable PDF using jsPDF and jspdf-autotable. You will learn how to read the current grid state with `getData()` and `getColHeader()`, build a multi-page PDF table with headers, and trigger a browser download.
 
 ::: only-for javascript vue
 
@@ -320,3 +323,15 @@ Then use the global `jspdf.jsPDF` constructor and call `autoTable(doc, options)`
 ## Alternative - html2canvas
 
 You can capture the grid DOM with [html2canvas](https://github.com/niklasvh/html2canvas) and add the resulting image to a PDF with jsPDF. That path mirrors what users see on screen (merged cells, custom renderers, styling) but produces a raster snapshot -- file size grows with resolution, text is not selectable, and accessibility is weaker than a table built from data.
+
+## What you learned
+
+- How to read grid data with `hot.getData()` and column headers with `hot.getColHeader()` to pass them to jsPDF AutoTable.
+- How AutoTable handles row wrapping, alternating row colors, and page breaks automatically so you can generate multi-page PDFs from a single call.
+- How to use `doc.save('filename.pdf')` to trigger a browser download of the finished PDF.
+- How to load jsPDF and AutoTable via CDN for environments without a bundler.
+
+## Next steps
+
+- Explore [Import from CSV or Excel](@/content/recipes/import-export/import-csv-excel/import-csv-excel.md) to add the complementary import flow alongside your export feature.
+- Explore the [ExportFile plugin](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md) for built-in Excel export support without a third-party library.

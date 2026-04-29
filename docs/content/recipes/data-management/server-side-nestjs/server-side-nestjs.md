@@ -22,6 +22,8 @@ searchCategory: Recipes
 category: Data Management
 ---
 
+This tutorial shows how to wire Handsontable's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using an in-memory store.
+
 ::: tip Handsontable sponsors NestJS
 Handsontable is a proud sponsor of NestJS. You can support the project on [Open Collective](https://opencollective.com/handsontable-javascript-data-grid).
 :::

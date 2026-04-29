@@ -25,6 +25,8 @@ category: Performance
 type: tutorial
 ---
 
+In this tutorial, you will save column widths and column order to `localStorage` as the user resizes or reorders columns. You will learn how to restore that layout on grid initialization so user preferences survive a page refresh.
+
 ::: only-for javascript
 
 ::: example #example1 :hot-recipe --js 1

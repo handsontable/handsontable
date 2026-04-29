@@ -18,7 +18,10 @@ angular:
   metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
+type: tutorial
 ---
+
+In this tutorial, you will color entire rows based on a status column value. You will learn how to use the `cells` callback and `className` to apply conditional CSS classes that update automatically after every edit.
 
 ::: only-for javascript vue
 
@@ -284,6 +287,18 @@ Add a matching CSS rule with `!important` so it overrides the status tint and `c
 | **Custom [`renderer`](@/api/renderers.md)** | Full control of `innerHTML`, extra markup, and per-cell logic. | Row-wide styling requires duplicating logic across columns or wrapping the default renderer. |
 
 You can combine both: use `cells` for row-level classes and a custom renderer only where cell content needs special HTML.
+
+## What you learned
+
+- How to use the `cells` callback to return a `className` for every cell in a row based on a status column value.
+- Why scoped CSS classes work better than inline styles for row coloring -- they stay consistent with Handsontable themes and update automatically on re-render.
+- How Handsontable calls `cells` again after every edit, so no extra hooks are needed to keep row colors accurate after the user changes a status.
+- How to add a temporary flash class in `afterValidate` to signal an invalid value without interrupting the color logic.
+
+## Next steps
+
+- Explore [frozen summary row](@/content/recipes/rendering-styling/frozen-summary-row/frozen-summary-row.md) to pin a styled totals row at the bottom while keeping the data rows color-coded.
+- Explore [sparkline cell renderer](@/content/recipes/rendering-styling/sparkline-cell-renderer/sparkline-cell-renderer.md) for a more advanced renderer that draws SVG charts inside individual cells.
 
 ## Related
 

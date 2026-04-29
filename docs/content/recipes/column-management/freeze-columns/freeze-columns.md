@@ -22,6 +22,8 @@ category: Column Management
 type: tutorial
 ---
 
+In this tutorial, you will freeze and unfreeze columns at runtime using external buttons. You will learn how to call `hot.updateSettings` with `fixedColumnsStart` and how frozen columns interact with manual column reordering.
+
 ::: only-for javascript
 
 ::: example #example1 :hot-recipe --js 1 --html 2 --css 3

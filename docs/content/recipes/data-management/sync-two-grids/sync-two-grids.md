@@ -18,7 +18,10 @@ angular:
   metaTitle: Sync two grids - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+type: tutorial
 ---
+
+In this tutorial, you will sync edits from a master grid to a detail grid in real time. You will learn how to use `afterChange`, `setDataAtCell()`, and source guards to keep two Handsontable instances consistent without triggering infinite update loops.
 
 ::: only-for javascript
 
@@ -152,3 +155,16 @@ The source check prevents re-entrant updates if synced writes trigger hooks, and
 - Sync only selected fields, not the whole dataset.
 - Add value formatting or derived columns in one place.
 - Avoid expensive full-table refreshes by patching changed cells only.
+
+## What you learned
+
+- How to use `afterChange` on one Handsontable instance to detect edits and propagate them to a second instance.
+- How to use `setDataAtCell()` with a custom `source` string to apply updates without triggering an infinite re-entry loop.
+- How a source guard (`if (source === 'sync-from-master') return`) prevents the synced writes from firing the `afterChange` hook again.
+- How to batch multiple cell updates into a single `setDataAtCell()` call to keep each sync to one render pass.
+
+## Next steps
+
+- Extend the sync to work in both directions so either grid can serve as the master.
+- Add a field mapping function to transform values (for example, format currency in the detail grid) before applying the sync.
+- Explore the [undo/redo recipe](@/content/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert synchronized changes.

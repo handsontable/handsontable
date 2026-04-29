@@ -19,7 +19,10 @@ react:
   metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
+type: tutorial
 ---
+
+In this tutorial, you will integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
 
 <iframe src="https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?embed=1&file=src%2FApp.jsx&view=preview"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -221,8 +224,20 @@ export default function App() {
 - Override additional Theme API tokens (for example, header colors, cell selection, and spacing).
 - Replace `iconsHorizon` with your own icon set while keeping all required icon keys.
 
+## What you learned
+
+- How to read Fluent UI design token values and map them to Handsontable Theme API parameters to align colors, typography, and spacing.
+- How to wrap the Handsontable grid in a `FluentProvider` so it receives the correct theme context alongside other Fluent components.
+- How to switch between `webLightTheme` and `webDarkTheme` and update the Handsontable theme in the same render cycle.
+- How to replace the default Handsontable icon set with Fluent icons using the `iconsHorizon` icon key structure.
+
+## Next steps
+
+- Explore [Handsontable with Ant Design](@/content/recipes/themes/ant-design/ant-design.md) for the same token-mapping approach with Ant Design.
+- Explore [Handsontable with MUI](@/content/recipes/themes/mui-theme/mui-theme.md) for Material UI integration.
+
 ## Related
 
 - [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Theme Recipes](/recipes/themes) - Practical design-system recipes for Handsontable.
+- [Theme Recipes](@/content/recipes/themes/themes.md) - Practical design-system recipes for Handsontable.

@@ -23,11 +23,10 @@ angular:
   metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+type: tutorial
 ---
 
-## Overview
-
-This recipe shows how to fetch JSON from a REST API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
+This tutorial shows how to fetch JSON from a REST API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
 
 ::: only-for react
 
@@ -525,3 +524,15 @@ afterDataProviderFetchError: (error) => {
 - [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
 
 </div>
+
+## What you learned
+
+- How to initialize Handsontable with `data: []` and populate it after an async fetch with `hot.loadData()`.
+- How `hot.loadData()` resets all grid state and `hot.updateData()` preserves column sort order, selection, and column order on refreshes.
+- How to use `beforeDataProviderFetch`, `afterDataProviderFetch`, and `afterDataProviderFetchError` hooks for status feedback during `dataProvider` fetches.
+- How the `dataProvider` architecture handles pagination, server-side sorting, and CRUD automatically -- removing the need for manual data management.
+
+## Next steps
+
+- Explore [Load data from a GraphQL API](@/content/recipes/data-management/load-data-graphql/load-data-graphql.md) for the same patterns with a GraphQL backend.
+- Explore [Auto-save changes to a backend](@/content/recipes/data-management/auto-save-backend/auto-save-backend.md) to persist grid edits automatically after a debounce delay.
