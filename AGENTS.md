@@ -335,6 +335,31 @@ A Tree-sitter knowledge graph (28k+ nodes, 419k+ edges) pre-built over the full 
 
 **Maintainer note:** the pinned version `2.3.2` appears in `.mcp.json`, the two hook commands in `.claude/settings.json`, and the guidance tables below. Bumping requires updating all four locations in sync.
 
+### First-call protocol - load schema before grep
+
+Graph MCP tools are **deferred** at session start; their schemas are not loaded. Calling them directly fails with `InputValidationError`. The sequence is always:
+
+1. `ToolSearch` with `query: "select:mcp__code-review-graph__query_graph_tool"` to load the schema (comma-separate names to load several in one call).
+2. Call `mcp__code-review-graph__query_graph_tool` with `pattern` and `detail_level: "minimal"`.
+
+If you reach for `grep -r "from.*foo"`, `grep -rn` for a symbol, or repeated `Read` calls to answer a cross-file question, **stop and load the graph tool first.** Grep produces 2-6x more tokens, lacks structural context (no callsite framing, no resolved import targets), and misses dynamic dispatch.
+
+### Trigger phrases - these mean "use the graph"
+
+The first tool call should be `ToolSearch` for the graph schema whenever the user asks any of:
+
+- "dependency chain" / "dependencies of X" / "what does X depend on"
+- "who calls X" / "callers of X" / "who uses X"
+- "what does X call" / "callees of X"
+- "where is X used" / "find references to X" / "find usages"
+- "what imports Y" / "importers of Y" / "who imports this file"
+- "blast radius" / "impact of changing X" / "what breaks if I change X"
+- "methods on class Z" / "members of Z" (use `children_of`)
+- "find dead code" / "unreferenced code"
+- "trace this bug through the call chain"
+
+The matching `code-graph-*` skill is helpful but not required - for a single lookup, going straight from `ToolSearch` to `query_graph_tool` is fine.
+
 ### Use the graph for cross-file traversal
 
 | Task | Tool + pattern | Token advantage |
