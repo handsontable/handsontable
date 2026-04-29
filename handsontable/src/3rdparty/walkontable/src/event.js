@@ -326,8 +326,12 @@ class Event {
       const lastCoords = this.#mouseOverOutsideLastCoords;
 
       if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
-        this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
-        this.callListener('onCellMouseOverOutside', event, coords, this.#wtTable.getCell(coords, true));
+        const TD = this.#wtTable.getCell(coords, true);
+
+        if (TD instanceof HTMLElement) {
+          this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
+          this.callListener('onCellMouseOverOutside', event, coords, TD);
+        }
       }
     }
   }
