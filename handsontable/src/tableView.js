@@ -1049,6 +1049,32 @@ class TableView {
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },
+      onCellMouseOverOutside: (event, coords, TD, wt) => {
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords);
+        const controller = {
+          row: false,
+          column: false,
+          cell: false
+        };
+
+        this.activeWt = wt;
+        this.hot.runHooks('beforeOnCellMouseOverOutside', event, visualCoords, TD, controller);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          controller,
+          cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
+        });
+
+        this.hot.runHooks('afterOnCellMouseOverOutside', event, visualCoords, TD);
+        this.activeWt = this._wt;
+        this.#mouseDownLastPos = null;
+      },
       onCellMouseUp: (event, coords, TD, wt) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 

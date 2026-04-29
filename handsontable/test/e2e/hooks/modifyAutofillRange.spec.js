@@ -29,8 +29,7 @@ describe('Hook', () => {
 
       await selectCell(0, 0);
 
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      $(getCell(1, 0)).simulate('mouseover').simulate('mouseup');
+      simulateFillHandleDrag($(getCell(1, 0)));
 
       expect(modifyAutofillRange).toHaveBeenCalledWith([0, 0, 1, 0], [0, 0, 0, 0]);
       expect(getDataAtCell(1, 0)).toBe(1);
