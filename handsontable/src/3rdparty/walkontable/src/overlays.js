@@ -977,23 +977,25 @@ class Overlays {
    * Without that gate, hiding the master's last fixed-bottom rows in the unscrolled case would
    * leave the master TABLE shorter than the overlay TABLE, which existing tests (and the
    * no-scroll layout) rely on.
+   *
+   * Always falls through to `#updateRowVisibility` so that, when `fixedRowsBottom` turns off or
+   * the bottom overlay is torn down between draws, any `display: none` previously applied to
+   * the OrderView-pooled TRs is cleared (otherwise stale inline styles persist and hide data
+   * rows on subsequent renders).
    */
   #hideMasterRowsCoveredByBottomOverlay() {
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     const calc = this.wot.wtViewport.rowsRenderCalculator;
 
-    if (
-      !fixedRowsBottom
-      || !this.bottomOverlay.clone
-      || !calc
-      || calc.startRow === null
-    ) {
+    if (!calc || calc.startRow === null) {
       return;
     }
 
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     const hideFromRow = this.wtSettings.getSetting('totalRows') - fixedRowsBottom;
     const shouldHide =
-      !this.#stickyScroll.isActive()
+      fixedRowsBottom > 0
+      && !!this.bottomOverlay.clone
+      && !this.#stickyScroll.isActive()
       && calc.endRow >= hideFromRow
       && this.#isScrolledToBottom();
 
