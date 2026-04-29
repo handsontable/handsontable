@@ -31,6 +31,6 @@ Use these recipes to build custom filter controls outside of the grid and apply 
 
 <div class="boxes-list">
 
-- [Multi-column filter panel](@/content/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md)
+- [Multi-column filter panel](@/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md)
 
 </div>
