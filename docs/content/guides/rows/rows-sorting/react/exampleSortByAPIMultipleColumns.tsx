@@ -121,8 +121,10 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button onClick={sort}>Sort</button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button onClick={sort}>Sort</button>
+        </div>
       </div>
     </>
   );

@@ -14,7 +14,6 @@ angular:
   metaTitle: Formulas integration in Vue 3 - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
-menuTag: new
 ---
 In this tutorial, you will integrate the Formulas plugin (powered by HyperFormula) with Handsontable in a Vue 3 application.
 

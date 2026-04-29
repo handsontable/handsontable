@@ -252,7 +252,11 @@ const HotTableInner = forwardRef<
 
   return (
     <Fragment>
-      <div ref={hotElementRef} {...containerProps}>
+      <div
+        ref={hotElementRef}
+        {...containerProps}
+        style={{ height: '100%', ...containerProps.style }}
+      >
         {hotColumnWrapped}
       </div>
       <RenderersPortalManager ref={context.setRenderersPortalManagerRef} />

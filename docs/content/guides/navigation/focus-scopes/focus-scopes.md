@@ -22,7 +22,6 @@ angular:
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
-menuTag: updated
 ---
 Use focus scopes to create isolated focus boundaries within a Handsontable instance and control which keyboard shortcuts are active for each part of the UI. Focus scopes come in two types: `inline` (default) allows natural DOM tab order, and `modal` blocks focus outside the scope -- useful for dialogs and overlays.
 

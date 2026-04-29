@@ -40,10 +40,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button onClick={filterBelow200}>Show items &lt; $200</button>
-        <button onClick={filterAbove200}>Show items &gt; $200</button>
-        <button onClick={clearAllFilters}>Clear filters</button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button onClick={filterBelow200}>Show items &lt; $200</button>
+          <button onClick={filterAbove200}>Show items &gt; $200</button>
+          <button onClick={clearAllFilters}>Clear filters</button>
+        </div>
       </div>
       <HotTable
         ref={hotTableComponentRef}

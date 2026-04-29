@@ -19,6 +19,7 @@ angular:
   metaTitle: Column groups - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 

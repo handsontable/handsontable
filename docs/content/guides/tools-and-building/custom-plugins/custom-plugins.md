@@ -17,7 +17,6 @@ angular:
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
 Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 

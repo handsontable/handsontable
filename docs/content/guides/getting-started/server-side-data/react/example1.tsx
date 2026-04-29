@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { HotTable, type HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import type {
@@ -486,19 +486,20 @@ const columns = [
 const colHeaders = ['Product', 'SKU', 'Category', 'Unit price', 'In stock'];
 
 type InventoryServerTableProps = {
-  status: string;
+  statusRef: React.RefObject<HTMLOutputElement>;
   beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => void;
   afterDataProviderFetch: () => void;
   afterDataProviderFetchError: (error: Error) => void;
 };
 
 /**
- * Renders HotTable in isolation so parent `setState` (status text) does not re-render HotTable.
- * The React wrapper calls `updateSettings` after every HotTable render; with `dataProvider`, each
- * update refetches. Skipping redundant HotTable renders avoids a fetch → setStatus → render loop.
+ * Renders HotTable in isolation to avoid a fetch loop.
+ * The React wrapper calls `updateSettings` after every HotTable render. With `dataProvider`,
+ * each `updateSettings` call re-triggers a fetch. Status is therefore updated via a DOM ref
+ * rather than React state so that status changes never cause HotTable to re-render.
  */
 const InventoryServerTable = memo(function InventoryServerTable({
-  status,
+  statusRef,
   beforeDataProviderFetch,
   afterDataProviderFetch,
   afterDataProviderFetchError,
@@ -551,7 +552,7 @@ const InventoryServerTable = memo(function InventoryServerTable({
             Simulate failed fetch
           </button>
         </div>
-        <output id="example1-status">{status}</output>
+        <output ref={statusRef} id="example1-status">Initializing…</output>
       </div>
       <div id="example1">
         <HotTable
@@ -580,27 +581,33 @@ const InventoryServerTable = memo(function InventoryServerTable({
 });
 
 const ExampleComponent = () => {
-  const [status, setStatus] = useState('Initializing…');
+  const statusRef = useRef<HTMLOutputElement>(null);
 
   const beforeDataProviderFetch = useCallback(
     (params: DataProviderBeforeFetchParameters) => {
-      setStatus(params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…');
+      if (statusRef.current) {
+        statusRef.current.textContent = params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…';
+      }
     },
     []
   );
 
   const afterDataProviderFetch = useCallback(() => {
-    setStatus(`Ready (simulated ${LATENCY_MS}ms request).`);
+    if (statusRef.current) {
+      statusRef.current.textContent = `Ready (simulated ${LATENCY_MS}ms request).`;
+    }
   }, []);
 
   const afterDataProviderFetchError = useCallback((error: Error) => {
-    setStatus(`Could not load data: ${error.message}`);
+    if (statusRef.current) {
+      statusRef.current.textContent = `Could not load data: ${error.message}`;
+    }
   }, []);
 
   return (
     <>
       <InventoryServerTable
-        status={status}
+        statusRef={statusRef}
         beforeDataProviderFetch={beforeDataProviderFetch}
         afterDataProviderFetch={afterDataProviderFetch}
         afterDataProviderFetchError={afterDataProviderFetchError}

@@ -21,7 +21,6 @@ angular:
   metaTitle: Testing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
 Handsontable has three test pipelines: unit tests (Jest), E2E tests (Puppeteer/Jasmine), and Walkontable tests. Run them when contributing to the core library or verifying a fix.
 
