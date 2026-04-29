@@ -932,7 +932,8 @@ class Overlays {
     const totalRows = this.wtSettings.getSetting('totalRows');
     const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
     const bottomClone = this.bottomOverlay.clone;
-    const masterLastRow = (fixedRowsBottom && bottomClone)
+    const hasBottomOverlay = !!(fixedRowsBottom && bottomClone);
+    const masterLastRow = hasBottomOverlay
       ? totalRows - fixedRowsBottom - 1
       : totalRows - 1;
 
@@ -944,7 +945,7 @@ class Overlays {
       return;
     }
 
-    const anchorBottom = bottomClone
+    const anchorBottom = hasBottomOverlay
       ? this.wtTable.hider.offsetHeight - bottomClone.wtTable.holder.parentNode.offsetHeight
       : this.wtTable.hider.offsetHeight;
 
