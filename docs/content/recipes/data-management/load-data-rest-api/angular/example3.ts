@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, NgZone, inject } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
@@ -18,7 +18,8 @@ type UserRow = {
 
 @Component({
   selector: 'example3-load-data-rest-api',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <p style="margin: 0 0 8px; font-family: Arial, sans-serif; font-size: 14px;"
        [style.color]="statusColor">
@@ -27,7 +28,7 @@ type UserRow = {
     <hot-table [settings]="hotSettings"></hot-table>
   `,
 })
-export class Example3LoadDataRestApiComponent {
+export class AppComponent {
   private readonly ngZone = inject(NgZone);
 
   statusMessage = 'Loading...';
@@ -91,7 +92,7 @@ export class Example3LoadDataRestApiComponent {
       columnSorting: true,
       emptyDataState: true,
       rowHeaders: true,
-      height: '360px',
+      height: 360,
       width: '100%',
       stretchH: 'all',
       autoWrapRow: true,
@@ -147,35 +148,20 @@ export class Example3LoadDataRestApiComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example3LoadDataRestApiComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example3LoadDataRestApiComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example3LoadDataRestApiComponent],
-})
-
-export class AppModule {}
 /* end-file */
