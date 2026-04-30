@@ -97,7 +97,6 @@ export class SelectEditor extends BaseEditor {
     }
 
     this.unregisterShortcuts();
-    this.clearHooks();
   }
 
   /**

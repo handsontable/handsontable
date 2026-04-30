@@ -296,6 +296,33 @@ describe('SelectEditor', () => {
     expect(editorWrapper.css('left')).toEqual('-20px');
   });
 
+  it('should keep repositioning the select editor on scroll after it was closed and reopened (#11365)', async() => {
+    handsontable({
+      width: 200,
+      height: 200,
+      data: createSpreadsheetData(100, 100),
+      columns: [
+        { editor: 'select' }, {}, {}, {}, {}, {}, {}, {}, {}, {},
+        {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
+      ]
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('escape');
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    await scrollViewportVertically(10);
+    await scrollViewportHorizontally(20);
+
+    const editorWrapper = $('.htSelectEditor');
+
+    expect(editorWrapper.css('top')).toEqual('-10px');
+    expect(editorWrapper.css('left')).toEqual('-20px');
+  });
+
   it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
       editor: 'select',
