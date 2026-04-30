@@ -13,7 +13,6 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
-import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
 
 // Read the current handsontable library version for StackBlitz package.json.
 const _require = createRequire(import.meta.url);
@@ -74,21 +73,6 @@ const EXT_TO_LANG = {
   html: 'html',
   css: 'css',
   vue: 'vue',
-  php: 'php',
-  py: 'python',
-  rb: 'ruby',
-  java: 'java',
-  properties: 'properties',
-};
-
-/** Language tags that may appear as the first token in @[code LANG ...](...) meta. */
-const META_LANG = {
-  php: 'php',
-  java: 'java',
-  typescript: 'typescript',
-  ts: 'typescript',
-  js: 'javascript',
-  properties: 'properties',
 };
 
 const EXT_TO_LABEL = {
@@ -99,11 +83,6 @@ const EXT_TO_LABEL = {
   html: 'HTML',
   css: 'CSS',
   vue: 'Vue',
-  php: 'PHP',
-  py: 'Python',
-  rb: 'Ruby',
-  java: 'Java',
-  properties: 'Properties',
 };
 
 /**
@@ -138,7 +117,7 @@ function escapeHtml(str) {
  * @param {string} [extraClasses] - Space-separated CSS classes to add to the container div
  * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '', codeOnly = false) {
+function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '') {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -149,11 +128,10 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const isVueDir     = fileRefs.some(r => /\/vue(?:3)?\//i.test(r));
 
   // Find the primary executable file for live rendering.
-  // codeOnly suppresses live execution — files are rendered as static code blocks.
-  const jsRef  = (!codeOnly && !isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
-  const jsxRef = (!codeOnly && isReactDir) ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
-  const tsRef  = (!codeOnly && isAngularDir) ? fileRefs.find(r => r.endsWith('.ts')) : null;
-  const vueRef = (!codeOnly && isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const jsRef  = (!isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const jsxRef = isReactDir ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
+  const tsRef  = isAngularDir ? fileRefs.find(r => r.endsWith('.ts')) : null;
+  const vueRef = isVueDir ? fileRefs.find(r => r.endsWith('.js')) : null;
 
   const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
@@ -206,19 +184,6 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
 
   if (cssRef) {
     exampleAttr += ` data-example-css="/content/${escapeHtml(cssRef)}"`;
-  }
-
-  // ── Server-side code display (no executable file) ─────────────────────────
-  // When there is no runnable entry point (PHP, Python, Ruby, etc.) render the
-  // code fences directly without the live preview container or toolbar.
-  if (!jsRef && !jsxRef && !tsRef && !vueRef) {
-    const serverFences = files.map((f) => {
-      const meta = fileMeta[f.ref] || '';
-
-      return `\`\`\`\`${f.lang} title="${f.label}"${meta ? ` ${meta}` : ''}\n${f.code}\n\`\`\`\``;
-    }).join('\n\n');
-
-    return serverFences;
   }
 
   // ── HTML preview content for JS examples ───────────────────────────────────
@@ -350,57 +315,6 @@ ${fences}
 }
 
 /**
- * Converts standalone @[code](@/content/...) directives to markdown fenced code
- * blocks (Expressive Code). Must run after processExampleBlocks so directives
- * inside ::: example containers are not converted twice.
- *
- * @param {string} content - Markdown body (after example block processing)
- * @param {string} contentDir - Absolute path to docs/content/
- * @returns {string}
- */
-function processCodeEmbedDirectives(content, contentDir) {
-  const lineRe = /^@\[code(?:\s+([^\]]*))?\]\(@\/content\/(.+)\)\s*$/;
-  const lines = content.split('\n');
-  const result = [];
-
-  for (const line of lines) {
-    const m = line.match(lineRe);
-
-    if (!m) {
-      result.push(line);
-      continue;
-    }
-
-    const meta = (m[1] || '').trim();
-    const relPath = m[2].trim();
-    const absPath = join(contentDir, relPath);
-    let code = '';
-
-    try {
-      code = readFileSync(absPath, 'utf-8').trimEnd();
-      code = code.replace(/\{\{\s*\$basePath\s*\}\}/g, '/docs');
-    } catch {
-      result.push('```text');
-      result.push(`// File not found: ${relPath}`);
-      result.push('```');
-      continue;
-    }
-
-    const ext = relPath.split('.').pop().toLowerCase();
-    const metaFirst = meta.split(/\s+/).filter(Boolean)[0];
-    let lang = (metaFirst && META_LANG[metaFirst]) || EXT_TO_LANG[ext] || 'text';
-    const collapsePart = meta.match(/collapse=\{[^}]+\}/);
-    const fenceLang = collapsePart ? `${lang} ${collapsePart[0]}` : lang;
-
-    result.push(`\`\`\`${fenceLang}`);
-    result.push(code);
-    result.push('```');
-  }
-
-  return result.join('\n');
-}
-
-/**
  * Processes ::: example and ::: example-without-tabs blocks in the markdown body.
  * Replaces them with HTML + markdown code fences (rendered by Expressive Code).
  * Must be called AFTER filterOnlyFor so only the current framework's blocks remain.
@@ -426,9 +340,6 @@ function processExampleBlocks(content, contentDir) {
       // Extract the example ID from the header (e.g. '#example1')
       const idMatch = header.match(/#(\S+)/);
       const id = idMatch ? idMatch[1] : 'unknown';
-
-      // --code-only flag: render files as static code blocks, no live demo
-      const codeOnly = /--code-only/.test(header);
 
       // Extract CSS classes from the header (e.g. '.disable-auto-theme')
       const classMatches = [...header.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)];
@@ -474,7 +385,7 @@ function processExampleBlocks(content, contentDir) {
         }
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses, codeOnly));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);
@@ -495,7 +406,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v35';
+const LOADER_VERSION = 'v34';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -934,7 +845,9 @@ function convertAsideBlocks(content) {
     } else if (/^:::\s*$/.test(line)) {
       // Convert markdown syntax to HTML since the body is injected as raw
       // HTML and won't be processed by remark.
-      const body = convertAsideBodyMarkdown(asideBody.join('\n').trim());
+      const body = asideBody.join('\n').trim()
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
       result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
       result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);
@@ -1338,9 +1251,7 @@ export function frameworkLoader({ contentDir }) {
         // Root content/index.md: framework-agnostic splash — emit once as bare "index".
         if (relPath === 'index.md') {
           const exampleProcessedBody = await processExampleBlocks(body, contentDir);
-          const processedBody = applyVuepressPreprocessing(
-            processCodeEmbedDirectives(exampleProcessedBody, contentDir)
-          );
+          const processedBody = applyVuepressPreprocessing(exampleProcessedBody);
           const digest = generateDigest(raw + LOADER_VERSION);
           let data;
 
@@ -1400,11 +1311,8 @@ export function frameworkLoader({ contentDir }) {
           // 2. Process ::: example blocks into Shiki-highlighted HTML tabs
           const exampleProcessedBody = await processExampleBlocks(filteredBody, contentDir);
 
-          // 3. Convert remaining standalone @[code] embeds to fenced code blocks
-          const codeEmbeddedBody = processCodeEmbedDirectives(exampleProcessedBody, contentDir);
-
-          // 4. Apply remaining VuePress preprocessing
-          const processedBody = applyVuepressPreprocessing(codeEmbeddedBody, prefix, contentDir);
+          // 3. Apply remaining VuePress preprocessing
+          const processedBody = applyVuepressPreprocessing(exampleProcessedBody, prefix, contentDir);
 
           // Make each framework entry unique; include LOADER_VERSION to bust
           // Astro's data store cache when the loader logic changes.
