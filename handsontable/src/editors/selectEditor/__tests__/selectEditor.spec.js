@@ -323,6 +323,47 @@ describe('SelectEditor', () => {
     expect(editorWrapper.css('left')).toEqual('-20px');
   });
 
+  it('should not accumulate `beforeDialogShow` hook callbacks across open/close cycles', async() => {
+    const hot = handsontable({
+      columns: [{ editor: 'select' }],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+    const cancelSpy = spyOn(editor, 'cancelChanges').and.callThrough();
+
+    await keyDownUp('enter');
+    await keyDownUp('escape');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('escape');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    cancelSpy.calls.reset();
+
+    hot.runHooks('beforeDialogShow');
+
+    expect(cancelSpy.calls.count()).toBe(1);
+  });
+
+  it('should clear all registered hooks when the Handsontable instance is destroyed', async() => {
+    handsontable({
+      columns: [{ editor: 'select' }],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    expect(editor._hooksStorage.afterScrollHorizontally.length).toBe(1);
+
+    destroy();
+
+    expect(editor._hooksStorage).toEqual({});
+  });
+
   it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
       editor: 'select',
