@@ -250,10 +250,13 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const scriptFiles = files.filter(f => scriptExts.has(f.ext));
   const otherFiles = files.filter(f => !scriptExts.has(f.ext));
 
-  // Build logical tab names: "JavaScript" (once for all script variants) + others
+  // Build logical tab names: "JavaScript" (once for all script variants) + others.
+  // Angular examples with other tabs (HTML/CSS) use "Code" instead of "JavaScript".
   const tabNames = [];
 
-  if (scriptFiles.length > 0) tabNames.push('JavaScript');
+  if (scriptFiles.length > 0) {
+    tabNames.push(isAngularDir && otherFiles.length > 0 ? 'Code' : 'JavaScript');
+  }
 
   for (const f of otherFiles) tabNames.push(f.label);
 
@@ -403,7 +406,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v33';
+const LOADER_VERSION = 'v34';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
