@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { useState } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import './example1.css';
 
@@ -306,12 +306,14 @@ Service Pack,Services,true,0
 /* end:skip-in-preview */
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableRef>(null);
   const [pending, setPendingState] = useState<ParsedPayload | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const [sampleCsv, setSampleCsv] = useState<string>(SAMPLE_CSV);
   const [dropzoneActive, setDropzoneActive] = useState<boolean>(false);
+  const [gridData, setGridData] = useState<Record<string, CellValue>[]>([]);
+  const [gridColHeaders, setGridColHeaders] = useState<string[]>([]);
+  const [gridColumns, setGridColumns] = useState<ColumnDef[]>([]);
 
   const clearPendingPreview = (): void => {
     setPendingState(null);
@@ -397,19 +399,11 @@ const ExampleComponent = () => {
       return;
     }
 
-    const hot = hotRef.current?.hotInstance;
-
-    if (!hot) {
-      return;
-    }
-
     const { headers, rows } = pending;
 
-    hot.updateSettings({
-      colHeaders: headers,
-      columns: columnsFromHeaders(headers, rows),
-    });
-    hot.loadData(rows);
+    setGridColHeaders(headers);
+    setGridColumns(columnsFromHeaders(headers, rows));
+    setGridData(rows);
     setPendingState(null);
     setShowPreview(false);
   };
@@ -475,10 +469,9 @@ const ExampleComponent = () => {
       )}
 
       <HotTable
-        ref={hotRef}
-        data={[]}
-        columns={[]}
-        colHeaders={[]}
+        data={gridData}
+        columns={gridColumns}
+        colHeaders={gridColHeaders}
         rowHeaders={true}
         height="auto"
         width="100%"
