@@ -235,4 +235,4 @@ You registered a custom Handsontable theme that maps Base Web design tokens to H
 
 - [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn/ui CSS variables and Lucide icons.
 - [Handsontable with MUI](/recipes/themes/mui-theme) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
-- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.
+- [Theme customization](/theme-customization) - Full reference for Theme API parameters and CSS variables.

@@ -234,4 +234,4 @@ You registered a custom Handsontable theme that maps MUI palette values to Hands
 
 - [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn CSS variables and Lucide icons.
 - [Handsontable with Base Web](/recipes/themes/base-theme) - The same pattern using Base Web design tokens.
-- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.
+- [Theme customization](/theme-customization) - Full reference for Theme API parameters and CSS variables.
