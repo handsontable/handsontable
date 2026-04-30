@@ -62,22 +62,26 @@ export function toEmptyString(value) {
  * Unify column values (remove duplicated values and sort them).
  *
  * @param {Array} values An array of values.
+ * @param {Function} [comparator] Optional sort comparator. When omitted, numbers sort numerically
+ *   and all other values sort lexicographically.
  * @returns {Array}
  */
-export function unifyColumnValues(values) {
+export function unifyColumnValues(values, comparator) {
+  const defaultComparator = (a, b) => {
+    if (typeof a === 'number' && typeof b === 'number') {
+      return a - b;
+    }
+
+    if (a === b) {
+      return 0;
+    }
+
+    return a > b ? 1 : -1;
+  };
+
   return Array.from(new Set(values))
     .map(value => toEmptyString(value))
-    .sort((a, b) => {
-      if (typeof a === 'number' && typeof b === 'number') {
-        return a - b;
-      }
-
-      if (a === b) {
-        return 0;
-      }
-
-      return a > b ? 1 : -1;
-    });
+    .sort(comparator ?? defaultComparator);
 }
 
 /**
