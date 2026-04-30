@@ -208,7 +208,10 @@ export class StylesHandler {
   #calculateRowHeight() {
     const lineHeightVarValue = this.getCSSVariableValue('line-height');
     const verticalPaddingVarValue = this.getCSSVariableValue('cell-vertical-padding');
-    const bottomBorderWidth = Math.ceil(parseFloat(this.getStyleForTD('border-bottom-width')));
+    // Math.round (not Math.ceil) so that fractional computed values from sub-100% browser zoom
+    // (e.g. "1.111px" at 90%) round to the correct 1px rather than overshooting to 2px, which
+    // would make the hider taller than the actual table content and leave a visible gap.
+    const bottomBorderWidth = Math.round(parseFloat(this.getStyleForTD('border-bottom-width')));
 
     if (
       lineHeightVarValue === null ||

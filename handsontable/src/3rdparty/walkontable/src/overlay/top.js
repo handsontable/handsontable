@@ -106,6 +106,14 @@ export class TopOverlay extends Overlay {
 
     const positionChanged = this.adjustHeaderBordersPosition(overlayPosition, skipInnerBorderAdjusting);
 
+    if (positionChanged) {
+      // The innerBorderTop class was toggled, which adds/removes a bottom border from the column
+      // header row, changing the THEAD height by 1px. Invalidate the cached header height so that
+      // adjustElementsSize() re-measures it in the current DOM state rather than returning the
+      // stale pre-toggle value.
+      this.wot.wtViewport.columnHeaderHeight = NaN;
+    }
+
     this.adjustElementsSize();
 
     return positionChanged;
@@ -156,7 +164,8 @@ export class TopOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
-    const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
+    const stylesHandler = this.wtSettings.getSetting('stylesHandler');
+    const defaultRowHeight = stylesHandler.getDefaultRowHeight();
     let row = from;
     let sum = 0;
 
