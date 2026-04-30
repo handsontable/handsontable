@@ -19,17 +19,18 @@ angular:
   metaTitle: Custom keyboard shortcuts - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will register custom keyboard shortcuts in Handsontable using the ShortcutManager API. You will learn how to add shortcuts like Ctrl+D to duplicate rows and Ctrl+Enter to submit grid data without conflicting with existing browser or grid shortcuts.
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2
+::: example #example1 :hot-recipe --html 1 --js 2 --css 3
 
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/javascript/example1.html)
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/javascript/example1.js)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/javascript/example1.css)
 
 :::
 
@@ -37,10 +38,11 @@ In this tutorial, you will register custom keyboard shortcuts in Handsontable us
 
 ::: only-for react
 
-::: example #example1 :react --js 1 --ts 2
+::: example #example1 :react --js 1 --ts 2 --css 3
 
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/react/example1.jsx)
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/react/example1.tsx)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/react/example1.css)
 
 :::
 
@@ -48,10 +50,11 @@ In this tutorial, you will register custom keyboard shortcuts in Handsontable us
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/angular/example1.ts)
 @[code](@/content/recipes/accessibility/keyboard-shortcuts/angular/example1.html)
+@[code](@/content/recipes/accessibility/keyboard-shortcuts/angular/example1.css)
 
 :::
 
@@ -69,8 +72,9 @@ Handsontable's `ShortcutManager` API lets you register custom keyboard shortcuts
 A grid with two custom shortcuts:
 
 - `Ctrl+D` -- duplicates the currently selected row and inserts the copy directly below it.
-- `Ctrl+Enter` -- reads all grid data and displays a submission summary in the shortcut log.
-- A shortcut log table below the grid that shows the last shortcut triggered and the last submission.
+- `Ctrl+Enter` -- reads all grid data and displays a submission summary below the grid.
+- A brief notification that appears on-screen after each shortcut fires.
+- A log area that shows the last submit action.
 
 ## Before you begin
 
@@ -99,7 +103,7 @@ const hot = new Handsontable(container, {
     { data: 'name', type: 'text' },
     { data: 'department', type: 'text' },
     { data: 'role', type: 'text' },
-    { data: 'salary', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 } },
+    { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
     { data: 'startDate', type: 'text' },
   ],
   rowHeaders: true,
@@ -148,8 +152,6 @@ gridContext.addShortcut({
 
     hot.alter('insert_row_below', row);
     hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
-
-    lastShortcutEl.textContent = 'Ctrl+D -- row duplicated';
   },
 });
 ```
@@ -180,18 +182,10 @@ gridContext.addShortcut({
     const rowCount = data.length;
     const timestamp = new Date().toLocaleTimeString();
 
-    lastShortcutEl.textContent = 'Ctrl+Enter -- data submitted';
-    lastSubmissionEl.textContent = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
+    submitLog.textContent =
+      `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
   },
 });
-```
-
-Where `lastShortcutEl` and `lastSubmissionEl` are references to the `<code>` cells in the shortcut log table. Acquire them once after Handsontable initializes:
-
-```javascript
-const preview = container.closest('.hot-example-preview') ?? container.parentElement;
-const lastShortcutEl = preview.querySelector('.last-shortcut');
-const lastSubmissionEl = preview.querySelector('.last-submission');
 ```
 
 **What's happening:**
@@ -200,7 +194,7 @@ const lastSubmissionEl = preview.querySelector('.last-submission');
 - `event.preventDefault()` -- in some browsers `Ctrl+Enter` can trigger form submission or other default behavior; this prevents it.
 - `hot.getData()` -- returns a 2-D array of all visible cell values (respecting column and row order after sorting or filtering).
 - `hot.getColHeader()` -- returns the current column header labels as an array.
-- The summary is written to the shortcut log table below the grid. In a real application you would replace this with a `fetch()` call or a Redux action.
+- The summary string is written to the `#submit-log` element below the grid. In a real application you would replace this with a `fetch()` call or a Redux action.
 
 ## Step 5: (Optional) Remove a built-in shortcut
 
@@ -215,25 +209,25 @@ shortcutManager.getContext('grid').removeShortcutsByKeys([['Delete']]);
 
 The table below lists the most commonly overridden built-in shortcuts:
 
-| Keys        | Default action               |
-| ----------- | ---------------------------- |
-| `Delete`    | Clear cell content           |
-| `Backspace` | Clear cell content           |
-| `Enter`     | Open cell editor / move down |
-| `Tab`       | Move focus to next cell      |
-| `Escape`    | Cancel editing               |
-| `Control+A` | Select all cells             |
-| `Control+Z` | Undo                         |
-| `Control+Y` | Redo                         |
-| `Control+C` | Copy selection               |
-| `Control+V` | Paste                        |
+| Keys | Default action |
+|---|---|
+| `Delete` | Clear cell content |
+| `Backspace` | Clear cell content |
+| `Enter` | Open cell editor / move down |
+| `Tab` | Move focus to next cell |
+| `Escape` | Cancel editing |
+| `Control+A` | Select all cells |
+| `Control+Z` | Undo |
+| `Control+Y` | Redo |
+| `Control+C` | Copy selection |
+| `Control+V` | Paste |
 
 ## How It Works - Complete Flow
 
 1. **Grid renders** -- `ShortcutManager` initializes with the `'grid'` context and all built-in shortcuts already registered.
 2. **User focuses the grid** -- the `'grid'` context becomes active; your custom shortcuts are now listening.
 3. **User presses Ctrl+D** -- `ShortcutManager` matches the key combination against registered handlers. The `runOnlyIf` guard runs first. If a row is selected, the callback fires: the selected row is read, a new row is inserted below, and the copy is populated.
-4. **User presses Ctrl+Enter** -- `ShortcutManager` matches `Ctrl+Enter`, calls `event.preventDefault()`, reads `hot.getData()`, and writes a summary to the shortcut log table.
+4. **User presses Ctrl+Enter** -- `ShortcutManager` matches `Ctrl+Enter`, calls `event.preventDefault()`, reads `hot.getData()`, and writes a summary to the log.
 5. **User focuses outside the grid** -- the `'grid'` context deactivates; your shortcuts no longer fire.
 
 ## What you learned

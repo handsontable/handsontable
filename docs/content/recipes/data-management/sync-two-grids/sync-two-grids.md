@@ -18,7 +18,7 @@ angular:
   metaTitle: Sync two grids - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will sync edits from a master grid to a detail grid in real time. You will learn how to use `afterChange`, `setDataAtCell()`, and source guards to keep two Handsontable instances consistent without triggering infinite update loops.

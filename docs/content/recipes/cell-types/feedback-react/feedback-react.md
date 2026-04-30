@@ -1,12 +1,11 @@
 ---
-type: how-to
+type: tutorial
 id: e107bb0d
 title: Feedback
 metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
 description: Learn how to create a custom feedback cell type in React using EditorComponent—emoji buttons (e.g. thumbs up/down/neutral) for quick selection, keyboard navigation, and per-column config.
 permalink: /recipes/cell-types/feedback-react
 canonicalUrl: /recipes/cell-types/feedback-react
-framework: react
 tags:
   - guides
   - tutorial
@@ -568,7 +567,7 @@ Enhanced button appearance with CSS:
 
 ### 4. Dynamic Config from Cell Properties
 
-The `onPrepare` hook already handles this -- pass different configs:
+The `onPrepare` hook already handles this! Just pass different configs:
 
 ```tsx
 <HotColumn
@@ -762,12 +761,13 @@ For number-based feedback:
 1. **Use `onPrepare` for per-cell configuration** - Access `cellProperties` to read custom options
 2. **Handle keyboard events properly** - Use shortcuts for navigation
 3. **Call `finishEditing()` appropriately** - When user confirms changes (Enter, blur, button click)
-4. **Keep render prop function focused** - Extract complex logic into separate components or hooks
+4. **Keep render prop function simple** - Extract complex logic into separate components or hooks
 5. **Use `useCallback` for helper functions** - Prevents unnecessary re-renders
 6. **Update shortcuts in `useEffect`** - Ensures shortcuts match current config
 
 ---
 
+**Congratulations!** You've created a simple feedback editor with emoji buttons using React's `EditorComponent`, perfect for quick feedback selection in your data grid!
 
 ## What you learned
 
@@ -775,6 +775,6 @@ You built an emoji feedback cell editor in React using Handsontable's `EditorCom
 
 ## Next steps
 
-- [Feedback (JavaScript)](@/javascript/recipes/cell-types/feedback/feedback.md) - The same pattern using `editorFactory` with Handsontable CSS tokens.
-- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
-- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - Another React editor using `EditorComponent` for numeric selection.
+- [Feedback (JavaScript)](@/recipes/cell-types/feedback/feedback.md) - The same pattern using `editorFactory` with Handsontable CSS tokens.
+- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - Another React editor using `EditorComponent` for numeric selection.

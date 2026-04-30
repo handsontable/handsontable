@@ -19,7 +19,7 @@ angular:
   metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and SheetJS to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.
@@ -95,22 +95,18 @@ Use `accept` on the file input and check `file.name` to route `.csv` and `.xlsx`
 
 ```html
 <div class="import-dropzone" id="import-dropzone" tabindex="0" role="button">
-  <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or pick a source.</p>
-  <div class="import-actions">
-    <label class="import-file-label">
-      <span>Choose file</span>
-      <input id="import-file" type="file"
-        accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
-    </label>
-    <button type="button" id="import-load-sample" class="import-sample-btn">Load sample data</button>
-  </div>
+  <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or use the file picker.</p>
+  <label class="import-file-label">
+    <span>Choose file</span>
+    <input id="import-file" type="file"
+      accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
+  </label>
 </div>
 ```
 
 **What's happening:**
 - The `accept` attribute restricts the system file picker to `.csv` and `.xlsx`. This is a hint to the browser only -- you must validate the extension in JavaScript as well.
 - The real `<input>` is visually hidden (positioned off-screen with `opacity: 0`) and activated via the wrapping `<label>`. Clicking **Choose file** triggers the file picker without requiring a separate button.
-- **Load sample data** parses a bundled CSV string so users can try the grid without having to upload a file first.
 - The drop zone has `tabindex="0"` and `role="button"` so keyboard users can focus and activate it.
 
 ### Extension detection
@@ -239,7 +235,7 @@ async function parseCsvFile(file, PapaRef) {
 - `dynamicTyping: true` lets PapaParse return native numbers and booleans where possible.
 - Numeric and boolean values are preserved as-is; string values are trimmed, and empty strings are normalized to `null`.
 
-### Parse a CSV text string (for the bundled sample)
+### Parse a CSV text string (for the sample textarea)
 
 ```javascript
 function parseCsvText(text, PapaRef) {
@@ -259,7 +255,7 @@ function parseCsvText(text, PapaRef) {
 **What's happening:**
 - Works identically to `parseCsvFile` but accepts a raw CSV string instead of a `File` object.
 - PapaParse's synchronous `parse(string, opts)` overload is used here (no `complete` callback needed).
-- Used when the user clicks **Load sample data** to parse a CSV string embedded in the script and feed it into the grid.
+- Used when the user clicks **Parse sample CSV** to process the pre-filled textarea value without picking a file.
 
 ## Step 3: Parse Excel with SheetJS
 
@@ -363,14 +359,51 @@ async function parseFile(file) {
 - The library is loaded on demand: PapaParse for CSV, SheetJS for Excel. If only CSV files are imported, SheetJS is never downloaded.
 - Both parsers return the same shape: `{ headers: string[], rows: object[] }` -- the rest of the code does not need to know which parser ran.
 
-## Step 4: Load parsed data into the grid
+## Step 4: Preview headers, then load the grid
+
+### Keep parsed data in a pending buffer
+
+```javascript
+let pending = null;
+
+function setPending(payload) {
+  pending = payload;
+  clearError(errEl);
+  if (headerListEl && previewEl) {
+    renderHeaderPreview(headerListEl, payload.headers);
+    previewEl.hidden = false;
+  }
+}
+```
+
+**What's happening:**
+- `pending` holds the last successfully parsed `{ headers, rows }` object until the user confirms or a new file is loaded.
+- `setPending` clears any previous error, renders the header list, and shows the preview panel -- but does not touch the grid yet. The user must click **Load into grid** to commit.
+- A two-step confirm flow prevents accidental overwrites and gives the user a chance to check that the detected headers match expectations before loading potentially thousands of rows.
+
+### Render the header preview
+
+```javascript
+function renderHeaderPreview(listEl, headers) {
+  listEl.innerHTML = '';
+  for (const h of headers) {
+    const li = document.createElement('li');
+    li.textContent = h;
+    listEl.appendChild(li);
+  }
+}
+```
+
+**What's happening:**
+- Clears the list before re-populating so stale headers from a previous import are not shown.
+- Uses `textContent` (not `innerHTML`) to prevent XSS when column names contain HTML characters.
 
 ### Build column definitions from header names
 
 ```javascript
-function columnsFromHeaders(headers, rows) {
+function columnsFromHeaders(headers) {
   return headers.map((data) => {
-    const values = rows
+    const values = pending.rows
       .map((row) => row[data])
       .filter((v) => v !== null);
 
@@ -389,63 +422,31 @@ function columnsFromHeaders(headers, rows) {
 - Handsontable's `columns` option expects an array of column descriptors. Each descriptor's `data` property is the key used to read from the row objects.
 - The helper infers `numeric` and `checkbox` columns when all non-empty values in that column are numbers or booleans. Mixed columns stay as `'text'`.
 
-### Lazy-init the grid on the first load
+### Load the grid
 
 ```javascript
-let hot = null;
-
-function loadIntoGrid({ headers, rows }) {
-  const columns = columnsFromHeaders(headers, rows);
-
-  if (!hot) {
-    emptyEl.hidden = true;
-    gridContainer.hidden = false;
-    hot = new Handsontable(gridContainer, {
-      data: rows,
-      columns,
-      colHeaders: headers,
-      rowHeaders: true,
-      height: 'auto',
-      width: '100%',
-      licenseKey: 'non-commercial-and-evaluation',
-    });
+applyBtn?.addEventListener('click', () => {
+  clearError(errEl);
+  if (!pending) {
+    showError(errEl, 'Nothing to load. Import a file first.');
     return;
   }
-
-  hot.updateSettings({ colHeaders: headers, columns });
+  const { headers, rows } = pending;
+  hot.updateSettings({
+    colHeaders: headers,
+    columns: columnsFromHeaders(headers),
+  });
   hot.loadData(rows);
-}
-```
-
-**What's happening:**
-- `hot` is created on the first successful import only. Before that, the page shows an empty-state panel (`emptyEl`) and `gridContainer` (the `#example1` div) is kept `hidden` so users don't see a single blank cell.
-- On the first call: hide the empty state, reveal the grid container, and instantiate Handsontable with the parsed data, columns, and headers.
-- On subsequent calls: reuse the existing instance -- `updateSettings({ colHeaders, columns })` reconfigures the grid's column shape, then `loadData(rows)` replaces the data and triggers a full re-render. `updateSettings` must run before `loadData` so Handsontable knows which keys to read from the row objects.
-
-### Load the bundled sample
-
-```javascript
-const SAMPLE_CSV = `Product,Category,In stock,Price
-Widget A,Hardware,true,19.99
-Widget B,Hardware,false,24.5
-Service Pack,Services,true,0`;
-
-sampleBtn?.addEventListener('click', async () => {
-  clearError(errEl);
-  try {
-    const PapaRef = await ensurePapa();
-    const payload = parseCsvText(SAMPLE_CSV, PapaRef);
-    loadIntoGrid(payload);
-  } catch (e) {
-    showError(errEl, e instanceof Error ? e.message : String(e));
-  }
+  previewEl.hidden = true;
+  pending = null;
 });
 ```
 
 **What's happening:**
-- `SAMPLE_CSV` is a small CSV string embedded in the script -- enough to demonstrate the grid without forcing the user to upload anything.
-- The handler ensures PapaParse is available, parses the sample synchronously, and hands the result straight to `loadIntoGrid` -- no preview step in between.
-- File uploads use the same `loadIntoGrid` function (see `handleFile` in [Step 5](#step-5-handle-errors)), so both code paths converge on a single grid-population helper.
+1. Guard against clicking **Load into grid** when no file has been parsed yet.
+2. `hot.updateSettings({ colHeaders, columns })` reconfigures the grid for the new column shape. This must happen before `loadData` so Handsontable knows which keys to read from the row objects.
+3. `hot.loadData(rows)` replaces the grid's data source and triggers a full re-render.
+4. After loading, the preview panel is hidden and `pending` is cleared so a stale payload is not accidentally loaded twice.
 
 ## Step 5: Handle errors
 
@@ -484,6 +485,7 @@ function clearError(el) {
 | Excel sheet is empty | `"The sheet is empty."` |
 | Excel header row is blank | `"No header row found in the Excel sheet."` |
 | Excel has no data rows | `"No data rows after the header."` |
+| **Load into grid** clicked with no file parsed | `"Nothing to load. Import a file first."` |
 
 The `handleFile` async function is the single place where all parse errors are caught and forwarded to `showError`:
 
@@ -497,8 +499,10 @@ async function handleFile(file) {
   }
   try {
     const payload = await parseFile(file);
-    loadIntoGrid(payload);
+    setPending(payload);
   } catch (e) {
+    pending = null;
+    previewEl.hidden = true;
     showError(errEl, e instanceof Error ? e.message : String(e));
   }
 }
@@ -507,29 +511,30 @@ async function handleFile(file) {
 **What's happening:**
 - `file.size === 0` is checked before any async work to give an instant response for empty files.
 - Any error thrown by the parsers bubbles up here and is shown to the user.
-- On success, the parsed `{ headers, rows }` payload goes straight to `loadIntoGrid` -- no intermediate state to reset on failure.
-- The **Load sample data** handler uses the same try/catch shape, so sample-parse errors surface in the same error panel.
+- On error, `pending` is cleared and the preview panel is hidden so the user cannot accidentally load stale data.
+- Apply the same stale-state reset for the sample textarea parser, so failed sample parsing cannot leave old data queued for **Load into grid**.
 
 ## Try it quickly
 
-Click **Load sample data** in the example to populate the grid from the bundled CSV string, or save the snippet from [Step 4](#load-the-bundled-sample) as `sample.csv` and drop it on the zone.
+Use the **Sample CSV** textarea in the example and click **Parse sample CSV**, or save the snippet as `sample.csv` and drop it on the zone.
 
 ## How it works - complete flow
 
-1. **User picks or drops a file (or clicks Load sample data)** -- the `change`, `drop`, or sample button event fires and reaches `handleFile` / the sample handler.
-2. **File size check** -- zero-byte files are rejected immediately (file path only).
-3. **Extension routing** -- `parseFile` reads the extension and loads the right parser library on demand. The sample path always uses PapaParse via `parseCsvText`.
+1. **User picks or drops a file** -- the `change` or `drop` event fires and calls `handleFile`.
+2. **File size check** -- zero-byte files are rejected immediately.
+3. **Extension routing** -- `parseFile` reads the extension and loads the right parser library on demand.
 4. **Parsing** -- CSV goes through PapaParse with `header: true`; Excel is read via SheetJS with `sheet_to_json` and row-0 as the header line.
 5. **Normalization** -- empty cells become `null`, and native numbers/booleans are preserved for CSV and Excel.
-6. **Grid population** -- `loadIntoGrid` creates the Handsontable instance on the first call (hiding the empty-state panel) or updates `colHeaders`, `columns`, and data on subsequent calls.
-7. **Grid renders** -- Handsontable re-renders with the new columns and data.
-8. **Errors at any step** -- caught by `handleFile` or the sample-parse handler and shown in the error panel.
+6. **Header preview** -- `setPending` stores the result and shows the detected column names in a list.
+7. **User confirms** -- clicking **Load into grid** calls `hot.updateSettings` followed by `hot.loadData`.
+8. **Grid renders** -- Handsontable re-renders with the new columns and data.
+9. **Errors at any step** -- caught by `handleFile` or the sample-parse path (plus the apply-button guard), then shown in the error panel while pending preview state is cleared.
 
 ## What you learned
 
 - How to detect the file type by extension and route CSV files through PapaParse and Excel files through SheetJS with a single handler function.
-- How to ship a bundled CSV sample so users can demo the grid without uploading a file first.
-- How to call `hot.updateSettings({ colHeaders, columns })` followed by `hot.loadData(rows)` to replace both the column configuration and the data in one step, and how to lazy-instantiate Handsontable behind an empty-state panel.
+- How to present a header preview before loading data, so users can confirm the detected columns match their expectations.
+- How to call `hot.updateSettings({ colHeaders, columns })` followed by `hot.loadData(rows)` to replace both the column configuration and the data in one step.
 - How to handle errors at each stage -- file size, parsing, and grid load -- and surface them in a dedicated error panel.
 
 ## Next steps

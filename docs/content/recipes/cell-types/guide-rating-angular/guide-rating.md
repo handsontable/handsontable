@@ -769,6 +769,6 @@ You built an SVG star rating cell in Angular using `HotCellEditorAdvancedCompone
 
 ## Next steps
 
-- [Star Rating (JavaScript)](/recipes/cell-types/rating) - The same concept using `editorFactory` and `rendererFactory`.
-- [Star Rating (React)](/recipes/cell-types/react-rating) - The React version using `EditorComponent` and `react-star-rating-component`.
-- [Feedback Editor (Angular)](/recipes/feedback-angular) - Another Angular editor using `HotCellEditorAdvancedComponent`.
+- [Star Rating (JavaScript)](@/recipes/cell-types/rating/rating.md) - The same concept using `editorFactory` and `rendererFactory`.
+- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - The React version using `EditorComponent` and `react-star-rating-component`.
+- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular editor using `HotCellEditorAdvancedComponent`.

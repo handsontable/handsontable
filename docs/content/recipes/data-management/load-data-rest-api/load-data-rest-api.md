@@ -23,7 +23,7 @@ angular:
   metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: how-to
+type: tutorial
 ---
 
 This tutorial shows how to fetch JSON from a REST API and populate Handsontable after initialization. It starts the grid with `data: []`, shows a loading message, then displays success or error feedback in the UI.
@@ -162,8 +162,9 @@ const refreshButton = document.createElement('button');
 refreshButton.type = 'button';
 refreshButton.textContent = 'Refresh';
 refreshButton.hidden = true; // hidden until the initial load succeeds
+refreshButton.style.marginBottom = '0';
 
-controls.appendChild(refreshButton);
+statusBar.appendChild(refreshButton);
 ```
 
 **What's happening:**
@@ -195,8 +196,10 @@ The helper controls the "Refresh" button alongside the existing "Retry" button.
 
 ```javascript
 function setUiState({ loading = false, hasError = false, message = '' } = {}) {
-  statusOutput.textContent = message;
-  statusOutput.classList.toggle('is-error', hasError);
+  status.textContent = message;
+  status.style.color = hasError
+    ? 'var(--ht-cell-error-foreground-color, #c62828)'
+    : 'var(--ht-foreground-color, #202124)';
   retryButton.hidden = !hasError;            // visible only on error
   refreshButton.hidden = hasError || loading; // visible only when data is ready
   refreshButton.disabled = loading;
@@ -496,17 +499,15 @@ emptyDataState: true,
 ```javascript
 beforeDataProviderFetch: ({ skipLoading }) => {
   if (!skipLoading) {
-    statusOutput.textContent = 'Loading...';
-    statusOutput.classList.remove('is-error');
+    status.textContent = 'Loading...';
   }
 },
 afterDataProviderFetch: () => {
-  statusOutput.textContent = 'Loaded from REST API via dataProvider.';
-  statusOutput.classList.remove('is-error');
+  status.textContent = 'Loaded from REST API via dataProvider.';
 },
 afterDataProviderFetchError: (error) => {
-  statusOutput.textContent = `Error: ${error.message}`;
-  statusOutput.classList.add('is-error');
+  status.textContent = `Error: ${error.message}`;
+  status.style.color = 'var(--ht-cell-error-foreground-color, #c62828)';
 },
 ```
 

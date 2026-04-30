@@ -20,7 +20,7 @@ angular:
   metaTitle: Load Data from a GraphQL API - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: how-to
+type: tutorial
 ---
 
 This tutorial shows two GraphQL approaches for Handsontable. The first approach loads data on the client with `fetch`, `loadData()`, and `updateData()`. The second approach uses the server-side DataProvider architecture for paging, sorting, filtering, and CRUD callbacks.

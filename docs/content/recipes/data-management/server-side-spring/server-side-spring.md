@@ -22,9 +22,7 @@ searchCategory: Recipes
 category: Data Management
 ---
 
-## Overview
-
-This recipe shows how to connect Handsontable's `dataProvider` plugin to a Spring Boot 3 backend. You will build a product catalog grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a JPA-managed H2 database.
+This tutorial shows how to connect Handsontable's `dataProvider` plugin to a Spring Boot 3 backend. You will build a product catalog grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a JPA-managed H2 database.
 
 <a class="github-example-cta" href="https://github.com/handsontable/examples/tree/master/server-examples/spring" target="_blank" rel="noopener noreferrer">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -118,7 +116,7 @@ Create or update `src/main/resources/application.properties`:
 
 ## Step 3: Create the Product entity
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/Product.java)
+@[code java](@/recipes/data-management/server-side-spring/server/Product.java)
 
 **What's happening:**
 - `@Entity` and `@Table(name = "products")` tell JPA to map this class to the `products` table.
@@ -131,7 +129,7 @@ Each field maps directly to a column the Handsontable grid displays. Adding only
 
 ## Step 4: Add the repository interface
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/ProductRepository.java)
+@[code java](@/recipes/data-management/server-side-spring/server/ProductRepository.java)
 
 **What's happening:**
 - `JpaRepository<Product, Long>` provides `save`, `findById`, `deleteAllById`, and `count` methods -- everything needed for CRUD without writing any SQL.
@@ -139,7 +137,7 @@ Each field maps directly to a column the Handsontable grid displays. Adding only
 
 ## Step 5: Seed the database
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/DataInitializer.java)
+@[code java](@/recipes/data-management/server-side-spring/server/DataInitializer.java)
 
 **What's happening:**
 - `CommandLineRunner` is a Spring Boot callback that runs after the application context starts. Returning it from a `@Bean` method registers it automatically.
@@ -151,7 +149,7 @@ The default `pagination.pageSize` is 10, so 55 rows creates 6 pages. This makes 
 
 ## Step 6: Build the service
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/ProductService.java)
+@[code java](@/recipes/data-management/server-side-spring/server/ProductService.java)
 
 **What's happening:**
 
@@ -203,7 +201,7 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 
 ## Step 7: Create the REST controller
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/ProductController.java)
+@[code java](@/recipes/data-management/server-side-spring/server/ProductController.java)
 
 **What's happening:**
 - `@RestController` combines `@Controller` and `@ResponseBody`, so every method return value is serialized to JSON automatically.
@@ -222,7 +220,7 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 
 ## Step 8: Configure CORS
 
-@[code java](@/content/recipes/data-management/server-side-spring/server/CorsConfig.java)
+@[code java](@/recipes/data-management/server-side-spring/server/CorsConfig.java)
 
 **What's happening:**
 - `WebMvcConfigurer` is a Spring MVC callback interface. Implementing `addCorsMappings` is the idiomatic way to configure CORS globally without annotations on every controller.
@@ -235,13 +233,13 @@ With the server running on `http://localhost:8080`, configure Handsontable to us
 
 ::: only-for javascript
 
-@[code js](@/content/recipes/data-management/server-side-spring/javascript/example1.js)
+@[code js](@/recipes/data-management/server-side-spring/javascript/example1.js)
 
 :::
 
 ::: only-for typescript
 
-@[code ts](@/content/recipes/data-management/server-side-spring/javascript/example1.ts)
+@[code ts](@/recipes/data-management/server-side-spring/javascript/example1.ts)
 
 :::
 

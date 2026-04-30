@@ -18,7 +18,7 @@ angular:
   metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will color entire rows based on a status column value. You will learn how to use the `cells` callback and `className` to apply conditional CSS classes that update automatically after every edit.

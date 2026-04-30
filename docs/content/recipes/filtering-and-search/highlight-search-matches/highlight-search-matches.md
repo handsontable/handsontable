@@ -19,7 +19,7 @@ angular:
   metaTitle: Highlight Search Matches - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will highlight matched text fragments inside cells using a custom renderer. You will learn how to wrap matching substrings in `<mark>` tags safely and keep the highlights in sync with an external search input.

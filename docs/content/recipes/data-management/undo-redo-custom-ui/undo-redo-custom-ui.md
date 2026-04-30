@@ -20,24 +20,26 @@ angular:
   metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 @[code](@/content/recipes/data-management/undo-redo-custom-ui/javascript/example1.js)
 @[code](@/content/recipes/data-management/undo-redo-custom-ui/javascript/example1.ts)
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/javascript/example1.css)
 :::
 
 :::
 
 ::: only-for react
 
-::: example #example1 :react-advanced --js 1 --ts 2
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
 
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/react/example1.css)
 @[code](@/content/recipes/data-management/undo-redo-custom-ui/react/example1.jsx)
 @[code](@/content/recipes/data-management/undo-redo-custom-ui/react/example1.tsx)
 :::
@@ -46,10 +48,11 @@ In this tutorial, you will build external Undo and Redo buttons that stay in syn
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/data-management/undo-redo-custom-ui/angular/example1.ts)
 @[code](@/content/recipes/data-management/undo-redo-custom-ui/angular/example1.html)
+@[code](@/content/recipes/data-management/undo-redo-custom-ui/angular/example1.css)
 
 :::
 

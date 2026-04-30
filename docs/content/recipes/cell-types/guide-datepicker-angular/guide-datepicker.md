@@ -1,12 +1,11 @@
 ---
-type: how-to
+type: tutorial
 id: 0slrmsni
 title: "Date picker"
 metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
-permalink: /recipes/cell-types/datepicker
-canonicalUrl: /recipes/cell-types/datepicker
-framework: angular
+permalink: /recipes/datepicker-angular
+canonicalUrl: /recipes/datepicker-angular
 tags:
   - guides
   - tutorial
@@ -93,7 +92,7 @@ const DATE_FORMAT_EU = "dd/MM/yyyy";
 
 - Reusability across renderer and column configuration
 - Single source of truth
-- Add more formats (ISO, custom, etc.) by extending this list
+- Easy to add more formats (ISO, custom, etc.)
 
 ## Step 3: Create the Renderer Component
 
@@ -379,7 +378,7 @@ export class AppComponent {
 - **Same data source**: Both columns display `restockDate`
 - **Different presentation**: EU (dd/MM/yyyy) vs US (MM/dd/yyyy)
 
-**Key feature:**
+**Amazing feature:**
 
 - One data column (`restockDate`)
 - Two visual representations
@@ -588,6 +587,7 @@ export class DateRendererComponent extends HotCellRendererAdvancedComponent<stri
 
 ---
 
+**Congratulations!** You've created a production-ready date picker with full localization support and advanced configuration.
 
 ## What you learned
 
@@ -595,6 +595,6 @@ You built a date picker cell in Angular using `HotCellEditorAdvancedComponent` a
 
 ## Next steps
 
-- [Flatpickr](@/javascript/recipes/cell-types/flatpickr/flatpickr.md) - A JavaScript date picker using the Flatpickr library with dark theme support.
-- [Pikaday](@/javascript/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js.
-- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular cell editor using `HotCellEditorAdvancedComponent`.
+- [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - A JavaScript date picker using the Flatpickr library with dark theme support.
+- [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js.
+- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular cell editor using `HotCellEditorAdvancedComponent`.

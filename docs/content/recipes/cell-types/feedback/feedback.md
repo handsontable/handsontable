@@ -1,5 +1,5 @@
 ---
-type: how-to
+type: tutorial
 id: e23f98e7
 title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
@@ -59,7 +59,7 @@ This tutorial shows you how to build an emoji feedback cell using Handsontable's
 
 ## Overview
 
-This guide shows how to create a feedback editor cell using emoji buttons. Use it for status indicators or any scenario where users choose from a small set of visual options.
+This guide shows how to create a simple feedback editor cell using emoji buttons. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
@@ -94,7 +94,7 @@ registerAllModules();
 - No date libraries
 - No UI component libraries
 - No external emoji libraries
-- Handsontable only.
+- Just Handsontable.
 
 ## Step 2: Add CSS Styling
 
@@ -247,8 +247,8 @@ shortcuts: [
 ## Step 6: Editor – Custom Tab Key Behavior
 
 By default, pressing <kbd>Tab</kbd> in Handsontable saves the cell and moves the selection horizontally, following your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction).
-In this example, <kbd>Tab</kbd> cycles through feedback options -- the same as the arrow keys -- without moving to another cell.
-The editor's `shortcuts` option handles this by returning `false` in the callback to prevent the default action (saving and moving to the next cell).
+In this example, we want <kbd>Tab</kbd> to cycle through feedback options—just like the arrow keys—without moving to another cell.
+To achieve this, we use the editor's `shortcuts`  and return `false` in callback to prevent the default action (saving and moving to the next cell).
 
 ```typescript
 shortcuts: [
@@ -483,6 +483,7 @@ config: ['Positive', 'Negative', 'Neutral'],
 
 ---
 
+**Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Handsontable CSS tokens, perfect for quick feedback selection in your data grid!
 
 ## What you learned
 
@@ -490,6 +491,6 @@ You built an emoji feedback cell editor using Handsontable's `editorFactory` hel
 
 ## Next steps
 
-- [Feedback (React)](@/react/recipes/cell-types/feedback-react/feedback-react.md) - The same pattern using React's `EditorComponent`.
-- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Feedback (React)](@/recipes/cell-types/feedback-react/feedback-react.md) - The same pattern using React's `EditorComponent`.
+- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
 - [Star Rating](@/recipes/cell-types/rating/rating.md) - Another custom editor built with `editorFactory` and SVG stars.

@@ -19,26 +19,26 @@ react:
   metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
 
-<iframe src="https://codesandbox.io/embed/2y26vw?view=preview&module=%2Fsrc%2FApp.tsx"
-  style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
-  title="Handsontable with Fluent UI"
-  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
-  sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-></iframe>
+<iframe src="https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?embed=1&file=src%2FApp.jsx&view=preview"
+     style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="Handsontable with Fluent UI recipe"
+     allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/2y26vw)
+[**Open in stackblitz**](https://stackblitz.com/edit/vitejs-vite-3jyuy1rk?file=src%2FApp.jsx&file=src%2FApp.jsx)
 
 ## Overview
 
 This recipe shows how to integrate Handsontable into a React app that uses [Fluent UI](https://react.fluentui.dev/) by registering a custom theme with Theme API colors and tokens. The grid follows your Fluent design language.
 
-**Difficulty:** Beginner
-**Time:** ~15 minutes
+**Difficulty:** Beginner  
+**Time:** ~15 minutes  
 **Stack:** React, Fluent UI, Handsontable, `@handsontable/react-wrapper`
 
 ## What You'll Get

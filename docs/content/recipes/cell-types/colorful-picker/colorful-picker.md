@@ -1,12 +1,11 @@
 ---
-type: how-to
+type: tutorial
 id: e50f0177
 title: Colorful Picker
 metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using a color picker for selecting hex colors directly in your data grid.
 permalink: /recipes/cell-types/colorful-picker
 canonicalUrl: /recipes/cell-types/colorful-picker
-framework: react
 tags:
   - guides
   - tutorial
@@ -417,12 +416,13 @@ export const ColorPickerEditor = () => {
 
 1. **Provide fallback for empty values** - Use `value || '#000000'` for HexColorPicker
 2. **Use hotRenderer** - Display color swatches in cells for better UX
-3. **Store as hex** - Hex strings are portable and validate with a single regex
+3. **Store as hex** - Hex strings are portable and easy to validate
 4. **Input + popover** - Showing the hex in an input with the picker in a popover keeps the cell compact and clear
 5. **Optional "Apply" button** - For explicit confirmation, add a button that calls `finishEditing()` from the render props
 
 ---
 
+**Congratulations!** You've created a color picker editor using React's `EditorComponent` and `react-colorful`, perfect for color selection in your data grid!
 
 ## What you learned
 
@@ -430,6 +430,6 @@ You integrated the `react-colorful` library as a Handsontable cell editor in Rea
 
 ## Next steps
 
-- [Color Picker (JavaScript)](@/javascript/recipes/cell-types/color-picker/color-picker.md) - The same pattern using `editorFactory` and the Pickr library.
-- [Color Picker (Angular)](@/angular/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The Angular version using `HotCellEditorAdvancedComponent` and the native HTML5 color input.
-- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - Another custom editor using `EditorComponent` in React.
+- [Color Picker (JavaScript)](@/recipes/cell-types/color-picker/color-picker.md) - The same pattern using `editorFactory` and the Pickr library.
+- [Color Picker (Angular)](@/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The Angular version using `HotCellEditorAdvancedComponent` and the native HTML5 color input.
+- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - Another custom editor using `EditorComponent` in React.

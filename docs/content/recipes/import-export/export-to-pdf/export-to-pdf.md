@@ -17,17 +17,18 @@ angular:
   metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
-type: how-to
+type: tutorial
 ---
 
 In this tutorial, you will export grid data to a downloadable PDF using jsPDF and jspdf-autotable. You will learn how to read the current grid state with `getData()` and `getColHeader()`, build a multi-page PDF table with headers, and trigger a browser download.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --html 3 --deps jspdf jspdf-autotable
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps jspdf jspdf-autotable
 
 @[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.js)
 @[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.ts)
+@[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.css)
 @[code](@/content/recipes/import-export/export-to-pdf/javascript/example1.html)
 
 :::
@@ -46,10 +47,11 @@ In this tutorial, you will export grid data to a downloadable PDF using jsPDF an
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --deps jspdf jspdf-autotable
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps jspdf jspdf-autotable
 
 @[code](@/content/recipes/import-export/export-to-pdf/angular/example1.ts)
 @[code](@/content/recipes/import-export/export-to-pdf/angular/example1.html)
+@[code](@/content/recipes/import-export/export-to-pdf/angular/example1.css)
 
 :::
 

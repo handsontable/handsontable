@@ -1,5 +1,5 @@
 ---
-type: how-to
+type: tutorial
 id: b5f02fb2
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
@@ -95,7 +95,7 @@ registerAllModules();
 - No icon libraries
 - No UI component libraries
 - No external SVG sprite sheets
-- Handsontable only.
+- Just Handsontable.
 
 ## Step 2: Define the Star SVG
 
@@ -598,6 +598,7 @@ Change colors by overriding CSS for specific columns:
 
 ---
 
+**Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Handsontable CSS tokens, perfect for intuitive 1-5 star ratings in your data grid!
 
 ## What you learned
 
@@ -605,6 +606,6 @@ You built an SVG star rating cell using `editorFactory` and `rendererFactory`. Y
 
 ## Next steps
 
-- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and `react-star-rating-component`.
-- [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and `react-star-rating-component`.
+- [Star Rating Editor (Angular)](@/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
 - [Feedback](@/recipes/cell-types/feedback/feedback.md) - Another no-library custom editor using `editorFactory` and CSS tokens.
