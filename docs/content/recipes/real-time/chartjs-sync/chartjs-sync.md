@@ -22,6 +22,8 @@ category: Real-time and Integrations
 type: tutorial
 ---
 
+In this tutorial, you will sync selected rows from a Handsontable grid to a Chart.js bar chart in real time. You will learn how to use `afterSelectionEnd` and `afterDeselect` hooks to read the current selection and update the chart without destroying and recreating it.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --html 4 --deps chart.js

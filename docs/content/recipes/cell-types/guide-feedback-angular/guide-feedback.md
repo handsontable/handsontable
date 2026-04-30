@@ -631,6 +631,6 @@ You built an emoji feedback cell editor in Angular using `HotCellEditorAdvancedC
 
 ## Next steps
 
-- [Feedback (JavaScript)](/recipes/cell-types/feedback) - The same concept using `editorFactory` with Handsontable CSS tokens.
-- [Feedback (React)](/recipes/cell-types/feedback-react) - The React version using `EditorComponent`.
-- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - Another Angular editor using `HotCellEditorAdvancedComponent` with SVG stars.
+- [Feedback (JavaScript)](@/recipes/cell-types/feedback/feedback.md) - The same concept using `editorFactory` with Handsontable CSS tokens.
+- [Feedback (React)](@/recipes/cell-types/feedback-react/feedback-react.md) - The React version using `EditorComponent`.
+- [Star Rating Editor (Angular)](@/recipes/cell-types/guide-rating-angular/guide-rating.md) - Another Angular editor using `HotCellEditorAdvancedComponent` with SVG stars.

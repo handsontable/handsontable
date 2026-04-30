@@ -23,6 +23,8 @@ category: Real-time & Integrations
 type: tutorial
 ---
 
+In this tutorial, you will connect Handsontable to a WebSocket and update individual cells in real time. You will learn how to use `setDataAtCell` to apply streaming updates without re-rendering the entire grid.
+
 ::: only-for javascript
 
 ::: example #example1 :hot-recipe --js 1 --css 2

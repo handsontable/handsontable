@@ -19,7 +19,10 @@ angular:
   metaTitle: Highlight Search Matches - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
+type: tutorial
 ---
+
+In this tutorial, you will highlight matched text fragments inside cells using a custom renderer. You will learn how to wrap matching substrings in `<mark>` tags safely and keep the highlights in sync with an external search input.
 
 ::: only-for javascript
 
@@ -268,3 +271,15 @@ searchField.addEventListener('input', (event) => {
 - [Search plugin API](@/api/search.md)
 
 </div>
+
+## What you learned
+
+- How to write a custom cell renderer that reads the `isSearchResult` flag and the current search term from the plugin state.
+- How to safely insert `<mark>` tags around matched text fragments to highlight partial matches inside cell content.
+- Why you must escape special regex characters in the search term before building a `RegExp` to avoid runtime errors.
+- How to combine `search.query()` and `hot.render()` to keep highlights in sync with every keystroke.
+
+## Next steps
+
+- Explore [external search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md) for a simpler approach using the default `htSearchResult` highlight class without a custom renderer.
+- Extend the renderer to also highlight matches in the column header row by overriding `afterGetColHeader`.

@@ -458,6 +458,6 @@ You integrated the `react-star-rating-component` library as a Handsontable cell 
 
 ## Next steps
 
-- [Star Rating (JavaScript)](/recipes/cell-types/rating) - The same concept using `editorFactory` and SVG stars with no external library.
-- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - The Angular version using `HotCellEditorAdvancedComponent`.
-- [Colorful Picker (React)](/recipes/cell-types/colorful-picker) - Another React `EditorComponent` example for color selection.
+- [Star Rating (JavaScript)](@/recipes/cell-types/rating/rating.md) - The same concept using `editorFactory` and SVG stars with no external library.
+- [Star Rating Editor (Angular)](@/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Colorful Picker (React)](@/recipes/cell-types/colorful-picker/colorful-picker.md) - Another React `EditorComponent` example for color selection.

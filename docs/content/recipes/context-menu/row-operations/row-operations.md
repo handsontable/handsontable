@@ -20,6 +20,8 @@ category: Context Menu and Interaction
 type: tutorial
 ---
 
+In this tutorial, you will add, delete, and reorder rows in Handsontable using external toolbar buttons. You will learn how to wire buttons to the `alter()` API and the `ManualRowMove` plugin to give users full programmatic control over row order.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
