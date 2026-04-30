@@ -394,7 +394,7 @@ jobs:
           name: nuget_pack_${{ needs.first-rc-build.outputs.rc-version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # https://github.com/NuGet/login/releases/tag/v1.2.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -488,7 +488,7 @@ jobs:
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -846,7 +846,7 @@ jobs:
           name: nuget_pack_${{ needs.rc-build.outputs.rc-version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # https://github.com/NuGet/login/releases/tag/v1.2.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -985,7 +985,7 @@ jobs:
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -1658,7 +1658,7 @@ jobs:
           name: nuget_pack_${{ needs.stable-build-nuget.outputs.version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # https://github.com/NuGet/login/releases/tag/v1.2.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -1809,7 +1809,7 @@ jobs:
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # https://github.com/slackapi/slack-github-action/releases/tag/v2.1.1
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook

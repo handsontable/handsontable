@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 
 function buildUrl(base: string, params: { page: unknown; pageSize: unknown; sort?: unknown; filters?: unknown }): string {
   const query = new URLSearchParams({

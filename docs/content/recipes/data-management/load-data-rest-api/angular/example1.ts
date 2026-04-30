@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, NgZone, ViewChild, AfterViewInit, inject } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 type UserRow = {
   id: number;
@@ -35,21 +35,22 @@ function mapUsersToGridRows(users: Array<{
 
 @Component({
   selector: 'example1-load-data-rest-api',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
       <p style="margin: 0; font-family: Arial, sans-serif; font-size: 14px;"
          [style.color]="hasError ? 'var(--ht-cell-error-foreground-color, #c62828)' : 'var(--ht-foreground-color, #202124)'">
         {{ statusMessage }}
       </p>
-      <button *ngIf="hasError" type="button" [disabled]="loading" (click)="loadUsers()">
-        Retry
-      </button>
+      @if (hasError) {
+        <button type="button" [disabled]="loading" (click)="loadUsers()">Retry</button>
+      }
     </div>
     <hot-table [settings]="gridSettings"></hot-table>
   `,
 })
-export class Example1LoadDataRestApiComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   private readonly ngZone = inject(NgZone);
@@ -59,7 +60,6 @@ export class Example1LoadDataRestApiComponent implements AfterViewInit {
   loading = false;
 
   readonly gridSettings: GridSettings = {
-    data: [],
     colHeaders: ['ID', 'Name', 'Username', 'Email', 'City', 'Company'],
     columns: [
       { data: 'id', type: 'numeric', width: 70, readOnly: true },
@@ -122,35 +122,20 @@ export class Example1LoadDataRestApiComponent implements AfterViewInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1LoadDataRestApiComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1LoadDataRestApiComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1LoadDataRestApiComponent],
-})
-
-export class AppModule {}
 /* end-file */
