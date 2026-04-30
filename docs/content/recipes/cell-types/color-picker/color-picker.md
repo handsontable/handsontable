@@ -26,8 +26,8 @@ This tutorial shows you how to integrate the Pickr color picker library as a cus
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
 
-@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
-@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code collapse={11-196}](@/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/recipes/cell-types/color-picker/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
 
 :::
@@ -566,6 +566,6 @@ You integrated the Pickr color picker library as a Handsontable cell editor. You
 
 ## Next steps
 
-- [Colorful Picker (React)](/recipes/cell-types/colorful-picker) - The same pattern using `react-colorful` and React's `EditorComponent`.
-- [Color Picker (Angular)](/recipes/color-picker-angular) - The same pattern using Angular components and the native HTML5 color input.
-- [Star Rating](/recipes/cell-types/rating) - Another custom editor built with `editorFactory` and SVG.
+- [Colorful Picker (React)](@/recipes/cell-types/colorful-picker/colorful-picker.md) - The same pattern using `react-colorful` and React's `EditorComponent`.
+- [Color Picker (Angular)](@/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The same pattern using Angular components and the native HTML5 color input.
+- [Star Rating](@/recipes/cell-types/rating/rating.md) - Another custom editor built with `editorFactory` and SVG.

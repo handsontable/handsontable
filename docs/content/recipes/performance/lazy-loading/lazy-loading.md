@@ -24,6 +24,8 @@ category: Performance
 type: tutorial
 ---
 
+In this tutorial, you will load grid data page by page as the user scrolls to the bottom of the grid. You will learn how to use the `afterScrollVertically` hook and `hot.updateData()` to append new rows without resetting the scroll position or grid state.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1

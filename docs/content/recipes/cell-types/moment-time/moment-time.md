@@ -259,6 +259,6 @@ You created a custom Moment.js-based time cell type in Handsontable. You used Mo
 
 ## Next steps
 
-- [Moment.js date](/recipes/cell-types/moment-date) - The same Moment.js pattern applied to date values, with a Pikaday calendar picker.
-- [Numbro](/recipes/cell-types/numbro) - A custom numeric cell type using the Numbro formatting library.
-- [Flatpickr](/recipes/cell-types/flatpickr) - A date picker using Flatpickr with dark theme support.
+- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - The same Moment.js pattern applied to date values, with a Pikaday calendar picker.
+- [Numbro](@/recipes/cell-types/numbro/numbro.md) - A custom numeric cell type using the Numbro formatting library.
+- [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - A date picker using Flatpickr with dark theme support.

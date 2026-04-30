@@ -20,7 +20,10 @@ angular:
   metaTitle: Multi-column Filter Panel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
+type: tutorial
 ---
+
+In this tutorial, you will build an external filter panel with a category dropdown and a price range slider that controls Handsontable filtering. You will learn how to apply multiple conditions at once through the `Filters` plugin API and clear them all with a single button.
 
 ::: only-for javascript vue
 
@@ -152,3 +155,15 @@ clearAllButton.addEventListener('click', () => {
 5. **Clear all filters** resets controls and restores the full dataset.
 
 The full implementation is available in the runnable example above.
+
+## What you learned
+
+- How to use `filtersPlugin.clearConditions()` and `filtersPlugin.addCondition()` to apply fresh conditions on every control change.
+- How to call `filtersPlugin.filter()` to update the visible rows after adding conditions, and how `hot.render()` keeps the view in sync.
+- How to build a clear-all button that resets external controls, removes all conditions, and restores the full dataset.
+- Why you must enable the `Filters` plugin with `filters: true` and pair it with `dropdownMenu: true` to expose per-column filter UI alongside your external panel.
+
+## Next steps
+
+- Explore [external search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md) to add a text search that works alongside the filter panel.
+- Read the [Filters plugin API](@/api/filters.md) reference for the full list of built-in condition types (between, contains, begins with, and more).

@@ -22,7 +22,10 @@ angular:
   metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
+type: tutorial
 ---
+
+In this tutorial, you will integrate Handsontable into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
 
 <iframe src="https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/ant-design?view=preview"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -249,8 +252,20 @@ export default function App() {
 - Start with `colors/ant`, then override only the values you need.
 - Use the same token map for dark mode, and switch it through Ant Design's `ConfigProvider`.
 
+## What you learned
+
+- How to extract Ant Design token values from `theme.getDesignToken()` and map them to Handsontable Theme API parameters.
+- How to apply the mapped theme with `hot.updateSettings({ theme: new HotTableTheme({ ... }) })`.
+- How to use `ConfigProvider` from Ant Design to drive both the Ant Design components and the Handsontable theme from a single source of truth.
+- How to switch to dark mode by swapping the Ant Design algorithm and updating the Handsontable theme in the same callback.
+
+## Next steps
+
+- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
+- Explore [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
+
 ## Related
 
-- [Themes](/themes) - Built-in themes and Theme API.
-- [Theme customization](/theme-customization) - Theme API params and CSS variable reference.
-- [Theme Recipes](/recipes/themes) - More recipes for design-system integration.
+- [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
+- [Theme Recipes](@/recipes/themes/themes.md) - More recipes for design-system integration.

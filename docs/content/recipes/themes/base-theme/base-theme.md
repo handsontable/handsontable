@@ -224,7 +224,7 @@ This keeps the grid aligned with system-level style updates and avoids one-off C
 ## Related
 
 - [Themes](/themes) - Built-in themes and Theme API.
-- [Theme customization](/theme-customization) - Theme API parameters and CSS variable reference.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
 - [Design system (Figma)](/handsontable-design-system) - Figma kit and design tokens.
 
 ## What you learned
@@ -233,6 +233,6 @@ You registered a custom Handsontable theme that maps Base Web design tokens to H
 
 ## Next steps
 
-- [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn/ui CSS variables and Lucide icons.
-- [Handsontable with MUI](/recipes/themes/mui-theme) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
-- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.
+- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn/ui CSS variables and Lucide icons.
+- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.

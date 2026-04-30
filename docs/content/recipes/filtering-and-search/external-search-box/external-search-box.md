@@ -19,7 +19,10 @@ angular:
   metaTitle: External search box recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
+type: tutorial
 ---
+
+In this tutorial, you will add a search input outside Handsontable that highlights matching cells as you type. You will learn how to use the `Search` plugin's `query()` method and `hot.render()` to apply real-time cell highlights from an external control.
 
 ::: only-for javascript
 
@@ -52,24 +55,6 @@ category: Filtering and Search
 :::
 
 :::
-
-## Overview
-
-This recipe shows how to place a search input outside Handsontable and use the built-in `Search` plugin to highlight matching cells in real time.
-
-**Difficulty:** Beginner.
-**Time:** ~10 minutes.
-**Libraries:** None.
-
-## What you'll build
-
-An implementation that:
-
-- Keeps the search input outside the grid.
-- Calls `hot.getPlugin('search').query(value)` on every keystroke.
-- Calls `hot.render()` after each query to apply the highlight.
-- Uses Handsontable's default search result styling.
-- Clears highlights when the input is empty.
 
 ## Step 1: Enable the Search plugin
 
@@ -133,3 +118,15 @@ function debounce<T extends (...args: any[]) => void>(callback: T, wait = 120) {
 ```
 
 Use this wrapper around your search handler when needed.
+
+## What you learned
+
+- How to enable the `Search` plugin with `search: true` in Handsontable settings.
+- How to place a search input outside the grid and call `hot.getPlugin('search').query(value)` on every input event.
+- Why you must call `hot.render()` after `query()` to apply the updated `isSearchResult` metadata to cells.
+- How to add debouncing to limit render frequency when searching large datasets.
+
+## Next steps
+
+- Explore [highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md) to wrap matched text in `<mark>` tags instead of using the default cell highlight class.
+- Add [multi-column filtering](@/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md) to let users filter by multiple columns at once through an external panel.

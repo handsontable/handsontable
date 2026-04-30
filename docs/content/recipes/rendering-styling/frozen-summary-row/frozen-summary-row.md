@@ -19,7 +19,10 @@ angular:
   metaTitle: Frozen summary row recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
+type: tutorial
 ---
+
+In this tutorial, you will pin a read-only totals row at the bottom of the grid. You will learn how to use `fixedRowsBottom`, recalculate aggregates on `afterChange`, and style the summary row with the `cells` callback.
 
 ::: only-for javascript vue
 
@@ -116,6 +119,18 @@ Prefer Handsontable theme variables (for example `--ht-background-color-extra-li
 
 - [Row freezing](@/guides/rows/row-freezing/row-freezing.md) - fixed rows top and bottom.
 - [Column summary](@/guides/columns/column-summary/column-summary.md) - built-in [`ColumnSummary`](@/api/columnSummary.md) plugin when you want declarative summaries instead of a custom row.
+
+## What you learned
+
+- How `fixedRowsBottom` pins the last N rows at the bottom of the grid so they stay visible during scrolling.
+- How to recalculate summary values in `afterChange` and `afterInit` and write them back with `hot.setDataAtRowProp()`.
+- How to use the `cells` callback to mark only the summary row as `readOnly` and apply a custom `className` for styling.
+- Why you should use Handsontable theme CSS variables (such as `--ht-background-color-extra-light`) in your summary row styles so the row stays visually consistent across themes.
+
+## Next steps
+
+- Explore [conditional row coloring](@/recipes/rendering-styling/conditional-row-coloring/conditional-row-coloring.md) to style data rows based on cell values while keeping the summary row fixed.
+- Explore the [ColumnSummary plugin](@/api/columnSummary.md) for a declarative, built-in alternative to a custom summary row.
 
 ## API reference
 
