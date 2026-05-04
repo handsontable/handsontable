@@ -352,16 +352,6 @@ export class BottomOverlay extends Overlay {
       if (overlayOffset > maxOffset) {
         overlayOffset = 0;
       }
-
-      // At non-integer browser zoom levels the physical maximum scroll position can fall
-      // below the CSS maximum by a fractional amount. During momentum-scroll deceleration
-      // the render can fire at a CSS scroll position just below the physical max, producing
-      // an offset of up to 1 physical pixel. Round to physical pixels first (guards against
-      // float imprecision), then snap to zero when the gap is at most 1 physical pixel —
-      // such a gap is imperceptible and should not cause a visible pop.
-      if (overlayOffset > 0 && Math.round(overlayOffset * rootWindow.devicePixelRatio) <= 1) {
-        overlayOffset = 0;
-      }
     }
 
     return overlayOffset;

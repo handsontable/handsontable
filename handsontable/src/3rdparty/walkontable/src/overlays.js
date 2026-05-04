@@ -1,7 +1,6 @@
 import {
   getScrollableElement,
   getScrollbarWidth,
-  outerHeight,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
 import { debounce } from '../../../helpers/function';
@@ -817,39 +816,13 @@ class Overlays {
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    // The hider height must account for the 1px border-top that the tr:first-child CSS rule
-    // adds to the first rendered row. sumCellSizes() uses the base default row height and does
-    // not include this border, so the hider would be 1px shorter than the actual table content
-    // without the adjustment below.
-    //
-    // When fixedRowsBottom is active the bottom overlay's rendered TABLE height already encodes
-    // the same +1 (its first <tr> also gets border-top from tr:first-child). Using that measured
-    // delta instead of the flat +1 makes the formula correct for non-uniform row heights and
-    // keeps the hider height identical whether or not fixedRowsBottom is set.
-    const externalRowCalculator = this.wtSettings.getSetting('externalRowCalculator');
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    let hiderHeightAdjustment;
-
-    if (fixedRowsBottom > 0 && this.bottomOverlay.needFullRender) {
-      const bottomTableHeight = outerHeight(this.bottomOverlay.clone.wtTable.TABLE);
-      const fixedRowsSumCellSizes = this.topOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
-
-      // The delta intentionally scrolls the master 1px further than "perfect" alignment so that
-      // the last non-fixed row's bottom edge overlaps the overlay by 1px. The overlay (z-index
-      // higher than master) covers that pixel, preventing a double border at the seam — the
-      // overlay's tr:first-child border-top is the only visible border at the junction.
-      // When externalRowCalculator is active (AutoRowSize plugin), sumCellSizes already includes
-      // a +1 for the first rendered visible row, so the overlap is already built in; subtract 1
-      // to keep the same net effect without double-counting.
-      hiderHeightAdjustment = bottomTableHeight - fixedRowsSumCellSizes - (externalRowCalculator ? 1 : 0);
-    } else {
-      // No bottom overlay — fall back to the flat +1 compensation for the first-row border-top.
-      // When externalRowCalculator is active (AutoRowSize), actual DOM heights are already measured
-      // with that border included, so no extra pixel is needed.
-      hiderHeightAdjustment = externalRowCalculator ? 0 : 1;
-    }
-
-    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightAdjustment;
+    // The internal row height calculator contains a known issue that results in a 1px miscalculation.
+    // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
+    // as the flaw is embedded across multiple core modules and corresponding test cases.
+    // This limitation does not affect when the external calculator is used (AutoRowSize), which
+    // computes heights accurately, so no adjustment is required when using it.
+    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
+    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;
