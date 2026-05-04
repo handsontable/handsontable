@@ -418,21 +418,6 @@ class Table {
       // when there is a switch between rendering from 0 to N rows/columns and vice versa).
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
       wtOverlays.adjustElementsSize();
-
-      // The innerBorderTop toggle adds 1px to the column header, expanding the hider by 1px and
-      // increasing maxScroll by 1. If the user was already at the previous maxScroll position, the
-      // browser has capped scrollTop to that old value. Nudge it to the new maximum so the last row
-      // remains fully visible at all browser zoom levels (including sub-pixel zoom like 125%).
-      const { scrollableElement } = wtOverlays;
-
-      if (scrollableElement !== this.domBindings.rootWindow) {
-        const newMaxScroll = scrollableElement.scrollHeight - scrollableElement.clientHeight;
-
-        if (scrollableElement.scrollTop > 0 && scrollableElement.scrollTop < newMaxScroll &&
-            newMaxScroll - scrollableElement.scrollTop <= 2) {
-          scrollableElement.scrollTop = newMaxScroll;
-        }
-      }
     } else {
       this.dataAccessObject.selectionManager
         .setActiveOverlay(this.facadeGetter())
