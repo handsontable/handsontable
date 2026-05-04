@@ -50,6 +50,8 @@ export class SelectEditor extends BaseEditor {
 
     this.hot.rootElement.appendChild(this.selectWrapper);
     this.registerHooks();
+
+    this.hot.addHookOnce('afterDestroy', () => this.destroy());
   }
 
   /**
@@ -97,7 +99,7 @@ export class SelectEditor extends BaseEditor {
     }
 
     this.unregisterShortcuts();
-    this.clearHooks();
+    this.removeHooksByKey('beforeDialogShow');
   }
 
   /**
@@ -271,5 +273,14 @@ export class SelectEditor extends BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Clears all attached hooks.
+   *
+   * @private
+   */
+  destroy() {
+    this.clearHooks();
   }
 }
