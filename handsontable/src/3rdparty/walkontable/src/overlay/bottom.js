@@ -26,16 +26,6 @@ export class BottomOverlay extends Overlay {
   cachedFixedRowsBottom = -1;
 
   /**
-   * Cached amount (in CSS px) by which the master TABLE element physically overflows
-   * the holder's bottom boundary due to sub-pixel rounding at non-integer zoom levels.
-   * Updated each render cycle in resetFixedPosition(). Used to push the overlay down
-   * so it aligns with the actual rendered content instead of the CSS-integer hider edge.
-   *
-   * @type {number}
-   */
-  _masterTableOverflow = 0;
-
-  /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
    * @param {Settings} wtSettings The Walkontable settings.
@@ -89,48 +79,16 @@ export class BottomOverlay extends Overlay {
 
       // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
       // border to the nearest physical pixel, causing the rendered TABLE to extend a
-      // fractional CSS pixel past the holder's integer CSS height. Compute this overflow
-      // once per render cycle and subtract it from `bottom` so the overlay sits flush
-      // against the actual table content instead of the CSS-integer hider boundary.
+      // fractional CSS pixel past the holder's integer CSS height. Subtract this overflow
+      // so the overlay sits flush against the actual table content instead of the
+      // CSS-integer hider boundary.
       const masterTableRect = this.wot.wtTable.TABLE.getBoundingClientRect();
       const masterHolderRect = this.wot.wtTable.holder.getBoundingClientRect();
+      const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
-      this._masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
-
-      overlayRoot.style.bottom = `${overlayPosition - this._masterTableOverflow}px`;
-
-      // Update `bottom` on every scroll frame, not only on Walkontable's RAF-debounced
-      // render cycle. This reduces the visible lag during macOS momentum scroll from
-      // "several missed frames" down to at most one compositor frame (~16 ms).
-      if (!this._windowScrollListener) {
-        this._windowScrollListener = () => {
-          if (!this.needFullRender) {
-            return;
-          }
-          const offset = this.getOverlayOffset();
-          const bottom = offset - this._masterTableOverflow;
-          const cloneRoot = this.clone.wtTable.holder.parentNode;
-
-          if (cloneRoot.style.bottom !== `${bottom}px`) {
-            cloneRoot.style.bottom = `${bottom}px`;
-          }
-        };
-        rootWindow.addEventListener('scroll', this._windowScrollListener, { passive: true });
-      }
-
-      // Prevent macOS elastic overscroll (rubber-band) so the window never bounces past
-      // the scroll boundary, which would expose master-table content below the overlay.
-      if (!this._bodyOverscrollPrevented) {
-        this.domBindings.rootDocument.body.style.overscrollBehaviorY = 'none';
-        this._bodyOverscrollPrevented = true;
-      }
+      overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
 
     } else {
-      if (this._bodyOverscrollPrevented) {
-        this.domBindings.rootDocument.body.style.overscrollBehaviorY = '';
-        this._bodyOverscrollPrevented = false;
-      }
-      this._masterTableOverflow = 0;
       overlayPosition = this.getScrollPosition();
       this.repositionOverlay();
     }
@@ -407,23 +365,6 @@ export class BottomOverlay extends Overlay {
     }
 
     return overlayOffset;
-  }
-
-  /**
-   * Cleans up resources created in `resetFixedPosition`.
-   */
-  destroy() {
-    if (this._windowScrollListener) {
-      this.domBindings.rootWindow.removeEventListener('scroll', this._windowScrollListener);
-      this._windowScrollListener = null;
-    }
-
-    if (this._bodyOverscrollPrevented) {
-      this.domBindings.rootDocument.body.style.overscrollBehaviorY = '';
-      this._bodyOverscrollPrevented = false;
-    }
-
-    super.destroy();
   }
 
   /**
