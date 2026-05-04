@@ -384,7 +384,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
               return {
                 start: scrollLeftAbs + col1Start,
-                top: v.offsetHeight - cellOuterHeight + 1,
+                top: v.offsetHeight - cellOuterHeight,
                 maxHeight: cellOuterHeight,
               };
             });
