@@ -34,7 +34,9 @@ import { CONDITION_NAME as CONDITION_INTL_DATE_TOMORROW } from './condition/intl
 import { CONDITION_NAME as CONDITION_INTL_DATE_TODAY } from './condition/intlDate/today';
 import { CONDITION_NAME as CONDITION_INTL_DATE_YESTERDAY } from './condition/intlDate/yesterday';
 import { CONDITION_NAME as CONDITION_INTL_TIME_BEFORE } from './condition/intlTime/before';
+import { CONDITION_NAME as CONDITION_INTL_TIME_BEFORE_OR_EQUAL } from './condition/intlTime/beforeOrEqual';
 import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER } from './condition/intlTime/after';
+import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER_OR_EQUAL } from './condition/intlTime/afterOrEqual';
 import { CONDITION_NAME as CONDITION_INTL_TIME_BETWEEN } from './condition/intlTime/between';
 import { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
 import { CONDITION_NAME as CONDITION_TRUE } from './condition/true';
@@ -164,7 +166,6 @@ export const TYPES = {
     CONDITION_EQUAL,
     CONDITION_NOT_EQUAL,
     SEPARATOR,
-    SEPARATOR,
     CONDITION_BEGINS_WITH,
     CONDITION_ENDS_WITH,
     SEPARATOR,
@@ -172,7 +173,9 @@ export const TYPES = {
     CONDITION_NOT_CONTAINS,
     SEPARATOR,
     CONDITION_INTL_TIME_BEFORE,
+    CONDITION_INTL_TIME_BEFORE_OR_EQUAL,
     CONDITION_INTL_TIME_AFTER,
+    CONDITION_INTL_TIME_AFTER_OR_EQUAL,
     CONDITION_INTL_TIME_BETWEEN,
   ],
 };
