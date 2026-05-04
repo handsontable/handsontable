@@ -702,5 +702,37 @@ export {
   classicTheme,
   mainTheme,
   horizonTheme,
+  // common
+  CellValue,
+  CellChange,
+  RowObject,
+  SelectOptionsObject,
+  SourceRowData,
+  ChangeSource,
+  NumericFormatOptions,
+  // settings
+  CellMeta,
+  CellProperties,
+  ColumnSettings,
+  GridSettings,
+  // cell types / editors / renderers / validators
+  CellType,
+  EditorType,
+  RendererType,
+  ValidatorType,
+  // themes
+  BaseTheme,
+  ThemeBuilder,
+  ThemeColorScheme,
+  ThemeColorsConfig,
+  ThemeConfig,
+  ThemeDensityConfig,
+  ThemeDensitySizes,
+  ThemeIconsConfig,
+  ThemeLightDarkValue,
+  ThemeParams,
+  ThemeSizingConfig,
+  ThemeTokenValue,
+  ThemeTokensConfig,
 };
 export default Handsontable;

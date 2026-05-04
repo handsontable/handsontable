@@ -244,6 +244,6 @@ You created a custom Numbro-based numeric cell type in Handsontable. You used `r
 
 ## Next steps
 
-- [Moment.js date](/recipes/cell-types/moment-date) - A custom cell type using another third-party library for date formatting.
-- [Moment.js time](/recipes/cell-types/moment-time) - A custom cell type using Moment.js for time validation.
-- [Pikaday](/recipes/cell-types/pikaday) - A date picker cell type using Pikaday and Moment.js.
+- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - A custom cell type using another third-party library for date formatting.
+- [Moment.js time](@/recipes/cell-types/moment-time/moment-time.md) - A custom cell type using Moment.js for time validation.
+- [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - A date picker cell type using Pikaday and Moment.js.

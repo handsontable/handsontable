@@ -17,6 +17,7 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { getSortComparatorForMeta } from './sortComparators';
 import { createMenuFocusController } from './menu/focusController';
 import {
   CONDITION_NONE,
@@ -1064,7 +1065,9 @@ export class Filters extends BasePlugin {
   updateValueComponentCondition(columnIndex) {
     const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
     const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
-    const selectedValues = unifyColumnValues(dataAtCol);
+    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMeta(0, visualColumnIndex) : null;
+    const comparator = getSortComparatorForMeta(columnMeta);
+    const selectedValues = unifyColumnValues(dataAtCol, comparator);
 
     this.conditionUpdateObserver.updateStatesAtColumn(columnIndex, selectedValues);
   }

@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 
 type ApiUser = {
   id: number;

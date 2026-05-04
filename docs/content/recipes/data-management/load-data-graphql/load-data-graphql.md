@@ -20,11 +20,10 @@ angular:
   metaTitle: Load Data from a GraphQL API - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+type: tutorial
 ---
 
-## Overview
-
-This recipe shows two GraphQL approaches for Handsontable. The first approach loads data on the client with `fetch`, `loadData()`, and `updateData()`. The second approach uses the new server-side DataProvider architecture for paging, sorting, filtering, and CRUD callbacks.
+This tutorial shows two GraphQL approaches for Handsontable. The first approach loads data on the client with `fetch`, `loadData()`, and `updateData()`. The second approach uses the server-side DataProvider architecture for paging, sorting, filtering, and CRUD callbacks.
 
 ::: only-for javascript vue
 
@@ -289,3 +288,15 @@ hot.updateData(mapUsersToGridRows(users)); // refresh query
 - [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
 
 </div>
+
+## What you learned
+
+- How to send a GraphQL POST request with `fetch` using `Content-Type: application/json` and a `query` field in the body.
+- Why you must check `payload.errors` in addition to HTTP status, because GraphQL APIs return HTTP 200 even for operation errors.
+- How `hot.loadData()` resets all grid state on first load and `hot.updateData()` preserves column sort order and selection on subsequent refreshes.
+- How to use the `dataProvider` architecture for server-side pagination, sorting, filtering, and CRUD when your dataset is too large for client-side loading.
+
+## Next steps
+
+- Explore [Load data from a REST API](@/recipes/data-management/load-data-rest-api/load-data-rest-api.md) for the same client-side and server-side approaches with a REST backend.
+- Read the [Server-side data guides](@/guides/getting-started/server-side-data/server-side-data.md) for the full `dataProvider` configuration reference.

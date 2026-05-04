@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild, AfterViewInit } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 
 type ApiUser = {
   id: number;
@@ -72,7 +71,6 @@ export class AppComponent implements AfterViewInit {
   showRefresh = false;
 
   readonly gridSettings: GridSettings = {
-    data: [],
     colHeaders: ['ID', 'Name', 'Username', 'Email', 'City', 'Company'],
     columns: [
       { data: 'id', type: 'numeric', width: 70 },
