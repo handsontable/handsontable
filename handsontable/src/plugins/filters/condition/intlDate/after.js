@@ -18,7 +18,7 @@ export function condition(dataRow, [value]) {
     return false;
   }
 
-  return dataDate >= inputDate;
+  return dataDate > inputDate;
 }
 
 registerCondition(CONDITION_NAME, condition, {

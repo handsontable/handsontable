@@ -201,7 +201,9 @@ describe('Filters UI Conditional component', () => {
       'Is not equal to',
       '',
       'Before',
+      'Before or equal to',
       'After',
+      'After or equal to',
       'Is between',
       '',
       'Tomorrow',
@@ -312,7 +314,9 @@ describe('Filters UI Conditional component', () => {
       'Is not equal to',
       '',
       'Before',
+      'Before or equal to',
       'After',
+      'After or equal to',
       'Is between',
       '',
       'Tomorrow',
@@ -380,7 +384,9 @@ describe('Filters UI Conditional component', () => {
       'Is not equal to',
       '',
       'Before',
+      'Before or equal to',
       'After',
+      'After or equal to',
       'Is between',
       '',
       'Tomorrow',
@@ -880,5 +886,99 @@ describe('Filters UI Conditional component', () => {
     $(filterButton).simulate('click');
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should appear specified conditional options menu for intl-time cell types', async() => {
+    handsontable({
+      data: [['08:00'], ['12:30'], ['23:59']],
+      colHeaders: ['Time'],
+      columns: [
+        {
+          type: 'intl-time',
+          timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+        },
+      ],
+      filters: true,
+      dropdownMenu: true,
+      width: 300,
+      height: 200,
+    });
+
+    await dropdownMenu(0);
+    await openDropdownByConditionMenu();
+
+    const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
+      return this.textContent;
+    }).toArray();
+
+    expect(menuItems).toEqual([
+      'None',
+      '',
+      'Is empty',
+      'Is not empty',
+      '',
+      'Is equal to',
+      'Is not equal to',
+      '',
+      'Begins with',
+      'Ends with',
+      '',
+      'Contains',
+      'Does not contain',
+      '',
+      'Before',
+      'Before or equal to',
+      'After',
+      'After or equal to',
+      'Is between',
+    ]);
+  });
+
+  it('should filter rows correctly using intl_time_before_or_equal condition', async() => {
+    handsontable({
+      data: [['08:00'], ['12:30'], ['23:59']],
+      colHeaders: ['Time'],
+      columns: [
+        {
+          type: 'intl-time',
+          timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+        },
+      ],
+      filters: true,
+      dropdownMenu: true,
+      width: 300,
+      height: 200,
+    });
+
+    const filters = getPlugin('filters');
+
+    filters.addCondition(0, 'intl_time_before_or_equal', ['12:30']);
+    await filters.filter();
+
+    expect(getData().length).toBe(2); // 08:00 and 12:30 (boundary included)
+  });
+
+  it('should filter rows correctly using intl_time_after_or_equal condition', async() => {
+    handsontable({
+      data: [['08:00'], ['12:30'], ['23:59']],
+      colHeaders: ['Time'],
+      columns: [
+        {
+          type: 'intl-time',
+          timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+        },
+      ],
+      filters: true,
+      dropdownMenu: true,
+      width: 300,
+      height: 200,
+    });
+
+    const filters = getPlugin('filters');
+
+    filters.addCondition(0, 'intl_time_after_or_equal', ['12:30']);
+    await filters.filter();
+
+    expect(getData().length).toBe(2); // 12:30 (boundary included) and 23:59
   });
 });

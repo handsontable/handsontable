@@ -1,29 +1,29 @@
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
-import { parseToLocalTime } from '../../../../helpers/dateTime';
+import { parseToLocalDate } from '../../../../helpers/dateTime';
 
-export const CONDITION_NAME = 'intl_time_before';
+export const CONDITION_NAME = 'intl_date_before_or_equal';
 
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
- * @param {*} inputValues."0" Maximum time of a range.
+ * @param {*} inputValues."0" Maximum date of a range.
  * @returns {boolean}
  */
 export function condition(dataRow, [value]) {
-  const dataTime = parseToLocalTime(dataRow.value);
-  const inputTime = parseToLocalTime(value);
+  const dataDate = parseToLocalDate(dataRow.value);
+  const inputDate = parseToLocalDate(value);
 
-  if (dataTime === null || inputTime === null) {
+  if (dataDate === null || inputDate === null) {
     return false;
   }
 
-  return dataTime < inputTime;
+  return dataDate <= inputDate;
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: C.FILTERS_CONDITIONS_BEFORE,
+  name: C.FILTERS_CONDITIONS_BEFORE_OR_EQUAL,
   inputsCount: 1,
   showOperators: true,
-  inputType: 'time',
+  inputType: 'date',
 });

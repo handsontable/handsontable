@@ -21,7 +21,7 @@ describe('Filters condition (`intl_time_after`)', () => {
       },
       testTime: '23:15',
       startTime: '23:15',
-      assumption: true
+      assumption: false
     },
   ], ({ timeFormat, testTime, startTime, assumption }) => {
     it('should filter matching and non-matching values (time cell type)', () => {

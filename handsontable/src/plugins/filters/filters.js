@@ -443,8 +443,10 @@ export class Filters extends BasePlugin {
    * | `between` | Between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `by_value` | By value | `[[...values: Array]]`, e.g. `[['ing', 'ed', 'as']]`. The outer array wraps a single inner array that contains all values to **keep** (show) after filtering. |
    * | `contains` | Contains | `[value: string]`, e.g. `['ing']` |
-   * | `date_after` | After a date | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
-   * | `date_before` | Before a date | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_after` | After a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_after_or_equal` | After or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_before` | Before a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_before_or_equal` | Before or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
    * | `date_today` | Today | `[]` |
    * | `date_tomorrow` | Tomorrow | `[]` |
    * | `date_yesterday` | Yesterday | `[]` |
@@ -453,8 +455,10 @@ export class Filters extends BasePlugin {
    * | `eq` | Equal | `[value: string\|number]`, e.g. `['John']` |
    * | `gt` | Greater than | `[value: number]`, e.g. `[95]` |
    * | `gte` | Greater than or equal | `[value: number]`, e.g. `[95]` |
-   * | `intl_date_after` | After a date (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
-   * | `intl_date_before` | Before a date (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_after` | After a date, exclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_after_or_equal` | After or equal to a date, inclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_before` | Before a date, exclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_before_or_equal` | Before or equal to a date, inclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
    * | `intl_date_between` | Between dates (locale-aware) | `[fromDateString: string, toDateString: string]`, e.g. `['2023-01-01', '2023-12-31']` |
    * | `intl_date_today` | Today (locale-aware) | `[]` |
    * | `intl_date_tomorrow` | Tomorrow (locale-aware) | `[]` |

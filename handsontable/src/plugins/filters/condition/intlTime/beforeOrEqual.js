@@ -2,7 +2,7 @@ import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
 import { parseToLocalTime } from '../../../../helpers/dateTime';
 
-export const CONDITION_NAME = 'intl_time_before';
+export const CONDITION_NAME = 'intl_time_before_or_equal';
 
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
@@ -18,11 +18,11 @@ export function condition(dataRow, [value]) {
     return false;
   }
 
-  return dataTime < inputTime;
+  return dataTime <= inputTime;
 }
 
 registerCondition(CONDITION_NAME, condition, {
-  name: C.FILTERS_CONDITIONS_BEFORE,
+  name: C.FILTERS_CONDITIONS_BEFORE_OR_EQUAL,
   inputsCount: 1,
   showOperators: true,
   inputType: 'time',
