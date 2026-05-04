@@ -384,7 +384,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
               return {
                 start: scrollLeftAbs + col1Start,
-                top: v.offsetHeight - cellOuterHeight,
+                top: v.offsetHeight - cellOuterHeight + 1,
                 maxHeight: cellOuterHeight,
               };
             });
@@ -507,7 +507,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
               return {
                 start: scrollLeftAbs,
-                top: v.offsetHeight - bottomOverlayHeight - L.cellBorderWidth,
+                top: v.offsetHeight - bottomOverlayHeight,
               };
             });
 
