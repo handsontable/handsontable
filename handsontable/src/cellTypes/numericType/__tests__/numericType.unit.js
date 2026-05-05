@@ -101,6 +101,15 @@ describe('NumericCellType', () => {
       })).toBe(100);
     });
 
+    it('should parse dot-thousands integers for European locales (decimal=comma)', () => {
+      expect(valueSetter('7.000', 0, 0, { locale: 'de-DE' })).toBe(7000);
+      expect(valueSetter('1.234.567', 0, 0, { locale: 'de-DE' })).toBe(1234567);
+    });
+
+    it('should parse dot-thousands with comma decimal as float for European locales (regression guard)', () => {
+      expect(valueSetter('7.000,25', 0, 0, { locale: 'de-DE' })).toBe(7000.25);
+    });
+
     it('should not treat zero-prefixed comma values as thousands when decimal is dot (en-US)', () => {
       const meta = {
         numericFormat: {

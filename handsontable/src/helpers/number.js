@@ -78,6 +78,40 @@ export function isCommaThousandsGroupedInteger(value, decimalSeparator) {
 }
 
 /**
+ * Whether the string is an integer with dot-separated thousands groups only.
+ * This matches the grouping rule used by European locales where the decimal separator
+ * is a comma and the thousands separator is a dot (e.g. `7.000` → 7000).
+ *
+ * @param {string} value The raw string value.
+ * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
+ * @returns {boolean}
+ */
+export function isDotThousandsGroupedInteger(value, decimalSeparator) {
+  if (decimalSeparator !== ',' || typeof value !== 'string') {
+    return false;
+  }
+
+  return /^[+-]?[1-9]\d{0,2}(\.\d{3})+$/.test(value.trim());
+}
+
+/**
+ * Whether the string is a float with dot-separated thousands groups and a comma decimal part.
+ * This matches the grouping rule used by European locales where the decimal separator
+ * is a comma and the thousands separator is a dot (e.g. `7.000,25` → 7000.25).
+ *
+ * @param {string} value The raw string value.
+ * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
+ * @returns {boolean}
+ */
+export function isDotThousandsGroupedFloat(value, decimalSeparator) {
+  if (decimalSeparator !== ',' || typeof value !== 'string') {
+    return false;
+  }
+
+  return /^[+-]?[1-9]\d{0,2}(\.\d{3})+,\d+$/.test(value.trim());
+}
+
+/**
  * A specialized version of `.forEach` defined by ranges.
  *
  * @param {number} rangeFrom The number from start iterate.
@@ -171,6 +205,14 @@ export function getParsedNumber(numericData, options = {}) {
 
   if (isCommaThousandsGroupedInteger(numericData, decimalSeparator)) {
     return parseFloat(normalizedNumericData.replace(/,/g, ''));
+  }
+
+  if (isDotThousandsGroupedInteger(numericData, decimalSeparator)) {
+    return parseFloat(normalizedNumericData.replace(/\./g, ''));
+  }
+
+  if (isDotThousandsGroupedFloat(numericData, decimalSeparator)) {
+    return parseFloat(normalizedNumericData.replace(/\./g, '').replace(',', '.'));
   }
 
   // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
