@@ -7,6 +7,7 @@ canonicalUrl: /recipes/real-time
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
+type: tutorial
 id: w4d6e8f0
 react:
   id: x5e7f9g1
