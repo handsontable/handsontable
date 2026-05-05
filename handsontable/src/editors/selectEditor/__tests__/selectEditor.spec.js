@@ -431,7 +431,7 @@ describe('SelectEditor', () => {
     expect($options.length).toEqual(options.length);
 
     for (let i = 0; i < options.length; i++) {
-      expect($options.eq(i).val()).toMatch(String(options[i]));
+      expect($options.eq(i).val()).toBe(String(options[i]));
     }
   });
 
