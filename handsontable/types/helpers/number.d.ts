@@ -4,6 +4,14 @@ export function isCommaThousandsGroupedInteger(
   value: string,
   decimalSeparator: '.' | ',' | undefined
 ): boolean;
+export function isDotThousandsGroupedInteger(
+  value: string,
+  decimalSeparator: '.' | ',' | undefined
+): boolean;
+export function isDotThousandsGroupedFloat(
+  value: string,
+  decimalSeparator: '.' | ',' | undefined
+): boolean;
 export function rangeEach(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
 export function rangeEachReverse(rangeFrom: number, rangeTo: number, iteratee: (index: number) => void): void;
 export function valueAccordingPercent(value: number, percent: string | number): number;
