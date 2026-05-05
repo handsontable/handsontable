@@ -440,7 +440,6 @@ describe('dateValidator', () => {
       expect(getDataAtCell(4, 1)).toEqual('2021-05-05');
     });
 
-
   });
 
   describe('Date formats', () => {

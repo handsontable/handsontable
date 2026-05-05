@@ -418,11 +418,11 @@ describe('timeValidator', () => {
     it('should preserve corrected time format when batch-setting data alongside cells with async validators (#10614)', async() => {
       handsontable({
         data: [
-          ['Alice', '13:5:0',  '1'],
-          ['Bob',   '9:30:0',  '1'],
-          ['Carol', '8:0:0',   ''],
-          ['Dave',  '17:45:0', ''],
-          ['Eve',   '6:1:1',   ''],
+          ['Alice', '13:5:0', '1'],
+          ['Bob', '9:30:0', '1'],
+          ['Carol', '8:0:0', ''],
+          ['Dave', '17:45:0', ''],
+          ['Eve', '6:1:1', ''],
         ],
         columns: [
           {},

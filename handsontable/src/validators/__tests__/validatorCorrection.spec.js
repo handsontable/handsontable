@@ -29,7 +29,7 @@ describe('Validator correction via setDataAtCell', () => {
       data: [
         ['hello', '1'],
         ['world', '1'],
-        ['foo',   ''],
+        ['foo', ''],
       ],
       columns: [
         { validator: uppercaseValidator },
