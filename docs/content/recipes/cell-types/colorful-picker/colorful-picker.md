@@ -416,13 +416,12 @@ export const ColorPickerEditor = () => {
 
 1. **Provide fallback for empty values** - Use `value || '#000000'` for HexColorPicker
 2. **Use hotRenderer** - Display color swatches in cells for better UX
-3. **Store as hex** - Hex strings are portable and easy to validate
+3. **Store as hex** - Hex strings are portable and validate with a single regex
 4. **Input + popover** - Showing the hex in an input with the picker in a popover keeps the cell compact and clear
 5. **Optional "Apply" button** - For explicit confirmation, add a button that calls `finishEditing()` from the render props
 
 ---
 
-**Congratulations!** You've created a color picker editor using React's `EditorComponent` and `react-colorful`, perfect for color selection in your data grid!
 
 ## What you learned
 
