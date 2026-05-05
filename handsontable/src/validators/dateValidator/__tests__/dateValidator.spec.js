@@ -368,6 +368,53 @@ describe('dateValidator', () => {
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date');
     });
 
+    it('should not cause an infinite loop when a numeric value is pasted into a date cell with `allowInvalid: false` (#9246)', async() => {
+      const afterChangeSpy = jasmine.createSpy('afterChange');
+      const afterValidateSpy = jasmine.createSpy('afterValidate');
+
+      handsontable({
+        data: [
+          ['03-FEBRUARY-2022', 50000]
+        ],
+        columns: [
+          { type: 'date', dateFormat: 'DD-MMMM-YYYY', correctFormat: true },
+          {}
+        ],
+        allowInvalid: false,
+        afterChange: afterChangeSpy,
+        afterValidate: afterValidateSpy
+      });
+
+      await setDataAtCell(0, 0, '50000');
+
+      await waitForNextAnimationFrames(10);
+
+      // afterChange should fire at most twice: once for the paste, once for the revert
+      expect(afterChangeSpy.calls.count()).toBeLessThan(5);
+      // The cell value should be reverted to the original valid date
+      expect(getDataAtCell(0, 0)).toEqual('03-FEBRUARY-2022');
+      // Validation should mark the numeric value as invalid
+      expect(afterValidateSpy).toHaveBeenCalledWith(false, '50000', 0, 0);
+    });
+
+    it('should mark a numeric value that cannot be auto-corrected to a valid date as invalid when `correctFormat` is enabled (#9246)', async() => {
+      const afterValidateSpy = jasmine.createSpy('afterValidate');
+
+      handsontable({
+        data: [['01/01/2020']],
+        columns: [
+          { type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true }
+        ],
+        afterValidate: afterValidateSpy
+      });
+
+      await setDataAtCell(0, 0, '50000');
+
+      await waitForNextAnimationFrames(2);
+
+      expect(afterValidateSpy).toHaveBeenCalledWith(false, '50000', 0, 0);
+    });
+
     it('should populate all pasted values in the table when `correctFormat` is enabled (#dev-793)', async() => {
       handsontable({
         data: arrayOfObjects(),
