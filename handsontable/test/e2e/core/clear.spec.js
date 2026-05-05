@@ -15,7 +15,7 @@ describe('Core.clear', () => {
       data: createSpreadsheetData(3, 3),
     });
 
-    await hot().clear();
+    await clear();
 
     expect(getData()).toEqual([
       [null, null, null],
@@ -30,7 +30,7 @@ describe('Core.clear', () => {
     });
 
     await selectCell(0, 0);
-    await hot().clear();
+    await clear();
 
     expect(getSelected()).toBeUndefined();
   });
@@ -40,7 +40,7 @@ describe('Core.clear', () => {
       data: createSpreadsheetData(3, 3),
     });
 
-    await hot().clear();
+    await clear();
 
     expect(getSelected()).toBeUndefined();
   });
@@ -52,7 +52,7 @@ describe('Core.clear', () => {
       rowHeaders: true,
     });
 
-    await hot().clear();
+    await clear();
 
     expect(hot().getSettings().colHeaders).toBe(true);
     expect(hot().getSettings().rowHeaders).toBe(true);
@@ -70,7 +70,7 @@ describe('Core.clear', () => {
       },
     });
 
-    await hot().clear();
+    await clear();
 
     expect(getDataAtCell(0, 0)).toBe('A1');
     expect(getDataAtCell(0, 1)).toBeNull();
