@@ -5,7 +5,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 import { data } from '../constants';
 
-import { alignHeaders, addClassesToRows } from '../hooks-callbacks';
+import { alignHeaders } from '../hooks-callbacks';
 
 // register Handsontable's modules
 registerAllModules();
@@ -21,11 +21,6 @@ export default defineComponent({
       return alignHeaders;
     },
 
-    addClassesToRowsProp() {
-      return addClassesToRows;
-    },
-
-  
     dataProp() {
       return data;
     },
@@ -57,7 +52,7 @@ export default defineComponent({
       :filters="true"
       :rowHeaders="true"
       :afterGetColHeader="alignHeadersProp"
-      :beforeRenderer="addClassesToRowsProp"
+
       :manualRowMove="true"
       :autoWrapRow="true"
       :autoWrapCol="true"
@@ -84,10 +79,6 @@ export default defineComponent({
 /*
   A stylesheet customizing app (custom renderers)
 */
-
-table.htCore tr.odd td {
-  background: #fafbff;
-}
 
 /*
   A stylesheet customizing Handsontable style
