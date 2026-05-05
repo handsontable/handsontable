@@ -3134,7 +3134,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Clears the data from the table (the table settings remain intact).
+   * Clears the data from the table (the table settings remain intact) and clears the current selection.
    *
    * @memberof Core#
    * @function clear
@@ -3142,6 +3142,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.clear = function() {
     this.selectAll();
     this.emptySelectedCells();
+    this.deselectCell();
   };
 
   /**
