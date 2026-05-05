@@ -5,7 +5,7 @@ import {
   objectEach,
   setProperty
 } from '../helpers/object';
-import { countFirstRowKeys } from '../helpers/data';
+import { cloneRow, countFirstRowKeys } from '../helpers/data';
 import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
@@ -65,64 +65,27 @@ class DataSource {
    *
    * Each call returns a fresh shallow clone of the source data so consumers can
    * safely mutate the returned array without affecting subsequent calls or the
-   * underlying data. The fast path - used when no `modifySourceData` /
-   * `modifyRowData` hooks are registered, no `dataDotNotation` is configured,
-   * and a non-coerced shape is returned - skips the per-cell hook lookups that
-   * dominate the cost of `getByRange()`.
+   * underlying data. The fast path skips the per-cell hook lookups in
+   * `getByRange()` and is taken when no `modifySourceData` / `modifyRowData`
+   * hooks are registered and the caller does not request array-of-arrays
+   * coercion (which needs the `colToProp` mapping `getByRange()` supplies).
    *
    * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
    * @returns {Array}
    */
   getData(toArray = false) {
-    if (!this.data || this.data.length === 0) {
+    if (!this.data?.length) {
       return this.data;
     }
 
-    if (this.#canUseFastClone(toArray)) {
-      return this.#fastCloneAllRows();
+    if (!toArray
+        && !this.hot.hasHook('modifySourceData')
+        && !this.hot.hasHook('modifyRowData')) {
+      return this.data.map(cloneRow);
     }
 
     return this.getByRange(null, null, toArray);
-  }
-
-  /**
-   * Determine whether the no-args full-data fetch can use the shallow-clone
-   * fast path or has to fall back to the per-cell `getByRange()` walk.
-   *
-   * @param {boolean} toArray Whether the consumer requested array-of-arrays output.
-   * @returns {boolean}
-   */
-  #canUseFastClone(toArray) {
-    if (this.hot.hasHook('modifySourceData') || this.hot.hasHook('modifyRowData')) {
-      return false;
-    }
-
-    // toArray with object data needs the column-to-prop mapping that getByRange supplies.
-    if (toArray && !Array.isArray(this.data[0])) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Build a fresh array containing shallow clones of every row, preserving
-   * the original mutation-safe semantics of `getData()`.
-   *
-   * @returns {Array}
-   */
-  #fastCloneAllRows() {
-    const length = this.data.length;
-    const result = new Array(length);
-
-    for (let i = 0; i < length; i += 1) {
-      const row = this.data[i];
-
-      result[i] = Array.isArray(row) ? row.slice() : { ...row };
-    }
-
-    return result;
   }
 
   /**

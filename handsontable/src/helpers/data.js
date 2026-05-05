@@ -208,3 +208,24 @@ export function isArrayOfObjects(data) {
     data.length &&
     data.every(el => typeof el === 'object' && !Array.isArray(el) && el !== null));
 }
+
+/**
+ * Build a shallow clone of a single source-data row. Arrays and plain objects
+ * are copied; other shapes pass through unchanged. Used by `DataSource.getData()`
+ * to return mutation-safe snapshots without paying the per-cell cost of the
+ * `getByRange()` walk.
+ *
+ * @param {*} row Row value from the source data.
+ * @returns {*}
+ */
+export function cloneRow(row) {
+  if (Array.isArray(row)) {
+    return row.slice();
+  }
+
+  if (row !== null && typeof row === 'object') {
+    return { ...row };
+  }
+
+  return row;
+}

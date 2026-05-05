@@ -49,7 +49,7 @@ describe('DataSource', () => {
     });
   });
 
-  describe('getData() fast-clone path', () => {
+  describe('getData()', () => {
     it('returns a fresh outer array on every call (array data)', () => {
       const dataSource = new DataSource(createHotMock(), [['a', 'b'], ['c', 'd']]);
 
@@ -104,6 +104,18 @@ describe('DataSource', () => {
       expect(result[0]).not.toBe(data[0]);
     });
 
+    it('handles mixed row shapes per row instead of inferring from this.data[0]', () => {
+      const dataSource = new DataSource(createHotMock(), [['a', 'b'], { x: 1 }]);
+
+      const result = dataSource.getData();
+
+      expect(Array.isArray(result[0])).toBe(true);
+      expect(result[0]).toEqual(['a', 'b']);
+      expect(result[0]).not.toBe(dataSource.data[0]);
+      expect(result[1]).toEqual({ x: 1 });
+      expect(result[1]).not.toBe(dataSource.data[1]);
+    });
+
     it('falls back to getByRange when modifySourceData hook has handlers', () => {
       const dataSource = new DataSource(createHotMock({ hooksWithHandlers: ['modifySourceData'] }), [['a', 'b']]);
       const spy = jest.spyOn(dataSource, 'getByRange');
@@ -123,6 +135,15 @@ describe('DataSource', () => {
       expect(spy).toHaveBeenCalledWith(null, null, false);
     });
 
+    it('falls back to getByRange when toArray is requested', () => {
+      const dataSource = new DataSource(createHotMock(), [{ a: 1, b: 2 }]);
+      const spy = jest.spyOn(dataSource, 'getByRange');
+
+      dataSource.getData(true);
+
+      expect(spy).toHaveBeenCalledWith(null, null, true);
+    });
+
     it('uses the fast clone path even when dataDotNotation is enabled (rows are already normalized)', () => {
       const dataSource = new DataSource(createHotMock({ dataDotNotation: true }), [{ a: 1, nested: { b: 2 } }]);
       const spy = jest.spyOn(dataSource, 'getByRange');
@@ -134,30 +155,17 @@ describe('DataSource', () => {
       expect(result[0]).not.toBe(dataSource.data[0]);
     });
 
-    it('falls back to getByRange when toArray is requested for object data', () => {
-      const dataSource = new DataSource(createHotMock(), [{ a: 1, b: 2 }]);
-      const spy = jest.spyOn(dataSource, 'getByRange');
-
-      dataSource.getData(true);
-
-      expect(spy).toHaveBeenCalledWith(null, null, true);
-    });
-
-    it('uses the fast clone path for toArray when data is already array-of-arrays', () => {
-      const dataSource = new DataSource(createHotMock(), [['a', 'b']]);
-      const spy = jest.spyOn(dataSource, 'getByRange');
-
-      const result = dataSource.getData(true);
-
-      expect(spy).not.toHaveBeenCalled();
-      expect(result).toEqual([['a', 'b']]);
-    });
-
     it('returns the underlying empty array reference for empty data', () => {
       const data = [];
       const dataSource = new DataSource(createHotMock(), data);
 
       expect(dataSource.getData()).toBe(data);
+    });
+
+    it('returns the underlying value when data is null', () => {
+      const dataSource = new DataSource(createHotMock(), null);
+
+      expect(dataSource.getData()).toBe(null);
     });
   });
 });
