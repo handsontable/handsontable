@@ -5,7 +5,7 @@ title: Moment.js-based date
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom date cell type using the Moment.js library
 permalink: /recipes/cell-types/moment-date
-canonicalUrl: /recipes/cell-types/moment-date
+canonicUrl: /recipes/cell-types/moment-date
 tags:
   - guides
   - tutorial
@@ -130,7 +130,7 @@ const correctFormat = (value, dateFormat) => {
 
 ## Step 3: Create the Renderer
 
-We reuse the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
+The example reuses the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
 
 ```typescript
 renderer: getRenderer('autocomplete')
