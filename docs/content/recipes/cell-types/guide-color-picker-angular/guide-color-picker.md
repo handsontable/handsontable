@@ -5,7 +5,7 @@ title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
 permalink: /recipes/color-picker-angular
-canonicaUrl: /recipes/color-picker-angular
+canonicalUrl: /recipes/color-picker-angular
 tags:
   - guides
   - tutorial

@@ -4,7 +4,7 @@ title: Sync rows to a Chart.js chart
 metaTitle: Sync selected rows to a Chart.js chart - JavaScript Data Grid | Handsontable
 description: Learn how to sync selected rows from a Handsontable grid to a Chart.js bar chart in real time using the afterSelectionEnd hook.
 permalink: /recipes/real-time/chartjs-sync
-canonicUrl: /recipes/real-time/chartjs-sync
+canonicalUrl: /recipes/real-time/chartjs-sync
 tags:
   - recipes
   - tutorial

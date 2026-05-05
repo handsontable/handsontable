@@ -5,7 +5,7 @@ title: Moment.js-based date
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom date cell type using the Moment.js library
 permalink: /recipes/cell-types/moment-date
-canonicUrl: /recipes/cell-types/moment-date
+canonicalUrl: /recipes/cell-types/moment-date
 tags:
   - guides
   - tutorial

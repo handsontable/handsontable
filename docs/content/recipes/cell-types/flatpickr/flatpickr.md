@@ -5,7 +5,7 @@ title: Flatpickr
 metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
 permalink: /recipes/cell-types/flatpickr
-canonicaUrl: /recipes/cell-types/flatpickr
+canonicalUrl: /recipes/cell-types/flatpickr
 tags:
   - guides
   - tutorial

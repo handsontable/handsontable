@@ -5,7 +5,7 @@ title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
 permalink: /recipes/cell-types/color-picker
-canonicaUrl: /recipes/cell-types/color-picker
+canonicalUrl: /recipes/cell-types/color-picker
 tags:
   - guides
   - tutorial

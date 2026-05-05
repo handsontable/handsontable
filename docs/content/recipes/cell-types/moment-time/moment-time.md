@@ -5,7 +5,7 @@ title: Moment.js-based time
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom time cell type using the Moment.js library
 permalink: /recipes/cell-types/moment-time
-canonicUrl: /recipes/cell-types/moment-time
+canonicalUrl: /recipes/cell-types/moment-time
 tags:
   - guides
   - tutorial

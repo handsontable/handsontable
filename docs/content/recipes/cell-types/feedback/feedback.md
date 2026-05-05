@@ -5,7 +5,7 @@ title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/cell-types/feedback
-canoicalUrl: /recipes/cell-types/feedback
+canonicalUrl: /recipes/cell-types/feedback
 tags:
   - guides
   - tutorial
