@@ -5,7 +5,7 @@ title: Server-side data with Laravel
 metaTitle: Server-side data with Laravel - JavaScript Data Grid | Handsontable
 description: Connect Handsontable's dataProvider plugin to a Laravel backend -- paginated fetchRows, server-side sorting and filtering, and full CRUD with onRowsCreate, onRowsUpdate, and onRowsRemove.
 permalink: /recipes/data-management/server-side-laravel
-canonicaUrl: /recipes/data-management/server-side-laravel
+canonicalUrl: /recipes/data-management/server-side-laravel
 tags:
   - laravel
   - server-side
