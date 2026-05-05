@@ -10,17 +10,6 @@ import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
 
-const CACHE_INVALIDATION_HOOKS = [
-  'afterChange',
-  'afterCreateRow',
-  'afterRemoveRow',
-  'afterCreateCol',
-  'afterRemoveCol',
-  'afterLoadData',
-  'afterUpdateData',
-  'afterSetSourceDataAtCell',
-];
-
 /**
  * @class DataSource
  * @private
@@ -49,63 +38,9 @@ class DataSource {
   colToProp = () => {};
   propToCol = () => {};
 
-  /**
-   * Cached result of `getData(false)` reused until invalidated.
-   *
-   * @type {Array|null}
-   */
-  #cachedData = null;
-  /**
-   * Cached result of `getData(true)` reused until invalidated.
-   *
-   * @type {Array|null}
-   */
-  #cachedDataAsArray = null;
-
-  /**
-   * Cache invalidation callback bound to the instance, registered against the
-   * mutation hooks listed in CACHE_INVALIDATION_HOOKS.
-   */
-  #onMutation = () => {
-    this.#invalidateCache();
-  };
-
-  /**
-   * Tracks whether the cache invalidation hooks have already been wired up.
-   * Hook registration is deferred to the first cache use because the host
-   * instance's `addHook` is defined later in its constructor than where
-   * the DataSource itself is created.
-   *
-   * @type {boolean}
-   */
-  #hooksRegistered = false;
-
   constructor(hotInstance, dataSource = []) {
     this.hot = hotInstance;
     this.data = dataSource;
-  }
-
-  /**
-   * Wire up cache invalidation hooks on the host instance.
-   */
-  #ensureHooksRegistered() {
-    if (this.#hooksRegistered || typeof this.hot?.addHook !== 'function') {
-      return;
-    }
-
-    CACHE_INVALIDATION_HOOKS.forEach((hookName) => {
-      this.hot.addHook(hookName, this.#onMutation);
-    });
-
-    this.#hooksRegistered = true;
-  }
-
-  /**
-   * Reset the memoized full-data results.
-   */
-  #invalidateCache() {
-    this.#cachedData = null;
-    this.#cachedDataAsArray = null;
   }
 
   /**
@@ -128,13 +63,12 @@ class DataSource {
   /**
    * Get all data.
    *
-   * The returned array is memoized: consecutive calls return the same reference until
-   * the underlying data is mutated through Handsontable's APIs (e.g. `setDataAtCell`,
-   * `loadData`, `alter`). Treat the result as a read-only snapshot - direct mutations
-   * to the returned array are not detected by the cache.
-   *
-   * The cache is bypassed when the `modifySourceData` or `modifyRowData` hooks have
-   * registered handlers, because their output may depend on external state.
+   * Each call returns a fresh shallow clone of the source data so consumers can
+   * safely mutate the returned array without affecting subsequent calls or the
+   * underlying data. The fast path - used when no `modifySourceData` /
+   * `modifyRowData` hooks are registered, no `dataDotNotation` is configured,
+   * and a non-coerced shape is returned - skips the per-cell hook lookups that
+   * dominate the cost of `getByRange()`.
    *
    * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
@@ -145,25 +79,50 @@ class DataSource {
       return this.data;
     }
 
+    if (this.#canUseFastClone(toArray)) {
+      return this.#fastCloneAllRows();
+    }
+
+    return this.getByRange(null, null, toArray);
+  }
+
+  /**
+   * Determine whether the no-args full-data fetch can use the shallow-clone
+   * fast path or has to fall back to the per-cell `getByRange()` walk.
+   *
+   * @param {boolean} toArray Whether the consumer requested array-of-arrays output.
+   * @returns {boolean}
+   */
+  #canUseFastClone(toArray) {
     if (this.hot.hasHook('modifySourceData') || this.hot.hasHook('modifyRowData')) {
-      return this.getByRange(null, null, toArray);
+      return false;
     }
 
-    this.#ensureHooksRegistered();
-
-    if (toArray) {
-      if (this.#cachedDataAsArray === null) {
-        this.#cachedDataAsArray = this.getByRange(null, null, true);
-      }
-
-      return this.#cachedDataAsArray;
+    // toArray with object data needs the column-to-prop mapping that getByRange supplies.
+    if (toArray && !Array.isArray(this.data[0])) {
+      return false;
     }
 
-    if (this.#cachedData === null) {
-      this.#cachedData = this.getByRange(null, null, false);
+    return true;
+  }
+
+  /**
+   * Build a fresh array containing shallow clones of every row, preserving
+   * the original mutation-safe semantics of `getData()`.
+   *
+   * @returns {Array}
+   */
+  #fastCloneAllRows() {
+    const length = this.data.length;
+    const result = new Array(length);
+
+    for (let i = 0; i < length; i += 1) {
+      const row = this.data[i];
+
+      result[i] = Array.isArray(row) ? row.slice() : { ...row };
     }
 
-    return this.#cachedData;
+    return result;
   }
 
   /**
@@ -173,7 +132,6 @@ class DataSource {
    */
   setData(data) {
     this.data = data;
-    this.#invalidateCache();
   }
 
   /**
@@ -308,8 +266,6 @@ class DataSource {
     } else {
       dataRow[column] = value;
     }
-
-    this.#invalidateCache();
   }
 
   /**
@@ -453,15 +409,6 @@ class DataSource {
    * Destroy instance.
    */
   destroy() {
-    if (this.#hooksRegistered && typeof this.hot?.removeHook === 'function') {
-      CACHE_INVALIDATION_HOOKS.forEach((hookName) => {
-        this.hot.removeHook(hookName, this.#onMutation);
-      });
-    }
-
-    this.#hooksRegistered = false;
-    this.#cachedData = null;
-    this.#cachedDataAsArray = null;
     this.data = null;
     this.hot = null;
   }

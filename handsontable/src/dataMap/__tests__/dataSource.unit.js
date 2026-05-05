@@ -1,11 +1,8 @@
 import DataSource from 'handsontable/dataMap/dataSource';
 
 describe('DataSource', () => {
-  function createHotMock({ modifyRowData = null, hooksWithHandlers = [] } = {}) {
-    const registeredHooks = new Map();
-
+  function createHotMock({ modifyRowData = null, hooksWithHandlers = [], dataDotNotation = false } = {}) {
     return {
-      _registeredHooks: registeredHooks,
       hasHook(hookName) {
         if (hookName === 'modifyRowData' && modifyRowData !== null) {
           return true;
@@ -18,26 +15,8 @@ describe('DataSource', () => {
           return modifyRowData(rowIndex);
         }
       },
-      addHook(hookName, callback) {
-        if (!registeredHooks.has(hookName)) {
-          registeredHooks.set(hookName, new Set());
-        }
-        registeredHooks.get(hookName).add(callback);
-      },
-      removeHook(hookName, callback) {
-        if (registeredHooks.has(hookName)) {
-          registeredHooks.get(hookName).delete(callback);
-        }
-      },
-      _triggerHook(hookName) {
-        const callbacks = registeredHooks.get(hookName);
-
-        if (callbacks) {
-          callbacks.forEach(cb => cb());
-        }
-      },
       getSettings() {
-        return { dataDotNotation: false };
+        return { dataDotNotation };
       },
     };
   }
@@ -70,232 +49,115 @@ describe('DataSource', () => {
     });
   });
 
-  describe('getData() memoization', () => {
-    function makeArrayData() {
-      return [['a', 'b'], ['c', 'd'], ['e', 'f']];
-    }
-
-    function makeObjectData() {
-      return [{ x: 1, y: 2 }, { x: 3, y: 4 }];
-    }
-
-    it('returns the same array reference on consecutive calls when no mutation occurs', () => {
-      const dataSource = new DataSource(createHotMock(), makeArrayData());
-
-      const first = dataSource.getData();
-      const second = dataSource.getData();
-
-      expect(second).toBe(first);
-    });
-
-    it('returns the same array reference on consecutive calls for object data', () => {
-      const dataSource = new DataSource(createHotMock(), makeObjectData());
-
-      const first = dataSource.getData();
-      const second = dataSource.getData();
-
-      expect(second).toBe(first);
-    });
-
-    it('caches getData(true) and getData(false) independently', () => {
-      const dataSource = new DataSource(createHotMock(), makeArrayData());
-
-      const asObjects = dataSource.getData(false);
-      const asArrays = dataSource.getData(true);
-
-      expect(dataSource.getData(false)).toBe(asObjects);
-      expect(dataSource.getData(true)).toBe(asArrays);
-      expect(asObjects).not.toBe(asArrays);
-    });
-
-    it('returns a new reference after setAtCell()', () => {
-      const dataSource = new DataSource(createHotMock(), makeArrayData());
-
-      const first = dataSource.getData();
-
-      dataSource.setAtCell(0, 0, 'changed');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-      expect(second[0][0]).toBe('changed');
-    });
-
-    it('returns a new reference after setData()', () => {
-      const dataSource = new DataSource(createHotMock(), makeArrayData());
-
-      const first = dataSource.getData();
-
-      dataSource.setData([['x', 'y']]);
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-    });
-
-    it('bypasses cache when modifySourceData hook has handlers', () => {
-      const hot = createHotMock({ hooksWithHandlers: ['modifySourceData'] });
-      const dataSource = new DataSource(hot, makeArrayData());
+  describe('getData() fast-clone path', () => {
+    it('returns a fresh outer array on every call (array data)', () => {
+      const dataSource = new DataSource(createHotMock(), [['a', 'b'], ['c', 'd']]);
 
       const first = dataSource.getData();
       const second = dataSource.getData();
 
       expect(second).not.toBe(first);
+      expect(second).toEqual(first);
     });
 
-    it('bypasses cache when modifyRowData hook has handlers', () => {
-      const data = makeArrayData();
-      const hot = createHotMock({ modifyRowData: row => data[row] });
-      const dataSource = new DataSource(hot, data);
+    it('returns a fresh outer array on every call (object data)', () => {
+      const dataSource = new DataSource(createHotMock(), [{ x: 1 }, { x: 2 }]);
 
       const first = dataSource.getData();
       const second = dataSource.getData();
 
       expect(second).not.toBe(first);
+      expect(second).toEqual(first);
     });
 
-    it('invalidates cache when afterChange hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
+    it('returns row clones so mutations to the returned array do not leak across calls (array data)', () => {
+      const dataSource = new DataSource(createHotMock(), [['a', 'b'], ['c', 'd']]);
 
       const first = dataSource.getData();
 
-      hot._triggerHook('afterChange');
+      first[0][0] = 'X';
 
       const second = dataSource.getData();
 
-      expect(second).not.toBe(first);
+      expect(second[0][0]).toBe('a');
     });
 
-    it('invalidates cache when afterCreateRow hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
+    it('returns row clones so mutations to the returned array do not leak across calls (object data)', () => {
+      const dataSource = new DataSource(createHotMock(), [{ x: 1 }, { x: 2 }]);
 
       const first = dataSource.getData();
 
-      hot._triggerHook('afterCreateRow');
+      first[0].x = 99;
 
       const second = dataSource.getData();
 
-      expect(second).not.toBe(first);
+      expect(second[0].x).toBe(1);
     });
 
-    it('invalidates cache when afterRemoveRow hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
+    it('does not mutate the underlying source data array reference', () => {
+      const data = [['a', 'b']];
+      const dataSource = new DataSource(createHotMock(), data);
 
-      const first = dataSource.getData();
+      const result = dataSource.getData();
 
-      hot._triggerHook('afterRemoveRow');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
+      expect(result).not.toBe(data);
+      expect(result[0]).not.toBe(data[0]);
     });
 
-    it('invalidates cache when afterCreateCol hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
+    it('falls back to getByRange when modifySourceData hook has handlers', () => {
+      const dataSource = new DataSource(createHotMock({ hooksWithHandlers: ['modifySourceData'] }), [['a', 'b']]);
+      const spy = jest.spyOn(dataSource, 'getByRange');
 
-      const first = dataSource.getData();
-
-      hot._triggerHook('afterCreateCol');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-    });
-
-    it('invalidates cache when afterRemoveCol hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
-
-      const first = dataSource.getData();
-
-      hot._triggerHook('afterRemoveCol');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-    });
-
-    it('invalidates cache when afterLoadData hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
-
-      const first = dataSource.getData();
-
-      hot._triggerHook('afterLoadData');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-    });
-
-    it('invalidates cache when afterUpdateData hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
-
-      const first = dataSource.getData();
-
-      hot._triggerHook('afterUpdateData');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-    });
-
-    it('invalidates cache when afterSetSourceDataAtCell hook fires', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, makeArrayData());
-
-      const first = dataSource.getData();
-
-      hot._triggerHook('afterSetSourceDataAtCell');
-
-      const second = dataSource.getData();
-
-      expect(second).not.toBe(first);
-    });
-
-    it('returns same reference for empty data without crashing', () => {
-      const dataSource = new DataSource(createHotMock(), []);
-
-      const first = dataSource.getData();
-      const second = dataSource.getData();
-
-      expect(second).toBe(first);
-    });
-  });
-
-  describe('destroy()', () => {
-    it('removes all registered cache invalidation hooks once getData() has been called', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, [['a']]);
-
-      // Trigger lazy hook registration.
       dataSource.getData();
 
-      const hooksRegisteredBeforeDestroy = Array.from(hot._registeredHooks.entries())
-        .filter(([, callbacks]) => callbacks.size > 0)
-        .map(([name]) => name);
-
-      expect(hooksRegisteredBeforeDestroy.length).toBeGreaterThan(0);
-
-      dataSource.destroy();
-
-      const hooksRegisteredAfterDestroy = Array.from(hot._registeredHooks.entries())
-        .filter(([, callbacks]) => callbacks.size > 0)
-        .map(([name]) => name);
-
-      expect(hooksRegisteredAfterDestroy).toEqual([]);
+      expect(spy).toHaveBeenCalledWith(null, null, false);
     });
 
-    it('does not throw when destroy is called before getData was ever invoked', () => {
-      const hot = createHotMock();
-      const dataSource = new DataSource(hot, [['a']]);
+    it('falls back to getByRange when modifyRowData hook has handlers', () => {
+      const data = [['a', 'b']];
+      const dataSource = new DataSource(createHotMock({ modifyRowData: row => data[row] }), data);
+      const spy = jest.spyOn(dataSource, 'getByRange');
 
-      expect(() => dataSource.destroy()).not.toThrow();
+      dataSource.getData();
+
+      expect(spy).toHaveBeenCalledWith(null, null, false);
+    });
+
+    it('uses the fast clone path even when dataDotNotation is enabled (rows are already normalized)', () => {
+      const dataSource = new DataSource(createHotMock({ dataDotNotation: true }), [{ a: 1, nested: { b: 2 } }]);
+      const spy = jest.spyOn(dataSource, 'getByRange');
+
+      const result = dataSource.getData();
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(result[0]).toEqual({ a: 1, nested: { b: 2 } });
+      expect(result[0]).not.toBe(dataSource.data[0]);
+    });
+
+    it('falls back to getByRange when toArray is requested for object data', () => {
+      const dataSource = new DataSource(createHotMock(), [{ a: 1, b: 2 }]);
+      const spy = jest.spyOn(dataSource, 'getByRange');
+
+      dataSource.getData(true);
+
+      expect(spy).toHaveBeenCalledWith(null, null, true);
+    });
+
+    it('uses the fast clone path for toArray when data is already array-of-arrays', () => {
+      const dataSource = new DataSource(createHotMock(), [['a', 'b']]);
+      const spy = jest.spyOn(dataSource, 'getByRange');
+
+      const result = dataSource.getData(true);
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(result).toEqual([['a', 'b']]);
+    });
+
+    it('returns the underlying empty array reference for empty data', () => {
+      const data = [];
+      const dataSource = new DataSource(createHotMock(), data);
+
+      expect(dataSource.getData()).toBe(data);
     });
   });
 });
