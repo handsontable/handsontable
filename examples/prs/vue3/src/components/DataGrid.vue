@@ -82,7 +82,7 @@ export default defineComponent({
   A stylesheet customizing app (custom renderers)
 */
 
-table.htCore tr.odd td {
+table.htCore tr.ht__row_odd td {
   background: #fafbff;
 }
 

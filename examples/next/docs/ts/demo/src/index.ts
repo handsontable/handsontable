@@ -3,8 +3,6 @@ import "@handsontable/pikaday/css/pikaday.css";
 
 import { data } from "./constants";
 
-import { addClassesToRows } from "./hooksCallbacks";
-
 const example = document.getElementById("example1");
 if (example) {
   new Handsontable(example, {
@@ -52,7 +50,6 @@ if (example) {
     filters: true,
     rowHeaders: true,
     headerClassName: "htLeft",
-    beforeRenderer: addClassesToRows,
     licenseKey: "non-commercial-and-evaluation",
   });
 
