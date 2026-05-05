@@ -408,6 +408,33 @@ describe('SelectEditor', () => {
     expect($options.eq(2).html()).toMatch(options[2]);
   });
 
+  it('should preserve the order of array selectOptions containing negative numbers', async() => {
+    const options = Array.from({ length: 18 }, (_, i) => -5 + i); // [-5, -4, ..., 12]
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options
+        }
+      ]
+    });
+
+    await selectCell(0, 0);
+
+    const editorWrapper = $('.htSelectEditor');
+
+    await keyDownUp('enter');
+
+    const $options = editorWrapper.find('option');
+
+    expect($options.length).toEqual(options.length);
+
+    for (let i = 0; i < options.length; i++) {
+      expect($options.eq(i).val()).toMatch(String(options[i]));
+    }
+  });
+
   it('should populate select with given options (object)', async() => {
     const options = {
       mit: 'Misubishi',
