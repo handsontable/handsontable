@@ -55,9 +55,19 @@ registerValidator('myValidator', myValidator);
 - `src/validators/dateValidator/dateValidator.js` -- Date format validation.
 - `src/validators/autocompleteValidator/autocompleteValidator.js` -- Validates against a list of allowed values.
 
+## Correcting cell values inside a validator
+
+Validators may correct a cell's value before passing it to the callback. The built-in `dateValidator` and `timeValidator` do this via `correctFormat`. If your validator calls `setDataAtCell` to write a corrected value, **pass a source string that ends with `'Validator'`** (e.g. `'myCustomValidator'`):
+
+```js
+this.instance.setDataAtCell(row, col, correctedValue, 'myCustomValidator');
+```
+
+This is required so that `validateChanges()` in `core.js` can track the correction and prevent it from being overwritten when an async validator in the same batch resolves later. Without the suffix, the correction is silently lost when the batch includes columns with async `source` callbacks (e.g. async autocomplete with `strict: true`).
+
 ## Common mistakes
 
 - Forgetting to call `callback`, which silently blocks editing and validation.
 - Not respecting `this.allowEmpty` for empty values.
-- Modifying data or DOM inside a validator.
+- Calling `setDataAtCell` inside a validator without a source ending in `'Validator'` - the correction will be overwritten when the batch contains async validators (see above).
 - Using arrow functions for the validator body (breaks `this` binding to cellProperties).
