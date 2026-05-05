@@ -95,6 +95,10 @@ export default defineComponent({
   text-align: center;
 }
 
+table.htCore tr.ht__row_odd td {
+  background: #fafbff;
+}
+
 td .error {
   background: #ff4c42;
 }
