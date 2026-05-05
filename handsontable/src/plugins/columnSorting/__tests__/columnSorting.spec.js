@@ -1234,6 +1234,90 @@ describe('ColumnSorting', () => {
     });
   });
 
+  describe('data type: text with boolean values', () => {
+    it('should sort boolean values ascending when column type is text', async() => {
+      handsontable({
+        data: [
+          { a: false, b: 3 },
+          { a: true,  b: -4 },
+          { a: false, b: 11 },
+          { a: true,  b: 1 },
+        ],
+        columns: [
+          { data: 'a', type: 'text' },
+          { data: 'b', type: 'numeric' },
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      expect(getData()).toEqual([
+        [false, 3],
+        [false, 11],
+        [true, -4],
+        [true, 1],
+      ]);
+    });
+
+    it('should sort boolean values descending when column type is text', async() => {
+      handsontable({
+        data: [
+          { a: false, b: 3 },
+          { a: true,  b: -4 },
+          { a: false, b: 11 },
+          { a: true,  b: 1 },
+        ],
+        columns: [
+          { data: 'a', type: 'text' },
+          { data: 'b', type: 'numeric' },
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, -4],
+        [true, 1],
+        [false, 3],
+        [false, 11],
+      ]);
+    });
+
+    it('should sort boolean values when mixed with other column types', async() => {
+      handsontable({
+        data: [
+          { a: false, b: false, c: 3,   d: 5  },
+          { a: true,  b: true,  c: -4,  d: 12 },
+          { a: false, b: false, c: 11,  d: 4  },
+          { a: false, b: false, c: 3,   d: 9  },
+          { a: true,  b: true,  c: -4,  d: 1  },
+          { a: false, b: false, c: 11,  d: 0  },
+        ],
+        columns: [
+          { data: 'a', type: 'text' },
+          { data: 'b', type: 'checkbox' },
+          { data: 'c', type: 'text' },
+          { data: 'd', type: 'text' },
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      const sorted = getData();
+
+      // All false rows must come before all true rows
+      const falseRows = sorted.filter(row => row[0] === false);
+      const trueRows = sorted.filter(row => row[0] === true);
+
+      expect(falseRows.length).toBe(4);
+      expect(trueRows.length).toBe(2);
+      expect(sorted.indexOf(falseRows[falseRows.length - 1])).toBeLessThan(sorted.indexOf(trueRows[0]));
+    });
+  });
+
   describe('data type: checkbox', () => {
     it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are not set', async() => {
       handsontable({
