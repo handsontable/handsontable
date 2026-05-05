@@ -3459,9 +3459,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Returns a clone of the source data object.
+   * Returns the source data object.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
    * fragment of the table data.
+   *
+   * __Note__: When called without arguments, the returned array reference is reused across consecutive calls.
+   * Treat the result as a read-only snapshot - mutations made directly to the returned array are not detected
+   * by the cache. Mutations applied through Handsontable's APIs (`setDataAtCell`, `setSourceDataAtCell`,
+   * `loadData`, `updateData`, `alter`, `populateFromArray`) automatically invalidate the cache. The cache is
+   * also bypassed when the `modifySourceData` or `modifyRowData` hooks have registered handlers.
    *
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.
@@ -3496,6 +3502,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * Returns the source data object as an arrays of arrays format even when source data was provided in another format.
    * Optionally you can provide a cell range by using the `row`, `column`, `row2`, `column2` arguments, to get only a
    * fragment of the table data.
+   *
+   * __Note__: When called without arguments, the returned array reference is reused across consecutive calls,
+   * with the same cache invalidation rules as {@link Core#getSourceData}. Treat the result as a read-only snapshot.
    *
    * __Note__: This method does not participate in data transformation. If the visual data of the table is reordered,
    * sorted or trimmed only physical indexes are correct.

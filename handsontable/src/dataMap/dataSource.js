@@ -10,6 +10,17 @@ import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
 
+const CACHE_INVALIDATION_HOOKS = [
+  'afterChange',
+  'afterCreateRow',
+  'afterRemoveRow',
+  'afterCreateCol',
+  'afterRemoveCol',
+  'afterLoadData',
+  'afterUpdateData',
+  'afterSetSourceDataAtCell',
+];
+
 /**
  * @class DataSource
  * @private
@@ -38,9 +49,63 @@ class DataSource {
   colToProp = () => {};
   propToCol = () => {};
 
+  /**
+   * Cached result of `getData(false)` reused until invalidated.
+   *
+   * @type {Array|null}
+   */
+  #cachedData = null;
+  /**
+   * Cached result of `getData(true)` reused until invalidated.
+   *
+   * @type {Array|null}
+   */
+  #cachedDataAsArray = null;
+
+  /**
+   * Cache invalidation callback bound to the instance, registered against the
+   * mutation hooks listed in CACHE_INVALIDATION_HOOKS.
+   */
+  #onMutation = () => {
+    this.#invalidateCache();
+  };
+
+  /**
+   * Tracks whether the cache invalidation hooks have already been wired up.
+   * Hook registration is deferred to the first cache use because the host
+   * instance's `addHook` is defined later in its constructor than where
+   * the DataSource itself is created.
+   *
+   * @type {boolean}
+   */
+  #hooksRegistered = false;
+
   constructor(hotInstance, dataSource = []) {
     this.hot = hotInstance;
     this.data = dataSource;
+  }
+
+  /**
+   * Wire up cache invalidation hooks on the host instance.
+   */
+  #ensureHooksRegistered() {
+    if (this.#hooksRegistered || typeof this.hot?.addHook !== 'function') {
+      return;
+    }
+
+    CACHE_INVALIDATION_HOOKS.forEach((hookName) => {
+      this.hot.addHook(hookName, this.#onMutation);
+    });
+
+    this.#hooksRegistered = true;
+  }
+
+  /**
+   * Reset the memoized full-data results.
+   */
+  #invalidateCache() {
+    this.#cachedData = null;
+    this.#cachedDataAsArray = null;
   }
 
   /**
@@ -63,6 +128,14 @@ class DataSource {
   /**
    * Get all data.
    *
+   * The returned array is memoized: consecutive calls return the same reference until
+   * the underlying data is mutated through Handsontable's APIs (e.g. `setDataAtCell`,
+   * `loadData`, `alter`). Treat the result as a read-only snapshot - direct mutations
+   * to the returned array are not detected by the cache.
+   *
+   * The cache is bypassed when the `modifySourceData` or `modifyRowData` hooks have
+   * registered handlers, because their output may depend on external state.
+   *
    * @param {boolean} [toArray=false] If `true` return source data as an array of arrays even when source data was provided
    *                                  in another format.
    * @returns {Array}
@@ -72,11 +145,25 @@ class DataSource {
       return this.data;
     }
 
-    return this.getByRange(
-      null,
-      null,
-      toArray
-    );
+    if (this.hot.hasHook('modifySourceData') || this.hot.hasHook('modifyRowData')) {
+      return this.getByRange(null, null, toArray);
+    }
+
+    this.#ensureHooksRegistered();
+
+    if (toArray) {
+      if (this.#cachedDataAsArray === null) {
+        this.#cachedDataAsArray = this.getByRange(null, null, true);
+      }
+
+      return this.#cachedDataAsArray;
+    }
+
+    if (this.#cachedData === null) {
+      this.#cachedData = this.getByRange(null, null, false);
+    }
+
+    return this.#cachedData;
   }
 
   /**
@@ -86,6 +173,7 @@ class DataSource {
    */
   setData(data) {
     this.data = data;
+    this.#invalidateCache();
   }
 
   /**
@@ -220,6 +308,8 @@ class DataSource {
     } else {
       dataRow[column] = value;
     }
+
+    this.#invalidateCache();
   }
 
   /**
@@ -363,6 +453,15 @@ class DataSource {
    * Destroy instance.
    */
   destroy() {
+    if (this.#hooksRegistered && typeof this.hot?.removeHook === 'function') {
+      CACHE_INVALIDATION_HOOKS.forEach((hookName) => {
+        this.hot.removeHook(hookName, this.#onMutation);
+      });
+    }
+
+    this.#hooksRegistered = false;
+    this.#cachedData = null;
+    this.#cachedDataAsArray = null;
     this.data = null;
     this.hot = null;
   }
