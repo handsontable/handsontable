@@ -1493,18 +1493,19 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     // that end with 'Validator' ensures only corrections emitted by validators are captured, never
     // values applied by applyChanges(). Custom validators that correct values must follow this
     // convention by passing a source ending in 'Validator' to their setDataAtCell call.
+    const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]) => {
+      const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
+
+      if (idx !== -1) {
+        changes[idx][3] = correctedValue;
+      }
+    };
     const onAfterChange = (afterChanges, afterSource) => {
       if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
         return;
       }
 
-      afterChanges?.forEach(([changedRow, changedProp, , correctedValue]) => {
-        const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
-
-        if (idx !== -1) {
-          changes[idx][3] = correctedValue;
-        }
-      });
+      afterChanges?.forEach(applyValidatorCorrection);
     };
 
     instance.addHook('afterChange', onAfterChange);
