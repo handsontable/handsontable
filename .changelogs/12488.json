@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed pasting cells from Apple Numbers losing bare mid-cell quote characters and splitting into multiple rows.",
+  "type": "fixed",
+  "issueOrPR": 12488,
+  "breaking": false,
+  "framework": "none"
+}
