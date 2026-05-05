@@ -1201,4 +1201,3 @@ export const data = [
   ]
 ];
 
-export const ODD_ROW_CLASS = "odd";
