@@ -1239,9 +1239,9 @@ describe('ColumnSorting', () => {
       handsontable({
         data: [
           { a: false, b: 3 },
-          { a: true,  b: -4 },
+          { a: true, b: -4 },
           { a: false, b: 11 },
-          { a: true,  b: 1 },
+          { a: true, b: 1 },
         ],
         columns: [
           { data: 'a', type: 'text' },
@@ -1264,9 +1264,9 @@ describe('ColumnSorting', () => {
       handsontable({
         data: [
           { a: false, b: 3 },
-          { a: true,  b: -4 },
+          { a: true, b: -4 },
           { a: false, b: 11 },
-          { a: true,  b: 1 },
+          { a: true, b: 1 },
         ],
         columns: [
           { data: 'a', type: 'text' },
@@ -1288,12 +1288,12 @@ describe('ColumnSorting', () => {
     it('should sort boolean values when mixed with other column types', async() => {
       handsontable({
         data: [
-          { a: false, b: false, c: 3,   d: 5  },
-          { a: true,  b: true,  c: -4,  d: 12 },
-          { a: false, b: false, c: 11,  d: 4  },
-          { a: false, b: false, c: 3,   d: 9  },
-          { a: true,  b: true,  c: -4,  d: 1  },
-          { a: false, b: false, c: 11,  d: 0  },
+          { a: false, b: false, c: 3, d: 5 },
+          { a: true, b: true, c: -4, d: 12 },
+          { a: false, b: false, c: 11, d: 4 },
+          { a: false, b: false, c: 3, d: 9 },
+          { a: true, b: true, c: -4, d: 1 },
+          { a: false, b: false, c: 11, d: 0 },
         ],
         columns: [
           { data: 'a', type: 'text' },
