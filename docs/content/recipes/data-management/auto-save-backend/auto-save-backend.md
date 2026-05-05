@@ -129,10 +129,11 @@ async function saveRowsToBackend(rows) {
 
 Use a mock promise so the recipe works without extra setup.
 
-## Step 4: Track dirty rows and debounce saves
+## Step 4: Track dirty rows, invalid rows, and debounce saves
 
 ```typescript
 const dirtyRows = new Set<number>();
+const invalidPhysicalRows = new Set<number>();
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 let saveRequestCounter = 0;
 
@@ -145,6 +146,12 @@ function queueSave() {
     const physicalRows = Array.from(dirtyRows);
 
     if (physicalRows.length === 0) {
+      return;
+    }
+
+    if (physicalRows.some((physicalRow) => invalidPhysicalRows.has(physicalRow))) {
+      setSaveStatus('error');
+
       return;
     }
 
@@ -173,9 +180,29 @@ function queueSave() {
 }
 ```
 
-The debounce batches fast edits into one request, and the dirty set prevents duplicate row saves.
+The debounce batches fast edits into one request. The dirty set prevents duplicate row saves. The invalid set blocks sending rows that failed Handsontable's built-in cell validation - for example, a non-numeric string entered in a `numeric` column.
 
-## Step 5: Use `afterChange` and ignore `loadData`
+## Step 5: Track cell validation with `afterValidate`
+
+```typescript
+afterValidate(isValid, _value, visualRow) {
+  const physicalRow = hot.toPhysicalRow(visualRow as number);
+
+  if (physicalRow === null || physicalRow < 0) {
+    return;
+  }
+
+  if (isValid) {
+    invalidPhysicalRows.delete(physicalRow);
+  } else {
+    invalidPhysicalRows.add(physicalRow);
+  }
+}
+```
+
+`afterValidate` fires after each cell edit. It keeps `invalidPhysicalRows` in sync: invalid cells are added and valid cells are removed. When a user corrects a cell, it clears from the set and the next debounced save proceeds normally.
+
+## Step 7: Use `afterChange` and ignore `loadData`
 
 ```typescript
 afterChange(changes, source) {
@@ -199,7 +226,7 @@ afterChange(changes, source) {
 
 This limits auto-save behavior to user edits and other non-load update sources.
 
-## Step 6: Complete working example
+## Step 8: Complete working example
 
 ```typescript
 import Handsontable from 'handsontable/base';
@@ -231,6 +258,7 @@ if (container instanceof HTMLElement) {
   container.before(statusEl);
 
   const dirtyRows = new Set<number>();
+  const invalidPhysicalRows = new Set<number>();
   let saveTimeout: ReturnType<typeof setTimeout> | null = null;
   let saveRequestCounter = 0;
 
@@ -266,6 +294,19 @@ if (container instanceof HTMLElement) {
     stretchH: 'all',
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation',
+    afterValidate(isValid, _value, visualRow) {
+      const physicalRow = hot.toPhysicalRow(visualRow as number);
+
+      if (physicalRow === null || physicalRow < 0) {
+        return;
+      }
+
+      if (isValid) {
+        invalidPhysicalRows.delete(physicalRow);
+      } else {
+        invalidPhysicalRows.add(physicalRow);
+      }
+    },
     afterChange(changes, source) {
       if (!changes || source === 'loadData') {
         return;
@@ -289,6 +330,12 @@ if (container instanceof HTMLElement) {
         const physicalRows = Array.from(dirtyRows);
 
         if (physicalRows.length === 0) {
+          return;
+        }
+
+        if (physicalRows.some((physicalRow) => invalidPhysicalRows.has(physicalRow))) {
+          setSaveStatus('error');
+
           return;
         }
 
@@ -327,9 +374,10 @@ if (container instanceof HTMLElement) {
 
 1. User edits one or more cells.
 2. `afterChange` captures changed visual rows, but skips `source === 'loadData'`.
-3. The debounce timer resets on each new edit.
-4. After 800 ms without edits, only dirty rows are collected and sent.
-5. The UI status changes from **Saving...** to **Saved ✓** (or **Error** on failure).
+3. `afterValidate` runs and marks any row with an invalid cell (for example, a non-numeric string in a numeric column) in `invalidPhysicalRows`.
+4. The debounce timer resets on each new edit.
+5. After 800 ms without edits, dirty rows are inspected. If any contain invalid cells, the status shows **Error** and the save is skipped - leaving rows dirty for retry when corrected.
+6. If all rows are valid, they are collected and sent. The UI status changes from **Saving...** to **Saved ✓** (or **Error** on network failure).
 
 ## Production tips
 
@@ -341,6 +389,7 @@ if (container instanceof HTMLElement) {
 ## What you learned
 
 - How to use `afterChange` to react to grid edits and skip system-generated changes by checking the `source` argument.
+- How `afterValidate` keeps an invalid-row set in sync so you never send data that fails built-in cell validation.
 - How debouncing limits the number of save requests when the user edits many cells in quick succession.
 - How dirty row tracking lets you send only changed rows instead of the full dataset.
 - How to provide visual feedback with a save status element that reflects idle, saving, saved, and error states.

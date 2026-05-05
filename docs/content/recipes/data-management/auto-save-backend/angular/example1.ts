@@ -61,6 +61,7 @@ export class AppComponent {
   ];
 
   private dirtyRows = new Set<number>();
+  private invalidPhysicalRows = new Set<number>();
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   private saveRequestCounter = 0;
 
@@ -84,6 +85,25 @@ export class AppComponent {
     ],
     stretchH: 'all',
     height: 'auto',
+    afterValidate: (isValid: boolean, _value: unknown, visualRow: number) => {
+      const hot = this.hotTable?.hotInstance;
+
+      if (!hot) {
+        return;
+      }
+
+      const physicalRow = hot.toPhysicalRow(visualRow);
+
+      if (physicalRow === null || physicalRow < 0) {
+        return;
+      }
+
+      if (isValid) {
+        this.invalidPhysicalRows.delete(physicalRow);
+      } else {
+        this.invalidPhysicalRows.add(physicalRow);
+      }
+    },
     afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
       if (!changes || source === 'loadData') {
         return;
@@ -113,6 +133,12 @@ export class AppComponent {
         const physicalRows = Array.from(this.dirtyRows);
 
         if (physicalRows.length === 0) {
+          return;
+        }
+
+        if (physicalRows.some((physicalRow) => this.invalidPhysicalRows.has(physicalRow))) {
+          this.saveStatus = 'error';
+
           return;
         }
 

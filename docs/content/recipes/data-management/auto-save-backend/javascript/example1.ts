@@ -31,6 +31,7 @@ if (container instanceof HTMLElement) {
   container.before(statusEl);
 
   const dirtyRows = new Set<number>();
+  const invalidPhysicalRows = new Set<number>();
   let saveTimeout: ReturnType<typeof setTimeout> | null = null;
   let saveRequestCounter = 0;
 
@@ -75,6 +76,19 @@ if (container instanceof HTMLElement) {
     stretchH: 'all',
     height: 'auto',
     licenseKey: 'non-commercial-and-evaluation',
+    afterValidate(isValid, _value, visualRow) {
+      const physicalRow = hot.toPhysicalRow(visualRow as number);
+
+      if (physicalRow === null || physicalRow < 0) {
+        return;
+      }
+
+      if (isValid) {
+        invalidPhysicalRows.delete(physicalRow);
+      } else {
+        invalidPhysicalRows.add(physicalRow);
+      }
+    },
     afterChange(changes, source) {
       if (!changes || source === 'loadData') {
         return;
@@ -98,6 +112,12 @@ if (container instanceof HTMLElement) {
         const physicalRows = Array.from(dirtyRows);
 
         if (physicalRows.length === 0) {
+          return;
+        }
+
+        if (physicalRows.some((physicalRow) => invalidPhysicalRows.has(physicalRow))) {
+          setSaveStatus('error');
+
           return;
         }
 

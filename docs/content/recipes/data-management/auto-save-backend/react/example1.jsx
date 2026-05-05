@@ -38,8 +38,29 @@ const ExampleComponent = () => {
   const hotRef = useRef(null);
   const [saveStatus, setSaveStatus] = useState('idle');
   const dirtyRowsRef = useRef(new Set());
+  const invalidPhysicalRowsRef = useRef(new Set());
   const saveTimeoutRef = useRef(null);
   const saveRequestCounterRef = useRef(0);
+
+  const handleAfterValidate = (isValid, _value, visualRow) => {
+    const hot = hotRef.current?.hotInstance;
+
+    if (!hot) {
+      return;
+    }
+
+    const physicalRow = hot.toPhysicalRow(visualRow);
+
+    if (physicalRow === null || physicalRow < 0) {
+      return;
+    }
+
+    if (isValid) {
+      invalidPhysicalRowsRef.current.delete(physicalRow);
+    } else {
+      invalidPhysicalRowsRef.current.add(physicalRow);
+    }
+  };
 
   const handleAfterChange = (changes, source) => {
     if (!changes || source === 'loadData') {
@@ -70,6 +91,12 @@ const ExampleComponent = () => {
       const physicalRows = Array.from(dirtyRowsRef.current);
 
       if (physicalRows.length === 0) {
+        return;
+      }
+
+      if (physicalRows.some((physicalRow) => invalidPhysicalRowsRef.current.has(physicalRow))) {
+        setSaveStatus('error');
+
         return;
       }
 
@@ -123,6 +150,7 @@ const ExampleComponent = () => {
         ]}
         stretchH="all"
         height="auto"
+        afterValidate={handleAfterValidate}
         afterChange={handleAfterChange}
         licenseKey="non-commercial-and-evaluation"
       />

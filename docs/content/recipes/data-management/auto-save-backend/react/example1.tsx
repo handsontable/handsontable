@@ -17,7 +17,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 const statusLabels: Record<SaveStatus, string> = {
   idle: 'No pending changes',
   saving: 'Saving...',
-  saved: 'Saved \u2713',
+  saved: 'Saved ✓',
   error: 'Error',
 };
 
@@ -40,8 +40,29 @@ const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const dirtyRowsRef = useRef(new Set<number>());
+  const invalidPhysicalRowsRef = useRef(new Set<number>());
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const saveRequestCounterRef = useRef(0);
+
+  const handleAfterValidate = (isValid: boolean, _value: unknown, visualRow: number): void => {
+    const hot = hotRef.current?.hotInstance;
+
+    if (!hot) {
+      return;
+    }
+
+    const physicalRow = hot.toPhysicalRow(visualRow);
+
+    if (physicalRow === null || physicalRow < 0) {
+      return;
+    }
+
+    if (isValid) {
+      invalidPhysicalRowsRef.current.delete(physicalRow);
+    } else {
+      invalidPhysicalRowsRef.current.add(physicalRow);
+    }
+  };
 
   const handleAfterChange = (
     changes: [number, string | number, unknown, unknown][] | null,
@@ -75,6 +96,12 @@ const ExampleComponent = () => {
       const physicalRows = Array.from(dirtyRowsRef.current);
 
       if (physicalRows.length === 0) {
+        return;
+      }
+
+      if (physicalRows.some((physicalRow) => invalidPhysicalRowsRef.current.has(physicalRow))) {
+        setSaveStatus('error');
+
         return;
       }
 
@@ -128,6 +155,7 @@ const ExampleComponent = () => {
         ]}
         stretchH="all"
         height="auto"
+        afterValidate={handleAfterValidate}
         afterChange={handleAfterChange}
         licenseKey="non-commercial-and-evaluation"
       />
