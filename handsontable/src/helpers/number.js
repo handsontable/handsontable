@@ -194,7 +194,8 @@ export function clamp(value, minValue, maxValue) {
 /**
  * Get parsed number from numeric string.
  *
- * @param {string} numericData Float (separated by a dot or a comma) or integer.
+ * @param {string} numericData Float (separated by a dot or a comma), integer, or a dot-thousands
+ * grouped value used by European locales (e.g. `7.000` or `7.000,25` when `decimalSeparator` is `','`).
  * @param {object} [options={}] Parsing options.
  * @param {'.'|','} [options.decimalSeparator] Preferred decimal separator used by the cell.
  * @returns {number|null} Number if we get data in parsable format, not changed value otherwise.
