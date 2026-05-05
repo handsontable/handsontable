@@ -1482,7 +1482,36 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const waitingForValidator = new ValidatorsQueue();
     let shouldBeCanceled = true;
 
+    // Track value corrections applied by validators via setDataAtCell during the validation window.
+    // Without this, a corrected value written by a nested setDataAtCell call gets overwritten when
+    // applyChanges() runs on the original changes array. The hook is removed before applyChanges()
+    // runs (in onQueueEmpty), so it does not capture the parent apply itself.
+    //
+    // Source filtering is structurally required: each nested validateChanges() call registers its
+    // own onAfterChange hook. Without filtering, when the parent applyChanges() fires afterChange,
+    // the nested hook would intercept it and corrupt the nested changes array. Filtering to sources
+    // that end with 'Validator' ensures only corrections emitted by validators are captured, never
+    // values applied by applyChanges(). Custom validators that correct values must follow this
+    // convention by passing a source ending in 'Validator' to their setDataAtCell call.
+    const onAfterChange = (afterChanges, afterSource) => {
+      if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
+        return;
+      }
+
+      afterChanges?.forEach(([changedRow, changedProp, , correctedValue]) => {
+        const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
+
+        if (idx !== -1) {
+          changes[idx][3] = correctedValue;
+        }
+      });
+    };
+
+    instance.addHook('afterChange', onAfterChange);
+
     waitingForValidator.onQueueEmpty = () => {
+      instance.removeHook('afterChange', onAfterChange);
+
       if (
         activeEditor &&
         shouldBeCanceled &&

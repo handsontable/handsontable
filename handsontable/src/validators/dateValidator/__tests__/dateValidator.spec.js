@@ -388,6 +388,59 @@ describe('dateValidator', () => {
 
       expect(countRows()).toBe(6);
     });
+
+    it('should preserve corrected date format when batch-setting data alongside cells with async validators (#10614)', async() => {
+      handsontable({
+        data: [
+          ['Mercedes', '2017/1/14', '1'],
+          ['Citroen', '2018/12/1', '1'],
+          ['Audi', '2019/11/19', ''],
+          ['Opel', '2020/2/2', ''],
+          ['BMW', '2021/5/5', ''],
+        ],
+        columns: [
+          {},
+          {
+            type: 'date',
+            dateFormat: 'YYYY-MM-DD',
+            correctFormat: true,
+          },
+          {
+            type: 'autocomplete',
+            allowInvalid: false,
+            strict: true,
+            source: (query, callback) => {
+              setTimeout(() => {
+                callback(['1', '2', '3']);
+              }, 100);
+            }
+          },
+        ],
+      });
+
+      await setDataAtCell([
+        [0, 1, '2017/1/14'],
+        [0, 2, '1'],
+        [1, 1, '2018/12/1'],
+        [1, 2, '1'],
+        [2, 1, '2019/11/19'],
+        [2, 2, ''],
+        [3, 1, '2020/2/2'],
+        [3, 2, ''],
+        [4, 1, '2021/5/5'],
+        [4, 2, ''],
+      ]);
+
+      await sleep(300);
+
+      expect(getDataAtCell(0, 1)).toEqual('2017-01-14');
+      expect(getDataAtCell(1, 1)).toEqual('2018-12-01');
+      expect(getDataAtCell(2, 1)).toEqual('2019-11-19');
+      expect(getDataAtCell(3, 1)).toEqual('2020-02-02');
+      expect(getDataAtCell(4, 1)).toEqual('2021-05-05');
+    });
+
+
   });
 
   describe('Date formats', () => {
