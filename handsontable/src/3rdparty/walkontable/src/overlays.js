@@ -611,7 +611,16 @@ class Overlays {
     }
 
     if (this.verticalScrolling) {
-      leftHolder.scrollTop = scrollY;
+      // In window-scroll mode the left overlay's row positions are driven by
+      // spreader.style.top; the holder must not accumulate scroll offset.
+      // Setting scrollTop to window.scrollY would be capped to the tiny
+      // hider/holder size difference caused by fractional zoom rounding,
+      // shifting the visible rows and misaligning them with the master table.
+      if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
+        leftHolder.scrollTop = 0;
+      } else {
+        leftHolder.scrollTop = scrollY;
+      }
     }
 
     this.refreshAll();
