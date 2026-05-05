@@ -5,7 +5,7 @@ title: Server-side data with Laravel
 metaTitle: Server-side data with Laravel - JavaScript Data Grid | Handsontable
 description: Connect Handsontable's dataProvider plugin to a Laravel backend -- paginated fetchRows, server-side sorting and filtering, and full CRUD with onRowsCreate, onRowsUpdate, and onRowsRemove.
 permalink: /recipes/data-management/server-side-laravel
-canonicalUrl: /recipes/data-management/server-side-laravel
+canonicaUrl: /recipes/data-management/server-side-laravel
 tags:
   - laravel
   - server-side
@@ -141,7 +141,7 @@ Both `$prop` values (for filters and for sort) are validated against an allowlis
 
 **Why `skip()`/`take()` instead of `paginate()`?**
 
-Laravel's `paginate(n)` manages its own `?page=` parameter and returns a `LengthAwarePaginator` JSON shape. Handsontable already sends `page` and `pageSize` directly, so manual `skip(($page - 1) * $pageSize)->take($pageSize)` is more straightforward and returns the `{ data, total }` shape that `fetchRows` expects.
+Laravel's `paginate(n)` manages its own `?page=` parameter and returns a `LengthAwarePaginator` JSON shape. Handsontable already sends `page` and `pageSize` directly, so manual `skip(($page - 1) * $pageSize)->take($pageSize)` returns the `{ data, total }` shape that `fetchRows` expects without any adapter code.
 
 ### `store()` -- create rows
 

@@ -5,7 +5,7 @@ title: Server-side Data with Spring Boot
 metaTitle: Server-side Data with Spring Boot - JavaScript Data Grid | Handsontable
 description: Wire Handsontable's dataProvider plugin to a Spring Boot 3 backend with JPA-backed pagination, server-side sorting and filtering, and full CRUD operations using H2.
 permalink: /recipes/data-management/server-side-spring
-canonicalUrl: /recipes/data-management/server-side-spring
+canonicaUrl: /recipes/data-management/server-side-spring
 tags:
   - spring-boot
   - server-side
@@ -125,7 +125,7 @@ Create or update `src/main/resources/application.properties`:
 - `@Column(precision = 10, scale = 2)` stores `price` with two decimal places, matching the `numeric` cell type in the frontend column definition.
 
 **Why keep the entity minimal?**
-Each field maps directly to a column the Handsontable grid displays. Adding only what the grid needs keeps the API response small and the mapping code straightforward.
+Each field maps directly to a column the Handsontable grid displays. Adding only what the grid needs keeps the API response small and the mapping code concise.
 
 ## Step 4: Add the repository interface
 
