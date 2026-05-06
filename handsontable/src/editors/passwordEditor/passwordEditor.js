@@ -180,8 +180,8 @@ export class PasswordEditor extends TextEditor {
       this.#realValue = this.#realValue.slice(0, displayValue.length);
     }
 
-    // If lengths are equal, the display already matches (e.g. pasted masked content) - no change.
-    const maskedPrefix = hashSymbol.repeat(this.#realValue.length - (displayValue.length - prevLength > 0 ? displayValue.length - prevLength : 0));
+    const addedCount = displayValue.length - prevLength > 0 ? displayValue.length - prevLength : 0;
+    const maskedPrefix = hashSymbol.repeat(this.#realValue.length - addedCount);
     const visibleSuffix = displayValue.length > prevLength ? displayValue.slice(prevLength) : '';
 
     this.TEXTAREA.value = maskedPrefix + visibleSuffix;
