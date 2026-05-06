@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import {Component, ViewChild, ViewEncapsulation, HostListener, ElementRef} from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation, HostListener, ElementRef, inject} from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
@@ -79,7 +79,7 @@ export class AppComponent {
     return this.options.find((o) => o.value === this.selected)?.label || '';
   }
 
-  constructor(private elementRef: ElementRef) {}
+  private elementRef = inject(ElementRef);
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
