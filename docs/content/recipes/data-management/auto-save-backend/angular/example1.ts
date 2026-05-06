@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, NgZone, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -16,7 +16,7 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 const STATUS_LABELS: Record<SaveStatus, string> = {
   idle: 'No pending changes',
   saving: 'Saving...',
-  saved: 'Saved \u2713',
+  saved: 'Saved ✓',
   error: 'Error',
 };
 
@@ -33,7 +33,7 @@ const STATUS_COLORS: Record<SaveStatus, string> = {
   selector: 'example1-auto-save-backend',
   template: `
     <div
-      class="auto-save-status"
+      style="margin-bottom: 8px; font-family: Arial, sans-serif; font-size: 13px; font-weight: 600;"
       [style.color]="statusColor"
     >{{ statusLabel }}</div>
     <hot-table [data]="hotData" [settings]="hotSettings"></hot-table>
@@ -41,6 +41,8 @@ const STATUS_COLORS: Record<SaveStatus, string> = {
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  private readonly ngZone = inject(NgZone);
 
   saveStatus: SaveStatus = 'idle';
 
@@ -64,12 +66,12 @@ export class AppComponent {
   private saveTimeout: ReturnType<typeof setTimeout> | null = null;
   private saveRequestCounter = 0;
 
-  private async saveRowsToBackend(rows: RowData[]): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 450));
-
-    // Replace with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
-    // eslint-disable-next-line no-console
-    console.log('PATCH /api/products', rows);
+  private saveRowsToBackend(rows: RowData[]): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, 450)).then(() => {
+      // Replace with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
+      // eslint-disable-next-line no-console
+      console.log('PATCH /api/products', rows);
+    });
   }
 
   readonly hotSettings: GridSettings = {
@@ -109,7 +111,7 @@ export class AppComponent {
         clearTimeout(this.saveTimeout);
       }
 
-      this.saveTimeout = setTimeout(async () => {
+      this.saveTimeout = setTimeout(() => {
         const physicalRows = Array.from(this.dirtyRows);
 
         if (physicalRows.length === 0) {
@@ -117,26 +119,48 @@ export class AppComponent {
         }
 
         const requestId = ++this.saveRequestCounter;
-        const rowsToSave = physicalRows
-          .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
-          .filter((row): row is RowData => row !== undefined && row !== null);
+        const visualRows = physicalRows
+          .map((physicalRow) => hot.toVisualRow(physicalRow))
+          .filter((row): row is number => row !== null);
 
-        this.dirtyRows.clear();
-        this.saveStatus = 'saving';
+        hot.validateRows(visualRows, (valid) => {
+          if (!valid) {
+            if (requestId === this.saveRequestCounter) {
+              this.ngZone.run(() => {
+                this.saveStatus = 'error';
+              });
+            }
 
-        try {
-          await this.saveRowsToBackend(rowsToSave);
-
-          if (requestId === this.saveRequestCounter) {
-            this.saveStatus = 'saved';
+            return;
           }
-        } catch (_error) {
-          physicalRows.forEach((physicalRow) => this.dirtyRows.add(physicalRow));
 
-          if (requestId === this.saveRequestCounter) {
-            this.saveStatus = 'error';
-          }
-        }
+          const rowsToSave = physicalRows
+            .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
+            .filter((row): row is RowData => row !== undefined && row !== null);
+
+          this.dirtyRows.clear();
+          this.ngZone.run(() => {
+            this.saveStatus = 'saving';
+          });
+
+          void this.saveRowsToBackend(rowsToSave)
+            .then(() => {
+              if (requestId === this.saveRequestCounter) {
+                this.ngZone.run(() => {
+                  this.saveStatus = 'saved';
+                });
+              }
+            })
+            .catch(() => {
+              physicalRows.forEach((physicalRow) => this.dirtyRows.add(physicalRow));
+
+              if (requestId === this.saveRequestCounter) {
+                this.ngZone.run(() => {
+                  this.saveStatus = 'error';
+                });
+              }
+            });
+        });
       }, 800);
     },
   };
