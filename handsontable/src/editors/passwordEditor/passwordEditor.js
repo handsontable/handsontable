@@ -90,12 +90,16 @@ export class PasswordEditor extends TextEditor {
 
     if (hashRevealDelay > 0) {
       this.#inRevealMode = true;
+      // Use only the first character of hashSymbol for input masking. Multi-character values
+      // are intended for the cell renderer (which uses HTML), not the plain-text input field.
+      const maskChar = hashSymbol[0];
+
       this.TEXTAREA.setAttribute('type', 'text');
 
       // #realValue may already be set by setValue() called from beginEditing(); mask the display.
-      this.TEXTAREA.value = hashSymbol.repeat(this.#realValue.length);
+      this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
 
-      this.#onInput = () => this.#handleRevealInput(hashSymbol, hashRevealDelay);
+      this.#onInput = (event) => this.#handleRevealInput(event, maskChar, hashRevealDelay);
       this.TEXTAREA.addEventListener('input', this.#onInput);
     }
   }
@@ -147,9 +151,9 @@ export class PasswordEditor extends TextEditor {
   setValue(value) {
     if (this.#inRevealMode) {
       this.#realValue = value ?? '';
-      const hashSymbol = this.cellProperties.hashSymbol ?? '*';
+      const maskChar = (this.cellProperties.hashSymbol ?? '*')[0];
 
-      this.TEXTAREA.value = hashSymbol.repeat(this.#realValue.length);
+      this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
     } else if (this.cellProperties?.hashRevealDelay > 0) {
       // setValue() called from beginEditing() before open() sets #inRevealMode.
       this.#realValue = value ?? '';
@@ -159,42 +163,90 @@ export class PasswordEditor extends TextEditor {
   }
 
   /**
-   * Handles input events when `hashRevealDelay` is active. Reconciles the display value
-   * (which may contain hash symbols plus a newly typed plain character) with the stored
-   * real value, then schedules masking of the new character.
+   * Handles input events when `hashRevealDelay` is active. Updates `#realValue` and the
+   * display using cursor-position-based reconciliation for typed characters (correctly handles
+   * append, mid-string insert, and select-and-replace), position-based tracking for deletions,
+   * and a length-based fallback for paste, composition, and unknown input types.
    *
-   * @param {string} hashSymbol The symbol used for masking.
-   * @param {number} delay Milliseconds before the last typed character is masked.
+   * @param {InputEvent} event The DOM input event.
+   * @param {string} maskChar The single-character mask used in the input field.
+   * @param {number} delay Milliseconds before newly typed characters are masked.
    */
-  #handleRevealInput(hashSymbol, delay) {
-    const displayValue = this.TEXTAREA.value;
-    const prevLength = this.#realValue.length;
+  #handleRevealInput(event, maskChar, delay) {
+    const { inputType, data } = event;
 
-    if (displayValue.length > prevLength) {
-      // Characters were added - find unmasked suffix (plain chars not equal to hashSymbol).
-      const newChars = displayValue.slice(prevLength);
+    if (inputType === 'insertText' && data) {
+      // Cursor position after browser insertion tells us exactly where chars were inserted
+      // and how many masked chars follow — works for append, mid-string, and select-replace.
+      const cursorAfter = this.TEXTAREA.selectionStart;
+      const insertionStart = cursorAfter - data.length;
+      const maskedSuffix = this.TEXTAREA.value.length - cursorAfter;
 
-      this.#realValue += newChars;
-    } else if (displayValue.length < prevLength) {
-      // Characters were deleted.
-      this.#realValue = this.#realValue.slice(0, displayValue.length);
-    }
+      this.#realValue =
+        this.#realValue.slice(0, insertionStart) +
+        data +
+        this.#realValue.slice(this.#realValue.length - maskedSuffix);
 
-    const addedCount = displayValue.length - prevLength > 0 ? displayValue.length - prevLength : 0;
-    const maskedPrefix = hashSymbol.repeat(this.#realValue.length - addedCount);
-    const visibleSuffix = displayValue.length > prevLength ? displayValue.slice(prevLength) : '';
+      this.TEXTAREA.value = maskChar.repeat(insertionStart) + data + maskChar.repeat(maskedSuffix);
+      this.TEXTAREA.setSelectionRange(cursorAfter, cursorAfter);
 
-    this.TEXTAREA.value = maskedPrefix + visibleSuffix;
+      if (this.#revealTimer !== null) {
+        clearTimeout(this.#revealTimer);
+      }
 
-    if (this.#revealTimer !== null) {
-      clearTimeout(this.#revealTimer);
-    }
-
-    if (visibleSuffix.length > 0) {
       this.#revealTimer = this.hot._registerTimeout(() => {
-        this.TEXTAREA.value = hashSymbol.repeat(this.#realValue.length);
+        this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
         this.#revealTimer = null;
       }, delay);
+
+    } else if (inputType.startsWith('delete')) {
+      // Cursor after deletion + deleted-count (derived from display length change) lets us
+      // splice the correct characters from any position.
+      const prevRealLength = this.#realValue.length;
+      const cursorAfter = this.TEXTAREA.selectionStart;
+      const deletedCount = prevRealLength - this.TEXTAREA.value.length;
+
+      this.#realValue =
+        this.#realValue.slice(0, cursorAfter) +
+        this.#realValue.slice(cursorAfter + deletedCount);
+
+      this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
+
+      if (this.#revealTimer !== null) {
+        clearTimeout(this.#revealTimer);
+        this.#revealTimer = null;
+      }
+
+    } else {
+      // Fallback for paste, composition, undo/redo, and tests that dispatch without inputType.
+      // Length comparison works for simple append-at-end cases.
+      const prevLength = this.#realValue.length;
+      const displayValue = this.TEXTAREA.value;
+
+      if (displayValue.length > prevLength) {
+        const newChars = displayValue.slice(prevLength);
+
+        this.#realValue += newChars;
+        this.TEXTAREA.value = maskChar.repeat(prevLength) + newChars;
+
+        if (this.#revealTimer !== null) {
+          clearTimeout(this.#revealTimer);
+        }
+
+        this.#revealTimer = this.hot._registerTimeout(() => {
+          this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
+          this.#revealTimer = null;
+        }, delay);
+
+      } else {
+        this.#realValue = this.#realValue.slice(0, displayValue.length);
+        this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
+
+        if (this.#revealTimer !== null) {
+          clearTimeout(this.#revealTimer);
+          this.#revealTimer = null;
+        }
+      }
     }
   }
 }

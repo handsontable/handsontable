@@ -668,6 +668,44 @@ describe('PasswordEditor', () => {
       expect(editor.value).toBe('#');
     });
 
+    it('should correctly update the stored value when all text is selected and replaced', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      // Simulate: select all ('***' for real 'abc'), type 'x'. Browser sets value='x', cursor at 1.
+      editor.value = 'x';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'x' }));
+
+      expect(activeEditor.getValue()).toBe('x');
+    });
+
+    it('should use only the first character of hashSymbol when masking characters in the editor input', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50, hashSymbol: '##' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+
+      await sleep(150);
+
+      expect(editor.value).toBe('#');
+    });
+
     it('should save the real (unmasked) value to the data source on close', async() => {
       handsontable({
         data: [[''], ['']],
