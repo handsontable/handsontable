@@ -211,6 +211,7 @@ export class PasswordEditor extends TextEditor {
         this.#realValue.slice(cursorAfter + deletedCount);
 
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
+      this.TEXTAREA.setSelectionRange(cursorAfter, cursorAfter);
 
       if (this.#revealTimer !== null) {
         clearTimeout(this.#revealTimer);

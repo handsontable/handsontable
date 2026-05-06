@@ -668,6 +668,35 @@ describe('PasswordEditor', () => {
       expect(editor.value).toBe('#');
     });
 
+    it('should restore the cursor to the deletion point after deleting a still-visible character', async() => {
+      handsontable({
+        data: [['']],
+        // Long delay so both typed characters remain visible when we delete.
+        columns: [{ type: 'password', hashRevealDelay: 5000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      // Type 'a' then 'b'. Both are still visible (delay is 5 s) so display = 'ab'.
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+      editor.value = 'ab';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'b' }));
+
+      // Forward-delete 'a' at position 0. Browser sets value='b', cursor stays at 0.
+      // Handler must replace 'b' with '*' (masked). The value CHANGES, so without
+      // setSelectionRange the cursor would jump to end (position 1).
+      editor.value = 'b';
+      editor.selectionStart = 0;
+      editor.selectionEnd = 0;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContentForward' }));
+
+      expect(editor.selectionStart).toBe(0);
+    });
+
     it('should correctly update the stored value when all text is selected and replaced', async() => {
       handsontable({
         data: [['abc']],
