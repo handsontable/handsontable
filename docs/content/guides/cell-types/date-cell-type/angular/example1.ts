@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, ViewEncapsulation, HostListener, ElementRef } from '@angular/core';
+import { Component, ViewChild, ViewEncapsulation, HostListener, ElementRef, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 interface CarData {
@@ -155,7 +155,7 @@ export class AppComponent {
     return this.localeOptions.find((o) => o.value === this.locale)?.label || '';
   }
 
-  constructor(private elementRef: ElementRef) {}
+  private elementRef = inject(ElementRef);
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
