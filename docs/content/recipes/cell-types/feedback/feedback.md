@@ -490,6 +490,6 @@ You built an emoji feedback cell editor using Handsontable's `editorFactory` hel
 
 ## Next steps
 
-- [Feedback (React)](@/recipes/cell-types/feedback-react/feedback-react.md) - The same pattern using React's `EditorComponent`.
-- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Feedback (React)](@/react/recipes/cell-types/feedback-react/feedback-react.md) - The same pattern using React's `EditorComponent`.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
 - [Star Rating](@/recipes/cell-types/rating/rating.md) - Another custom editor built with `editorFactory` and SVG stars.

@@ -483,6 +483,7 @@ export class ColorRendererConfigurableComponent extends HotCellRendererAdvancedC
 
 ---
 
+**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](@/javascript/recipes/cell-types/color-picker/color-picker.md).
 
 ## What you learned
 
@@ -490,6 +491,6 @@ You built a custom color picker cell in Angular using `HotCellEditorAdvancedComp
 
 ## Next steps
 
-- [Color Picker (JavaScript)](@/recipes/cell-types/color-picker/color-picker.md) - The same concept using `editorFactory` and the Pickr library.
-- [Colorful Picker (React)](@/recipes/cell-types/colorful-picker/colorful-picker.md) - The React version using `EditorComponent` and `react-colorful`.
-- [Star Rating Editor (Angular)](@/recipes/cell-types/guide-rating-angular/guide-rating.md) - Another Angular custom cell built with `HotCellEditorAdvancedComponent`.
+- [Color Picker (JavaScript)](@/javascript/recipes/cell-types/color-picker/color-picker.md) - The same concept using `editorFactory` and the Pickr library.
+- [Colorful Picker (React)](@/react/recipes/cell-types/colorful-picker/colorful-picker.md) - The React version using `EditorComponent` and `react-colorful`.
+- [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - Another Angular custom cell built with `HotCellEditorAdvancedComponent`.

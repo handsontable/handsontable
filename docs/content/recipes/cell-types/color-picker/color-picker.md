@@ -565,6 +565,6 @@ You integrated the Pickr color picker library as a Handsontable cell editor. You
 
 ## Next steps
 
-- [Colorful Picker (React)](@/recipes/cell-types/colorful-picker/colorful-picker.md) - The same pattern using `react-colorful` and React's `EditorComponent`.
-- [Color Picker (Angular)](@/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The same pattern using Angular components and the native HTML5 color input.
+- [Colorful Picker (React)](@/react/recipes/cell-types/colorful-picker/colorful-picker.md) - The same pattern using `react-colorful` and React's `EditorComponent`.
+- [Color Picker (Angular)](@/angular/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The same pattern using Angular components and the native HTML5 color input.
 - [Star Rating](@/recipes/cell-types/rating/rating.md) - Another custom editor built with `editorFactory` and SVG.
