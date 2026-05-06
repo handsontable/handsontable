@@ -7,12 +7,10 @@ import { GridSettings, HotTableModule, HotTableComponent } from '@handsontable/a
   imports: [HotTableModule],
   selector: 'notification-example-2',
   template: `
-    <div class="example-controls-container">
-      <div class="controls">
-        <button type="button" class="button button--primary" (click)="onSave()">Save</button>
-        <button type="button" class="button button--primary" (click)="onSyncError()">Sync error</button>
-        <button type="button" class="button button--primary" (click)="onLowStock()">Low stock</button>
-      </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <button type="button" (click)="onSave()">Save</button>
+      <button type="button" (click)="onSyncError()">Sync error</button>
+      <button type="button" (click)="onLowStock()">Low stock</button>
     </div>
     <hot-table #hotTable [data]="hotData" [settings]="hotSettings"></hot-table>
   `,
