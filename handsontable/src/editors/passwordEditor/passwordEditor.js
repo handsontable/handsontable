@@ -6,7 +6,6 @@ import { A11Y_TABINDEX } from '../../helpers/a11y';
 export const EDITOR_TYPE = 'password';
 
 /**
- * @private
  * @class PasswordEditor
  */
 export class PasswordEditor extends TextEditor {
@@ -14,7 +13,6 @@ export class PasswordEditor extends TextEditor {
    * Autoresize instance for resizing the editor to the size of the entered text. Its overwrites the default
    * resizer of the TextEditor.
    *
-   * @private
    * @type {Function}
    */
   autoResize = createInputElementResizer(this.hot.rootDocument, {
@@ -24,7 +22,6 @@ export class PasswordEditor extends TextEditor {
   /**
    * The real (unmasked) value tracked when `hashRevealDelay` is active.
    *
-   * @private
    * @type {string}
    */
   #realValue = '';
@@ -32,7 +29,6 @@ export class PasswordEditor extends TextEditor {
   /**
    * Timer ID for hiding the last revealed character.
    *
-   * @private
    * @type {number|null}
    */
   #revealTimer = null;
@@ -40,7 +36,6 @@ export class PasswordEditor extends TextEditor {
   /**
    * Bound input event handler used when `hashRevealDelay` is active.
    *
-   * @private
    * @type {Function|null}
    */
   #onInput = null;
@@ -50,15 +45,21 @@ export class PasswordEditor extends TextEditor {
    * `close()` so that `getValue()` still returns the real value after `prepare()` updates
    * `cellProperties` for the next cell (which happens before `finishEditing` fires via focusout).
    *
-   * @private
    * @type {boolean}
    */
   #inRevealMode = false;
 
+  /**
+   * @returns {string}
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
 
+  /**
+   * Creates the editor's DOM elements. Replaces the `<textarea>` from `TextEditor` with an
+   * `<input type="password">` element so that the browser masks its content natively.
+   */
   createElements() {
     super.createElements();
 
@@ -75,6 +76,11 @@ export class PasswordEditor extends TextEditor {
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 
+  /**
+   * Opens the editor. When `hashRevealDelay` is set, switches the input to `type="text"` and
+   * installs a manual masking handler so each typed character is briefly visible before being
+   * replaced by `hashSymbol`.
+   */
   open() {
     super.open();
 
@@ -92,6 +98,10 @@ export class PasswordEditor extends TextEditor {
     }
   }
 
+  /**
+   * Closes the editor. Removes the input event listener, cancels any pending reveal timer,
+   * resets reveal-mode state, and restores the input to `type="password"`.
+   */
   close() {
     if (this.#onInput) {
       this.TEXTAREA.removeEventListener('input', this.#onInput);
@@ -109,6 +119,13 @@ export class PasswordEditor extends TextEditor {
     super.close();
   }
 
+  /**
+   * Returns the current editor value. In reveal-delay mode returns the real (unmasked) value
+   * stored in `#realValue` rather than reading the input's display value, which may contain
+   * hash symbols.
+   *
+   * @returns {string}
+   */
   getValue() {
     if (this.#inRevealMode) {
       return this.#realValue;
@@ -117,6 +134,14 @@ export class PasswordEditor extends TextEditor {
     return super.getValue();
   }
 
+  /**
+   * Sets the editor value. In reveal-delay mode stores the plain value in `#realValue` and
+   * updates the input display with masked characters. When called from `beginEditing()` before
+   * `open()` has set `#inRevealMode`, pre-populates `#realValue` so `open()` can mask it
+   * immediately on display.
+   *
+   * @param {string} value The value to set.
+   */
   setValue(value) {
     if (this.#inRevealMode) {
       this.#realValue = value ?? '';
@@ -136,7 +161,6 @@ export class PasswordEditor extends TextEditor {
    * (which may contain hash symbols plus a newly typed plain character) with the stored
    * real value, then schedules masking of the new character.
    *
-   * @private
    * @param {string} hashSymbol The symbol used for masking.
    * @param {number} delay Milliseconds before the last typed character is masked.
    */
