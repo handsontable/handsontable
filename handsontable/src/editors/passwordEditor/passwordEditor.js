@@ -6,6 +6,7 @@ import { A11Y_TABINDEX } from '../../helpers/a11y';
 export const EDITOR_TYPE = 'password';
 
 /**
+ * @private
  * @class PasswordEditor
  */
 export class PasswordEditor extends TextEditor {
@@ -13,6 +14,7 @@ export class PasswordEditor extends TextEditor {
    * Autoresize instance for resizing the editor to the size of the entered text. Its overwrites the default
    * resizer of the TextEditor.
    *
+   * @private
    * @type {Function}
    */
   autoResize = createInputElementResizer(this.hot.rootDocument, {
@@ -177,8 +179,8 @@ export class PasswordEditor extends TextEditor {
       // Characters were deleted.
       this.#realValue = this.#realValue.slice(0, displayValue.length);
     }
-    // If lengths are equal, the display already matches (e.g. pasted masked content) - no change.
 
+    // If lengths are equal, the display already matches (e.g. pasted masked content) - no change.
     const maskedPrefix = hashSymbol.repeat(this.#realValue.length - (displayValue.length - prevLength > 0 ? displayValue.length - prevLength : 0));
     const visibleSuffix = displayValue.length > prevLength ? displayValue.slice(prevLength) : '';
 
