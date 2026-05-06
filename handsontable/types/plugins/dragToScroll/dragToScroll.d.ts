@@ -8,7 +8,10 @@ interface DOMBoundaries {
   bottom: number;
 }
 
-export type Settings = boolean;
+export type Settings = boolean | {
+  interval?: { min?: number; max?: number };
+  rampDistance?: number;
+};
 
 export class DragToScroll extends BasePlugin {
   constructor(hotInstance: Core);
