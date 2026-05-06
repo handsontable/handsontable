@@ -3226,6 +3226,7 @@ export default () => {
      * duration and is then replaced by the `hashSymbol`. This lets the user confirm what they
      * typed without permanently exposing the value. Requires `type: 'password'`.
      *
+     * @since 17.2.0
      * @memberof Options#
      * @type {number}
      * @default undefined
