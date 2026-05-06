@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 
@@ -166,23 +165,29 @@ async function parseFile(file: File): Promise<ParsedPayload> {
           id="import-sample-csv-ng"
           rows="5"
           spellcheck="false"
-          [(ngModel)]="sampleCsv"
-        >
-        </textarea>
+          [value]="sampleCsv"
+          (input)="sampleCsv = $any($event.target).value"
+        ></textarea>
         <div class="import-sample-actions">
           <button type="button" (click)="parseSampleCsv()">Parse sample CSV</button>
         </div>
       </div>
 
-      <div *ngIf="errorMessage" class="import-msg import-msg--error">{{ errorMessage }}</div>
+      @if (errorMessage) {
+        <div class="import-msg import-msg--error">{{ errorMessage }}</div>
+      }
 
-      <div *ngIf="showPreview" class="import-preview">
-        <p class="import-preview-title">Detected column headers (not loaded yet):</p>
-        <ul class="import-header-list">
-          <li *ngFor="let h of pending?.headers">{{ h }}</li>
-        </ul>
-        <button type="button" class="import-apply-btn" (click)="applyToGrid()">Load into grid</button>
-      </div>
+      @if (showPreview) {
+        <div class="import-preview">
+          <p class="import-preview-title">Detected column headers (not loaded yet):</p>
+          <ul class="import-header-list">
+            @for (h of pending?.headers ?? []; track h) {
+              <li>{{ h }}</li>
+            }
+          </ul>
+          <button type="button" class="import-apply-btn" (click)="applyToGrid()">Load into grid</button>
+        </div>
+      }
 
       <hot-table [data]="gridData" [settings]="gridSettings"></hot-table>
     </div>
