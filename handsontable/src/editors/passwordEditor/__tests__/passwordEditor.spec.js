@@ -778,6 +778,70 @@ describe('PasswordEditor', () => {
       expect(editor.value).toBe('#');
     });
 
+    it('should not crash and should use the default mask when hashSymbol is an empty string', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50, hashSymbol: '' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+
+      expect(activeEditor.getValue()).toBe('a');
+
+      await sleep(150);
+
+      expect(editor.value).toBe('*');
+    });
+
+    it('should correctly handle paste inserted mid-string', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      // Simulate paste of 'XY' at position 1. Browser sets value='*XY**', cursor at 3.
+      editor.value = '*XY**';
+      editor.selectionStart = 3;
+      editor.selectionEnd = 3;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: 'XY' }));
+
+      expect(activeEditor.getValue()).toBe('aXYbc');
+    });
+
+    it('should correctly handle paste that replaces a selection', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      // Simulate paste of 'XY' replacing positions 1-3. Browser sets value='*XY', cursor at 3.
+      editor.value = '*XY';
+      editor.selectionStart = 3;
+      editor.selectionEnd = 3;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: 'XY' }));
+
+      expect(activeEditor.getValue()).toBe('aXY');
+    });
+
     it('should save the real (unmasked) value to the data source on close', async() => {
       handsontable({
         data: [[''], ['']],

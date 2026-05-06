@@ -86,7 +86,9 @@ export class PasswordEditor extends TextEditor {
   open() {
     super.open();
 
-    const { hashRevealDelay, hashSymbol = '*' } = this.cellProperties;
+    const { hashRevealDelay } = this.cellProperties;
+    // || fallback catches empty string ('') in addition to undefined/null.
+    const hashSymbol = this.cellProperties.hashSymbol || '*';
 
     if (hashRevealDelay > 0) {
       this.#inRevealMode = true;
@@ -151,7 +153,7 @@ export class PasswordEditor extends TextEditor {
   setValue(value) {
     if (this.#inRevealMode) {
       this.#realValue = value ?? '';
-      const maskChar = (this.cellProperties.hashSymbol ?? '*')[0];
+      const maskChar = (this.cellProperties.hashSymbol || '*')[0];
 
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
     } else if (this.cellProperties?.hashRevealDelay > 0) {
@@ -164,9 +166,10 @@ export class PasswordEditor extends TextEditor {
 
   /**
    * Handles input events when `hashRevealDelay` is active. Updates `#realValue` and the
-   * display using cursor-position-based reconciliation for typed characters (correctly handles
+   * display using cursor-position-based reconciliation for all insert operations with data
+   * (typed characters, paste, drag-drop, IME composition, replacement text — correctly handles
    * append, mid-string insert, and select-and-replace), position-based tracking for deletions,
-   * and a length-based fallback for paste, composition, and unknown input types.
+   * and a length-based fallback for unknown input types.
    *
    * @param {InputEvent} event The DOM input event.
    * @param {string} maskChar The single-character mask used in the input field.
@@ -174,10 +177,18 @@ export class PasswordEditor extends TextEditor {
    */
   #handleRevealInput(event, maskChar, delay) {
     const { inputType, data } = event;
+    const isInsertWithData = data && (
+      inputType === 'insertText' ||
+      inputType === 'insertFromPaste' ||
+      inputType === 'insertFromDrop' ||
+      inputType === 'insertReplacementText' ||
+      inputType === 'insertCompositionText'
+    );
 
-    if (inputType === 'insertText' && data) {
+    if (isInsertWithData) {
       // Cursor position after browser insertion tells us exactly where chars were inserted
-      // and how many masked chars follow — works for append, mid-string, and select-replace.
+      // and how many masked chars follow — works for append, mid-string, select-replace,
+      // paste, drag-drop, IME composition, and replacement text.
       const cursorAfter = this.TEXTAREA.selectionStart;
       const insertionStart = cursorAfter - data.length;
       const maskedSuffix = this.TEXTAREA.value.length - cursorAfter;
