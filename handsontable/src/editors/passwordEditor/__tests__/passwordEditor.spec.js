@@ -547,4 +547,151 @@ describe('PasswordEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
+
+  describe('hashRevealDelay', () => {
+    it('should use a text input (not password) when hashRevealDelay is set', async() => {
+      handsontable({
+        data: [['secret']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      expect(editor.getAttribute('type')).toBe('text');
+    });
+
+    it('should show the last typed character in the input while delay has not elapsed', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      expect(editor.value).toBe('a');
+    });
+
+    it('should replace the typed character with the hash symbol after the delay elapses', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      expect(editor.value).toBe('a');
+
+      await sleep(150);
+
+      expect(editor.value).toBe('*');
+    });
+
+    it('should mask previous characters with hash symbol and show only the last typed one', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      editor.value = '*b';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      expect(editor.value).toBe('*b');
+    });
+
+    it('should return the real value from getValue(), not the masked display value', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      editor.value = '*b';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      expect(activeEditor.getValue()).toBe('ab');
+    });
+
+    it('should use a custom hashSymbol when masking delayed characters', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50, hashSymbol: '#' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      expect(editor.value).toBe('#');
+    });
+
+    it('should save the real (unmasked) value to the data source on close', async() => {
+      handsontable({
+        data: [[''], ['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      editor.value = '*b';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      await selectCell(1, 0);
+
+      expect(getDataAtCell(0, 0)).toBe('ab');
+    });
+  });
 });
