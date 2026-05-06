@@ -697,6 +697,49 @@ describe('PasswordEditor', () => {
       expect(editor.selectionStart).toBe(0);
     });
 
+    it('should fall back to length-based reconciliation when a plain Event (no inputType) is dispatched', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      editor.value = 'a';
+      // Plain Event has inputType === undefined; must not throw and must reach the fallback path.
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+      expect(activeEditor.getValue()).toBe('a');
+    });
+
+    it('should preserve cursor position when the reveal timer masks the last typed character', async() => {
+      handsontable({
+        data: [['b']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      // Insert 'a' before the masked 'b'. Browser sets value='a*', cursor at 1.
+      editor.value = 'a*';
+      editor.selectionStart = 1;
+      editor.selectionEnd = 1;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+
+      // When the reveal timer fires it replaces 'a*' with '**'. Without setSelectionRange the
+      // cursor would jump to end (position 2).
+      await sleep(150);
+
+      expect(editor.selectionStart).toBe(1);
+    });
+
     it('should correctly update the stored value when all text is selected and replaced', async() => {
       handsontable({
         data: [['abc']],

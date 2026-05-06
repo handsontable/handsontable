@@ -195,11 +195,14 @@ export class PasswordEditor extends TextEditor {
       }
 
       this.#revealTimer = this.hot._registerTimeout(() => {
+        const cursor = this.TEXTAREA.selectionStart;
+
         this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
+        this.TEXTAREA.setSelectionRange(cursor, cursor);
         this.#revealTimer = null;
       }, delay);
 
-    } else if (inputType.startsWith('delete')) {
+    } else if (inputType?.startsWith('delete')) {
       // Cursor after deletion + deleted-count (derived from display length change) lets us
       // splice the correct characters from any position.
       const prevRealLength = this.#realValue.length;
