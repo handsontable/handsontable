@@ -275,9 +275,13 @@ async function parseFile(file: File): Promise<ParsedPayload> {
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
 }
 
-function columnsFromHeaders(headers: string[], rows: Record<string, CellValue>[]): ColumnDef[] {
+function columnsFromHeaders(headers: string[], pendingRows: Record<string, CellValue>[] | null): ColumnDef[] {
+  if (!pendingRows) {
+    return headers.map((data) => ({ data, type: 'text' }));
+  }
+
   return headers.map((data) => {
-    const values = rows
+    const values = pendingRows
       .map((row) => row[data])
       .filter((v) => v !== null);
 
@@ -297,24 +301,33 @@ function columnsFromHeaders(headers: string[], rows: Record<string, CellValue>[]
 const SAMPLE_CSV = `Product,Category,In stock,Price
 Widget A,Hardware,true,19.99
 Widget B,Hardware,false,24.5
-Service Pack,Services,true,0`;
+Service Pack,Services,true,0
+`;
 /* end:skip-in-preview */
 
 const ExampleComponent = () => {
+  const [pending, setPendingState] = useState<ParsedPayload | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [sampleCsv, setSampleCsv] = useState<string>(SAMPLE_CSV);
   const [dropzoneActive, setDropzoneActive] = useState<boolean>(false);
   const [gridData, setGridData] = useState<Record<string, CellValue>[]>([]);
   const [gridColHeaders, setGridColHeaders] = useState<string[]>([]);
   const [gridColumns, setGridColumns] = useState<ColumnDef[]>([]);
 
-  const loadIntoGrid = ({ headers, rows }: ParsedPayload): void => {
+  const clearPendingPreview = (): void => {
+    setPendingState(null);
+    setShowPreview(false);
+  };
+
+  const handleParsed = (payload: ParsedPayload): void => {
     setErrorMessage('');
-    setGridColHeaders(headers);
-    setGridColumns(columnsFromHeaders(headers, rows));
-    setGridData(rows);
+    setPendingState(payload);
+    setShowPreview(true);
   };
 
   const handleError = (e: unknown): void => {
+    clearPendingPreview();
     setErrorMessage(e instanceof Error ? e.message : String(e));
   };
 
@@ -334,7 +347,7 @@ const ExampleComponent = () => {
     try {
       const payload = await parseFile(file);
 
-      loadIntoGrid(payload);
+      handleParsed(payload);
     } catch (e) {
       handleError(e);
     }
@@ -364,17 +377,35 @@ const ExampleComponent = () => {
     handleFile(f);
   };
 
-  const handleLoadSample = async (): Promise<void> => {
+  const handleParseSample = async (): Promise<void> => {
     setErrorMessage('');
 
     try {
       const PapaRef = await ensurePapa();
-      const payload = parseCsvText(SAMPLE_CSV, PapaRef);
+      const payload = parseCsvText(sampleCsv, PapaRef);
 
-      loadIntoGrid(payload);
+      handleParsed(payload);
     } catch (e) {
       handleError(e);
     }
+  };
+
+  const handleApply = (): void => {
+    setErrorMessage('');
+
+    if (!pending) {
+      setErrorMessage('Nothing to load. Import a file first.');
+
+      return;
+    }
+
+    const { headers, rows } = pending;
+
+    setGridColHeaders(headers);
+    setGridColumns(columnsFromHeaders(headers, rows));
+    setGridData(rows);
+    setPendingState(null);
+    setShowPreview(false);
   };
 
   return (
@@ -389,19 +420,32 @@ const ExampleComponent = () => {
         onDrop={handleDrop}
       >
         <p>
-          Drop a <code>.csv</code> or <code>.xlsx</code> file here, or pick a source.
+          Drop a <code>.csv</code> or <code>.xlsx</code> file here, or use the file picker.
         </p>
-        <div className="import-actions">
-          <label className="import-file-label">
-            <span>Choose file</span>
-            <input
-              type="file"
-              accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-              onChange={handleFileInputChange}
-            />
-          </label>
-          <button type="button" className="import-sample-btn" onClick={handleLoadSample}>
-            Load sample data
+        <label className="import-file-label">
+          <span>Choose file</span>
+          <input
+            type="file"
+            accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+            onChange={handleFileInputChange}
+          />
+        </label>
+      </div>
+
+      <div className="import-sample-block">
+        <label htmlFor="import-sample-csv">
+          Sample CSV (copy into a file or click <strong>Parse sample CSV</strong>):
+        </label>
+        <textarea
+          id="import-sample-csv"
+          rows={5}
+          spellCheck={false}
+          value={sampleCsv}
+          onChange={(ev) => setSampleCsv(ev.target.value)}
+        />
+        <div className="import-sample-actions">
+          <button type="button" onClick={handleParseSample}>
+            Parse sample CSV
           </button>
         </div>
       </div>
@@ -410,30 +454,29 @@ const ExampleComponent = () => {
         <div className="import-msg import-msg--error">{errorMessage}</div>
       )}
 
-      {gridData.length === 0 ? (
-        <div className="import-empty">
-          <span className="import-empty-icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" />
-              <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
-            </svg>
-          </span>
-          <p className="import-empty-title">No data loaded yet</p>
-          <p className="import-empty-text">
-            Drop a CSV or Excel file above, choose a file, or load the sample data to populate the table.
-          </p>
+      {showPreview && pending && (
+        <div className="import-preview">
+          <p className="import-preview-title">Detected column headers (not loaded yet):</p>
+          <ul className="import-header-list">
+            {pending.headers.map((h) => (
+              <li key={h}>{h}</li>
+            ))}
+          </ul>
+          <button type="button" className="import-apply-btn" onClick={handleApply}>
+            Load into grid
+          </button>
         </div>
-      ) : (
-        <HotTable
-          data={gridData}
-          columns={gridColumns}
-          colHeaders={gridColHeaders}
-          rowHeaders={true}
-          height="auto"
-          width="100%"
-          licenseKey="non-commercial-and-evaluation"
-        />
       )}
+
+      <HotTable
+        data={gridData}
+        columns={gridColumns}
+        colHeaders={gridColHeaders}
+        rowHeaders={true}
+        height="auto"
+        width="100%"
+        licenseKey="non-commercial-and-evaluation"
+      />
     </div>
   );
 };
