@@ -147,6 +147,15 @@ export class ColumnSummary extends BasePlugin {
   endpoints = null;
 
   /**
+   * Re-entry guard for the `afterFormulasValuesUpdate` hook so that the summary
+   * recalculation triggered by writing the summary result does not start
+   * another refresh.
+   *
+   * @type {boolean}
+   */
+  #refreshingFromFormulas = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ColumnSummary#enablePlugin} method is called.
    *
@@ -187,6 +196,8 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('afterRemoveCol',
       (...args) => this.endpoints.resetSetupAfterStructureAlteration('remove_col', ...args));
     this.addHook('afterRowMove', (...args) => this.#onAfterRowMove(...args));
+    this.addHook('afterFormulasValuesUpdate',
+      (...args) => this.#onAfterFormulasValuesUpdate(...args));
 
     super.enablePlugin();
   }
@@ -449,7 +460,9 @@ export class ColumnSummary extends BasePlugin {
     const visualRowIndex = this.hot.toVisualRow(row);
     const visualColumnIndex = this.hot.toVisualColumn(col);
 
-    let cellValue = this.hot.getSourceDataAtCell(row, col);
+    let cellValue = visualRowIndex !== null && visualColumnIndex !== null
+      ? this.hot.getDataAtCell(visualRowIndex, visualColumnIndex)
+      : this.hot.getSourceDataAtCell(row, col);
     let cellClassName = '';
 
     if (visualRowIndex !== null && visualColumnIndex !== null) {
@@ -530,6 +543,39 @@ export class ColumnSummary extends BasePlugin {
   #onAfterUpdateData(data, firstRun) {
     if (!firstRun) {
       this.endpoints.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * `afterFormulasValuesUpdate` hook callback. Refresh endpoints when the
+   * formula engine recalculates values that source columns may depend on.
+   *
+   * @param {Array} changes Changes from the formula engine.
+   */
+  #onAfterFormulasValuesUpdate(changes) {
+    if (this.#refreshingFromFormulas || !this.endpoints || !changes?.length) {
+      return;
+    }
+
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.enabled) {
+      return;
+    }
+
+    const sheetId = formulasPlugin.sheetId;
+    const hasMatchingChange = changes.some(change => change?.address?.sheet === sheetId);
+
+    if (!hasMatchingChange) {
+      return;
+    }
+
+    this.#refreshingFromFormulas = true;
+
+    try {
+      this.endpoints.refreshAllEndpoints();
+    } finally {
+      this.#refreshingFromFormulas = false;
     }
   }
 

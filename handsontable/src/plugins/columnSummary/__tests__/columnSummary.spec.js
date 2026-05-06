@@ -1,3 +1,5 @@
+import HyperFormula from 'hyperformula';
+
 describe('ColumnSummarySpec', () => {
   const id = 'testContainer';
   const warnMessage = 'One of the Column Summary plugins\' destination points you ' +
@@ -1222,5 +1224,112 @@ describe('ColumnSummarySpec', () => {
 
     expect(getCellMeta(3, 1).readOnly).toBe(true);
     expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');
+  });
+
+  describe('integration with the `Formulas` plugin', () => {
+    it('should include calculated formula values in the `sum` summary (#10980)', async() => {
+      handsontable({
+        data: [
+          [1, 2, '=A1+B1'],
+          [3, 4, '=A2+B2'],
+          [5, 6, '=A3+B3'],
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        columnSummary: [{
+          destinationRow: 0,
+          destinationColumn: 2,
+          reversedRowCoords: true,
+          ranges: [[0, 2]],
+          type: 'sum'
+        }]
+      });
+
+      expect(getDataAtCell(3, 2)).toBe(21);
+    });
+
+    it('should include calculated formula values in the `min` and `max` summaries', async() => {
+      handsontable({
+        data: [
+          [1, 2, '=A1+B1'], // 3
+          [3, 4, '=A2+B2'], // 7
+          [5, 6, '=A3+B3'], // 11
+          [null, null, null],
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        columnSummary: [
+          {
+            destinationRow: 0,
+            destinationColumn: 2,
+            reversedRowCoords: true,
+            ranges: [[0, 2]],
+            type: 'min'
+          },
+          {
+            destinationRow: 1,
+            destinationColumn: 2,
+            reversedRowCoords: true,
+            ranges: [[0, 2]],
+            type: 'max'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(4, 2)).toBe(3);
+      expect(getDataAtCell(3, 2)).toBe(11);
+    });
+
+    it('should include calculated formula values in the `average` summary', async() => {
+      handsontable({
+        data: [
+          [2, 2, '=A1+B1'], // 4
+          [4, 4, '=A2+B2'], // 8
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        columnSummary: [{
+          destinationRow: 0,
+          destinationColumn: 2,
+          reversedRowCoords: true,
+          ranges: [[0, 1]],
+          type: 'average'
+        }]
+      });
+
+      expect(getDataAtCell(2, 2)).toBe(6);
+    });
+
+    it('should recalculate the summary when a referenced cell is changed', async() => {
+      handsontable({
+        data: [
+          [1, 2, '=A1+B1'],
+          [3, 4, '=A2+B2'],
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        columnSummary: [{
+          destinationRow: 0,
+          destinationColumn: 2,
+          reversedRowCoords: true,
+          ranges: [[0, 1]],
+          type: 'sum'
+        }]
+      });
+
+      expect(getDataAtCell(2, 2)).toBe(10);
+
+      await setDataAtCell(0, 0, 10);
+
+      expect(getDataAtCell(2, 2)).toBe(19);
+    });
   });
 });
