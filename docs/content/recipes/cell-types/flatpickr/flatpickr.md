@@ -3,7 +3,7 @@ type: tutorial
 id: c757a3b3
 title: Flatpickr
 metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
+description: Learn how to create a custom Handsontable cell type using Flatpickr for a date picker with cross-browser consistency and per-column configuration directly inside your data grid.
 permalink: /recipes/cell-types/flatpickr
 canonicalUrl: /recipes/cell-types/flatpickr
 tags:
@@ -58,7 +58,7 @@ This tutorial shows you how to integrate the Flatpickr date picker as a custom H
 
 ## Overview
 
-This guide shows how to create a custom date picker cell using [Flatpickr](https://flatpickr.js.org/), a powerful and flexible date picker library. This is more advanced than using native HTML5 date inputs, offering better cross-browser consistency and extensive customization options.
+This guide shows how to create a custom date picker cell using [Flatpickr](https://flatpickr.js.org/), a date picker library that provides better cross-browser consistency and more customization options than native HTML5 date inputs.
 
 **Difficulty:** Intermediate
 **Time:** ~20 minutes
@@ -98,7 +98,7 @@ registerAllModules();
 - Lightweight, modular date formatting
 - Better than native `toLocaleDateString()` for consistency
 - Can be replaced with other libraries (moment, dayjs, etc.)
-- We import `isDate` for validation
+- `isDate` is imported for validation
 
 **Why `editorFactory` and `rendererFactory`?**
 - `editorFactory` creates a custom editor with lifecycle hooks (`init`, `beforeOpen`, `afterOpen`, `afterClose`, `getValue`, `setValue`, etc.)
@@ -115,7 +115,7 @@ const DATE_FORMAT_EU = 'dd/MM/yyyy';
 **Why constants?**
 - Reusability across renderer and column configuration
 - Single source of truth
-- Easy to add more formats (ISO, custom, etc.)
+- Add more formats (ISO, custom, etc.) by extending this list
 
 ## Step 3: Create the Renderer
 
@@ -208,7 +208,7 @@ init(editor) {
 **What's happening:**
 1. Create an `input` element and add the `flatpickr-editor` CSS class for styling
 2. Initialize Flatpickr on the input with an `onClose` handler that calls `finishEditing()` when the calendar closes (e.g., after selecting a date or pressing Escape)
-3. Set `preventCloseElement` to the Flatpickr calendar container so that clicks inside the calendar are not treated as "outside" clicks — this keeps the editor open while the user selects a date
+3. Set `preventCloseElement` to the Flatpickr calendar container so that clicks inside the calendar are not treated as "outside" clicks -- this keeps the editor open while the user selects a date
 4. Create a `<link>` element for the dark theme (loaded dynamically in `afterOpen`)
 
 **Key concepts:**
@@ -304,7 +304,7 @@ beforeOpen(editor, { cellProperties }) {
 
 **Why update settings in `beforeOpen`?**
 - Allows different columns to have different Flatpickr configurations (e.g., EU vs US first day of week)
-- Settings are applied just before opening, ensuring they're fresh
+- Settings are applied before opening, ensuring they are current
 - More efficient than reinitializing Flatpickr each time
 
 ## Step 9: Editor - Get Value (`getValue`)
@@ -319,7 +319,7 @@ getValue(editor) {
 
 **What's happening:**
 - Flatpickr automatically updates `input.value` in ISO format (e.g., "2025-03-15")
-- Simply return the input's current value
+- Return the input's current value
 - Called when Handsontable needs to save the cell value
 
 ## Step 10: Editor - Set Value (`setValue`)
@@ -335,7 +335,7 @@ setValue(editor, value) {
 
 **What's happening:**
 - Set the input's value to the provided date string
-- Update Flatpickr's selected date using `setDate()` — use the cell value if present, otherwise the current date
+- Update Flatpickr's selected date using `setDate()` -- use the cell value if present, otherwise the current date
 - This ensures Flatpickr displays the correct date when opened
 - Called to initialize the editor with the cell's current value
 
@@ -629,7 +629,6 @@ flatpickrSettings: {
 
 ---
 
-**Congratulations!** You've created a production-ready date picker with full localization support, dark theme toggling, and advanced configuration.
 
 ## What you learned
 

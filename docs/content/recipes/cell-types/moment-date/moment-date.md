@@ -130,7 +130,7 @@ const correctFormat = (value, dateFormat) => {
 
 ## Step 3: Create the Renderer
 
-We reuse the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
+The example reuses the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
 
 ```typescript
 renderer: getRenderer('autocomplete')

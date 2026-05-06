@@ -3,7 +3,7 @@ type: tutorial
 id: 01620d5a
 title: Pikaday
 metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using Pikaday for a powerful, customizable date picker experience directly inside your data grid. This guide serves as a migration path for users migrating from the built-in date cell type.
+description: Learn how to create a custom Handsontable cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
 permalink: /recipes/cell-types/pikaday
 canonicalUrl: /recipes/cell-types/pikaday
 tags:
@@ -58,7 +58,7 @@ This tutorial shows you how to integrate the Pikaday date picker as a custom Han
 
 ## Overview
 
-This guide shows how to create a custom date picker cell using [Pikaday](https://github.com/Pikaday/Pikaday), a lightweight, no-dependencies date picker library. **This guide is essential for migration** - the built-in `date` cell type with Pikaday will be removed in the next Handsontable release. Use this recipe to maintain Pikaday functionality in your application.
+This guide shows how to create a custom date picker cell using [Pikaday](https://github.com/Pikaday/Pikaday), a date picker library with no dependencies. **Migration note:** the built-in `date` cell type with Pikaday will be removed in the next Handsontable release. Use this recipe to maintain Pikaday functionality in your application.
 
 **Difficulty:** Intermediate
 **Time:** ~25 minutes
@@ -114,7 +114,7 @@ const DEFAULT_DATE_FORMAT = DATE_FORMAT_US;
 **Why constants?**
 - Reusability across renderer and column configuration
 - Single source of truth
-- Easy to add more formats (EU, ISO, custom, etc.)
+- Add more formats (EU, ISO, custom, etc.) by extending this list
 
 ## Step 3: Define TypeScript Types
 
@@ -317,8 +317,8 @@ getDatePickerConfig(editor) {
 - `trigger`: Element that triggers the picker (same as field)
 - `container`: Where to render the calendar (editor container)
 - `bound: false`: Don't position relative to field
-- `keyboardInput: false`: Disable direct keyboard input (we handle it via shortcuts)
-- `reposition: false`: Don't auto-reposition (we handle positioning)
+- `keyboardInput: false`: Disable direct keyboard input (handled via shortcuts)
+- `reposition: false`: Don't auto-reposition (positioning is handled manually)
 
 ## Step 7: Editor - Show Datepicker (`showDatepicker`)
 
@@ -385,7 +385,7 @@ showDatepicker(editor, event) {
 3. Show the date picker container
 4. Create new Pikaday instance with configuration
 5. Configure Moment.js integration
-6. Disable input focus handler (we handle focus ourselves)
+6. Disable input focus handler (focus is handled by the editor lifecycle)
 7. Set initial date based on cell value, default date, or today
 
 **Key concepts:**
@@ -465,10 +465,9 @@ setValue(editor, value) {
 }
 ```
 
-**Why simple?**
-- Pikaday automatically updates `input.value` when date is selected
-- We just read/write the input value
-- Formatting is handled by Pikaday and our `onSelect` callback
+- Pikaday automatically updates `input.value` when a date is selected
+- `getValue` and `setValue` read and write the input value directly
+- Formatting is handled by Pikaday and the `onSelect` callback
 
 ## Step 12: Editor - Get Date Format (`getDateFormat`)
 
@@ -811,7 +810,7 @@ datePickerConfig: {
 Pikaday has good keyboard support out of the box:
 
 **Keyboard navigation:**
-- **Arrow Keys**: Navigate dates (via our shortcuts)
+- **Arrow Keys**: Navigate dates (via the registered shortcuts)
 - **Enter**: Select current date
 - **Escape**: Close datepicker
 - **Tab**: Navigate to next field
@@ -831,7 +830,6 @@ Pikaday automatically adds ARIA attributes for screen readers.
 
 ---
 
-**Congratulations!** You've created a production-ready Pikaday date picker cell with full customization options, keyboard navigation, and proper lifecycle management. This recipe ensures you can continue using Pikaday even after the built-in date cell type is removed!
 
 ## What you learned
 

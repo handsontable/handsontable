@@ -391,7 +391,6 @@ function DataGridWrapper() {
 export default DataGridWrapper;
 ```
 
-**Congratulations!** You've integrated Handsontable with your shadcn/ui design system using a custom theme, CSS variables, and a filterable data grid that matches your app's look and feel!
 
 ## What you learned
 

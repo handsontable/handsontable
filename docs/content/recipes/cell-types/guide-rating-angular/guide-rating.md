@@ -36,7 +36,7 @@ This tutorial shows you how to build an interactive SVG star rating cell in Angu
 
 ## Overview
 
-This guide shows how to create an interactive star rating cell using inline SVG stars with Angular's custom cell components. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
+This guide shows how to create an interactive star rating cell using inline SVG stars with Angular's custom cell components. Use it for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
@@ -76,7 +76,7 @@ import {
 - `HotTableModule` - Angular module providing the `<hot-table>` component (imported in `AppComponent`)
 - `KeyboardShortcutConfig` - Type for keyboard shortcuts configuration
 - `GridSettings` - Type for Handsontable configuration
-- `DomSanitizer` - Required so we can render SVG via `[innerHTML]` (Angular strips SVG by default)
+- `DomSanitizer` - Required to render SVG via `[innerHTML]` (Angular strips SVG by default)
 - Angular core modules for component creation
 
 **What we're NOT importing:**
@@ -264,13 +264,13 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 
 - **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/recipes/cell-types/rating/rating.md) (blue border, padding, background via CSS tokens)
 - **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (gold), `.current` for the selected star (accent color)
-- **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so we use a component method to compare the current value with the star index
+- **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so a component method compares the current value with the star index
 - **getValue()** - Method from base class returns current editor value
 - **Event bindings** - `(mouseover)` for hover preview, `(mousedown)` for selection
 
 ## Step 6: Editor - Mouse Event Handlers
 
-Add mouse interaction for hover preview and click selection. Use `closest('.rating-star')` so that when the user hovers over the SVG (or its `<path>`), we still find the parent span with `data-value`.
+Add mouse interaction for hover preview and click selection. Use `closest('.rating-star')` so that when the user hovers over the SVG (or its `<path>`), the handler finds the parent span with `data-value`.
 
 ```typescript
 export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> {
@@ -761,7 +761,6 @@ export class StarEditorAccessibleComponent extends HotCellEditorAdvancedComponen
 
 ---
 
-**Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Angular components, perfect for intuitive 1-5 star ratings in your data grid!
 
 ## What you learned
 

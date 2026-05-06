@@ -95,7 +95,7 @@ registerAllModules();
 - No icon libraries
 - No UI component libraries
 - No external SVG sprite sheets
-- Just Handsontable.
+- Handsontable only.
 
 ## Step 2: Define the Star SVG
 
@@ -598,7 +598,6 @@ Change colors by overriding CSS for specific columns:
 
 ---
 
-**Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Handsontable CSS tokens, perfect for intuitive 1-5 star ratings in your data grid!
 
 ## What you learned
 

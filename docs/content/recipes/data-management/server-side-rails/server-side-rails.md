@@ -474,7 +474,7 @@ const hot = new Handsontable(container, {
 - kaminari adds `.page(n).per(size)` plus `.total_count` to any ActiveRecord relation -- exactly what you need to build a `{ rows, total_rows }` response.
 - Validate every column name that reaches `order()` or a raw SQL fragment against a fixed whitelist. Never trust `params[:sort_prop]` or `params[:filters]` directly.
 - Pick one case convention (snake_case or camelCase) for the whole round trip. Mixing conventions silently breaks pagination, sorting, and filtering.
-- Translate `sort: { prop, order }` on the frontend to flat `sort_prop` / `sort_order` query params. This matches Rails' parameter-naming conventions and keeps the controller simple.
+- Translate `sort: { prop, order }` on the frontend to flat `sort_prop` / `sort_order` query params. This matches Rails' parameter-naming conventions and keeps the controller focused.
 - Handsontable's indexed `filters[N][...]` format parses directly into Rails' nested hash params -- no custom decoder is required.
 - Use `rack-cors` to allow requests from the frontend dev server. Place the middleware before `0` so it runs before Rails' routing.
 

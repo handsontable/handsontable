@@ -234,7 +234,7 @@ Two hooks drive the chart updates:
 3. **User Ctrl-clicks another row** -- `afterSelectionEnd` fires again. `hot.getSelected()` returns two range tuples. The `Set` deduplicates rows. The chart now shows two groups of bars.
 4. **User presses Escape** -- `afterDeselect` fires. `hot.getSelected()` returns `undefined`. `updateChart` resets the chart to the placeholder state.
 
-## What You Learned
+## What you learned
 
 - How to use `afterSelectionEnd` and `afterDeselect` hooks to react to grid selection changes.
 - How to read multi-range selections with `hot.getSelected()` and collect unique row indices.
@@ -242,7 +242,7 @@ Two hooks drive the chart updates:
 - How to update a Chart.js chart in place with `chart.data.labels`, `chart.data.datasets[i].data`, and `chart.update()` -- without destroying and recreating the chart instance.
 - How `selectionMode: 'row'` enables full-row selection for comparison workflows.
 
-## Next Steps
+## Next steps
 
 - Extend the chart to include more numeric columns (e.g., add Q1 Budget and Q2 Budget as additional datasets).
 - Add a column filter so the chart only reflects visible rows.
