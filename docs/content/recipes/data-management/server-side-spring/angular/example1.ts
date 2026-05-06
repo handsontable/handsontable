@@ -36,7 +36,7 @@ export class AppComponent {
       onRowsCreate: (payload: unknown) => this.onRowsCreate(payload),
       onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
       onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
-    },
+    } as any,
     columns: [
       { data: 'id', title: 'ID', readOnly: true, width: 60 },
       { data: 'name', title: 'Name', width: 200 },

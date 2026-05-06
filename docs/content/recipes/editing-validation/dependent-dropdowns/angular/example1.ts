@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import { RowObject } from 'handsontable/common';
 
 const CATEGORY_COL = 0;
@@ -45,14 +46,14 @@ export class AppComponent {
     rowHeaders: true,
     height: 200,
     width: '100%',
-    afterInit() {
+    afterInit(this: Handsontable) {
       for (let row = 0; row < this.countRows(); row++) {
         const category = String(this.getDataAtCell(row, CATEGORY_COL) ?? '');
         this.setCellMeta(row, SUBCATEGORY_COL, 'source', optionsForCategory(category));
       }
       this.render();
     },
-    afterChange(changes, source) {
+    afterChange(this: Handsontable, changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
       if (source === 'loadData' || !changes) {
         return;
       }

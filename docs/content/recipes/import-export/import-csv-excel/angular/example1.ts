@@ -66,15 +66,15 @@ async function parseCsvFile(file: File): Promise<ParsedPayload> {
       header: true,
       dynamicTyping: true,
       skipEmptyLines: 'greedy',
-      transformHeader: (h) => h.trim(),
-      complete: (results) => {
+      transformHeader: (h: string) => h.trim(),
+      complete: (results: Papa.ParseResult<Record<string, unknown>>) => {
         try {
           resolve(processPapaResults(results));
         } catch (e) {
           reject(e instanceof Error ? e : new Error(String(e)));
         }
       },
-      error: (err) => reject(err instanceof Error ? err : new Error(String(err))),
+      error: (err: Error) => reject(err instanceof Error ? err : new Error(String(err))),
     });
   });
 }

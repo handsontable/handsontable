@@ -13,8 +13,21 @@
     "@angular/platform-browser": "latest",
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
+    "@simonwep/pickr": "latest",
+    "@types/node": "^25.6.0",
+    "@types/papaparse": "^5.5.2",
+    "chart.js": "latest",
+    "date-fns": "latest",
+    "flatpickr": "latest",
+    "hyperformula": "latest",
+    "jspdf": "latest",
+    "jspdf-autotable": "latest",
+    "moment": "latest",
+    "numbro": "latest",
+    "papaparse": "latest",
     "rxjs": "~7.8.0",
     "typescript": "latest",
+    "xlsx": "latest",
     "zone.js": "~0.15.0"
   }
 }

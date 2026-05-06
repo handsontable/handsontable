@@ -3,7 +3,7 @@ import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angu
 import {
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-  GridSettings,,
+  GridSettings,
   HotTableModule
 } from '@handsontable/angular-wrapper';
 import { RowObject } from 'handsontable/common';

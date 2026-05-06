@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - 'docs/content/guides/**/angular/*.ts'
+      - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
   push:
     branches:
@@ -12,7 +12,7 @@ on:
       - master
       - 'release/**'
     paths:
-      - 'docs/content/guides/**/angular/*.ts'
+      - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
 
 concurrency:

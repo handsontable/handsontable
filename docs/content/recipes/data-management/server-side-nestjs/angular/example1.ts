@@ -52,7 +52,7 @@ export class AppComponent {
       onRowsCreate: (payload: unknown) => this.onRowsCreate(payload),
       onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
       onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
-    },
+    } as any,
     pagination: { pageSize: 5 },
     columnSorting: true,
     filters: true,

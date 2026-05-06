@@ -17,7 +17,7 @@ import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const contentDir = path.resolve(__dirname, '../content/guides');
+const contentDir = path.resolve(__dirname, '../content');
 const tmpDir = path.resolve(__dirname, '.tmp');
 
 fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -41,7 +41,15 @@ function findAngularExamples(dir, results = []) {
 }
 
 const FILE_RE = /\/\* file: (.+?) \*\/([\s\S]*?)\/\* end-file \*\//g;
+const CSS_IMPORT_RE = /^import\s+['"][^'"]+\.css['"]\s*;?\s*$/gm;
+const STYLE_URLS_RE = /styleUrls\s*:\s*\[[^\]]*\]/g;
 let fileCount = 0;
+
+function stripCssImports(code) {
+  return code
+    .replace(CSS_IMPORT_RE, '')
+    .replace(STYLE_URLS_RE, 'styles: []');
+}
 
 for (const srcPath of findAngularExamples(contentDir)) {
   const relPath = path.relative(contentDir, srcPath);
@@ -59,14 +67,14 @@ for (const srcPath of findAngularExamples(contentDir)) {
     const outDir = path.join(tmpDir, guideDir, exampleName);
 
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, filename.trim()), content.trim() + '\n');
+    fs.writeFileSync(path.join(outDir, filename.trim()), stripCssImports(content.trim()) + '\n');
     fileCount++;
   }
 
   if (!hasSections) {
     const outDir = path.join(tmpDir, path.dirname(relPath));
     fs.mkdirSync(outDir, { recursive: true });
-    fs.copyFileSync(srcPath, path.join(outDir, path.basename(relPath)));
+    fs.writeFileSync(path.join(outDir, path.basename(relPath)), stripCssImports(fs.readFileSync(srcPath, 'utf8')));
     fileCount++;
   }
 }
@@ -75,7 +83,7 @@ console.log(`Prepared ${fileCount} files in .tmp/`);
 
 const tsconfig = {
   extends: './tsconfig.json',
-  include: ['./.tmp/**/*.ts'],
+  include: ['./.tmp/**/*.ts', './types/**/*.d.ts'],
   exclude: ['**/node_modules/**'],
 };
 

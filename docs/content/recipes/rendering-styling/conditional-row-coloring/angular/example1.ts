@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import { RowObject } from 'handsontable/common';
 import type { CellMeta, CellProperties } from 'handsontable/settings';
 
@@ -87,7 +88,7 @@ export class AppComponent {
         return;
       }
 
-      const col = this.propToCol(prop);
+      const col = this.propToCol(prop) as number;
       const td = this.getCell(row, col);
 
       if (!td) {

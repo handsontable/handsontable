@@ -58,7 +58,7 @@ export class AppComponent {
       onRowsCreate: (rows: unknown) => this.onRowsCreate(rows),
       onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
       onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
-    },
+    } as any,
     pagination: { pageSize: 10 },
     columnSorting: true,
     filters: true,
@@ -79,7 +79,7 @@ export class AppComponent {
     autoWrapRow: true,
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
+  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: Record<string, unknown>[]; totalRows: number }> {
     const url = buildUrl('http://localhost:8000/api/employees/', {
       page: params['page'],
       pageSize: params['pageSize'],
@@ -92,10 +92,10 @@ export class AppComponent {
       throw new Error(`Fetch failed: ${res.status}`);
     }
 
-    return res.json();
+    return res.json() as Promise<{ rows: Record<string, unknown>[]; totalRows: number }>;
   }
 
-  async onRowsCreate(rows: unknown): Promise<unknown> {
+  async onRowsCreate(rows: unknown): Promise<void> {
     const res = await fetch('http://localhost:8000/api/employees/create-rows/', {
       method: 'POST',
       headers: {
@@ -109,7 +109,7 @@ export class AppComponent {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    return res.json();
+    await res.json();
   }
 
   async onRowsUpdate(rows: unknown): Promise<void> {
