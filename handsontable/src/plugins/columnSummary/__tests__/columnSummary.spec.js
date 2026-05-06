@@ -1342,6 +1342,40 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(3, 1)).toBe(15);
     });
 
+    it('should not recalculate endpoints when formulas updates only touch unrelated columns', async() => {
+      const customFunction = jasmine.createSpy('customFunction').and.returnValue(0);
+
+      handsontable({
+        data: [
+          [1, 2, '=A1+B1'],
+          [3, 4, '=A2+B2'],
+          [5, 6, '=A3+B3'],
+          [null, null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        columnSummary: [{
+          destinationRow: 0,
+          destinationColumn: 3,
+          sourceColumn: 3,
+          reversedRowCoords: true,
+          ranges: [[0, 2]],
+          type: 'custom',
+          customFunction
+        }]
+      });
+
+      const initialCalls = customFunction.calls.count();
+
+      // Editing column A only triggers recalculation of the formula in column C.
+      // Neither column matches the endpoint's sourceColumn (3), so the custom
+      // function must not be invoked again from `afterFormulasValuesUpdate`.
+      await setDataAtCell(0, 0, 99);
+
+      expect(customFunction.calls.count()).toBe(initialCalls);
+    });
+
     it('should recalculate the summary when a referenced cell is changed', async() => {
       handsontable({
         data: [

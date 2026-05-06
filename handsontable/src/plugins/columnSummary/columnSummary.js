@@ -546,8 +546,8 @@ export class ColumnSummary extends BasePlugin {
   }
 
   /**
-   * `afterFormulasValuesUpdate` hook callback. Refresh endpoints when the
-   * formula engine recalculates values that source columns may depend on.
+   * `afterFormulasValuesUpdate` hook callback. Refresh only endpoints whose
+   * `sourceColumn` (visual) maps to a column the engine recalculated.
    *
    * @param {Array} changes Changes from the formula engine.
    */
@@ -563,16 +563,37 @@ export class ColumnSummary extends BasePlugin {
     }
 
     const sheetId = formulasPlugin.sheetId;
-    const hasMatchingChange = changes.some(change => change?.address?.sheet === sheetId);
+    const changedHfColumns = new Set();
 
-    if (!hasMatchingChange) {
+    changes.forEach((change) => {
+      if (change?.address?.sheet === sheetId) {
+        changedHfColumns.add(change.address.col);
+      }
+    });
+
+    if (changedHfColumns.size === 0) {
+      return;
+    }
+
+    const changedVisualColumns = new Set();
+
+    this.endpoints.getAllEndpoints().forEach((endpoint) => {
+      const hfSourceColumn = formulasPlugin.columnAxisSyncer
+        .getHfIndexFromVisualIndex(endpoint.sourceColumn);
+
+      if (changedHfColumns.has(hfSourceColumn)) {
+        changedVisualColumns.add(endpoint.sourceColumn);
+      }
+    });
+
+    if (changedVisualColumns.size === 0) {
       return;
     }
 
     this.#refreshingFromFormulas = true;
 
     try {
-      this.endpoints.refreshAllEndpoints();
+      this.endpoints.refreshEndpointsBySourceColumns(changedVisualColumns);
     } finally {
       this.#refreshingFromFormulas = false;
     }
