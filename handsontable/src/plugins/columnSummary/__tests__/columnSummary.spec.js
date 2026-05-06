@@ -1306,6 +1306,42 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(2, 2)).toBe(6);
     });
 
+    it('should sum the visual `sourceColumn` after a manual column move', async() => {
+      handsontable({
+        data: [
+          [1, 100, 1000],
+          [2, 200, 2000],
+          [3, 300, 3000],
+          [null, null, null],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        manualColumnMove: true,
+        columnSummary: [{
+          destinationRow: 0,
+          destinationColumn: 1,
+          reversedRowCoords: true,
+          ranges: [[0, 2]],
+          type: 'sum'
+        }]
+      });
+
+      // Initial: visual column 1 = [100, 200, 300] -> sum 600.
+      expect(getDataAtCell(3, 1)).toBe(600);
+
+      // Move physical column 1 to visual position 0; visual column 1 now
+      // holds the original physical column 0 -> [1, 2, 3].
+      await getPlugin('manualColumnMove').moveColumn(1, 0);
+      await render();
+
+      // Trigger a refresh on the (visual) sourceColumn so the summary recalculates.
+      await setDataAtCell(0, 1, 10);
+
+      // Sum of visual column 1 = [10, 2, 3] = 15.
+      expect(getDataAtCell(3, 1)).toBe(15);
+    });
+
     it('should recalculate the summary when a referenced cell is changed', async() => {
       handsontable({
         data: [

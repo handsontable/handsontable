@@ -458,15 +458,14 @@ export class ColumnSummary extends BasePlugin {
    */
   getCellValue(row, col) {
     const visualRowIndex = this.hot.toVisualRow(row);
-    const visualColumnIndex = this.hot.toVisualColumn(col);
 
-    let cellValue = visualRowIndex !== null && visualColumnIndex !== null
-      ? this.hot.getDataAtCell(visualRowIndex, visualColumnIndex)
+    let cellValue = visualRowIndex !== null
+      ? this.hot.getDataAtCell(visualRowIndex, col)
       : this.hot.getSourceDataAtCell(row, col);
     let cellClassName = '';
 
-    if (visualRowIndex !== null && visualColumnIndex !== null) {
-      cellClassName = this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className || '';
+    if (visualRowIndex !== null) {
+      cellClassName = this.hot.getCellMeta(visualRowIndex, col).className || '';
     }
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {
