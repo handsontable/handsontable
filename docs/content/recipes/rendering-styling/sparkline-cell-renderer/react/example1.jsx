@@ -1,6 +1,7 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { registerRenderer, baseRenderer } from 'handsontable/renderers';
+import { registerCellType } from 'handsontable/cellTypes';
 import './example1.css';
 
 registerAllModules();
@@ -9,33 +10,55 @@ const SLOT = 10;
 const GAP = 2;
 const VIEW_HEIGHT = 100;
 const WEEK_KEYS = ['w1', 'w2', 'w3', 'w4', 'w5'];
+const VIEW_WIDTH = WEEK_KEYS.length * SLOT - GAP;
 
-function toNumbers(rowData) {
-  return WEEK_KEYS.map((key) => rowData?.[key])
-    .map((value) => (typeof value === 'number' ? value : Number(value)))
-    .filter((n) => Number.isFinite(n));
+// Returns null for invalid/non-numeric values, preserving each slot's position.
+function toSlots(rowData) {
+  return WEEK_KEYS.map((key) => {
+    const value = rowData?.[key];
+    const n = typeof value === 'number' ? value : Number(value);
+    return Number.isFinite(n) ? n : null;
+  });
 }
 
-// Inline SVG bars generated from the row values in w1-w5.
+// Computes the max absolute value across all rows so every bar uses the same scale.
+function getGlobalMax(instance) {
+  let max = 0;
+  for (const rowData of instance.getSourceData()) {
+    for (const n of toSlots(rowData)) {
+      if (n !== null) max = Math.max(max, Math.abs(n));
+    }
+  }
+  return max;
+}
+
+// Inline SVG bar chart generated from the row's w1-w5 values.
 const sparklineRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   baseRenderer(instance, td, row, col, prop, value, cellProperties);
 
   const sourceRow = instance.getSourceDataAtRow(row);
-  const numbers = toNumbers(sourceRow);
-  const max = numbers.reduce((m, n) => Math.max(m, Math.abs(n)), 0);
+  const slots = toSlots(sourceRow);
+  const validNumbers = slots.filter((n) => n !== null);
 
-  if (numbers.length === 0 || max === 0) {
-    td.textContent = '\u2014';
-    td.title = numbers.length === 0 ? 'No data' : 'All values are zero';
-
+  if (validNumbers.length === 0) {
+    td.textContent = '—';
+    td.title = 'No data';
     return;
   }
 
-  const average = numbers.reduce((sum, n) => sum + n, 0) / numbers.length;
-  const viewWidth = numbers.length * SLOT - GAP;
-  const rects = numbers
+  const globalMax = getGlobalMax(instance);
+
+  if (globalMax === 0) {
+    td.textContent = '—';
+    td.title = 'All values are zero';
+    return;
+  }
+
+  const average = validNumbers.reduce((sum, n) => sum + n, 0) / validNumbers.length;
+  const rects = slots
     .map((n, i) => {
-      const barHeight = (Math.abs(n) / max) * VIEW_HEIGHT;
+      if (n === null) return '';
+      const barHeight = (Math.abs(n) / globalMax) * VIEW_HEIGHT;
       const x = i * SLOT;
       const y = VIEW_HEIGHT - barHeight;
       const w = SLOT - GAP;
@@ -45,11 +68,12 @@ const sparklineRenderer = (instance, td, row, col, prop, value, cellProperties) 
     })
     .join('');
 
-  td.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 ${viewWidth} ${VIEW_HEIGHT}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${rects}</svg>`;
+  td.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${rects}</svg>`;
   td.removeAttribute('title');
 };
 
 registerRenderer('sparklineBar', sparklineRenderer);
+registerCellType('sparklineBar', { renderer: 'sparklineBar' });
 
 /* start:skip-in-preview */
 const data = [
@@ -83,7 +107,7 @@ const ExampleComponent = () => {
         {
           data: null,
           width: 220,
-          renderer: 'sparklineBar',
+          type: 'sparklineBar',
           className: 'htMiddle sparkline-cell',
           readOnly: true,
         },
