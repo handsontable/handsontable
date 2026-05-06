@@ -141,7 +141,7 @@ Both `$prop` values (for filters and for sort) are validated against an allowlis
 
 **Why `skip()`/`take()` instead of `paginate()`?**
 
-Laravel's `paginate(n)` manages its own `?page=` parameter and returns a `LengthAwarePaginator` JSON shape. Handsontable already sends `page` and `pageSize` directly, so manual `skip(($page - 1) * $pageSize)->take($pageSize)` is more straightforward and returns the `{ data, total }` shape that `fetchRows` expects.
+Laravel's `paginate(n)` manages its own `?page=` parameter and returns a `LengthAwarePaginator` JSON shape. Handsontable already sends `page` and `pageSize` directly, so manual `skip(($page - 1) * $pageSize)->take($pageSize)` returns the `{ data, total }` shape that `fetchRows` expects without any adapter code.
 
 ### `store()` -- create rows
 

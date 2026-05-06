@@ -412,7 +412,7 @@ The `StarRatingComponent` uses radio inputs. Enhance with ARIA:
 
 1. **Lightweight library**: react-star-rating-component is small and focused
 2. **React Virtual DOM**: Efficient updates only when value changes
-3. **Simple callbacks**: `onStarHover` and `onStarClick` are straightforward
+3. **Focused callbacks**: `onStarHover` and `onStarClick` each do one thing
 4. **No unnecessary re-renders**: Editor unmounts when closed
 
 ## TypeScript Support
@@ -450,7 +450,6 @@ The `StarRatingComponent` uses radio inputs. Enhance with ARIA:
 
 ---
 
-**Congratulations!** You've created a star rating editor using React's `EditorComponent` and `react-star-rating-component`, perfect for rating selection in your data grid!
 
 ## What you learned
 
@@ -460,4 +459,4 @@ You integrated the `react-star-rating-component` library as a Handsontable cell 
 
 - [Star Rating (JavaScript)](@/recipes/cell-types/rating/rating.md) - The same concept using `editorFactory` and SVG stars with no external library.
 - [Star Rating Editor (Angular)](@/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
-- [Colorful Picker (React)](@/recipes/cell-types/colorful-picker/colorful-picker.md) - Another React `EditorComponent` example for color selection.
+- [Colorful Picker (React)](@/recipes/cell-types/colorful-picker/colorful-picker.md) - Another custom editor using `EditorComponent` in React.

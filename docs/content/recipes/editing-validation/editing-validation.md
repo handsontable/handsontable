@@ -6,6 +6,7 @@ canonicalUrl: /recipes/editing-validation
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
+type: tutorial
 id: k3m9p2x7
 description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable.
 react:

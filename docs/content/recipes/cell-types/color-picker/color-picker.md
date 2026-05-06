@@ -144,7 +144,7 @@ Create a separate CSS file for the cell and editor styles. This uses Handsontabl
 
 ## Step 3: Create the Renderer
 
-The renderer controls how the cell looks when not being edited. It displays a colored circle swatch.
+The renderer controls how the cell looks when not being edited. The renderer displays a colored circle swatch.
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
@@ -155,7 +155,7 @@ renderer: rendererFactory(({ td, value }) => {
 **What's happening:**
 - `td` is the table cell DOM element
 - `value` is the cell's current value (e.g., "#ff0000")
-- We render a circle swatch with the color as its background
+- The renderer displays a circle swatch with the color as its background
 - The swatch is centered inside the cell via CSS flexbox
 
 ## Step 4: Create the Validator
@@ -326,7 +326,7 @@ setValue(editor, value) {
 **What's happening:**
 - `getValue` returns the input's current value (hex color code) when Handsontable saves the cell
 - `setValue` initializes the editor with the cell's current color value
-- On Pickr's `change` event we set `editor.input.value` from the selected color; when the user closes the picker, `hide` fires and we call `editor.finishEditing()`
+- On Pickr's `change` event, `editor.input.value` is set from the selected color; when the user closes the picker, `hide` fires and `editor.finishEditing()` is called
 
 ## Step 10: Editor - Keyboard Shortcuts
 
@@ -495,7 +495,7 @@ const hot = new Handsontable(container, hotOptions);
 2. **User Double-Clicks or <kbd>F2</kbd>**: Editor opens with a styled input and an "Open color picker" button
 3. **Color Picker Opens**: `afterOpen` sets the current color and calls `pickr.show()`
 4. **User Selects Color**: Pickr updates the preview; the `change` event updates `editor.input.value` with the hex from `color.toHEXA().toString()`
-5. **User Closes Picker (or presses Tab)**: The `hide` event fires (or Tab triggers `pickr.hide()`), we call `editor.finishEditing()`
+5. **User Closes Picker (or presses Tab)**: The `hide` event fires (or Tab triggers `pickr.hide()`), then `editor.finishEditing()` is called
 6. **Validation**: Validator checks hex format (# followed by 6 characters)
 7. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
 8. **Editor Closes**: `afterClose` calls `editor.pickr.hide()`, cell renderer shows updated swatch
@@ -558,7 +558,6 @@ theme: 'classic',
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell using the Pickr library (nano theme) with the `editorFactory` helper, a button to open the picker, a circle swatch renderer, and native Handsontable editor styling!
 
 ## What you learned
 

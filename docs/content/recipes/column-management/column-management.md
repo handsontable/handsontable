@@ -7,6 +7,7 @@ canonicalUrl: /recipes/column-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
+type: tutorial
 id: z7g9h1i3
 react:
   id: a8h0i2j4

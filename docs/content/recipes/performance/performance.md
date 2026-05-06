@@ -7,7 +7,7 @@ canonicalUrl: /recipes/performance
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
+type: tutorial
 id: e7c3b1a9
 react:
   id: f8d4c2ba

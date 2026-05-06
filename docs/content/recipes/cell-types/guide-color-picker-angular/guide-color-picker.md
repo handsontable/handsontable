@@ -175,7 +175,7 @@ const colorValidator = (value: string): boolean => {
 
 **What's happening:**
 
-- Simple function returning `boolean` - this is Angular's `CustomValidatorFn<string>` type
+- Returns `boolean` - this is Angular's `CustomValidatorFn<string>` type
 - Uses regex to validate hex color format: `#` followed by 6 hex characters
 - Returns `true` for valid colors like "#FF0000", "#00ff00"
 - Returns `false` for invalid formats
@@ -483,7 +483,6 @@ export class ColorRendererConfigurableComponent extends HotCellRendererAdvancedC
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](@/recipes/cell-types/color-picker/color-picker.md).
 
 ## What you learned
 

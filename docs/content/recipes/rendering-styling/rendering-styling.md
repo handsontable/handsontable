@@ -6,7 +6,7 @@ canonicalUrl: /recipes/rendering-styling
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: how-to
+type: tutorial
 id: a8f3c91d
 description: Practical recipes for row layout, summaries, custom renderers, and visual styling in Handsontable.
 react:
