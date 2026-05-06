@@ -638,4 +638,4 @@ You integrated the Flatpickr date picker as a Handsontable cell editor. You used
 
 - [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js, with portal positioning.
 - [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - A date cell type using Moment.js and Pikaday.
-- [Date picker (Angular)](@/recipes/cell-types/guide-datepicker-angular/guide-datepicker.md) - A date editor built with Angular components and the native HTML5 date input.
+- [Date picker (Angular)](@/angular/recipes/cell-types/guide-datepicker-angular/guide-datepicker.md) - A date editor built with Angular components and the native HTML5 date input.

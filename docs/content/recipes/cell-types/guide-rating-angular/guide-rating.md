@@ -87,7 +87,7 @@ import {
 
 ## Step 2: Create the Renderer Component
 
-The renderer displays 5 SVG stars wrapped in a flex container using CSS classes for color control (same approach as the [Star Rating recipe](@/recipes/cell-types/rating/rating.md)).
+The renderer displays 5 SVG stars wrapped in a flex container using CSS classes for color control (same approach as the [Star Rating recipe](@/javascript/recipes/cell-types/rating/rating.md)).
 
 ```typescript
 const starSvg =
@@ -262,7 +262,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 
 **What's happening:**
 
-- **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/recipes/cell-types/rating/rating.md) (blue border, padding, background via CSS tokens)
+- **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/javascript/recipes/cell-types/rating/rating.md) (blue border, padding, background via CSS tokens)
 - **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (gold), `.current` for the selected star (accent color)
 - **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so a component method compares the current value with the star index
 - **getValue()** - Method from base class returns current editor value
@@ -768,6 +768,6 @@ You built an SVG star rating cell in Angular using `HotCellEditorAdvancedCompone
 
 ## Next steps
 
-- [Star Rating (JavaScript)](@/recipes/cell-types/rating/rating.md) - The same concept using `editorFactory` and `rendererFactory`.
-- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - The React version using `EditorComponent` and `react-star-rating-component`.
-- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular editor using `HotCellEditorAdvancedComponent`.
+- [Star Rating (JavaScript)](@/javascript/recipes/cell-types/rating/rating.md) - The same concept using `editorFactory` and `rendererFactory`.
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The React version using `EditorComponent` and `react-star-rating-component`.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular editor using `HotCellEditorAdvancedComponent`.
