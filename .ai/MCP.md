@@ -34,13 +34,15 @@ If you prefer OAuth instead of a bearer token, remove the `headers` block from `
 
 Project-level MCP servers for Cursor are configured in `.cursor/mcp.json`. This file is committed.
 
-The bearer token is stored as a Cursor secret:
+ClickUp is configured as an **HTTP** MCP server (`url` + `headers`). Cursor resolves secrets in `headers` using **`${env:VARIABLE_NAME}`** syntax where needed (see [Cursor MCP docs](https://cursor.com/docs/context/mcp) — Config interpolation).
 
-1. Open Cursor Settings > MCP.
-2. Find the `clickup` entry and click the lock icon next to `CLICKUP_API_TOKEN`.
-3. Enter your ClickUp personal API token.
+The committed `.cursor/mcp.json` sets **`x-workspace-id`** to the shared team workspace (numeric ID, fixed in the file). You only need a **`CLICKUP_API_TOKEN`** in your environment for the `Authorization` header.
 
-Alternatively, set the variable in your shell environment (`export CLICKUP_API_TOKEN=pk_...`) and Cursor will pick it up via `${CLICKUP_API_TOKEN}` in `.cursor/mcp.json`.
+Set it in the environment Cursor inherits (shell profile, or your OS user environment), then restart Cursor:
+
+```bash
+export CLICKUP_API_TOKEN=pk_your_token_here
+```
 
 ### Verifying the setup
 
@@ -67,8 +69,9 @@ Once connected, the following tools are available to AI assistants:
 |---|---|
 | `clickup` server not listed in `/mcp` | Run `claude mcp list` to check config; verify `.mcp.json` exists at repo root |
 | `401 Unauthorized` errors | Token is wrong or expired; update `CLICKUP_API_TOKEN` in your shell profile and restart Claude Code |
-| OAuth prompt keeps appearing | Switch to bearer token auth (set `CLICKUP_API_TOKEN` and add `headers` block) |
-| Cursor shows server as disconnected | Check that `CLICKUP_API_TOKEN` is set in Cursor secrets or shell env |
+| OAuth prompt keeps appearing | Switch to bearer token auth: set `CLICKUP_API_TOKEN` and restore the `headers` block in `.cursor/mcp.json` |
+| Cursor shows server as disconnected | Set `CLICKUP_API_TOKEN`; restart Cursor so `${env:CLICKUP_API_TOKEN}` resolves |
+| Wrong space or "not found" from ClickUp tools | Token may be for another workspace, or `x-workspace-id` in `.cursor/mcp.json` does not match the workspace you use. Adjust `x-workspace-id` locally if needed (see Cursor setup above) |
 
 ---
 
