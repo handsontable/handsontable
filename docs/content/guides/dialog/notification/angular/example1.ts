@@ -9,7 +9,7 @@ import { GridSettings, HotTableModule, HotTableComponent } from '@handsontable/a
   template: `<hot-table #hotTable [data]="hotData" [settings]="hotSettings"></hot-table>`,
 })
 export class AppComponent implements AfterViewInit {
-  @ViewChild('hotTable', { static: false }) hotTable: HotTableComponent;
+  @ViewChild('hotTable', { static: false }) hotTable!: HotTableComponent;
 
   readonly hotData = [
     ['Review pricing sheet', 'Draft', 'Apr 12', 'Morgan Lee', 'Medium', 'Finance'],
