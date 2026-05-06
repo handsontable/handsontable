@@ -778,6 +778,42 @@ describe('PasswordEditor', () => {
       expect(editor.value).toBe('#');
     });
 
+    it('should set privacy-protecting attributes on the input when hashRevealDelay is active', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      expect(editor.getAttribute('autocomplete')).toBe('off');
+      expect(editor.getAttribute('spellcheck')).toBe('false');
+      expect(editor.getAttribute('autocapitalize')).toBe('off');
+      expect(editor.getAttribute('autocorrect')).toBe('off');
+    });
+
+    it('should remove privacy-protecting attributes when the editor is closed', async() => {
+      handsontable({
+        data: [[''], ['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      await selectCell(1, 0);
+
+      expect(editor.getAttribute('autocomplete')).toBeNull();
+      expect(editor.getAttribute('spellcheck')).toBeNull();
+      expect(editor.getAttribute('autocapitalize')).toBeNull();
+      expect(editor.getAttribute('autocorrect')).toBeNull();
+    });
+
     it('should not crash and should use the default mask when hashSymbol is an empty string', async() => {
       handsontable({
         data: [['']],

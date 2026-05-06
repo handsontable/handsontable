@@ -97,6 +97,10 @@ export class PasswordEditor extends TextEditor {
       const maskChar = hashSymbol[0];
 
       this.TEXTAREA.setAttribute('type', 'text');
+      this.TEXTAREA.setAttribute('autocomplete', 'off');
+      this.TEXTAREA.setAttribute('spellcheck', 'false');
+      this.TEXTAREA.setAttribute('autocapitalize', 'off');
+      this.TEXTAREA.setAttribute('autocorrect', 'off');
 
       // #realValue may already be set by setValue() called from beginEditing(); mask the display.
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
@@ -124,6 +128,10 @@ export class PasswordEditor extends TextEditor {
     this.#inRevealMode = false;
     this.#realValue = '';
     this.TEXTAREA.setAttribute('type', 'password');
+    this.TEXTAREA.removeAttribute('autocomplete');
+    this.TEXTAREA.removeAttribute('spellcheck');
+    this.TEXTAREA.removeAttribute('autocapitalize');
+    this.TEXTAREA.removeAttribute('autocorrect');
     super.close();
   }
 
