@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a sub-pixel gap at the grid bottom at non-integer browser zoom levels and misalignment between the master table and the bottom overlay when `fixedRowsBottom` is configured.",
+  "type": "fixed",
+  "issueOrPR": 12472,
+  "breaking": false,
+  "framework": "none"
+}

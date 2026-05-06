@@ -399,8 +399,10 @@ you edit a numeric cell:
   separator or currency symbol.<br>For example, during editing `$7,000.02`, the number displays as
   `7000.02`.
 - You can enter a decimal separator either with a period (`.`), or with a comma (`,`).
-- You can't enter a thousands separator. After you finish editing the cell, the thousands
-  separator is added automatically, based on your [`numericFormat`](@/api/options.md#numericformat)
+- For European locales where the decimal separator is a comma (e.g., `de-DE`, `fr-FR`, `es-ES`),
+  you can enter a dot-thousands grouped value such as `7.000` or `7.000,25`. Handsontable parses
+  these as `7000` and `7000.25` respectively. For other locales, the thousands separator is added
+  automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
 
 ## Result

@@ -36,7 +36,7 @@ This tutorial shows you how to build an emoji feedback cell in Angular using `Ho
 
 ## Overview
 
-This guide shows how to create a simple feedback editor cell using emoji buttons with Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent). Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
+This guide shows how to create a feedback editor cell using emoji buttons with Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent). Use it for status indicators or any scenario where users choose from a small set of visual options.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes

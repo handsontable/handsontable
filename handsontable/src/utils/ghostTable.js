@@ -153,12 +153,15 @@ class GhostTable {
     }
 
     arrayEach(this.rows, (row) => {
-      // In cases when the cell's content produces the height with a decimal point, the height
-      // needs to be rounded up to make sure that there will be a space for the cell's content.
-      // The `.offsetHeight` always returns the rounded number (floored), so it's not suitable for this case.
+      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision.
+      // Math.round is used instead of Math.ceil to avoid over-rounding at non-100% browser zoom
+      // levels (e.g. 90%), where fractional BCR values like 28.88 would ceil to 29 but
+      // a default-height row should remain at 29, not be inflated to 30.
+      // For genuinely taller rows the fractional part is typically >= 0.5, so round still
+      // produces the correct ceiling.
       const { height } = row.table.getBoundingClientRect();
 
-      callback(row.row, Math.ceil(height));
+      callback(row.row, Math.round(height));
     });
   }
 

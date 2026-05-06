@@ -108,7 +108,6 @@ export const data = [
   [false, 'Photofeed', 'China', 'HL Mountain Frame', '2025-07-14', '94-5088099', true, '106', 1, 4],
 ];
 export const SELECTED_CLASS = 'selected';
-export const ODD_ROW_CLASS = 'odd';
 
 export function addClassesToRows(TD, row, column, _prop, _value, cellProperties) {
   // Adding classes to `TR` just while rendering first visible `TD` element
@@ -127,13 +126,6 @@ export function addClassesToRows(TD, row, column, _prop, _value, cellProperties)
     parentElement.classList.add(SELECTED_CLASS);
   } else {
     parentElement.classList.remove(SELECTED_CLASS);
-  }
-
-  // Add class to odd TRs
-  if (row % 2 === 0) {
-    parentElement.classList.add(ODD_ROW_CLASS);
-  } else {
-    parentElement.classList.remove(ODD_ROW_CLASS);
   }
 }
 

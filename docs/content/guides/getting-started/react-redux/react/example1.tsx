@@ -127,7 +127,7 @@ const updatesReducer = (
 ) => {
   switch (action.type) {
     case 'updateData':
-      const newData = [...state.data];
+      const newData = state.data.map((row) => [...row]);
 
       action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
         newData[row][column] = newValue;

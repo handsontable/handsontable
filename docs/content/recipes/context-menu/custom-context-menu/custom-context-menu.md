@@ -21,6 +21,8 @@ category: Context Menu
 type: tutorial
 ---
 
+In this tutorial, you will add custom items to the Handsontable right-click context menu. You will learn how to define custom actions alongside built-in menu items and how to control which built-in items appear.
+
 ::: only-for javascript vue
 
 ::: example #example1 :hot-recipe --js 1 --css 2

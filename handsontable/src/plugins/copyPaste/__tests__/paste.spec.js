@@ -454,6 +454,22 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(0, 0)).toEqual('very\r\nlong\r\n\r\ntext');
     });
 
+    it('should keep a single quoted cell with bare mid-cell quote chars on one row (issue #11001)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+      });
+
+      await selectCell(0, 0);
+
+      // Apple Numbers wraps a multi-line cell with `"..."` and writes bare ASCII `"` chars
+      // (not `""`-escaped) inside the content. Internal `\n` characters must not split the
+      // cell into multiple rows, and bare `"` chars must be preserved.
+      triggerPaste('"Test: Some stage\nClick "check balance" on 42” tile.\nNote: text."');
+
+      expect(getDataAtCell(0, 0)).toBe('Test: Some stage\nClick "check balance" on 42” tile.\nNote: text.');
+      expect(getDataAtCell(1, 0)).toBe('A2');
+    });
+
     it('should properly paste data with excel-style multiline text', async() => {
       handsontable();
 

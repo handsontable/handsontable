@@ -98,7 +98,7 @@ registerAllModules();
 
 ## Step 2: Create the Renderer
 
-We reuse the built-in `text` renderer, which displays the time value as plain text:
+The example reuses the built-in `text` renderer, which displays the time value as plain text:
 
 ```typescript
 renderer: getRenderer('text')
@@ -169,7 +169,7 @@ validator: function(value, callback) {
 
 ## Step 4: Create the Editor
 
-We reuse the built-in `text` editor — a simple text input for editing the time value:
+The example reuses the built-in `text` editor -- a text input for editing the time value:
 
 ```typescript
 editor: getEditor('text')
@@ -194,7 +194,7 @@ registerCellType('moment-time', cellTimeTypeDefinition);
 **What's happening:**
 - **renderer**: Uses the built-in `text` renderer to display the time value
 - **validator**: Custom validator that validates and optionally corrects time format using Moment.js
-- **editor**: Uses the built-in `text` editor for simple text input
+- **editor**: Uses the built-in `text` editor for text input
 - **registerCellType**: Registers the `moment-time` cell type for use in column config
 
 ## Step 6: Use in Handsontable

@@ -110,7 +110,6 @@ export const data: (string | number | boolean)[][] = [
 ];
 
 export const SELECTED_CLASS = 'selected';
-export const ODD_ROW_CLASS = 'odd';
 
 export function addClassesToRows(
   TD: HTMLTableCellElement,
@@ -136,13 +135,6 @@ export function addClassesToRows(
     parentElement.classList.add(SELECTED_CLASS);
   } else {
     parentElement.classList.remove(SELECTED_CLASS);
-  }
-
-  // Add class to odd TRs
-  if (row % 2 === 0) {
-    parentElement.classList.add(ODD_ROW_CLASS);
-  } else {
-    parentElement.classList.remove(ODD_ROW_CLASS);
   }
 }
 

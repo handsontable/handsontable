@@ -567,7 +567,7 @@ Enhanced button appearance with CSS:
 
 ### 4. Dynamic Config from Cell Properties
 
-The `onPrepare` hook already handles this! Just pass different configs:
+The `onPrepare` hook already handles this -- pass different configs:
 
 ```tsx
 <HotColumn
@@ -761,13 +761,12 @@ For number-based feedback:
 1. **Use `onPrepare` for per-cell configuration** - Access `cellProperties` to read custom options
 2. **Handle keyboard events properly** - Use shortcuts for navigation
 3. **Call `finishEditing()` appropriately** - When user confirms changes (Enter, blur, button click)
-4. **Keep render prop function simple** - Extract complex logic into separate components or hooks
+4. **Keep render prop function focused** - Extract complex logic into separate components or hooks
 5. **Use `useCallback` for helper functions** - Prevents unnecessary re-renders
 6. **Update shortcuts in `useEffect`** - Ensures shortcuts match current config
 
 ---
 
-**Congratulations!** You've created a simple feedback editor with emoji buttons using React's `EditorComponent`, perfect for quick feedback selection in your data grid!
 
 ## What you learned
 

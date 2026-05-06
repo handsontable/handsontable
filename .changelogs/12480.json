@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved getSourceData() performance when called repeatedly inside the cells function or custom renderers.",
+  "type": "changed",
+  "issueOrPR": 12480,
+  "breaking": false,
+  "framework": "none"
+}

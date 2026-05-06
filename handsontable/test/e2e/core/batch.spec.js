@@ -156,7 +156,7 @@ describe('Core.batch', () => {
     expect(getTopInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getInlineStartClone().width()).toBe(50);
     expect(getInlineStartClone().height())
-      .toBe(layout.overlayHeight({ rows: 5 }) + layout.cellBorderWidth);
+      .toBe(layout.overlayHeight({ rows: 5 }));
     expect(getBottomInlineStartClone().width()).toBe(50);
     expect(getBottomInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getBottomClone().width()).toBe(250);

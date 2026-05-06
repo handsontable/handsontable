@@ -175,7 +175,7 @@ const colorValidator = (value: string): boolean => {
 
 **What's happening:**
 
-- Simple function returning `boolean` - this is Angular's `CustomValidatorFn<string>` type
+- Returns `boolean` - this is Angular's `CustomValidatorFn<string>` type
 - Uses regex to validate hex color format: `#` followed by 6 hex characters
 - Returns `true` for valid colors like "#FF0000", "#00ff00"
 - Returns `false` for invalid formats

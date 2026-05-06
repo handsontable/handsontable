@@ -1,5 +1,17 @@
 import { compareFunctionFactory as defaultSort } from 'handsontable/plugins/columnSorting/sortFunction/default';
 
+it('defaultSort comparing function should sort boolean values correctly', () => {
+  expect(defaultSort('asc', {}, {})(false, true)).toBe(-1);
+  expect(defaultSort('asc', {}, {})(true, false)).toBe(1);
+  expect(defaultSort('asc', {}, {})(false, false)).toBe(0);
+  expect(defaultSort('asc', {}, {})(true, true)).toBe(0);
+
+  expect(defaultSort('desc', {}, {})(false, true)).toBe(1);
+  expect(defaultSort('desc', {}, {})(true, false)).toBe(-1);
+  expect(defaultSort('desc', {}, {})(false, false)).toBe(0);
+  expect(defaultSort('desc', {}, {})(true, true)).toBe(0);
+});
+
 it('defaultSort comparing function shouldn\'t change order when comparing empty string, null and undefined', () => {
   expect(defaultSort('asc', {}, {})(null, null)).toBe(0);
   expect(defaultSort('desc', {}, {})(null, null)).toBe(0);

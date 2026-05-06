@@ -86,7 +86,7 @@ export function rtlEditorRectAtColumnStart4949SnapBottom(layout, docViewport) {
 
   return {
     start: 4949, // fixed right-column-start from the test configuration, not a theme value
-    top: offsetHeight - topSnapPad,
+    top: offsetHeight - topSnapPad + 1,
     maxWidth: colOuter,
   };
 }

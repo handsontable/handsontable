@@ -824,7 +824,11 @@ class Table {
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = currentTr.querySelector('th');
 
-      const topBorderCompensation = sourceRowIndex === 0 ? firstRowBorderCompensation : 0;
+      // Use the rendered row index (rowCount === 0 is always the first <tr> in this tbody),
+      // not the source row index (which would be wrong for clones whose first rendered row
+      // has a different source index). Any tbody's first <tr> gets border-top: 1px from the
+      // tr:first-child CSS rule, so the compensation applies regardless of source identity.
+      const topBorderCompensation = rowCount === 0 ? firstRowBorderCompensation : 0;
 
       if (rowHeader) {
         rowCurrentHeight = rowHeightFn(rowHeader);

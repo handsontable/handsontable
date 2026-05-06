@@ -412,7 +412,7 @@ The `StarRatingComponent` uses radio inputs. Enhance with ARIA:
 
 1. **Lightweight library**: react-star-rating-component is small and focused
 2. **React Virtual DOM**: Efficient updates only when value changes
-3. **Simple callbacks**: `onStarHover` and `onStarClick` are straightforward
+3. **Focused callbacks**: `onStarHover` and `onStarClick` each do one thing
 4. **No unnecessary re-renders**: Editor unmounts when closed
 
 ## TypeScript Support
@@ -450,7 +450,6 @@ The `StarRatingComponent` uses radio inputs. Enhance with ARIA:
 
 ---
 
-**Congratulations!** You've created a star rating editor using React's `EditorComponent` and `react-star-rating-component`, perfect for rating selection in your data grid!
 
 ## What you learned
 
