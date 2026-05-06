@@ -99,7 +99,7 @@ export class PasswordEditor extends TextEditor {
       // #realValue may already be set by setValue() called from beginEditing(); mask the display.
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
 
-      this.#onInput = (event) => this.#handleRevealInput(event, maskChar, hashRevealDelay);
+      this.#onInput = event => this.#handleRevealInput(event, maskChar, hashRevealDelay);
       this.TEXTAREA.addEventListener('input', this.#onInput);
     }
   }
