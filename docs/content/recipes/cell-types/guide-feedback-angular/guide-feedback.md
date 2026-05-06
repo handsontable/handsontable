@@ -36,7 +36,7 @@ This tutorial shows you how to build an emoji feedback cell in Angular using `Ho
 
 ## Overview
 
-This guide shows how to create a simple feedback editor cell using emoji buttons with Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent). Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
+This guide shows how to create a feedback editor cell using emoji buttons with Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent). Use it for status indicators or any scenario where users choose from a small set of visual options.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
@@ -134,7 +134,7 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 ## Step 3: Add Styling
 
-Use a separate CSS file with Handsontable CSS custom properties (tokens) so the editor matches native editors and adapts to themes and dark mode—same approach as the [Feedback recipe](@/recipes/cell-types/feedback/feedback.md).
+Use a separate CSS file with Handsontable CSS custom properties (tokens) so the editor matches native editors and adapts to themes and dark mode-same approach as the [Feedback recipe](@/recipes/cell-types/feedback/feedback.md).
 
 **example1.css:**
 
@@ -575,7 +575,7 @@ The editor works with any string values, not just emojis.
 
 ### 6. Using External CSS File
 
-The main example already uses an external CSS file (`example1.css`) with Handsontable tokens—see **Step 3** and the [Feedback recipe](@/recipes/cell-types/feedback/feedback.md) CSS. Use `styleUrls: ['./example1.css']` (or your own path) in the component. For a different file name or folder, point `styleUrls` to that file and keep the same `.feedback-editor` and `.active` rules with `var(--ht-*)` tokens for theme-aware styling.
+The main example already uses an external CSS file (`example1.css`) with Handsontable tokens-see **Step 3** and the [Feedback recipe](@/recipes/cell-types/feedback/feedback.md) CSS. Use `styleUrls: ['./example1.css']` (or your own path) in the component. For a different file name or folder, point `styleUrls` to that file and keep the same `.feedback-editor` and `.active` rules with `var(--ht-*)` tokens for theme-aware styling.
 
 ## Accessibility
 
@@ -623,7 +623,6 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 
 ---
 
-**Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Angular's [`HotCellEditorAdvancedComponent`](@/guides/cell-functions/custom-cells/custom-cells.md#hotcelleditoradvancedcomponent), matching the look of the [Feedback recipe](@/recipes/cell-types/feedback/feedback.md) and perfect for quick feedback selection in your data grid!
 
 ## What you learned
 
