@@ -70,7 +70,7 @@ let activeGuid = null;
 /**
  * Keeps the collection of the all Handsontable instances created on the same page. The
  * list is then used to trigger the "afterUnlisten" hook when the "listen()" method was
- * called on another instance.
+ * called on another instance
  *
  * @type {Map<string, Core>}
  */
