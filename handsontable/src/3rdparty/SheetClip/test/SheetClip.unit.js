@@ -237,5 +237,29 @@ describe('SheetClip', () => {
 
       expect(result).toEqual(expected);
     });
+
+    it('should keep a single quoted cell with bare mid-cell quote chars on one row (issue #11001)', () => {
+      // Apple Numbers exports a single cell that contains both smart quotes and bare ASCII
+      // double-quote characters. The structural closing `"` is followed by end-of-string, so
+      // the entire content (including bare `"`) must be parsed as one cell - never split on
+      // internal `\n`.
+      const entry = '"Test: stage line 2\nClick "check balance" on 42” tile.\nNote: text."';
+      const result = parse(entry);
+      const expected = [
+        ['Test: stage line 2\nClick "check balance" on 42” tile.\nNote: text.'],
+      ];
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should keep a single quoted cell with bare mid-cell quotes when followed by tab-separated cell', () => {
+      const entry = '"Click "OK" now\nthen continue"\tNext';
+      const result = parse(entry);
+      const expected = [
+        ['Click "OK" now\nthen continue', 'Next'],
+      ];
+
+      expect(result).toEqual(expected);
+    });
   });
 });
