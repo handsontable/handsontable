@@ -594,6 +594,6 @@ You built a date picker cell in Angular using `HotCellEditorAdvancedComponent` a
 
 ## Next steps
 
-- [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - A JavaScript date picker using the Flatpickr library with dark theme support.
-- [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js.
-- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular cell editor using `HotCellEditorAdvancedComponent`.
+- [Flatpickr](@/javascript/recipes/cell-types/flatpickr/flatpickr.md) - A JavaScript date picker using the Flatpickr library with dark theme support.
+- [Pikaday](@/javascript/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular cell editor using `HotCellEditorAdvancedComponent`.

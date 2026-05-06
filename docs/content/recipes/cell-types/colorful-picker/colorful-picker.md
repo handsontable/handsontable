@@ -429,6 +429,6 @@ You integrated the `react-colorful` library as a Handsontable cell editor in Rea
 
 ## Next steps
 
-- [Color Picker (JavaScript)](@/recipes/cell-types/color-picker/color-picker.md) - The same pattern using `editorFactory` and the Pickr library.
-- [Color Picker (Angular)](@/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The Angular version using `HotCellEditorAdvancedComponent` and the native HTML5 color input.
-- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - Another custom editor using `EditorComponent` in React.
+- [Color Picker (JavaScript)](@/javascript/recipes/cell-types/color-picker/color-picker.md) - The same pattern using `editorFactory` and the Pickr library.
+- [Color Picker (Angular)](@/angular/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The Angular version using `HotCellEditorAdvancedComponent` and the native HTML5 color input.
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - Another custom editor using `EditorComponent` in React.

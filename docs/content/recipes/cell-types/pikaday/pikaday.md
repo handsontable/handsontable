@@ -839,4 +839,4 @@ You integrated the Pikaday date picker as a Handsontable cell editor. You used `
 
 - [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - A date cell type combining Moment.js and Pikaday in a registered `moment-date` cell type.
 - [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - An alternative date picker using the Flatpickr library.
-- [Date picker (Angular)](@/recipes/cell-types/guide-datepicker-angular/guide-datepicker.md) - A date editor built with Angular components and the native HTML5 date input.
+- [Date picker (Angular)](@/angular/recipes/cell-types/guide-datepicker-angular/guide-datepicker.md) - A date editor built with Angular components and the native HTML5 date input.

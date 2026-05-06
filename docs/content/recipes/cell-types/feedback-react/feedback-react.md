@@ -774,6 +774,6 @@ You built an emoji feedback cell editor in React using Handsontable's `EditorCom
 
 ## Next steps
 
-- [Feedback (JavaScript)](@/recipes/cell-types/feedback/feedback.md) - The same pattern using `editorFactory` with Handsontable CSS tokens.
-- [Feedback Editor (Angular)](@/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
-- [Star Rating (React)](@/recipes/cell-types/react-rating/react-rating.md) - Another React editor using `EditorComponent` for numeric selection.
+- [Feedback (JavaScript)](@/javascript/recipes/cell-types/feedback/feedback.md) - The same pattern using `editorFactory` with Handsontable CSS tokens.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - Another React editor using `EditorComponent` for numeric selection.
