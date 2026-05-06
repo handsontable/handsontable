@@ -164,6 +164,9 @@ export interface GridSettings extends Events {
   fixedRowsTop?: number;
   formulas?: FormulasSettings;
   fragmentSelection?: boolean | 'cell';
+  hashLength?: number;
+  hashRevealDelay?: number;
+  hashSymbol?: string;
   headerClassName?: string;
   height?: number | 'auto' | string | (() => number | 'auto' | string);
   hiddenColumns?: HiddenColumnsSettings;
