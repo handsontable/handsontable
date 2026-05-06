@@ -16,7 +16,7 @@ import { GridSettings, HotTableModule, HotTableComponent } from '@handsontable/a
   `,
 })
 export class AppComponent {
-  @ViewChild('hotTable', { static: false }) hotTable: HotTableComponent;
+  @ViewChild('hotTable', { static: false }) hotTable!: HotTableComponent;
 
   readonly hotData = [
     ['SKU-001', 'Alkaline AA 4pk', 240, 40, 'A-12'],
