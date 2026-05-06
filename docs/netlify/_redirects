@@ -235,4 +235,10 @@
 /docs/javascript-data-grid/angular-language-change-example/ /docs/angular-data-grid/language/
 /docs/javascript-data-grid/angular-hot-reference/ /docs/angular-data-grid/api/core/
 
+# Angular cell-type recipe URL fixes - old flat paths redirect to correct /cell-types/ structure
+/docs/angular-data-grid/recipes/color-picker-angular/ /docs/angular-data-grid/recipes/cell-types/color-picker/ 301
+/docs/angular-data-grid/recipes/feedback-angular/ /docs/angular-data-grid/recipes/cell-types/feedback/ 301
+/docs/angular-data-grid/recipes/stars-rating-angular/ /docs/angular-data-grid/recipes/cell-types/rating/ 301
+/docs/angular-data-grid/recipes/datepicker-angular/ /docs/angular-data-grid/recipes/cell-types/datepicker/ 301
+
 /docs/next/:splat /docs/:splat
