@@ -1,8 +1,9 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, OnInit } from '@angular/core';
 import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 
-const coverRenderer = (_instance, td, _row, _col, _prop, value) => {
+const coverRenderer = (_instance: Handsontable, td: HTMLTableCellElement, _row: number, _col: number, _prop: string | number, value: string) => {
   const img = document.createElement('img');
 
   img.src = value;

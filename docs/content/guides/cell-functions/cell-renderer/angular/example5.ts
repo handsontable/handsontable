@@ -1,15 +1,16 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component } from '@angular/core';
 import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 
 function safeHtmlRenderer(
-  _instance,
-  td,
-  _row,
-  _col,
-  _prop,
-  value,
-  _cellProperties
+  _instance: Handsontable,
+  td: HTMLTableCellElement,
+  _row: number,
+  _col: number,
+  _prop: string | number,
+  value: string,
+  _cellProperties: Handsontable.CellProperties
 ) {
   // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
   // Sanitize the "value" before passing it to the innerHTML property.
@@ -18,13 +19,13 @@ function safeHtmlRenderer(
 }
 
 function coverRenderer(
-  _instance,
-  td,
-  _row,
-  _col,
-  _prop,
-  value,
-  _cellProperties
+  _instance: Handsontable,
+  td: HTMLTableCellElement,
+  _row: number,
+  _col: number,
+  _prop: string | number,
+  value: string,
+  _cellProperties: Handsontable.CellProperties
 ) {
   const img = document.createElement('img');
 

@@ -7,7 +7,7 @@ import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   RowUpdatePayload,
-} from 'handsontable/plugins/dataProvider';
+} from 'handsontable/plugins/dataProvider/dataProvider';
 
 type DemoRow = {
   id: number;

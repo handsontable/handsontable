@@ -1,12 +1,12 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import {FormControl} from '@angular/forms';
+import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {HyperFormula} from 'hyperformula';
 
 @Component({
   standalone: true,
-  imports: [HotTableModule],
+  imports: [HotTableModule, ReactiveFormsModule],
   selector: 'app-example3',
   template: `
     <div class="example-controls-container">

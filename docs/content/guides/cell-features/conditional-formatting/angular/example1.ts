@@ -12,7 +12,7 @@ const firstRowRenderer = (
   col: number,
   prop: string | number,
   value: Handsontable.CellValue,
-  cellProperties: Handsontable.CellMeta
+  cellProperties: Handsontable.CellProperties
 ) => {
   textRenderer(
     instance,
@@ -35,7 +35,7 @@ const negativeValueRenderer = (
   col: number,
   prop: string | number,
   value: Handsontable.CellValue,
-  cellProperties: Handsontable.CellMeta
+  cellProperties: Handsontable.CellProperties
 ) => {
   textRenderer(
     instance,

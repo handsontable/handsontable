@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "useDefineForClassFields": false,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "dom"],
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "handsontable": ["../../handsontable/types"],
+      "handsontable/*": ["../../handsontable/types/*"],
+      "@handsontable/angular-wrapper": ["../../wrappers/angular-wrapper/dist/hot-table"],
+      "@angular/core": ["./node_modules/@angular/core"],
+      "@angular/common": ["./node_modules/@angular/common"],
+      "@angular/forms": ["./node_modules/@angular/forms"],
+      "@angular/platform-browser": ["./node_modules/@angular/platform-browser"],
+      "@angular/platform-browser-dynamic": ["./node_modules/@angular/platform-browser-dynamic"],
+      "@angular/router": ["./node_modules/@angular/router"],
+      "rxjs": ["./node_modules/rxjs"],
+      "rxjs/*": ["./node_modules/rxjs/*"],
+      "zone.js": ["./node_modules/zone.js"]
+    }
+  },
+  "angularCompilerOptions": {
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "exclude": [
+    "**/node_modules/**",
+    ".tmp"
+  ]
+}

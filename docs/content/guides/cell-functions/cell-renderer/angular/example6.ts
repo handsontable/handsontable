@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 @Component({
@@ -29,8 +30,8 @@ export class AppComponent implements AfterViewInit {
   ngAfterViewInit() {
     const componentThis = this;
 
-    function customRenderer(_instance, td) {
-      textRenderer.apply(componentThis, arguments);
+    function customRenderer(_instance: Handsontable, td: HTMLTableCellElement) {
+      textRenderer.apply(componentThis, arguments as unknown as Parameters<typeof textRenderer>);
 
       if (componentThis.isChecked) {
         td.style.backgroundColor = 'yellow';
@@ -54,14 +55,12 @@ export class AppComponent implements AfterViewInit {
     };
   }
 
-  exampleContainerMouseupCallback = (event) => {
+  exampleContainerMouseupCallback = (event: MouseEvent) => {
     const hot = this.hotTable.hotInstance!;
+    const target = event.target as HTMLInputElement | null;
 
-    if (
-      event.target?.nodeName == 'INPUT' &&
-      event.target.className == 'checker'
-    ) {
-      this.isChecked = !event.target.checked;
+    if (target?.nodeName == 'INPUT' && target.className == 'checker') {
+      this.isChecked = !target.checked;
       hot?.render();
     }
   };

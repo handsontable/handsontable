@@ -1,0 +1,20 @@
+{
+  "name": "docs-angular-type-check",
+  "private": true,
+  "scripts": {
+    "typecheck": "node check.mjs"
+  },
+  "devDependencies": {
+    "@angular/common": "latest",
+    "@angular/compiler": "latest",
+    "@angular/compiler-cli": "latest",
+    "@angular/core": "latest",
+    "@angular/forms": "latest",
+    "@angular/platform-browser": "latest",
+    "@angular/platform-browser-dynamic": "latest",
+    "@angular/router": "latest",
+    "rxjs": "~7.8.0",
+    "typescript": "latest",
+    "zone.js": "~0.15.0"
+  }
+}
