@@ -20,16 +20,22 @@ const STATUS_LABELS: Record<SaveStatus, string> = {
   error: 'Error',
 };
 
+const STATUS_COLORS: Record<SaveStatus, string> = {
+  idle: '#616161',
+  saving: '#1a42e8',
+  saved: '#117a1f',
+  error: '#c62828',
+};
+
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'example1-auto-save-backend',
   template: `
-    <div class="example-controls-container">
-      <div class="controls">
-        <span class="auto-save-backend-status" [attr.data-state]="saveStatus">{{ statusLabel }}</span>
-      </div>
-    </div>
+    <div
+      style="margin-bottom: 8px; font-family: Arial, sans-serif; font-size: 13px; font-weight: 600;"
+      [style.color]="statusColor"
+    >{{ statusLabel }}</div>
     <hot-table [data]="hotData" [settings]="hotSettings"></hot-table>
   `,
 })
@@ -42,6 +48,10 @@ export class AppComponent {
 
   get statusLabel(): string {
     return STATUS_LABELS[this.saveStatus];
+  }
+
+  get statusColor(): string {
+    return STATUS_COLORS[this.saveStatus];
   }
 
   readonly hotData: RowData[] = [
