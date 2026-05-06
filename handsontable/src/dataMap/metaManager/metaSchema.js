@@ -3111,6 +3111,79 @@ export default () => {
     fragmentSelection: false,
 
     /**
+     * The `hashLength` option sets a fixed display length for the hash mask used by the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type.
+     *
+     * By default, the hash length equals the actual value length. Set `hashLength` to a positive
+     * integer to always display that many hash symbols regardless of the real value length.
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashLength: 10,
+     *   },
+     * ],
+     * ```
+     */
+    hashLength: undefined,
+
+    /**
+     * The `hashRevealDelay` option enables a brief character-reveal on each keystroke in the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type editor.
+     *
+     * When set to a positive number (milliseconds), each typed character stays visible for that
+     * duration and is then replaced by the `hashSymbol`. This lets the user confirm what they
+     * typed without permanently exposing the value. Requires `type: 'password'`.
+     *
+     * @since 17.2.0
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashRevealDelay: 1000,
+     *   },
+     * ],
+     * ```
+     */
+    hashRevealDelay: undefined,
+
+    /**
+     * The `hashSymbol` option sets the character used as the hash mask in the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type renderer.
+     *
+     * Defaults to `'*'`. You can use any character, HTML entity, or string.
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default '*'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashSymbol: '•',
+     *   },
+     * ],
+     * ```
+     */
+    hashSymbol: '*',
+
+    /**
      * The `headerClassName` option allows adding one or more class names to the column headers' inner `div` element.
      * It can be used to align the labels in the column headers to left, center or right by setting this option to
      * `htLeft`, `htCenter`, or `htRight` respectively.
@@ -3193,79 +3266,6 @@ export default () => {
      * ```
      */
     height: undefined,
-
-    /**
-     * The `hashLength` option sets a fixed display length for the hash mask used by the
-     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type.
-     *
-     * By default, the hash length equals the actual value length. Set `hashLength` to a positive
-     * integer to always display that many hash symbols regardless of the real value length.
-     *
-     * @memberof Options#
-     * @type {number}
-     * @default undefined
-     * @category Core
-     *
-     * @example
-     * ```js
-     * columns: [
-     *   {
-     *     type: 'password',
-     *     hashLength: 10,
-     *   },
-     * ],
-     * ```
-     */
-    hashLength: undefined,
-
-    /**
-     * The `hashRevealDelay` option enables a brief character-reveal on each keystroke in the
-     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type editor.
-     *
-     * When set to a positive number (milliseconds), each typed character stays visible for that
-     * duration and is then replaced by the `hashSymbol`. This lets the user confirm what they
-     * typed without permanently exposing the value. Requires `type: 'password'`.
-     *
-     * @since 17.2.0
-     * @memberof Options#
-     * @type {number}
-     * @default undefined
-     * @category Core
-     *
-     * @example
-     * ```js
-     * columns: [
-     *   {
-     *     type: 'password',
-     *     hashRevealDelay: 1000,
-     *   },
-     * ],
-     * ```
-     */
-    hashRevealDelay: undefined,
-
-    /**
-     * The `hashSymbol` option sets the character used as the hash mask in the
-     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type renderer.
-     *
-     * Defaults to `'*'`. You can use any character, HTML entity, or string.
-     *
-     * @memberof Options#
-     * @type {string}
-     * @default '*'
-     * @category Core
-     *
-     * @example
-     * ```js
-     * columns: [
-     *   {
-     *     type: 'password',
-     *     hashSymbol: '•',
-     *   },
-     * ],
-     * ```
-     */
-    hashSymbol: '*',
 
     /**
      * The `hiddenColumns` option configures the [`HiddenColumns`](@/api/hiddenColumns.md) plugin.
