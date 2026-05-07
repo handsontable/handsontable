@@ -179,7 +179,7 @@ class GhostTable {
     if (this.getSetting('useHeaders') && this.hot!.getColHeader(column) !== null) {
       // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
       // We render all columns.
-      this.hot!.view.appendColHeader(column, this.table.th as HTMLTableCellElement);
+      this.hot!.view.appendColHeader(column, this.table.th as HTMLTableCellElement, undefined, -1);
     }
     this.table.tBody.appendChild(this.createCol(column));
     this.container!.container.appendChild(this.table.fragment);

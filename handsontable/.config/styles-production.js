@@ -43,6 +43,13 @@ module.exports.create = function create(envArgs) {
     banner: AUTO_GENERATED_BANNER,
   });
 
+  // Keep the TypeScript twin in sync (TypeScript prefers .ts over .js during compilation).
+  addCssToJsExport(config, {
+    cssFilename: CSS_FILENAME,
+    outputJsPath: path.resolve(__dirname, '../src/styles/handsontableStyles.ts'),
+    banner: AUTO_GENERATED_BANNER,
+  });
+
   return config;
 }
 

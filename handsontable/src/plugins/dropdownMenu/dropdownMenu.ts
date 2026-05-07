@@ -346,14 +346,17 @@ export class DropdownMenu extends BasePlugin {
         }
 
         const buttonRect = this.#getButtonRect(target as HTMLElement);
-        const rect = buttonRect;
-        const menuOpensOnLeft = false;
+        const th = (target as HTMLElement).closest('th');
+        // For rowspanned headers the button may be mispositioned when the htRowspanHeader
+        // CSS class is not yet applied, so anchor to the TH's own bottom edge instead.
+        const isRowspanned = th && parseInt(th.getAttribute('rowspan') ?? '1', 10) > 1;
+        const menuTop = isRowspanned ? (th.getBoundingClientRect().bottom) : buttonRect.bottom;
 
-        this.open(this.#adjustPositionForTheme({
-          left: rect.left + offset.left,
-          top: rect.bottom + offset.top,
-        }, menuOpensOnLeft), {
-          left: rect.width,
+        this.open({
+          left: buttonRect.left + offset.left,
+          top: menuTop + offset.top,
+        }, {
+          left: buttonRect.width,
           right: 0,
           above: 0,
           below: 3,
@@ -361,25 +364,6 @@ export class DropdownMenu extends BasePlugin {
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
         this.menu.getNavigator().toFirstItem();
-        const firstItem = this.menu.hotMenu?.getCell(0, 0);
-
-        // #region agent log
-        (this.hot.rootWindow as {
-          agentDebugLog?: (payload: Record<string, unknown>) => void;
-        })?.agentDebugLog?.({
-          hypothesisId: 'C',
-          location: 'src/plugins/dropdownMenu/dropdownMenu.ts:registerShortcuts',
-          message: 'Dropdown shortcut callback post-open state',
-          data: {
-            highlightRow: highlight.row,
-            highlightCol: highlight.col,
-            menuOpened: this.menu.isOpened(),
-            firstItemExists: Boolean(firstItem),
-            firstItemIsCurrent: Boolean(firstItem?.classList.contains('current')),
-          },
-          timestamp: Date.now(),
-        });
-        // #endregion
       }
     };
 
