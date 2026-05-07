@@ -125,6 +125,7 @@ export class NestedRows extends BasePlugin {
     this.rowMoveController = new RowMoveController(this as unknown as ConstructorParameters<typeof RowMoveController>[0]);
 
     this.addHook('afterInit', this.#onAfterInit.bind(this));
+    this.addHook('afterRender', this.#onAfterRender.bind(this));
     this.addHook('beforeViewRender', this.#onBeforeViewRender.bind(this));
     this.addHook('modifyRowData', this.onModifyRowData.bind(this));
     this.addHook('modifySourceLength', this.onModifySourceLength.bind(this));

@@ -348,9 +348,13 @@ export class DropdownMenu extends BasePlugin {
         const buttonRect = this.#getButtonRect(target as HTMLElement);
         const th = (target as HTMLElement).closest('th');
         // For rowspanned headers the button may be mispositioned when the htRowspanHeader
-        // CSS class is not yet applied, so anchor to the TH's own bottom edge instead.
+        // CSS class is not yet applied. Anchor to the TH's inner bottom (clientHeight, no
+        // borders) and use below:-1 so the positioner's +1 cancels out, placing the menu
+        // flush with the TH content bottom.
         const isRowspanned = th && parseInt(th.getAttribute('rowspan') ?? '1', 10) > 1;
-        const menuTop = isRowspanned ? (th.getBoundingClientRect().bottom) : buttonRect.bottom;
+        const menuTop = isRowspanned
+          ? (th.getBoundingClientRect().top + th.clientHeight)
+          : buttonRect.bottom;
 
         this.open({
           left: buttonRect.left + offset.left,
@@ -359,7 +363,7 @@ export class DropdownMenu extends BasePlugin {
           left: buttonRect.width,
           right: 0,
           above: 0,
-          below: 3,
+          below: isRowspanned ? -1 : 3,
         });
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
