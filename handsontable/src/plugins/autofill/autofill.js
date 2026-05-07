@@ -409,11 +409,11 @@ export class Autofill extends BasePlugin {
    */
   addNewRowIfNeeded() {
     if (!this.hot.selection.highlight.getFill().isEmpty() && this.addingStarted === false && this.autoInsertRow) {
-      const cornersOfSelectedCells = this.hot.getSelectedLast();
+      const bottomRow = this.hot.getSelectedRangeLast().getBottomEndCorner().row;
       const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getVisualCorners();
       const nrOfTableRows = this.hot.countRows();
 
-      if (cornersOfSelectedCells[2] < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
+      if (bottomRow < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
         this.addingStarted = true;
 
         this.addRow();
@@ -523,7 +523,10 @@ export class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   selectAdjacent() {
-    const cornersOfSelectedCells = this.hot.getSelectedLast();
+    const range = this.hot.getSelectedRangeLast();
+    const topStart = range.getTopStartCorner();
+    const bottomEnd = range.getBottomEndCorner();
+    const cornersOfSelectedCells = [topStart.row, topStart.col, bottomEnd.row, bottomEnd.col];
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === undefined) {
