@@ -158,9 +158,9 @@ export class PasswordEditor extends TextEditor {
    * `open()` has set `#inRevealMode`, pre-populates `#realValue` so `open()` can mask it
    * immediately on display.
    *
-   * @param {string} value The value to set.
+   * @param {string} [value] The value to set.
    */
-  setValue(value: string) {
+  setValue(value?: string) {
     if (this.#inRevealMode) {
       this.#realValue = value ?? '';
       const maskChar = ((this.cellProperties.hashSymbol || '*') as string)[0];
