@@ -9,17 +9,20 @@ Type-checks all Angular example files under `docs/content/**/angular/*.ts` using
 - Angular template type safety (`strictTemplates: true`)
 - Strict TypeScript mode: `strict`, `noImplicitOverride`, `noImplicitReturns`, `noPropertyAccessFromIndexSignature`
 
-The check resolves `@handsontable/angular-wrapper` from the **local dist** (`wrappers/angular-wrapper/dist/hot-table`) so examples are always validated against the current build, not the last published npm release.
+`@handsontable/angular-wrapper` is resolved from the local dist (`wrappers/angular-wrapper/dist/hot-table`) via a pnpm workspace `link:` reference, so examples are always validated against the current build, not the last published npm release.
 
 ## How to run
 
+Build the local packages first, then run the type check from the repo root:
+
 ```bash
-cd docs/angular-type-check
-npm install        # first time only
-npm run typecheck
+pnpm install
+npm run build --prefix handsontable
+npm run build --prefix wrappers/angular-wrapper
+npm run typecheck --prefix docs/angular-type-check
 ```
 
-Or directly:
+Or run the script directly from inside the directory (after the builds above):
 
 ```bash
 node check.mjs
@@ -51,36 +54,35 @@ Exit code `0` = all examples pass. Any non-zero exit code means at least one typ
 
 ## Module resolution
 
-All imports are resolved via `paths` in `tsconfig.json`:
-
 | Import | Resolved to |
 |--------|-------------|
-| `@handsontable/angular-wrapper` | `wrappers/angular-wrapper/dist/hot-table` |
-| `handsontable` / `handsontable/*` | `handsontable/types` (local source types) |
-| `@angular/*`, `rxjs`, `zone.js` | `node_modules/` inside this directory |
+| `@handsontable/angular-wrapper` | `wrappers/angular-wrapper/dist/hot-table` (pnpm `link:`, requires wrapper to be built) |
+| `handsontable` / `handsontable/*` | `handsontable/types` (local source types, via tsconfig `paths`) |
+| `handsontable` runtime (peer dep) | `handsontable/tmp` (pnpm `link:`, requires core to be built) |
+| `@angular/*`, `rxjs`, `zone.js` | `node_modules/` (managed by pnpm workspace) |
 
 ## Adding a new third-party library to an example
 
-The type checker runs in an **isolated `node_modules/`** inside `docs/angular-type-check/`, separate from the root workspace. If a new example imports a library that is not yet listed in `docs/angular-type-check/package.json`, the check will fail with a "could not find declaration file" or "cannot find module" error.
+This package is a pnpm workspace member. Its dependencies are managed alongside the rest of the monorepo in the root `pnpm-lock.yaml`.
 
-When you add an example that uses a new library, you must also:
+If a new example imports a library that is not yet listed in `docs/angular-type-check/package.json`, the check will fail with a "could not find declaration file" or "cannot find module" error.
 
-1. Add the runtime package (and its `@types/*` package if it ships types separately) to `docs/angular-type-check/package.json`:
+When you add an example that uses a new library:
+
+1. Add the package (and its `@types/*` package if it ships types separately) to `docs/angular-type-check/package.json`:
    ```json
    "devDependencies": {
-     "some-library": "latest",
-     "@types/some-library": "latest"
+     "some-library": "^x.y.z",
+     "@types/some-library": "^x.y.z"
    }
    ```
-2. Run `npm install` inside `docs/angular-type-check/` to update `package-lock.json`.
-3. Commit both `package.json` and `package-lock.json`.
+2. Run `pnpm install` at the repo root to update `pnpm-lock.yaml`.
+3. Commit both `package.json` and `pnpm-lock.yaml`.
 
-If the library has **no TypeScript declarations at all** (not even via `@types/`), add a bare `declare module` entry to `types/shims.d.ts` instead of fighting the compiler:
+If the library has no TypeScript declarations at all (not even via `@types/`), add a bare `declare module` entry to `types/shims.d.ts` instead:
 ```ts
 declare module 'some-library';
 ```
-
-> **Note:** `@handsontable/angular-wrapper`, `handsontable`, and all `@angular/*` packages are resolved via `paths` in `tsconfig.json` and do **not** need to be in `package.json`.
 
 ## Type shims
 
@@ -92,4 +94,4 @@ Add further `declare module '...'` entries there for any other untyped imports u
 
 ## CI
 
-The check runs automatically on every pull request and push to `develop`/`master`/`release/**` when files under `docs/content/**/angular/*.ts` or `docs/angular-type-check/**` change. See `.github/workflows/docs-angular-typecheck.yml`.
+The check runs automatically on every pull request and on every push to any branch when files under `docs/content/**/angular/*.ts` or `docs/angular-type-check/**` change. See `.github/workflows/docs-angular-typecheck.yml`.

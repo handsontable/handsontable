@@ -103,11 +103,11 @@ export class AppComponent {
             navigator.clipboard.writeText(JSON.stringify(rowData));
           },
         },
-        sep1: { name: '-' },
+        sep1: { name: '---------' },
         row_above: { name: 'Insert row above' },
         row_below: { name: 'Insert row below' },
         remove_row: { name: 'Remove row' },
-        sep2: { name: '-' },
+        sep2: { name: '---------' },
         undo: { name: 'Undo' },
         redo: { name: 'Redo' },
       },
