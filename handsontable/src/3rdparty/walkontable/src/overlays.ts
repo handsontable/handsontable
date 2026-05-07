@@ -218,7 +218,7 @@ class Overlays {
    *
    * @type {number | null}
    */
-  #lastVerticalScrollPositionForCallback = null;
+  #lastVerticalScrollPositionForCallback: number | null = null;
 
   /**
    * Cached horizontal scroll position used to deduplicate `onScrollHorizontally` callbacks.
@@ -227,7 +227,7 @@ class Overlays {
    *
    * @type {number | null}
    */
-  #lastHorizontalScrollPositionForCallback = null;
+  #lastHorizontalScrollPositionForCallback: number | null = null;
 
   /**
    * The amount of times the ResizeObserver callback was fired in direct succession.
@@ -258,7 +258,7 @@ class Overlays {
    *
    * @type {StickyScrollStrategy}
    */
-  #stickyScroll = new StickyScrollStrategy(this);
+  #stickyScroll = new StickyScrollStrategy(this as any);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.

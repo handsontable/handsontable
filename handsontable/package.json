@@ -165,6 +165,7 @@
     "webpack-sources": "^3.3.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
+  "typings": "./index.d.ts",
   "resolutions": {
     "@babel/core": "^7.11.4"
   },

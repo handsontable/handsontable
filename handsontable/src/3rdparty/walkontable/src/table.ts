@@ -553,7 +553,7 @@ class Table {
     const { wtSettings } = this;
     const children = this.THEAD.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
-    const columnHeaders = wtSettings.getSetting('columnHeaders');
+    const columnHeaders = wtSettings.getSetting('columnHeaders') as unknown[];
     const borderCompensation = 1;
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
@@ -561,7 +561,7 @@ class Table {
         continue;
       }
 
-      const actualRowHeight = innerHeight(children[i]);
+      const actualRowHeight = innerHeight(children[i] as HTMLElement);
 
       if (actualRowHeight > oversizedColumnHeaders[i] + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;

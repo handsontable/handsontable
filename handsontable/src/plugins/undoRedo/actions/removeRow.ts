@@ -150,7 +150,7 @@ export class RemoveRowAction extends BaseAction {
  * @param {number} amount Number of rows being removed.
  * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
  */
-function collectAffectedMergedCells(hot, visualRow, amount) {
+function collectAffectedMergedCells(hot: any, visualRow: number, amount: number) {
   const mergeCellsPlugin = hot.getPlugin('mergeCells');
 
   if (!mergeCellsPlugin?.enabled) {
@@ -158,9 +158,9 @@ function collectAffectedMergedCells(hot, visualRow, amount) {
   }
 
   const lastVisualRow = visualRow + amount - 1;
-  const affected = [];
+  const affected: Array<{ row: number; col: number; rowspan: number; colspan: number }> = [];
 
-  mergeCellsPlugin.mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }) => {
+  mergeCellsPlugin.mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }: { row: number; col: number; rowspan: number; colspan: number }) => {
     const mergeStart = row;
     const mergeEnd = row + rowspan - 1;
 
@@ -179,7 +179,7 @@ function collectAffectedMergedCells(hot, visualRow, amount) {
  * @param {Core} hot The Handsontable instance.
  * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
  */
-function restoreMergedCells(hot, mergedCells) {
+function restoreMergedCells(hot: any, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>) {
   if (!mergedCells || mergedCells.length === 0) {
     return;
   }
@@ -190,7 +190,7 @@ function restoreMergedCells(hot, mergedCells) {
     return;
   }
 
-  mergedCells.forEach(({ row, col, rowspan, colspan }) => {
+  mergedCells.forEach(({ row, col, rowspan, colspan }: { row: number; col: number; rowspan: number; colspan: number }) => {
     const endRow = row + rowspan - 1;
     const endCol = col + colspan - 1;
     const start = hot._createCellCoords(row, col);

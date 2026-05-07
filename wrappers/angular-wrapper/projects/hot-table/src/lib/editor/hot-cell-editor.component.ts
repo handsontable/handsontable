@@ -1,3 +1,4 @@
+import Handsontable from 'handsontable/base';
 import { Directive, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 
 /**
@@ -35,7 +36,7 @@ export abstract class HotCellEditorComponent<T extends string | number | boolean
   @Input() originalValue: T;
 
   /** The cell properties of the cell being edited. */
-  @Input() cellProperties: Record<string, unknown>;
+  @Input() cellProperties: Handsontable.CellProperties;
 
   /** Event emitted when the edit is finished.
    * The data will be saved to the model.

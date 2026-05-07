@@ -1,7 +1,7 @@
 /* eslint max-len: 0 */
 export default {
-  pathToSource: '../../../../handsontable/tmp',
-  pathToDist: '../../../content/api',
+  pathToSource: '../../../handsontable/tmp',
+  pathToDist: '../../content/api',
   urlPrefix: '/api/',
   seo: {
     'Core.md': {

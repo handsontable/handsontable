@@ -23,7 +23,7 @@ const regNextEmptyCell = /^\t/;
  * @param {string} str Remaining input where `str[0]` is the first char after the opening `"`.
  * @returns {number} Index of the structural closing `"` within `str`, or -1 when not found.
  */
-function findQuoteCloseIndex(str) {
+function findQuoteCloseIndex(str: string) {
   let i = 0;
 
   while (i < str.length) {

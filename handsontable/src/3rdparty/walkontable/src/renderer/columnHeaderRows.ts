@@ -32,7 +32,7 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
 
     this.orderView = new OrderView(
       rootNode,
-      sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
+      (sourceRowIndex: number) => this.nodesPool.obtain(sourceRowIndex),
       this.nodeType,
     );
   }

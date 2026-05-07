@@ -66,7 +66,7 @@ export class TableRenderer {
    *
    * @type {ColumnHeaderRowsRenderer}
    */
-  columnHeaderRows = null;
+  columnHeaderRows: any = null;
   /**
    * Renderer class responsible for rendering column headers (TH elements in TR).
    *

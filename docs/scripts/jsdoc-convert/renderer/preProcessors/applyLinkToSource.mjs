@@ -18,7 +18,7 @@ export const applyLinkToSource = (data) => {
       if (filepath.startsWith('handsontable/tmp')) {
         filepath = filepath.replace('handsontable/tmp', 'handsontable/src');
       }
-      if (filename.endsWith('.js')) {
+      if (filename.endsWith('.js') && !filepath.includes('3rdparty/walkontable') && !filepath.includes('src/core/hooks')) {
         filename = `${filename.slice(0, -3)}.ts`;
       }
 

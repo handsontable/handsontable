@@ -1,3 +1,4 @@
+import type { PositionCache } from '../utils/positionCache';
 import { calculateAxis } from './axisCalculation';
 import { ViewportBaseCalculator, CalculationTypeLike } from './viewportBase';
 
@@ -37,6 +38,8 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   innerViewportHeight: number = 0;
   totalCalculatedHeight: number = 0;
   needReverse: boolean = true;
+  positionCache: PositionCache = null;
+  lastProcessedIndex: number = -1;
 
   /**
    * @param {ViewportRowsCalculatorOptions} options Object with all options specified for row viewport calculation.
@@ -67,14 +70,14 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate(): void {
-    calculateAxis(this, {
+    calculateAxis(this as any, {
       totalCount: this.totalRows,
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.innerViewportHeight,
       positionCache: this.positionCache,
       setSizeField: (ctx, size) => { ctx.rowHeight = size; },
       setTotalCalculated: (ctx, v) => { ctx.totalCalculatedHeight = v; },
-      getTotalCalculated: ctx => ctx.totalCalculatedHeight,
+      getTotalCalculated: ctx => ctx.totalCalculatedHeight as number,
     });
   }
 

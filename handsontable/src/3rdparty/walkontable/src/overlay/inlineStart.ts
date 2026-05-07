@@ -96,13 +96,13 @@ export class InlineStartOverlay extends Overlay {
     const { rootWindow } = this.domBindings;
     const scrollableElement = this.mainTableScrollableElement;
     const getScrollPosition = () => {
-      return scrollableElement === rootWindow ? rootWindow.scrollX : scrollableElement.scrollLeft;
+      return scrollableElement === rootWindow ? rootWindow.scrollX : (scrollableElement as HTMLElement).scrollLeft;
     };
-    const setScrollPosition = (newPosition) => {
+    const setScrollPosition = (newPosition: number) => {
       if (scrollableElement === rootWindow) {
         rootWindow.scrollTo(newPosition, rootWindow.scrollY);
       } else {
-        scrollableElement.scrollLeft = newPosition;
+        (scrollableElement as HTMLElement).scrollLeft = newPosition;
       }
     };
 

@@ -47,6 +47,8 @@ class Viewport {
   declare columnsRenderCalculator: ColumnsCalculationType | null;
   declare rowsPartiallyVisibleCalculator: RowsCalculationType | null;
   declare columnsPartiallyVisibleCalculator: ColumnsCalculationType | null;
+  declare rowHeightCache: PositionCache;
+  declare columnWidthCache: PositionCache;
 
   /**
    * @param {ViewportDao} dataAccessObject The Walkontable instance.
@@ -90,9 +92,9 @@ class Viewport {
      * @type {PositionCache}
      */
     this.rowHeightCache = new PositionCache({
-      totalItemsFn: () => wtSettings.getSetting('totalRows'),
+      totalItemsFn: () => wtSettings.getSetting('totalRows') as number,
       sizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
-      defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
+      defaultSizeFn: () => (wtSettings.getSetting('stylesHandler') as StylesHandler).getDefaultRowHeight(),
     });
     /**
      * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
@@ -101,7 +103,7 @@ class Viewport {
      * @type {PositionCache}
      */
     this.columnWidthCache = new PositionCache({
-      totalItemsFn: () => wtSettings.getSetting('totalColumns'),
+      totalItemsFn: () => wtSettings.getSetting('totalColumns') as number,
       sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
     });
@@ -357,7 +359,7 @@ class Viewport {
    */
   createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
-    const totalRows = wtSettings.getSetting('totalRows');
+    const totalRows = wtSettings.getSetting('totalRows') as number;
 
     let height = this.getViewportHeight();
     let scrollbarHeight;
@@ -410,7 +412,7 @@ class Viewport {
    */
   createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
-    const totalColumns = wtSettings.getSetting('totalColumns');
+    const totalColumns = wtSettings.getSetting('totalColumns') as number;
 
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;

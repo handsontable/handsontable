@@ -139,7 +139,7 @@ class Event {
       this.#eventManager.addEventListener(
         this.#domBindings.rootDocument,
         'mousemove',
-        event => this.onMouseMove(event)
+        (event: MouseEvent) => this.onMouseMove(event)
       );
       this.#eventManager.addEventListener(
         this.#domBindings.rootDocument,
@@ -322,7 +322,7 @@ class Event {
    * @private
    * @param {MouseEvent} event The mouse event object.
    */
-  onMouseMove(event) {
+  onMouseMove(event: MouseEvent) {
     if (!this.#mouseDown) {
       return;
     }
@@ -354,13 +354,13 @@ class Event {
    * @param {number} mouseY Client Y coordinate of the mouse.
    * @returns {{ coords: CellCoords, isOutside: boolean }}
    */
-  #getCellCoordsFromMousePosition(mouseX, mouseY) {
+  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
     const isRtl = this.#wtSettings.getSetting('rtlMode');
     const wot = this.#facadeGetter();
 
-    const numberOfFixedColumnsStart = this.#wtSettings.getSetting('fixedColumnsStart');
-    const numberOfFixedRowsTop = this.#wtSettings.getSetting('fixedRowsTop');
-    const numberOfFixedRowsBottom = this.#wtSettings.getSetting('fixedRowsBottom');
+    const numberOfFixedColumnsStart = this.#wtSettings.getSetting('fixedColumnsStart') as number;
+    const numberOfFixedRowsTop = this.#wtSettings.getSetting('fixedRowsTop') as number;
+    const numberOfFixedRowsBottom = this.#wtSettings.getSetting('fixedRowsBottom') as number;
 
     const firstPartiallyVisibleRow = wot.wtScroll.getFirstPartiallyVisibleRow();
     const lastPartiallyVisibleRow = wot.wtScroll.getLastPartiallyVisibleRow();
@@ -368,9 +368,9 @@ class Event {
     const lastPartiallyVisibleColumn = wot.wtScroll.getLastPartiallyVisibleColumn();
     const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
 
-    const columnHeaderHeight = this.#wtSettings.getSetting('columnHeaders').length > 0
+    const columnHeaderHeight = (this.#wtSettings.getSetting('columnHeaders') as unknown[]).length > 0
       ? wot.wtViewport.getColumnHeaderHeight() : 0;
-    const rowHeaderWidth = this.#wtSettings.getSetting('rowHeaders').length > 0
+    const rowHeaderWidth = (this.#wtSettings.getSetting('rowHeaders') as unknown[]).length > 0
       ? wot.wtViewport.getRowHeaderWidth() : 0;
     const { rootWindow } = this.#domBindings;
     // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL
@@ -445,7 +445,7 @@ class Event {
     }
 
     if (foundRow === null && numberOfFixedRowsBottom > 0) {
-      const totalRows = this.#wtSettings.getSetting('totalRows');
+      const totalRows = this.#wtSettings.getSetting('totalRows') as number;
       const bottomStartRow = totalRows - numberOfFixedRowsBottom;
       const bottomEndRow = totalRows - 1;
       const fixedBottomCell = wot.getCell({ row: bottomStartRow, col: firstPartiallyVisibleColumn }, true);
@@ -654,7 +654,7 @@ class Event {
    * @private
    * @param {TouchEvent} event The original `touchstart` event.
    */
-  #startLongPressTimer(event) {
+  #startLongPressTimer(event: TouchEvent) {
     this.#cancelLongPressTimer();
 
     const touch = event.touches[0];
@@ -747,7 +747,7 @@ class Event {
    * @private
    * @param {TouchEvent} event The touch event object.
    */
-  onTouchMove(event) {
+  onTouchMove(event: TouchEvent) {
     if (this.#touchStartCoords === null) {
       return;
     }

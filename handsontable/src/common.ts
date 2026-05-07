@@ -532,7 +532,7 @@ export interface WtTable {
   wtRootElement: HTMLElement;
   bordersHolder: HTMLElement;
   name: string;
-  getCell(coords: CellCoords): HTMLTableCellElement | number;
+  getCell(coords: CellCoords, topmost?: boolean): HTMLTableCellElement | number;
   getCoords(element: HTMLElement): CellCoords;
   getColumnHeader(col: number, level?: number): HTMLElement | undefined;
   getRowHeader(row: number, level?: number): HTMLElement | undefined;
@@ -610,6 +610,8 @@ export interface WtViewport {
   resetHasOversizedColumnHeadersMarked(): void;
   invalidateColumnWidthCache(): void;
   invalidateRowHeightCache(): void;
+  rowHeightCache: { ensureBuilt(): void; invalidate(): void };
+  columnWidthCache: { ensureBuilt(): void; invalidate(): void };
   [key: string]: unknown;
 }
 

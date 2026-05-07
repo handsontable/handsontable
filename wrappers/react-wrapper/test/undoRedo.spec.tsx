@@ -14,7 +14,7 @@ jest.setTimeout(10000);
 
 describe('UndoRedo plugin in React wrapper', () => {
   describe('beforeChange hook execution order', () => {
-    it('should preserve undo history when beforeChange modifies the change', async () => {
+    it('should record the modified value in UndoRedo when beforeChange modifies the change', async () => {
       const hotTableRef = mountComponentWithRef<HotTableRef>((
         <HotTable
           id="test-hot"
@@ -50,6 +50,15 @@ describe('UndoRedo plugin in React wrapper', () => {
       const undoRedoPlugin = hotInstance.getPlugin('undoRedo') as any;
 
       expect(undoRedoPlugin.doneActions.length).toBe(2);
+
+      const firstAction = undoRedoPlugin.doneActions[0];
+      const secondAction = undoRedoPlugin.doneActions[1];
+
+      expect(firstAction.changes[0][2]).toBe(0);
+      expect(firstAction.changes[0][3]).toBe(2);
+
+      expect(secondAction.changes[0][2]).toBe(2);
+      expect(secondAction.changes[0][3]).toBe(5); // Capped
 
       await act(async () => {
         undoRedoPlugin.undo();

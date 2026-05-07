@@ -49,7 +49,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for column headers (TH).
    * @returns {OrderView}
    */
-  obtainOrderView(rootNode) {
+  obtainOrderView(rootNode: HTMLElement) {
     let orderView;
 
     if (this.orderViews.has(rootNode)) {
@@ -57,7 +57,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     } else {
       orderView = new OrderView(
         rootNode,
-        sourceColumnIndex => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
+        (sourceColumnIndex: number) => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
         this.nodeType,
       );
       this.orderViews.set(rootNode, orderView);
