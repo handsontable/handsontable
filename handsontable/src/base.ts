@@ -163,4 +163,41 @@ export {
   CellCoords,
   CellRange,
 };
+
+// Named type exports for user-facing API (mirrors src/index.ts)
+export type {
+  GridSettings,
+} from './common';
+export type {
+  CellValue,
+  CellChange,
+  RowObject,
+  SelectOptionsObject,
+  SourceRowData,
+  ChangeSource,
+  NumericFormatOptions,
+  CellMeta,
+  CellProperties,
+  ColumnSettings,
+} from './settings';
+export type { CellType } from './cellTypes';
+export type { EditorType } from './editors';
+export type { RendererType } from './renderers';
+export type { ValidatorType } from './validators';
+export type {
+  BaseTheme,
+  ThemeBuilder,
+  ThemeColorScheme,
+  ThemeColorsConfig,
+  ThemeConfig,
+  ThemeDensityConfig,
+  ThemeDensitySizes,
+  ThemeIconsConfig,
+  ThemeLightDarkValue,
+  ThemeParams,
+  ThemeSizingConfig,
+  ThemeTokenValue,
+  ThemeTokensConfig,
+} from './themes';
+
 export default Handsontable;

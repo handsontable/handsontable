@@ -486,14 +486,15 @@ let dompurifyDeprecatedMessageShown = false;
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string): string} [sanitizer] When true, use default sanitizer; when a function, use it; when false, skip sanitization.
+ * @param {boolean|function(string, string): string} [sanitizer] When true, use default sanitizer; when a function, use it; when false, skip sanitization.
+ * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function.
  */
 let fastInnerHTMLDeprecationWarned = false;
 
-export function fastInnerHTML(element: HTMLElement, content: string, sanitizer: boolean | ((html: string) => string) = true): void {
+export function fastInnerHTML(element: HTMLElement, content: string, sanitizer: boolean | ((html: string, context: string) => string) = true, context = 'innerHTML'): void {
   if (HTML_CHARACTERS.test(content)) {
     const sanitized = typeof sanitizer === 'function'
-      ? sanitizer(content)
+      ? sanitizer(content, context)
       : sanitizer
         ? (() => {
           if (!fastInnerHTMLDeprecationWarned) {
