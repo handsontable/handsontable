@@ -21,7 +21,7 @@
     "paths": {
       "handsontable": ["../../handsontable/types"],
       "handsontable/*": ["../../handsontable/types/*"],
-      "@handsontable/angular-wrapper": ["../../wrappers/angular-wrapper/dist/hot-table"],
+      "@handsontable/angular-wrapper": ["./node_modules/@handsontable/angular-wrapper"],
       "numbro": ["./node_modules/numbro"],
       "hyperformula": ["./node_modules/hyperformula"],
       "@handsontable/pikaday": ["./node_modules/@handsontable/pikaday"],
