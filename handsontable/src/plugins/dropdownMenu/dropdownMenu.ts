@@ -579,16 +579,16 @@ export class DropdownMenu extends BasePlugin {
     const target = event.target as HTMLElement;
     if (hasClass(target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-      const rect = target.getBoundingClientRect();
+      const buttonRect = this.#getButtonRect(target);
 
       event.stopPropagation();
       this.#isButtonClicked = false;
 
       this.open(this.#adjustPositionForTheme({
-        left: rect.left + offset.left,
-        top: rect.top + target.offsetHeight + offset.top,
+        left: buttonRect.left + offset.left,
+        top: buttonRect.bottom + offset.top,
       }, false), {
-        left: rect.width,
+        left: buttonRect.width,
         right: 0,
         above: 0,
         below: 3,
