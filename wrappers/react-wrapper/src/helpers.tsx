@@ -173,16 +173,22 @@ export function createPortal(rElement: React.ReactElement, ownerDocument: Docume
     ownerDocument = document;
   }
 
-  if (!bulkComponentContainer) {
-    bulkComponentContainer = ownerDocument.createDocumentFragment();
-  }
+  let portalContainer = cachedContainer;
 
-  const portalContainer = cachedContainer ?? ownerDocument.createElement('DIV');
-  bulkComponentContainer.appendChild(portalContainer);
+  // A new container needs an anchor before React mounts into it. A cached
+  // container is already attached (typically inside its TD) and must be
+  // left in place to avoid wiping the DOM on every grid render.
+  if (!portalContainer) {
+    if (!bulkComponentContainer) {
+      bulkComponentContainer = ownerDocument.createDocumentFragment();
+    }
+    portalContainer = ownerDocument.createElement('DIV');
+    bulkComponentContainer.appendChild(portalContainer);
+  }
 
   return {
     portal: ReactDOM.createPortal(rElement, portalContainer, portalKey),
-    portalContainer
+    portalContainer,
   };
 }
 

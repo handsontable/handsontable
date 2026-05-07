@@ -1,5 +1,7 @@
 import {
   isCommaThousandsGroupedInteger,
+  isDotThousandsGroupedInteger,
+  isDotThousandsGroupedFloat,
   isNumericLike,
   getParsedNumber,
 } from '../../../helpers/number';
@@ -69,7 +71,9 @@ export function valueSetter(newValue, row, column, cellMeta) {
 
   if (
     isNumericLike(newValue) ||
-    isCommaThousandsGroupedInteger(newValue, decimalSeparator)
+    isCommaThousandsGroupedInteger(newValue, decimalSeparator) ||
+    isDotThousandsGroupedInteger(newValue, decimalSeparator) ||
+    isDotThousandsGroupedFloat(newValue, decimalSeparator)
   ) {
     const parsedNumber = getParsedNumber(newValue, {
       decimalSeparator,

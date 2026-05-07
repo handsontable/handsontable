@@ -547,4 +547,361 @@ describe('PasswordEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
+
+  describe('hashRevealDelay', () => {
+    it('should use a text input (not password) when hashRevealDelay is set', async() => {
+      handsontable({
+        data: [['secret']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      expect(editor.getAttribute('type')).toBe('text');
+    });
+
+    it('should show the last typed character in the input while delay has not elapsed', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      expect(editor.value).toBe('a');
+    });
+
+    it('should replace the typed character with the hash symbol after the delay elapses', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      expect(editor.value).toBe('a');
+
+      await sleep(150);
+
+      expect(editor.value).toBe('*');
+    });
+
+    it('should mask previous characters with hash symbol and show only the last typed one', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      editor.value = '*b';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      expect(editor.value).toBe('*b');
+    });
+
+    it('should return the real value from getValue(), not the masked display value', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      editor.value = '*b';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      expect(activeEditor.getValue()).toBe('ab');
+    });
+
+    it('should use a custom hashSymbol when masking delayed characters', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50, hashSymbol: '#' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      expect(editor.value).toBe('#');
+    });
+
+    it('should restore the cursor to the deletion point after deleting a still-visible character', async() => {
+      handsontable({
+        data: [['']],
+        // Long delay so both typed characters remain visible when we delete.
+        columns: [{ type: 'password', hashRevealDelay: 5000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      // Type 'a' then 'b'. Both are still visible (delay is 5 s) so display = 'ab'.
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+      editor.value = 'ab';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'b' }));
+
+      // Forward-delete 'a' at position 0. Browser sets value='b', cursor stays at 0.
+      // Handler must replace 'b' with '*' (masked). The value CHANGES, so without
+      // setSelectionRange the cursor would jump to end (position 1).
+      editor.value = 'b';
+      editor.selectionStart = 0;
+      editor.selectionEnd = 0;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'deleteContentForward' }));
+
+      expect(editor.selectionStart).toBe(0);
+    });
+
+    it('should fall back to length-based reconciliation when a plain Event (no inputType) is dispatched', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      editor.value = 'a';
+      // Plain Event has inputType === undefined; must not throw and must reach the fallback path.
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+
+      expect(activeEditor.getValue()).toBe('a');
+    });
+
+    it('should preserve cursor position when the reveal timer masks the last typed character', async() => {
+      handsontable({
+        data: [['b']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      // Insert 'a' before the masked 'b'. Browser sets value='a*', cursor at 1.
+      editor.value = 'a*';
+      editor.selectionStart = 1;
+      editor.selectionEnd = 1;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+
+      // When the reveal timer fires it replaces 'a*' with '**'. Without setSelectionRange the
+      // cursor would jump to end (position 2).
+      await sleep(150);
+
+      expect(editor.selectionStart).toBe(1);
+    });
+
+    it('should correctly update the stored value when all text is selected and replaced', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      // Simulate: select all ('***' for real 'abc'), type 'x'. Browser sets value='x', cursor at 1.
+      editor.value = 'x';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'x' }));
+
+      expect(activeEditor.getValue()).toBe('x');
+    });
+
+    it('should use only the first character of hashSymbol when masking characters in the editor input', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50, hashSymbol: '##' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+
+      await sleep(150);
+
+      expect(editor.value).toBe('#');
+    });
+
+    it('should set privacy-protecting attributes on the input when hashRevealDelay is active', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      expect(editor.getAttribute('autocomplete')).toBe('off');
+      expect(editor.getAttribute('spellcheck')).toBe('false');
+      expect(editor.getAttribute('autocapitalize')).toBe('off');
+      expect(editor.getAttribute('autocorrect')).toBe('off');
+    });
+
+    it('should remove privacy-protecting attributes when the editor is closed', async() => {
+      handsontable({
+        data: [[''], ['']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      await selectCell(1, 0);
+
+      expect(editor.getAttribute('autocomplete')).toBeNull();
+      expect(editor.getAttribute('spellcheck')).toBeNull();
+      expect(editor.getAttribute('autocapitalize')).toBeNull();
+      expect(editor.getAttribute('autocorrect')).toBeNull();
+    });
+
+    it('should not crash and should use the default mask when hashSymbol is an empty string', async() => {
+      handsontable({
+        data: [['']],
+        columns: [{ type: 'password', hashRevealDelay: 50, hashSymbol: '' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: 'a' }));
+
+      expect(activeEditor.getValue()).toBe('a');
+
+      await sleep(150);
+
+      expect(editor.value).toBe('*');
+    });
+
+    it('should correctly handle paste inserted mid-string', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      // Simulate paste of 'XY' at position 1. Browser sets value='*XY**', cursor at 3.
+      editor.value = '*XY**';
+      editor.selectionStart = 3;
+      editor.selectionEnd = 3;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: 'XY' }));
+
+      expect(activeEditor.getValue()).toBe('aXYbc');
+    });
+
+    it('should correctly handle paste that replaces a selection', async() => {
+      handsontable({
+        data: [['abc']],
+        columns: [{ type: 'password', hashRevealDelay: 1000 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const activeEditor = getActiveEditor();
+      const editor = activeEditor.TEXTAREA;
+
+      // Simulate paste of 'XY' replacing positions 1-3. Browser sets value='*XY', cursor at 3.
+      editor.value = '*XY';
+      editor.selectionStart = 3;
+      editor.selectionEnd = 3;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: 'XY' }));
+
+      expect(activeEditor.getValue()).toBe('aXY');
+    });
+
+    it('should save the real (unmasked) value to the data source on close', async() => {
+      handsontable({
+        data: [[''], ['']],
+        columns: [{ type: 'password', hashRevealDelay: 50 }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor().TEXTAREA;
+
+      editor.value = 'a';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      editor.value = '*b';
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+
+      await sleep(150);
+
+      await selectCell(1, 0);
+
+      expect(getDataAtCell(0, 0)).toBe('ab');
+    });
+  });
 });

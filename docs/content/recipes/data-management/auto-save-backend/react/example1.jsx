@@ -15,7 +15,7 @@ const data = [
 const statusLabels = {
   idle: 'No pending changes',
   saving: 'Saving...',
-  saved: 'Saved \u2713',
+  saved: 'Saved ✓',
   error: 'Error',
 };
 
@@ -26,12 +26,12 @@ const statusColors = {
   error: '#c62828',
 };
 
-const saveRowsToBackend = async (rows) => {
-  await new Promise((resolve) => setTimeout(resolve, 450));
-
-  // Replace this with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
-  // eslint-disable-next-line no-console
-  console.log('PATCH /api/products', rows);
+const saveRowsToBackend = (rows) => {
+  return new Promise((resolve) => setTimeout(resolve, 450)).then(() => {
+    // Replace this with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
+    // eslint-disable-next-line no-console
+    console.log('PATCH /api/products', rows);
+  });
 };
 
 const ExampleComponent = () => {
@@ -66,7 +66,7 @@ const ExampleComponent = () => {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    saveTimeoutRef.current = setTimeout(async () => {
+    saveTimeoutRef.current = setTimeout(() => {
       const physicalRows = Array.from(dirtyRowsRef.current);
 
       if (physicalRows.length === 0) {
@@ -74,26 +74,40 @@ const ExampleComponent = () => {
       }
 
       const requestId = ++saveRequestCounterRef.current;
-      const rowsToSave = physicalRows
-        .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
-        .filter((row) => row !== undefined && row !== null);
+      const visualRows = physicalRows
+        .map((physicalRow) => hot.toVisualRow(physicalRow))
+        .filter((row) => row !== null);
 
-      dirtyRowsRef.current.clear();
-      setSaveStatus('saving');
+      hot.validateRows(visualRows, (valid) => {
+        if (!valid) {
+          if (requestId === saveRequestCounterRef.current) {
+            setSaveStatus('error');
+          }
 
-      try {
-        await saveRowsToBackend(rowsToSave);
-
-        if (requestId === saveRequestCounterRef.current) {
-          setSaveStatus('saved');
+          return;
         }
-      } catch (_error) {
-        physicalRows.forEach((physicalRow) => dirtyRowsRef.current.add(physicalRow));
 
-        if (requestId === saveRequestCounterRef.current) {
-          setSaveStatus('error');
-        }
-      }
+        const rowsToSave = physicalRows
+          .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
+          .filter((row) => row !== undefined && row !== null);
+
+        dirtyRowsRef.current.clear();
+        setSaveStatus('saving');
+
+        void saveRowsToBackend(rowsToSave)
+          .then(() => {
+            if (requestId === saveRequestCounterRef.current) {
+              setSaveStatus('saved');
+            }
+          })
+          .catch(() => {
+            physicalRows.forEach((physicalRow) => dirtyRowsRef.current.add(physicalRow));
+
+            if (requestId === saveRequestCounterRef.current) {
+              setSaveStatus('error');
+            }
+          });
+      });
     }, 800);
   };
 
