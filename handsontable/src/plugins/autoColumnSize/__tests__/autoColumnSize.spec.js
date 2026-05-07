@@ -1182,7 +1182,7 @@ describe('AutoColumnSize', () => {
       valueFormatter: () => 'new formatted value',
     });
 
-    expect(getColWidth(1)).toBeGreaterThanOrEqual(getDefaultColumnWidth());
+    expect(getColWidth(1)).toBeGreaterThan(getDefaultColumnWidth());
   });
 
   describe('should work together with formulas plugin', () => {
