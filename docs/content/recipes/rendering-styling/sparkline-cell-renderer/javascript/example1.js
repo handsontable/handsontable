@@ -20,17 +20,6 @@ function toSlots(rowData) {
   });
 }
 
-// Computes the max absolute value across all rows so every bar uses the same scale.
-function getGlobalMax(instance) {
-  let max = 0;
-  for (const rowData of instance.getSourceData()) {
-    for (const n of toSlots(rowData)) {
-      if (n !== null) max = Math.max(max, Math.abs(n));
-    }
-  }
-  return max;
-}
-
 // Inline SVG bar chart generated from the row's w1-w5 values.
 const sparklineRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   baseRenderer(instance, td, row, col, prop, value, cellProperties);
@@ -45,9 +34,9 @@ const sparklineRenderer = (instance, td, row, col, prop, value, cellProperties) 
     return;
   }
 
-  const globalMax = getGlobalMax(instance);
+  const rowMax = validNumbers.reduce((m, n) => Math.max(m, Math.abs(n)), 0);
 
-  if (globalMax === 0) {
+  if (rowMax === 0) {
     td.textContent = '—';
     td.title = 'All values are zero';
     return;
@@ -57,7 +46,7 @@ const sparklineRenderer = (instance, td, row, col, prop, value, cellProperties) 
   const rects = slots
     .map((n, i) => {
       if (n === null) return '';
-      const barHeight = (Math.abs(n) / globalMax) * VIEW_HEIGHT;
+      const barHeight = (Math.abs(n) / rowMax) * VIEW_HEIGHT;
       const x = i * SLOT;
       const y = VIEW_HEIGHT - barHeight;
       const w = SLOT - GAP;
@@ -95,15 +84,15 @@ new Handsontable(container, {
   height: 'auto',
   width: '100%',
   columns: [
-    { data: 'product', type: 'text', width: 140, readOnly: true },
-    { data: 'w1', type: 'numeric', width: 65 },
-    { data: 'w2', type: 'numeric', width: 65 },
-    { data: 'w3', type: 'numeric', width: 65 },
-    { data: 'w4', type: 'numeric', width: 65 },
-    { data: 'w5', type: 'numeric', width: 65 },
+    { data: 'product', type: 'text', width: 100, readOnly: true },
+    { data: 'w1', type: 'numeric', width: 48 },
+    { data: 'w2', type: 'numeric', width: 48 },
+    { data: 'w3', type: 'numeric', width: 48 },
+    { data: 'w4', type: 'numeric', width: 48 },
+    { data: 'w5', type: 'numeric', width: 48 },
     {
       data: null,
-      width: 220,
+      width: 160,
       type: 'sparklineBar',
       className: 'htMiddle sparkline-cell',
       readOnly: true,
