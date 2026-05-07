@@ -115,10 +115,10 @@ export function getCellCoordsFromMousePosition(
   const numberOfFixedRowsTop = view.countNotHiddenFixedRowsTop();
   const numberOfFixedRowsBottom = (view as unknown as { countNotHiddenFixedRowsBottom(): number }).countNotHiddenFixedRowsBottom();
 
-  const firstPartiallyVisibleRow = hotInstance.view.getFirstPartiallyVisibleRow() as number | null;
-  const lastPartiallyVisibleRow = hotInstance.view.getLastPartiallyVisibleRow() as number | null;
-  const firstPartiallyVisibleColumn = hotInstance.view.getFirstPartiallyVisibleColumn() as number | null;
-  const lastPartiallyVisibleColumn = hotInstance.view.getLastPartiallyVisibleColumn() as number | null;
+  const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow() as number | null;
+  const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow() as number | null;
+  const firstPartiallyVisibleColumn = hotInstance.getFirstPartiallyVisibleColumn() as number | null;
+  const lastPartiallyVisibleColumn = hotInstance.getLastPartiallyVisibleColumn() as number | null;
   const tableOffset = hotInstance.rootElement.getBoundingClientRect();
 
   const columnHeaderHeight = hotInstance.hasColHeaders() ? view.getColumnHeaderHeight() : 0;
