@@ -40,9 +40,5 @@ jobs:
       - name: Build angular-wrapper
         run: npm run build --prefix wrappers/angular-wrapper
 
-      - name: Install type-check dependencies
-        working-directory: docs/angular-type-check
-        run: npm install --legacy-peer-deps
-
       - name: Run type check
         run: npm run typecheck --prefix docs/angular-type-check
