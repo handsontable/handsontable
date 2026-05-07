@@ -48,7 +48,7 @@ jobs:
           script: |
             const ref = context.ref || '';
             // Match release/x.y.z branches (RC builds)
-            const releaseMatch = ref.match(/^refs\/heads\/release\/(\d+\.\d+\.\d+)$/);
+            const releaseMatch = ref.match(/^\/refs\/heads\/release\/(\d+\.\d+\.\d+)$/);
             const isReleaseBranch = !!releaseMatch;
             const targetVersion = releaseMatch ? releaseMatch[1] : '';
 
@@ -71,10 +71,32 @@ jobs:
         with:
           script: |
             // For pull_request events the number is in the event payload directly.
-            // gh-find-current-pr searches by commit SHA and can miss brand-new PRs
-            // due to GitHub API eventual consistency, causing comment steps to skip.
-            const prNumber = context.payload.pull_request?.number || '${{ steps.pr-finder.outputs.pr }}' || '';
-            core.setOutput('number', String(prNumber));
+            let prNumber = context.payload.pull_request?.number;
+
+            if (!prNumber && context.eventName === 'push') {
+              // For push events, look up the PR by head branch name.
+              // This is more reliable than the commit-SHA lookup used by gh-find-current-pr,
+              // which can miss brand-new PRs due to GitHub API eventual consistency.
+              const branchName = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branchName}`,
+                state: 'open'
+              });
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+                console.log(`Found PR #${prNumber} for branch ${branchName}`);
+              }
+            }
+
+            // Fall back to the gh-find-current-pr output if the above did not resolve a number.
+            if (!prNumber) {
+              const fallback = '${{ steps.pr-finder.outputs.pr }}';
+              prNumber = fallback ? Number(fallback) : undefined;
+            }
+
+            core.setOutput('number', prNumber ? String(prNumber) : '');
 
       - name: Get PR details
         id: get-pr
