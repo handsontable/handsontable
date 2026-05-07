@@ -1,7 +1,6 @@
 import Handsontable from "handsontable";
 import {
-  SELECTED_CLASS,
-  ODD_ROW_CLASS
+  SELECTED_CLASS
 } from "./constants";
 
 const dom = (Handsontable as unknown as {
@@ -46,12 +45,6 @@ export const addClassesToRows: AddClassesToRows = (
     dom.removeClass(parentElement, SELECTED_CLASS);
   }
 
-  // Add class to odd TRs
-  if (row % 2 === 0) {
-    dom.addClass(parentElement, ODD_ROW_CLASS);
-  } else {
-    dom.removeClass(parentElement, ODD_ROW_CLASS);
-  }
 };
 
 type DrawCheckboxInRowHeaders = (
