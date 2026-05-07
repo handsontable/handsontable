@@ -17,23 +17,9 @@
     "moduleResolution": "bundler",
     "lib": ["ES2022", "dom"],
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
     "paths": {
       "handsontable": ["../../handsontable/types"],
-      "handsontable/*": ["../../handsontable/types/*"],
-      "@handsontable/angular-wrapper": ["./node_modules/@handsontable/angular-wrapper"],
-      "numbro": ["./node_modules/numbro"],
-      "hyperformula": ["./node_modules/hyperformula"],
-      "@handsontable/pikaday": ["./node_modules/@handsontable/pikaday"],
-      "@angular/core": ["./node_modules/@angular/core"],
-      "@angular/common": ["./node_modules/@angular/common"],
-      "@angular/forms": ["./node_modules/@angular/forms"],
-      "@angular/platform-browser": ["./node_modules/@angular/platform-browser"],
-      "@angular/platform-browser-dynamic": ["./node_modules/@angular/platform-browser-dynamic"],
-      "@angular/router": ["./node_modules/@angular/router"],
-      "rxjs": ["./node_modules/rxjs"],
-      "rxjs/*": ["./node_modules/rxjs/*"],
-      "zone.js": ["./node_modules/zone.js"]
+      "handsontable/*": ["../../handsontable/types/*"]
     }
   },
   "angularCompilerOptions": {

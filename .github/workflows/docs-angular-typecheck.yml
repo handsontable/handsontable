@@ -38,8 +38,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Build handsontable
+        run: npm run build --prefix handsontable
+
       - name: Build angular-wrapper
         run: npm run build --prefix wrappers/angular-wrapper
+
+      - name: Install type-check dependencies
+        run: pnpm install --prefix docs/angular-type-check
 
       - name: Run type check
         run: npm run typecheck --prefix docs/angular-type-check
