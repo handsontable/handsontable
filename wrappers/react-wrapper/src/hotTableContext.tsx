@@ -88,45 +88,44 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
       // Handsontable.Core type is missing guid
       const instanceGuid = (instance as unknown as { guid: string }).guid;
 
-      const portalContainerKey = `${instanceGuid}-${key}`
-      const portalKey = `${key}-${instanceGuid}`
-
-      if (renderedCellCache.current.has(key)) {
-        TD.innerHTML = renderedCellCache.current.get(key)!.innerHTML;
-      }
+      const portalContainerKey = `${instanceGuid}-${key}`;
+      const portalKey = `${key}-${instanceGuid}`;
 
       if (TD && !TD.getAttribute('ghost-table')) {
-        const cachedPortal = portalCache.current.get(portalKey);
         const cachedPortalContainer = portalContainerCache.current.get(portalContainerKey);
+        // When the cached portal container is still attached to the same
+        // TD as the previous render, the DOM is already correct and must
+        // not be wiped. Wiping detaches the React-managed children, which
+        // forces a full remount of the renderer component on every grid
+        // render (see issue #10800).
+        const containerInPlace = !!cachedPortalContainer && cachedPortalContainer.parentNode === TD;
 
-        while (TD.firstChild) {
-          TD.removeChild(TD.firstChild);
-        }
+        const rendererElement = (
+          <Renderer instance={instance}
+                    TD={TD}
+                    row={row}
+                    col={col}
+                    prop={prop}
+                    value={value}
+                    cellProperties={cellProperties}/>
+        );
 
-        // if portal already exists, do not recreate
-        if (cachedPortal && cachedPortalContainer) {
-          TD.appendChild(cachedPortalContainer);
-        } else {
-          const rendererElement = (
-            <Renderer instance={instance}
-                      TD={TD}
-                      row={row}
-                      col={col}
-                      prop={prop}
-                      value={value}
-                      cellProperties={cellProperties}/>
-          );
+        const { portal, portalContainer } = createPortal(
+          rendererElement, TD.ownerDocument, portalKey, cachedPortalContainer
+        );
 
-          const {portal, portalContainer} = createPortal(rendererElement, TD.ownerDocument, portalKey, cachedPortalContainer);
-
-          portalContainerCache.current.set(portalContainerKey, portalContainer);
+        if (!containerInPlace) {
+          while (TD.firstChild) {
+            TD.removeChild(TD.firstChild);
+          }
           TD.appendChild(portalContainer);
-
-          portalCache.current.set(portalKey, portal);
         }
+
+        portalContainerCache.current.set(portalContainerKey, portalContainer);
+        portalCache.current.set(portalKey, portal);
       }
 
-      renderedCellCache.current.set(`${row}-${col}`, TD);
+      renderedCellCache.current.set(key, TD);
       return TD;
     };
   }, []);

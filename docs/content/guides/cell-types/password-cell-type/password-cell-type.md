@@ -132,9 +132,48 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 :::
 
+## Reveal delay
+
+Use the `hashRevealDelay` option to briefly show each character as you type it. After the delay (in milliseconds) elapses, the character is replaced by the hash symbol. This lets you confirm what you typed without permanently exposing the value.
+
+When `hashRevealDelay` is set, the editor switches from a native `<input type="password">` to a `<input type="text">` field with manual masking. Only the most recently typed character stays visible - all preceding characters are already masked.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example4.js)
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/password-cell-type/react/example4.jsx)
+@[code](@/content/guides/cell-types/password-cell-type/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/password-cell-type/angular/example4.ts)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example4.html)
+
+:::
+
+:::
+
 ## Result
 
-After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field. The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
+After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
 
 ## Related articles
 
@@ -151,6 +190,9 @@ After configuring the password cell type, cells display asterisks instead of the
 <div class="boxes-list">
 
 - [type](@/api/options.md#type)
+- [hashLength](@/api/options.md#hashlength)
+- [hashRevealDelay](@/api/options.md#hashrevealdelay)
+- [hashSymbol](@/api/options.md#hashsymbol)
 
 </div>
 

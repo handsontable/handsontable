@@ -1,6 +1,5 @@
-import { useRef, useState, useEffect, RefObject } from 'react';
-import Handsontable from 'handsontable/base';
-import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { useRef, useState, useEffect } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
@@ -13,7 +12,6 @@ const options: { value: string; label: string }[] = [
 ];
 
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableRef>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState('multiple');
@@ -42,7 +40,6 @@ const ExampleComponent = () => {
   const handleSelect = (value: string) => {
     setSelected(value);
     setIsOpen(false);
-    hotRef.current?.hotInstance?.updateSettings({ selectionMode: value } as Handsontable.GridSettings);
   };
 
   const selectedLabel = options.find((o) => o.value === selected)?.label;
@@ -80,7 +77,6 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
-        ref={hotRef}
         data={[
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
@@ -97,7 +93,7 @@ const ExampleComponent = () => {
         colWidths={100}
         rowHeaders={true}
         colHeaders={true}
-        selectionMode="multiple"
+        selectionMode={selected as 'single' | 'range' | 'multiple'}
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
