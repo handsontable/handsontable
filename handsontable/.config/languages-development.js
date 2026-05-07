@@ -90,7 +90,8 @@ module.exports.create = function create() {
     },
     module: {
       rules: [
-        { test: /\.(js|ts)$/, exclude: /node_modules/, loader: 'babel-loader' },
+        { test: /\.js$/, exclude: /node_modules/, loader: 'builtin:swc-loader', options: { jsc: { parser: { syntax: 'ecmascript' } } } },
+        { test: /\.ts$/, exclude: /node_modules/, loader: 'builtin:swc-loader', options: { jsc: { parser: { syntax: 'typescript' } } } },
         ruleForSnippetsInjection
       ]
     },

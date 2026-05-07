@@ -1,7 +1,7 @@
 /**
  * Wrapper for e2e dump that parses --theme=<name> from argv, sets HOT_THEME env,
- * and runs webpack so that theme is not passed to webpack (which would error).
- * Usage: node run-e2e-dump.mjs [--theme=main] [other webpack args...]
+ * and runs rspack so that theme is not passed to rspack (which would error).
+ * Usage: node run-e2e-dump.mjs [--theme=main] [other rspack args...]
  */
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
@@ -27,7 +27,7 @@ if (theme) {
   process.env.npm_config_theme = theme;
 }
 
-const webpackArgs = [
+const rspackArgs = [
   './test/helpers/index.js',
   './test/e2e/index.js',
   ...filteredArgs,
@@ -37,8 +37,8 @@ const child = spawn(
   'npx',
   [
     'env-cmd', '-f', path.resolve(rootDir, '../hot.config.js'),
-    'webpack',
-    ...webpackArgs,
+    'rspack',
+    ...rspackArgs,
   ],
   {
     cwd: rootDir,

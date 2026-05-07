@@ -324,8 +324,8 @@ function createConfig({
     module: {
       rules: [
         {
-          test: /\.(js|ts|tsx)$/,
-          loader: 'babel-loader',
+          test: /\.js$/,
+          loader: 'builtin:swc-loader',
           exclude: /node_modules/,
           options: {
             env: {
@@ -334,6 +334,23 @@ function createConfig({
             jsc: {
               parser: {
                 syntax: 'ecmascript',
+              },
+            },
+          },
+        },
+        {
+          test: /\.(ts|tsx)$/,
+          loader: 'builtin:swc-loader',
+          exclude: /node_modules/,
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+                decorators: true,
               },
             },
           },
