@@ -74,7 +74,7 @@ const sparklineRenderer: BaseRenderer = (instance, td, row, col, prop, value, ce
 };
 
 registerRenderer('sparklineBar', sparklineRenderer);
-registerCellType('sparklineBar', { renderer: 'sparklineBar' });
+registerCellType('sparklineBar', { renderer: sparklineRenderer });
 
 /* start:skip-in-preview */
 const data = [
