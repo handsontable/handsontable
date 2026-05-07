@@ -4,10 +4,10 @@
 
 ```
 handsontable-develop/
-├── handsontable/               # Core data grid package (vanilla JS)
-│   ├── src/                    # Source code
+├── handsontable/               # Core data grid package (TypeScript)
+│   ├── src/                    # Source code (.ts files; Walkontable subdirectory remains .js)
 │   ├── test/                   # E2E tests and test infrastructure
-│   ├── types/                  # Hand-authored TypeScript .d.ts definitions
+│   ├── types/                  # Auto-generated TypeScript .d.ts definitions (via build:types)
 │   ├── dist/                   # UMD/minified build output
 │   ├── tmp/                    # ES/CJS module build output (used by wrappers)
 │   ├── styles/                 # Compiled CSS output
@@ -44,13 +44,13 @@ handsontable-develop/
 
 ```
 handsontable/src/
-├── core.js                     # Core class (~5656 lines) - main public API
-├── base.js                     # Tree-shakeable entry point (minimal)
-├── index.js                    # Full entry point (registers all modules)
-├── registry.js                 # Aggregated registerAll*() for all module types
-├── tableView.js                # Bridge between Core and Walkontable
-├── editorManager.js            # Manages cell editor lifecycle
-├── eventManager.js             # Centralized DOM event listener management
+├── core.ts                     # Core class (~5656 lines) - main public API
+├── base.ts                     # Tree-shakeable entry point (minimal)
+├── index.ts                    # Full entry point (registers all modules)
+├── registry.ts                 # Aggregated registerAll*() for all module types
+├── tableView.ts                # Bridge between Core and Walkontable
+├── editorManager.ts            # Manages cell editor lifecycle
+├── eventManager.ts             # Centralized DOM event listener management
 │
 ├── core/                       # Core submodules
 │   ├── hooks/                  # Hooks (event bus) system
@@ -62,9 +62,9 @@ handsontable/src/
 │
 ├── plugins/                    # All feature plugins (~40 plugins)
 │   ├── base/                   # BasePlugin abstract class
-│   │   └── base.js             # Plugin lifecycle template
-│   ├── registry.js             # Plugin registry (register/get/getNames)
-│   ├── index.js                # Barrel export + registerAllPlugins()
+│   │   └── base.ts             # Plugin lifecycle template
+│   ├── registry.ts             # Plugin registry (register/get/getNames)
+│   ├── index.ts                # Barrel export + registerAllPlugins()
 │   ├── autoColumnSize/         # Auto column sizing
 │   ├── autoRowSize/            # Auto row sizing
 │   ├── autofill/               # Drag-to-fill
@@ -121,9 +121,9 @@ handsontable/src/
 │   ├── passwordEditor/         # Password input
 │   ├── selectEditor/           # Native select editor
 │   ├── timeEditor/             # Time input
-│   ├── registry.js             # Editor registry
-│   ├── factory.js              # Editor factory
-│   └── index.js                # Barrel export + registerAllEditors()
+│   ├── registry.ts             # Editor registry
+│   ├── factory.ts              # Editor factory
+│   └── index.ts                # Barrel export + registerAllEditors()
 │
 ├── renderers/                  # Cell renderer functions
 │   ├── baseRenderer/           # Base decorator renderer
@@ -134,17 +134,17 @@ handsontable/src/
 │   ├── htmlRenderer/           # HTML content renderer
 │   ├── numericRenderer/        # Numeric renderer
 │   ├── passwordRenderer/       # Password mask renderer
-│   ├── registry.js             # Renderer registry
-│   ├── factory.js              # Renderer factory
-│   └── index.js                # Barrel export + registerAllRenderers()
+│   ├── registry.ts             # Renderer registry
+│   ├── factory.ts              # Renderer factory
+│   └── index.ts                # Barrel export + registerAllRenderers()
 │
 ├── validators/                 # Cell value validators
 │   ├── autocompleteValidator/  # Autocomplete validation
 │   ├── dateValidator/          # Date validation
 │   ├── numericValidator/       # Numeric validation
 │   ├── timeValidator/          # Time validation
-│   ├── registry.js             # Validator registry
-│   └── index.js                # Barrel export + registerAllValidators()
+│   ├── registry.ts             # Validator registry
+│   └── index.ts                # Barrel export + registerAllValidators()
 │
 ├── cellTypes/                  # Composite cell types (editor+renderer+validator)
 │   ├── textType/               # Default text type
@@ -160,52 +160,52 @@ handsontable/src/
 │   ├── passwordType/           # Password type
 │   ├── selectType/             # Select type
 │   ├── timeType/               # Time type
-│   ├── registry.js             # Cell type registry
-│   └── index.js                # Barrel export + registerAllCellTypes()
+│   ├── registry.ts             # Cell type registry
+│   └── index.ts                # Barrel export + registerAllCellTypes()
 │
 ├── dataMap/                    # Data management layer
-│   ├── dataMap.js              # DataMap - row/column data access
-│   ├── dataSource.js           # DataSource - raw data wrapper
-│   ├── replaceData.js          # Data replacement logic
-│   ├── sourceDataValidator.js  # Source data validation
+│   ├── dataMap.ts              # DataMap - row/column data access
+│   ├── dataSource.ts           # DataSource - raw data wrapper
+│   ├── replaceData.ts          # Data replacement logic
+│   ├── sourceDataValidator.ts  # Source data validation
 │   ├── metaManager/            # Cascading metadata system
-│   │   ├── index.js            # MetaManager class
-│   │   ├── metaSchema.js       # Default meta schema (all settings defaults)
-│   │   ├── lazyFactoryMap.js   # Lazy map for meta objects
+│   │   ├── index.ts            # MetaManager class
+│   │   ├── metaSchema.ts       # Default meta schema (all settings defaults)
+│   │   ├── lazyFactoryMap.ts   # Lazy map for meta objects
 │   │   ├── metaLayers/         # Four meta layers
-│   │   │   ├── globalMeta.js   # Global defaults (prototype)
-│   │   │   ├── tableMeta.js    # Table-level overrides (instance)
-│   │   │   ├── columnMeta.js   # Column-level overrides (prototype)
-│   │   │   └── cellMeta.js     # Cell-level overrides (instance)
+│   │   │   ├── globalMeta.ts   # Global defaults (prototype)
+│   │   │   ├── tableMeta.ts    # Table-level overrides (instance)
+│   │   │   ├── columnMeta.ts   # Column-level overrides (prototype)
+│   │   │   └── cellMeta.ts     # Cell-level overrides (instance)
 │   │   ├── mods/               # Meta modifier modules
-│   │   │   ├── dynamicCellMeta.js     # Dynamic cell meta from `cells()` function
-│   │   │   └── extendMetaProperties.js # Extends meta with type-resolved properties
-│   │   └── utils.js            # Meta utilities
-│   └── index.js                # Barrel export
+│   │   │   ├── dynamicCellMeta.ts     # Dynamic cell meta from `cells()` function
+│   │   │   └── extendMetaProperties.ts # Extends meta with type-resolved properties
+│   │   └── utils.ts            # Meta utilities
+│   └── index.ts                # Barrel export
 │
 ├── translations/               # Index mapping (3 coordinate systems)
-│   ├── indexMapper.js           # IndexMapper - main translation class
+│   ├── indexMapper.ts           # IndexMapper - main translation class
 │   ├── maps/                    # Map implementations
-│   │   ├── hidingMap.js         # HidingMap (hidden but in DataMap)
-│   │   ├── trimmingMap.js       # TrimmingMap (removed from DataMap)
-│   │   ├── indexesSequence.js   # IndexesSequence (ordering)
+│   │   ├── hidingMap.ts         # HidingMap (hidden but in DataMap)
+│   │   ├── trimmingMap.ts       # TrimmingMap (removed from DataMap)
+│   │   ├── indexesSequence.ts   # IndexesSequence (ordering)
 │   │   └── ...                  # PhysicalIndexToValueMap, LinkedPhysicalIndexToValueMap
 │   ├── mapCollections/          # Map collection types
-│   │   ├── mapCollection.js     # MapCollection base
-│   │   └── aggregatedCollection.js # AggregatedCollection (aggregates multiple maps)
+│   │   ├── mapCollection.ts     # MapCollection base
+│   │   └── aggregatedCollection.ts # AggregatedCollection (aggregates multiple maps)
 │   ├── changesObservable/       # Observable for index changes
-│   └── index.js                 # Barrel export
+│   └── index.ts                 # Barrel export
 │
 ├── selection/                  # Selection management
-│   ├── selection.js            # Selection class (main)
-│   ├── range.js                # SelectionRange data layer
+│   ├── selection.ts            # Selection class (main)
+│   ├── range.ts                # SelectionRange data layer
 │   ├── highlight/              # Selection highlight rendering
-│   │   └── highlight.js        # Highlight class with type constants
+│   │   └── highlight.ts        # Highlight class with type constants
 │   ├── transformation/         # Selection transformation modules
-│   │   ├── extender.js         # ExtenderTransformation (extend selection)
-│   │   └── focus.js            # FocusTransformation (move focus)
-│   ├── mouseEventHandler.js    # Mouse event -> selection actions
-│   └── utils.js                # Selection utilities
+│   │   ├── extender.ts         # ExtenderTransformation (extend selection)
+│   │   └── focus.ts            # FocusTransformation (move focus)
+│   ├── mouseEventHandler.ts    # Mouse event -> selection actions
+│   └── utils.ts                # Selection utilities
 │
 ├── 3rdparty/walkontable/       # Walkontable rendering engine
 │   ├── src/
@@ -251,30 +251,30 @@ handsontable/src/
 │   └── test/                   # Walkontable-specific tests
 │
 ├── shortcuts/                  # Keyboard shortcut system
-│   ├── manager.js              # ShortcutManager
-│   ├── context.js              # ShortcutContext
-│   ├── recorder.js             # Key recorder
-│   ├── keyObserver.js          # Key observer
-│   └── utils.js                # Shortcut utilities
+│   ├── manager.ts              # ShortcutManager
+│   ├── context.ts              # ShortcutContext
+│   ├── recorder.ts             # Key recorder
+│   ├── keyObserver.ts          # Key observer
+│   └── utils.ts                # Shortcut utilities
 │
 ├── shortcutContexts/           # Predefined shortcut contexts
 │
 ├── focusManager/               # Focus management for accessibility
-│   ├── index.js                # FocusGridManager, scope manager
-│   ├── grid.js                 # Grid focus manager
-│   ├── scope.js                # Focus scope
-│   ├── scopeManager.js         # Scope manager
+│   ├── index.ts                # FocusGridManager, scope manager
+│   ├── grid.ts                 # Grid focus manager
+│   ├── scope.ts                # Focus scope
+│   ├── scopeManager.ts         # Scope manager
 │   ├── scopes/                 # Predefined focus scopes
-│   ├── eventListener.js        # Focus event listener
-│   ├── constants.js            # Focus constants
+│   ├── eventListener.ts        # Focus event listener
+│   ├── constants.ts            # Focus constants
 │   └── utils/                  # Focus utilities
 │
 ├── themes/                     # Theme system
 │   ├── engine/                 # Theme engine (runtime)
-│   ├── registry.js             # Theme registry
+│   ├── registry.ts             # Theme registry
 │   ├── static/                 # Static theme definitions
 │   ├── theme/                  # Theme class
-│   └── index.js                # Barrel export
+│   └── index.ts                # Barrel export
 │
 ├── styles/                     # SCSS source files
 │   ├── handsontable.scss       # Main stylesheet
@@ -284,51 +284,51 @@ handsontable/src/
 │   └── utils/                  # Style utilities
 │
 ├── i18n/                       # Internationalization
-│   ├── registry.js             # Language registry
-│   └── utils.js                # i18n utilities
+│   ├── registry.ts             # Language registry
+│   └── utils.ts                # i18n utilities
 │
 ├── helpers/                    # Shared utility functions
 │   ├── dom/                    # DOM helpers
-│   │   ├── element.js          # Element manipulation (addClass, empty, etc.)
-│   │   └── event.js            # Event helpers (isImmediatePropagationStopped, etc.)
-│   ├── a11y.js                 # Accessibility ARIA helpers
-│   ├── array.js                # Array utilities
-│   ├── browser.js              # Browser detection
-│   ├── console.js              # Console wrappers (use instead of raw console)
-│   ├── constants.js            # Shared constants
-│   ├── data.js                 # Data helpers (spreadsheetColumnLabel, etc.)
-│   ├── dateTime.js             # Date/time utilities
-│   ├── errors.js               # throwWithCause (use instead of throw new Error)
-│   ├── feature.js              # Feature detection
-│   ├── function.js             # Function utilities
-│   ├── mixed.js                # Mixed type utilities
-│   ├── moves.js                # Movement helpers
-│   ├── number.js               # Number utilities (rangeEach, clamp)
-│   ├── object.js               # Object utilities (deepClone, mixin, etc.)
-│   ├── string.js               # String utilities
-│   ├── templateLiteralTag.js   # Template literal helpers
-│   ├── themes.js               # Theme helpers
-│   ├── unicode.js              # Unicode/keyboard key helpers
+│   │   ├── element.ts          # Element manipulation (addClass, empty, etc.)
+│   │   └── event.ts            # Event helpers (isImmediatePropagationStopped, etc.)
+│   ├── a11y.ts                 # Accessibility ARIA helpers
+│   ├── array.ts                # Array utilities
+│   ├── browser.ts              # Browser detection
+│   ├── console.ts              # Console wrappers (use instead of raw console)
+│   ├── constants.ts            # Shared constants
+│   ├── data.ts                 # Data helpers (spreadsheetColumnLabel, etc.)
+│   ├── dateTime.ts             # Date/time utilities
+│   ├── errors.ts               # throwWithCause (use instead of throw new Error)
+│   ├── feature.ts              # Feature detection
+│   ├── function.ts             # Function utilities
+│   ├── mixed.ts                # Mixed type utilities
+│   ├── moves.ts                # Movement helpers
+│   ├── number.ts               # Number utilities (rangeEach, clamp)
+│   ├── object.ts               # Object utilities (deepClone, mixin, etc.)
+│   ├── string.ts               # String utilities
+│   ├── templateLiteralTag.ts   # Template literal helpers
+│   ├── themes.ts               # Theme helpers
+│   ├── unicode.ts              # Unicode/keyboard key helpers
 │   └── wrappers/               # Framework wrappers (jQuery)
 │
 ├── mixins/                     # Object mixins
-│   ├── localHooks.js           # Local hooks mixin (used by IndexMapper, Selection, etc.)
-│   └── hooksRefRegisterer.js   # Hooks reference registerer mixin
+│   ├── localHooks.ts           # Local hooks mixin (used by IndexMapper, Selection, etc.)
+│   └── hooksRefRegisterer.ts   # Hooks reference registerer mixin
 │
 └── utils/                      # Utility classes
-    ├── autoResize.js            # Auto-resize textarea utility
-    ├── ghostTable.js            # Ghost table for measuring
-    ├── interval.js              # Interval helper
-    ├── paginator.js             # Pagination utility
-    ├── parseTable.js            # HTML table parsing (instanceToHTML, etc.)
-    ├── rootInstance.js          # Root instance management
-    ├── samplesGenerator.js      # Sample data generator (for auto-sizing)
-    ├── staticRegister.js        # Static registration utility
-    ├── stylesHandler.js         # Runtime CSS style handler
-    ├── valueAccessors.js        # Value getter/setter utilities
-    ├── a11yAnnouncer.js         # Accessibility announcer
+    ├── autoResize.ts            # Auto-resize textarea utility
+    ├── ghostTable.ts            # Ghost table for measuring
+    ├── interval.ts              # Interval helper
+    ├── paginator.ts             # Pagination utility
+    ├── parseTable.ts            # HTML table parsing (instanceToHTML, etc.)
+    ├── rootInstance.ts          # Root instance management
+    ├── samplesGenerator.ts      # Sample data generator (for auto-sizing)
+    ├── staticRegister.ts        # Static registration utility
+    ├── stylesHandler.ts         # Runtime CSS style handler
+    ├── valueAccessors.ts        # Value getter/setter utilities
+    ├── a11yAnnouncer.ts         # Accessibility announcer
     └── dataStructures/          # Data structure utilities
-        └── uniqueMap.js         # UniqueMap implementation
+        └── uniqueMap.ts         # UniqueMap implementation
 ```
 
 ## Directory Purposes
@@ -337,7 +337,7 @@ handsontable/src/
 - Purpose: All grid features as self-contained plugins
 - Contains: Each plugin in its own directory with `index.js` barrel export
 - Key files: `base/base.js` (BasePlugin), `registry.js` (plugin registry)
-- Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.js`
+- Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.ts`
 
 **`handsontable/src/3rdparty/walkontable/`:**
 - Purpose: Self-contained rendering engine with its own test suite
@@ -350,16 +350,16 @@ handsontable/src/
 - Contains: Four meta layers, meta schema with all default settings, modifier mods
 
 **`handsontable/types/`:**
-- Purpose: Hand-authored TypeScript definitions for the public API
-- Contains: `.d.ts` files only. Do NOT create `.ts` files in the core package.
+- Purpose: Auto-generated TypeScript definitions for the public API (via `npm run build:types`)
+- Contains: `.d.ts` files only. Do not hand-edit — regenerate with `npm run build:types` after changing source.
 
 ## Key File Locations
 
 **Entry Points:**
-- `handsontable/src/index.js`: Full entry - registers all modules, used for UMD builds
-- `handsontable/src/base.js`: Tree-shakeable entry - minimal registration, users add modules
-- `handsontable/src/core.js`: Core constructor function (~5656 lines)
-- `handsontable/src/registry.js`: Aggregated `registerAllModules()` function
+- `handsontable/src/index.ts`: Full entry - registers all modules, used for UMD builds
+- `handsontable/src/base.ts`: Tree-shakeable entry - minimal registration, users add modules
+- `handsontable/src/core.ts`: Core constructor function (~5656 lines)
+- `handsontable/src/registry.ts`: Aggregated `registerAllModules()` function
 
 **Configuration:**
 - `hot.config.js`: Build environment variables (HOT_VERSION, HOT_BUILD_DATE, etc.)
@@ -373,11 +373,11 @@ handsontable/src/
 - `.nvmrc`: Node.js version (22)
 
 **Core Logic:**
-- `handsontable/src/core.js`: All public API methods
-- `handsontable/src/tableView.js`: Core-to-Walkontable bridge
-- `handsontable/src/editorManager.js`: Editor lifecycle
-- `handsontable/src/eventManager.js`: DOM event management
-- `handsontable/src/dataMap/metaManager/metaSchema.js`: All default settings and their documentation
+- `handsontable/src/core.ts`: All public API methods
+- `handsontable/src/tableView.ts`: Core-to-Walkontable bridge
+- `handsontable/src/editorManager.ts`: Editor lifecycle
+- `handsontable/src/eventManager.ts`: DOM event management
+- `handsontable/src/dataMap/metaManager/metaSchema.ts`: All default settings and their documentation
 
 **Testing:**
 - `handsontable/test/e2e/`: E2E test specs (Jasmine/Puppeteer)
@@ -391,7 +391,7 @@ handsontable/src/
 ## Naming Conventions
 
 **Files:**
-- Source files: `camelCase.js` (e.g., `dataMap.js`, `indexMapper.js`, `baseEditor/`)
+- Source files: `camelCase.ts` (e.g., `dataMap.ts`, `indexMapper.ts`, `baseEditor/`); Walkontable remains `camelCase.js`
 - Test files: `*.unit.js` (Jest unit), `*.spec.js` (Jasmine E2E)
 - Type files: `*.d.ts` in `handsontable/types/`, `*.types.ts` for type tests
 - Plugin directories: `camelCase` matching the plugin key (e.g., `hiddenColumns/`, `contextMenu/`)
@@ -410,30 +410,30 @@ handsontable/src/
 
 **New Plugin:**
 - Create directory: `handsontable/src/plugins/myPlugin/`
-- Implementation: `handsontable/src/plugins/myPlugin/myPlugin.js`
-- Barrel export: `handsontable/src/plugins/myPlugin/index.js` (export `PLUGIN_KEY`, `PLUGIN_PRIORITY`, class)
-- Register in: `handsontable/src/plugins/index.js` (add to `registerAllPlugins()`)
+- Implementation: `handsontable/src/plugins/myPlugin/myPlugin.ts`
+- Barrel export: `handsontable/src/plugins/myPlugin/index.ts` (export `PLUGIN_KEY`, `PLUGIN_PRIORITY`, class)
+- Register in: `handsontable/src/plugins/index.ts` (add to `registerAllPlugins()`)
 - E2E tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.spec.js`
 - Unit tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.unit.js`
-- Types: `handsontable/types/plugins/myPlugin/myPlugin.d.ts`
+- Types: auto-generated in `handsontable/types/` via `npm run build:types`
 
 **New Editor:**
 - Create directory: `handsontable/src/editors/myEditor/`
-- Register in: `handsontable/src/editors/index.js`
-- Types: `handsontable/types/editors/myEditor.d.ts`
+- Register in: `handsontable/src/editors/index.ts`
+- Types: auto-generated in `handsontable/types/` via `npm run build:types`
 
 **New Renderer:**
 - Create directory: `handsontable/src/renderers/myRenderer/`
-- Register in: `handsontable/src/renderers/index.js`
+- Register in: `handsontable/src/renderers/index.ts`
 
 **New Cell Type:**
 - Create directory: `handsontable/src/cellTypes/myType/`
-- Register in: `handsontable/src/cellTypes/index.js`
+- Register in: `handsontable/src/cellTypes/index.ts`
 
 **New Helper/Utility:**
-- Shared helpers: `handsontable/src/helpers/myHelper.js`
-- Utility classes: `handsontable/src/utils/myUtil.js`
-- DOM helpers: `handsontable/src/helpers/dom/myDomHelper.js`
+- Shared helpers: `handsontable/src/helpers/myHelper.ts`
+- Utility classes: `handsontable/src/utils/myUtil.ts`
+- DOM helpers: `handsontable/src/helpers/dom/myDomHelper.ts`
 
 **New Walkontable Feature:**
 - Implementation: `handsontable/src/3rdparty/walkontable/src/`
@@ -463,8 +463,8 @@ handsontable/src/
 - Committed: Yes (published to npm)
 
 **`handsontable/types/`:**
-- Purpose: Hand-authored TypeScript `.d.ts` definitions
-- Generated: No (manually maintained)
+- Purpose: Auto-generated TypeScript `.d.ts` definitions (via `npm run build:types`)
+- Generated: Yes (via `tsc --emitDeclarationOnly` using `tsconfig.build-types.json`)
 - Committed: Yes
 
 **`handsontable/languages/`:**

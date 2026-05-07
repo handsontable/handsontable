@@ -11,20 +11,20 @@
 - Three coordinate systems (physical, visual, renderable) managed by `IndexMapper`
 - Cascading metadata system (GlobalMeta -> TableMeta -> ColumnMeta -> CellMeta) for configuration
 - Registry pattern for all extensible components (plugins, editors, renderers, validators, cell types, themes)
-- Two entry points: `base.js` (tree-shakeable, minimal) and `index.js` (full, registers everything)
+- Two entry points: `base.ts` (tree-shakeable, minimal) and `index.ts` (full, registers everything)
 
 ## Layers
 
 **Public API (Core):**
 - Purpose: Exposes all grid methods (getData, setData, selectCell, updateSettings, etc.)
-- Location: `handsontable/src/core.js` (~5656 lines)
+- Location: `handsontable/src/core.ts` (~5656 lines)
 - Contains: The `Core` constructor function with all public API methods defined on `this`
 - Depends on: Every subsystem (Selection, DataMap, MetaManager, IndexMapper, TableView, EditorManager, Hooks, ShortcutManager, FocusManager, ThemeManager)
 - Used by: Framework wrappers (React, Angular, Vue), end users
 
 **View Layer (TableView + Walkontable):**
 - Purpose: Bridges Core to the DOM rendering engine (Walkontable)
-- Location: `handsontable/src/tableView.js` (TableView), `handsontable/src/3rdparty/walkontable/src/` (Walkontable)
+- Location: `handsontable/src/tableView.ts` (TableView), `handsontable/src/3rdparty/walkontable/src/` (Walkontable, still JavaScript)
 - Contains: DOM element creation, event delegation (mouse/touch/keyboard), scroll handling, overlay management
 - Depends on: Walkontable engine, Core instance for data callbacks
 - Used by: Core (via `this.view`)
@@ -92,7 +92,7 @@
 
 **Editor System:**
 - Purpose: Manages cell editors (text input, dropdown, date picker, etc.)
-- Location: `handsontable/src/editors/`, `handsontable/src/editorManager.js`
+- Location: `handsontable/src/editors/`, `handsontable/src/editorManager.ts`
 - Contains: `EditorManager` (orchestrates editor lifecycle), `BaseEditor` (abstract base), 15+ editor types
 - Depends on: Selection (to know which cell is active), MetaManager (for cell type config)
 - Used by: Core
@@ -195,43 +195,43 @@
 
 **IndexMapper:**
 - Purpose: Single source of truth for row/column index translations between physical, visual, and renderable coordinate systems
-- Examples: `handsontable/src/translations/indexMapper.js`
+- Examples: `handsontable/src/translations/indexMapper.ts`
 - Pattern: Maintains collections of maps (trimming, hiding, value) and caches translations. Plugins register named maps.
 
 **BasePlugin:**
 - Purpose: Abstract base for all plugin implementations with standardized lifecycle
-- Examples: `handsontable/src/plugins/base/base.js`
+- Examples: `handsontable/src/plugins/base/base.ts`
 - Pattern: Template method pattern with `isEnabled()` -> `enablePlugin()` -> `updatePlugin()` -> `disablePlugin()` -> `destroy()`
 
 **Hooks (Event Bus):**
 - Purpose: Decoupled communication between Core, plugins, and user code
-- Examples: `handsontable/src/core/hooks/index.js`
+- Examples: `handsontable/src/core/hooks/index.ts`
 - Pattern: Observer/pub-sub with global singleton and per-instance buckets. Supports ordered callbacks via `orderIndex`.
 
 **MetaManager (Cascading Config):**
 - Purpose: Configuration inheritance chain from global defaults to individual cell settings
-- Examples: `handsontable/src/dataMap/metaManager/index.js`
+- Examples: `handsontable/src/dataMap/metaManager/index.ts`
 - Pattern: Prototype-chain inheritance: GlobalMeta (prototype) -> ColumnMeta (prototype) -> CellMeta (instance). TableMeta is a separate instance of GlobalMeta.
 
 **Registry Pattern:**
 - Purpose: Dynamic registration and lookup of components by string key
-- Examples: `handsontable/src/plugins/registry.js`, `handsontable/src/editors/registry.js`, `handsontable/src/renderers/registry.js`, `handsontable/src/validators/registry.js`, `handsontable/src/cellTypes/registry.js`, `handsontable/src/themes/registry.js`
+- Examples: `handsontable/src/plugins/registry.ts`, `handsontable/src/editors/registry.ts`, `handsontable/src/renderers/registry.ts`, `handsontable/src/validators/registry.ts`, `handsontable/src/cellTypes/registry.ts`, `handsontable/src/themes/registry.ts`
 - Pattern: Map-based registries with `register()` / `get()` / `getNames()` methods. The `registry.js` module in `src/` aggregates all `registerAll*()` calls.
 
 ## Entry Points
 
-**Full Entry (`index.js`):**
-- Location: `handsontable/src/index.js`
+**Full Entry (`index.ts`):**
+- Location: `handsontable/src/index.ts`
 - Triggers: `registerAllModules()` which registers all editors, renderers, validators, cell types, and plugins
 - Responsibilities: Creates the full Handsontable namespace with all modules pre-registered. Used for UMD/CDN builds.
 
-**Base Entry (`base.js`):**
-- Location: `handsontable/src/base.js`
+**Base Entry (`base.ts`):**
+- Location: `handsontable/src/base.ts`
 - Triggers: Registers only `TextCellType` and `baseRenderer` (minimal defaults)
 - Responsibilities: Tree-shakeable entry point. Users import and register only needed modules.
 
 **Core Constructor:**
-- Location: `handsontable/src/core.js` (exported as `Core`)
+- Location: `handsontable/src/core.ts` (exported as `Core`)
 - Triggers: Called by `Handsontable()` wrapper in `base.js`
 - Responsibilities: Instantiates all subsystems, creates DOM structure, sets up hooks
 
@@ -240,23 +240,23 @@
 **Strategy:** Custom error helper with cause tracking
 
 **Patterns:**
-- Use `throwWithCause(message, cause)` from `handsontable/src/helpers/errors.js` instead of `throw new Error()`. Enforced by ESLint rule `handsontable/no-native-error-throw`.
+- Use `throwWithCause(message, cause)` from `handsontable/src/helpers/errors.ts` instead of `throw new Error()`. Enforced by ESLint rule `handsontable/no-native-error-throw`.
 - Hooks use before/after pattern where `before*` hooks can return `false` to cancel operations
 - Validators use callback pattern (async-capable): `validator(value, callback)` where `callback(true/false)` signals validity
-- Console warnings use helpers from `handsontable/src/helpers/console.js` (never raw `console`)
+- Console warnings use helpers from `handsontable/src/helpers/console.ts` (never raw `console`)
 
 ## Cross-Cutting Concerns
 
-**Logging:** Via `handsontable/src/helpers/console.js` helpers (`warn`, `log`, `error`). Raw `console` is banned by ESLint.
+**Logging:** Via `handsontable/src/helpers/console.ts` helpers (`warn`, `log`, `error`). Raw `console` is banned by ESLint.
 
-**Validation:** Cell validators in `handsontable/src/validators/`. Source data validators in `handsontable/src/dataMap/sourceDataValidator.js`. Triggered on data changes and via `validateCells()` API.
+**Validation:** Cell validators in `handsontable/src/validators/`. Source data validators in `handsontable/src/dataMap/sourceDataValidator.ts`. Triggered on data changes and via `validateCells()` API.
 
 **Authentication:** Not applicable (frontend-only library, no auth).
 
 **Internationalization:** `handsontable/src/i18n/` with language dictionaries and a registry. RTL layout support via `layoutDirection` setting and `isRtl()`/`isLtr()` Core methods.
 
-**Accessibility:** ARIA attributes applied via helpers in `handsontable/src/helpers/a11y.js`. Announcer utility in `handsontable/src/utils/a11yAnnouncer.js`. Focus management in `handsontable/src/focusManager/`. Two navigation modes: spreadsheet mode and data grid mode.
+**Accessibility:** ARIA attributes applied via helpers in `handsontable/src/helpers/a11y.ts`. Announcer utility in `handsontable/src/utils/a11yAnnouncer.ts`. Focus management in `handsontable/src/focusManager/`. Two navigation modes: spreadsheet mode and data grid mode.
 
-**DOM Abstraction:** All DOM access goes through `handsontable/src/helpers/dom/element.js` and `handsontable/src/helpers/dom/event.js`. Global `window`/`document` are banned; use `this.hot.rootWindow`/`this.hot.rootDocument`.
+**DOM Abstraction:** All DOM access goes through `handsontable/src/helpers/dom/element.ts` and `handsontable/src/helpers/dom/event.ts`. Global `window`/`document` are banned; use `this.hot.rootWindow`/`this.hot.rootDocument`.
 
-**Event Management:** `handsontable/src/eventManager.js` provides centralized DOM event listener management with automatic cleanup.
+**Event Management:** `handsontable/src/eventManager.ts` provides centralized DOM event listener management with automatic cleanup.
