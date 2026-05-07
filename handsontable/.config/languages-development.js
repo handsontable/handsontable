@@ -8,6 +8,7 @@ const OUTPUT_LANGUAGES_DIRECTORY = 'languages';
 const path = require('path');
 const fs  = require('fs');
 const fsExtra  = require('fs-extra');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
@@ -65,6 +66,7 @@ const ruleForSnippetsInjection = {
 module.exports.create = function create() {
   const config = {
     mode: 'none',
+    devtool: false,
     entry: getEntryJsFiles(),
     output: {
       filename: '[name].js',

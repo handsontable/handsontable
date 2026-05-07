@@ -13,9 +13,6 @@ angular:
   id: gueng7dm
   metaTitle: 'API reference: Plugins - Angular Data Grid | Handsontable'
 ---
-
-# Available plugins
-
 |Plugin Name  | Description |
 |--|--|
 |[AutoColumnSize](@/api/autoColumnSize.md) |Automatically adjusts the column's width to the size of the content.|

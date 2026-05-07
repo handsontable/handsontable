@@ -19,6 +19,8 @@ import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
+import { PositionCache } from './utils/positionCache';
+import { DEFAULT_COLUMN_WIDTH } from './constants';
 
 /**
  * @class Viewport
@@ -81,6 +83,29 @@ class Viewport {
       ['partiallyVisible', () => new PartiallyVisibleColumnsCalculationType()],
     ]);
 
+    /**
+     * Cumulative row height prefix sum cache. Enables O(log n) scroll-to-row lookups
+     * when custom row heights are configured.
+     *
+     * @type {PositionCache}
+     */
+    this.rowHeightCache = new PositionCache({
+      totalItemsFn: () => wtSettings.getSetting('totalRows'),
+      sizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
+    });
+    /**
+     * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
+     * when custom column widths are configured.
+     *
+     * @type {PositionCache}
+     */
+    this.columnWidthCache = new PositionCache({
+      totalItemsFn: () => wtSettings.getSetting('totalColumns'),
+      sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
+    });
+
     this.eventManager = eventManager;
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
@@ -102,7 +127,15 @@ class Viewport {
       const elemHeight = outerHeight(trimmingContainer as HTMLElement);
 
       // returns height without DIV scrollbar
-      height = (elemHeight > 0 && (trimmingContainer as HTMLElement).clientHeight > 0) ? (trimmingContainer as HTMLElement).clientHeight : Infinity;
+      if (elemHeight > 0 && (trimmingContainer as HTMLElement).clientHeight > 0) {
+        height = (trimmingContainer as HTMLElement).clientHeight;
+      } else {
+        // Fall back to window height when the trimming container has zero client height
+        // (e.g. a parent with overflow set but no explicit height). Returning Infinity
+        // previously caused an unbounded viewport, expanding the parent to the browser's
+        // ~2^25 px CSS height limit. See issue #3119.
+        height = Math.max(currentDocument.documentElement.clientHeight, 1);
+      }
     }
 
     return height;
@@ -113,10 +146,6 @@ class Viewport {
    */
   getViewportHeight() {
     let containerHeight = this.getWorkspaceHeight();
-
-    if (containerHeight === Infinity) {
-      return containerHeight;
-    }
 
     const columnHeaderHeight = this.getColumnHeaderHeight();
 
@@ -164,10 +193,6 @@ class Viewport {
    */
   getViewportWidth() {
     const containerWidth = this.getWorkspaceWidth();
-
-    if (containerWidth === Infinity) {
-      return containerWidth;
-    }
 
     const rowHeaderWidth = this.getRowHeaderWidth();
 
@@ -332,6 +357,7 @@ class Viewport {
    */
   createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
+    const totalRows = wtSettings.getSetting('totalRows');
 
     let height = this.getViewportHeight();
     let scrollbarHeight;
@@ -343,7 +369,6 @@ class Viewport {
 
     const fixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
     const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom') as number;
-    const totalRows = wtSettings.getSetting('totalRows') as number;
 
     if (fixedRowsTop && pos >= 0) {
       fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
@@ -368,10 +393,9 @@ class Viewport {
       viewportHeight: height,
       scrollOffset: pos,
       totalRows,
-      defaultRowHeight: (wtSettings.getSetting('stylesHandler') as StylesHandler).getDefaultRowHeight(),
-      rowHeightFn: (sourceRow: number) => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride') as any,
       horizontalScrollbarHeight: scrollbarHeight,
+      rowHeightCache: this.rowHeightCache,
     });
   }
 
@@ -386,6 +410,7 @@ class Viewport {
    */
   createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
+    const totalColumns = wtSettings.getSetting('totalColumns');
 
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
@@ -408,10 +433,10 @@ class Viewport {
       calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]) as any,
       viewportWidth: width,
       scrollOffset: pos,
-      totalColumns: wtSettings.getSetting('totalColumns') as number,
-      columnWidthFn: (sourceCol: number) => wtTable.getColumnWidth(sourceCol),
+      totalColumns,
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride') as any,
-      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
+      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset,
+      columnWidthCache: this.columnWidthCache,
     });
   }
 
@@ -425,6 +450,7 @@ class Viewport {
    */
   createCalculators(fastDraw = false) {
     const { wtSettings } = this;
+
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
 
@@ -602,6 +628,30 @@ class Viewport {
     }
 
     return true;
+  }
+
+  /**
+   * Marks the row height position cache as stale. The cache will be rebuilt
+   * on the next viewport calculation.
+   */
+  invalidateRowHeightCache() {
+    this.rowHeightCache.invalidate();
+  }
+
+  /**
+   * Marks the column width position cache as stale. The cache will be rebuilt
+   * on the next viewport calculation.
+   */
+  invalidateColumnWidthCache() {
+    this.columnWidthCache.invalidate();
+  }
+
+  /**
+   * Marks both the row height and column width position caches as stale.
+   */
+  invalidateAllCaches() {
+    this.rowHeightCache.invalidate();
+    this.columnWidthCache.invalidate();
   }
 
   /**

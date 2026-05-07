@@ -36,42 +36,20 @@ describe('Core.getFirstFullyVisibleRow', () => {
     expect(getFirstFullyVisibleRow()).toBe(2);
   });
 
-  it.forTheme('classic')('should return first fully visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 200,
-    });
+  it('should return first fully visible row index (scrolled viewport)', async() => {
+    const rowHeight = getDefaultRowHeight();
+    // scroll partway through row 15 so that it is partially visible
+    const scrollAmount = (rowHeight * 15) + Math.ceil(rowHeight / 2);
 
-    await scrollViewportVertically(355); // row 15 (A16) is partially visible
-    await render();
-
-    expect(getFirstFullyVisibleRow()).toBe(14);
-  });
-
-  it.forTheme('main')('should return first fully visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 240,
     });
 
-    await scrollViewportVertically(447); // row 15 (A16) is partially visible
+    await scrollViewportVertically(scrollAmount);
     await render();
 
-    expect(getFirstFullyVisibleRow()).toBe(16);
-  });
-
-  it.forTheme('horizon')('should return first fully visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 306,
-    });
-
-    await scrollViewportVertically(570); // row 15 (A16) is partially visible
-    await render();
-
-    expect(getFirstFullyVisibleRow()).toBe(16);
+    expect(getFirstFullyVisibleRow()).toBe(Math.ceil(scrollAmount / rowHeight));
   });
 });

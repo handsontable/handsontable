@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -28,4 +28,6 @@ jobs:
 
       - name: NPM audit
         run: |
-          pnpm audit --prod --ignore-unfixable
+          # npm retired the legacy audit endpoints used by pnpm's audit command.
+          # Keep this check non-blocking when the registry endpoint itself errors.
+          pnpm audit --prod --ignore-unfixable --ignore-registry-errors

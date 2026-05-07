@@ -26,11 +26,7 @@ angular:
   metaTitle: Column filter - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
-menuTag: updated
 ---
-
-# Column filter
-
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
 
@@ -228,7 +224,7 @@ useful items in the menu such as **Clear column**.
 
 ### Enable filtering within already filtered results
 
-To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the <kbd>**Enter**</kbd> key while the search input is focused or by clicking the `OK` button.
 
 ::: only-for javascript
 
@@ -362,7 +358,9 @@ The following table contains all available filter operators for each built-in da
 | All cell types                                                   | Default operators:<br><br>None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to                                                  |
 | text<br>time<br>checkbox<br>dropdown<br>autocomplete<br>password | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
 | numeric                                                          | Default operators plus:<br><br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
-| date                                                             | Default operators plus:<br><br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
 
 ## Filter data on initialization
 
@@ -885,12 +883,16 @@ At the moment, filtering comes with the following limitations:
 - There is no easy way to add custom filter operators to the user interface.
 - The list of values that you can filter by is generated automatically and there's no supported way
   of modifying it.
+- The filter's dropdown menu has a limited capacity per column: at most 2 regular conditions and 1
+  "filter by value" condition. If you add more conditions programmatically via
+  [`addCondition()`](@/api/filters.md), the extra conditions are applied to the data but are not
+  visible or editable in the dropdown menu.
 
 ## Related keyboard shortcuts
 
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
-| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>**Option**</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
 
 ## API reference
 
@@ -898,17 +900,24 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to filtering, see the
 following API reference pages:
 
-- [`Filters`](@/api/filters.md)
-- [`DropdownMenu`](@/api/dropdownMenu.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [Filters](@/api/filters.md)
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list">
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Filtering) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's
-  forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to
-  get help
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

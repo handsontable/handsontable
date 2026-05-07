@@ -54,6 +54,7 @@ import { throwWithCause } from '../../../helpers/errors';
  * @property {?Option} onCellMouseDown Option `onCellMouseDown`.
  * @property {?Option} onCellMouseOut Option `onCellMouseOut`.
  * @property {?Option} onCellMouseOver Option `onCellMouseOver`.
+ * @property {?Option} onCellMouseOverOutside Option `onCellMouseOverOutside`.
  * @property {?Option} onCellMouseUp Option `onCellMouseUp`.
  * @property {?Option} onDraw Option `onDraw`.
  * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
@@ -203,6 +204,7 @@ export default class Settings {
       onCellMouseDown: null as unknown,
       onCellContextMenu: null as unknown,
       onCellMouseOver: null as unknown,
+      onCellMouseOverOutside: null as unknown,
       onCellMouseOut: null as unknown,
       onCellMouseUp: null as unknown,
 

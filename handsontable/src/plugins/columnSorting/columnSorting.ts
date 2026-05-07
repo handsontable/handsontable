@@ -1,6 +1,7 @@
 import {
   addClass,
   hasClass,
+  isBottomMostColumnHeader,
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -189,7 +190,8 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
     this.addHook('afterOnCellMouseDown', (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.#loadOrSortBySettings());
-    this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
+    this.addHook('afterLoadData', (...args: unknown[]) => this.#onAfterLoadData(...(args as [boolean])));
+    this.addHook('afterDataProviderFetch', (...args: unknown[]) => (this.#onAfterDataProviderFetch as Function)(...args), -1);
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -260,9 +262,11 @@ export class ColumnSorting extends BasePlugin {
         },
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeActive()?.highlight;
+          const highlightedHeaderElement = highlight ? this.hot.getCell(highlight.row, highlight.col, true) : null;
 
           return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            (this.hot.selection as any).isCellVisible(highlight) && highlight.row === -1 && highlight.col >= 0;
+            (this.hot.selection as any).isCellVisible(highlight) && highlight.row < 0 && highlight.col >= 0 &&
+            isBottomMostColumnHeader(highlightedHeaderElement);
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
@@ -376,7 +380,7 @@ export class ColumnSorting extends BasePlugin {
    *
    *   // const newData = ... // Calculated data set, ie. from an AJAX call.
    *
-   *   this.loadData(newData); // Load new data set and re-render the table.
+   *   this.updateData(newData); // Update data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
    * }
@@ -807,6 +811,16 @@ export class ColumnSorting extends BasePlugin {
       }
     }
   }
+
+  /**
+   * Callback for the `afterDataProviderFetch` hook.
+   * Keeps header sort state in sync with query `sort` after server-backed `loadData` (same timing as Pagination).
+   *
+   * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
+   */
+  #onAfterDataProviderFetch = (result) => {
+    this.setSortConfig(result?.columnSortConfig ?? []);
+  };
 
   /**
    * Indicates if clickable header was clicked.

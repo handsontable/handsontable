@@ -18,7 +18,7 @@ export function condition(dataRow: { value: unknown; meta: { type?: string; loca
     return false;
   }
 
-  return date.diff(inputDate) <= 0;
+  return date.diff(inputDate) < 0;
 }
 
 registerCondition(CONDITION_NAME, condition, {

@@ -162,6 +162,10 @@ export class TrimRows extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [PLUGIN_KEY];
+  }
+
   /**
    * Map of skipped rows by the plugin.
    *
@@ -172,7 +176,8 @@ export class TrimRows extends BasePlugin {
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
-   * hook and if it returns `true` then the {@link AutoRowSize#enablePlugin} method is called.
+   * hook and if it returns `true` then the {@link TrimRows#enablePlugin} method is called.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */

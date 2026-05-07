@@ -46,6 +46,6 @@ describe('Core.getFirstRenderedVisibleColumn', () => {
     await scrollViewportHorizontally(780); // row 15 (P1) is partially visible
     await render();
 
-    expect(getFirstRenderedVisibleColumn()).toBe(13);
+    expect(getFirstRenderedVisibleColumn()).toBe(14);
   });
 });

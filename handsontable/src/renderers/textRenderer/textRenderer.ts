@@ -30,8 +30,8 @@ export function textRenderer(hotInstance: HotInstance, TD: HTMLTableCellElement,
     finalStr = escapedStr.trim();
   }
 
-  // this is faster than innerHTML. See: https://github.com/handsontable/handsontable/wiki/JavaScript-&-DOM-performance-tips
-  fastInnerText(TD, finalStr);
+  // this is faster than innerHTML.
+  fastInnerText(TD, escaped);
 }
 
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;

@@ -138,6 +138,9 @@ export default (): Record<string, unknown> => {
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * Read more:
      * - [`currentRowClassName`](#currentRowClassName)
      * - [`currentColClassName`](#currentColClassName)
@@ -181,6 +184,9 @@ export default (): Record<string, unknown> => {
      * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
      * :::
      *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -200,6 +206,13 @@ export default (): Record<string, unknown> => {
      *     allowEmpty: true
      *   }
      * ],
+     *
+     * // or, using the `cells` option
+     * cells(row, col) {
+     *   if (col === 2) {
+     *     return { allowEmpty: false };
+     *   }
+     * },
      * ```
      */
     allowEmpty: true,
@@ -248,6 +261,9 @@ export default (): Record<string, unknown> => {
      * If set to `true`, the `allowInsertColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Insert column left**
      * - **Insert column right**
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
@@ -316,6 +332,9 @@ export default (): Record<string, unknown> => {
     /**
      * If set to `true`, the `allowRemoveColumn` option adds the following menu items to the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md):
      * - **Remove column**
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
@@ -511,12 +530,19 @@ export default (): Record<string, unknown> => {
      * @description
      * The `bindRowsWithHeaders` option configures the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin.
      *
+     * When enabled, each row stays permanently linked to its row header label, regardless of row sorting or row moving.
+     * Normally, row headers display the visual row index and update as rows are reordered; with this plugin enabled,
+     * the header travels with the data row it was originally assigned to.
+     *
      * You can set the `bindRowsWithHeaders` option to one of the following:
      *
      * | Setting | Description                                                                  |
      * | ------- | ---------------------------------------------------------------------------- |
      * | `false` | Disable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin |
      * | `true`  | Enable the the [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md) plugin  |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Plugins: `BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
@@ -599,6 +625,8 @@ export default (): Record<string, unknown> => {
      *
      *   if (visualRowIndex === 0 && visualColIndex === 0) {
      *     cellProperties.readOnly = true;
+     *   } else {
+     *     cellProperties.readOnly = false;
      *   }
      *
      *   return cellProperties;
@@ -617,6 +645,15 @@ export default (): Record<string, unknown> => {
      * | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `true` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `true`                  |
      * | A string         | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is checked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
+     *
+     * ::: warning
+     * When you set `checkedTemplate` to a custom string value (e.g. `'Yes'`), using `true` in your data source to
+     * represent a checked state is no longer valid. Only the exact custom string value matches a checked checkbox.
+     * Pair `checkedTemplate` with [`uncheckedTemplate`](#uncheckedTemplate) to define both states explicitly.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
@@ -746,8 +783,17 @@ export default (): Record<string, unknown> => {
      * | `true`               | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin                             |
      * | An array of objects  | Enable the [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin for selected column headers |
      *
+     * When using an array of objects, specify the header to make collapsible using `row` and `col`.
+     * The `row` value is a negative integer that counts header levels from the bottom of the header area:
+     * `-1` is the header row closest to the data, `-2` is one level above, and so on.
+     * This option requires the [`nestedHeaders`](#nestedHeaders) plugin to be configured.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * Read more:
      * - [Plugins: `CollapsibleColumns`](@/api/collapsibleColumns.md)
+     * - [`nestedHeaders`](#nestedHeaders)
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -912,17 +958,12 @@ export default (): Record<string, unknown> => {
      *   }
      * }
      *
-     * // enable the `ColumnSorting` plugin
+     * // enable the `ColumnSorting` plugin with an initial sort order:
+     * // sort column 1 in ascending order at initialization
      * columnSorting: {
-     *   // at initialization, sort column 1 in ascending order
      *   initialConfig: {
      *     column: 1,
      *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
      *   }
      * }
      * ```
@@ -1569,6 +1610,10 @@ export default (): Record<string, unknown> => {
      *
      * If you don't set the `data` option (or set it to `null`), Handsontable renders as an empty 5x5 grid by default.
      *
+     * When used inside the [`columns`](#columns) option, `data` has a different meaning: it acts as a property name
+     * (or a dot-separated path) pointing to the field in each data row object that this column reads from and writes to.
+     * In this context, `data` is not the full dataset but a column accessor string.
+     *
      * Read more:
      * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
      * - [`dataSchema`](#dataSchema)
@@ -1597,9 +1642,55 @@ export default (): Record<string, unknown> => {
      *   {id: 4, name: 'Gail Polite'},
      *   {id: 5, name: 'Michael Fair'},
      * ]
+     *
+     * // as a column accessor inside `columns`
+     * columns: [
+     *   { data: 'id' },
+     *   { data: 'name' }
+     * ]
      * ```
      */
     data: undefined,
+
+    /**
+     * @description
+     * When set, the table loads data from an async provider (e.g. a REST API) instead of a static `data` array.
+     * Use the **object** form with every key defined: **`rowId`**, **`fetchRows`**, **`onRowsCreate`**, **`onRowsUpdate`**,
+     * and **`onRowsRemove`**. All five are required on that object so paging, row identity, and create, update, and remove
+     * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
+     * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * dataProvider: {
+     *   rowId: 'id',
+     *   fetchRows: async (queryParameters, { signal }) => {
+     *     const { page, pageSize, sort, filters } = queryParameters;
+     *     const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+     *
+     *     if (sort) {
+     *       params.set('sortBy', sort.prop);
+     *       params.set('sortDir', sort.order);
+     *     }
+     *
+     *     const res = await fetch(`/api/products?${params}`, { signal });
+     *     const json = await res.json();
+     *
+     *     return { rows: json.data, totalRows: json.total };
+     *   },
+     *   onRowsCreate: async ({ position, referenceRowId, rowsAmount }) => { ... },
+     *   onRowsUpdate: async (rows) => { ... },
+     *   onRowsRemove: async (rowIds) => { ... },
+     * },
+     * ```
+     */
+    dataProvider: undefined,
 
     /**
      * @description
@@ -1950,10 +2041,19 @@ export default (): Record<string, unknown> => {
     datePickerConfig: undefined,
 
     /**
-     * The `defaultDate` option configures the date displayed
-     * in the editor for an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell.
+     * The `defaultDate` option configures the date pre-selected in the date picker editor
+     * when opening an empty [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell for editing.
      *
      * The option accepts a string in ISO 8601 format (`YYYY-MM-DD`).
+     *
+     * ::: tip
+     * `defaultDate` affects only the date picker's initial selection when the cell is empty.
+     * It does not automatically populate empty cells with this date - the cell's value remains empty
+     * until the user confirms a selection.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
@@ -1991,6 +2091,9 @@ export default (): Record<string, unknown> => {
      * | `'area'`          | - Show single-cell selection<br>- Don't show range selection<br>- Show header selection             |
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Selection](@/guides/cell-features/selection/selection.md)
@@ -2190,23 +2293,50 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `dragToScroll` option to one of the following:
      *
-     * | Setting          | Description                                                                 |
-     * | ---------------- | --------------------------------------------------------------------------- |
-     * | `true` (default) | When selection reaches the edge of the grid's viewport, scroll the viewport |
-     * | `false`          | Don't scroll the viewport                                                   |
+     * | Setting          | Description                                                                                                                                 |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | Enable with default auto-scroll settings                                                                                                    |
+     * | `false`          | Disable the plugin entirely                                                                                                                 |
+     * | Object           | Enable with custom auto-scroll settings (see below)                                                                                        |
+     *
+     * When passing an object, the following properties control the auto-scroll speed:
+     *
+     * ```js
+     * dragToScroll: {
+     *   interval: {
+     *     min: 20,   // Fastest scroll interval in ms (reached at rampDistance)
+     *     max: 500,  // Slowest scroll interval in ms (applied at the viewport edge)
+     *   },
+     *   rampDistance: 120,  // Pixels outside the edge over which speed ramps up
+     * },
+     * ```
+     *
+     * The viewport scrolls periodically while the mouse pointer stays outside the
+     * viewport edge. Speed follows a logarithmic curve: slow at the edge, fast when
+     * far outside. The active selection (regular drag-select or autofill drag)
+     * extends to follow the scroll.
      *
      * Read more:
      * - [Plugins: `DragToScroll`](@/api/dragToScroll.md)
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default true
      * @category DragToScroll
      *
      * @example
      * ```js
-     * // when selection reaches the edge of the grid's viewport, scroll the viewport
+     * // Enable with default settings
      * dragToScroll: true,
+     *
+     * // Enable with custom scroll speed
+     * dragToScroll: {
+     *   interval: { min: 60, max: 300 },
+     *   rampDistance: 60,
+     * },
+     *
+     * // Disable
+     * dragToScroll: false,
      * ```
      */
     dragToScroll: true,
@@ -2222,6 +2352,9 @@ export default (): Record<string, unknown> => {
      * | `true`    | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Use the [default context menu options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-default-options)    |
      * | An array  | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Modify [individual context menu options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) |
      * | An object | - Enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin<br>- Apply a custom dropdown menu configuration                                                                                  |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It is not possible to show or hide the dropdown menu icon for individual columns using this option.
      *
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
@@ -2356,6 +2489,13 @@ export default (): Record<string, unknown> => {
      * | `title`       | `string`        | Title to display in the empty data state overlay.       |
      * | `description` | `string`        | Description to display in the empty data state overlay. |
      * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     * | `loading`     | `boolean`       | When `true`, shows a loading spinner (used for server fetch state). |
+     *
+     * If you set the `message` option to a function, the `source` argument can be `"unknown"`, `"filters"`, or `"loading"`.
+     * With [[Options#dataProvider]], the `"loading"` branch follows DataProvider fetch hooks (`beforeDataProviderFetch`,
+     * `afterDataProviderFetch`, and related hooks) using the same rules as server-backed loading in the DataProvider plugin.
+     * Internal refetches (for example after column sort or CRUD) set `skipLoading` on [[Hooks#beforeDataProviderFetch]] so the
+     * EmptyDataState plugin can omit the loading overlay for those requests.
      *
      * If you set the `buttons` option to an array, each item requires following properties:
      *
@@ -2402,6 +2542,11 @@ export default (): Record<string, unknown> => {
      *           title: 'No data available',
      *           description: 'There’s nothing to display yet.',
      *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       case "loading":
+     *         return {
+     *           title: 'Loading data',
+     *           description: 'Please wait.',
      *         };
      *       default:
      *         return {
@@ -2456,11 +2601,11 @@ export default (): Record<string, unknown> => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to close the `multiSelect` editor and Space to select an option
      *   enterCommits: true,
      * }, {
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // press Enter to select an option
      *   enterCommits: false,
      * }],
@@ -2509,6 +2654,44 @@ export default (): Record<string, unknown> => {
      * ```
      */
     enterMoves: { col: 0, row: 1 },
+
+    /**
+     * The `exportFile` option configures the [`ExportFile`](@/api/exportFile.md) plugin.
+     *
+     * You can set the `exportFile` option to one of the following:
+     *
+     * | Setting     | Description                                                                                |
+     * | ----------- | ------------------------------------------------------------------------------------------ |
+     * | `undefined` | Use the [`ExportFile`](@/api/exportFile.md) plugin with the default configuration          |
+     * | An object   | Enable the [`ExportFile`](@/api/exportFile.md) plugin and modify the plugin options        |
+     *
+     * If you set the `exportFile` option to an object, you can configure the following options:
+     *
+     * | Option    | Type     | Default | Description                                                                         |
+     * | --------- | -------- | ------- | ----------------------------------------------------------------------------------- |
+     * | `engines` | `Object` | –       | A map of format keys to their engine constructors. Pass `{ xlsx: ExcelJS }` to enable XLSX export via [ExcelJS](https://github.com/exceljs/exceljs). |
+     *
+     * Read more:
+     * - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
+     * - [Plugins: `ExportFile`](@/api/exportFile.md)
+     *
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @since 17.1.0
+     * @category ExportFile
+     *
+     * @example
+     * ```js
+     * import ExcelJS from 'exceljs';
+     *
+     * // enable XLSX export
+     * exportFile: {
+     *   engines: { xlsx: ExcelJS },
+     * },
+     * ```
+     */
+    exportFile: undefined,
 
     /**
      * The `fillHandle` option configures the [Autofill](@/api/autofill.md) plugin.
@@ -2638,7 +2821,7 @@ export default (): Record<string, unknown> => {
      *     filteringCaseSensitive: true
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     source: [ ... ],
      *     // match case while searching multiSelect options
      *     filteringCaseSensitive: true
@@ -2771,8 +2954,15 @@ export default (): Record<string, unknown> => {
      * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md)
      * at the bottom of the grid.
      *
+     * ::: tip
+     * For the bottom frozen rows area to appear with a scroll separator, you must also set the [`height`](#height) option
+     * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
+     * no vertical scrollbar is created and the fixed bottom rows area is not displayed.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
+     * - [`height`](#height)
      *
      * @memberof Options#
      * @type {number}
@@ -2790,8 +2980,15 @@ export default (): Record<string, unknown> => {
     /**
      * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md) at the top of the grid.
      *
+     * ::: tip
+     * For the top frozen rows area to be visually separated from the scrollable body, you must also set the [`height`](#height) option
+     * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
+     * no vertical scrollbar is created and the fixed top rows area is not displayed.
+     * :::
+     *
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
+     * - [`height`](#height)
      *
      * @memberof Options#
      * @type {number}
@@ -2914,6 +3111,79 @@ export default (): Record<string, unknown> => {
     fragmentSelection: false,
 
     /**
+     * The `hashLength` option sets a fixed display length for the hash mask used by the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type.
+     *
+     * By default, the hash length equals the actual value length. Set `hashLength` to a positive
+     * integer to always display that many hash symbols regardless of the real value length.
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashLength: 10,
+     *   },
+     * ],
+     * ```
+     */
+    hashLength: undefined,
+
+    /**
+     * The `hashRevealDelay` option enables a brief character-reveal on each keystroke in the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type editor.
+     *
+     * When set to a positive number (milliseconds), each typed character stays visible for that
+     * duration and is then replaced by the `hashSymbol`. This lets the user confirm what they
+     * typed without permanently exposing the value. Requires `type: 'password'`.
+     *
+     * @since 17.2.0
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashRevealDelay: 1000,
+     *   },
+     * ],
+     * ```
+     */
+    hashRevealDelay: undefined,
+
+    /**
+     * The `hashSymbol` option sets the character used as the hash mask in the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type renderer.
+     *
+     * Defaults to `'*'`. You can use any character, HTML entity, or string.
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default '*'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashSymbol: '•',
+     *   },
+     * ],
+     * ```
+     */
+    hashSymbol: '*',
+
+    /**
      * The `headerClassName` option allows adding one or more class names to the column headers' inner `div` element.
      * It can be used to align the labels in the column headers to left, center or right by setting this option to
      * `htLeft`, `htCenter`, or `htRight` respectively.
@@ -2942,19 +3212,39 @@ export default (): Record<string, unknown> => {
     /**
      * The `height` option configures the height of your grid.
      *
-     * You can set `height` option to one of the following:
+     * You can set the `height` option to one of the following:
      *
      * | Setting                                                                    | Example                    |
      * | -------------------------------------------------------------------------- | -------------------------- |
      * | A number of pixels                                                         | `height: 500`              |
      * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `height: '75vw'`           |
+     * | `'auto'`                                                                   | `height: 'auto'`           |
      * | A function that returns a valid number or string                           | `height() { return 500; }` |
+     *
+     * ### How `'auto'` differs from leaving `height` unset
+     *
+     * When you set `height: 'auto'`, Handsontable writes `height: auto; overflow: clip;`
+     * as inline styles on the root element. The grid then grows to match its content height.
+     * No internal vertical scrollbar is created, so the page itself scrolls when the grid
+     * exceeds the viewport.
+     *
+     * When you leave `height` unset, Handsontable does not touch the root element's inline
+     * styles. Sizing is governed by your CSS, and the nearest ancestor with `overflow: auto`
+     * or `overflow: hidden` becomes the scroll parent. If no such ancestor exists, the window
+     * scrolls. See the [Grid size](@/guides/getting-started/grid-size/grid-size.md) guide for
+     * details.
+     *
+     * ::: tip
+     * With `height: 'auto'`, every row is laid out in the DOM at once. Row-level
+     * virtualization is effectively disabled. Avoid `'auto'` for large datasets and set a
+     * numeric `height` instead, so Handsontable can virtualize off-screen rows.
+     * :::
      *
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
      * @memberof Options#
-     * @type {number|string|Function}
+     * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
      *
@@ -2965,6 +3255,9 @@ export default (): Record<string, unknown> => {
      *
      * // set the grid's height to 75vh
      * height: '75vh',
+     *
+     * // let the grid grow to fit all its rows (no internal vertical scroll)
+     * height: 'auto',
      *
      * // set the grid's height to 500px, using a function
      * height() {
@@ -3137,6 +3430,10 @@ export default (): Record<string, unknown> => {
      * for checking if a column at a given visual index is empty.
      *
      * The `isEmptyCol` setting overwrites the built-in [`isEmptyCol`](@/api/core.md#isEmptyCol) method.
+     * The function receives a visual column index and must return a `boolean`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Function}
@@ -3157,11 +3454,26 @@ export default (): Record<string, unknown> => {
       let row;
       let rowLen;
       let value;
+      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const schema = this.getSchema();
+      const prop = this.colToProp(col);
 
       for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
+          if (typeof value === 'object') {
+            if (isObjectEqual(schema[prop], value) === false) {
+              return false;
+            }
+
+            continue;
+          }
+
+          if (hasExplicitSchema && schema[prop] === value) {
+            continue;
+          }
+
           return false;
         }
       }
@@ -3174,6 +3486,10 @@ export default (): Record<string, unknown> => {
      * for checking if a row at a given visual index is empty.
      *
      * The `isEmptyRow` setting overwrites the built-in [`isEmptyRow`](@/api/core.md#isEmptyRow) method.
+     * The function receives a visual row index and must return a `boolean`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Function}
@@ -3194,16 +3510,25 @@ export default (): Record<string, unknown> => {
       let col;
       let colLen;
       let value;
-      let meta;
+      const hasExplicitSchema = !!this.getSettings().dataSchema;
+      const schema = this.getSchema();
 
       for (col = 0, colLen = this.countCols(); col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
-          if (typeof value === 'object') {
-            meta = this.getCellMeta(row, col);
+          const prop = this.colToProp(col);
 
-            return isObjectEqual(this.getSchema()[meta.prop], value);
+          if (typeof value === 'object') {
+            if (isObjectEqual(schema[prop], value) === false) {
+              return false;
+            }
+
+            continue;
+          }
+
+          if (hasExplicitSchema && schema[prop] === value) {
+            continue;
           }
 
           return false;
@@ -3247,6 +3572,13 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `language` option configures Handsontable's [language](@/guides/internationalization/language/language.md) settings.
+     *
+     * This option controls the language used for all built-in UI strings, including context menu labels,
+     * column sorting labels, validation messages, and other user-visible text. It does not affect the locale
+     * used for number or date formatting - use the [`locale`](#locale) option for that.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * You can set the `language` option to one of the following:
      *
@@ -3448,6 +3780,41 @@ export default (): Record<string, unknown> => {
      * ```
      */
     loading: false,
+
+    /**
+     * @description
+     * The `notification` option configures the [`Notification`](@/api/notification.md) plugin.
+     *
+     * You can set the `notification` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Notification`](@/api/notification.md) plugin                |
+     * | `true`    | Enable the plugin with default options                                      |
+     * | An object | Enable the plugin and set `stackLimit` and `animation`                      |
+     *
+     * ##### notification: Additional options
+     *
+     * | Option        | Type      | Default | Description |
+     * | ------------- | --------- | ------- | ----------- |
+     * | `stackLimit`  | `number`  | `10`    | Maximum visible toasts per corner. Extra requests are queued. |
+     * | `animation`   | `boolean` | `true`  | Fade and slide animation when toasts appear. |
+     *
+     * Read more:
+     * - [Plugins: `Notification`](@/api/notification.md)
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Notification
+     *
+     * @example
+     * ```js
+     * notification: true,
+     * ```
+     */
+    notification: false,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
@@ -3665,7 +4032,7 @@ export default (): Record<string, unknown> => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set the maximum number of selections to 3
      *   maxSelections: 3,
      * }],
@@ -3696,6 +4063,9 @@ export default (): Record<string, unknown> => {
      * | `col`     | The column index of the merged section's beginning         |
      * | `rowspan` | The width (as a number of rows) of the merged section      |
      * | `colspan` | The height (as a number of columns ) of the merged section |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * Read more:
      * - [Merge cells](@/guides/cell-features/merge-cells/merge-cells.md)
@@ -3872,7 +4242,7 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
-     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/columnSorting.md) plugin.
+     * The `multiColumnSorting` option configures the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
      *
      * You can set the `multiColumnSorting` option to one of the following:
      *
@@ -3932,18 +4302,13 @@ export default (): Record<string, unknown> => {
      *   }
      * }
      *
-     * // enable the `MultiColumnSorting` plugin
+     * // enable the `MultiColumnSorting` plugin with a multi-column initial sort order:
+     * // sort column 1 ascending first, then column 2 descending
      * multiColumnSorting: {
-     *   // at initialization, sort column 1 in ascending order
-     *   initialConfig: {
-     *     column: 1,
-     *     sortOrder: 'asc'
-     *   },
-     *   // at initialization, sort column 2 in descending order
-     *   initialConfig: {
-     *     column: 2,
-     *     sortOrder: 'desc'
-     *   }
+     *   initialConfig: [
+     *     { column: 1, sortOrder: 'asc' },
+     *     { column: 2, sortOrder: 'desc' }
+     *   ]
      * }
      * ```
      */
@@ -4011,7 +4376,12 @@ export default (): Record<string, unknown> => {
      * | Array element | Description                                                                                  |
      * | ------------- | -------------------------------------------------------------------------------------------- |
      * | A string      | The header's label                                                                           |
-     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): the column width |
+     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): number of data columns the header spans<br>`rowspan` (integer): number of header rows the header spans<br>`headerClassName` (string): optional space-separated CSS class names |
+     *
+     * ::: tip
+     * When `nestedHeaders` is configured, the `label` defined in the [`columns`](#columns) option for the same
+     * column is replaced by the `label` from `nestedHeaders`. The `nestedHeaders` label takes precedence.
+     * :::
      *
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
@@ -4224,6 +4594,11 @@ export default (): Record<string, unknown> => {
      * If the `observeDOMVisibility` option is set to `true`,
      * Handsontable rerenders every time it detects that the grid was made visible in the DOM.
      *
+     * Handsontable uses a `MutationObserver` to watch for CSS changes (such as `display: none` being removed)
+     * on the container element and its ancestors. When visibility is restored after being hidden,
+     * Handsontable automatically triggers a rerender to ensure correct layout and dimensions.
+     * Set this option to `false` if you want to control rendering manually (e.g. by calling `render()` yourself).
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -4390,6 +4765,10 @@ export default (): Record<string, unknown> => {
     /**
      * The `preventOverflow` option configures preventing Handsontable
      * from overflowing outside of its parent element.
+     *
+     * When enabled, Handsontable caps its own dimensions to match the parent container's size in the specified direction,
+     * preventing the grid from extending beyond the visible bounds of its parent.
+     * This is useful when the parent element has `overflow: hidden` or a fixed size and you want the grid to fit within it.
      *
      * You can set the `preventOverflow` option to one of the following:
      *
@@ -4912,28 +5291,35 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
-     * The `search` option configures the [`Search`](@/api/search.md) plugin.
+     * The `search` option enables and configures the [`Search`](@/api/search.md) plugin.
      *
-     * You can set the `search` option to one of the following:
+     * | Setting           | Description                                                                    |
+     * | ----------------- | ------------------------------------------------------------------------------ |
+     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                 |
+     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration   |
+     * | An object         | Enable the [`Search`](@/api/search.md) plugin and apply a custom configuration |
      *
-     * | Setting           | Description                                                                          |
-     * | ----------------- | ------------------------------------------------------------------------------------ |
-     * | `false` (default) | Disable the [`Search`](@/api/search.md) plugin                                       |
-     * | `true`            | Enable the [`Search`](@/api/search.md) plugin with the default configuration         |
-     * | An object         | - Enable the [`Search`](@/api/search.md) plugin<br>- Apply your custom configuration |
+     * When set to an object, the following properties are supported:
      *
-     * If you set the `search` option to an object, you can configure the following search options:
+     * | Property            | Type       | Default                          | Description                                                                                                                                                        |
+     * | ------------------- | ---------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+     * | `searchResultClass` | `string`   | `'htSearchResult'`               | CSS class name applied to every cell where `isSearchResult === true`.                                                                                              |
+     * | `queryMethod`       | `Function` | Case-insensitive substring match | Tests whether the query string matches a cell value. Signature: `(queryStr: string, value: string\|number\|null, cellProperties: object) => boolean`.              |
+     * | `callback`          | `Function` | Sets `isSearchResult` on cell metadata | Called for every cell after each test. Signature: `(instance: Handsontable, row: number, col: number, data: string\|number\|null, testResult: boolean) => void`. |
      *
-     * | Option              | Possible settings | Description                                                                                          |
-     * | ------------------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-     * | `searchResultClass` | A string          | Add a custom CSS class name to search results                                                        |
-     * | `queryMethod`       | A function        | Add a [custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)  |
-     * | `callback`          | A function        | Add a [custom callback function](@/guides/navigation/searching-values/searching-values.md#custom-callback) |
+     * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
+     *
+     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     *
+     * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
+     * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
+     * precedence over the plugin-level setting for that cell. `searchResultClass` does not support per-cell overrides.
      *
      * Read more:
      * - [Searching values](@/guides/navigation/searching-values/searching-values.md)
-     * - [Searching values: Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
-     * - [Searching values: Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Custom query method](@/guides/navigation/searching-values/searching-values.md#custom-query-method)
+     * - [Custom callback](@/guides/navigation/searching-values/searching-values.md#custom-callback)
+     * - [Per-cell overrides](@/guides/navigation/searching-values/searching-values.md#per-cell-querymethod-and-callback)
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -4942,22 +5328,42 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // enable the `Search` plugin with the default configuration
+     * // Enable with the default configuration
      * search: true,
      *
-     * // enable the `Search` plugin with a custom configuration
+     * // Enable with a custom configuration
      * search: {
-     *   // add a `customClass` CSS class name to search results
+     *   // Apply a custom CSS class to matching cells instead of 'htSearchResult'
      *   searchResultClass: 'customClass',
-     *   // add a custom query method
-     *   queryMethod(queryStr, value) {
-     *     ...
+     *   // Replace the built-in substring match with exact matching
+     *   queryMethod(queryStr, value, cellProperties) {
+     *     if (!queryStr || queryStr.length === 0) return false;
+     *     if (value === undefined || value === null) return false;
+     *
+     *     return queryStr.toString() === value.toString();
      *   },
-     *   // add a custom callback function
-     *   callback(instance, row, column, value, result) {
-     *     ...
+     *   // Count results while preserving default highlighting
+     *   callback(instance, row, col, data, testResult) {
+     *     // Preserve the default isSearchResult flag so highlighting still works
+     *     instance.getCellMeta(row, col).isSearchResult = testResult;
+     *
+     *     if (testResult) {
+     *       // Custom logic: e.g., increment a result counter
+     *     }
      *   }
-     * }
+     * },
+     *
+     * // Override queryMethod for a specific column only (per-cell via cascading config)
+     * columns: [
+     *   {},
+     *   {
+     *     search: {
+     *       queryMethod(queryStr, value) {
+     *         return queryStr.toString() === value.toString(); // exact match for column 1
+     *       }
+     *     }
+     *   }
+     * ],
      * ```
      */
     search: false,
@@ -4973,7 +5379,7 @@ export default (): Record<string, unknown> => {
      * @example
      * ```js
      * columns: [{
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // hide the `multiSelect` editor's search input
      *   searchInput: false,
      * }],
@@ -5077,7 +5483,7 @@ export default (): Record<string, unknown> => {
      * @description
      * The `skipColumnOnPaste` option determines whether you can paste data into a given column.
      *
-     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option.
+     * You can only apply the `skipColumnOnPaste` option to an entire column, using the [`columns`](#columns) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipColumnOnPaste` option to one of the following:
      *
@@ -5111,7 +5517,7 @@ export default (): Record<string, unknown> => {
      *
      * The `skipRowOnPaste` option determines whether you can paste data into a given row.
      *
-     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option.
+     * You can only apply the `skipRowOnPaste` option to an entire row, using the [`cells`](#cells) option. This option is not supported for the global table level settings.
      *
      * You can set the `skipRowOnPaste` option to one of the following:
      *
@@ -5191,7 +5597,7 @@ export default (): Record<string, unknown> => {
      * ```js
      * columns: [{
      *   // set the `type` of each cell in this column to `multiSelect`
-     *   type: 'multiSelect',
+     *   type: 'multiselect',
      *   // set options available in every `multiSelect` cell of this column
      *   source: ['A', 'B', 'C', 'D'],
      *   // sort the `multiSelect` options in this order: D, C, B, A
@@ -5272,7 +5678,13 @@ export default (): Record<string, unknown> => {
      * @description
      * If the [`data`](#data) option is not set, the `startCols` option sets the initial number of empty columns.
      *
-     * The `startCols` option works only in Handsontable's constructor.
+     * The `startCols` option works only in Handsontable's constructor and only when [`data`](#data) is not provided.
+     *
+     * ::: tip
+     * When [`minSpareCols`](#minSpareCols) is set alongside `startCols`, the `startCols` columns count toward the
+     * minimum number of spare columns. As a result, the total initial column count will be the maximum of
+     * `startCols` and `minSpareCols`.
+     * :::
      *
      * @memberof Options#
      * @type {number}
@@ -5291,7 +5703,13 @@ export default (): Record<string, unknown> => {
      * @description
      * If the [`data`](#data) option is not set, the `startRows` option sets the initial number of empty rows.
      *
-     * The `startRows` option works only in Handsontable's constructor.
+     * The `startRows` option works only in Handsontable's constructor and only when [`data`](#data) is not provided.
+     *
+     * ::: tip
+     * When [`minSpareRows`](#minSpareRows) is set alongside `startRows`, the `startRows` rows count toward the
+     * minimum number of spare rows. As a result, the total initial row count will be the maximum of
+     * `startRows` and `minSpareRows`.
+     * :::
      *
      * @memberof Options#
      * @type {number}
@@ -5345,6 +5763,9 @@ export default (): Record<string, unknown> => {
      * | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
      * | `true`  | [Strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode)         | The end user:<br>- Can only choose one of suggested values<br>- Can't enter a custom value |
      * | `false` | [Flexible mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-flexible-mode)     | The end user:<br>- Can choose one of suggested values<br>- Can enter a custom value        |
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5630,12 +6051,19 @@ export default (): Record<string, unknown> => {
      * The `trimDropdown` option configures the width of the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * and [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) lists.
      *
+     * When set to `true` (default), the list is trimmed to match the width of the edited cell,
+     * which can truncate long option labels. When set to `false`, the list expands to fit its
+     * longest option, which may make the list wider than the cell.
+     *
      * You can set the `trimDropdown` option to one of the following:
      *
      * | Setting          | Description                                                                     |
      * | ---------------- | ------------------------------------------------------------------------------- |
      * | `true` (default) | Make the dropdown/autocomplete list's width the same as the edited cell's width |
      * | `false`          | Scale the dropdown/autocomplete list's width to the list's content              |
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -5798,6 +6226,15 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns `false`                 |
      * | A string          | If a [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell is unchecked,<br>the [`getDataAtCell`](@/api/core.md#getDataAtCell) method for this cell returns a string of your choice |
      *
+     * ::: warning
+     * When you set `uncheckedTemplate` to a custom string value (e.g. `'No'`), using `false` in your data source to
+     * represent an unchecked state is no longer valid. Only the exact custom string value matches an unchecked checkbox.
+     * Pair `uncheckedTemplate` with [`checkedTemplate`](#checkedTemplate) to define both states explicitly.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * Read more:
      * - [Checkbox cell type: Checkbox template](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md#checkbox-template)
      * - [`getDataAtCell()`](@/api/core.md#getDataAtCell)
@@ -5871,6 +6308,9 @@ export default (): Record<string, unknown> => {
      * | A string             | A [cell validator alias](@/guides/cell-functions/cell-validator/cell-validator.md)              |
      * | A function           | Your [custom cell validator function](@/guides/cell-functions/cell-validator/cell-validator.md) |
      * | A regular expression | A regular expression used for cell validation                                    |
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * By setting the `validator` option to a string,
      * you can use one of the following [cell validator aliases](@/guides/cell-functions/cell-validator/cell-validator.md):
@@ -6167,6 +6607,14 @@ export default (): Record<string, unknown> => {
      *
      * When the number of list options exceeds the `visibleRows` number, a scrollbar appears.
      *
+     * ::: tip
+     * If the grid has a fixed [`height`](#height) set, the dropdown list may be visually constrained by the available
+     * space and show fewer rows than the `visibleRows` value. In such cases, the list is clipped to fit within the grid.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
+     *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
      * - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
@@ -6193,7 +6641,7 @@ export default (): Record<string, unknown> => {
      *     visibleRows: 5,
      *   },
      *   {
-     *     type: 'multiSelect',
+     *     type: 'multiselect',
      *     // set the `multiSelect` list's height to 5 options
      *     // for each cell of this column
      *     visibleRows: 5,
@@ -6212,13 +6660,25 @@ export default (): Record<string, unknown> => {
      * | -------------------------------------------------------------------------- | ------------------------- |
      * | A number of pixels                                                         | `width: 500`              |
      * | A string with a [CSS unit](https://www.w3schools.com/cssref/css_units.asp) | `width: '75vw'`           |
+     * | `'auto'`                                                                   | `width: 'auto'`           |
      * | A function that returns a valid number or string                           | `width() { return 500; }` |
+     *
+     * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
+     * element. The grid then follows the width of its parent container. Use this value when
+     * you want the grid to stay flexible horizontally while still setting an explicit
+     * [`height`](#height).
+     *
+     * ::: tip
+     * For horizontal scrolling to work, you must also set the [`height`](#height) option in Handsontable's configuration.
+     * Setting `width` alone (without `height`) does not activate the scrollable viewport.
+     * Setting the height via inline CSS on the container element is not supported - use the `height` configuration option instead.
+     * :::
      *
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
      * @memberof Options#
-     * @type {number|string|Function}
+     * @type {number|'auto'|string|Function}
      * @default undefined
      * @category Core
      *
@@ -6229,6 +6689,9 @@ export default (): Record<string, unknown> => {
      *
      * // set the grid's width to 75vw
      * width: '75vw',
+     *
+     * // let the grid follow its parent container's width
+     * width: 'auto',
      *
      * // set the grid's width to 500px, using a function
      * width() {
@@ -6249,6 +6712,15 @@ export default (): Record<string, unknown> => {
      * | `false`          | Don't wrap content                                      |
      *
      * To style cells that don't wrap content, use the [`noWordWrapClassName`](#noWordWrapClassName) option.
+     *
+     * ::: tip
+     * Word wrapping only applies to content that contains spaces or other soft-wrap opportunities.
+     * A long unbroken string without spaces (e.g. a URL or a continuous number sequence) does not wrap
+     * regardless of this setting.
+     * :::
+     *
+     * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
+     * the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), the [`columns`](#columns) level, the [`cells`](#cells) level, and the [`cell`](#cell) level.
      *
      * Read more:
      * - [`noWordWrapClassName`](#noWordWrapClassName)

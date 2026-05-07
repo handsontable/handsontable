@@ -48,6 +48,24 @@ describe('NestedHeaders', () => {
       expect(getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
     });
+
+    it('should respect colWidths and not expand columns to fit nested header labels when autoColumnSize is false', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        colHeaders: true,
+        autoColumnSize: false,
+        colWidths: 50,
+        nestedHeaders: [
+          ['a', { label: 'This is a very long group header label', colspan: 2 }, 'c', 'd'],
+          ['a', 'b', 'c', 'd', 'e']
+        ]
+      });
+
+      expect(getColWidth(0)).toBe(50);
+      expect(getColWidth(1)).toBe(50);
+      expect(getColWidth(2)).toBe(50);
+      expect(getColWidth(3)).toBe(50);
+    });
   });
 
   describe('cooperation with drop-down menu element', () => {
@@ -72,6 +90,30 @@ describe('NestedHeaders', () => {
       $firstHeader.simulate('click');
 
       expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
+    });
+
+    it('should not throw after sorting when current highlight is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        navigableHeaders: true,
+        disableVisualSelection: 'current',
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+        ],
+      });
+
+      const $headerWithSortAction = spec().$container.find(
+        '.ht_master table.htCore thead tr:last-of-type th:nth-of-type(2) span.columnSorting'
+      );
+
+      $headerWithSortAction.simulate('mousedown');
+      $headerWithSortAction.simulate('mouseup');
+      $headerWithSortAction.simulate('click');
+
+      expect(getPlugin('columnSorting').isSorted()).toBe(true);
     });
   });
 });

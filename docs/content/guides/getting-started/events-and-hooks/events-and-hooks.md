@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: own6evdy
 title: Events and hooks
 metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
@@ -22,11 +23,8 @@ angular:
   id: iifvbgu0
   metaTitle: Events and hooks - Angular Data Grid | Handsontable
 searchCategory: Guides
-category: Getting started
+category: Data management
 ---
-
-# Events and hooks
-
 Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
 
 [[toc]]
@@ -206,7 +204,6 @@ Note that some callbacks are checked on this page by default.
 ::: example-without-tabs #example1
 
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.html)
-@[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.css)
 @[code](@/content/guides/getting-started/events-and-hooks/javascript/example1.js)
 
 :::
@@ -220,15 +217,15 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | Value                                              | Description                                                                                                                                                                                                            |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto`                                             | Action triggered by Handsontable, and the reason for it is related directly to the settings applied to Handsontable. For example, [`afterCreateRow`](@/api/hooks.md#aftercreaterow) will be fired with this when [`minSpareRows`](@/api/options.md#minsparerows) will be greater than 0. |
-| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using `setData*` methods.                                                                                                     |
+| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using [`setDataAtCell()`](@/api/core.md#setdataatcell), [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop), or [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) methods. |
 | `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.
 | `updateData`                                         | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                     |
-| `populateFromArray`                                | Action triggered by Handsontable after requesting for populating data.                                                                                                                                                 |
-| `spliceCol`                                        | Action triggered by Handsontable after the column data splicing has been done.                                                                                                                                         |
-| `spliceRow`                                        | Action triggered by Handsontable after the row data splicing has been done.                                                                                                                                            |
-| `timeValidate`                                     | Action triggered by Handsontable after the time validator has been called, e.g., after an edit.                                                                                                                        |
-| `dateValidate`                                     | Action triggered by Handsontable after the date validator has been called, e.g., after an edit.                                                                                                                        |
-| `validateCells`                                    | Action triggered by Handsontable after the validation process has been triggered.                                                                                                                                      |
+| `populateFromArray`                                | Action triggered by Handsontable after the [`populateFromArray()`](@/api/core.md#populatefromarray) method has been called.                                                                                            |
+| `spliceCol`                                        | Action triggered by Handsontable after the [`spliceCol()`](@/api/core.md#splicecol) method has been called.                                                                                                            |
+| `spliceRow`                                        | Action triggered by Handsontable after the [`spliceRow()`](@/api/core.md#splicerow) method has been called.                                                                                                            |
+| `timeValidate`                                     | Action triggered by Handsontable after the [time](@/guides/cell-types/time-cell-type/time-cell-type.md) validator has been called, e.g., after an edit.                                                                |
+| `dateValidate`                                     | Action triggered by Handsontable after the [date](@/guides/cell-types/date-cell-type/date-cell-type.md) validator has been called, e.g., after an edit.                                                                |
+| `validateCells`                                    | Action triggered by Handsontable after the [`validateCells()`](@/api/core.md#validatecells) method has been called.                                                                                                    |
 | [`Autofill.fill`](@/api/autofill.md)               | Action triggered by the AutoFill plugin.                                                                                                                                                                               |
 | [`ContextMenu.clearColumns`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Clear column" has been clicked.                                                                                                                                  |
 | [`ContextMenu.columnLeft`](@/api/contextMenu.md)   | Action triggered by the ContextMenu plugin after the "Insert column left" has been clicked.                                                                                                                            |
@@ -238,7 +235,7 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`ContextMenu.rowAbove`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked.                                                                                                                              |
 | [`ContextMenu.rowBelow`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.                                                                                                                              |
 | [`CopyPaste.paste`](@/api/copyPaste.md)            | Action triggered by the CopyPaste plugin after the value has been pasted.                                                                                                                                              |
-| `MergeCells`                            | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells. |
+| [`MergeCells`](@/api/mergeCells.md)                | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells. |
 | [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                              |
 | [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                              |
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
@@ -246,24 +243,28 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 
 List of callbacks that operate on the `source` parameter:
 
-- [`afterChange`](@/api/hooks.md#afterchange)
-- [`afterCreateCol`](@/api/hooks.md#aftercreatecol)
-- [`afterCreateRow`](@/api/hooks.md#aftercreaterow)
-- [`afterLoadData`](@/api/hooks.md#afterloaddata)
-- [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
-- [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
-- [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
-- [`afterRemoveCol`](@/api/hooks.md#afterremovecol)
-- [`afterRemoveRow`](@/api/hooks.md#aftermoverow)
-- [`afterValidate`](@/api/hooks.md#aftervalidate)
-- [`beforeChange`](@/api/hooks.md#beforechange)
-- [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-- [`beforeCreateCol`](@/api/hooks.md#beforecreatecol)
-- [`beforeCreateRow`](@/api/hooks.md#beforecreaterow)
-- [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
-- [`beforeRemoveCol`](@/api/hooks.md#beforeremovecol)
-- [`beforeRemoveRow`](@/api/hooks.md#beforeremoverow)
-- [`beforeValidate`](@/api/hooks.md#beforevalidate)
+<div class="boxes-list">
+
+- [afterChange](@/api/hooks.md#afterchange)
+- [afterCreateCol](@/api/hooks.md#aftercreatecol)
+- [afterCreateRow](@/api/hooks.md#aftercreaterow)
+- [afterLoadData](@/api/hooks.md#afterloaddata)
+- [afterSetDataAtCell](@/api/hooks.md#aftersetdataatcell)
+- [afterSetDataAtRowProp](@/api/hooks.md#aftersetdataatrowprop)
+- [afterSetSourceDataAtCell](@/api/hooks.md#aftersetsourcedataatcell)
+- [afterRemoveCol](@/api/hooks.md#afterremovecol)
+- [afterRemoveRow](@/api/hooks.md#aftermoverow)
+- [afterValidate](@/api/hooks.md#aftervalidate)
+- [beforeChange](@/api/hooks.md#beforechange)
+- [beforeChangeRender](@/api/hooks.md#beforechangerender)
+- [beforeCreateCol](@/api/hooks.md#beforecreatecol)
+- [beforeCreateRow](@/api/hooks.md#beforecreaterow)
+- [beforeLoadData](@/api/hooks.md#beforeloaddata)
+- [beforeRemoveCol](@/api/hooks.md#beforeremovecol)
+- [beforeRemoveRow](@/api/hooks.md#beforeremoverow)
+- [beforeValidate](@/api/hooks.md#beforevalidate)
+
+</div>
 
 ## The [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
@@ -307,14 +308,30 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 ## Related API reference
 
-- Core methods:
-  - [`addHook()`](@/api/core.md#addhook)
-  - [`addHookOnce()`](@/api/core.md#addhookonce)
-  - [`hasHook()`](@/api/core.md#hashook)
-  - [`removeHook()`](@/api/core.md#removehook)
-  - [`hasHook()`](@/api/core.md#hashook)
-  - [`runHooks()`](@/api/core.md#runhooks)
-- Hooks:
-  - [List of all Handsontable hooks](@/api/hooks.md)
-  - [`afterListen`](@/api/hooks.md#afterlisten)
-  - [`afterUnlisten`](@/api/hooks.md#afterunlisten)
+**Core methods**
+
+<div class="boxes-list">
+
+- [addHook()](@/api/core.md#addhook)
+- [addHookOnce()](@/api/core.md#addhookonce)
+- [hasHook()](@/api/core.md#hashook)
+- [removeHook()](@/api/core.md#removehook)
+- [hasHook()](@/api/core.md#hashook)
+- [runHooks()](@/api/core.md#runhooks)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [List of all Handsontable hooks](@/api/hooks.md)
+- [afterListen](@/api/hooks.md#afterlisten)
+- [afterUnlisten](@/api/hooks.md#afterunlisten)
+
+</div>
+
+## Related
+
+- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- see how hooks interact with grid configuration at initialization.
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- a practical example of using the `afterChange` hook to persist edits to a backend.

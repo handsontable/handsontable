@@ -12,6 +12,7 @@ import {
   isDate,
   isDateValid,
   isFormula,
+  normalizeValueForFormulaEngine,
   unescapeFormulaExpression,
 } from './utils';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
@@ -661,14 +662,11 @@ export class Formulas extends BasePlugin {
       const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
       const valueGetter = cellMeta.valueGetter;
 
-      if (valueGetter && typeof valueGetter === 'function') {
-        return (valueGetter as Function).call(this.hot, value);
-      }
-
-      return (value as object).toString();
+      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
+      value = (value as object).toString();
     }
 
-    return value;
+    return normalizeValueForFormulaEngine(value);
   }
 
   /**
@@ -1090,6 +1088,8 @@ export class Formulas extends BasePlugin {
 
         return;
       }
+
+      newValue = normalizeValueForFormulaEngine(newValue);
 
       changedCells.push({ address });
       dependentCells.push(...this.engine.setCellContents(address, newValue));

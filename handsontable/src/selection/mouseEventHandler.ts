@@ -183,6 +183,7 @@ const handlers = new Map<string, Function>([
   ['touchend', mouseUp],
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
+  ['mousemove', mouseOver],
   ['mouseup', mouseUp],
 ]);
 

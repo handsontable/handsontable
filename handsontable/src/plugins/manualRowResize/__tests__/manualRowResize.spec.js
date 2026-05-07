@@ -19,11 +19,7 @@ describe('manualRowResize', () => {
       manualRowResize: [50, 40, 100]
     });
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(50);
-      main.toEqual(50);
-      horizon.toEqual(50);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(50);
     expect(rowHeight(spec().$container, 1)).toEqual(40);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
   });
@@ -47,7 +43,7 @@ describe('manualRowResize', () => {
     expect($('.manualRowResizer').size()).toBeGreaterThan(0);
   });
 
-  it.forTheme('classic')('should change the default row height with updateSettings', async() => {
+  it('should change the default row height with updateSettings', async() => {
     handsontable({
       manualRowResize: true
     });
@@ -55,46 +51,6 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1); // + Single border
     expect(rowHeight(spec().$container, 1)).toEqual(defaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
-
-    await updateSettings({
-      manualRowResize: [60, 50, 80]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(60);
-    expect(rowHeight(spec().$container, 1)).toEqual(50);
-    expect(rowHeight(spec().$container, 2)).toEqual(80);
-  });
-
-  it.forTheme('main')('should change the default row height with updateSettings', async() => {
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      manualRowResize: true
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-
-    await updateSettings({
-      manualRowResize: [60, 50, 80]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(60);
-    expect(rowHeight(spec().$container, 1)).toEqual(50);
-    expect(rowHeight(spec().$container, 2)).toEqual(80);
-  });
-
-  it.forTheme('horizon')('should change the default row height with updateSettings', async() => {
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      manualRowResize: true
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Double border
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight); // + Single border
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight); // + Single border
 
     await updateSettings({
       manualRowResize: [60, 50, 80]
@@ -110,11 +66,7 @@ describe('manualRowResize', () => {
       manualRowResize: [60, 50, 80]
     });
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(60);
-      main.toEqual(60);
-      horizon.toEqual(60);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
     expect(rowHeight(spec().$container, 1)).toEqual(50);
     expect(rowHeight(spec().$container, 2)).toEqual(80);
 
@@ -122,11 +74,7 @@ describe('manualRowResize', () => {
       manualRowResize: [30, 80, 100]
     });
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(30);
-      main.toEqual(30);
-      horizon.toEqual(38);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(Math.max(30, getThemeLayout().firstRenderedRowDefaultHeight));
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
   });
@@ -136,11 +84,7 @@ describe('manualRowResize', () => {
       manualRowResize: [60, 50, 80]
     });
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(60);
-      main.toEqual(60);
-      horizon.toEqual(60);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
     expect(rowHeight(spec().$container, 1)).toEqual(50);
     expect(rowHeight(spec().$container, 2)).toEqual(80);
 
@@ -148,16 +92,12 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(60);
-      main.toEqual(60);
-      horizon.toEqual(60);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(60);
     expect(rowHeight(spec().$container, 1)).toEqual(50);
     expect(rowHeight(spec().$container, 2)).toEqual(80);
   });
 
-  it.forTheme('classic')('should change the row height to defaults when undefined is passed', async() => {
+  it('should change the row height to defaults when undefined is passed', async() => {
     handsontable({
       manualRowResize: [60, 50, 80]
     });
@@ -175,47 +115,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
   });
 
-  it.forTheme('main')('should change the row height to defaults when undefined is passed', async() => {
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      manualRowResize: [60, 50, 80]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(60);
-    expect(rowHeight(spec().$container, 1)).toEqual(50);
-    expect(rowHeight(spec().$container, 2)).toEqual(80);
-
-    await updateSettings({
-      manualRowResize: undefined
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-  });
-
-  it.forTheme('horizon')('should change the row height to defaults when undefined is passed', async() => {
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      manualRowResize: [60, 50, 80]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(60);
-    expect(rowHeight(spec().$container, 1)).toEqual(50);
-    expect(rowHeight(spec().$container, 2)).toEqual(80);
-
-    await updateSettings({
-      manualRowResize: undefined
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-  });
-
-  it.forTheme('classic')('should reset row height', async() => {
+  it('should reset row height', async() => {
     handsontable({
       manualRowResize: true
     });
@@ -233,47 +133,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
   });
 
-  it.forTheme('main')('should reset row height', async() => {
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      manualRowResize: true
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-
-    await updateSettings({
-      manualRowResize: true
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-  });
-
-  it.forTheme('horizon')('should reset row height', async() => {
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      manualRowResize: true
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-
-    await updateSettings({
-      manualRowResize: true
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-  });
-
-  it.forTheme('classic')('should keep proper row heights after inserting row', async() => {
+  it('should keep proper row heights after inserting row', async() => {
     handsontable({
       manualRowResize: [undefined, undefined, 120]
     });
@@ -291,47 +151,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 3)).toBe(120);
   });
 
-  it.forTheme('main')('should keep proper row heights after inserting row', async() => {
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      manualRowResize: [undefined, undefined, 120]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBe(120);
-    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
-
-    await alter('insert_row_above', 0);
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 3)).toBe(120);
-  });
-
-  it.forTheme('horizon')('should keep proper row heights after inserting row', async() => {
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      manualRowResize: [undefined, undefined, 120]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBe(120);
-    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
-
-    await alter('insert_row_above', 0);
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 3)).toBe(120);
-  });
-
-  it.forTheme('classic')('should keep proper row heights after removing row', async() => {
+  it('should keep proper row heights after removing row', async() => {
     handsontable({
       manualRowResize: [undefined, undefined, 120]
     });
@@ -349,47 +169,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 3)).toBe(defaultRowHeight);
   });
 
-  it.forTheme('main')('should keep proper row heights after removing row', async() => {
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      manualRowResize: [undefined, undefined, 120]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBe(120);
-    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
-
-    await alter('remove_row', 0);
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1); // + Single border
-    expect(rowHeight(spec().$container, 1)).toBe(120);
-    expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
-  });
-
-  it.forTheme('horizon')('should keep proper row heights after removing row', async() => {
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      manualRowResize: [undefined, undefined, 120]
-    });
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toBe(120);
-    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
-
-    await alter('remove_row', 0);
-
-    expect(rowHeight(spec().$container, 0)).toBe(themeDefaultRowHeight + 1);
-    expect(rowHeight(spec().$container, 1)).toBe(120);
-    expect(rowHeight(spec().$container, 2)).toBe(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 3)).toBe(themeDefaultRowHeight);
-  });
-
-  it.forTheme('classic')('should trigger beforeRowResize event after row height changes', async() => {
+  it('should trigger beforeRowResize event after row height changes', async() => {
     const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
 
     handsontable({
@@ -400,44 +180,6 @@ describe('manualRowResize', () => {
     });
 
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
-
-    await resizeRow(0, 100);
-
-    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-    expect(rowHeight(spec().$container, 0)).toEqual(100);
-  });
-
-  it.forTheme('main')('should trigger beforeRowResize event after row height changes', async() => {
-    const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      beforeRowResize: beforeRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    await resizeRow(0, 100);
-
-    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-    expect(rowHeight(spec().$container, 0)).toEqual(100);
-  });
-
-  it.forTheme('horizon')('should trigger beforeRowResize event after row height changes', async() => {
-    const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      beforeRowResize: beforeRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
 
     await resizeRow(0, 100);
 
@@ -452,11 +194,7 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(27);
-      main.toEqual(30);
-      horizon.toEqual(38);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(getThemeLayout().firstRenderedRowDefaultHeight);
 
     addHook('beforeRowResize', () => 100);
     addHook('beforeRowResize', () => 200);
@@ -471,16 +209,12 @@ describe('manualRowResize', () => {
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
 
-    await sleep(700);
+    await waitForNextAnimationFrames(44);
 
-    expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(200);
-      main.toEqual(200);
-      horizon.toEqual(200);
-    });
+    expect(rowHeight(spec().$container, 0)).toEqual(200);
   });
 
-  it.forTheme('classic')('should trigger afterRowResize event after row height changes', async() => {
+  it('should trigger afterRowResize event after row height changes', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -497,43 +231,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
-  it.forTheme('main')('should trigger afterRowResize event after row height changes', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    await resizeRow(0, 100);
-    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-    expect(rowHeight(spec().$container, 0)).toEqual(100);
-  });
-
-  it.forTheme('horizon')('should trigger afterRowResize event after row height changes', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    await resizeRow(0, 100);
-    expect(afterRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-    expect(rowHeight(spec().$container, 0)).toEqual(100);
-  });
-
-  it.forTheme('classic')(`should not trigger afterRowResize event if row height
+  it(`should not trigger afterRowResize event if row height
  does not change (delta = 0)`, async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
@@ -551,45 +249,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
   });
 
-  it.forTheme('main')(`should not trigger afterRowResize event if row height
- does not change (delta = 0)`, async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    await resizeRow(0, themeDefaultRowHeight + 1);
-    expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-  });
-
-  it.forTheme('horizon')(`should not trigger afterRowResize event if row height does not change
- (delta = 0)`, async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    await resizeRow(0, themeDefaultRowHeight + 1);
-    expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-  });
-
-  it.forTheme('classic')('should not trigger afterRowResize event after if row height does not change ' +
+  it('should not trigger afterRowResize event after if row height does not change ' +
     '(no mousemove event)', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
@@ -615,61 +275,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
   });
 
-  it.forTheme('main')(`should not trigger afterRowResize event after if row height does not change
- (no mousemove event)`, async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await simulateClick($resizer, { clientY: resizerPosition.top });
-
-    expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-  });
-
-  it.forTheme('horizon')('should not trigger afterRowResize event after if row height does not change ' +
-    '(no mousemove event)', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await simulateClick($resizer, { clientY: resizerPosition.top });
-
-    expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-  });
-
-  it.forTheme('classic')('should trigger an afterRowResize after row size changes, after double click', async() => {
+  it('should trigger an afterRowResize after row size changes, after double click', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
     handsontable({
@@ -690,72 +296,12 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
     expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(defaultRowHeight);
     expect(rowHeight(spec().$container, 2)).toEqual(defaultRowHeight);
-  });
-
-  it.forTheme('main')('should trigger an afterRowResize after row size changes, after double click', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      autoRowSize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
-
-    expect(afterRowResizeCallback.calls.count()).toEqual(1);
-    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
-  });
-
-  it.forTheme('horizon')('should trigger an afterRowResize after row size changes, after double click', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      autoRowSize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
-
-    expect(afterRowResizeCallback.calls.count()).toEqual(1);
-    expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
   });
 
   it('should resize appropriate rows to calculated autoRowSize height after double click on row handler after ' +
@@ -768,7 +314,7 @@ describe('manualRowResize', () => {
 
     await setDataAtCell(1, 0, 'Longer\ntext');
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     await updateSettings({
       rowHeights: [45, 120, 160, 60, 80],
@@ -785,13 +331,9 @@ describe('manualRowResize', () => {
       const resizerPosition = $resizer.position();
 
       await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
-      expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
+      expect($rowHeaders.eq(0).height()).toBe(getThemeLayout().cellContentHeight);
       expect($rowHeaders.eq(1).height()).toBe(119);
       expect($rowHeaders.eq(2).height()).toBe(159);
       expect($rowHeaders.eq(3).height()).toBe(59);
@@ -806,25 +348,18 @@ describe('manualRowResize', () => {
       const resizerPosition = $resizer.position();
 
       await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
-      expect($rowHeaders.eq(0).height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
-      expect($rowHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(46);
-        main.toBe(48);
-        horizon.toBe(56);
-      });
+      expect($rowHeaders.eq(0).height()).toBe(getThemeLayout().cellContentHeight);
+      expect($rowHeaders.eq(1).height())
+        .toBe(getThemeLayout().e2eManualRowResizeRowHeaderHeightAfterDoubleClickAutoSize());
       expect($rowHeaders.eq(2).height()).toBe(159);
       expect($rowHeaders.eq(3).height()).toBe(59);
       expect($rowHeaders.eq(4).height()).toBe(79);
     }
   });
 
-  it.forTheme('classic')('should not trigger afterRowResize event after if row height does not change ' +
+  it('should not trigger afterRowResize event after if row height does not change ' +
     '(no dblclick event)', async() => {
     const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
 
@@ -848,60 +383,6 @@ describe('manualRowResize', () => {
 
     expect(afterRowResizeCallback).not.toHaveBeenCalled();
     expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
-  });
-
-  it.forTheme('main')('should not trigger afterRowResize event after if row height does not change ' +
-    '(no dblclick event)', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 29;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await simulateClick($resizer, { clientY: resizerPosition.top });
-
-    expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-  });
-
-  it.forTheme('horizon')('should not trigger afterRowResize event after if row height does not change ' +
-    '(no dblclick event)', async() => {
-    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
-    const themeDefaultRowHeight = 37;
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      afterRowResize: afterRowResizeCallback
-    });
-
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
-
-    const $th = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-    $th.simulate('mouseover');
-
-    const $resizer = spec().$container.find('.manualRowResizer');
-    const resizerPosition = $resizer.position();
-
-    await simulateClick($resizer, { clientY: resizerPosition.top });
-
-    expect(afterRowResizeCallback).not.toHaveBeenCalled();
-    expect(rowHeight(spec().$container, 0)).toEqual(themeDefaultRowHeight + 1);
   });
 
   it('should autosize row after double click (when initial height is not defined)', async() => {
@@ -917,13 +398,11 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
-    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(23, 3);
-      main.toBeAroundValue(29, 3);
-      horizon.toBeAroundValue(37, 3);
-    });
+    expect(rowHeight(spec().$container, 2)).toBeAroundValue(
+      getThemeLayout().defaultDataRowHeight,
+      3);
   });
 
   it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {
@@ -944,13 +423,9 @@ describe('manualRowResize', () => {
     const resizerPosition = $resizer.position();
 
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
-    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(26, 1);
-      main.toBeAroundValue(29, 1);
-      horizon.toBeAroundValue(37, 1);
-    });
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight, 1);
   });
 
   it('should autosize selected rows after double click on handler', async() => {
@@ -971,25 +446,13 @@ describe('manualRowResize', () => {
     getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mousemove');
     getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
-    await sleep(1000);
+    await waitForNextAnimationFrames(63);
 
-    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(26);
-      main.toBeAroundValue(29);
-      horizon.toBeAroundValue(37);
-    });
-    expect(rowHeight(spec().$container, 2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(26);
-      main.toBeAroundValue(29);
-      horizon.toBeAroundValue(37);
-    });
-    expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(26);
-      main.toBeAroundValue(29);
-      horizon.toBeAroundValue(37);
-    });
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 2)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
+    expect(rowHeight(spec().$container, 3)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should autosize selected rows after double click on handler and move mouse to the next row', async() => {
@@ -1006,16 +469,12 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
     await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
     getInlineStartClone().find('tr:eq(2) th:eq(0)').simulate('mouseover');
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
-    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(26);
-      main.toBeAroundValue(29);
-      horizon.toBeAroundValue(37);
-    });
+    expect(rowHeight(spec().$container, 1)).toBeAroundValue(getThemeLayout().defaultDataRowHeight);
   });
 
   it('should resize (expanding and narrowing) selected rows', async() => {
@@ -1040,7 +499,7 @@ describe('manualRowResize', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
@@ -1050,27 +509,15 @@ describe('manualRowResize', () => {
     expect($rowsHeaders.eq(2).height()).toEqual(80);
     expect($rowsHeaders.eq(3).height()).toEqual(80);
 
-    await sleep(1200);
+    await waitForNextAnimationFrames(75);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(35);
-      main.toEqual(35);
-      horizon.toEqual(36);
-    });
-    expect($rowsHeaders.eq(2).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(35);
-      main.toEqual(35);
-      horizon.toEqual(36);
-    });
-    expect($rowsHeaders.eq(3).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(35);
-      main.toEqual(35);
-      horizon.toEqual(36);
-    });
+    expect($rowsHeaders.eq(1).height()).toEqual(Math.max(35, getThemeLayout().cellContentHeight));
+    expect($rowsHeaders.eq(2).height()).toEqual(Math.max(35, getThemeLayout().cellContentHeight));
+    expect($rowsHeaders.eq(3).height()).toEqual(Math.max(35, getThemeLayout().cellContentHeight));
   });
 
   it('should show resizer for fixed top rows', async() => {
@@ -1088,40 +535,14 @@ describe('manualRowResize', () => {
 
     const $resizer = spec().$container.find('.manualRowResizer');
 
-    expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual({
-        top: 125,
-        left: 0,
-      });
-      main.toEqual({
-        top: 140,
-        left: 0,
-      });
-      horizon.toEqual({
-        top: 180,
-        left: 0,
-      });
-    });
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedTopMasterFourthRow());
 
     // after hovering over fixed row, resizer should be moved to the fixed row
     getTopInlineStartClone()
       .find('tbody tr:eq(1) th:eq(0)')
       .simulate('mouseover');
 
-    expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual({
-        top: 73,
-        left: 0,
-      });
-      main.toEqual({
-        top: 82,
-        left: 0,
-      });
-      horizon.toEqual({
-        top: 106,
-        left: 0,
-      });
-    });
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedTopOverlaySecondRow());
   });
 
   it('should show resizer for fixed bottom rows', async() => {
@@ -1139,40 +560,14 @@ describe('manualRowResize', () => {
 
     const $resizer = spec().$container.find('.manualRowResizer');
 
-    expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual({
-        top: 125,
-        left: 0,
-      });
-      main.toEqual({
-        top: 140,
-        left: 0,
-      });
-      horizon.toEqual({
-        top: 180,
-        left: 0,
-      });
-    });
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedTopMasterFourthRow());
 
     // after hovering over fixed row, resizer should be moved to the fixed row
     getBottomInlineStartClone()
       .find('tbody tr:eq(0) th:eq(0)')
       .simulate('mouseover');
 
-    expect($resizer.position()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual({
-        top: 21,
-        left: 0,
-      });
-      main.toEqual({
-        top: 24,
-        left: 0,
-      });
-      horizon.toEqual({
-        top: 32,
-        left: 0,
-      });
-    });
+    expect($resizer.position()).toEqual(getThemeLayout().e2eManualRowResizerPositionFixedBottomOverlayFirstRow());
   });
 
   it('should resize proper row after resizing element adjacent to a selection', async() => {
@@ -1193,21 +588,15 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
-    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(58);
-      horizon.toBe(66);
-    });
-    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(25);
-      main.toBe(28);
-      horizon.toBe(36);
-    });
-    expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(25);
-      main.toBe(28);
-      horizon.toBe(36);
-    });
+    // The drag moved the resizer by 30px, producing a final row height of
+    // `defaultDataRowHeight + 29` (29 = 30px drag - 1px resizer snap). This +29
+    // offset recurs across the following drag-resize assertions.
+    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 29);
+    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(
+      getThemeLayout().cellContentHeight);
+    expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height()).toBe(
+      getThemeLayout().cellContentHeight);
   });
 
   it('should resize all rows after resize action when selected all cells', async() => {
@@ -1218,21 +607,9 @@ describe('manualRowResize', () => {
       manualRowResize: true
     });
 
-    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(25);
-      main.toBe(28);
-      horizon.toBe(36);
-    });
-    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(25);
-      main.toBe(28);
-      horizon.toBe(36);
-    });
-    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(25);
-      main.toBe(28);
-      horizon.toBe(36);
-    });
+    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(getThemeLayout().cellContentHeight);
+    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(getThemeLayout().cellContentHeight);
+    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(getThemeLayout().cellContentHeight);
 
     await selectAll();
 
@@ -1245,21 +622,12 @@ describe('manualRowResize', () => {
     $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
     $resizer.simulate('mouseup');
 
-    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(54);
-      main.toBe(57);
-      horizon.toBe(65);
-    });
-    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(58);
-      horizon.toBe(66);
-    });
-    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(55);
-      main.toBe(58);
-      horizon.toBe(66);
-    });
+    expect(getInlineStartClone().find('tbody tr:eq(0) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 28);
+    expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 29);
+    expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(
+      getThemeLayout().defaultDataRowHeight + 29);
   });
 
   it('should not throw any errors, when selecting headers partially outside of viewport, when the header renderer' +
@@ -1351,7 +719,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -1411,7 +781,9 @@ describe('manualRowResize', () => {
         rowHeaders: true,
         manualRowResize: true,
         width: 200,
-        height: 400
+        height: 400,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportVertically(200);
@@ -1429,23 +801,11 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
     });
 
     it('should resize (expanding) selected columns, with window as a scroll parent', async() => {
@@ -1472,23 +832,46 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(14) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
+    });
+
+    it('should display the handle and resize by unscaled height when parent is scaled', async() => {
+      spec().$container.css({
+        transform: 'scale(0.5)',
+        transformOrigin: 'top left',
+      });
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        rowHeaders: true,
+        manualRowResize: true,
+      });
+
+      const $rowHeader = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
+
+      $rowHeader.simulate('mouseover');
+
+      const $resizer = spec().$container.find('.manualRowResizer');
+      const handleBox = $resizer[0].getBoundingClientRect();
+      const thBox = $rowHeader[0].getBoundingClientRect();
+
+      expect(handleBox.top).toBeCloseTo(thBox.top + thBox.height - (handleBox.height / 2) - 1, 0);
+
+      $resizer.simulate('mousedown', { clientY: handleBox.top });
+      const guide = spec().$container.find('.manualRowResizerGuide')[0];
+      const guideBoxBeforeMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mousemove', { clientY: handleBox.top + 25 });
+      const guideBoxAfterMove = guide.getBoundingClientRect();
+
+      $resizer.simulate('mouseup');
+
+      expect(guideBoxAfterMove.top - guideBoxBeforeMove.top).toBeCloseTo(25, 0);
+      expect(rowHeight(spec().$container, 1)).toBeGreaterThan(70);
     });
   });
 
@@ -1511,35 +894,15 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
     });
 
     it('should resize (expanding) height of selected non-contiguous rows', async() => {
@@ -1570,65 +933,25 @@ describe('manualRowResize', () => {
       $resizer.simulate('mouseup');
 
       expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(3) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(4) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(5) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(6) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(7) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(8) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(9) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
       expect(getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(55);
-          main.toBe(58);
-          horizon.toBe(66);
-        });
+        .toBe(getThemeLayout().defaultDataRowHeight + 29);
       expect(getInlineStartClone().find('tbody tr:eq(11) th:eq(0)').height())
-        .forThemes(({ classic, main, horizon }) => {
-          classic.toBe(25);
-          main.toBe(28);
-          horizon.toBe(36);
-        });
+        .toBe(getThemeLayout().cellContentHeight);
     });
 
     it('should not resize few rows when selected just single cells before resize action', async() => {
@@ -1649,16 +972,10 @@ describe('manualRowResize', () => {
       $resizer.simulate('mousemove', { clientY: resizerPosition.top + 30 });
       $resizer.simulate('mouseup');
 
-      expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(55);
-        main.toBe(58);
-        horizon.toBe(66);
-      });
-      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(28);
-        horizon.toBe(36);
-      });
+      expect(getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').height()).toBe(
+        getThemeLayout().defaultDataRowHeight + 29);
+      expect(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').height()).toBe(
+        getThemeLayout().cellContentHeight);
     });
   });
 
@@ -1675,60 +992,7 @@ describe('manualRowResize', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')(`should display the resize handle in the proper position and with
- a proper size`, async() => {
-        handsontable({
-          layoutDirection,
-          data: [
-            { id: 1, name: 'Ted', lastName: 'Right' },
-            { id: 2, name: 'Frank', lastName: 'Honest' },
-            { id: 3, name: 'Joan', lastName: 'Well' },
-            { id: 4, name: 'Sid', lastName: 'Strong' },
-            { id: 5, name: 'Jane', lastName: 'Neat' }
-          ],
-          rowHeaders: true,
-          manualRowResize: true
-        });
-
-        const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
-
-        $headerTH.simulate('mouseover');
-
-        const $handle = $('.manualRowResizer');
-
-        expect($handle.offset().top)
-          .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
-        expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
-      });
-
-      it.forTheme('main')('should display the resize handle in the proper position and with a proper size', async() => {
-        handsontable({
-          layoutDirection,
-          data: [
-            { id: 1, name: 'Ted', lastName: 'Right' },
-            { id: 2, name: 'Frank', lastName: 'Honest' },
-            { id: 3, name: 'Joan', lastName: 'Well' },
-            { id: 4, name: 'Sid', lastName: 'Strong' },
-            { id: 5, name: 'Jane', lastName: 'Neat' }
-          ],
-          rowHeaders: true,
-          manualRowResize: true
-        });
-
-        const $headerTH = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
-
-        $headerTH.simulate('mouseover');
-
-        const $handle = $('.manualRowResizer');
-
-        expect($handle.offset().top)
-          .toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
-        expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
-      });
-
-      it.forTheme('horizon')(`should display the resize handle in the proper position and with
+      it(`should display the resize handle in the proper position and with
  a proper size`, async() => {
         handsontable({
           layoutDirection,
@@ -1810,7 +1074,9 @@ describe('manualRowResize', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
@@ -1860,7 +1126,7 @@ describe('manualRowResize', () => {
       });
     });
 
-    it.forTheme('classic')('should remove resize handler when user clicks RMB', async() => {
+    it('should remove resize handler when user clicks RMB', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1881,59 +1147,7 @@ describe('manualRowResize', () => {
 
       $handle.simulate('contextmenu');
 
-      await sleep(0);
-
-      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
-    });
-
-    it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        rowHeaders: true,
-        manualRowResize: true
-      });
-
-      const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-      $rowHeader.simulate('mouseover');
-
-      const $handle = spec().$container.find('.manualRowResizer');
-      const resizerPosition = $handle.position();
-
-      $handle.simulate('mousedown', { clientY: resizerPosition.top });
-
-      // To watch whether opacity has changed.
-      expect(getComputedStyle($handle[0]).opacity).toBe('1');
-
-      $handle.simulate('contextmenu');
-
-      await sleep(0);
-
-      expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
-    });
-
-    it.forTheme('horizon')('should remove resize handler when user clicks RMB', async() => {
-      handsontable({
-        data: createSpreadsheetData(5, 5),
-        rowHeaders: true,
-        manualRowResize: true
-      });
-
-      const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
-
-      $rowHeader.simulate('mouseover');
-
-      const $handle = spec().$container.find('.manualRowResizer');
-      const resizerPosition = $handle.position();
-
-      $handle.simulate('mousedown', { clientY: resizerPosition.top });
-
-      // To watch whether opacity has changed.
-      expect(getComputedStyle($handle[0]).opacity).toBe('1');
-
-      $handle.simulate('contextmenu');
-
-      await sleep(0);
+      await waitForNextAnimationFrames(0);
 
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
@@ -1958,42 +1172,42 @@ describe('manualRowResize', () => {
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
       await resizeRow(2, -10);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([26, 2, false]);
-        main.toEqual([29, 2, false]);
-        horizon.toEqual([37, 2, false]);
-      });
-      expect(afterRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([26, 2, false]);
-        main.toEqual([29, 2, false]);
-        horizon.toEqual([37, 2, false]);
-      });
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
       await resizeRow(2, 100);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
       await resizeRow(2, 5);
 
-      expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([26, 2, false]);
-        main.toEqual([29, 2, false]);
-        horizon.toEqual([37, 2, false]);
-      });
-      expect(afterRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([26, 2, false]);
-        main.toEqual([29, 2, false]);
-        horizon.toEqual([37, 2, false]);
-      });
+      expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
+      expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([
+        getThemeLayout().defaultDataRowHeight,
+        2,
+        false,
+      ]);
     });
 
-    it.forTheme('classic')('should be able to get the last desired row height from the ' +
+    it('should be able to get the last desired row height from the ' +
       '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
       const desiredHeightsLog = [];
 
@@ -2014,73 +1228,16 @@ describe('manualRowResize', () => {
       const $resizer = spec().$container.find('.manualRowResizer');
       const resizerPosition = $resizer.position();
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
+
+      const mousemoveDelta = ($resizer.height() / 2) - 50;
+      const expectedBump = 6;
 
       $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-      $resizer.simulate('mousemove', { clientY: resizerPosition.top + $resizer.height() - 50 });
+      $resizer.simulate('mousemove', { clientY: resizerPosition.top + mousemoveDelta });
       $resizer.simulate('mouseup');
 
-      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 11]);
-    });
-
-    it.forTheme('main')('should be able to get the last desired row height from the ' +
-      '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
-      const desiredHeightsLog = [];
-
-      handsontable({
-        data: [['value \n value \n value \n value \n value']],
-        rowHeaders: true,
-        manualRowResize: true,
-        // eslint-disable-next-line object-shorthand
-        afterRowResize: function() {
-          desiredHeightsLog.push(this.getPlugin('manualRowResize').getLastDesiredRowHeight());
-        },
-      });
-
-      const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
-
-      $rowHeader.simulate('mouseover');
-
-      const $resizer = spec().$container.find('.manualRowResizer');
-      const resizerPosition = $resizer.position();
-
-      await sleep(100);
-
-      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-      $resizer.simulate('mousemove', { clientY: resizerPosition.top + ($resizer.height() / 2) - 50 });
-      $resizer.simulate('mouseup');
-
-      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
-    });
-
-    it.forTheme('horizon')('should be able to get the last desired row height from the ' +
-      '`getLastDesiredRowHeight` method in the `afterRowResize` hook callback', async() => {
-      const desiredHeightsLog = [];
-
-      handsontable({
-        data: [['value \n value \n value \n value \n value']],
-        rowHeaders: true,
-        manualRowResize: true,
-        // eslint-disable-next-line object-shorthand
-        afterRowResize: function() {
-          desiredHeightsLog.push(this.getPlugin('manualRowResize').getLastDesiredRowHeight());
-        },
-      });
-
-      const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
-
-      $rowHeader.simulate('mouseover');
-
-      const $resizer = spec().$container.find('.manualRowResizer');
-      const resizerPosition = $resizer.position();
-
-      await sleep(100);
-
-      $resizer.simulate('mousedown', { clientY: resizerPosition.top });
-      $resizer.simulate('mousemove', { clientY: resizerPosition.top + ($resizer.height() / 2) - 50 });
-      $resizer.simulate('mouseup');
-
-      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
+      expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + expectedBump]);
     });
   });
 
@@ -2107,7 +1264,7 @@ describe('manualRowResize', () => {
         colWidths: 100,
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       await updateSettings({
         manualRowResize: [50, 50, 50],

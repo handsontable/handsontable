@@ -49,9 +49,12 @@ export function dateValidator(this: DateValidatorContext, value: unknown, callba
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
       const correctedValue = correctFormat(valueToValidate as string, this.dateFormat as string);
+      const isCorrectedValueValid = moment(correctedValue, this.dateFormat, true).isValid();
 
-      this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');
-      valid = true;
+      if (isCorrectedValueValid) {
+        this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');
+      }
+      valid = isCorrectedValueValid;
     } else {
       valid = false;
     }

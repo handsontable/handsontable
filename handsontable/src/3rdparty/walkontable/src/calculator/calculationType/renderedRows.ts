@@ -29,7 +29,7 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
     const {
       overrideFn,
       totalRows,
-      startPositions,
+      positionCache,
     } = viewportCalculator;
 
     if (this.startRow !== null && typeof overrideFn === 'function') {
@@ -46,7 +46,7 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
       this.startRow = 0;
     }
 
-    this.startPosition = startPositions[this.startRow] ?? null;
+    this.startPosition = this.startRow !== null ? positionCache.getOffset(this.startRow) : null;
 
     if (totalRows < this.endRow) {
       this.endRow = totalRows - 1;

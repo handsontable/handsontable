@@ -58,6 +58,8 @@ describe('Core resize', () => {
   });
 
   it('should change table height after changing parent element height', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       data: createSpreadsheetData(10, 2),
       rowHeaders: true,
@@ -70,40 +72,16 @@ describe('Core resize', () => {
 
     expect(getInlineStartClone().height()).toBe(200);
     expect(getMaster().height()).toBe(200);
-    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
-    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
+    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
+    expect(getBottomInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
 
     await refreshDimensions();
 
     expect(getMaster().height()).toBe(200);
     expect(getInlineStartClone().height()).toBe(200);
-    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
-    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
-    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
+    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
+    expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
+    expect(getBottomInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
   });
 });

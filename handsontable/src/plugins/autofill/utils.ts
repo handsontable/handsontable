@@ -1,11 +1,3 @@
-import { isObject } from '../../helpers/object';
-import { isDefined } from '../../helpers/mixed';
-
-export const DIRECTIONS = {
-  horizontal: 'horizontal',
-  vertical: 'vertical'
-};
-
 /**
  * Get direction between positions and cords of selections difference (drag area).
  *
@@ -59,57 +51,4 @@ export function getDragDirectionAndRange(startSelection: number[], endSelection:
     startOfDragCoords,
     endOfDragCoords,
   };
-}
-
-/**
- * Get mapped FillHandle setting containing information about
- * allowed FillHandle directions and if allowed is automatic insertion of rows on drag.
- *
- * @param {boolean|object} fillHandle Property of Handsontable settings.
- * @returns {{directions: Array, autoInsertRow: boolean}} Object allowing access to information
- * about FillHandle in more useful way.
- */
-export function getMappedFillHandleSetting(fillHandle: boolean | string | { direction?: string, autoInsertRow?: boolean }) {
-  const mappedSettings: { directions: string[], autoInsertRow: boolean } = {
-    directions: [],
-    autoInsertRow: false,
-  };
-
-  if (fillHandle === true) {
-    mappedSettings.directions = Object.keys(DIRECTIONS);
-    mappedSettings.autoInsertRow = true;
-
-  } else if (isObject(fillHandle)) {
-    if (isDefined((fillHandle as { autoInsertRow?: boolean }).autoInsertRow)) {
-
-      // autoInsertRow for horizontal direction will be always false
-
-      if ((fillHandle as { direction?: string }).direction === DIRECTIONS.horizontal) {
-        mappedSettings.autoInsertRow = false;
-
-      } else {
-        mappedSettings.autoInsertRow = (fillHandle as { autoInsertRow?: boolean }).autoInsertRow!;
-      }
-
-    } else {
-      mappedSettings.autoInsertRow = false;
-    }
-
-    if (isDefined((fillHandle as { direction?: string }).direction)) {
-      mappedSettings.directions = [(fillHandle as { direction: string }).direction];
-
-    } else {
-      mappedSettings.directions = Object.keys(DIRECTIONS);
-    }
-
-  } else if (typeof fillHandle === 'string') {
-    mappedSettings.directions = [fillHandle];
-    mappedSettings.autoInsertRow = true;
-
-  } else {
-    mappedSettings.directions = [];
-    mappedSettings.autoInsertRow = false;
-  }
-
-  return mappedSettings;
 }

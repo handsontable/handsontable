@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 7b3d9f2e
 title: Empty Data State
 metaTitle: Empty Data State - JavaScript Data Grid | Handsontable
@@ -21,18 +22,28 @@ angular:
 searchCategory: Guides
 category: Accessories and Menus
 ---
-
-# Empty Data State
-
-Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
+Use the `EmptyDataState` plugin to display a contextual overlay when the grid has no data or all rows are hidden by active filters.
 
 [[toc]]
 
+## Prerequisites
+
+To use the Empty Data State plugin, import it from Handsontable:
+
+::: only-for javascript
+
+```js
+import Handsontable from 'handsontable';
+import 'handsontable/dist/handsontable.full.min.css';
+```
+
+:::
+
+To use the filter-aware empty state (which automatically detects when all rows are hidden by filters), also enable the [`Filters`](@/api/filters.md) plugin alongside `emptyDataState`.
+
 ## Overview
 
-The Empty Data State plugin provides a user-friendly overlay system for Handsontable when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons.
-
-With simplicity and effectiveness in mind, the empty data state plugin was designed to provide a consistent user experience with customizable appearance and behavior. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
+The Empty Data State plugin provides a user-friendly overlay system for Handsontable when there's no data to display. It automatically detects when your table is empty or when all data is hidden by filters, and displays an appropriate message with optional action buttons. It automatically integrates with the [Filters](@/api/filters.md) plugin to provide context-aware messages and actions.
 
 ## Basic configuration
 
@@ -159,8 +170,16 @@ Translate default empty data state labels using the global translations mechanis
 
 To learn more about the translation mechanism, see the [Languages guide](@/guides/internationalization/language/language.md).
 
+## Result
+
+After enabling the plugin, the grid displays a centered overlay message whenever there is no data to show. When the [`Filters`](@/api/filters.md) plugin is also enabled, the overlay automatically switches to a filter-specific message and shows a "Reset filters" button when all rows are hidden by active filter conditions.
+
 ## Related API reference
+
+<div class="boxes-list">
 
 - [Options: `emptyDataState`](@/api/options.md#emptydatastate)
 - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
 - [Plugins: `Filters`](@/api/filters.md)
+
+</div>

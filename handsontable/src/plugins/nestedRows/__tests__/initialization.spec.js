@@ -54,6 +54,35 @@ describe('NestedRows', () => {
       expect(getPlugin('nestedRows').enabled).toBe(false);
     });
 
+    it('should keep the plugin enabled when updating data to an empty array', async() => {
+      const nestedData = [{
+        label: 'Parent',
+        __children: [
+          { label: 'Child' },
+        ],
+      }];
+
+      handsontable({
+        data: nestedData,
+        nestedRows: true,
+      });
+
+      expect(getPlugin('nestedRows').enabled).toBe(true);
+      expect(countRows()).toBe(2);
+
+      await updateSettings({ data: [] });
+
+      expect(getPlugin('nestedRows').enabled).toBe(true);
+      expect(countRows()).toBe(0);
+
+      await updateSettings({ data: nestedData });
+
+      expect(getPlugin('nestedRows').enabled).toBe(true);
+      expect(countRows()).toBe(2);
+      expect(getDataAtCell(0, 0)).toBe('Parent');
+      expect(getDataAtCell(1, 0)).toBe('Child');
+    });
+
     it('should render the row header in correct width (based on the deepest dataset length)', async() => {
       handsontable({
         data: [{
@@ -92,11 +121,7 @@ describe('NestedRows', () => {
         nestedRows: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(77);
-        main.toBe(81);
-        horizon.toBe(89);
-      });
+      expect(getCell(0, -1).offsetWidth).toBe(nestedRowsLevel1HeaderWidth(getThemeLayout()));
     });
   });
 });

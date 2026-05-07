@@ -195,6 +195,19 @@ class Selection {
   }
 
   /**
+   * Updates the CSS class names used for row, column, header, and active header highlights based on
+   * the current settings. Call this after settings change via `updateSettings()`.
+   */
+  updateHighlightClassNames() {
+    this.highlight.updateHighlightClassNames({
+      rowClassName: this.settings.currentRowClassName,
+      columnClassName: this.settings.currentColClassName,
+      headerClassName: this.settings.currentHeaderClassName,
+      activeHeaderClassName: this.settings.activeHeaderClassName,
+    });
+  }
+
+  /**
    * Gets all selection range layers of the selection.
    *
    * @returns {SelectionRange}
@@ -624,6 +637,11 @@ class Selection {
    * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta: number, colDelta: number, createMissingRecords = false) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+
     const {
       visualCoords
     } = this.#extenderTransformation.transformStart(rowDelta, colDelta, createMissingRecords);
@@ -638,6 +656,11 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta: number, colDelta: number) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+
     const {
       visualCoords,
       selectionLayer,
@@ -653,6 +676,11 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformFocus(rowDelta: number, colDelta: number) {
+    if (!this.isSelected()) {
+      return;
+    }
+
+
     const {
       selectionLayer,
       visualCoords,

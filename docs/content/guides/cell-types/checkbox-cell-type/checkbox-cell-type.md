@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
@@ -14,10 +15,9 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Checkbox cell type
-
 Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
+
+The checkbox cell type renders a boolean value as a clickable checkbox. Use it for yes/no, active/inactive, or any true/false data.
 
 [[toc]]
 
@@ -142,6 +142,47 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 :::
 
+### Label value as a function
+
+The `value` property of the `label` option can also be a function. The function receives four arguments: `row`, `column`, `prop`, and `value`, where `value` is the current cell value. This lets you generate label text dynamically based on the cell's state.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example4.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example4.jsx)
+@[code](@/content/guides/cell-types/checkbox-cell-type/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example4.ts)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example4.html)
+
+:::
+
+:::
+
+## Result
+
+After configuring the checkbox cell type, cells display an interactive checkbox. Clicking the checkbox or pressing <kbd>**Space**</kbd> or <kbd>**Enter**</kbd> toggles its state. The underlying data source stores the boolean value (or your custom `checkedTemplate`/`uncheckedTemplate` values).
+
 ## Related keyboard shortcuts
 
 | Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
@@ -153,27 +194,46 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`checkedTemplate`](@/api/options.md#checkedtemplate)
-  - [`label`](@/api/options.md#label)
-  - [`type`](@/api/options.md#type)
-  - [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [checkedTemplate](@/api/options.md#checkedtemplate)
+- [label](@/api/options.md#label)
+- [type](@/api/options.md#type)
+- [uncheckedTemplate](@/api/options.md#uncheckedtemplate)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

@@ -161,6 +161,15 @@ export class ColumnSummary extends BasePlugin {
   declare currentEndpoint: unknown;
 
   /**
+   * Re-entry guard for the `afterFormulasValuesUpdate` hook so that the summary
+   * recalculation triggered by writing the summary result does not start
+   * another refresh.
+   *
+   * @type {boolean}
+   */
+  #refreshingFromFormulas = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ColumnSummary#enablePlugin} method is called.
    *
@@ -201,6 +210,8 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('afterRemoveCol',
       (...args: unknown[]) => (this.endpoints!.resetSetupAfterStructureAlteration as Function)('remove_col', ...args));
     this.addHook('afterRowMove', (...args: unknown[]) => (this.#onAfterRowMove as Function)(...args));
+    this.addHook('afterFormulasValuesUpdate',
+      (...args: unknown[]) => (this.#onAfterFormulasValuesUpdate as Function)(...args));
 
     super.enablePlugin();
   }
@@ -461,13 +472,14 @@ export class ColumnSummary extends BasePlugin {
    */
   getCellValue(row: number, col: number): unknown {
     const visualRowIndex = this.hot.toVisualRow(row);
-    const visualColumnIndex = this.hot.toVisualColumn(col);
 
-    let cellValue: unknown = this.hot.getSourceDataAtCell(row, col);
+    let cellValue: unknown = visualRowIndex !== null
+      ? this.hot.getDataAtCell(visualRowIndex, col)
+      : this.hot.getSourceDataAtCell(row, col);
     let cellClassName = '';
 
-    if (visualRowIndex !== null && visualColumnIndex !== null) {
-      cellClassName = (this.hot.getCellMeta(visualRowIndex, visualColumnIndex).className as string) || '';
+    if (visualRowIndex !== null) {
+      cellClassName = (this.hot.getCellMeta(visualRowIndex, col).className as string) || '';
     }
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {
@@ -544,6 +556,60 @@ export class ColumnSummary extends BasePlugin {
   #onAfterUpdateData(data: unknown[], firstRun: boolean) {
     if (!firstRun) {
       this.endpoints!.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * `afterFormulasValuesUpdate` hook callback. Refresh only endpoints whose
+   * `sourceColumn` (visual) maps to a column the engine recalculated.
+   *
+   * @param {Array} changes Changes from the formula engine.
+   */
+  #onAfterFormulasValuesUpdate(changes) {
+    if (this.#refreshingFromFormulas || !this.endpoints || !changes?.length) {
+      return;
+    }
+
+    const formulasPlugin = this.hot.getPlugin('formulas');
+
+    if (!formulasPlugin?.enabled) {
+      return;
+    }
+
+    const sheetId = formulasPlugin.sheetId;
+    const changedHfColumns = new Set();
+
+    changes.forEach((change) => {
+      if (change?.address?.sheet === sheetId) {
+        changedHfColumns.add(change.address.col);
+      }
+    });
+
+    if (changedHfColumns.size === 0) {
+      return;
+    }
+
+    const changedVisualColumns = new Set();
+
+    this.endpoints.getAllEndpoints().forEach((endpoint) => {
+      const hfSourceColumn = formulasPlugin.columnAxisSyncer
+        .getHfIndexFromVisualIndex(endpoint.sourceColumn);
+
+      if (changedHfColumns.has(hfSourceColumn)) {
+        changedVisualColumns.add(endpoint.sourceColumn);
+      }
+    });
+
+    if (changedVisualColumns.size === 0) {
+      return;
+    }
+
+    this.#refreshingFromFormulas = true;
+
+    try {
+      this.endpoints.refreshEndpointsBySourceColumns(changedVisualColumns);
+    } finally {
+      this.#refreshingFromFormulas = false;
     }
   }
 

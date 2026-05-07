@@ -5,6 +5,7 @@ import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
 import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
+import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
@@ -64,6 +65,13 @@ export class ValueComponent extends BaseComponent {
 
     this.name = options.name;
     this.searchMode = options.searchMode;
+    /**
+     * When set by the parent (Filters plugin), a callback that returns `true` when this menu item should be hidden
+     * (e.g. server-side filtering active). Used only in the menu descriptor so the item is hidden when the dropdown is shown.
+     *
+     * @type {function(): boolean | undefined}
+     */
+    this.hiddenWhen = options.hiddenWhen;
     this.elements.push(new MultipleSelectUI(this.hot, {
       searchMode: this.searchMode
     }));
@@ -153,7 +161,9 @@ export class ValueComponent extends BaseComponent {
         const rowMetaMap = new Map(
           filteredRows.map((row: FilteredRow) => [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
         );
-        const unifiedRowValues = unifyColumnValues(rowValues);
+        const columnMeta = filteredRows[0]?.meta;
+        const comparator = getSortComparatorForMeta(columnMeta);
+        const unifiedRowValues = unifyColumnValues(rowValues, comparator);
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
@@ -229,7 +239,7 @@ export class ValueComponent extends BaseComponent {
       name: this.name,
       isCommand: false,
       disableSelection: true,
-      hidden: () => this.isHidden(),
+      hidden: () => this.isHidden() || (typeof this.hiddenWhen === 'function' && this.hiddenWhen()),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string) => {
         addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuValue');
 
@@ -263,7 +273,9 @@ export class ValueComponent extends BaseComponent {
 
       return [r.value, r.meta];
     }));
-    const values = unifyColumnValues(rowValues);
+    const columnMeta = rowEntries[0]?.meta;
+    const comparator = getSortComparatorForMeta(columnMeta);
+    const values = unifyColumnValues(rowValues, comparator);
     const items = intersectValues(values, values, defaultBlankCellValue, (item: Record<string, unknown>) => {
       this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
     });

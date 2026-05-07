@@ -154,6 +154,18 @@ export function dataRowToChangesArray(dataRow: unknown[] | object, rowOffset: nu
 }
 
 /**
+ * Check whether the list of changes contains data for the provided visual row and prop.
+ *
+ * @param {Array} changes List of changes in format `[visualRow, prop, ...]`.
+ * @param {number} visualRow Visual row index to match.
+ * @param {string|number} prop Prop/column identifier to match.
+ * @returns {boolean} `true` if at least one change matches the provided row and prop.
+ */
+export function hasChangeForCell(changes, visualRow, prop) {
+  return changes.some(([changeRow, changeProp]) => changeRow === visualRow && changeProp === prop);
+}
+
+/**
  * Count the number of keys (or, basically, columns when the data is an array or arrays) in the first row of the
  * provided dataset.
  *
@@ -195,4 +207,25 @@ export function isArrayOfObjects(data: unknown[]): boolean {
   return !!(Array.isArray(data) &&
     data.length &&
     data.every(el => typeof el === 'object' && !Array.isArray(el) && el !== null));
+}
+
+/**
+ * Build a shallow clone of a single source-data row. Arrays and plain objects
+ * are copied; other shapes pass through unchanged. Used by `DataSource.getData()`
+ * to return mutation-safe snapshots without paying the per-cell cost of the
+ * `getByRange()` walk.
+ *
+ * @param {*} row Row value from the source data.
+ * @returns {*}
+ */
+export function cloneRow(row) {
+  if (Array.isArray(row)) {
+    return row.slice();
+  }
+
+  if (row !== null && typeof row === 'object') {
+    return { ...row };
+  }
+
+  return row;
 }

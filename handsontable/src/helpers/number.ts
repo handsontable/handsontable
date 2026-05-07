@@ -60,6 +60,58 @@ export function isNumericLike(value: unknown): boolean {
 }
 
 /**
+ * Whether the string is an integer with comma-separated thousands groups only.
+ * This matches the grouping rule used by [[getParsedNumber]] when the cell uses a dot as the
+ * decimal separator. It is not implied by [[isNumericLike]] because `isNumeric` allows at most
+ * one comma-delimited segment.
+ *
+ * @param {string} value The raw string value.
+ * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
+ * @returns {boolean}
+ */
+export function isCommaThousandsGroupedInteger(value, decimalSeparator) {
+  if (decimalSeparator !== '.' || typeof value !== 'string') {
+    return false;
+  }
+
+  return /^[+-]?[1-9]\d{0,2}(,\d{3})+$/.test(value.trim());
+}
+
+/**
+ * Whether the string is an integer with dot-separated thousands groups only.
+ * This matches the grouping rule used by European locales where the decimal separator
+ * is a comma and the thousands separator is a dot (e.g. `7.000` → 7000).
+ *
+ * @param {string} value The raw string value.
+ * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
+ * @returns {boolean}
+ */
+export function isDotThousandsGroupedInteger(value, decimalSeparator) {
+  if (decimalSeparator !== ',' || typeof value !== 'string') {
+    return false;
+  }
+
+  return /^[+-]?[1-9]\d{0,2}(\.\d{3})+$/.test(value.trim());
+}
+
+/**
+ * Whether the string is a float with dot-separated thousands groups and a comma decimal part.
+ * This matches the grouping rule used by European locales where the decimal separator
+ * is a comma and the thousands separator is a dot (e.g. `7.000,25` → 7000.25).
+ *
+ * @param {string} value The raw string value.
+ * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
+ * @returns {boolean}
+ */
+export function isDotThousandsGroupedFloat(value, decimalSeparator) {
+  if (decimalSeparator !== ',' || typeof value !== 'string') {
+    return false;
+  }
+
+  return /^[+-]?[1-9]\d{0,2}(\.\d{3})+,\d+$/.test(value.trim());
+}
+
+/**
  * A specialized version of `.forEach` defined by ranges.
  *
  * @param {number} rangeFrom The number from start iterate.
@@ -142,13 +194,32 @@ export function clamp(value: number, minValue: number, maxValue: number): number
 /**
  * Get parsed number from numeric string.
  *
- * @param {string} numericData Float (separated by a dot or a comma) or integer.
+ * @param {string} numericData Float (separated by a dot or a comma), integer, or a dot-thousands
+ * grouped value used by European locales (e.g. `7.000` or `7.000,25` when `decimalSeparator` is `','`).
+ * @param {object} [options={}] Parsing options.
+ * @param {'.'|','} [options.decimalSeparator] Preferred decimal separator used by the cell.
  * @returns {number|null} Number if we get data in parsable format, not changed value otherwise.
  */
-export function getParsedNumber(numericData: string) {
+export function getParsedNumber(numericData: string, options: { decimalSeparator?: '.' | ',' } = {}) {
+  const { decimalSeparator } = options;
+  const normalizedNumericData = numericData.trim();
+
+  if (isCommaThousandsGroupedInteger(numericData, decimalSeparator)) {
+    return parseFloat(normalizedNumericData.replace(/,/g, ''));
+  }
+
+  if (isDotThousandsGroupedInteger(numericData, decimalSeparator)) {
+    return parseFloat(normalizedNumericData.replace(/\./g, ''));
+  }
+
+  if (isDotThousandsGroupedFloat(numericData, decimalSeparator)) {
+    return parseFloat(normalizedNumericData.replace(/\./g, '').replace(',', '.'));
+  }
+
+
   // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
   // for example from `450,65` to `450.65`.
-  const unifiedNumericData = numericData.replace(',', '.');
+  const unifiedNumericData = normalizedNumericData.replace(',', '.');
 
   if (isNaN(parseFloat(unifiedNumericData)) === false) {
     return parseFloat(unifiedNumericData);

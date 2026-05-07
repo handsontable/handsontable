@@ -45,48 +45,45 @@ const SUPPORTED_STYLES = ['dashed', 'dotted', 'solid'];
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
+ * When a border property is set to an empty object `{}` or an empty string `''`, the default style is applied:
+ * **1px solid black**.
+ *
+ * The plugin also integrates with the [[ContextMenu]] plugin. Adding `'borders'` to the
+ * [`contextMenu`](@/api/options.md#contextmenu) items enables users to apply or remove borders on selected cells
+ * directly from the right-click menu.
+ *
  * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
  * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
  *
  * @example
  * ```js
- * customBorders: [
- *   {
- *    range: {
- *      from: {
- *        row: 1,
- *        col: 1
- *      },
- *      to: {
- *        row: 3,
- *        col: 4
- *      },
- *    },
- *    start: {},
- *    end: {},
- *    top: {},
- *    bottom: {},
- *   },
- * ],
- *
- * // or
- * customBorders: [
- *   { row: 2,
- *     col: 2,
- *     start: {
- *       width: 2,
- *       color: 'red',
- *       style: 'dotted'
+ * // Enable custom borders with context menu integration.
+ * // When a border property is an empty object, the default style (1px solid black) is applied.
+ * new Handsontable(container, {
+ *   customBorders: [
+ *     {
+ *       range: {
+ *         from: { row: 1, col: 1 },
+ *         to: { row: 3, col: 4 },
+ *       },
+ *       top: {},    // default: 1px solid black
+ *       bottom: {}, // default: 1px solid black
+ *       start: {},  // default: 1px solid black
+ *       end: {},    // default: 1px solid black
  *     },
- *     end: {
- *       width: 1,
- *       color: 'green',
- *       style: 'dashed'
+ *     {
+ *       row: 2,
+ *       col: 2,
+ *       start: { width: 2, color: 'red', style: 'dotted' },
+ *       end: { width: 1, color: 'green', style: 'dashed' },
+ *       top: '',    // default: 1px solid black
+ *       bottom: '', // default: 1px solid black
  *     },
- *     top: '',
- *     bottom: '',
- *   }
- * ],
+ *   ],
+ *   // Enable the 'borders' item in the context menu so users can
+ *   // apply or remove borders from the right-click menu.
+ *   contextMenu: ['borders'],
+ * });
  * ```
  */
 export class CustomBorders extends BasePlugin {

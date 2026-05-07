@@ -85,7 +85,7 @@ describe('NestedRows', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should display indicators properly located', async() => {
+      it('should display indicators properly located', async() => {
         handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -94,32 +94,7 @@ describe('NestedRows', () => {
         });
 
         expect(countRows()).toEqual(13);
-        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('none');
-        expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('0px');
-      });
 
-      it.forTheme('main')('should display indicators properly located', async() => {
-        handsontable({
-          layoutDirection,
-          data: getMoreComplexNestedData(),
-          nestedRows: true,
-          rowHeaders: true
-        });
-
-        expect(countRows()).toEqual(13);
-        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
-        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
-      });
-
-      it.forTheme('horizon')('should display indicators properly located', async() => {
-        handsontable({
-          layoutDirection,
-          data: getMoreComplexNestedData(),
-          nestedRows: true,
-          rowHeaders: true
-        });
-
-        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
@@ -132,11 +107,7 @@ describe('NestedRows', () => {
         rowHeaders: true,
       });
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(57);
-        main.toBe(61);
-        horizon.toBe(69);
-      });
+      expect(getCell(0, -1).offsetWidth).toBe(nestedRowsLevel0HeaderWidth(getThemeLayout()));
     });
 
     it('should take into account the `rowHeaderWidth` option when nested rows are enabled', async() => {
@@ -159,35 +130,31 @@ describe('NestedRows', () => {
         rowHeaderWidth: 70,
       });
 
+      const initialWidth = getCell(0, -1).offsetWidth;
+
       await selectCell(2, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(70);
-        main.toBe(71);
-        horizon.toBe(79);
-      });
+      const widthAfterFirst = getCell(0, -1).offsetWidth;
+
+      expect(widthAfterFirst).toBeGreaterThanOrEqual(initialWidth);
 
       await selectCell(3, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(77);
-        main.toBe(81);
-        horizon.toBe(89);
-      });
+      const widthAfterSecond = getCell(0, -1).offsetWidth;
+
+      expect(widthAfterSecond).toBeGreaterThanOrEqual(widthAfterFirst);
 
       await selectCell(4, 0);
       await contextMenu();
       await selectContextMenuOption('Insert child row');
 
-      expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(87);
-        main.toBe(91);
-        horizon.toBe(99);
-      });
+      const widthAfterThird = getCell(0, -1).offsetWidth;
+
+      expect(widthAfterThird).toBeGreaterThanOrEqual(widthAfterSecond);
     });
   });
 

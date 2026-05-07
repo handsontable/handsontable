@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: k5920uow
 title: Merge cells
 metaTitle: Merge cells - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Merge cells
-
 Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
@@ -164,20 +162,41 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
 | -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
 ## Related API reference
 
-- Configuration options:
-  - [`mergeCells`](@/api/options.md#mergecells)
-  - [`viewportColumnRenderingThreshold`](@/api/options.md#viewportcolumnrenderingthreshold)
-  - [`viewportRowRenderingThreshold`](@/api/options.md#viewportrowrenderingthreshold)
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
-- Hooks:
-  - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
-  - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
-  - [`beforeMergeCells`](@/api/hooks.md#beforemergecells)
-  - [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells)
-- Plugins:
-  - [`MergeCells`](@/api/mergeCells.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [mergeCells](@/api/options.md#mergecells)
+- [viewportColumnRenderingThreshold](@/api/options.md#viewportcolumnrenderingthreshold)
+- [viewportRowRenderingThreshold](@/api/options.md#viewportrowrenderingthreshold)
+- [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset)
+- [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterMergeCells](@/api/hooks.md#aftermergecells)
+- [afterUnmergeCells](@/api/hooks.md#afterunmergecells)
+- [beforeMergeCells](@/api/hooks.md#beforemergecells)
+- [beforeUnmergeCells](@/api/hooks.md#beforeunmergecells)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [MergeCells](@/api/mergeCells.md)
+
+</div>
+
+## Result
+
+Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

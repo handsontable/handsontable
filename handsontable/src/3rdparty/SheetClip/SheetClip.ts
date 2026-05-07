@@ -16,6 +16,37 @@ const regNextCellNoQuotes = /^[^\t\r\n]+/;
 const regNextEmptyCell = /^\t/;
 
 /**
+ * Locate the structural closing `"` for a quoted cell starting at `str[0]`. A structural close is a
+ * `"` that is followed by a separator (`\t`, `\r`, `\n`) or end-of-string and is not part of an
+ * escaped pair `""`.
+ *
+ * @param {string} str Remaining input where `str[0]` is the first char after the opening `"`.
+ * @returns {number} Index of the structural closing `"` within `str`, or -1 when not found.
+ */
+function findQuoteCloseIndex(str) {
+  let i = 0;
+
+  while (i < str.length) {
+    if (str[i] === '"') {
+      if (str[i + 1] === '"') {
+        i += 2;
+        continue;
+      }
+
+      const next = str[i + 1];
+
+      if (next === undefined || next === '\t' || next === '\r' || next === '\n') {
+        return i;
+      }
+    }
+
+    i += 1;
+  }
+
+  return -1;
+}
+
+/**
  * Decode spreadsheet string into array.
  *
  * @param {string} str The string to parse.
@@ -57,27 +88,51 @@ export function parse(str: string) {
       let nextCell = '';
 
       if (str.startsWith('"')) {
-        let quoteNo = 0;
-        let isStillCell = true;
+        const closeIndex = findQuoteCloseIndex(str.slice(1));
 
-        while (isStillCell) {
-          const nextChar = str.slice(0, 1);
+        if (closeIndex !== -1) {
+          // Properly terminated quoted cell: read content up to the structural close, decoding
+          // escaped `""` to literal `"` and preserving any bare `"` chars that appear mid-cell.
+          let i = 0;
+          const content = str.slice(1);
 
-          if (nextChar === '"') {
-            quoteNo += 1;
+          while (i < closeIndex) {
+            if (content[i] === '"' && content[i + 1] === '"') {
+              nextCell += '"';
+              i += 2;
+            } else {
+              nextCell += content[i];
+              i += 1;
+            }
           }
 
-          nextCell += nextChar;
+          str = str.slice(closeIndex + 2);
 
-          str = str.slice(1);
+        } else {
+          // Fallback for malformed input without a structural closing quote: keep the legacy
+          // behavior of consuming quotes by parity and halving runs of `"` chars.
+          let quoteNo = 0;
+          let isStillCell = true;
 
-          if (str.length === 0 || (str.match(/^[\t\r\n]/) && quoteNo % 2 === 0)) {
-            isStillCell = false;
+          while (isStillCell) {
+            const nextChar = str.slice(0, 1);
+
+            if (nextChar === '"') {
+              quoteNo += 1;
+            }
+
+            nextCell += nextChar;
+
+            str = str.slice(1);
+
+            if (str.length === 0 || (str.match(/^[\t\r\n]/) && quoteNo % 2 === 0)) {
+              isStillCell = false;
+            }
           }
+
+          nextCell = nextCell.replace(/^"/, '').replace(/"$/, '')
+            .replace(/["]*/g, match => (new Array(Math.floor(match.length / 2))).fill('"').join(''));
         }
-
-        nextCell = nextCell.replace(/^"/, '').replace(/"$/, '')
-          .replace(/["]*/g, match => (new Array(Math.floor(match.length / 2))).fill('"').join(''));
 
       } else {
         const matchedText = str.match(regNextCellNoQuotes);

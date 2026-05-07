@@ -1,10 +1,11 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example2-searching-values',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div class="example-controls-container">
       <div class="controls">
         <input
@@ -18,13 +19,13 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
-  styles: `.my-custom-search-result-class{
-      color: #ff0000;
-      font-weight: 900;
+  styles: `.ht-theme-main .handsontable .my-class {
+      background: pink;
+      color: red;
     }`,
   encapsulation: ViewEncapsulation.None,
 })
-export class Example2SearchingValuesComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data: Array<Array<string | number>> = [
@@ -37,7 +38,7 @@ export class Example2SearchingValuesComponent {
   readonly gridSettings: GridSettings = {
     colHeaders: true,
     search: {
-      searchResultClass: 'my-custom-search-result-class',
+      searchResultClass: 'my-class',
     },
     height: 'auto',
     autoWrapRow: true,
@@ -59,37 +60,22 @@ export class Example2SearchingValuesComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example2SearchingValuesComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example2SearchingValuesComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example2SearchingValuesComponent ]
-})
-
-export class AppModule { }
 /* end-file */

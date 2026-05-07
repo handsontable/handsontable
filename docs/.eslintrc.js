@@ -1,45 +1,49 @@
 module.exports = {
-  extends: ['../.eslintrc.js'],
-  parser: 'vue-eslint-parser',
+  root: true,
+  env: {
+    browser: true,
+    commonjs: true,
+    es6: true,
+    node: true,
+  },
   parserOptions: {
-    parser: '@babel/eslint-parser',
-    sourceType: 'module'
+    ecmaVersion: 2022,
+    sourceType: 'module',
   },
   ignorePatterns: [
     '**/guides/**/*.js',
     '**/guides/**/*.ts',
     '**/guides/**/*.jsx',
     '**/guides/**/*.tsx',
-    '**/public/scripts/prebuilt-umd/*.*',
+    '**/public/**/*',
     '**/recipes/**/*.js',
     '**/recipes/**/*.ts',
     '**/recipes/**/*.jsx',
     '**/recipes/**/*.tsx',
+    '**/*.astro',
+    '**/scripts/**/*.ts',
+    '**/components/DocsAssistant/**/*.ts',
+    '**/content/config.ts',
+    '**/content.config.ts',
   ],
   rules: {
     'no-restricted-globals': 'off',
     'import/no-unresolved': 'off',
-    'jsdoc/check-param-names': 'off',
-    'jsdoc/require-param': 'off',
   },
   overrides: [
     {
-      files: ['*.mjs'],
-      rules: {
-        'import/extensions': 'off'
-      }
+      files: ['**/*.mjs'],
+      parserOptions: {
+        sourceType: 'module',
+        ecmaVersion: 2022,
+      },
     },
     {
-      files: ['SvgFrameworkIcons.vue', 'Navbar.vue', '.vuepress/3rdparty-scripts.js', 'CopyMarkdown.vue'],
-      rules: {
-        'max-len': 'off'
-      }
+      files: ['**/*.ts'],
+      parserOptions: {
+        sourceType: 'module',
+        ecmaVersion: 2022,
+      },
     },
-    {
-      files: ['content/recipes/**/*.ts', 'content/recipes/**/*.tsx'],
-      rules: {
-        'no-undef': 'off'
-      }
-    }    
   ]
 };

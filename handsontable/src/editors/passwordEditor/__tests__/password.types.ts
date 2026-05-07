@@ -1,12 +1,21 @@
-import { TextEditor } from 'handsontable/editors';
+import Handsontable from 'handsontable';
 
-class CustomPasswordEditor extends TextEditor {
+// hashRevealDelay, hashSymbol, hashLength type checks
+const hot = new Handsontable(document.createElement('div'), {
+  columns: [
+    { type: 'password', hashRevealDelay: 500, hashSymbol: '#', hashLength: 8 },
+  ],
+});
+hot.updateSettings({ hashRevealDelay: 0 });
+
+
+class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {
     // Call the original createElements method
     super.createElements();
 
     // Create password input and update relevant properties
-    this.TEXTAREA = document.createElement('input') as unknown as HTMLTextAreaElement;
+    this.TEXTAREA = document.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
     this.TEXTAREA.setAttribute('data-hot-input', '');
     this.TEXTAREA.className = 'handsontableInput';
@@ -15,7 +24,7 @@ class CustomPasswordEditor extends TextEditor {
     this.textareaStyle.height = '0';
 
     // replace textarea with password input
-    this.TEXTAREA_PARENT.textContent = '';
+    Handsontable.dom.empty(this.TEXTAREA_PARENT);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

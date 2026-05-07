@@ -4,10 +4,10 @@
  *  - helpers.entry.js
  */
 const path = require('path');
-const webpack = require('webpack');
-const fsExtra = require('fs-extra');
+const rspack = require('@rspack/core');
 const JasmineHtml = require('./plugin/jasmine-html');
-const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
+const compilationDoneMarker = require('./plugin/rspack/compilation-done-marker');
 
 const wotPath = path.resolve(__dirname, '../src/3rdparty/walkontable');
 
@@ -16,6 +16,9 @@ module.exports.create = function create(envArgs) {
     target: 'web',
     mode: 'none',
     devtool: 'cheap-module-source-map',
+    optimization: {
+      sideEffects: false,
+    },
     output: {
       filename: '[name].entry.js',
       globalObject: `typeof self !== 'undefined' ? self : this`,
@@ -35,7 +38,14 @@ module.exports.create = function create(envArgs) {
             /node_modules/,
           ],
           options: {
-            cacheDirectory: true,
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'ecmascript',
+              },
+            },
           },
         }
       ]
@@ -60,8 +70,14 @@ module.exports.create = function create(envArgs) {
           '../dist/walkontable.js',
         ],
       }),
-      new webpack.DefinePlugin({
+      new rspack.DefinePlugin({
         '__ENV_ARGS__': JSON.stringify(envArgs),
+        'process.env.HOT_VERSION': JSON.stringify(process.env.HOT_VERSION),
+        'process.env.HOT_BUILD_DATE': JSON.stringify(process.env.HOT_BUILD_DATE),
+        'process.env.HOT_RELEASE_DATE': JSON.stringify(process.env.HOT_RELEASE_DATE),
+        'process.env.HOT_FILENAME': JSON.stringify(process.env.HOT_FILENAME),
+        'process.env.HOT_PACKAGE_NAME': JSON.stringify(process.env.HOT_PACKAGE_NAME),
+        'process.env.JEST_WORKER_ID': JSON.stringify(''),
       }),
       compilationDoneMarker(),
     ],

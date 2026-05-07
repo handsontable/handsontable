@@ -1,7 +1,6 @@
+import moment from 'moment';
 import * as C from '../../../i18n/constants';
-import { registerCondition, getCondition } from '../conditionRegisterer';
-import { CONDITION_NAME as CONDITION_DATE_AFTER } from './date/after';
-import { CONDITION_NAME as CONDITION_DATE_BEFORE } from './date/before';
+import { registerCondition } from '../conditionRegisterer';
 
 export const CONDITION_NAME = 'between';
 
@@ -24,10 +23,15 @@ export function condition(dataRow: { value: unknown; meta: { type?: string; loca
     toValue = Math.max(_from, _to);
 
   } else if (dataRow.meta.type === 'date') {
-    const dateBefore = getCondition(CONDITION_DATE_BEFORE, [toValue]);
-    const dateAfter = getCondition(CONDITION_DATE_AFTER, [fromValue]);
+    const date = moment(dataRow.value, dataRow.meta.dateFormat);
+    const fromDate = moment(fromValue, dataRow.meta.dateFormat);
+    const toDate = moment(toValue, dataRow.meta.dateFormat);
 
-    return dateBefore(dataRow) && dateAfter(dataRow);
+    if (!date.isValid() || !fromDate.isValid() || !toDate.isValid()) {
+      return false;
+    }
+
+    return date.diff(fromDate) >= 0 && date.diff(toDate) <= 0;
   }
 
   return (dataRow.value as number) >= (fromValue as number) && (dataRow.value as number) <= (toValue as number);

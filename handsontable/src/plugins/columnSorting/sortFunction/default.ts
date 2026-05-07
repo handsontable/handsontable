@@ -15,6 +15,14 @@ export function compareFunctionFactory(sortOrder: string, columnMeta: Record<str
   return function(value: unknown, nextValue: unknown) {
     const { sortEmptyCells } = columnPluginSettings;
 
+    if (typeof value === 'boolean') {
+      value = Number(value);
+    }
+
+    if (typeof nextValue === 'boolean') {
+      nextValue = Number(nextValue);
+    }
+
     if (typeof value === 'string') {
       value = value.toLocaleLowerCase(locale as string);
     }

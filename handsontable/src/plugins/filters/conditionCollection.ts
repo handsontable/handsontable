@@ -217,7 +217,7 @@ class ConditionCollection {
     this.clean();
 
     conditions.forEach((stack: Record<string, unknown>) => {
-      (stack.conditions as Record<string, unknown>[]).forEach((condition: Record<string, unknown>) => this.addCondition(stack.column as number, condition));
+      (stack.conditions as Record<string, unknown>[]).forEach((condition: Record<string, unknown>) => this.addCondition(stack.column as number, condition, stack.operation as string));
     });
   }
 

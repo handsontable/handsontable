@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: kdie9yhz
 title: Handsontable cell type
 metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
@@ -14,32 +15,21 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Handsontable cell type
-
 Add a spreadsheet editor in a popup, by using the Handsontable cell type.
+
+The Handsontable cell type embeds a second grid instance as a cell editor (HOT-in-HOT). Use it when users need to search and select from a large dataset.
 
 [[toc]]
 
 ## Usage
 
-**HOT-in-HOT opens by any of the following:**
+HOT-in-HOT opens by any of the following:
 
 - <kbd>**F2**</kbd> or <kbd>**Enter**</kbd> key is pressed while the cell is selected
 - The triangle icon is clicked
 - The cell content is double clicked
 
 While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused at all times.
-
-**Keyboard bindings while the HOT-in-HOT is opened:**
-
-- <kbd>**Escape**</kbd> - close editor and cancel change.
-- <kbd>**Enter**</kbd> - close editor and apply change\*, move the selection in the main HOT downwards or according to the [`enterMoves`](@/api/options.md#enterMoves) setting.
-- <kbd>**Tab**</kbd> - behaves as the <kbd>**Enter**</kbd> key, but move the selection in the main HOT to the right or to the left (depending on your [`layoutDirection`](@/api/options.md#layoutdirection) setting) or according to the [`tabMoves`](@/api/options.md#tabmoves)setting.
-- <kbd>**Arrow Down**</kbd> - move the selection in HOT-in-HOT downwards. If the last row was selected, this has no effect.
-- <kbd>**Arrow Up**</kbd> - move the selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT upwards.
-- <kbd>**Arrow Right**</kbd> - move the text cursor in the text field to the left. If the text cursor was at the start position, behave as the <kbd>**Enter**</kbd> key but move the selection in the main HOT to the left.
-- <kbd>**Arrow Left**</kbd> - move the text cursor in the text field to the right. If the text cursor was at the end position, behave as the <kbd>**Tab**</kbd> key.
 
 ## Basic example
 
@@ -76,26 +66,61 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 :::
 
+## Keyboard shortcuts
+
+| Key | Action |
+| --- | --- |
+| <kbd>**Escape**</kbd> | Close editor and cancel change |
+| <kbd>**Enter**</kbd> | Close editor and apply change; move selection in the main HOT downwards or according to the [`enterMoves`](@/api/options.md#enterMoves) setting |
+| <kbd>**Tab**</kbd> | Same as <kbd>**Enter**</kbd>, but move selection to the right or left according to the [`tabMoves`](@/api/options.md#tabmoves) setting |
+| <kbd>**Arrow Down**</kbd> | Move selection in HOT-in-HOT downwards. No effect if last row is selected |
+| <kbd>**Arrow Up**</kbd> | Move selection in HOT-in-HOT upwards. If the first row was selected, deselect. If HOT-in-HOT was deselected, behave as <kbd>**Enter**</kbd> but move main HOT selection upwards |
+| <kbd>**Arrow Right**</kbd> | Move text cursor in the text field to the left. If cursor was at start, behave as <kbd>**Enter**</kbd> but move main HOT selection to the left |
+| <kbd>**Arrow Left**</kbd> | Move text cursor in the text field to the right. If cursor was at end, behave as <kbd>**Tab**</kbd> |
+
+## Result
+
+After configuring the Handsontable cell type, cells display a text input with a trigger icon. Activating the cell opens a second embedded grid that users can navigate and select from. The selected row value is written back to the parent cell.
+
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`type`](@/api/options.md#type)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [type](@/api/options.md#type)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

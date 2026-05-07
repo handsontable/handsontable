@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: jnwpo47i
 title: Demo
 metaTitle: Demo - JavaScript Data Grid | Handsontable
@@ -19,18 +20,13 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# Demo
-
-Play around with a demo of Handsontable, in your favorite framework.
+Explore Handsontable core features in this interactive demo. Click cells, sort columns, and use the context menu to see what the grid can do.
 
 [[toc]]
 
 ::: only-for javascript
 ::: example-without-tabs #example
-@[code](@/content/guides/getting-started/demo/javascript/example.html)
-@[code](@/content/guides/getting-started/demo/javascript/example.css)
-@[code](@/content/guides/getting-started/demo/javascript/example.js)
+@[code collapse={9-108}](@/content/guides/getting-started/demo/javascript/example.js)
 :::
 :::
 
@@ -57,17 +53,19 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 <div class="boxes-list gray">
 
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/js/demo/`">JavaScript demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/ts/demo/`">TypeScript demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular-wrapper/demo/`">Angular demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react-wrapper/demo/`">React demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/vue3/demo/`">Vue demo app</Link>
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/angular-wrapper/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/react-wrapper/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentVersion}}/examples/next/docs/vue3/demo/)
 
 </div>
 
 ## Try out the demo's features
 
 Explore the demo and discover Handsontable's most popular features:
+
+<div class="boxes-list">
 
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
@@ -76,7 +74,8 @@ Explore the demo and discover Handsontable's most popular features:
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
-- And more!
+
+</div>
 
 ## Edit the demo's source code
 
@@ -87,3 +86,14 @@ You can:
 - Fork the directory with your framework's demo, and add changes of your own
 
 Just select your framework from the demo above.
+
+## What you learned
+
+- Handsontable renders an interactive spreadsheet-like grid directly in the browser.
+- Built-in features include the context menu, dropdown cell types, column groups, column filtering, column hiding, and row sorting.
+- The grid is available for JavaScript, TypeScript, React, Angular, and Vue 3.
+
+## Next steps
+
+- [Installation](@/guides/getting-started/installation/installation.md) -- add Handsontable to your own project.
+- [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md) -- connect the grid to your data source.

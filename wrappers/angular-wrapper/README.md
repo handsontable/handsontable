@@ -54,6 +54,10 @@
 &nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/angular-data-grid/column-freezing/) <br>
 &nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/angular-data-grid/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/angular-data-grid/context-menu/) <br>
+&nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/angular-data-grid/rows-pagination/) <br>
+&nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/angular-data-grid/server-side-data/) <br>
+&nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/angular-data-grid/notification/) <br>
+&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/angular-data-grid/export-to-excel/) <br>
 
 <div id="installation">
 
@@ -132,6 +136,102 @@ export class HotTableWrapperComponent {
 </div>
 
 <br>
+
+## ⏳ Lazy loading with `@defer` (Angular 17+)
+
+`HotTableComponent` is a standalone component and works with Angular's built-in
+`@defer` block out of the box — no extra configuration required.
+
+### Recommended pattern
+
+```ts
+import { Component, signal } from '@angular/core';
+import { HotTableComponent } from '@handsontable/angular-wrapper';
+
+@Component({
+  standalone: true,
+  imports: [HotTableComponent],
+  template: `
+    <button (click)="show.set(true)">Load grid</button>
+
+    @defer (when show()) {
+      <hot-table [data]="data" [settings]="settings"></hot-table>
+    } @placeholder {
+      <p>Click the button to load the grid.</p>
+    } @loading (minimum 300ms) {
+      <p>Loading…</p>
+    } @error {
+      <p>Failed to load the grid.</p>
+    }
+  `,
+})
+export class PageComponent {
+  show = signal(false);
+  data = [['Alice', 'has'], ['Bob', 'data']];
+  settings = { rowHeaders: true, colHeaders: ['Name', 'Note'] };
+}
+```
+
+### How it works
+
+| Block | When shown |
+|---|---|
+| `@defer (when show())` | renders `<hot-table>` after the signal becomes `true` |
+| `@placeholder` | shown immediately before the trigger fires |
+| `@loading (minimum 300ms)` | shown while the JS chunk is being fetched |
+| `@error` | shown if the dynamic import fails |
+
+### Other trigger options
+
+```html
+<!-- on viewport — loads when the placeholder scrolls into view -->
+@defer (on viewport) { <hot-table …> }
+
+<!-- on interaction — loads on first click/focus inside the placeholder -->
+@defer (on interaction) { <hot-table …> }
+
+<!-- on idle — loads during browser idle time -->
+@defer (on idle) { <hot-table …> }
+```
+
+### Important: `registerAllModules()`
+
+Call `registerAllModules()` in `app.config.ts` **before** the deferred block
+triggers — it is synchronous and must run before any Handsontable instance is
+created. The recommended place is at module level, outside any component:
+
+```ts
+// app.config.ts
+import { registerAllModules } from 'handsontable/registry';
+registerAllModules(); // runs once at app startup, safe with @defer
+```
+
+<br>
+
+## 🎨 Themes
+
+Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+
+You get three built-in themes out of the box:
+- main – modern, clean, default choice
+- horizon – lighter, spacious feel
+- classic – traditional spreadsheet look
+
+Each theme supports:
+- ️Light mode
+- Dark mode
+
+<picture>
+  <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-themes.png?raw=true"/>
+</picture>
+
+## 🏗️ Custom Themes
+
+You can style Handsontable to match your product's visual identity by creating a custom theme. Use the Theme API to extend a built-in theme and apply your own styling while keeping support for light/dark modes and density settings.
+
+To stay aligned with design, you can rely on the:
+- [Theme Builder](https://handsontable.com/theme-builder)
+- [Handsontable Design System](https://www.figma.com/community/file/1487445656371116081)
 
 ## 🚀 Resources
 

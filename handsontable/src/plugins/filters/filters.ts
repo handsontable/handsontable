@@ -4,10 +4,10 @@ import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import { addClass, isBottomMostColumnHeader, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
-import { createObjectPropListener } from '../../helpers/object';
+import { createObjectPropListener, deepClone } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -18,6 +18,7 @@ import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
 import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
+import { getSortComparatorForMeta } from './sortComparators';
 import { createMenuFocusController } from './menu/focusController';
 import {
   CONDITION_NONE,
@@ -230,6 +231,21 @@ export class Filters extends BasePlugin {
    */
   #previousConditionStack: Record<string, unknown>[] = [];
 
+  /**
+   * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
+   * Used to restore filter UI after `fetchRows` fails (the fetch request used the in-collection state; this holds the last committed stack).
+   *
+   * @type {Array}
+   */
+  #dataProviderFilterRollbackStack: Record<string, unknown>[] = [];
+
+  /**
+   * Indicates if the DataProvider plugin is active.
+   *
+   * @type {boolean}
+   */
+  #isDataProviderActive = false;
+
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
@@ -254,6 +270,8 @@ export class Filters extends BasePlugin {
     if (this.enabled) {
       return;
     }
+
+    this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap()) as TrimmingMap;
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
@@ -311,6 +329,7 @@ export class Filters extends BasePlugin {
         id: 'filter_by_value',
         name: filterValueLabel,
         searchMode,
+        hiddenWhen: () => this.#isDataProviderActive,
       })));
     }
 
@@ -341,6 +360,8 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', (changes: unknown[]) => this.#onAfterChange(changes));
+    this.addHook('afterDataProviderFetch', (result: Record<string, unknown>) => this.#onAfterDataProviderFetch(result));
+    this.addHook('afterDataProviderFetchError', () => this.#onAfterDataProviderFetchError());
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -473,27 +494,43 @@ export class Filters extends BasePlugin {
    * Adds condition to the conditions collection at specified column index.
    *
    * Possible predefined conditions:
-   *  * `begins_with` - Begins with
-   *  * `between` - Between
-   *  * `by_value` - By value
-   *  * `contains` - Contains
-   *  * `date_after` - After a date
-   *  * `date_before` - Before a date
-   *  * `date_today` - Today
-   *  * `date_tomorrow` - Tomorrow
-   *  * `date_yesterday` - Yesterday
-   *  * `empty` - Empty
-   *  * `ends_with` - Ends with
-   *  * `eq` - Equal
-   *  * `gt` - Greater than
-   *  * `gte` - Greater than or equal
-   *  * `lt` - Less than
-   *  * `lte` - Less than or equal
-   *  * `none` - None (no filter)
-   *  * `not_between` - Not between
-   *  * `not_contains` - Not contains
-   *  * `not_empty` - Not empty
-   *  * `neq` - Not equal.
+   *
+   * | Condition | Description | Expected `args` |
+   * |---|---|---|
+   * | `begins_with` | Begins with | `[value: string]`, e.g. `['de']` |
+   * | `between` | Between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
+   * | `by_value` | By value | `[[...values: Array]]`, e.g. `[['ing', 'ed', 'as']]`. The outer array wraps a single inner array that contains all values to **keep** (show) after filtering. |
+   * | `contains` | Contains | `[value: string]`, e.g. `['ing']` |
+   * | `date_after` | After a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_after_or_equal` | After or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_before` | Before a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_before_or_equal` | Before or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
+   * | `date_today` | Today | `[]` |
+   * | `date_tomorrow` | Tomorrow | `[]` |
+   * | `date_yesterday` | Yesterday | `[]` |
+   * | `empty` | Empty | `[]` |
+   * | `ends_with` | Ends with | `[value: string]`, e.g. `['ing']` |
+   * | `eq` | Equal | `[value: string\|number]`, e.g. `['John']` |
+   * | `gt` | Greater than | `[value: number]`, e.g. `[95]` |
+   * | `gte` | Greater than or equal | `[value: number]`, e.g. `[95]` |
+   * | `intl_date_after` | After a date, exclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_after_or_equal` | After or equal to a date, inclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_before` | Before a date, exclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_before_or_equal` | Before or equal to a date, inclusive (locale-aware) | `[dateString: string]`, e.g. `['2023-01-01']` |
+   * | `intl_date_between` | Between dates (locale-aware) | `[fromDateString: string, toDateString: string]`, e.g. `['2023-01-01', '2023-12-31']` |
+   * | `intl_date_today` | Today (locale-aware) | `[]` |
+   * | `intl_date_tomorrow` | Tomorrow (locale-aware) | `[]` |
+   * | `intl_date_yesterday` | Yesterday (locale-aware) | `[]` |
+   * | `intl_time_after` | After a time (locale-aware) | `[timeString: string]`, e.g. `['12:00']` |
+   * | `intl_time_before` | Before a time (locale-aware) | `[timeString: string]`, e.g. `['08:00']` |
+   * | `intl_time_between` | Between times (locale-aware) | `[fromTimeString: string, toTimeString: string]`, e.g. `['08:00', '12:00']` |
+   * | `lt` | Less than | `[value: number]`, e.g. `[10]` |
+   * | `lte` | Less than or equal | `[value: number]`, e.g. `[10]` |
+   * | `none` | None (no filter) | `[]` |
+   * | `not_between` | Not between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
+   * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
+   * | `not_empty` | Not empty | `[]` |
+   * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']` |
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: <br/> c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -503,6 +540,10 @@ export class Filters extends BasePlugin {
    * \* when `n` is collection size; it's used i.e. for one operation introduced from UI (when choosing from filter's drop-down menu two conditions with OR operator between them, mixed with choosing values from the multiple choice select)
    *
    * **Note**: Mind that you cannot mix different types of operations (for instance, if you use `conjunction`, use it consequently for a particular column).
+   *
+   * **Note**: If the number of conditions added programmatically via `addCondition()` exceeds the capacity of the
+   * filter's dropdown UI (at most 2 regular conditions and 1 `by_value` condition per column), the extra conditions
+   * will be applied to the data but will not be visible or editable in the dropdown menu.
    *
    * @example
    * ::: only-for javascript
@@ -516,23 +557,89 @@ export class Filters extends BasePlugin {
    * // access to filters plugin instance
    * const filtersPlugin = hot.getPlugin('filters');
    *
+   * // add filter "Begins with" with value "de" to column at index 1
+   * filtersPlugin.addCondition(1, 'begins_with', ['de']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "By value" to column at index 1
+   * // in this case all values that don't match will be filtered
+   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "After a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_after', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Before a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_before', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Today" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_today', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Tomorrow" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_tomorrow', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Yesterday" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_yesterday', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Ends with" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'ends_with', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'eq', ['John']);
+   * filtersPlugin.filter();
+   *
    * // add filter "Greater than" 95 to column at index 1
    * filtersPlugin.addCondition(1, 'gt', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "By value" to column at index 1
-   * // in this case all value's that don't match will be filtered.
-   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * // add filter "Greater than or equal" 95 to column at index 1
+   * filtersPlugin.addCondition(1, 'gte', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
+   * // add filter "Less than" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lt', [10]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
+   * // add filter "Less than or equal" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lte', [10]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "None" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'none', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'not_between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'not_empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'neq', ['John']);
    * filtersPlugin.filter();
    * ```
    * :::
@@ -553,23 +660,89 @@ export class Filters extends BasePlugin {
    * const hot = hotRef.current.hotInstance;
    * const filtersPlugin = hot.getPlugin('filters');
    *
+   * // add filter "Begins with" with value "de" to column at index 1
+   * filtersPlugin.addCondition(1, 'begins_with', ['de']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "By value" to column at index 1
+   * // in this case all values that don't match will be filtered
+   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "After a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_after', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Before a date" with value "1/1/2023" to column at index 1
+   * filtersPlugin.addCondition(1, 'date_before', ['1/1/2023']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Today" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_today', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Tomorrow" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_tomorrow', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Yesterday" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'date_yesterday', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Ends with" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'ends_with', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'eq', ['John']);
+   * filtersPlugin.filter();
+   *
    * // add filter "Greater than" 95 to column at index 1
    * filtersPlugin.addCondition(1, 'gt', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "By value" to column at index 1
-   * // in this case all value's that don't match will be filtered.
-   * filtersPlugin.addCondition(1, 'by_value', [['ing', 'ed', 'as', 'on']]);
+   * // add filter "Greater than or equal" 95 to column at index 1
+   * filtersPlugin.addCondition(1, 'gte', [95]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'conjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'conjunction');
+   * // add filter "Less than" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lt', [10]);
    * filtersPlugin.filter();
    *
-   * // add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
-   * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
+   * // add filter "Less than or equal" 10 to column at index 1
+   * filtersPlugin.addCondition(1, 'lte', [10]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "None" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'none', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not between" 10 and 50 to column at index 1
+   * filtersPlugin.addCondition(1, 'not_between', [10, 50]);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not contains" with value "ing" to column at index 1
+   * filtersPlugin.addCondition(1, 'not_contains', ['ing']);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not empty" with no arguments to column at index 1
+   * filtersPlugin.addCondition(1, 'not_empty', []);
+   * filtersPlugin.filter();
+   *
+   * // add filter "Not equal" with value "John" to column at index 1
+   * filtersPlugin.addCondition(1, 'neq', ['John']);
    * filtersPlugin.filter();
    * ```
    * :::
@@ -605,8 +778,12 @@ export class Filters extends BasePlugin {
    *     const hot = this.hotTable.hotInstance;
    *     const filtersPlugin = hot.getPlugin("filters");
    *
-   *     // Add filter "Greater than" 95 to column at index 1
-   *     filtersPlugin.addCondition(1, "gt", [95]);
+   *     // Add filter "Begins with" with value "de" to column at index 1
+   *     filtersPlugin.addCondition(1, "begins_with", ["de"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Between" 10 and 50 to column at index 1
+   *     filtersPlugin.addCondition(1, "between", [10, 50]);
    *     filtersPlugin.filter();
    *
    *     // Add filter "By value" to column at index 1
@@ -614,14 +791,76 @@ export class Filters extends BasePlugin {
    *     filtersPlugin.addCondition(1, "by_value", [["ing", "ed", "as", "on"]]);
    *     filtersPlugin.filter();
    *
-   *     // Add filter "Begins with" with value "de" AND "Not contains" with value "ing"
-   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "conjunction");
-   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "conjunction");
+   *     // Add filter "Contains" with value "ing" to column at index 1
+   *     filtersPlugin.addCondition(1, "contains", ["ing"]);
    *     filtersPlugin.filter();
    *
-   *     // Add filter "Begins with" with value "de" OR "Not contains" with value "ing"
-   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "disjunction");
-   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "disjunction");
+   *     // Add filter "After a date" with value "1/1/2023" to column at index 1
+   *     filtersPlugin.addCondition(1, "date_after", ["1/1/2023"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Before a date" with value "1/1/2023" to column at index 1
+   *     filtersPlugin.addCondition(1, "date_before", ["1/1/2023"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Today" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "date_today", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Tomorrow" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "date_tomorrow", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Yesterday" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "date_yesterday", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Empty" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "empty", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Ends with" with value "ing" to column at index 1
+   *     filtersPlugin.addCondition(1, "ends_with", ["ing"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Equal" with value "John" to column at index 1
+   *     filtersPlugin.addCondition(1, "eq", ["John"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Greater than" 95 to column at index 1
+   *     filtersPlugin.addCondition(1, "gt", [95]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Greater than or equal" 95 to column at index 1
+   *     filtersPlugin.addCondition(1, "gte", [95]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Less than" 10 to column at index 1
+   *     filtersPlugin.addCondition(1, "lt", [10]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Less than or equal" 10 to column at index 1
+   *     filtersPlugin.addCondition(1, "lte", [10]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "None" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "none", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not between" 10 and 50 to column at index 1
+   *     filtersPlugin.addCondition(1, "not_between", [10, 50]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not contains" with value "ing" to column at index 1
+   *     filtersPlugin.addCondition(1, "not_contains", ["ing"]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not empty" with no arguments to column at index 1
+   *     filtersPlugin.addCondition(1, "not_empty", []);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Not equal" with value "John" to column at index 1
+   *     filtersPlugin.addCondition(1, "neq", ["John"]);
    *     filtersPlugin.filter();
    *   }
    *
@@ -634,11 +873,16 @@ export class Filters extends BasePlugin {
    *
    * @param {number} column Visual column index.
    * @param {string} name Condition short name.
-   * @param {Array} args Condition arguments.
+   * @param {Array} args Condition arguments. The expected format depends on the condition - see the table above for details.
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
+    if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
+      return;
+    }
+
+
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
@@ -727,6 +971,11 @@ export class Filters extends BasePlugin {
     const { navigableHeaders } = this.hot.getSettings();
     const needToFilter = !this.conditionCollection.isEmpty();
     const conditions = this.exportConditions();
+
+    if (this.#isDataProviderActive) {
+      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack);
+    }
+
     const allowFiltering = this.hot.runHooks(
       'beforeFilter',
       conditions,
@@ -763,6 +1012,9 @@ export class Filters extends BasePlugin {
     } else if (allowFiltering !== false && !needToFilter) {
       this.#previousConditionStack = this.exportConditions();
       this.filtersRowsMap.clear();
+
+    } else if (this.#isDataProviderActive) {
+      this.#previousConditionStack = this.exportConditions();
 
     } else {
       this.importConditions(this.#previousConditionStack);
@@ -842,10 +1094,11 @@ export class Filters extends BasePlugin {
     if (changes) {
       arrayEach(changes, (change) => {
         const [, prop] = change as unknown[];
-        const columnIndex = this.hot.propToCol(prop as string | number);
+        const visualColumnIndex = this.hot.propToCol(prop as string | number);
+        const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
-        if (this.conditionCollection.hasConditions(columnIndex)) {
-          this.updateValueComponentCondition(columnIndex);
+        if (this.conditionCollection.hasConditions(physicalColumnIndex)) {
+          this.updateValueComponentCondition(physicalColumnIndex);
         }
       });
     }
@@ -855,11 +1108,14 @@ export class Filters extends BasePlugin {
    * Update the condition of ValueComponent, based on the handled changes.
    *
    * @private
-   * @param {number} columnIndex Column index of handled ValueComponent condition.
+   * @param {number} columnIndex Physical column index of handled ValueComponent condition.
    */
   updateValueComponentCondition(columnIndex: number) {
-    const dataAtCol = this.hot.getDataAtCol(columnIndex);
-    const selectedValues = unifyColumnValues(dataAtCol);
+    const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
+    const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
+    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMeta(0, visualColumnIndex) : null;
+    const comparator = getSortComparatorForMeta(columnMeta);
+    const selectedValues = unifyColumnValues(dataAtCol, comparator);
 
     this.conditionUpdateObserver.updateStatesAtColumn(columnIndex, selectedValues);
   }
@@ -882,6 +1138,22 @@ export class Filters extends BasePlugin {
     });
 
     this.updateDependentComponentsVisibility();
+  }
+
+  /**
+   * After dataProvider fetch listener.
+   *
+   * @param {object} [result] Fetch result (filters match the request that just completed). May include `filtersConditionsStack` (Array).
+   */
+  #onAfterDataProviderFetch(result: Record<string, unknown> | null) {
+    this.importConditions((result?.filtersConditionsStack as Record<string, unknown>[]) ?? []);
+  }
+
+  /**
+   * After dataProvider fetch error listener.
+   */
+  #onAfterDataProviderFetchError() {
+    this.importConditions(this.#dataProviderFilterRollbackStack);
   }
 
   /**
@@ -1001,7 +1273,7 @@ export class Filters extends BasePlugin {
         }
       }
 
-      if (byValueState.command.key !== CONDITION_NONE) {
+      if (byValueState.command.key !== CONDITION_NONE && !this.#isDataProviderActive) {
         this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
@@ -1075,17 +1347,15 @@ export class Filters extends BasePlugin {
    *
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
-   * @param {number} headerLevel The index of header level counting from the top (positive
-   *                             values counting from 0 to N).
    *
    */
-  #onAfterGetColHeader(col: number, TH: HTMLElement, headerLevel: number) {
+  #onAfterGetColHeader(col: number, TH: HTMLElement) {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (
       this.enabled
       && this.conditionCollection.hasConditions(physicalColumn)
-      && headerLevel === this.hot.view.getColumnHeadersCount() - 1
+      && isBottomMostColumnHeader(TH)
     ) {
       addClass(TH, 'htFiltersActive');
     } else {
@@ -1142,8 +1412,8 @@ export class Filters extends BasePlugin {
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
-        The overall amount of conditions exceed the capability of the dropdown menu.\x20
-        For more details see the documentation.`);
+        The dropdown menu supports at most 2 regular conditions and 1 'filter by value' condition per column,\x20
+        but more were provided. For more details see the documentation.`);
 
     } else {
       const operationType = this.conditionCollection.getOperation(column);

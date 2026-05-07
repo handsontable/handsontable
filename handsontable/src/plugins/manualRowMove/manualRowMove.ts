@@ -50,6 +50,10 @@ export class ManualRowMove extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [PLUGIN_KEY];
+  }
+
   /**
    * Backlight UI object.
    *
@@ -87,6 +91,7 @@ export class ManualRowMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualRowMove#enablePlugin} method is called.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -104,6 +109,8 @@ export class ManualRowMove extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
     this.addHook('beforeOnCellMouseOver', (...args: unknown[]) => (this.#onBeforeOnCellMouseOver as Function)(...args));
+    this.addHook('beforeOnCellMouseOverOutside',
+      (event, coords, TD, controller) => this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollHorizontally', () => this.#onAfterScrollHorizontally());
     this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
 
@@ -607,6 +614,22 @@ export class ManualRowMove extends BasePlugin {
     controller.cell = true;
     this.#target.coords = coords;
     this.#target.TD = TD;
+  }
+
+  /**
+   * Suppresses selection changes during a row move drag when the mouse
+   * is outside the data viewport (e.g. over row headers during scroll).
+   *
+   * @param {object} controller The controller object.
+   */
+  #onBeforeOnCellMouseOverOutside(controller) {
+    if (!this.#pressed) {
+      return;
+    }
+
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
   }
 
   /**

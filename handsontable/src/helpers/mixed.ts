@@ -116,7 +116,8 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
 
 export function _injectProductInfo(key: string, element: HTMLElement, releaseDateStr?: string) {
   const hasValidType = !isEmpty(key);
-  const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
+  const isNonCommercial = typeof key === 'string' &&
+    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
   const hotVersion = process.env.HOT_VERSION;
   let keyValidityDate;
   let consoleMessageState = 'invalid';
@@ -126,7 +127,11 @@ export function _injectProductInfo(key: string, element: HTMLElement, releaseDat
 
   const schemaValidity = _checkKeySchema(key);
 
-  if (hasValidType || isNonCommercial || schemaValidity) {
+  if (isNonCommercial) {
+    consoleMessageState = 'non_commercial';
+    domMessageState = 'valid';
+
+  } else if (hasValidType || schemaValidity) {
     if (schemaValidity) {
       const releaseDate = releaseDateStr ?? process.env.HOT_RELEASE_DATE ?? '';
       const [dd, mm, yyyy] = releaseDate.split('/').map(Number);
@@ -147,10 +152,6 @@ export function _injectProductInfo(key: string, element: HTMLElement, releaseDat
         consoleMessageState = 'valid';
         domMessageState = 'valid';
       }
-
-    } else if (isNonCommercial) {
-      consoleMessageState = 'non_commercial';
-      domMessageState = 'valid';
 
     } else {
       consoleMessageState = 'invalid';

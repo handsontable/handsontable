@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
 import * as C from '../../i18n/constants';
+import { LOADING_CLASS_NAME } from '../../helpers/constants';
 
 /**
  * Interface for the Dialog plugin used by Loading.
@@ -25,7 +26,7 @@ interface DialogPlugin {
 
 export const PLUGIN_KEY = 'loading';
 export const PLUGIN_PRIORITY = 350;
-export const LOADING_CLASS_NAME = `ht-${PLUGIN_KEY}`;
+export { LOADING_CLASS_NAME };
 
 /**
  * @plugin Loading

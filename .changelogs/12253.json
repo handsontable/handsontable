@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed column menu dropdown button styling when a filtered column header is also active",
+  "type": "fixed",
+  "issueOrPR": 12253,
+  "breaking": false,
+  "framework": "none"
+}

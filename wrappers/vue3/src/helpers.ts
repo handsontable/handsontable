@@ -99,6 +99,8 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
   const assignedProps: VueProps<HotTableProps> = filterPassedProps(props);
   const hotSettingsInProps: Handsontable.GridSettings = props.settings ? props.settings : assignedProps;
   const additionalHotSettingsInProps: Handsontable.GridSettings = props.settings ? assignedProps : null;
+  const initOnlySettingKeys: string[] =
+    (currentSettings as any)?._initOnlySettings || [];
   const newSettings: Handsontable.GridSettings = {};
 
   // eslint-disable-next-line no-restricted-syntax
@@ -106,6 +108,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
     if (
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== void 0 &&
+      !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data') ? !simpleEqual(currentSettings[key], hotSettingsInProps[key]) : true)
     ) {
       newSettings[key] = hotSettingsInProps[key];
@@ -119,6 +122,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       key !== 'id' &&
       key !== 'settings' &&
       additionalHotSettingsInProps[key] !== void 0 &&
+      !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data')
         ? !simpleEqual(currentSettings[key], additionalHotSettingsInProps[key]) : true)
     ) {
@@ -139,24 +143,42 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
  * @returns {boolean} `true` if they're the same, `false` otherwise.
  */
 function simpleEqual(objectA, objectB) {
+  // Shared across both stringify calls so the same Node/function instance maps
+  // to the same identity token in objectA's string and objectB's string.
+  const identityMap = new WeakMap<object, string>();
+  let nextIdentityId = 0;
+
   const stringifyToJSON = (val) => {
-    const circularReplacer = (function() {
-      const seen = new WeakSet();
+    const seen = new WeakSet();
 
-      return function(key, value) {
-        if (typeof value === 'object' && value !== null) {
-          if (seen.has(value)) {
-            return;
-          }
-
-          seen.add(value);
+    return JSON.stringify(val, (key, value) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return undefined;
         }
 
-        return value;
-      };
-    }());
+        seen.add(value);
 
-    return JSON.stringify(val, circularReplacer);
+        // DOM nodes carry framework metadata as enumerable own properties
+        // (e.g., Vue 3 attaches `_vnode` to the mount root). Recursing into them
+        // can reach getters that throw - see GH #11220 - and produces noise that
+        // is irrelevant to settings equality. Replace each Node with an identity
+        // token so reference equality is still detected.
+        if (typeof Node !== 'undefined' && value instanceof Node) {
+          let id = identityMap.get(value);
+
+          if (id === undefined) {
+            nextIdentityId += 1;
+            id = `__hot_node_${nextIdentityId}__`;
+            identityMap.set(value, id);
+          }
+
+          return id;
+        }
+      }
+
+      return value;
+    });
   };
 
   if (typeof objectA === 'function' && typeof objectB === 'function') {
@@ -166,6 +188,12 @@ function simpleEqual(objectA, objectB) {
     return false;
 
   } else {
-    return stringifyToJSON(objectA) === stringifyToJSON(objectB);
+    try {
+      return stringifyToJSON(objectA) === stringifyToJSON(objectB);
+    } catch (e) {
+      // If either side cannot be serialized (e.g., contains a throwing getter),
+      // assume the values are not equal so the wrapper still updates settings.
+      return false;
+    }
   }
 }

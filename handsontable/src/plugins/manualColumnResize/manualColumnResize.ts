@@ -1,9 +1,18 @@
 import type { HotInstance, CellRange } from '../../common';
 import { BasePlugin } from '../base';
-import { addClass, closest, hasClass, removeClass, outerHeight, isDetached } from '../../helpers/dom/element';
+import {
+  addClass,
+  closest,
+  hasClass,
+  removeClass,
+  outerHeight,
+  outerWidth,
+  isDetached
+} from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { getElementScaleFactor, normalizeVisualDelta } from './utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -68,6 +77,10 @@ export class ManualColumnResize extends BasePlugin {
    */
   #startOffset: number | null = null;
   /**
+   * @type {number}
+   */
+  #horizontalScaleFactor = 1;
+  /**
    * @type {HTMLElement}
    */
   #handle = this.hot.rootDocument.createElement('DIV');
@@ -97,6 +110,12 @@ export class ManualColumnResize extends BasePlugin {
    * @type {PhysicalIndexToValueMap}
    */
   #columnWidthsMap: IndexToValueMap;
+  /**
+   * Disposer function for the column widths map observer. Called on disable to clean up.
+   *
+   * @type {Function|null}
+   */
+  #disposeMapObserver = null;
   /**
    * Private pool to save configuration from updateSettings.
    *
@@ -141,6 +160,11 @@ export class ManualColumnResize extends BasePlugin {
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
 
+    this.#disposeMapObserver = this.hot.columnIndexMapper
+      .observeMapChange(this.#columnWidthsMap, () => {
+        this.hot.view?.invalidateColumnWidthCache();
+      });
+
     this.addHook('modifyColWidth', (...args: unknown[]) => (this.#onModifyColWidth as Function)(...args), 1);
     this.addHook('beforeStretchingColumnWidth', (...args: unknown[]) => (this.#onBeforeStretchingColumnWidth as Function)(...args), 1);
     this.addHook('beforeColumnResize', (...args: unknown[]) => (this.#onBeforeColumnResize as Function)(...args));
@@ -167,6 +191,11 @@ export class ManualColumnResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (this.#disposeMapObserver) {
+      this.#disposeMapObserver();
+      this.#disposeMapObserver = null;
+    }
+
     this.#config = this.#columnWidthsMap.getValues();
     this.hot.columnIndexMapper.unregisterMap(this.pluginName);
     super.disablePlugin();
@@ -271,7 +300,6 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     const headerHeight = outerHeight(this.#currentTH);
-    const box = this.#currentTH.getBoundingClientRect();
     // Read "fixedColumnsStart" through the Walkontable as in that context, the fixed columns
     // are modified (reduced by the number of hidden columns) by TableView module.
     const fixedColumn = col < (wt.getSetting('fixedColumnsStart') as number);
@@ -321,7 +349,8 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     this.#startOffset = relativeHeaderPosition.start - 6;
-    this.#startWidth = Math.trunc(box.width);
+    this.#startWidth = outerWidth(this.#currentTH);
+    this.#horizontalScaleFactor = getElementScaleFactor(this.#currentTH);
 
     this.#handle.style.top = `${relativeHeaderPosition.top}px`;
     this.#handle.style[this.inlineDir] = `${this.#startOffset + this.#startWidth}px`;
@@ -509,9 +538,7 @@ export class ManualColumnResize extends BasePlugin {
       this.#pressed = true;
 
       if (this.#autoresizeTimeout === null) {
-        this.#autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
-
-        this.hot._registerTimeout(this.#autoresizeTimeout);
+        this.#autoresizeTimeout = this.hot._registerTimeout(() => this.afterMouseDownTimeout(), 500);
       }
       this.#dblclick += 1;
 
@@ -527,7 +554,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMouseMove(event: MouseEvent) {
     if (this.#pressed) {
-      const change = (event.pageX - this.startX) * this.hot.getDirectionFactor();
+      const visualChange = (event.pageX - this.startX) * this.hot.getDirectionFactor();
+      const change = normalizeVisualDelta(visualChange, this.#horizontalScaleFactor);
 
       this.#currentWidth = this.#startWidth + change;
 

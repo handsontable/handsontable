@@ -77,7 +77,7 @@ describe('CheckboxRenderer', () => {
     spec().$container.find(':checkbox').eq(2).simulate('mouseup');
     spec().$container.find(':checkbox').eq(2).simulate('click');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(7);
 
     expect(spy.test.calls.count()).toBe(0);
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
@@ -335,26 +335,18 @@ describe('CheckboxRenderer', () => {
     // 2 x 6px padding + 1px border === 13px calculated by the `offsetWidth`
     expect(getCell(0, 0).querySelector('label').offsetWidth).not.toBe(getCell(0, 0).offsetWidth - 13);
     expect(getCell(0, 1).querySelector('label').offsetWidth).not.toBe(getCell(0, 1).offsetWidth - 13);
-    expect(getCell(0, 2).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 2).offsetWidth - 13);
-      main.toBe(getCell(0, 2).offsetWidth - 17);
-      horizon.toBe(getCell(0, 2).offsetWidth - 25);
-    });
-    expect(getCell(0, 3).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 3).offsetWidth - 13);
-      main.toBe(getCell(0, 3).offsetWidth - 17);
-      horizon.toBe(getCell(0, 3).offsetWidth - 25);
-    });
-    expect(getCell(0, 4).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 4).offsetWidth - 13);
-      main.toBe(getCell(0, 4).offsetWidth - 17);
-      horizon.toBe(getCell(0, 4).offsetWidth - 25);
-    });
-    expect(getCell(0, 5).querySelector('label').offsetWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getCell(0, 5).offsetWidth - 13);
-      main.toBe(getCell(0, 5).offsetWidth - 17);
-      horizon.toBe(getCell(0, 5).offsetWidth - 25);
-    });
+    expect(getCell(0, 2).querySelector('label').offsetWidth).toBe(
+      getThemeLayout().e2eCheckboxRendererMergedLabelInnerWidth(getCell(0, 2).offsetWidth),
+    );
+    expect(getCell(0, 3).querySelector('label').offsetWidth).toBe(
+      getThemeLayout().e2eCheckboxRendererMergedLabelInnerWidth(getCell(0, 3).offsetWidth),
+    );
+    expect(getCell(0, 4).querySelector('label').offsetWidth).toBe(
+      getThemeLayout().e2eCheckboxRendererMergedLabelInnerWidth(getCell(0, 4).offsetWidth),
+    );
+    expect(getCell(0, 5).querySelector('label').offsetWidth).toBe(
+      getThemeLayout().e2eCheckboxRendererMergedLabelInnerWidth(getCell(0, 5).offsetWidth),
+    );
   });
 
   it('should add label on the beginning of a checkbox element where checkbox and label are separated', async() => {
@@ -654,7 +646,7 @@ describe('CheckboxRenderer', () => {
 
       menu.simulate('mouseover');
 
-      await sleep(500);
+      await waitForNextAnimationFrames(32);
 
       const contextSubMenu = $(`.htContextMenuSub_${menu.text()}`).find('tbody td').eq(2);
 

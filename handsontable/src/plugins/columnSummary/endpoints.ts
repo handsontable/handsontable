@@ -523,6 +523,33 @@ class Endpoints {
   }
 
   /**
+   * Calculate and refresh endpoints whose `sourceColumn` (visual) matches any of the provided columns.
+   *
+   * @param {Set<number>|number[]} visualColumns Visual column indexes to match against.
+   */
+  refreshEndpointsBySourceColumns(visualColumns) {
+    const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
+    const matched = this.getAllEndpoints()
+      .filter(endpoint => columnsSet.has(endpoint.sourceColumn));
+
+    if (matched.length === 0) {
+      return;
+    }
+
+    this.cellsToSetCache = [];
+
+    arrayEach(matched, (endpoint) => {
+      this.refreshEndpoint(endpoint);
+    });
+
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
+
+    this.cellsToSetCache = [];
+  }
+
+  /**
    * Refreshes the cell meta information for the all endpoints after the `updateSettings` method call which in some
    * cases (call with `columns` option) can reset the cell metas to the initial state.
    */

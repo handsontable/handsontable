@@ -17,11 +17,7 @@ angular:
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
-
-# Custom plugins
-
 Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 
 [[toc]]
@@ -425,10 +421,27 @@ export class ExampleComponent implements AfterViewInit {
 
 ## Related API reference
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Core methods:
-  - [`getPlugin()`](@/api/core.md#getplugin)
-- Hooks:
-  - [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)
+**APIs:**
+
+<div class="boxes-list">
+
+- [`BasePlugin`](@/api/basePlugin.md)
+
+</div>
+
+**Core methods:**
+
+<div class="boxes-list">
+
+- [`getPlugin()`](@/api/core.md#getplugin)
+
+</div>
+
+**Hooks:**
+
+<div class="boxes-list">
+
+- [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)
+
+</div>
   

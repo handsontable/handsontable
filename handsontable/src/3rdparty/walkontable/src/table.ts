@@ -342,6 +342,10 @@ class Table {
     if (this.isMaster) {
       wtOverlays.beforeDraw();
       this.holderOffset = offset(this.holder);
+
+      wtViewport.rowHeightCache.ensureBuilt();
+      wtViewport.columnWidthCache.ensureBuilt();
+
       runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
@@ -407,12 +411,18 @@ class Table {
 
         this.adjustColumnHeaderHeights();
 
+        if (this.isMaster) {
+          this.syncOversizedColumnHeadersWithDOM();
+        }
+
         if (this.isMaster || this.is(CLONE_BOTTOM)) {
           this.markOversizedRows();
         }
 
         if (this.isMaster) {
           if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            wtViewport.rowHeightCache.ensureBuilt();
+            wtViewport.columnWidthCache.ensureBuilt();
             wtViewport.createVisibleCalculators();
           }
 
@@ -528,6 +538,33 @@ class Table {
           return;
         }
         (children[i].childNodes[0] as HTMLElement).style.height = `${oversizedColumnHeaders[i]}px`;
+      }
+    }
+  }
+
+  /**
+   * After the master table applies `oversizedColumnHeaders` via `adjustColumnHeaderHeights`,
+   * the actual THEAD row heights may exceed the stored values when header content (e.g.,
+   * wrapping text) pushes cells taller than the configured `columnHeaderHeight`. This method
+   * re-reads the rendered THEAD row heights and updates `oversizedColumnHeaders` so that
+   * overlay tables receive the correct values during their own `adjustColumnHeaderHeights`.
+   */
+  syncOversizedColumnHeadersWithDOM() {
+    const { wtSettings } = this;
+    const children = this.THEAD.childNodes;
+    const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
+    const columnHeaders = wtSettings.getSetting('columnHeaders');
+    const borderCompensation = 1;
+
+    for (let i = 0, len = columnHeaders.length; i < len; i++) {
+      if (!children[i] || !oversizedColumnHeaders[i]) {
+        continue;
+      }
+
+      const actualRowHeight = innerHeight(children[i]);
+
+      if (actualRowHeight > oversizedColumnHeaders[i] + borderCompensation) {
+        oversizedColumnHeaders[i] = actualRowHeight;
       }
     }
   }
@@ -822,6 +859,9 @@ class Table {
       return;
     }
 
+    const { wtViewport } = this.dataAccessObject;
+    let hasChanges = false;
+
     while (rowCount) {
       rowCount -= 1;
       sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
@@ -829,7 +869,11 @@ class Table {
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = (currentTr as HTMLTableRowElement).querySelector('th');
 
-      const topBorderCompensation = sourceRowIndex === 0 ? firstRowBorderCompensation : 0;
+      // Use the rendered row index (rowCount === 0 is always the first <tr> in this tbody),
+      // not the source row index (which would be wrong for clones whose first rendered row
+      // has a different source index). Any tbody's first <tr> gets border-top: 1px from the
+      // tr:first-child CSS rule, so the compensation applies regardless of source identity.
+      const topBorderCompensation = rowCount === 0 ? firstRowBorderCompensation : 0;
 
       if (rowHeader) {
         rowCurrentHeight = rowHeightFn(rowHeader);
@@ -847,8 +891,13 @@ class Table {
           rowCurrentHeight += 1;
         }
 
-        this.dataAccessObject.wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
+        wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
+        hasChanges = true;
       }
+    }
+
+    if (hasChanges) {
+      wtViewport.rowHeightCache.invalidate();
     }
   }
 

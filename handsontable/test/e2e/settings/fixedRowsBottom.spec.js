@@ -102,7 +102,7 @@ describe('settings', () => {
           fixedRowsBottom: 2
         });
 
-        await sleep(100);
+        await waitForNextAnimationFrames(2);
 
         await scrollViewportTo({
           row: 30,
@@ -197,6 +197,8 @@ describe('settings', () => {
     });
 
     it('should not render column header with doubled border after inserting a new row (#7065)', async() => {
+      const layout = getThemeLayout();
+
       handsontable({
         data: createSpreadsheetData(0, 0),
         colHeaders: true,
@@ -206,72 +208,28 @@ describe('settings', () => {
 
       await alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53); // 26px corner + 27px added row
-        main.toBe(59);
-        horizon.toBe(75);
-      });
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26); // 26px as rowHeaders is enabled
-        main.toBe(29);
-        horizon.toBe(37);
-      });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26); // 26px as rowHeaders is enabled
-        main.toBe(29);
-        horizon.toBe(37);
-      });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
-      });
-      expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27);
-        main.toBe(30);
-        horizon.toBe(38);
-      });
-      expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27);
-        main.toBe(30);
-        horizon.toBe(38);
-      });
-
+      // header + 1 data row
+      expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 2 }));
+      // header only (with data present, no first-row compensation)
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopInlineStartClone().height()).toBe(
+        layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })
+      );
+      expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 2 }));
       await alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
-      expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
-      });
-      expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
-      });
+      // header + 2 data rows
+      expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 3 }));
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
+      expect(getTopInlineStartClone().height()).toBe(
+        layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false })
+      );
+      expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 3 }));
     });
 
     it('should not display double border when `window` is a scrollable container', async() => {
+      const layout = getThemeLayout();
+
       handsontable({
         startRows: 200,
         colHeaders: true,
@@ -279,36 +237,20 @@ describe('settings', () => {
         columns: [{}]
       });
 
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
 
       await updateSettings({ fixedRowsBottom: 0 });
 
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
 
       await updateSettings({ fixedRowsBottom: 1 });
 
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(26);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1, includeFirstRowCompensation: false }));
 
       await updateSettings({ data: [] });
 
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(27);
-        main.toBe(30);
-        horizon.toBe(38);
-      });
+      expect(getTopClone().height()).toBe(layout.firstRenderedRowDefaultHeight);
     });
 
     it('should not throw an error when the row is removed from the bottom overlay (#dev-2351)', async() => {
@@ -325,6 +267,69 @@ describe('settings', () => {
         // eslint-disable-next-line handsontable/require-await
         alter('remove_row', 1);
       }).not.toThrow();
+    });
+
+    describe('bottom overlay alignment', () => {
+      it('should not mark the bottom overlay\'s first row as oversized (prevents hider over-compensation)', async() => {
+        handsontable({
+          data: createSpreadsheetData(20, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          width: 300,
+          height: 200,
+          fixedRowsBottom: 1,
+          autoRowSize: false,
+        });
+
+        const wt = hot().view._wt;
+
+        // The clone's first rendered row has border-top: 1px from the tr:first-child CSS rule,
+        // but it should NOT be stored in oversizedRows because markOversizedRows applies
+        // topBorderCompensation to the first rendered row of any tbody (rendered index, not source index).
+        expect(Object.keys(wt.wtViewport.oversizedRows).length).toBe(0);
+      });
+
+      it('should produce stable master hider height across re-renders (no over-compensation from clone oversized rows)', async() => {
+        handsontable({
+          data: createSpreadsheetData(50, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          width: 300,
+          height: 200,
+          fixedRowsBottom: 1,
+          autoRowSize: false,
+        });
+
+        const wt = hot().view._wt;
+        const hiderAfterFirstRender = wt.wtTable.hider.style.height;
+
+        hot().render();
+
+        expect(wt.wtTable.hider.style.height).toBe(hiderAfterFirstRender);
+      });
+
+      it('should produce the same hider height regardless of fixedRowsBottom (total content height is unchanged)', async() => {
+        handsontable({
+          data: createSpreadsheetData(50, 5),
+          colHeaders: true,
+          rowHeaders: true,
+          width: 300,
+          height: 200,
+          fixedRowsBottom: 0,
+          autoRowSize: false,
+        });
+
+        const wt = hot().view._wt;
+        const hiderWithoutFixed = parseInt(wt.wtTable.hider.style.height, 10);
+
+        await updateSettings({ fixedRowsBottom: 1 });
+
+        const hiderWithFixed = parseInt(wt.wtTable.hider.style.height, 10);
+
+        // Moving a row to the bottom overlay does not change the total content height —
+        // all 50 rows still contribute to the hider. The hider height must be identical.
+        expect(hiderWithFixed).toBe(hiderWithoutFixed);
+      });
     });
   });
 });

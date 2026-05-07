@@ -77,12 +77,8 @@
     }
   }
 
-  // Drop-down menu
-  .htGhostTable
-    th
-    div
-    button.changeType
-    + span.colHeader.columnSorting:not(.indicatorDisabled) {
-    padding-right: var(--ht-gap-size);
+  // Drop-down menu (label comes first in the header DOM, then `.changeType`)
+  .htGhostTable th div:has(.changeType) span.colHeader.columnSorting:not(.indicatorDisabled) {
+    padding-inline-end: var(--ht-gap-size);
   }
 }

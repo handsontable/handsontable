@@ -10,6 +10,7 @@ import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.c
 @Component({
   selector: 'hot-dummy-renderer',
   template: `<div>Component Renderer: {{ value }}</div>`,
+  standalone: true,
 })
 class DummyRendererComponent extends HotCellRendererComponent {}
 
@@ -17,6 +18,7 @@ class DummyRendererComponent extends HotCellRendererComponent {}
 @Component({
   selector: 'hot-dummy-renderer-advanced',
   template: `<div>Component Renderer: {{ value }}</div>`,
+  standalone: true,
 })
 class DummyRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
@@ -30,6 +32,7 @@ class DummyRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
     <ng-template #dummyContainer></ng-template>
   `,
+  standalone: true,
 })
 class DummyTemplateHostComponent {
   @ViewChild('dummyTemplate', { static: true }) dummyTemplate!: TemplateRef<any>;
@@ -53,7 +56,7 @@ describe('DynamicComponentService - createRendererFromComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DummyRendererComponent, DummyTemplateHostComponent],
+      imports: [DummyRendererComponent, DummyTemplateHostComponent],
       providers: [DynamicComponentService],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
@@ -111,7 +114,7 @@ describe('DynamicComponentService - createRendererWithFactory', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DummyRendererAdvancedComponent],
+      imports: [DummyRendererAdvancedComponent],
       providers: [DynamicComponentService],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();

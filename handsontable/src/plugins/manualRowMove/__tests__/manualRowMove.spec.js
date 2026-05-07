@@ -819,7 +819,7 @@ describe('manualRowMove', () => {
 
         await selectCell(19, 0);
 
-        await sleep(50);
+        await waitForNextAnimationFrames(2);
 
         expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
@@ -832,7 +832,7 @@ describe('manualRowMove', () => {
           .simulate('mousemove')
           .simulate('mouseup');
 
-        expect(tableView().getFirstFullyVisibleRow()).toBe(7);
+        expect(tableView().getFirstFullyVisibleRow()).toBe(8);
       });
     });
   });

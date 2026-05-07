@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable/base';
-import {Component, Input} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 /**
  * Abstract base component for creating custom cell renderer components for Handsontable.
@@ -11,7 +11,9 @@ import {Component, Input} from '@angular/core';
  */
 @Component({
   selector: 'hot-cell-renderer',
-  template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`
+  template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export abstract class HotCellRendererComponent<TValue extends string | number | boolean = string, TProps extends {} = any> {
   static readonly RENDERER_MARKER = Symbol('HotCellRendererComponent');

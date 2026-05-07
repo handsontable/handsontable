@@ -322,6 +322,11 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
+      modifyRowHeight: (rowHeight, visualRowIndex) => {
+        const item = this.hotMenu.getSourceDataAtRow(visualRowIndex);
+
+        return item && item.name === SEPARATOR ? 1 : rowHeight;
+      },
       beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event: MouseEvent, coords: { row: number; col: number }) => {
         this.#navigator!.setPageCursorAt(coords.row);

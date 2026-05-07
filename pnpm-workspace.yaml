@@ -8,6 +8,7 @@ packages:
   - wrappers/*
   - visual-tests
   - examples
+  - docs
 
 ignoredBuiltDependencies:
   - nice-napi

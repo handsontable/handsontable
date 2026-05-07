@@ -10,10 +10,10 @@ interface SelectionState {
 
 export const PLUGIN_KEY = 'emptyDataState';
 export const PLUGIN_PRIORITY = 370;
-export const EMPTY_DATA_STATE_CLASS_NAME = `ht-${PLUGIN_KEY}`;
 const SOURCE = Object.freeze({
   UNKNOWN: 'unknown',
   FILTERS: 'filters',
+  LOADING: 'loading',
 });
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
@@ -26,6 +26,9 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * It displays a empty data state overlay with customizable message.
  *
  * In order to enable the empty data state mechanism, {@link Options#emptyDataState} option must be set to `true`.
+ *
+ * When [[Options#dataProvider]] is enabled, the loading overlay is toggled from DataProvider fetch hooks
+ * ([[Hooks#beforeDataProviderFetch]], [[Hooks#afterDataProviderFetch]], [[Hooks#afterDataProviderFetchError]]).
  *
  * The plugin provides several configuration options to customize the empty data state behavior and appearance:
  * - `message`: Message to display in the empty data state overlay.
@@ -66,6 +69,11 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *           description: 'There’s nothing to display yet.',
  *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *         };
+ *       case "loading":
+ *         return {
+ *           title: 'Loading data',
+ *           description: 'Please wait.',
+ *         };
  *       default:
  *         return {
  *           title: 'No data available',
@@ -103,6 +111,11 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *           title: 'No data available',
  *           description: 'There’s nothing to display yet.',
  *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *         };
+ *       case "loading":
+ *         return {
+ *           title: 'Loading data',
+ *           description: 'Please wait.',
  *         };
  *       default:
  *         return {
@@ -150,6 +163,11 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *             title: 'No data available for filters',
  *             description: 'There’s nothing to display yet.',
  *             buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *           };
+ *         case "loading":
+ *           return {
+ *             title: 'Loading data',
+ *             description: 'Please wait.',
  *           };
  *         default:
  *           return {
@@ -231,7 +249,7 @@ export class EmptyDataState extends BasePlugin {
   /**
    * Flag indicating if there are filter conditions.
    *
-   * @type {number}
+   * @type {boolean}
    */
   #hasFilterConditions = false;
 
@@ -241,6 +259,13 @@ export class EmptyDataState extends BasePlugin {
    * @type {SelectionState | null}
    */
   #selectionState: SelectionState | null = null;
+
+  /**
+   * Whether the DataProvider-driven loading branch of the overlay is active.
+   *
+   * @type {boolean}
+   */
+  #loadingActive = false;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -272,11 +297,24 @@ export class EmptyDataState extends BasePlugin {
 
     this.addHook('afterInit', () => this.#onAfterInit());
     this.addHook('afterRender', () => this.#onAfterRender());
-    this.addHook('afterRowSequenceCacheUpdate', () => this.#toggleEmptyDataState());
-    this.addHook('afterColumnSequenceCacheUpdate', () => this.#toggleEmptyDataState());
+    this.addHook('afterRowSequenceCacheUpdate', () => {
+      this.#toggleEmptyDataState();
+    });
+    this.addHook('afterColumnSequenceCacheUpdate', () => {
+      this.#toggleEmptyDataState();
+    });
     this.addHook('beforeFilter', (conditions: unknown[]) => this.#onBeforeFilter(conditions));
+    this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
+      if (!(queryParameters as any).skipLoading) {
+        this.#setLoadingActive();
+      }
+    });
+    this.addHook('afterDataProviderFetch', () => this.#clearLoadingActive());
+    this.addHook('afterDataProviderFetchError', () => this.#clearLoadingActive());
 
     super.enablePlugin();
+
+    this.#toggleEmptyDataState();
   }
 
   /**
@@ -285,7 +323,6 @@ export class EmptyDataState extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
-
     this.#update();
 
     if (this.isVisible()) {
@@ -299,6 +336,8 @@ export class EmptyDataState extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
+    this.#loadingActive = false;
+
     this.#unregisterFocusScope();
     this.#disconnectObservers();
 
@@ -344,6 +383,32 @@ export class EmptyDataState extends BasePlugin {
     this.#observer.observe(this.hot.rootWrapperElement, {
       childList: true,
     });
+  }
+
+  /**
+   * Sets the loading active flag and toggles the emptyDataState.
+   */
+  #setLoadingActive() {
+    if (this.#loadingActive) {
+      return;
+    }
+
+    this.#loadingActive = true;
+    this.#toggleEmptyDataState();
+  }
+
+  /**
+   * Clears the loading active flag and hides the emptyDataState.
+   */
+  #clearLoadingActive() {
+    if (!this.#loadingActive) {
+      return;
+    }
+
+    this.#loadingActive = false;
+    this.#hide();
+    this.#toggleEmptyDataState();
+    this.hot.render();
   }
 
   /**
@@ -427,6 +492,9 @@ export class EmptyDataState extends BasePlugin {
             }
           }
         }];
+      } else if (source === SOURCE.LOADING) {
+        message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_LOADING);
+        message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_LOADING);
       } else {
         message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE);
         message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION);
@@ -440,10 +508,20 @@ export class EmptyDataState extends BasePlugin {
    * Toggle visibility and content of the emptyDataState.
    *
    * Shows emptyDataState when table has no data or when all data is hidden by filters.
-   *
+   * When DataProvider loading is active, the overlay can show over non-empty data.
    */
   #toggleEmptyDataState() {
     if (!this.hot.view) {
+      return;
+    }
+
+    if (this.#loadingActive) {
+      if (this.#isVisible) {
+        this.#update();
+      } else {
+        this.#show();
+      }
+
       return;
     }
 
@@ -482,10 +560,12 @@ export class EmptyDataState extends BasePlugin {
    * Updates the content of the emptyDataState overlay.
    */
   #update() {
-    if (this.#hasFilterConditions) {
-      this.#ui?.updateContent(this.#getMessage(SOURCE.FILTERS));
+    if (this.#loadingActive) {
+      this.#ui?.updateContent(this.#getMessage(SOURCE.LOADING), true);
+    } else if (this.#hasFilterConditions) {
+      this.#ui?.updateContent(this.#getMessage(SOURCE.FILTERS), false);
     } else {
-      this.#ui?.updateContent(this.#getMessage(SOURCE.UNKNOWN));
+      this.#ui?.updateContent(this.#getMessage(SOURCE.UNKNOWN), false);
     }
   }
 
@@ -545,8 +625,8 @@ export class EmptyDataState extends BasePlugin {
    * It updates the height and class names of the emptyDataState element.
    */
   #onAfterRender() {
-    if (this.#ui && this.#ui.getElement() && this.isVisible()) {
-      this.#ui.updateSize(this.hot.view);
+    if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
+      this.#ui.updateSize(this.hot.view, this.#loadingActive);
       this.#ui.updateClassNames(this.hot.view);
     }
   }
@@ -569,6 +649,7 @@ export class EmptyDataState extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
+    this.#loadingActive = false;
     this.#isVisible = false;
     this.#ui?.destroy();
     this.#ui = null;

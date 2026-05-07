@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: vasj6t6t
 title: Row virtualization
 metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
@@ -18,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row virtualization
-
 Render thousands of rows without freezing the browser, using row virtualization.
 
 [[toc]]
@@ -89,13 +87,29 @@ Using row virtualization has the following side effects:
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`renderAllRows`](@/api/options.md#renderallrows)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [renderAllRows](@/api/options.md#renderallrows)
+- [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Performance](@/guides/optimization/performance/performance.md) -- tips for optimizing grid rendering speed with large data sets
+- [Row height](@/guides/rows/row-height/row-height.md) -- configure fixed or dynamic row heights, which affects viewport calculations during virtualization
+
+</div>

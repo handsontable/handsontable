@@ -1,35 +1,16 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
-import numbro from 'numbro';
-// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
-import jaJP from 'numbro/languages/ja-JP';
-// @ts-ignore: Missing TypeScript declaration file for "numbro" languages files
-import trTR from 'numbro/languages/tr-TR';
-
-// register the languages you need
-numbro.registerLanguage(jaJP);
-numbro.registerLanguage(trTR);
-
-// define formats
-const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP',
-};
-
-const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR',
-};
+import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example3-numeric-cell-type',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example3NumericCellTypeComponent {
+export class AppComponent {
 
   readonly data = [
     {
@@ -62,13 +43,15 @@ export class Example3NumericCellTypeComponent {
       {
         data: 'JP_price',
         type: 'numeric',
-        numericFormat: formatJP,
+        locale: 'ja-JP',
+        numericFormat: { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 },
         width: '150',
       },
       {
         data: 'TR_price',
         type: 'numeric',
-        numericFormat: formatTR,
+        locale: 'tr-TR',
+        numericFormat: { style: 'decimal', useGrouping: true, minimumFractionDigits: 2, maximumFractionDigits: 2 },
         width: '150',
       },
     ]
@@ -77,37 +60,22 @@ export class Example3NumericCellTypeComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example3NumericCellTypeComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example3NumericCellTypeComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example3NumericCellTypeComponent ]
-})
-
-export class AppModule { }
 /* end-file */

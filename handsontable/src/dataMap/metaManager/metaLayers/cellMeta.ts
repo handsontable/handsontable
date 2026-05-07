@@ -195,7 +195,13 @@ export default class CellMeta {
 
     const rowsMeta = new Map(this.metas as any);
 
-    return rowsMeta.has(physicalRow) ? Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap).values()) : [];
+    if (!rowsMeta.has(physicalRow)) {
+      return [];
+    }
+
+    return Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap))
+      .sort(([a], [b]) => (a as number) - (b as number))
+      .map(([, meta]) => meta);
   }
 
   /**

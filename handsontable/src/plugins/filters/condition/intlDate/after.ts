@@ -17,7 +17,7 @@ export function condition(dataRow: DataRow, [value]: unknown[]): boolean {
     return false;
   }
 
-  return dataDate >= inputDate;
+  return dataDate > inputDate;
 }
 
 registerCondition(CONDITION_NAME, condition, {

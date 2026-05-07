@@ -22,8 +22,10 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button onClick={selectCell}>Select cell B2</button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button onClick={selectCell}>Select cell B2</button>
+        </div>
       </div>
       <HotTable
         ref={hotTableComponentRef}

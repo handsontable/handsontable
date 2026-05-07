@@ -1,3 +1,4 @@
+import { calculateAxis } from './axisCalculation';
 import { ViewportBaseCalculator, CalculationTypeLike } from './viewportBase';
 
 /**
@@ -6,19 +7,18 @@ import { ViewportBaseCalculator, CalculationTypeLike } from './viewportBase';
  * @property {number} viewportHeight Height of the viewport.
  * @property {number} scrollOffset Current vertical scroll position of the viewport.
  * @property {number} totalRows Total number of rows.
- * @property {Function} rowHeightFn Function that returns the height of the row at a given index (in px).
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {number} horizontalScrollbarHeight The scrollbar height.
+ * @property {PositionCache} rowHeightCache A built prefix sum cache. The single source of truth for row sizes.
  */
 export interface ViewportRowsCalculatorOptions {
   calculationTypes: Array<[string, CalculationTypeLike]>;
   viewportHeight: number;
   scrollOffset: number;
   totalRows: number;
-  defaultRowHeight: number;
-  rowHeightFn: (row: number) => number;
   overrideFn: ((calc: unknown) => void) | null;
   horizontalScrollbarHeight?: number;
+  rowHeightCache: any;
 }
 
 /**
@@ -31,14 +31,11 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   scrollOffset: number = 0;
   zeroBasedScrollOffset: number = 0;
   totalRows: number = 0;
-  defaultHeight: number = 0;
-  rowHeightFn: ((row: number) => number) | null = null;
   rowHeight: number = 0;
   overrideFn: ((calc: unknown) => void) | null = null;
   horizontalScrollbarHeight: number = 0;
   innerViewportHeight: number = 0;
   totalCalculatedHeight: number = 0;
-  startPositions: number[] = [];
   needReverse: boolean = true;
 
   /**
@@ -49,21 +46,19 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     viewportHeight,
     scrollOffset,
     totalRows,
-    defaultRowHeight,
-    rowHeightFn,
     overrideFn,
     horizontalScrollbarHeight,
+    rowHeightCache,
   }: ViewportRowsCalculatorOptions) {
     super(calculationTypes);
-    this.defaultHeight = defaultRowHeight;
     this.viewportHeight = viewportHeight;
     this.scrollOffset = scrollOffset;
     this.zeroBasedScrollOffset = Math.max(scrollOffset, 0);
     this.totalRows = totalRows;
-    this.rowHeightFn = rowHeightFn;
     this.overrideFn = overrideFn;
     this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
     this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
+    this.positionCache = rowHeightCache;
 
     this.calculate();
   }
@@ -72,23 +67,15 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate(): void {
-    this._initialize(this);
-
-    for (let row = 0; row < this.totalRows; row++) {
-      this.rowHeight = this.getRowHeight(row);
-
-      this._process(row, this);
-
-      this.startPositions.push(this.totalCalculatedHeight);
-      this.totalCalculatedHeight += this.rowHeight;
-
-      if (this.totalCalculatedHeight >= this.innerViewportHeight) {
-        this.needReverse = false;
-        break;
-      }
-    }
-
-    this._finalize(this);
+    calculateAxis(this, {
+      totalCount: this.totalRows,
+      zeroBasedScrollOffset: this.zeroBasedScrollOffset,
+      scrollEnd: this.innerViewportHeight,
+      positionCache: this.positionCache,
+      setSizeField: (ctx, size) => { ctx.rowHeight = size; },
+      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedHeight = v; },
+      getTotalCalculated: ctx => ctx.totalCalculatedHeight,
+    });
   }
 
   /**
@@ -98,12 +85,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getRowHeight(row: number): number {
-    const rowHeight = this.rowHeightFn(row);
-
-    if (isNaN(rowHeight)) {
-      return this.defaultHeight;
-    }
-
-    return rowHeight;
+    return this.positionCache.getSizeAt(row);
   }
 }

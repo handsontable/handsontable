@@ -124,6 +124,7 @@ export function focusGridScope(hot: HotInstance) {
 
           if (result !== false) {
             hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+            hot.getFocusManager().focusOnHighlightedCell();
           }
         }
       } else if (focusSource === 'tab_from_below') {

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: aae39zi5
 title: Referencing the Handsontable instance in Vue 3
 metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
@@ -14,10 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Referencing the Handsontable instance in Vue 3
-
-Reference the Handsontable instance from a Vue 3 component to programmatically perform actions such as reloading the data in your data grid.
+Use the `hotTableComponent` ref to access the underlying Handsontable instance from your Vue 3 component.
 
 [[toc]]
 
@@ -33,3 +31,7 @@ The following example implements the `@handsontable/vue3`, showing how to refere
 @[code](@/content/guides/integrate-with-vue3/vue3-hot-reference/vue/example1.js)
 
 :::
+
+## Result
+
+You can call any Handsontable API method -- such as `loadData()` or `getPlugin()` -- directly on the instance retrieved via `hotTableComponent.value.hotInstance`, giving you full programmatic control over the grid from your Vue 3 component.

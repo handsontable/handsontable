@@ -14,7 +14,7 @@ const ExampleComponent = () => {
     const exportedBlob = exportPlugin?.exportAsBlob('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       mimeType: 'text/csv',
@@ -27,10 +27,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button id="export-blob" onClick={() => buttonClickCallback()}>
-          Export as a Blob
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="export-blob" onClick={() => buttonClickCallback()}>
+            Export as a Blob
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

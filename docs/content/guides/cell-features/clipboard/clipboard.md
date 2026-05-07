@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 2vbt7ev0
 title: Clipboard
 metaTitle: Clipboard - JavaScript Data Grid | Handsontable
@@ -18,16 +19,15 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Clipboard
-
 Copy data from selected cells to the system clipboard.
 
 [[toc]]
 
+Handsontable supports copy, cut, and paste via the browser clipboard API and keyboard shortcuts. Configure clipboard behavior to control what data users can copy or paste.
+
 ## Overview
 
-You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>/<kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
+You can copy or cut data from Handsontable to the system clipboard, either manually (using the context menu or the <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**C**</kbd>/<kbd>**X**</kbd> shortcuts) or programmatically (using Handsontable's API methods).
 
 ## Copy & Cut
 
@@ -37,8 +37,8 @@ Copy & Cut actions allow exporting data from Handsontable to the system clipboar
 
 Available keyboard shortcuts:
 
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd> - copies the content of the last cell in the selected range
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**X**</kbd> - cuts the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**C**</kbd> - copies the content of the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**X**</kbd> - cuts the content of the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -165,13 +165,13 @@ You can let the end user copy the contents of column headers, by enabling additi
 
 <span class="img-light">
 
-![copy_with_headers_light]({{$basePath}}/img/pages/clipboard/copy-with-headers-light.png)
+![copy_with_headers_light](/img/pages/clipboard/copy-with-headers-light.png)
 
 </span>
 
 <span class="img-dark">
 
-![copy_with_headers_dark]({{$basePath}}/img/pages/clipboard/copy-with-headers-dark.png)
+![copy_with_headers_dark](/img/pages/clipboard/copy-with-headers-dark.png)
 
 </span>
 
@@ -277,7 +277,7 @@ By default (`parsePastedValue: false`), pasted content is written as plain strin
 
 Available keyboard shortcuts:
 
-- <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**V**</kbd> - paste the content into the last cell in the selected range
+- <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**V**</kbd> - paste the content into the last cell in the selected range
 
 Available options in the browser's toolbar:
 
@@ -311,29 +311,64 @@ Examples of how to use them are provided in their descriptions.
 
 | Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
 | -------------------------------------- | ------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**X**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**X**</kbd> | <kbd>⌘</kbd>+<kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>⌘</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>⌘</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 12.3.0: Copying cells with headers](https://handsontable.com/blog/handsontable-12-3-0-copying-cells-with-headers)
+
+</div>
 
 ## Related API reference
 
-- Configuration options:
-  - [`copyPaste`](@/api/options.md#copypaste)
-  - [`copyable`](@/api/options.md#copyable)
-  - [`parsePastedValue`](@/api/options.md#parsepastedvalue)
-  - [`skipColumnOnPaste`](@/api/options.md#skipcolumnonpaste)
-  - [`skipRowOnPaste`](@/api/options.md#skiprowonpaste)
-- Core methods:
-  - [`getCopyableData()`](@/api/core.md#getcopyabledata)
-  - [`getCopyableText()`](@/api/core.md#getcopyabletext)
-- Hooks:
-  - [`afterCopy`](@/api/hooks.md#aftercopy)
-  - [`afterCopyLimit`](@/api/hooks.md#aftercopylimit)
-  - [`afterCut`](@/api/hooks.md#aftercut)
-  - [`afterPaste`](@/api/hooks.md#afterpaste)
-  - [`beforeCopy`](@/api/hooks.md#beforecopy)
-  - [`beforeCut`](@/api/hooks.md#beforecut)
-  - [`beforePaste`](@/api/hooks.md#beforepaste)
-  - [`modifyCopyableRange`](@/api/hooks.md#modifycopyablerange)
-- Plugins:
-  - [`CopyPaste`](@/api/copyPaste.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [copyPaste](@/api/options.md#copypaste)
+- [copyable](@/api/options.md#copyable)
+- [parsePastedValue](@/api/options.md#parsepastedvalue)
+- [skipColumnOnPaste](@/api/options.md#skipcolumnonpaste)
+- [skipRowOnPaste](@/api/options.md#skiprowonpaste)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCopyableData()](@/api/core.md#getcopyabledata)
+- [getCopyableText()](@/api/core.md#getcopyabletext)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCopy](@/api/hooks.md#aftercopy)
+- [afterCopyLimit](@/api/hooks.md#aftercopylimit)
+- [afterCut](@/api/hooks.md#aftercut)
+- [afterPaste](@/api/hooks.md#afterpaste)
+- [beforeCopy](@/api/hooks.md#beforecopy)
+- [beforeCut](@/api/hooks.md#beforecut)
+- [beforePaste](@/api/hooks.md#beforepaste)
+- [modifyCopyableRange](@/api/hooks.md#modifycopyablerange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CopyPaste](@/api/copyPaste.md)
+
+</div>
+
+## Result
+
+Users can copy, cut, and paste cell data using keyboard shortcuts or the context menu. Programmatic copy and cut operations work by calling `document.execCommand()` after selecting the target cells.

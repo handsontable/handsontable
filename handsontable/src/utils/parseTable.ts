@@ -352,7 +352,9 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
   const dataRows: HTMLTableRowElement[] = [
     ...fixedRowsTop,
     ...(Array.from(el.tBodies) as HTMLTableSectionElement[]).reduce((sections: HTMLTableRowElement[], section: HTMLTableSectionElement) => {
-      sections.push(...Array.from(section.rows));
+      Array.from(section.rows).forEach((row: HTMLTableRowElement) => {
+        sections.push(row);
+      });
 
       return sections;
     }, []),

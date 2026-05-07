@@ -57,7 +57,7 @@ describe('HandsontableEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -798,7 +798,7 @@ describe('HandsontableEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
@@ -899,18 +899,10 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const container = getActiveEditor().htContainer;
+    const box = getInnerEditorListBox();
 
-    expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
-    });
-    expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
-    });
+    expect(box.clientWidth).toBe(box.settingsWidth);
+    expect(box.clientHeight).toBe(box.settingsHeight);
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -940,17 +932,9 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const container = getActiveEditor().htContainer;
+    const box = getInnerEditorListBox();
 
-    expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
-    });
-    expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
-    });
+    expect(box.clientWidth).toBe(box.settingsWidth);
+    expect(box.clientHeight).toBe(box.settingsHeight);
   });
 });

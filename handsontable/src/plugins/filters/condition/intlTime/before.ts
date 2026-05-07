@@ -17,7 +17,7 @@ export function condition(dataRow: DataRow, [value]: unknown[]): boolean {
     return false;
   }
 
-  return dataTime <= inputTime;
+  return dataTime < inputTime;
 }
 
 registerCondition(CONDITION_NAME, condition, {

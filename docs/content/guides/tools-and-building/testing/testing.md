@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 6fv7kuj6
 title: Testing
 metaTitle: Testing - JavaScript Data Grid | Handsontable
@@ -20,12 +21,8 @@ angular:
   metaTitle: Testing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
-
-# Testing
-
-Run one or multiple tests, using Handsontable's ready-made commands for Jasmine and Puppeteer.
+Handsontable has three test pipelines: unit tests (Jest), E2E tests (Puppeteer/Jasmine), and Walkontable tests. Run them when contributing to the core library or verifying a fix.
 
 [[toc]]
 
@@ -90,7 +87,7 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Building](@/guides/tools-and-building/custom-builds/custom-builds.md)
 
@@ -101,3 +98,7 @@ Learn more on our [GitHub](https://github.com/handsontable/handsontable/blob/dev
 :::
 
 </div>
+
+## Result
+
+Your tests ran and reported pass or fail results. A green test suite confirms your change does not introduce regressions.

@@ -8,6 +8,7 @@ focusGridManager.getFocusMode();
 focusGridManager.setFocusMode('cell');
 focusGridManager.getRefocusDelay();
 focusGridManager.setRefocusDelay(23);
+focusGridManager.focusElement(document.createElement('button'), { preventScroll: true });
 focusGridManager.focusOnHighlightedCell();
 focusGridManager.focusOnHighlightedCell();
 focusGridManager.refocusToEditorTextarea(23);

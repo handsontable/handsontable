@@ -104,6 +104,7 @@ export class ManualColumnMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualColumnMove#enablePlugin} method is called.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
@@ -121,6 +122,8 @@ export class ManualColumnMove extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
     this.addHook('beforeOnCellMouseOver', (...args: unknown[]) => (this.#onBeforeOnCellMouseOver as Function)(...args));
+    this.addHook('beforeOnCellMouseOverOutside',
+      (event: MouseEvent, coords: unknown, TD: HTMLElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
     this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
 
@@ -627,6 +630,22 @@ export class ManualColumnMove extends BasePlugin {
     controller.cell = true;
     this.#hoveredColumn = coords.col;
     this.#target.TD = TD;
+  }
+
+  /**
+   * Suppresses selection changes during a column move drag when the mouse
+   * is outside the data viewport (e.g. over column headers during scroll).
+   *
+   * @param {object} controller The controller object.
+   */
+  #onBeforeOnCellMouseOverOutside(controller: Record<string, boolean>) {
+    if (!this.#pressed) {
+      return;
+    }
+
+    controller.row = true;
+    controller.column = true;
+    controller.cell = true;
   }
 
   /**

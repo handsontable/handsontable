@@ -1,41 +1,67 @@
 /* file: app.component.ts */
-import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import {Component, ViewChild, ViewEncapsulation, HostListener, ElementRef, inject} from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-selection',
-  standalone: false,
-  template: ` <div class="controls">
-      <label>
-        <select
-          id="selectOption"
-          (change)="selectOptionChange($event)"
-          [value]="'multiple'"
-        >
-          <option value="single">Single selection</option>
-          <option value="range">Range selection</option>
-          <option value="multiple">Multiple ranges selection</option>
-        </select>
-      </label>
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div class="example-controls-container">
+      <div class="controls">
+        <div class="theme-dropdown" #dropdownRef>
+          <button
+            class="theme-dropdown-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isOpen"
+            (click)="toggleDropdown()"
+          >
+            <span>{{ selectedLabel }}</span>
+            <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          @if (isOpen) {
+            <ul class="theme-dropdown-menu" role="listbox">
+              @for (opt of options; track opt.value) {
+                <li
+                  role="option"
+                  [attr.aria-selected]="selected === opt.value"
+                  (click)="selectOption(opt.value)"
+                >
+                  {{ opt.label }}
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
     </div>
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
   encapsulation: ViewEncapsulation.None
 })
-export class Example1SelectionComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  isOpen = false;
+  selected = 'multiple';
+
+  readonly options = [
+    { value: 'single', label: 'Single selection' },
+    { value: 'range', label: 'Range selection' },
+    { value: 'multiple', label: 'Multiple ranges selection' },
+  ];
+
   readonly data = [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5'],
-    ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6', 'H6', 'I6'],
-    ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7'],
-    ['A8', 'B8', 'C8', 'D8', 'E8', 'F8', 'G8', 'H8', 'I8'],
-    ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9'],
+    ['Ana García',     'Engineering', 'Senior Engineer',   95000, 'Madrid',      'Spain',   'F', 12, '2026-03-14'],
+    ['James Okafor',   'Marketing',   'Product Manager',   88000, 'Lagos',       'Nigeria', 'M',  8, '2026-07-01'],
+    ['Li Wei',         'Engineering', 'Frontend Dev',      82000, 'Shanghai',    'China',   'M',  5, '2026-01-10'],
+    ['Maria Santos',   'HR',          'HR Specialist',     71000, 'Lisbon',      'Portugal','F',  3, '2026-11-20'],
+    ['David Kim',      'Engineering', 'Backend Dev',       85000, 'Seoul',       'Korea',   'M',  7, '2026-08-05'],
+    ['Emma Wilson',    'Marketing',   'SEO Analyst',       68000, 'London',      'UK',      'F',  2, '2026-02-14'],
+    ['Ahmed Hassan',   'Finance',     'Controller',        92000, 'Cairo',       'Egypt',   'M', 10, '2026-06-30'],
+    ['Sara Johansson', 'Engineering', 'QA Engineer',       78000, 'Stockholm',   'Sweden',  'F',  6, '2026-09-12'],
+    ['Carlos Mendez',  'Sales',       'Account Manager',   74000, 'Mexico City', 'Mexico',  'M',  4, '2026-04-25'],
   ];
 
   readonly gridSettings: GridSettings = {
@@ -49,49 +75,56 @@ export class Example1SelectionComponent {
     autoWrapCol: true
   };
 
-  selectOptionChange(event: Event): void {
-    const hot = this.hotTable?.hotInstance;
-    type selection = 'multiple' | 'single' | 'range' | undefined;
-    const value = (event.target as HTMLSelectElement).value;
-    const first = value.split(' ')[0].toLowerCase() as selection;
+  get selectedLabel(): string {
+    return this.options.find((o) => o.value === this.selected)?.label || '';
+  }
 
-    hot?.updateSettings({ selectionMode: first });
+  private elementRef = inject(ElementRef);
+
+  toggleDropdown(): void {
+    this.isOpen = !this.isOpen;
+  }
+
+  selectOption(value: string): void {
+    this.selected = value;
+    this.isOpen = false;
+    type selection = 'multiple' | 'single' | 'range' | undefined;
+
+    this.hotTable?.hotInstance?.updateSettings({ selectionMode: value as selection });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.querySelector('.theme-dropdown')?.contains(event.target)) {
+      this.isOpen = false;
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      this.isOpen = false;
+    }
   }
 }
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1SelectionComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1SelectionComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1SelectionComponent ]
-})
-
-export class AppModule { }
 /* end-file */

@@ -3,6 +3,9 @@ import {
   rangeEachReverse,
   isNumeric,
   isNumericLike,
+  isCommaThousandsGroupedInteger,
+  isDotThousandsGroupedInteger,
+  isDotThousandsGroupedFloat,
   valueAccordingPercent,
   clamp,
   isUnsignedNumber,
@@ -293,6 +296,72 @@ describe('Number helper', () => {
   });
 
   //
+  // Handsontable.helper.isCommaThousandsGroupedInteger
+  //
+  describe('isCommaThousandsGroupedInteger', () => {
+    it('should return `true` for multi-group thousands when decimal separator is a dot', () => {
+      expect(isCommaThousandsGroupedInteger('1,234,567', '.')).toBe(true);
+      expect(isCommaThousandsGroupedInteger('  1,234,567  ', '.')).toBe(true);
+      expect(isCommaThousandsGroupedInteger('-12,345,678', '.')).toBe(true);
+    });
+
+    it('should return `false` when decimal separator is not a dot', () => {
+      expect(isCommaThousandsGroupedInteger('1,234,567', ',')).toBe(false);
+      expect(isCommaThousandsGroupedInteger('1,234,567', undefined)).toBe(false);
+    });
+
+    it('should return `false` for values that are not valid grouped integers', () => {
+      expect(isCommaThousandsGroupedInteger('0,001', '.')).toBe(false);
+      expect(isCommaThousandsGroupedInteger('12,34', '.')).toBe(false);
+      expect(isCommaThousandsGroupedInteger('1,234.56', '.')).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.helper.isDotThousandsGroupedInteger
+  //
+  describe('isDotThousandsGroupedInteger', () => {
+    it('should return `true` for valid dot-thousands integers when decimal separator is a comma', () => {
+      expect(isDotThousandsGroupedInteger('7.000', ',')).toBe(true);
+      expect(isDotThousandsGroupedInteger('1.234.567', ',')).toBe(true);
+      expect(isDotThousandsGroupedInteger('  1.234.567  ', ',')).toBe(true);
+      expect(isDotThousandsGroupedInteger('-12.345', ',')).toBe(true);
+    });
+
+    it('should return `false` when decimal separator is not a comma', () => {
+      expect(isDotThousandsGroupedInteger('7.000', '.')).toBe(false);
+      expect(isDotThousandsGroupedInteger('7.000', undefined)).toBe(false);
+    });
+
+    it('should return `false` for values that are not valid grouped integers', () => {
+      expect(isDotThousandsGroupedInteger('0.001', ',')).toBe(false);
+      expect(isDotThousandsGroupedInteger('7.00', ',')).toBe(false);
+      expect(isDotThousandsGroupedInteger('7.000,25', ',')).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.helper.isDotThousandsGroupedFloat
+  //
+  describe('isDotThousandsGroupedFloat', () => {
+    it('should return `true` for dot-thousands floats with comma decimal when decimal separator is a comma', () => {
+      expect(isDotThousandsGroupedFloat('7.000,25', ',')).toBe(true);
+      expect(isDotThousandsGroupedFloat('1.234.567,89', ',')).toBe(true);
+      expect(isDotThousandsGroupedFloat('-12.345,6', ',')).toBe(true);
+    });
+
+    it('should return `false` when decimal separator is not a comma', () => {
+      expect(isDotThousandsGroupedFloat('7.000,25', '.')).toBe(false);
+      expect(isDotThousandsGroupedFloat('7.000,25', undefined)).toBe(false);
+    });
+
+    it('should return `false` for pure integers without comma decimal part', () => {
+      expect(isDotThousandsGroupedFloat('7.000', ',')).toBe(false);
+      expect(isDotThousandsGroupedFloat('1.234.567', ',')).toBe(false);
+    });
+  });
+
+  //
   // Handsontable.helper.valueAccordingPercent
   //
   describe('valueAccordingPercent', () => {
@@ -411,6 +480,38 @@ describe('Number helper', () => {
     it('should return null for invalid strings', () => {
       expect(getParsedNumber('abc')).toBe(null);
       expect(getParsedNumber('')).toBe(null);
+    });
+
+    it('should strip dot thousands separators when comma is the decimal separator and grouping is valid', () => {
+      const commaDecimal = { decimalSeparator: ',' };
+
+      expect(getParsedNumber('7.000', commaDecimal)).toBe(7000);
+      expect(getParsedNumber('1.234.567', commaDecimal)).toBe(1234567);
+      expect(getParsedNumber('-12.345', commaDecimal)).toBe(-12345);
+    });
+
+    it('should parse dot-thousands float with comma decimal when comma is the decimal separator', () => {
+      const commaDecimal = { decimalSeparator: ',' };
+
+      expect(getParsedNumber('7.000,25', commaDecimal)).toBe(7000.25);
+      expect(getParsedNumber('1.234.567,89', commaDecimal)).toBe(1234567.89);
+    });
+
+    it('should parse comma as decimal when dot is the decimal separator and the value is not US-style grouping', () => {
+      const dotDecimal = { decimalSeparator: '.' };
+
+      expect(getParsedNumber('0,001', dotDecimal)).toBe(0.001);
+      expect(getParsedNumber('0,100', dotDecimal)).toBe(0.1);
+      expect(getParsedNumber('0,010', dotDecimal)).toBe(0.01);
+      expect(getParsedNumber('-0,001', dotDecimal)).toBe(-0.001);
+    });
+
+    it('should strip thousands separators when dot is the decimal separator and grouping is valid', () => {
+      const dotDecimal = { decimalSeparator: '.' };
+
+      expect(getParsedNumber('100,000', dotDecimal)).toBe(100000);
+      expect(getParsedNumber('1,234,567', dotDecimal)).toBe(1234567);
+      expect(getParsedNumber('-12,345', dotDecimal)).toBe(-12345);
     });
   });
 });

@@ -146,10 +146,8 @@ describe('Hook', () => {
         doc.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="lib/normalize.css">
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+            ${getE2eNormalizeStylesheetLinkTagHtml()}
+            ${getE2eThemeStylesheetLinkTagsHtml()}
           </head>`);
         doc.close();
 
@@ -207,15 +205,14 @@ describe('Hook', () => {
 
         await sleep(50);
 
-        expect(beforeRefreshDimensions).toHaveBeenCalled();
-        const call = beforeRefreshDimensions.calls.mostRecent();
-        expect(call.args[2]).toBe(true);
-        expect(call.args[0].width).toBeGreaterThanOrEqual(450);
-        expect(call.args[0].width).toBeLessThanOrEqual(550);
-        expect(call.args[1].width).toBeGreaterThanOrEqual(10);
-        expect(call.args[1].width).toBeLessThanOrEqual(50);
-        expect(call.args[1].height).toBeGreaterThanOrEqual(0);
-        expect(call.args[1].height).toBeLessThanOrEqual(200);
+        const layout = getThemeLayout();
+        const expectedHeight = layout.overlayHeight({ rows: 5 });
+
+        expect(beforeRefreshDimensions).toHaveBeenCalledWith(
+          { width: 500, height: 0 },
+          { width: 35, height: expectedHeight },
+          true,
+        );
       });
 
       it('should be fired with proper arguments (when window size does not changed)', async() => {

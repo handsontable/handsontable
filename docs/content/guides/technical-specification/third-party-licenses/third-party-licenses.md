@@ -13,11 +13,7 @@ angular:
   metaTitle: Third-party licenses - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
-menuTag: updated
 ---
-
-# Third-party licenses
-
 Learn about the licensing terms of Handsontable's software dependencies.
 
 [[toc]]

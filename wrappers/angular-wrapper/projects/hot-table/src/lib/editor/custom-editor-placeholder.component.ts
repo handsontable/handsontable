@@ -20,7 +20,7 @@ import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.compo
     <ng-template #inputPlaceholder></ng-template>
   </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: false,
+  standalone: true,
 })
 export class CustomEditorPlaceholderComponent {
   /** The top position of the editor. */

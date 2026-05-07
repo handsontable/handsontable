@@ -1,7 +1,6 @@
 import * as C from '../../../../i18n/constants';
-import { registerCondition, getCondition } from '../../conditionRegisterer';
-import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER } from './after';
-import { CONDITION_NAME as CONDITION_INTL_TIME_BEFORE } from './before';
+import { registerCondition } from '../../conditionRegisterer';
+import { parseToLocalTime } from '../../../../helpers/dateTime';
 
 export const CONDITION_NAME = 'intl_time_between';
 
@@ -16,10 +15,15 @@ type DataRow = {
  * @returns Whether the cell value is between the given times.
  */
 export function condition(dataRow: DataRow, [from, to]: unknown[]): boolean {
-  const timeBefore = getCondition(CONDITION_INTL_TIME_BEFORE, [to]);
-  const timeAfter = getCondition(CONDITION_INTL_TIME_AFTER, [from]);
+  const dataTime = parseToLocalTime(dataRow.value);
+  const fromTime = parseToLocalTime(from);
+  const toTime = parseToLocalTime(to);
 
-  return timeBefore(dataRow) && timeAfter(dataRow);
+  if (dataTime === null || fromTime === null || toTime === null) {
+    return false;
+  }
+
+  return dataTime >= fromTime && dataTime <= toTime;
 }
 
 registerCondition(CONDITION_NAME, condition, {

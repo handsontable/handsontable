@@ -48,22 +48,18 @@ describe('MultiSelectEditor autofill', () => {
 
       await selectCell(0, 0, 0, 0);
 
-      spec().$container.find('.wtBorder.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(0) td:eq(1)').simulate('mouseover');
-      spec().$container.find('tr:eq(0) td:eq(1)').simulate('mouseup');
+      simulateFillHandleDrag(spec().$container.find('tr:eq(0) td:eq(1)'));
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getDataAtCell(0, 1)).toBe('yellow, green');
       expect(getSourceDataAtCell(0, 1)).toEqual([choices[0], choices[3]]);
 
       await selectCell(0, 0, 0, 1);
 
-      spec().$container.find('.wtBorder.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseover');
-      spec().$container.find('tr:eq(2) td:eq(1)').simulate('mouseup');
+      simulateFillHandleDrag(spec().$container.find('tr:eq(2) td:eq(1)'));
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       // Non-multiselect-typed cells:
       expect(getDataAtCell(1, 0)).toBe('yellow, green');
@@ -98,11 +94,9 @@ describe('MultiSelectEditor autofill', () => {
 
       await selectCell(0, 0, 0, 0);
 
-      spec().$container.find('.wtBorder.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
-      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+      simulateFillHandleDrag(spec().$container.find('tr:eq(2) td:eq(0)'));
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       // All multiselect-typed cells should have the same source data array copied by autofill.
       expect(getDataAtCell(0, 0)).toBe('yellow, green');

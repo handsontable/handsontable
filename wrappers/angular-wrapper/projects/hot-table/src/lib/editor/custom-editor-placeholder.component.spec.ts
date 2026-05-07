@@ -6,6 +6,7 @@ import { HotCellEditorComponent } from './hot-cell-editor.component';
 @Component({
   selector: 'hot-mock-custom-editor',
   template: '',
+  standalone: true,
 })
 class MockCustomEditorComponent extends HotCellEditorComponent<string> {
   onFocus(): void {}
@@ -17,10 +18,7 @@ describe('CustomEditorPlaceholderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [
-        CustomEditorPlaceholderComponent,
-        MockCustomEditorComponent,
-      ],
+      imports: [CustomEditorPlaceholderComponent],
     }).compileComponents();
   });
 

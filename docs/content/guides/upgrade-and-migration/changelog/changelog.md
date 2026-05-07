@@ -1,4 +1,5 @@
 ---
+type: reference
 id: nbp8i3mk
 title: Changelog
 metaTitle: Changelog - JavaScript Data Grid | Handsontable
@@ -22,11 +23,33 @@ searchCategory: Guides
 category: Upgrade and migration
 ---
 
-# Changelog
-
-See the full history of changes made to Handsontable in each major, minor, and patch release.
+This page aggregates all Handsontable release notes. For upgrade instructions, see the migration guides in this section.
 
 [[toc]]
+
+## 17.0.1
+
+Released on March 25th, 2026
+
+For more information about this release, see:
+- [Documentation (17.0)](https://handsontable.com/docs/17.0)
+
+#### Fixed
+- Fix UndoRedo crash when nullified changes [#12000](https://github.com/handsontable/handsontable/pull/12000)
+- Fix UndoRedo beforeChange order [#12001](https://github.com/handsontable/handsontable/pull/12001)
+- Fixed a bug where the editor does not receive the user inputs [#12042](https://github.com/handsontable/handsontable/pull/12042)
+- Fixed scrollbar width calcualtion on Safari >=26. [#12047](https://github.com/handsontable/handsontable/pull/12047)
+- Added missing typings for Core [#12048](https://github.com/handsontable/handsontable/pull/12048)
+- Fixed rounded corners that may be applied in incorrect use cases [#12052](https://github.com/handsontable/handsontable/pull/12052)
+- Fixed undo/redo stack desync with formulas engine [#12056](https://github.com/handsontable/handsontable/pull/12056)
+- Fixed column width calculation for collapsed columns [#12059](https://github.com/handsontable/handsontable/pull/12059)
+- Fixed and issue with table backround overflow [#12063](https://github.com/handsontable/handsontable/pull/12063)
+- Fixed column header misalignment when nestedRow is enabled [#12081](https://github.com/handsontable/handsontable/pull/12081)
+- Fixed an issue with mobile select handles styles [#12083](https://github.com/handsontable/handsontable/pull/12083)
+- Improved clipboard processing after paste [#12084](https://github.com/handsontable/handsontable/pull/12084)
+- Fixed an issue with scrolling issue that occurs when preventOverflow is enabled [#12086](https://github.com/handsontable/handsontable/pull/12086)
+- Fixed date picker positioning near viewport edges [#12087](https://github.com/handsontable/handsontable/pull/12087)
+- Fixed an issue with main theme hover on menu icon background color [#12159](https://github.com/handsontable/handsontable/pull/12159)
 
 ## 17.0.0
 
@@ -426,6 +449,16 @@ For more information about this release see:
 - Fixed the missing `source` argument for the `setDataAtCell` method. [#11287](https://github.com/handsontable/handsontable/pull/11287)
 - Fixed the top overlay misalignment issue, visible after vertical scrollbar disappeared. [#11289](https://github.com/handsontable/handsontable/pull/11289)
 - React: Made the build scripts of `@handsontable/react-wrapper` place the TS type definitions in the configured directory. [#11296](https://github.com/handsontable/handsontable/pull/11296)
+
+## 14.6.2
+
+Released on February 10, 2025
+
+For more information about this release see:
+- [Documentation (14.6)](https://handsontable.com/docs/14.6)
+
+#### Fixed
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
 
 ## 14.6.1
 
@@ -2608,3 +2641,16 @@ For more information on this release, see:
 
 The changelogs from older versions of Handsontable are
 [available on GitHub](https://github.com/handsontable/handsontable/releases).
+
+## Related
+
+- [Migrating from 7.4 to 8.0](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)
+- [Migrating from 8.4 to 9.0](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md)
+- [Migrating from 9.0 to 10.0](@/guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0.md)
+- [Migrating from 10.0 to 11.0](@/guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0.md)
+- [Migrating from 11.1 to 12.0](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0.md)
+- [Migrating from 12.4 to 13.0](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0.md)
+- [Migrating from 13.1 to 14.0](@/guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0.md)
+- [Migrating from 14.6 to 15.0](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)
+- [Migrating from 15.3 to 16.0](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)
+- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)

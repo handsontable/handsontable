@@ -21,7 +21,7 @@ describe('Filters condition (`intl_date_after`)', () => {
       },
       testDate: '2015-12-20',
       startDate: '2015-12-20',
-      assumption: true
+      assumption: false
     },
   ], ({ dateFormat, testDate, startDate, assumption }) => {
     it('should filter matching and non-matching values (date cell type)', () => {

@@ -10,9 +10,6 @@ export class BaseRenderer {
   /**
    * Factory for newly created DOM elements.
    *
-   * NodePool should be used for each renderer. For the first stage of the refactoring
-   * process, only some of the renderers are implemented a new approach.
-   *
    * @type {NodesPool|null}
    */
   nodesPool: NodesPool | null = null;
@@ -59,11 +56,6 @@ export class BaseRenderer {
 
     this.table = table;
   }
-
-  /**
-   * Adjusts the number of rendered nodes.
-   */
-  adjust() { }
 
   /**
    * Renders the contents to the elements.

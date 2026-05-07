@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   extends: ['airbnb-base'],
   parser: '@babel/eslint-parser',
   parserOptions: {
@@ -50,7 +51,7 @@ module.exports = {
       {
         code: 120,
         ignoreComments: true,
-        ignorePattern: '^\\s*x?it\\s*\\(', // Ignore long test names (e.q: `it("something long")`).
+        ignorePattern: '^\\s*x?(?:f?it)(?:\\.\\w+)?\\s*\\(', // Ignore long test names (e.g. `it("...")`, `it.flaky("...")`).
       }
     ],
     'newline-per-chained-call': 'off',

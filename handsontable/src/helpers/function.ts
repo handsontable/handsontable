@@ -105,7 +105,7 @@ export function throttleAfterHits(func: (...args: unknown[]) => unknown, wait: n
  *
  * @param {Function} func Function to invoke.
  * @param {number} wait Delay in milliseconds.
- * @returns {Function}
+ * @returns {Function} The debounced function. It has a `cancel` method that clears a pending timer.
  */
 export function debounce(func: (...args: unknown[]) => unknown, wait: number = 200): (...args: unknown[]) => unknown {
   let lastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -120,11 +120,24 @@ export function debounce(func: (...args: unknown[]) => unknown, wait: number = 2
       clearTimeout(lastTimer);
     }
     lastTimer = setTimeout(() => {
+      lastTimer = null;
       result = func.apply(this, args);
     }, wait);
 
     return result;
   }
+
+  /**
+   * Clears the scheduled invocation so the debounced function does not run later.
+   */
+  function cancel() {
+    if (lastTimer !== null) {
+      clearTimeout(lastTimer);
+      lastTimer = null;
+    }
+  }
+
+  _debounce.cancel = cancel;
 
   return _debounce;
 }

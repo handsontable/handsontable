@@ -65,16 +65,24 @@ class VisualSelection extends Selection {
    */
   trimToVisibleCellsRangeOnly(cellRange: CellRange) {
     const { from, to } = cellRange;
-    let visibleFromCoords = this.getNearestNotHiddenCoords(from, 1);
-    let visibleToCoords = this.getNearestNotHiddenCoords(to, -1);
+    const rowDirection = cellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
+    const columnDirection = cellRange.getInlineDirection() === 'start-end' ? 1 : -1;
+
+    const visibleFromCoords = this.getNearestNotHiddenCoords(from, rowDirection, columnDirection);
+    const visibleToCoords = this.getNearestNotHiddenCoords(to, -rowDirection, -columnDirection);
 
     if (visibleFromCoords === null || visibleToCoords === null) {
       return null;
     }
 
-    if (visibleFromCoords.row > visibleToCoords.row || visibleFromCoords.col > visibleToCoords.col) {
-      visibleFromCoords = from;
-      visibleToCoords = to;
+    // Check if the coords have crossed each other after finding nearest not hidden indexes
+    const rowCrossed = (rowDirection === 1 && visibleFromCoords.row > visibleToCoords.row) ||
+                       (rowDirection === -1 && visibleFromCoords.row < visibleToCoords.row);
+    const colCrossed = (columnDirection === 1 && visibleFromCoords.col > visibleToCoords.col) ||
+                       (columnDirection === -1 && visibleFromCoords.col < visibleToCoords.col);
+
+    if (rowCrossed || colCrossed) {
+      return null;
     }
 
     return this.settings.createCellRange(visibleFromCoords, visibleFromCoords, visibleToCoords);

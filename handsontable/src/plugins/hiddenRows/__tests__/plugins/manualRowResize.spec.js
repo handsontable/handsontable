@@ -24,11 +24,7 @@ describe('HiddenRows', () => {
         manualRowResize: true,
       });
 
-      expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(26);
-        main.toEqual(29);
-        horizon.toEqual(37);
-      });
+      expect(rowHeight(spec().$container, 1)).toEqual(getThemeLayout().defaultDataRowHeight);
 
       // Resize renderable row index `1` (within visual index term the index at 1 is hidden).
       await resizeRow(1, 100);
@@ -47,11 +43,7 @@ describe('HiddenRows', () => {
         manualRowResize: true,
       });
 
-      expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(26);
-        main.toEqual(29);
-        horizon.toEqual(37);
-      });
+      expect(rowHeight(spec().$container, 1)).toEqual(getThemeLayout().defaultDataRowHeight);
 
       getPlugin('manualRowResize').setManualSize(2, 100);
       await render();
@@ -82,11 +74,9 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-      });
+      expect($handle.offset().top).toBeCloseTo(
+        $headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1,
+        0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
@@ -116,11 +106,9 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-      });
+      expect($handle.offset().top).toBeCloseTo(
+        $headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1,
+        0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
@@ -150,11 +138,9 @@ describe('HiddenRows', () => {
 
       const $handle = $('.manualRowResizer');
 
-      expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-      });
+      expect($handle.offset().top).toBeCloseTo(
+        $headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1,
+        0);
       expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 0);
     });
 
@@ -188,11 +174,7 @@ describe('HiddenRows', () => {
         .simulate('mouseup')
       ;
 
-      expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(56);
-        main.toEqual(59);
-        horizon.toEqual(67);
-      });
+      expect(rowHeight(spec().$container, 1)).toEqual(getThemeLayout().defaultDataRowHeight + 30);
     });
   });
 });

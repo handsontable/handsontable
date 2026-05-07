@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 66g0jo36
 title: Binding to data
 metaTitle: Binding to data - JavaScript Data Grid | Handsontable
@@ -17,11 +18,7 @@ angular:
   metaTitle: Binding to data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
-
-# Binding to data
-
 Fill your data grid with various data structures, including an array of arrays or an array of objects.
 
 [[toc]]
@@ -36,8 +33,8 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ::: example #example1 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.js)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example1.ts)
 
 :::
 
@@ -77,8 +74,8 @@ The following example shows how you would use the array of arrays with a selecti
 
 ::: example #example2 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.js)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example2.ts)
 
 :::
 
@@ -114,8 +111,8 @@ An array of objects can be used as a data source as follows:
 
 ::: example #example3 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example3.js)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example3.ts)
+@[code collapse={9-13}](@/content/guides/getting-started/binding-to-data/javascript/example3.js)
+@[code collapse={16-20}](@/content/guides/getting-started/binding-to-data/javascript/example3.ts)
 
 :::
 
@@ -266,8 +263,8 @@ The example below shows how to use such objects:
 
 ::: example #example7 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example7.js)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example7.ts)
+@[code collapse={11-15}](@/content/guides/getting-started/binding-to-data/javascript/example7.js)
+@[code collapse={18-22}](@/content/guides/getting-started/binding-to-data/javascript/example7.ts)
 
 :::
 
@@ -357,8 +354,8 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: example #example10 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.js)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example10.ts)
 
 :::
 
@@ -459,24 +456,44 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
 
-- [`loadData()`](@/api/core.md#loaddata)<br>
-  Replaces the data used in Handsontable with the dataset provided as the method argument. <br> **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
-  ```js
-  hot.loadData(newDataset);
-  ```
-- [`updateData()`](@/api/core.md#updatedata)<br>
-  Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
-  ```js
-  hot.updateData(newDataset);
-  ```
-- [`updateSettings()`](@/api/core.md#updatesettings)<br>
-  Updates the configuration of the table, [`updateSettings()`](@/api/core.md#updatesettings) can be also used to replace the data being used. Since version `12.0.0`, under the hood it utilizes the [`updateData()`](@/api/core.md#updatedata) method to perform the data replacement (apart from the one automatic call done during the initialization, where it uses [`loadData()`](@/api/core.md#loaddata)).
-  ```js
-  hot.updateSettings({
-    data: newDataset,
-    // ... other config options
-  });
-  ```
+<ol class="sl-steps">
+<li>
+
+**[`loadData()`](@/api/core.md#loaddata)**
+
+Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
+
+```js
+hot.loadData(newDataset);
+```
+
+</li>
+<li>
+
+**[`updateData()`](@/api/core.md#updatedata)**
+
+Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
+
+```js
+hot.updateData(newDataset);
+```
+
+</li>
+<li>
+
+**[`updateSettings()`](@/api/core.md#updatesettings)**
+
+Updates the configuration of the table, [`updateSettings()`](@/api/core.md#updatesettings) can be also used to replace the data being used. Since version `12.0.0`, under the hood it utilizes the [`updateData()`](@/api/core.md#updatedata) method to perform the data replacement (apart from the one automatic call done during the initialization, where it uses [`loadData()`](@/api/core.md#loaddata)).
+
+```js
+hot.updateSettings({
+  data: newDataset,
+  // ... other config options
+});
+```
+
+</li>
+</ol>
 
 ::: only-for angular
 
@@ -488,92 +505,107 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
 
-- [`setDataAtCell()`](@/api/core.md#setdataatcell)<br>
-  Replaces data in a single cell or to perform a series of single-cell data replacements:
+<ol class="sl-steps">
+<li>
 
-  ```js
-  // Replaces the cell contents at the (0, 2) visual coordinates (0
-  // being the visual row index, 2 - the visual column index) with the
-  // supplied value.
-  hot.setDataAtCell(0, 2, 'New Value');
+**[`setDataAtCell()`](@/api/core.md#setdataatcell)**
 
-  // Replaces the cells at `(0,2)`, `(1,2)` and `(2,2)` with the
-  // provided values.
-  const changes = [
-    [0, 2, 'New Value'],
-    [1, 2, 'Different Value'],
-    [2, 2, 'Third Replaced Value'],
-  ];
-  hot.setDataAtCell(changes);
-  ```
+Replaces data in a single cell or to perform a series of single-cell data replacements:
 
-- [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)<br>
-  Replaces data in a single cell or to perform a series of single-cell data replacements, analogously to `setDataAtCell()`, but allows targeting the cells by the visual row index and data row *property*. Useful for the [Array of objects data type](#array-of-objects).
+```js
+// Replaces the cell contents at the (0, 2) visual coordinates (0
+// being the visual row index, 2 - the visual column index) with the
+// supplied value.
+hot.setDataAtCell(0, 2, 'New Value');
 
-  ```js
-  // Replaces the cell contents at the (0, 'title') coordinates (0
-  // being the visual row index, 'title' - the data row object
-  // property) with the supplied value.
-  hot.setDataAtRowProp(0, 'title', 'New Value');
+// Replaces the cells at `(0,2)`, `(1,2)` and `(2,2)` with the
+// provided values.
+const changes = [
+  [0, 2, 'New Value'],
+  [1, 2, 'Different Value'],
+  [2, 2, 'Third Replaced Value'],
+];
+hot.setDataAtCell(changes);
+```
 
-  // Replaces the cells with the props of 'id', 'firstName' and
-  // 'lastName' in the first row with the provided values.
-  const changes = [
-    [0, 'id', '22'],
-    [0, 'firstName', 'John'],
-    [0, 'lastName', 'Doe'],
-  ];
-  hot.setDataAtRowProp(changes);
-  ```
+</li>
+<li>
 
-- [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)<br>
-  As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
+**[`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)**
 
-  ```js
-  // Replaces the cell contents at the (0, 2) coordinates (0 being the
-  // physical row index, 2 - the physical column index) with the
-  // supplied value.
-  hot.setSourceDataAtCell(0, 2, 'New Value');
+Replaces data in a single cell or to perform a series of single-cell data replacements, analogously to `setDataAtCell()`, but allows targeting the cells by the visual row index and data row *property*. Useful for the [Array of objects data type](#array-of-objects).
 
-  // Replaces the cell contents at the (0, 'title') coordinates (0
-  // being the physical row index, 'title' - the data row property)
-  // with the supplied value.
-  hot.setSourceDataAtCell(0, 'title', 'New Value');
+```js
+// Replaces the cell contents at the (0, 'title') coordinates (0
+// being the visual row index, 'title' - the data row object
+// property) with the supplied value.
+hot.setDataAtRowProp(0, 'title', 'New Value');
 
-  // Replaces the cells with the props of 'id', 'firstName' and
-  // 'lastName' in the first physical row with the provided values.
-  const changes = [
-    [0, 'id', '22'],
-    [0, 'firstName', 'John'],
-    [0, 'lastName', 'Doe'],
-  ];
-  hot.setSourceDataAtCell(changes);
-  ```
+// Replaces the cells with the props of 'id', 'firstName' and
+// 'lastName' in the first row with the provided values.
+const changes = [
+  [0, 'id', '22'],
+  [0, 'firstName', 'John'],
+  [0, 'lastName', 'Doe'],
+];
+hot.setDataAtRowProp(changes);
+```
 
-- [`populateFromArray()`](@/api/core.md#populatefromarray)<br>
-  Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
+</li>
+<li>
 
-  ::: tip
+**[`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)**
 
-  The [`populateFromArray()`](@/api/core.md#populatefromarray) method can't change [read-only](@/guides/cell-features/disabled-cells/disabled-cells.md) cells.
+As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
 
-  :::
+```js
+// Replaces the cell contents at the (0, 2) coordinates (0 being the
+// physical row index, 2 - the physical column index) with the
+// supplied value.
+hot.setSourceDataAtCell(0, 2, 'New Value');
 
-  ```js
-  const newValues = [
-    ['A', 'B', 'C'],
-    ['D', 'E', 'F']
-  ];
+// Replaces the cell contents at the (0, 'title') coordinates (0
+// being the physical row index, 'title' - the data row property)
+// with the supplied value.
+hot.setSourceDataAtCell(0, 'title', 'New Value');
 
-  // Replaces the values from (1, 1) to (2, 3) visual cell coordinates
-  // with the values from the `newValues` array.
-  hot.populateFromArray(1, 1, newValues);
+// Replaces the cells with the props of 'id', 'firstName' and
+// 'lastName' in the first physical row with the provided values.
+const changes = [
+  [0, 'id', '22'],
+  [0, 'firstName', 'John'],
+  [0, 'lastName', 'Doe'],
+];
+hot.setSourceDataAtCell(changes);
+```
 
-  // Replaces the values from (1, 1) to (2, 2) visual cell coordinates
-  // with the values from the `newValues` array, ommiting the values
-  // that would fall outside of the defined range.
-  hot.populateFromArray(1, 1, newValues, 2, 2);
-  ```
+</li>
+<li>
+
+**[`populateFromArray()`](@/api/core.md#populatefromarray)**
+
+Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
+
+<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/disabled-cells/">read-only</a> cells.</p></aside>
+
+```js
+const newValues = [
+  ['A', 'B', 'C'],
+  ['D', 'E', 'F']
+];
+
+// Replaces the values from (1, 1) to (2, 3) visual cell coordinates
+// with the values from the `newValues` array.
+hot.populateFromArray(1, 1, newValues);
+
+// Replaces the values from (1, 1) to (2, 2) visual cell coordinates
+// with the values from the `newValues` array, ommiting the values
+// that would fall outside of the defined range.
+hot.populateFromArray(1, 1, newValues, 2, 2);
+```
+
+</li>
+</ol>
 
 ## Working with a copy of data
 
@@ -583,8 +615,8 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 ::: example #example11 --js 1 --ts 2
 
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
-@[code](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.js)
+@[code collapse={9-14}](@/content/guides/getting-started/binding-to-data/javascript/example11.ts)
 
 :::
 
@@ -611,44 +643,79 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 :::
 
+## Server-side loading
+
+When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#dataprovider) instead of binding a large local array. See [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md).
+
 ## Related API reference
 
-- Configuration options:
-  - [`data`](@/api/options.md#data)
-  - [`dataSchema`](@/api/options.md#dataschema)
-- Core methods:
-  - [`alter()`](@/api/core.md#alter)
-  - [`clear()`](@/api/core.md#clear)
-  - [`getData()`](@/api/core.md#getdata)
-  - [`getDataAtCell()`](@/api/core.md#getdataatcell)
-  - [`getDataAtCol()`](@/api/core.md#getdataatcol)
-  - [`getDataAtProp()`](@/api/core.md#getdataatprop)
-  - [`getDataAtRow()`](@/api/core.md#getdataatrow)
-  - [`getDataAtRowProp()`](@/api/core.md#getdataatrowprop)
-  - [`getSchema()`](@/api/core.md#getschema)
-  - [`getSourceData()`](@/api/core.md#getsourcedata)
-  - [`getSourceDataArray()`](@/api/core.md#getsourcedataarray)
-  - [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell)
-  - [`getSourceDataAtCol()`](@/api/core.md#getsourcedataatcol)
-  - [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow)
-  - [`loadData()`](@/api/core.md#loaddata)
-  - [`populateFromArray()`](@/api/core.md#populatefromarray)
-  - [`setDataAtCell()`](@/api/core.md#setdataatcell)
-  - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)
-  - [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)
-  - [`updateData()`](@/api/core.md#updatedata)
-  - [`updateSettings()`](@/api/core.md#updatesettings)
-- Hooks:
-  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
-  - [`afterChange`](@/api/hooks.md#afterchange)
-  - [`afterLoadData`](@/api/hooks.md#afterloaddata)
-  - [`afterSetDataAtCell`](@/api/hooks.md#aftersetdataatcell)
-  - [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
-  - [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell)
-  - [`afterUpdateData`](@/api/hooks.md#afterupdatedata)
-  - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
-  - [`beforeLoadData`](@/api/hooks.md#beforeloaddata)
-  - [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata)
-  - [`modifyData`](@/api/hooks.md#modifydata)
-  - [`modifyRowData`](@/api/hooks.md#modifyrowdata)
-  - [`modifySourceData`](@/api/hooks.md#modifysourcedata)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [data](@/api/options.md#data)
+- [dataProvider](@/api/options.md#dataprovider)
+- [dataSchema](@/api/options.md#dataschema)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [alter()](@/api/core.md#alter)
+- [clear()](@/api/core.md#clear)
+- [getData()](@/api/core.md#getdata)
+- [getDataAtCell()](@/api/core.md#getdataatcell)
+- [getDataAtCol()](@/api/core.md#getdataatcol)
+- [getDataAtProp()](@/api/core.md#getdataatprop)
+- [getDataAtRow()](@/api/core.md#getdataatrow)
+- [getDataAtRowProp()](@/api/core.md#getdataatrowprop)
+- [getSchema()](@/api/core.md#getschema)
+- [getSourceData()](@/api/core.md#getsourcedata)
+- [getSourceDataArray()](@/api/core.md#getsourcedataarray)
+- [getSourceDataAtCell()](@/api/core.md#getsourcedataatcell)
+- [getSourceDataAtCol()](@/api/core.md#getsourcedataatcol)
+- [getSourceDataAtRow()](@/api/core.md#getsourcedataatrow)
+- [loadData()](@/api/core.md#loaddata)
+- [populateFromArray()](@/api/core.md#populatefromarray)
+- [setDataAtCell()](@/api/core.md#setdataatcell)
+- [setDataAtRowProp()](@/api/core.md#setdataatrowprop)
+- [setSourceDataAtCell()](@/api/core.md#setsourcedataatcell)
+- [updateData()](@/api/core.md#updatedata)
+- [updateSettings()](@/api/core.md#updatesettings)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCellMetaReset](@/api/hooks.md#aftercellmetareset)
+- [afterChange](@/api/hooks.md#afterchange)
+- [afterLoadData](@/api/hooks.md#afterloaddata)
+- [afterSetDataAtCell](@/api/hooks.md#aftersetdataatcell)
+- [afterSetDataAtRowProp](@/api/hooks.md#aftersetdataatrowprop)
+- [afterSetSourceDataAtCell](@/api/hooks.md#aftersetsourcedataatcell)
+- [afterUpdateData](@/api/hooks.md#afterupdatedata)
+- [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
+- [beforeLoadData](@/api/hooks.md#beforeloaddata)
+- [beforeUpdateData](@/api/hooks.md#beforeupdatedata)
+- [modifyData](@/api/hooks.md#modifydata)
+- [modifyRowData](@/api/hooks.md#modifyrowdata)
+- [modifySourceData](@/api/hooks.md#modifysourcedata)
+
+</div>
+
+## What you learned
+
+- Handsontable accepts three main data structures: arrays of arrays, arrays of objects, and function-based data sources.
+- You can pass an initial dataset through the `data` option or via the `HotTable` component's props.
+- Use `loadData()` to replace data and reset configuration, `updateData()` to replace data without resetting settings, and `updateSettings({ data })` to update data alongside other options.
+- Handsontable binds to your data by reference. Copy the dataset before passing it in to avoid unintended mutations.
+- For large datasets that live on a server, use `dataProvider` instead of a local array.
+
+## Next steps
+
+- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md) -- learn how to configure every aspect of your grid.
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- persist changes to a backend or local storage.

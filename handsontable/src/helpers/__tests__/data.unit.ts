@@ -1,5 +1,7 @@
 import {
+  cloneRow,
   dataRowToChangesArray,
+  hasChangeForCell,
   spreadsheetColumnLabel,
   spreadsheetColumnIndex,
   isArrayOfArrays,
@@ -83,6 +85,65 @@ describe('Data helper', () => {
       expect(isArrayOfObjects([null])).toBe(false);
       expect(isArrayOfObjects([[]])).toBe(false);
       expect(isArrayOfObjects([['test'], [1]])).toBe(false);
+    });
+  });
+
+  describe('cloneRow', () => {
+    it('returns a shallow copy of an array row', () => {
+      const row = ['a', 'b', 'c'];
+      const result = cloneRow(row);
+
+      expect(result).not.toBe(row);
+      expect(result).toEqual(row);
+    });
+
+    it('returns a shallow copy of an object row', () => {
+      const row = { x: 1, nested: { y: 2 } };
+      const result = cloneRow(row);
+
+      expect(result).not.toBe(row);
+      expect(result).toEqual(row);
+      expect(result.nested).toBe(row.nested);
+    });
+
+    it('passes primitives through unchanged', () => {
+      expect(cloneRow('abc')).toBe('abc');
+      expect(cloneRow(42)).toBe(42);
+      expect(cloneRow(null)).toBe(null);
+      expect(cloneRow(undefined)).toBe(undefined);
+    });
+
+    it('mutating the returned array does not affect the source', () => {
+      const row = ['a', 'b'];
+      const result = cloneRow(row);
+
+      result[0] = 'X';
+
+      expect(row[0]).toBe('a');
+    });
+
+    it('mutating the returned object does not affect the source', () => {
+      const row = { x: 1 };
+      const result = cloneRow(row);
+
+      result.x = 99;
+
+      expect(row.x).toBe(1);
+    });
+  });
+
+  describe('hasChangeForCell', () => {
+    it('should return `true` only when the visual row and prop pair exists in changes', () => {
+      const changes = [
+        [0, 'name', 'A1', 'edited'],
+        [1, 'id', 1, 2],
+        [2, 0, 'C3', 'changed'],
+      ];
+
+      expect(hasChangeForCell(changes, 0, 'name')).toBe(true);
+      expect(hasChangeForCell(changes, 2, 0)).toBe(true);
+      expect(hasChangeForCell(changes, 0, 'id')).toBe(false);
+      expect(hasChangeForCell(changes, 1, 'name')).toBe(false);
     });
   });
 });

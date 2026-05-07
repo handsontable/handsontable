@@ -1,4 +1,5 @@
 import { RowHeadersRenderer } from './rowHeaders';
+import { ColumnHeaderRowsRenderer } from './columnHeaderRows';
 import { ColumnHeadersRenderer } from './columnHeaders';
 import { ColGroupRenderer } from './colGroup';
 import { RowsRenderer } from './rows';
@@ -22,7 +23,8 @@ class Renderer {
     this.renderer = new TableRenderer(TABLE, { cellRenderer, stylesHandler });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
-      columnHeaders: new ColumnHeadersRenderer(THEAD),
+      columnHeaderRows: new ColumnHeaderRowsRenderer(THEAD),
+      columnHeaders: new ColumnHeadersRenderer(),
       colGroup: new ColGroupRenderer(COLGROUP),
       rows: new RowsRenderer(TBODY),
       cells: new CellsRenderer(),
@@ -83,13 +85,6 @@ class Renderer {
   }
 
   /**
-   * Adjusts the table (preparing for render).
-   */
-  adjust() {
-    (this.renderer as any).adjust();
-  }
-
-  /**
    * Renders the table.
    */
   render() {
@@ -99,6 +94,7 @@ class Renderer {
 
 export {
   RowHeadersRenderer,
+  ColumnHeaderRowsRenderer,
   ColumnHeadersRenderer,
   ColGroupRenderer,
   RowsRenderer,

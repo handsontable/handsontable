@@ -56,7 +56,15 @@ export class StretchLastStrategy extends StretchStrategy {
     }
 
     const allColumnsWidth = Array.from(this.baseWidths).reduce((sum, [, width]) => sum + width, 0);
-    const lastColumnWidth = Math.max(this.viewportWidth - allColumnsWidth + this.#lastColumnWidth, 0);
+    const lastColumnWidth = this.viewportWidth - allColumnsWidth + this.#lastColumnWidth;
+
+    // If the calculated width would shrink the last column below its base width,
+    // don't apply stretching at all (similar to StretchAllStrategy behavior)
+    if (lastColumnWidth < this.#lastColumnWidth) {
+      this.stretchedWidths.clear();
+
+      return;
+    }
 
     this.stretchedWidths.set(this.#lastColumnIndex, lastColumnWidth);
   }

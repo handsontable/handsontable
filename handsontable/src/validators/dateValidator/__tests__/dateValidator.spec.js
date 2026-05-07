@@ -36,7 +36,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(0, 0, '');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
   });
@@ -54,7 +54,7 @@ describe('dateValidator', () => {
     });
 
     await setDataAtCell(1, 0, '2016-03-18');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date');
     expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
@@ -75,7 +75,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(0, 0, 'wat');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'wat', 0, 'date');
   });
@@ -93,7 +93,7 @@ describe('dateValidator', () => {
     });
 
     await setDataAtCell(0, 0, '01/01/2015 ops');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date');
     expect(getDataAtCell(0, 0)).toEqual('01/01/2015');
@@ -114,7 +114,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(0, 0, '33/01/2014');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '33/01/2014', 0, 'date');
   });
@@ -134,7 +134,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '01/01/15');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/15', 1, 'date');
   });
@@ -154,7 +154,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '01/01/2015');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015', 1, 'date');
   });
@@ -174,7 +174,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '01/01/2015');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '01/01/2015', 1, 'date');
   });
@@ -194,7 +194,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '23/03/15');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '23/03/15', 1, 'date');
   });
@@ -215,7 +215,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date');
     });
@@ -235,7 +235,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, null);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date');
     });
@@ -255,7 +255,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 1, 'date');
     });
@@ -277,7 +277,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '11/23/2013');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date');
     });
@@ -297,7 +297,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '11/23/2013');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date');
     });
@@ -316,11 +316,11 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '1/10/15');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '1/10/15', 1, 'date');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('01/10/2015');
     });
@@ -339,11 +339,11 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '5.3.2016');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '5.3.2016', 1, 'date');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('05.03.2016');
     });
@@ -363,9 +363,56 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, 'test non-date string');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date');
+    });
+
+    it('should not cause an infinite loop when a numeric value is pasted into a date cell with `allowInvalid: false` (#9246)', async() => {
+      const afterChangeSpy = jasmine.createSpy('afterChange');
+      const afterValidateSpy = jasmine.createSpy('afterValidate');
+
+      handsontable({
+        data: [
+          ['03-FEBRUARY-2022', 50000]
+        ],
+        columns: [
+          { type: 'date', dateFormat: 'DD-MMMM-YYYY', correctFormat: true },
+          {}
+        ],
+        allowInvalid: false,
+        afterChange: afterChangeSpy,
+        afterValidate: afterValidateSpy
+      });
+
+      await setDataAtCell(0, 0, '50000');
+
+      await waitForNextAnimationFrames(10);
+
+      // afterChange should fire at most twice: once for the paste, once for the revert
+      expect(afterChangeSpy.calls.count()).toBeLessThan(5);
+      // The cell value should be reverted to the original valid date
+      expect(getDataAtCell(0, 0)).toEqual('03-FEBRUARY-2022');
+      // Validation should mark the numeric value as invalid
+      expect(afterValidateSpy).toHaveBeenCalledWith(false, '50000', 0, 0);
+    });
+
+    it('should mark a numeric value that cannot be auto-corrected to a valid date as invalid when `correctFormat` is enabled (#9246)', async() => {
+      const afterValidateSpy = jasmine.createSpy('afterValidate');
+
+      handsontable({
+        data: [['01/01/2020']],
+        columns: [
+          { type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true }
+        ],
+        afterValidate: afterValidateSpy
+      });
+
+      await setDataAtCell(0, 0, '50000');
+
+      await waitForNextAnimationFrames(2);
+
+      expect(afterValidateSpy).toHaveBeenCalledWith(false, '50000', 0, 0);
     });
 
     it('should populate all pasted values in the table when `correctFormat` is enabled (#dev-793)', async() => {
@@ -384,10 +431,62 @@ describe('dateValidator', () => {
         [5, 0, '1/11/2015'],
       ]);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(countRows()).toBe(6);
     });
+
+    it('should preserve corrected date format when batch-setting data alongside cells with async validators (#10614)', async() => {
+      handsontable({
+        data: [
+          ['Mercedes', '2017/1/14', '1'],
+          ['Citroen', '2018/12/1', '1'],
+          ['Audi', '2019/11/19', ''],
+          ['Opel', '2020/2/2', ''],
+          ['BMW', '2021/5/5', ''],
+        ],
+        columns: [
+          {},
+          {
+            type: 'date',
+            dateFormat: 'YYYY-MM-DD',
+            correctFormat: true,
+          },
+          {
+            type: 'autocomplete',
+            allowInvalid: false,
+            strict: true,
+            source: (query, callback) => {
+              setTimeout(() => {
+                callback(['1', '2', '3']);
+              }, 100);
+            }
+          },
+        ],
+      });
+
+      await setDataAtCell([
+        [0, 1, '2017/1/14'],
+        [0, 2, '1'],
+        [1, 1, '2018/12/1'],
+        [1, 2, '1'],
+        [2, 1, '2019/11/19'],
+        [2, 2, ''],
+        [3, 1, '2020/2/2'],
+        [3, 2, ''],
+        [4, 1, '2021/5/5'],
+        [4, 2, ''],
+      ]);
+
+      await sleep(300);
+
+      expect(getDataAtCell(0, 1)).toEqual('2017-01-14');
+      expect(getDataAtCell(1, 1)).toEqual('2018-12-01');
+      expect(getDataAtCell(2, 1)).toEqual('2019-11-19');
+      expect(getDataAtCell(3, 1)).toEqual('2020-02-02');
+      expect(getDataAtCell(4, 1)).toEqual('2021-05-05');
+    });
+
   });
 
   describe('Date formats', () => {
@@ -419,7 +518,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(isValid, value, 0, 0);
         });
@@ -453,7 +552,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });
@@ -496,7 +595,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
         });
@@ -522,7 +621,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });

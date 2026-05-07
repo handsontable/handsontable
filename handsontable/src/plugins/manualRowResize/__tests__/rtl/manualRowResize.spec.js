@@ -37,7 +37,7 @@ describe('manualRowResize (RTL mode)', () => {
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 
-    await sleep(600);
+    await waitForNextAnimationFrames(38);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 80 });
@@ -47,27 +47,19 @@ describe('manualRowResize (RTL mode)', () => {
     expect($rowsHeaders.eq(2).height()).toBe(80);
     expect($rowsHeaders.eq(3).height()).toBe(80);
 
-    await sleep(1200);
+    await waitForNextAnimationFrames(75);
 
     $resizer.simulate('mousedown', { clientY: resizerPosition.top });
     $resizer.simulate('mousemove', { clientY: resizerPosition.top - $rowsHeaders.eq(3).height() + 35 });
     $resizer.simulate('mouseup');
 
-    expect($rowsHeaders.eq(1).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(35);
-      main.toBe(35);
-      horizon.toBe(36);
-    });
-    expect($rowsHeaders.eq(2).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(35);
-      main.toBe(35);
-      horizon.toBe(36);
-    });
-    expect($rowsHeaders.eq(3).height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(35);
-      main.toBe(35);
-      horizon.toBe(36);
-    });
+    // Floor the expected height to the theme's minimum cell content height; themes with
+    // taller default content (e.g. horizon) prevent rows from shrinking below that minimum.
+    const minHeight = Math.max(35, getThemeLayout().cellContentHeight);
+
+    expect($rowsHeaders.eq(1).height()).toBe(minHeight);
+    expect($rowsHeaders.eq(2).height()).toBe(minHeight);
+    expect($rowsHeaders.eq(3).height()).toBe(minHeight);
   });
 
   describe('handle position in a table positioned using CSS\'s `transform`', () => {
@@ -80,7 +72,9 @@ describe('manualRowResize (RTL mode)', () => {
         rowHeaders: true,
         manualRowResize: true,
         height: 400,
-        width: 200
+        width: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
@@ -164,11 +158,9 @@ describe('manualRowResize (RTL mode)', () => {
 
         const $handle = $('.manualRowResizer');
 
-        expect($handle.offset().top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-          main.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-          horizon.toBeCloseTo($headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1, 0);
-        });
+        expect($handle.offset().top).toBeCloseTo(
+          $headerTH.offset().top + $headerTH.outerHeight() - ($handle.outerHeight() / 2) - 1,
+          0);
         expect($handle.offset().left).toBeCloseTo($headerTH.offset().left, 0);
         expect($handle.width()).toBeCloseTo($headerTH.outerWidth(), 5);
       });
@@ -180,7 +172,9 @@ describe('manualRowResize (RTL mode)', () => {
           rowHeaders: true,
           manualRowResize: true,
           height: 100,
-          width: 200
+          width: 200,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');

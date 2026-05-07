@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: o4wgil5k
 title: Instance access
 metaTitle: Instance access - Javascript Data Grid | Handsontable
@@ -14,12 +15,8 @@ angular:
 searchCategory: Guides
 onlyFor: angular
 category: Getting started
-menuTag: updated
 ---
-
-# Instance methods
-
-Reference a Handsontable instance from within a Angular component, to programmatically perform actions.
+Use @ViewChild to get a reference to the Handsontable instance from your Angular component, then call API methods programmatically.
 
 [[toc]]
 
@@ -35,3 +32,7 @@ The following example implements the [`HotTableComponent`](@/guides/getting-star
 @[code](@/content/guides/getting-started/angular-hot-instance/angular/example1.html)
 
 :::
+
+## Result
+
+Your Angular component now holds a reference to the Handsontable instance through `@ViewChild`. You can call any Handsontable API method on that instance from within the component's lifecycle hooks or event handlers.

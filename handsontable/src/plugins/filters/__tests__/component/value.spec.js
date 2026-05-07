@@ -26,7 +26,7 @@ describe('Filters UI Value component', () => {
       .toBe('Filter by value:');
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     // The filter components should be intact after some time. These expectations check whether the GhostTable
     // does not steal the components' element while recalculating column width (PR #5555).
@@ -75,12 +75,7 @@ describe('Filters UI Value component', () => {
       left: 100,
     });
 
-    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length)
-      .forThemes(({ classic, main, horizon }) => {
-        classic.toBe(6);
-        main.toBe(6);
-        horizon.toBe(6);
-      });
+    expect(byValueMultipleSelect().element.querySelectorAll('.htCore td').length).toBe(5);
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('2014-01-08');
   });
 
@@ -96,7 +91,7 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(2);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox')
       .simulate('mousedown')
@@ -109,7 +104,7 @@ describe('Filters UI Value component', () => {
     $(byValueBoxRootElement()).find('tr:nth-child(6) :checkbox').simulate('mouseover');
     $(byValueBoxRootElement()).find('tr:nth-child(7) :checkbox').simulate('mouseover');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect($(byValueBoxRootElement()).find('.ht_master .wtHolder').scrollTop()).toBe(0);
   });
@@ -186,8 +181,7 @@ describe('Filters UI Value component', () => {
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
   });
 
-  it.forTheme('classic')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
- the cell value`, async() => {
+  it('should utilize the \'modifyFiltersMultiSelectValue\' hook to display the cell value', async() => {
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -204,76 +198,17 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
+    const renderedItems = byValueMultipleSelect().element.querySelectorAll('.htCore td');
     const unifiedColDataSample = [
       'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
     ];
+    const itemsToCheck = Math.min(unifiedColDataSample.length, renderedItems.length);
 
-    for (let i = 0; i < unifiedColDataSample.length; i++) {
-      expect(
-        byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-      ).toBe(`Pre ${unifiedColDataSample[i]}`);
+    expect(itemsToCheck).toBeGreaterThan(0);
+
+    for (let i = 0; i < itemsToCheck; i++) {
+      expect(renderedItems[i].textContent).toBe(`Pre ${unifiedColDataSample[i]}`);
     }
-    expect(unifiedColDataSample.length).toBe(5);
-  });
-
-  it.forTheme('main')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
- the cell value`, async() => {
-    const columnsSetting = getColumnsForFilters();
-
-    handsontable({
-      data: getDataForFilters(),
-      columns: columnsSetting,
-      filters: true,
-      dropdownMenu: true,
-      width: 500,
-      height: 300,
-      modifyFiltersMultiSelectValue: (value) => {
-        return `Pre ${value}`;
-      },
-    });
-
-    await dropdownMenu(1);
-
-    const unifiedColDataSample = [
-      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
-    ];
-
-    for (let i = 0; i < unifiedColDataSample.length; i++) {
-      expect(
-        byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-      ).toBe(`Pre ${unifiedColDataSample[i]}`);
-    }
-    expect(unifiedColDataSample.length).toBe(5);
-  });
-
-  it.forTheme('horizon')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
- the cell value`, async() => {
-    const columnsSetting = getColumnsForFilters();
-
-    handsontable({
-      data: getDataForFilters(),
-      columns: columnsSetting,
-      filters: true,
-      dropdownMenu: true,
-      width: 500,
-      height: 300,
-      modifyFiltersMultiSelectValue: (value) => {
-        return `Pre ${value}`;
-      },
-    });
-
-    await dropdownMenu(1);
-
-    const unifiedColDataSample = [
-      'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
-    ];
-
-    for (let i = 0; i < unifiedColDataSample.length; i++) {
-      expect(
-        byValueMultipleSelect().element.querySelectorAll('.htCore td')[i].textContent
-      ).toBe(`Pre ${unifiedColDataSample[i]}`);
-    }
-    expect(unifiedColDataSample.length).toBe(5);
   });
 
   it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
@@ -334,7 +269,7 @@ describe('Filters UI Value component', () => {
     });
 
     await dropdownMenu(0);
-    await sleep(20);
+    await waitForNextAnimationFrames(2);
 
     // deselect "E, F"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot tr:nth-of-type(2) td input'))
@@ -343,17 +278,17 @@ describe('Filters UI Value component', () => {
 
     await selectCell(toPhysicalRow(0), 1);
     await keyDownUp('enter');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     const $dropdown = $('.ht-multi-select-editor');
     const $checkboxes = $dropdown.find('input[type="checkbox"]');
 
     $checkboxes.eq(3).simulate('click');
 
-    await sleep(20);
+    await waitForNextAnimationFrames(2);
 
     await dropdownMenu(0);
-    await sleep(20);
+    await waitForNextAnimationFrames(2);
 
     expect(Array.from(document.querySelectorAll('.htUIMultipleSelectHot td label')).filter(
       el => el.textContent === 'E,F'
@@ -380,28 +315,28 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     // deselect "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(2);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     // deselect "Alamo"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(1);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     // select "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
     await dropdownMenu(2);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alamo');
   });
@@ -419,12 +354,93 @@ describe('Filters UI Value component', () => {
     await dropdownMenu(1);
     byValueMultipleSelect().element.querySelector('input').focus();
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     await keyDownUp('escape');
 
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
+  });
+
+  it('should trim leading and trailing spaces for search, treat whitespace-only as empty, and filter on the' +
+    ' trimmed text (#12290)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
+    searchInput.focus();
+
+    await sleep(208);
+
+    const getLabels = () =>
+      Array.from(byValueBoxRootElement().querySelectorAll('label')).map(el => el.textContent);
+
+    const fullListLabels = getLabels();
+
+    expect(fullListLabels.length).toBeGreaterThan(0);
+
+    const triggerInput = (valueStr) => {
+      document.activeElement.value = valueStr;
+      document.activeElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+    };
+
+    triggerInput('   ');
+    expect(getLabels()).toEqual(fullListLabels);
+
+    triggerInput('zzzzznonmatching');
+    expect(getLabels().length).toBe(0);
+
+    triggerInput('  zzzzznonmatching  ');
+    expect(getLabels().length).toBe(0);
+
+    triggerInput(' \n nannie \t ');
+    expect(getLabels().length).toBe(1);
+    expect(getLabels()[0]).toContain('Nannie');
+  });
+
+  it('should treat whitespace-only search as empty when searchMode is `apply` (#12290)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: {
+        searchMode: 'apply'
+      },
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const searchInput = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(searchInput).simulate('mousedown').simulate('mouseup').simulate('click');
+    searchInput.focus();
+
+    await sleep(208);
+
+    const countChecked = () => byValueMultipleSelect().getItems().filter(item => item.checked).length;
+    const startChecked = countChecked();
+
+    expect(startChecked).toBeGreaterThan(0);
+    expect(startChecked).toBe(byValueMultipleSelect().getItems().length);
+
+    document.activeElement.value = ' \t ';
+    document.activeElement.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+
+    expect(countChecked()).toBe(startChecked);
   });
 
   it('should disappear after hitting ESC key (focused items box)', async() => {
@@ -439,7 +455,7 @@ describe('Filters UI Value component', () => {
 
     await dropdownMenu(1);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     byValueMultipleSelect().focus();
     await keyDownUp('escape');

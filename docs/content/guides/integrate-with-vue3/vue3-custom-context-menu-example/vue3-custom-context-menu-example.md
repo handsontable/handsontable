@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: 38qivuj4
 title: Custom context menu in Vue 3
 metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
@@ -14,10 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Custom context menu example in Vue 3
-
-Customize the context menu of your Vue 3 data grid, by creating a custom function for each menu item.
+In this tutorial, you will add custom items to the Handsontable context menu in a Vue 3 application. You will learn to define menu items with labels and callback functions.
 
 [[toc]]
 
@@ -36,9 +34,9 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
@@ -47,7 +45,7 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 
@@ -55,27 +53,54 @@ The following example implements the `@handsontable/vue3` component, adding a cu
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`allowInsertColumn`](@/api/options.md#allowinsertcolumn)
-  - [`allowInsertRow`](@/api/options.md#allowinsertrow)
-  - [`allowRemoveColumn`](@/api/options.md#allowremovecolumn)
-  - [`allowRemoveRow`](@/api/options.md#allowremoverow)
-  - [`contextMenu`](@/api/options.md#contextmenu)
-  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
-- Hooks:
-  - [`afterContextMenuDefaultOptions`](@/api/hooks.md#aftercontextmenudefaultoptions)
-  - [`afterContextMenuHide`](@/api/hooks.md#aftercontextmenuhide)
-  - [`afterContextMenuShow`](@/api/hooks.md#aftercontextmenushow)
-  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
-  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
-  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
-  - [`afterOnCellContextMenu`](@/api/hooks.md#afteroncellcontextmenu)
-  - [`beforeContextMenuSetItems`](@/api/hooks.md#beforecontextmenusetitems)
-  - [`beforeContextMenuShow`](@/api/hooks.md#beforecontextmenushow)
-  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
-  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
-  - [`beforeOnCellContextMenu`](@/api/hooks.md#beforeoncellcontextmenu)
-- Plugins:
-  - [`ContextMenu`](@/api/contextMenu.md)
+<div class="boxes-list">
+
+- [allowInsertColumn](@/api/options.md#allowinsertcolumn)
+- [allowInsertRow](@/api/options.md#allowinsertrow)
+- [allowRemoveColumn](@/api/options.md#allowremovecolumn)
+- [allowRemoveRow](@/api/options.md#allowremoverow)
+- [contextMenu](@/api/options.md#contextmenu)
+- [dropdownMenu](@/api/options.md#dropdownmenu)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterContextMenuDefaultOptions](@/api/hooks.md#aftercontextmenudefaultoptions)
+- [afterContextMenuHide](@/api/hooks.md#aftercontextmenuhide)
+- [afterContextMenuShow](@/api/hooks.md#aftercontextmenushow)
+- [afterDropdownMenuDefaultOptions](@/api/hooks.md#afterdropdownmenudefaultoptions)
+- [afterDropdownMenuHide](@/api/hooks.md#afterdropdownmenuhide)
+- [afterDropdownMenuShow](@/api/hooks.md#afterdropdownmenushow)
+- [afterOnCellContextMenu](@/api/hooks.md#afteroncellcontextmenu)
+- [beforeContextMenuSetItems](@/api/hooks.md#beforecontextmenusetitems)
+- [beforeContextMenuShow](@/api/hooks.md#beforecontextmenushow)
+- [beforeDropdownMenuSetItems](@/api/hooks.md#beforedropdownmenusetitems)
+- [beforeDropdownMenuShow](@/api/hooks.md#beforedropdownmenushow)
+- [beforeOnCellContextMenu](@/api/hooks.md#beforeoncellcontextmenu)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ContextMenu](@/api/contextMenu.md)
+
+</div>
+
+## What you learned
+
+- How to enable the context menu in a Vue 3 Handsontable application.
+- How to define custom menu items with labels and callback functions.
+- How to restrict menu items to specific contexts using the `contextMenu` option.
+
+## Next steps
+
+- [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) -- explore the full context menu API.
+- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md) -- build a custom cell editor.
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md) -- build a custom cell renderer.
