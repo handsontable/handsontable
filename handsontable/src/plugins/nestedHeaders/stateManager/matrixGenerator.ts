@@ -34,7 +34,7 @@ import type TreeNode from '../../../utils/dataStructures/tree';
  * @returns {Array[]}
  */
 export function generateMatrix(headerRoots: TreeNode[]) {
-  const matrix: unknown[][] = [];
+  const matrix: Array<Array<Record<string, unknown>>> = [];
 
   arrayEach(headerRoots, (rootNode) => {
     (rootNode as { walkDown: (cb: (node: TreeNode) => void | boolean) => void }).walkDown((node: TreeNode) => {
@@ -76,19 +76,19 @@ export function generateMatrix(headerRoots: TreeNode[]) {
  *
  * @param {Array[]} matrix The generated header matrix to modify in-place.
  */
-function applyRowspanToMatrix(matrix) {
+function applyRowspanToMatrix(matrix: Array<Array<Record<string, unknown>>>) {
   for (let level = 0; level < matrix.length; level++) {
     const row = matrix[level];
 
     for (let col = 0; col < row.length; col++) {
       const settings = row[col];
 
-      if (!settings || !settings.isRoot || !settings.origRowspan || settings.origRowspan <= 1) {
+      if (!settings || !settings.isRoot || !settings.origRowspan || (settings.origRowspan as number) <= 1) {
         continue; // eslint-disable-line no-continue
       }
 
-      const effectiveRowspan = Math.min(settings.origRowspan, matrix.length - level);
-      const colspanWidth = settings.origColspan || 1;
+      const effectiveRowspan = Math.min(settings.origRowspan as number, matrix.length - level);
+      const colspanWidth = (settings.origColspan as number) || 1;
 
       for (let r = 1; r < effectiveRowspan; r++) {
         const targetLevel = level + r;

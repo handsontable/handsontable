@@ -113,4 +113,11 @@ export class ScrollTimer {
   };
 }
 
+export interface ScrollTimer {
+  addLocalHook(key: string, callback: Function): this;
+  removeLocalHook(key: string, callback: Function): this;
+  runLocalHooks(key: string, ...args: unknown[]): void;
+  clearLocalHooks(): this;
+}
+
 mixin(ScrollTimer, localHooks);

@@ -176,7 +176,7 @@ export class Pagination extends BasePlugin {
    *
    * @type {number|null}
    */
-  #serverSideTotalCount = null;
+  #serverSideTotalCount: number | null = null;
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
@@ -766,7 +766,7 @@ export class Pagination extends BasePlugin {
 
     const paginationData = this.getPaginationData();
 
-    const uiState = {
+    const uiState: Record<string, unknown> = {
       ...paginationData,
       totalRenderedRows: externalPagedMode ? totalItems : renderableRowsLength,
     };
@@ -775,8 +775,8 @@ export class Pagination extends BasePlugin {
       const totalRows = totalItems;
       const pageSize = this.#calcStrategy.getState(this.#currentPage)?.pageSize ?? this.#pageSize;
 
-      uiState.counterStartRow = ((this.#currentPage - 1) * pageSize) + 1;
-      uiState.counterEndRow = Math.min((this.#currentPage * pageSize), totalRows);
+      uiState.counterStartRow = ((this.#currentPage - 1) * (pageSize as number)) + 1;
+      uiState.counterEndRow = Math.min((this.#currentPage * (pageSize as number)), totalRows as number);
     }
 
     this.#ui.updateState(uiState);

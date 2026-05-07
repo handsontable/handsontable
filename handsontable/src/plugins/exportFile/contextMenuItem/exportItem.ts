@@ -35,7 +35,7 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
             return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_CSV);
           },
           callback() {
-            exportFilePlugin.downloadFile('csv', getExportOptions(this));
+            exportFilePlugin.downloadFile('csv', getExportOptions(this) as Record<string, unknown>);
           },
           disabled: false,
         },
@@ -45,7 +45,7 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
             return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX);
           },
           callback() {
-            exportFilePlugin.downloadFileAsync('xlsx', getExportOptions(this)).catch((err) => {
+            exportFilePlugin.downloadFileAsync('xlsx', getExportOptions(this) as Record<string, unknown>).catch((err) => {
               error('ExportFile: XLSX export failed.', err);
             });
           },

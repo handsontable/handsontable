@@ -315,7 +315,7 @@ export class MultipleSelectUI extends BaseUI {
 
     if ((this.options as Record<string, unknown>).searchMode === 'apply') {
       const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
-      const rowsToHide = [];
+      const rowsToHide: number[] = [];
 
       hiddenRows.showRows(hiddenRows.getHiddenRows());
 

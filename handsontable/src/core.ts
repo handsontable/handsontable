@@ -1498,7 +1498,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {BaseEditor|undefined} activeEditor Current editor instance.
    * @returns {boolean} `true` when the active, opened editor points to a changed cell.
    */
-  function doesChangeAffectOpenedEditor(changes, activeEditor) {
+  function doesChangeAffectOpenedEditor(changes: Array<Array<unknown>>, activeEditor: Record<string, any> | undefined) {
     if (!activeEditor?.isOpened()) {
       return false;
     }
@@ -1534,14 +1534,14 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     // that end with 'Validator' ensures only corrections emitted by validators are captured, never
     // values applied by applyChanges(). Custom validators that correct values must follow this
     // convention by passing a source ending in 'Validator' to their setDataAtCell call.
-    const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]) => {
+    const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]: unknown[]) => {
       const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
 
       if (idx !== -1) {
         changes[idx][3] = correctedValue;
       }
     };
-    const onAfterChange = (afterChanges, afterSource) => {
+    const onAfterChange = (afterChanges: Array<Array<unknown>> | null | undefined, afterSource: unknown) => {
       if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
         return;
       }

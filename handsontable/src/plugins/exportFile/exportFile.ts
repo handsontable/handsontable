@@ -7,7 +7,7 @@ import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
-import type Core from '../../core';
+import type { HotInstance } from '../../common';
 
 export const PLUGIN_KEY = 'exportFile';
 
@@ -16,7 +16,7 @@ export const PLUGIN_KEY = 'exportFile';
  */
 export interface SheetOptions {
   /** The Handsontable instance to export data from. */
-  instance: Core;
+  instance: HotInstance;
   /** Worksheet name. Defaults to `'Sheet'` when omitted. */
   name?: string;
   /** Include column headers. */
@@ -288,7 +288,7 @@ export class ExportFile extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (...args) => this.#onAfterContextMenuDefaultOptions(...args));
+    this.addHook('afterContextMenuDefaultOptions', (a: any) => this.#onAfterContextMenuDefaultOptions(a));
 
     super.enablePlugin();
   }
@@ -305,7 +305,7 @@ export class ExportFile extends BasePlugin {
    *
    * @param {object} options Contains default added options of the Context Menu.
    */
-  #onAfterContextMenuDefaultOptions(options) {
+  #onAfterContextMenuDefaultOptions(options: any) {
     options.items.push(
       { name: '---------' },
       exportItem(this),
@@ -483,7 +483,7 @@ export class ExportFile extends BasePlugin {
    * @returns {Promise<void>}
    * @since 17.1.0
    */
-  async downloadFileAsync(format, options = {}) {
+  async downloadFileAsync(format: string, options: Record<string, unknown> = {}) {
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
     const hasDialog = dialogPlugin?.isEnabled();
@@ -532,7 +532,7 @@ export class ExportFile extends BasePlugin {
    * @param {Blob} blob The blob to download.
    * @param {string} name The filename (including extension).
    */
-  #triggerDownload(blob, name) {
+  #triggerDownload(blob: any, name: string) {
     const { rootDocument, rootWindow } = this.hot;
     const URL = rootWindow.URL || rootWindow.webkitURL;
     const url = URL.createObjectURL(blob);
@@ -561,8 +561,8 @@ export class ExportFile extends BasePlugin {
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
    */
-  supportsExportFormat(format) {
-    if (!EXPORT_TYPES[format]) {
+  supportsExportFormat(format: string) {
+    if (!(EXPORT_TYPES as Record<string, unknown>)[format]) {
       return false;
     }
 
@@ -586,7 +586,7 @@ export class ExportFile extends BasePlugin {
    * @param {object} options Export options.
    * @returns {BaseType}
    */
-  _createTypeFormatter(format: string, options: Record<string, unknown> = {}): { export: () => string; options: { filename: string; fileExtension: string; [key: string]: unknown } } {
+  _createTypeFormatter(format: string, options: Record<string, unknown> = {}): { export: () => string; options: { filename: string; fileExtension: string; [key: string]: unknown }; binary?: boolean } {
     if (!(EXPORT_TYPES as Record<string, Function>)[format]) {
       throw new Error(`Export format type "${format}" is not supported.`);
     }

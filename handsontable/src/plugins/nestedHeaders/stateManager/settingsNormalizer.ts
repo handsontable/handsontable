@@ -71,7 +71,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
    * @param {*} sourceHeaderSettings The source header settings.
    * @returns {boolean}
    */
-  const isExplicitEmptySlotPlaceholder = (sourceHeaderSettings) => {
+  const isExplicitEmptySlotPlaceholder = (sourceHeaderSettings: unknown) => {
     if (sourceHeaderSettings === '') {
       return true;
     }
@@ -85,7 +85,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
       colspan,
       rowspan,
       headerClassName,
-    } = sourceHeaderSettings;
+    } = sourceHeaderSettings as Record<string, unknown>;
 
     return stringify(label) === '' &&
       (colspan === undefined || colspan === 1) &&
@@ -99,7 +99,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
    * @param {*} sourceHeaderSettings The source header settings.
    * @returns {DefaultHeaderSettings}
    */
-  const normalizeHeaderSettings = (sourceHeaderSettings) => {
+  const normalizeHeaderSettings = (sourceHeaderSettings: unknown) => {
     const headerSettings = createDefaultHeaderSettings();
 
     if (isObject(sourceHeaderSettings)) {
@@ -108,7 +108,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
         colspan,
         rowspan,
         headerClassName,
-      } = sourceHeaderSettings;
+      } = sourceHeaderSettings as Record<string, unknown>;
 
       headerSettings.label = stringify(label);
 

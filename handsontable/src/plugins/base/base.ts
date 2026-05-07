@@ -174,7 +174,7 @@ export class BasePlugin {
     this.hot.addHookOnce('afterPluginsInitialized', () => {
       if (this.isEnabled && this.isEnabled()) {
         if (this.isHardConflictBlocked()) {
-          this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
+          this.hot.getSettings()[(this.constructor as typeof BasePlugin).PLUGIN_KEY] = false;
 
           return;
         }
@@ -209,7 +209,7 @@ export class BasePlugin {
    * @returns {boolean} `true` if the plugin must not enable.
    */
   isHardConflictBlocked() {
-    const pluginKey = this.constructor.PLUGIN_KEY;
+    const pluginKey = (this.constructor as typeof BasePlugin).PLUGIN_KEY;
     const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
 
     if (conflict) {

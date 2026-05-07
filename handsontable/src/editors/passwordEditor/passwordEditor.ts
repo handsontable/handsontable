@@ -33,14 +33,14 @@ export class PasswordEditor extends TextEditor {
    *
    * @type {number|null}
    */
-  #revealTimer = null;
+  #revealTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Bound input event handler used when `hashRevealDelay` is active.
    *
    * @type {Function|null}
    */
-  #onInput = null;
+  #onInput: ((event: Event) => void) | null = null;
 
   /**
    * Whether the editor is currently in reveal-delay mode. Captured in `open()` and cleared in
@@ -88,9 +88,9 @@ export class PasswordEditor extends TextEditor {
   open() {
     super.open();
 
-    const { hashRevealDelay } = this.cellProperties;
+    const hashRevealDelay = this.cellProperties.hashRevealDelay as number;
     // || fallback catches empty string ('') in addition to undefined/null.
-    const hashSymbol = this.cellProperties.hashSymbol || '*';
+    const hashSymbol = (this.cellProperties.hashSymbol || '*') as string;
 
     if (hashRevealDelay > 0) {
       this.#inRevealMode = true;
@@ -107,7 +107,7 @@ export class PasswordEditor extends TextEditor {
       // #realValue may already be set by setValue() called from beginEditing(); mask the display.
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
 
-      this.#onInput = event => this.#handleRevealInput(event, maskChar, hashRevealDelay);
+      this.#onInput = (event: Event) => this.#handleRevealInput(event as InputEvent, maskChar, hashRevealDelay);
       this.TEXTAREA.addEventListener('input', this.#onInput);
     }
   }
@@ -160,13 +160,13 @@ export class PasswordEditor extends TextEditor {
    *
    * @param {string} value The value to set.
    */
-  setValue(value) {
+  setValue(value: string) {
     if (this.#inRevealMode) {
       this.#realValue = value ?? '';
-      const maskChar = (this.cellProperties.hashSymbol || '*')[0];
+      const maskChar = ((this.cellProperties.hashSymbol || '*') as string)[0];
 
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
-    } else if (this.cellProperties?.hashRevealDelay > 0) {
+    } else if ((this.cellProperties?.hashRevealDelay as number) > 0) {
       // setValue() called from beginEditing() before open() sets #inRevealMode.
       this.#realValue = value ?? '';
     } else {
@@ -185,7 +185,7 @@ export class PasswordEditor extends TextEditor {
    * @param {string} maskChar The single-character mask used in the input field.
    * @param {number} delay Milliseconds before newly typed characters are masked.
    */
-  #handleRevealInput(event, maskChar, delay) {
+  #handleRevealInput(event: InputEvent, maskChar: string, delay: number) {
     const { inputType, data } = event;
     const isInsertWithData = data && (
       inputType === 'insertText' ||

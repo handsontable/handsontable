@@ -29,8 +29,8 @@ export class AutoScroller {
     this.#horizontal = new ScrollTimer(registerTimeout);
     this.#vertical = new ScrollTimer(registerTimeout);
 
-    this.#horizontal.addLocalHook('tick', distance => this.runLocalHooks('scrollHorizontal', distance));
-    this.#vertical.addLocalHook('tick', distance => this.runLocalHooks('scrollVertical', distance));
+    this.#horizontal.addLocalHook('tick', (distance: number) => this.runLocalHooks('scrollHorizontal', distance));
+    this.#vertical.addLocalHook('tick', (distance: number) => this.runLocalHooks('scrollVertical', distance));
   }
 
   /**
@@ -114,6 +114,13 @@ export class AutoScroller {
     this.#horizontal = null;
     this.#vertical = null;
   }
+}
+
+export interface AutoScroller {
+  addLocalHook(key: string, callback: Function): this;
+  removeLocalHook(key: string, callback: Function): this;
+  runLocalHooks(key: string, ...args: unknown[]): void;
+  clearLocalHooks(): this;
 }
 
 mixin(AutoScroller, localHooks);

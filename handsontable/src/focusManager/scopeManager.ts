@@ -22,7 +22,7 @@ export interface FocusScopeManager {
   getActiveScopeId(): string | null;
   registerScope(scopeId: string, container: HTMLElement, options?: FocusScopeOptions): void;
   unregisterScope(scopeId: string): void;
-  activateScope(scopeId: string): void;
+  activateScope(scopeId: string, focusSource?: string): void;
   deactivateScope(scopeId: string): void;
   destroy(): void;
 }
@@ -310,7 +310,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
     getActiveScopeId,
     registerScope,
     unregisterScope,
-    activateScope: (scopeId, focusSource) => activateScopeById(scopeId, focusSource),
+    activateScope: (scopeId: string, focusSource?: string) => activateScopeById(scopeId, focusSource),
     deactivateScope: scopeId => deactivateScopeById(scopeId),
     destroy: () => eventListener.unmount(),
   };

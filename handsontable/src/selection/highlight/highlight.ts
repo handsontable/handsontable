@@ -1,4 +1,5 @@
 import type { CellCoords } from '../../common';
+import { arrayEach } from '../../helpers/array';
 import { createHighlight as createActiveHighlight } from './types/activeHeader';
 import { createHighlight as createAreaLayeredHighlight } from './types/areaLayered';
 import { createHighlight as createAreaHighlight } from './types/area';
@@ -414,25 +415,30 @@ class Highlight {
    * @param {string} [options.headerClassName] The new class name for header highlights.
    * @param {string} [options.activeHeaderClassName] The new class name for active header highlights.
    */
-  updateHighlightClassNames(options) {
+  updateHighlightClassNames(options: {
+    rowClassName?: string;
+    columnClassName?: string;
+    headerClassName?: string;
+    activeHeaderClassName?: string;
+  }) {
     if ('rowClassName' in options) {
       this.options.rowClassName = options.rowClassName;
-      arrayEach(this.rowHighlights.values(), (h) => { h.settings.className = options.rowClassName; });
+      arrayEach(this.rowHighlights.values(), (h: any) => { h.settings.className = options.rowClassName; });
     }
     if ('columnClassName' in options) {
       this.options.columnClassName = options.columnClassName;
-      arrayEach(this.columnHighlights.values(), (h) => { h.settings.className = options.columnClassName; });
+      arrayEach(this.columnHighlights.values(), (h: any) => { h.settings.className = options.columnClassName; });
     }
     if ('headerClassName' in options) {
       this.options.headerClassName = options.headerClassName;
-      arrayEach(this.rowHeaders.values(), (h) => { h.settings.className = options.headerClassName; });
-      arrayEach(this.columnHeaders.values(), (h) => { h.settings.className = options.headerClassName; });
+      arrayEach(this.rowHeaders.values(), (h: any) => { h.settings.className = options.headerClassName; });
+      arrayEach(this.columnHeaders.values(), (h: any) => { h.settings.className = options.headerClassName; });
     }
     if ('activeHeaderClassName' in options) {
       this.options.activeHeaderClassName = options.activeHeaderClassName;
-      arrayEach(this.activeRowHeaders.values(), (h) => { h.settings.className = options.activeHeaderClassName; });
-      arrayEach(this.activeColumnHeaders.values(), (h) => { h.settings.className = options.activeHeaderClassName; });
-      arrayEach(this.activeCornerHeaders.values(), (h) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeRowHeaders.values(), (h: any) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeColumnHeaders.values(), (h: any) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeCornerHeaders.values(), (h: any) => { h.settings.className = options.activeHeaderClassName; });
     }
   }
 

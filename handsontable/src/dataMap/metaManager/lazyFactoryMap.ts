@@ -175,7 +175,7 @@ export default class LazyFactoryMap {
           return { value, done: false };
         }
 
-        return { done: true };
+        return { done: true, value: undefined };
       }
     };
   }

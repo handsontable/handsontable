@@ -55,9 +55,15 @@ export class ValueComponent extends BaseComponent {
    *
    * @type {string}
    */
-  searchMode;
+  searchMode: unknown;
+  /**
+   * Callback that returns `true` when this menu item should be hidden.
+   *
+   * @type {function(): boolean | undefined}
+   */
+  hiddenWhen: (() => boolean) | undefined;
 
-  constructor(hotInstance: HotInstance, options: { id: string; name: string | (() => string); searchMode: unknown }) {
+  constructor(hotInstance: HotInstance, options: { id: string; name: string | (() => string); searchMode: unknown; hiddenWhen?: (() => boolean) }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
@@ -273,7 +279,7 @@ export class ValueComponent extends BaseComponent {
 
       return [r.value, r.meta];
     }));
-    const columnMeta = rowEntries[0]?.meta;
+    const columnMeta = (rowEntries[0] as { value: unknown; meta: Record<string, unknown> } | undefined)?.meta;
     const comparator = getSortComparatorForMeta(columnMeta);
     const values = unifyColumnValues(rowValues, comparator);
     const items = intersectValues(values, values, defaultBlankCellValue, (item: Record<string, unknown>) => {

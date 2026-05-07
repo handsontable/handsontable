@@ -5,7 +5,7 @@
  * and has no generic Excel formula equivalent.  When `exportFormulas` is `true`,
  * cells with a `custom` summary type fall back to their pre-calculated static value.
  */
-const SUMMARY_TYPE_TO_EXCEL_FN = {
+const SUMMARY_TYPE_TO_EXCEL_FN: Record<string, string> = {
   sum: 'SUM',
   min: 'MIN',
   max: 'MAX',

@@ -34,7 +34,7 @@ export class DropdownEditor extends AutocompleteEditor {
    * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
-  finishEditing(restoreOriginalValue, ctrlDown, callback) {
+  finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: () => void) {
     if (this.isOpened()) {
       const lastSelectedRange = this.hot.getSelectedRangeActive();
 

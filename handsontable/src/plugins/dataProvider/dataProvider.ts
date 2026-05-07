@@ -190,14 +190,14 @@ export class DataProvider extends BasePlugin {
 
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
     this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('modifyRowHeader', (...args) => this.#onModifyRowHeader(...args));
-    this.addHook('beforeColumnSort', (...args) => this.#onBeforeColumnSort(...args));
-    this.addHook('beforeUndoStackChange', (...args) => this.#onBeforeUndoStackChange(...args));
-    this.addHook('afterChange', (...args) => this.#onAfterChangeForServerUpdate(...args));
-    this.addHook('beforeAlter', (...args) => this.#onBeforeAlter(...args));
-    this.addHook('afterPageChange', (...args) => this.#onAfterPageChangeExternalPagination(...args));
-    this.addHook('afterPageSizeChange', (...args) => this.#onAfterPageSizeChangeExternalPagination(...args));
-    this.addHook('beforeFilter', (...args) => this.#onBeforeFilter(...args));
+    this.addHook('modifyRowHeader', (a: any) => this.#onModifyRowHeader(a));
+    this.addHook('beforeColumnSort', (a: any, b: any, c: any) => this.#onBeforeColumnSort(a, b, c));
+    this.addHook('beforeUndoStackChange', (a: any, b: any) => this.#onBeforeUndoStackChange(a, b));
+    this.addHook('afterChange', (a: any, b: any) => this.#onAfterChangeForServerUpdate(a, b));
+    this.addHook('beforeAlter', (a: any, b: any, c: any) => this.#onBeforeAlter(a, b, c));
+    this.addHook('afterPageChange', (a: any, b: any) => this.#onAfterPageChangeExternalPagination(a, b));
+    this.addHook('afterPageSizeChange', (a: any, b: any) => this.#onAfterPageSizeChangeExternalPagination(a, b));
+    this.addHook('beforeFilter', (a: any) => this.#onBeforeFilter(a));
 
     super.enablePlugin();
   }
@@ -371,7 +371,7 @@ export class DataProvider extends BasePlugin {
       'create',
       payload,
       () => onRowsCreate(rowsCreatePayload),
-      () => this.fetchData({ skipLoading: true })
+      async() => { await this.fetchData({ skipLoading: true }); }
     );
   }
 
@@ -429,7 +429,7 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    * @throws {Error} When any payload omits `id` or `id` is `null`.
    */
-  async updateRows(rows: object[]): Promise<void> {
+  async updateRows(rows: Array<{ id?: any; changes?: any; rowData?: any }>): Promise<void> {
     if (!isFunction(this.#getOnRowsUpdate()) || !Array.isArray(rows) || rows.length === 0) {
       return;
     }
@@ -589,7 +589,7 @@ export class DataProvider extends BasePlugin {
    * @param {Error|undefined} reason `AbortError` (or subclass) when `fetchRows` rejected; omit the argument when the promise settled after superseding.
    * @returns {void}
    */
-  #runAfterDataProviderFetchAbort(params: Record<string, any>, reason: Error | undefined): void {
+  #runAfterDataProviderFetchAbort(params: { page: number; pageSize: number; sort: any; filters: any; [key: string]: any }, reason: Error | undefined): void {
     const queryParameters = this.#snapshotQueryParameters(params);
 
     this.hot.runHooks('afterDataProviderFetchAbort', queryParameters, reason);
@@ -642,7 +642,13 @@ export class DataProvider extends BasePlugin {
     const message = getDataProviderRequestErrorDescription(err);
 
     let toastId = '';
-    const options = {
+    const options: {
+      variant: string;
+      title: string;
+      message: string;
+      duration?: number;
+      actions?: Array<{ label: string; type: string; callback: () => void }>;
+    } = {
       variant: 'error',
       title,
       message,
@@ -681,7 +687,7 @@ export class DataProvider extends BasePlugin {
       getOnRowsUpdate: () => this.#getOnRowsUpdate(),
       fetchData: () => this.fetchData({ skipLoading: true }),
       logError,
-      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind, err),
+      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind as 'fetch' | 'create' | 'update' | 'remove', err),
     }, rowPayloads, options);
   }
 
@@ -702,7 +708,7 @@ export class DataProvider extends BasePlugin {
         runAfterRowsMutation: (op, p) => runAfterRowsMutation(this.hot, op, p),
         runAfterRowsMutationError: (op, err, p) => runAfterRowsMutationError(this.hot, op, err, p),
         logError,
-        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind, err),
+        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind as 'fetch' | 'create' | 'update' | 'remove', err),
       },
       operation,
       payload,
@@ -735,12 +741,12 @@ export class DataProvider extends BasePlugin {
    * @param {number} newPage New 1-based page.
    * @returns {void}
    */
-  #onAfterPageChangeExternalPagination = (oldPage, newPage) => {
+  #onAfterPageChangeExternalPagination = (oldPage: any, newPage: any) => {
     handleAfterPageChangeExternalPagination(
       {
         hot: this.hot,
         getQueryPage: () => this.#queryParameters.page,
-        goToPage: page => this.fetchData({ page }),
+        goToPage: async(page) => { await this.fetchData({ page }); },
       },
       oldPage,
       newPage
@@ -755,13 +761,13 @@ export class DataProvider extends BasePlugin {
    * @param {number | 'auto'} newPageSize New page size.
    * @returns {void}
    */
-  #onAfterPageSizeChangeExternalPagination = (oldPageSize, newPageSize) => {
+  #onAfterPageSizeChangeExternalPagination = (oldPageSize: any, newPageSize: any) => {
     handleAfterPageSizeChangeExternalPagination(
       {
         hot: this.hot,
         getQueryPage: () => this.#queryParameters.page,
         getQueryPageSize: () => this.#queryParameters.pageSize,
-        setPageSize: pageSize => this.fetchData({ pageSize, page: 1 }),
+        setPageSize: async(pageSize) => { await this.fetchData({ pageSize, page: 1 }); },
       },
       oldPageSize,
       newPageSize
@@ -775,7 +781,7 @@ export class DataProvider extends BasePlugin {
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean|void} False when filtering is handled server-side.
    */
-  #onBeforeFilter = conditionsStack => handleBeforeFilterForServer(
+  #onBeforeFilter = (conditionsStack: any) => handleBeforeFilterForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -794,7 +800,7 @@ export class DataProvider extends BasePlugin {
    * @param {boolean} sortPossible Whether sort is allowed.
    * @returns {boolean|undefined}
    */
-  #onBeforeColumnSort = (currentSortConfig, destinationSortConfigs, sortPossible) => handleBeforeColumnSortForServer(
+  #onBeforeColumnSort = (currentSortConfig: any, destinationSortConfigs: any, sortPossible: any) => handleBeforeColumnSortForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -810,7 +816,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} visualRowIndex Visual row index.
    * @returns {number} Global row index for headers.
    */
-  #onModifyRowHeader = visualRowIndex => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
+  #onModifyRowHeader = (visualRowIndex: any) => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
 
   /**
    * Skips the local undo stack for edits that batch to `onRowsUpdate` (same sources as `shouldIgnoreAfterChangeForServerUpdate`).
@@ -819,7 +825,7 @@ export class DataProvider extends BasePlugin {
    * @param {string} [source] Change source for the action being pushed onto the stack.
    * @returns {boolean|void} Return `false` to block stacking (see [[Hooks#beforeUndoStackChange]]).
    */
-  #onBeforeUndoStackChange = (doneActionsCopy, source) => {
+  #onBeforeUndoStackChange = (doneActionsCopy: any, source: any) => {
     if (!isFunction(this.#getOnRowsUpdate())) {
       return;
     }
@@ -838,7 +844,7 @@ export class DataProvider extends BasePlugin {
    * @param {string} [source] Change source.
    * @returns {void}
    */
-  #onAfterChangeForServerUpdate = (changes, source) => {
+  #onAfterChangeForServerUpdate = (changes: any, source: any) => {
     if (shouldIgnoreAfterChangeForServerUpdate(isFunction(this.#getOnRowsUpdate()), changes, source)) {
       return;
     }
@@ -861,15 +867,15 @@ export class DataProvider extends BasePlugin {
    * @param {number} amount Row count.
    * @returns {boolean|undefined}
    */
-  #onBeforeAlter = (action, index, amount) => handleBeforeAlterForCrud(
+  #onBeforeAlter = (action: any, index: any, amount: any) => handleBeforeAlterForCrud(
     {
       hot: this.hot,
       getOnRowsCreate: () => this.#getOnRowsCreate(),
       getOnRowsRemove: () => this.#getOnRowsRemove(),
       getRowIdOption: () => this.#getRowIdOption(),
-      getRowId: vr => this.getRowId(vr),
-      createRows: opts => this.createRows(opts),
-      removeRows: ids => this.removeRows(ids),
+      getRowId: (vr: any) => this.getRowId(vr),
+      createRows: (opts: any) => this.createRows(opts),
+      removeRows: (ids: any) => this.removeRows(ids),
     },
     action,
     index,

@@ -313,8 +313,8 @@ export class PaginationUI {
       pageSizeLabel,
     } = this.#refs!;
 
-    const counterStart = counterStartRow ?? firstVisibleRowIndex + 1;
-    const counterEnd = counterEndRow ?? lastVisibleRowIndex + 1;
+    const counterStart = counterStartRow ?? (firstVisibleRowIndex as number) + 1;
+    const counterEnd = counterEndRow ?? (lastVisibleRowIndex as number) + 1;
 
     const counterSectionText = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
       start: counterStart,

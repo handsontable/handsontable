@@ -45,7 +45,7 @@ class DataProvider {
    *   pushed into the row array.
    * @returns {Array[]}
    */
-  _extractDataMatrix(getCellValue) {
+  _extractDataMatrix(getCellValue: (row: number, col: number) => any) {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const options = this.options;
     const data = [];
@@ -304,7 +304,7 @@ class DataProvider {
    * @returns {Array}
    */
   getCellsMeta() {
-    return this._extractDataMatrix((row, col) => this.hot.getCellMeta(row, col));
+    return this._extractDataMatrix((row: number, col: number) => this.hot.getCellMeta(row, col));
   }
 
   /**
@@ -317,7 +317,7 @@ class DataProvider {
    * @returns {Array}
    */
   getCellElements() {
-    return this._extractDataMatrix((row, col) => this.hot.getCell(row, col));
+    return this._extractDataMatrix((row: number, col: number) => this.hot.getCell(row, col));
   }
 
   /**
@@ -342,13 +342,13 @@ class DataProvider {
     }
 
     const mergedCells = mergeCellsPlugin.mergedCellsCollection.mergedCells;
-    const result = [];
+    const result: any[] = [];
     const excludeHiddenRows = this.options.exportHiddenRows === false;
     const excludeHiddenCols = this.options.exportHiddenColumns === false;
-    const rowIncluded = r => !excludeHiddenRows || !this._isHiddenRow(r);
-    const colIncluded = c => !excludeHiddenCols || !this._isHiddenColumn(c);
+    const rowIncluded = (r: number) => !excludeHiddenRows || !this._isHiddenRow(r);
+    const colIncluded = (c: number) => !excludeHiddenCols || !this._isHiddenColumn(c);
 
-    mergedCells.forEach((merge) => {
+    mergedCells.forEach((merge: any) => {
       const mergeEndRow = merge.row + merge.rowspan - 1;
       const mergeEndCol = merge.col + merge.colspan - 1;
 
@@ -629,7 +629,7 @@ class DataProvider {
     // (e.g. SUM at row 6 references MIN at row 7, and MIN at row 7 references SUM at row 6).
     const allDestRows = new Set();
 
-    allEndpoints.forEach((endpoint) => {
+    allEndpoints.forEach((endpoint: any) => {
       const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
 
       if (destRow !== null) {
@@ -638,9 +638,9 @@ class DataProvider {
     });
 
     // Second pass: translate each endpoint into an export-coordinate summary descriptor.
-    const summaries = [];
+    const summaries: any[] = [];
 
-    allEndpoints.forEach((endpoint) => {
+    allEndpoints.forEach((endpoint: any) => {
       const summary = this._transformEndpointToSummary(
         endpoint, startRow, endRow, startCol, endCol, allDestRows
       );
@@ -672,7 +672,7 @@ class DataProvider {
    * @param {Set<number>} allDestRows Data-array row indices of all summary destinations.
    * @returns {object|null}
    */
-  _transformEndpointToSummary(endpoint, startRow, endRow, startCol, endCol, allDestRows) {
+  _transformEndpointToSummary(endpoint: any, startRow: number, endRow: number, startCol: number, endCol: number, allDestRows: any) {
     const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
     const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
 
@@ -690,9 +690,9 @@ class DataProvider {
     // Convert physical row ranges to sequential data-row-index ranges, merging
     // consecutive indices so the resulting array stays compact.
     const physRanges = endpoint.ranges || [[0, this.hot.countRows() - 1]];
-    const sourceRanges = [];
+    const sourceRanges: any[] = [];
 
-    physRanges.forEach((range) => {
+    physRanges.forEach((range: any) => {
       const physStart = range[0];
       const physEnd = range[1] !== undefined ? range[1] : range[0];
 
@@ -742,7 +742,7 @@ class DataProvider {
    * @param {Function} isIncluded Returns `true` for indices that appear in the exported data.
    * @returns {number}
    */
-  _countVisibleBefore(end, start, isIncluded) {
+  _countVisibleBefore(end: number, start: number, isIncluded: (i: number) => boolean) {
     let count = 0;
 
     for (let i = start; i < end; i++) {
@@ -766,7 +766,7 @@ class DataProvider {
    * @param {number} endRow Last visual row of the export range.
    * @returns {number|null}
    */
-  _physicalRowToDataIndex(physRow, startRow, endRow) {
+  _physicalRowToDataIndex(physRow: number, startRow: number, endRow: number) {
     const visualRow = this.hot.toVisualRow(physRow);
 
     if (visualRow === null || visualRow < startRow || visualRow > endRow) {
@@ -778,7 +778,7 @@ class DataProvider {
     }
 
     return this._countVisibleBefore(
-      visualRow, startRow, r => this.options.exportHiddenRows !== false || !this._isHiddenRow(r)
+      visualRow, startRow, (r: number) => this.options.exportHiddenRows !== false || !this._isHiddenRow(r)
     );
   }
 
@@ -794,7 +794,7 @@ class DataProvider {
    * @param {number} endCol Last visual column of the export range.
    * @returns {number|null}
    */
-  _physicalColToDataIndex(physCol, startCol, endCol) {
+  _physicalColToDataIndex(physCol: number, startCol: number, endCol: number) {
     const visualCol = this.hot.toVisualColumn(physCol);
 
     if (visualCol === null || visualCol < startCol || visualCol > endCol) {
@@ -806,7 +806,7 @@ class DataProvider {
     }
 
     return this._countVisibleBefore(
-      visualCol, startCol, c => this.options.exportHiddenColumns !== false || !this._isHiddenColumn(c)
+      visualCol, startCol, (c: number) => this.options.exportHiddenColumns !== false || !this._isHiddenColumn(c)
     );
   }
 
@@ -821,7 +821,7 @@ class DataProvider {
    * @param {number} colIndex Visual column index.
    * @returns {number}
    */
-  _getNaturalColWidth(colIndex) {
+  _getNaturalColWidth(colIndex: number) {
     const settings = this.hot.getSettings();
     const metaWidth = this.hot.getColumnMeta(colIndex).width;
 
@@ -854,7 +854,7 @@ class DataProvider {
    * @param {number} rowIndex Visual row index.
    * @returns {number}
    */
-  _getNaturalRowHeight(rowIndex) {
+  _getNaturalRowHeight(rowIndex: number) {
     const settings = this.hot.getSettings();
     const { rowHeights, defaultRowHeight } = settings;
     const fallback = defaultRowHeight ?? 23;

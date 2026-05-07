@@ -128,7 +128,7 @@ export const MODIFIER_KEYS = ['meta', 'alt', 'shift', 'control'];
  * @param {string} pressedKey A pressed key.
  * @returns {boolean}
  */
-export const isModifierKey = (pressedKey) => {
+export const isModifierKey = (pressedKey: string) => {
   return MODIFIER_KEYS.includes(pressedKey);
 };
 
@@ -143,7 +143,7 @@ export const isModifierKey = (pressedKey) => {
  *                                        and Control for non macOS system).
  * @returns {string[]}
  */
-export const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
+export const getPressedModifierKeys = (event: KeyboardEvent, mergeMetaKeys = false) => {
   const pressedModifierKeys = [];
 
   if (event.altKey) {
@@ -181,7 +181,7 @@ export const getPressedModifierKeys = (event, mergeMetaKeys = false) => {
  *                                 Defaults to `isMacOS` from `helpers/browser`.
  * @returns {Array<string[]>}
  */
-export const getEventKeyCombinations = (event, platformCheck) => {
+export const getEventKeyCombinations = (event: KeyboardEvent, platformCheck: (() => boolean) | undefined) => {
   if (typeof event.key !== 'string') {
     return [];
   }

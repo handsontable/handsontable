@@ -973,7 +973,7 @@ export class Filters extends BasePlugin {
     const conditions = this.exportConditions();
 
     if (this.#isDataProviderActive) {
-      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack);
+      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as Record<string, unknown>[];
     }
 
     const allowFiltering = this.hot.runHooks(
@@ -1355,7 +1355,7 @@ export class Filters extends BasePlugin {
     if (
       this.enabled
       && this.conditionCollection.hasConditions(physicalColumn)
-      && isBottomMostColumnHeader(TH)
+      && isBottomMostColumnHeader(TH as HTMLTableCellElement)
     ) {
       addClass(TH, 'htFiltersActive');
     } else {

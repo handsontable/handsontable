@@ -76,10 +76,10 @@ export function getRowIdFromRowData(rowData: object | any[], rowIdOption: string
     return undefined;
   }
   if (isFunction(rowIdOption)) {
-    return rowIdOption(rowData);
+    return (rowIdOption as (...args: any[]) => any)(rowData);
   }
   if (typeof rowIdOption === 'string') {
-    return getProperty(rowData, rowIdOption);
+    return getProperty(rowData as Record<string, unknown>, rowIdOption);
   }
 
   return undefined;
@@ -139,9 +139,9 @@ export function findVisualRowById(hot: any, rowIdOption: string | ((...args: any
  * @throws {Error} When `rowId` resolves to null or undefined for a row in range.
  */
 export function rowIdsFromAlterRemove(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, index: number | any[] | undefined | null, amount: number): any[] {
-  const ids = [];
+  const ids: any[] = [];
   const n = () => hot.countRows();
-  const pushRange = (start, amt) => {
+  const pushRange = (start: number, amt: number) => {
     for (let r = 0; r < amt; r += 1) {
       const v = start + r;
 
@@ -187,7 +187,7 @@ export function buildChangesAndRowData(hot: any, rowChanges: any[]): { changesOb
   const visualRow = rowChanges[0][0];
   const rowData = hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow));
   const isObj = rowData && typeof rowData === 'object' && !Array.isArray(rowData);
-  const changesObj = {};
+  const changesObj: Record<string | number, any> = {};
 
   rowChanges.forEach(([, prop, , nv]) => {
     const col = typeof prop === 'number' ? prop : hot.propToCol(prop);
@@ -276,7 +276,7 @@ export function validateRowChanges(hot: any, visualRow: number, changes: Record<
         return;
       }
 
-      hot.validateCell(value, cellMeta, (result) => {
+      hot.validateCell(value, cellMeta, (result: any) => {
         if (result === false && cellMeta.allowInvalid === false) {
           valid = false;
         }
@@ -341,7 +341,7 @@ export function filterChangesForBatchedServerUpdate(hot: any, changes: any[]): a
  * @param {object[]} rows Caller payloads `{ id, changes, rowData? }`.
  * @returns {object[]}
  */
-export function buildManualUpdateRowPayloads(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, rows: object[]): object[] {
+export function buildManualUpdateRowPayloads(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, rows: Array<{ id?: any; changes?: any; rowData?: any }>): object[] {
   return rows.map((p) => {
     const visualRow = findVisualRowById(hot, rowIdOption, p.id);
 
@@ -424,7 +424,7 @@ export async function commitRowsUpdate(hot: any, callbacks: { getOnRowsUpdate: (
  * @param {object[]} rowPayloads Per-row `{ id, changes, rowData }` payloads from `buildManualUpdateRowPayloads`.
  * @returns {Promise<void>}
  */
-export async function runManualUpdateRowsMutation(hot: any, ctx: { getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null; commitRowsUpdate: (payloads: object[]) => Promise<void> }, rowPayloads: object[]): Promise<void> {
+export async function runManualUpdateRowsMutation(hot: any, ctx: { getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null; commitRowsUpdate: (payloads: Array<{ id?: any; changes?: any; rowData?: any }>) => Promise<void> }, rowPayloads: Array<{ id?: any; changes?: any; rowData?: any }>): Promise<void> {
   const { getRowIdOption, commitRowsUpdate: commitUpdate } = ctx;
   const payload = { rows: rowPayloads };
 

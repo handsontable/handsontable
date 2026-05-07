@@ -63,7 +63,7 @@ function collectStringsFromApiPayload(obj: any, candidates: string[]): void {
  * @returns {string} Non-empty description for UI.
  */
 export function getDataProviderRequestErrorDescription(err: any): string {
-  const candidates = [];
+  const candidates: string[] = [];
 
   if (err === undefined || err === null) {
     return 'Unknown error';

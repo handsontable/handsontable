@@ -74,8 +74,8 @@ export class Notification extends BasePlugin {
 
   static get SETTINGS_VALIDATORS() {
     return {
-      stackLimit: value => typeof value === 'number' && value > 0 && Number.isInteger(value),
-      animation: value => typeof value === 'boolean',
+      stackLimit: (value: unknown) => typeof value === 'number' && value > 0 && Number.isInteger(value),
+      animation: (value: unknown) => typeof value === 'boolean',
     };
   }
 
@@ -259,11 +259,11 @@ export class Notification extends BasePlugin {
       return '';
     }
 
-    const limit = this.getSetting('stackLimit');
+    const limit = this.getSetting('stackLimit') as number;
     const visibleAtPosition = this.#countVisibleAt(normalized.position);
 
     if (visibleAtPosition >= limit) {
-      this.#queues[normalized.position].push(normalized);
+      this.#queues[normalized.position as NotificationPosition].push(normalized);
 
       return normalized.id;
     }
@@ -375,8 +375,8 @@ export class Notification extends BasePlugin {
    */
   #captureEffectiveNotificationOptions(): { stackLimit: number; animation: boolean } {
     return {
-      stackLimit: this.getSetting('stackLimit'),
-      animation: this.getSetting('animation'),
+      stackLimit: this.getSetting('stackLimit') as number,
+      animation: this.getSetting('animation') as boolean,
     };
   }
 
@@ -427,7 +427,7 @@ export class Notification extends BasePlugin {
     const position = POSITION_SET.has(raw.position) ? raw.position : 'bottom-end';
     const duration = typeof raw.duration === 'number' && raw.duration >= 0 ? raw.duration : 4000;
     const closable = typeof raw.closable === 'boolean' ? raw.closable : true;
-    const actions = Array.isArray(raw.actions) ? raw.actions.map((a) => {
+    const actions = Array.isArray(raw.actions) ? raw.actions.map((a: any) => {
       if (!isObject(a) || typeof a.label !== 'string' || typeof a.callback !== 'function') {
         throwWithCause('Each notification action needs `label` (string) and `callback` (function).');
       }
@@ -472,7 +472,7 @@ export class Notification extends BasePlugin {
    */
   #mountToast(normalized: any): void {
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
-    const animation = this.getSetting('animation');
+    const animation = this.getSetting('animation') as boolean;
     const { element } = this.#ui.createToastElement(normalized, closeLabel, animation);
     const stack = this.#ui.getStack(normalized.position);
 
@@ -530,7 +530,7 @@ export class Notification extends BasePlugin {
    */
   #bindToastEvents(state: any): void {
     state.toastEventDisposers = [
-      this.eventManager.addEventListener(state.element, 'click', event => this.#onToastClick(event, state)),
+      this.eventManager.addEventListener(state.element, 'click', event => this.#onToastClick(event as MouseEvent, state)),
       this.eventManager.addEventListener(state.element, 'mouseenter', () => {
         state.paused = true;
       }),
@@ -569,7 +569,7 @@ export class Notification extends BasePlugin {
       return;
     }
 
-    const index = Number.parseInt(actionHost.dataset.htNotificationAction, 10);
+    const index = Number.parseInt((actionHost as HTMLElement).dataset.htNotificationAction, 10);
     const action = state.options.actions[index];
 
     if (action) {
@@ -799,7 +799,7 @@ export class Notification extends BasePlugin {
    *
    * @param {FocusEvent} event Focusin event on the root document (capture phase).
    */
-  #onDocumentFocusInForNotificationTabOrder = (event) => {
+  #onDocumentFocusInForNotificationTabOrder = (event: FocusEvent) => {
     if (this.#toasts.size === 0) {
       return;
     }
@@ -848,7 +848,7 @@ export class Notification extends BasePlugin {
     const results = [];
 
     for (let i = 0; i < toasts.length; i += 1) {
-      results.push(...NotificationUI.getFocusables(toasts[i]));
+      results.push(...NotificationUI.getFocusables(toasts[i] as HTMLElement));
     }
 
     return results;
@@ -960,7 +960,7 @@ export class Notification extends BasePlugin {
    */
   #removeToastState(state: any, removeDom: boolean): void {
     if (state.toastEventDisposers) {
-      state.toastEventDisposers.forEach(dispose => dispose());
+      state.toastEventDisposers.forEach((dispose: () => void) => dispose());
       state.toastEventDisposers = null;
     }
 
@@ -1145,10 +1145,11 @@ export class Notification extends BasePlugin {
    * @param {string} position Stack key.
    */
   #drainQueueForPosition(position: string): void {
-    const limit = this.getSetting('stackLimit');
+    const limit = this.getSetting('stackLimit') as number;
+    const pos = position as NotificationPosition;
 
-    while (this.#queues[position].length > 0 && this.#countVisibleAt(position) < limit) {
-      const next = this.#queues[position].shift();
+    while (this.#queues[pos].length > 0 && this.#countVisibleAt(position) < limit) {
+      const next = this.#queues[pos].shift();
 
       this.#mountToast(next);
     }
@@ -1201,7 +1202,7 @@ export class Notification extends BasePlugin {
   #runTick(): void {
     const doc = this.hot.rootDocument;
     const tabActive = !doc.hidden;
-    const toHide = [];
+    const toHide: string[] = [];
 
     this.#toasts.forEach((state) => {
       if (state.durationMs <= 0) {

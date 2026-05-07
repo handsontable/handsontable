@@ -102,7 +102,7 @@ export function getDateFromExcelDate(numericDate: unknown, dateFormat: unknown) 
  * @param {*} value Value to normalize.
  * @returns {*} Value normalized for HyperFormula.
  */
-export function normalizeValueForFormulaEngine(value) {
+export function normalizeValueForFormulaEngine(value: unknown) {
   if (Array.isArray(value)) {
     return multiSelectValueGetter(value);
   }

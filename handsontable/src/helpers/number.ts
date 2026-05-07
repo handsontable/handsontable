@@ -69,7 +69,7 @@ export function isNumericLike(value: unknown): boolean {
  * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
  * @returns {boolean}
  */
-export function isCommaThousandsGroupedInteger(value, decimalSeparator) {
+export function isCommaThousandsGroupedInteger(value: string, decimalSeparator: '.' | ',' | undefined) {
   if (decimalSeparator !== '.' || typeof value !== 'string') {
     return false;
   }
@@ -86,7 +86,7 @@ export function isCommaThousandsGroupedInteger(value, decimalSeparator) {
  * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
  * @returns {boolean}
  */
-export function isDotThousandsGroupedInteger(value, decimalSeparator) {
+export function isDotThousandsGroupedInteger(value: string, decimalSeparator: '.' | ',' | undefined) {
   if (decimalSeparator !== ',' || typeof value !== 'string') {
     return false;
   }
@@ -103,7 +103,7 @@ export function isDotThousandsGroupedInteger(value, decimalSeparator) {
  * @param {'.'|','|undefined} decimalSeparator Preferred decimal separator from cell meta.
  * @returns {boolean}
  */
-export function isDotThousandsGroupedFloat(value, decimalSeparator) {
+export function isDotThousandsGroupedFloat(value: string, decimalSeparator: '.' | ',' | undefined) {
   if (decimalSeparator !== ',' || typeof value !== 'string') {
     return false;
   }

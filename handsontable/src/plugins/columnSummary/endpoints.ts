@@ -527,7 +527,7 @@ class Endpoints {
    *
    * @param {Set<number>|number[]} visualColumns Visual column indexes to match against.
    */
-  refreshEndpointsBySourceColumns(visualColumns) {
+  refreshEndpointsBySourceColumns(visualColumns: Set<number> | number[]) {
     const columnsSet = visualColumns instanceof Set ? visualColumns : new Set(visualColumns);
     const matched = this.getAllEndpoints()
       .filter(endpoint => columnsSet.has(endpoint.sourceColumn));
@@ -539,11 +539,11 @@ class Endpoints {
     this.cellsToSetCache = [];
 
     arrayEach(matched, (endpoint) => {
-      this.refreshEndpoint(endpoint);
+      this.refreshEndpoint(endpoint as EndpointConfig);
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+      this.hot.setDataAtCell(this.cellsToSetCache as any, 'ColumnSummary.reset' as any);
     }
 
     this.cellsToSetCache = [];

@@ -31,7 +31,7 @@ export function textRenderer(hotInstance: HotInstance, TD: HTMLTableCellElement,
   }
 
   // this is faster than innerHTML.
-  fastInnerText(TD, escaped);
+  fastInnerText(TD, finalStr);
 }
 
 textRenderer.RENDERER_TYPE = RENDERER_TYPE;

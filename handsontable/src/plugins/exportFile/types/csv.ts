@@ -49,9 +49,9 @@ class Csv extends BaseType {
    * @param {object} options User-supplied options.
    * @returns {object}
    */
-  _mergeOptions(options) {
+  _mergeOptions(options: Record<string, unknown>) {
     const merged = super._mergeOptions(options);
-    const overrides = {};
+    const overrides: Record<string, unknown> = {};
 
     if (merged.exportHiddenRows === 'hide') {
       overrides.exportHiddenRows = false;
@@ -60,7 +60,7 @@ class Csv extends BaseType {
       overrides.exportHiddenColumns = false;
     }
 
-    return Object.keys(overrides).length > 0 ? extend(merged, overrides) : merged;
+    return Object.keys(overrides).length > 0 ? extend(merged, overrides) as Record<string, unknown> : merged;
   }
 
   /**
@@ -79,7 +79,7 @@ class Csv extends BaseType {
 
     if (hasColumnHeaders) {
       columnHeaders = columnHeaders.map(
-        value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
+        (value: unknown) => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
       );
 
       if (hasRowHeaders) {
@@ -89,7 +89,7 @@ class Csv extends BaseType {
       result += options.rowDelimiter;
     }
 
-    data.forEach((value, index) => {
+    data.forEach((value: unknown, index: number) => {
       if (index > 0) {
         result += options.rowDelimiter;
       }

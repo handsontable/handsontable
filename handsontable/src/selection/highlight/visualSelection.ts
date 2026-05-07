@@ -65,11 +65,11 @@ class VisualSelection extends Selection {
    */
   trimToVisibleCellsRangeOnly(cellRange: CellRange) {
     const { from, to } = cellRange;
-    const rowDirection = cellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
-    const columnDirection = cellRange.getInlineDirection() === 'start-end' ? 1 : -1;
+    const rowDirection = (cellRange.getVerticalDirection() === 'N-S' ? 1 : -1) as 1 | -1;
+    const columnDirection = (cellRange.getInlineDirection() === 'start-end' ? 1 : -1) as 1 | -1;
 
     const visibleFromCoords = this.getNearestNotHiddenCoords(from, rowDirection, columnDirection);
-    const visibleToCoords = this.getNearestNotHiddenCoords(to, -rowDirection, -columnDirection);
+    const visibleToCoords = this.getNearestNotHiddenCoords(to, (-rowDirection) as 1 | -1, (-columnDirection) as 1 | -1);
 
     if (visibleFromCoords === null || visibleToCoords === null) {
       return null;

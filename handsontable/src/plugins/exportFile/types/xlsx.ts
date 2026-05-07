@@ -64,7 +64,16 @@ class Xlsx extends BaseType {
    *
    * @returns {object}
    */
-  static get DEFAULT_OPTIONS() {
+  static get DEFAULT_OPTIONS(): {
+    mimeType: string;
+    fileExtension: string;
+    bom: boolean;
+    engine: any;
+    compression: boolean | number | null;
+    conditionalFormatting: any[];
+    exportFormulas: boolean;
+    headerStyle: { backgroundColor: string; border: { style: string } } | null;
+  } {
     return {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       fileExtension: 'xlsx',
@@ -94,7 +103,7 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
-    const { engine } = this.options;
+    const engine = this.options.engine as any;
 
     if (!engine || typeof engine.Workbook !== 'function') {
       throwWithCause(
@@ -106,12 +115,12 @@ class Xlsx extends BaseType {
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
     // different document (e.g. an iframe), so every distinct document must be cleared.
-    const { sheets } = this.options;
+    const sheets = this.options.sheets as any;
     const docsToClear = sheets && sheets.length > 0
-      ? new Set(sheets.map(s => s.instance.rootDocument))
-      : new Set([this.dataProvider.hot.rootDocument]);
+      ? new Set(sheets.map((s: any) => s.instance.rootDocument))
+      : new Set([(this.dataProvider.hot as any).rootDocument]);
 
-    docsToClear.forEach(doc => clearStyleCaches(doc));
+    docsToClear.forEach((doc: any) => clearStyleCaches(doc));
 
     const workbook = new engine.Workbook();
 
@@ -119,7 +128,7 @@ class Xlsx extends BaseType {
       // multi-sheet mode
       const usedSheetNames = new Set();
 
-      sheets.forEach((sheetConfig) => {
+      sheets.forEach((sheetConfig: any) => {
         const dp = new DataProvider(sheetConfig.instance);
         // Apply the same legacy-alias promotion that _mergeOptions does for top-level
         // options: if the caller passed the deprecated `columnHeaders` on a per-sheet
@@ -191,7 +200,7 @@ class Xlsx extends BaseType {
     const summaryMap = new Map();
     const columnSummaries = dataProvider.getColumnSummaries();
 
-    columnSummaries.forEach((summary) => {
+    columnSummaries.forEach((summary: any) => {
       summaryMap.set(`${summary.destRow}:${summary.destCol}`, summary);
     });
 
@@ -254,7 +263,7 @@ class Xlsx extends BaseType {
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
     const hasReadOnlyCells = !hasColumnSummary &&
-      cellsMeta.some(row => row.some(meta => meta.readOnly === true));
+      cellsMeta.some((row: any) => (row as any[]).some((meta: any) => meta.readOnly === true));
 
     const context = {
       exportFormulas,
@@ -299,7 +308,7 @@ class Xlsx extends BaseType {
       });
     }
 
-    mergeCells.forEach((merge) => {
+    mergeCells.forEach((merge: any) => {
       const startRow = merge.row + dataRowOffset;
       const startCol = merge.col + dataColOffset;
       const endRow = startRow + merge.rowspan - 1;
@@ -780,7 +789,7 @@ class Xlsx extends BaseType {
       return;
     }
 
-    const view = {};
+    const view: Record<string, any> = {};
 
     if (isRtl) {
       view.rightToLeft = true;
@@ -968,7 +977,7 @@ class Xlsx extends BaseType {
       return new Map();
     }
 
-    const existingNames = new Set(workbook.worksheets.map(ws => ws.name));
+    const existingNames = new Set(workbook.worksheets.map((ws: any) => ws.name));
     let sheetName = '_HotValidation';
     let suffix = 1;
 

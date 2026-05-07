@@ -565,7 +565,7 @@ export class ColumnSummary extends BasePlugin {
    *
    * @param {Array} changes Changes from the formula engine.
    */
-  #onAfterFormulasValuesUpdate(changes) {
+  #onAfterFormulasValuesUpdate(changes: Array<{ address?: { sheet: number; col: number } }>) {
     if (this.#refreshingFromFormulas || !this.endpoints || !changes?.length) {
       return;
     }
@@ -589,7 +589,7 @@ export class ColumnSummary extends BasePlugin {
       return;
     }
 
-    const changedVisualColumns = new Set();
+    const changedVisualColumns = new Set<number>();
 
     this.endpoints.getAllEndpoints().forEach((endpoint) => {
       const hfSourceColumn = formulasPlugin.columnAxisSyncer

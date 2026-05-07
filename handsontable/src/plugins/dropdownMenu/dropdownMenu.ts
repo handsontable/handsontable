@@ -650,7 +650,7 @@ export class DropdownMenu extends BasePlugin {
       return false;
     };
 
-    const relativeContainer = TH.firstChild;
+    const relativeContainer = TH.firstChild as Element | null;
 
     if (!relativeContainer) {
       return;

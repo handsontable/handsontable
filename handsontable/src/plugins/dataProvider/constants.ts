@@ -4,7 +4,13 @@ export const PLUGIN_KEY = 'dataProvider';
 export const PLUGIN_PRIORITY = 950;
 export const DEFAULT_PAGE_SIZE = 10;
 
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: {
+  rowId: string | ((...args: any[]) => any) | undefined;
+  fetchRows: ((...args: any[]) => any) | undefined;
+  onRowsCreate: ((...args: any[]) => any) | undefined;
+  onRowsUpdate: ((...args: any[]) => any) | undefined;
+  onRowsRemove: ((...args: any[]) => any) | undefined;
+} = {
   rowId: undefined,
   fetchRows: undefined,
   onRowsCreate: undefined,

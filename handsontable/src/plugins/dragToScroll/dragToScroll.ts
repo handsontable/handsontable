@@ -72,9 +72,9 @@ export class DragToScroll extends BasePlugin {
    *
    * @type {AutoScroller}
    */
-  #autoScroller = new AutoScroller((...args) => this.hot._registerTimeout(...args))
-    .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
-    .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
+  #autoScroller = new AutoScroller((fn: () => void, delay: number) => this.hot._registerTimeout(fn, delay) as unknown as number)
+    .addLocalHook('scrollHorizontal', (distance: any) => this.#scrollHorizontal(distance))
+    .addLocalHook('scrollVertical', (distance: any) => this.#scrollVertical(distance));
   /**
    * Flag indicates if the mouse is outside the viewport.
    *
@@ -88,7 +88,7 @@ export class DragToScroll extends BasePlugin {
    *
    * @type {('cell' | 'corner' | null)}
    */
-  #activeDragKind = null;
+  #activeDragKind: 'cell' | 'corner' | null = null;
   /**
    * Last observed mouse X coordinate (client space). Cached so that the viewport
    * can recompute the edge cell on each `afterScroll` tick even when the mouse
@@ -96,13 +96,13 @@ export class DragToScroll extends BasePlugin {
    *
    * @type {number | null}
    */
-  #lastClientX = null;
+  #lastClientX: number | null = null;
   /**
    * Last observed mouse Y coordinate (client space).
    *
    * @type {number | null}
    */
-  #lastClientY = null;
+  #lastClientY: number | null = null;
   /**
    * Reference to the controller object from `beforeOnCellMouseDown`. The
    * object is mutated in-place by all hook handlers, so by the time
@@ -110,7 +110,7 @@ export class DragToScroll extends BasePlugin {
    *
    * @type {object | null}
    */
-  #mouseDownController = null;
+  #mouseDownController: { row?: boolean; column?: boolean } | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -131,8 +131,8 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#autoScroller.configure({
-      intervalRange: this.getSetting('interval'),
-      rampDistance: this.getSetting('rampDistance'),
+      intervalRange: this.getSetting('interval') as { min: number; max: number },
+      rampDistance: this.getSetting('rampDistance') as number,
     });
 
     this.addHook('beforeOnCellMouseDown',
@@ -360,7 +360,7 @@ export class DragToScroll extends BasePlugin {
    *
    * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
    */
-  #scrollHorizontal(distance) {
+  #scrollHorizontal(distance: number) {
     const shouldAdvance = this.hot.isRtl() ? distance < 0 : distance > 0;
     // Advance (right in LTR / left in RTL): target the first column past the last fully visible one.
     // Retreat (left in LTR / right in RTL): target the column before the first partially visible one.
@@ -388,7 +388,7 @@ export class DragToScroll extends BasePlugin {
    *
    * @param {number} distance Vertical distance from viewport edge (positive = down, negative = up).
    */
-  #scrollVertical(distance) {
+  #scrollVertical(distance: number) {
     const firstVisibleRow = this.hot.getFirstFullyVisibleRow();
     const lastVisibleRow = this.hot.getLastFullyVisibleRow();
     const scrollRow = distance > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
@@ -414,7 +414,7 @@ export class DragToScroll extends BasePlugin {
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    */
-  #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
+  #onAfterSelection(row: any, column: any, endRow: any, endColumn: any, preventScrolling: any) {
     if (this.listening && this.#isOutsideViewport) {
       preventScrolling.value = true;
     }

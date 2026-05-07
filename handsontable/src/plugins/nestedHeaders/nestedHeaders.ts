@@ -12,6 +12,7 @@ import {
 } from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
+import type { HeaderNodeData } from './stateManager/headersTree';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
 
@@ -121,7 +122,7 @@ export class NestedHeaders extends BasePlugin {
    *
    * @type {number|null}
    */
-  #rowspanHeaderNavigationContextRow = null;
+  #rowspanHeaderNavigationContextRow: number | null = null;
   /**
    * Stores the expected next highlight coordinates after keyboard navigation. If the next
    * keyboard move starts from different coordinates, the horizontal navigation context
@@ -129,7 +130,7 @@ export class NestedHeaders extends BasePlugin {
    *
    * @type {{row: number, col: number}|null}
    */
-  #expectedNextKeyboardHighlightCoords = null;
+  #expectedNextKeyboardHighlightCoords: { row: number; col: number } | null = null;
   /**
    * Determines if the widths map should be updated.
    *
@@ -223,8 +224,8 @@ export class NestedHeaders extends BasePlugin {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
     }
 
-    this.#hasRowspanHeaders = this.#stateManager
-      .mapNodes(({ origRowspan }) => (origRowspan > 1 ? true : undefined))
+    this.#hasRowspanHeaders = (this.#stateManager
+      .mapNodes(({ origRowspan }: { origRowspan: number }) => (origRowspan > 1 ? true : undefined)) as unknown[])
       .length > 0;
 
     if (this.#hasRowspanHeaders) {
@@ -458,7 +459,7 @@ export class NestedHeaders extends BasePlugin {
     if (isNestedHeadersRange) {
       const {
         isRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {} as Partial<HeaderNodeData>;
       const normalizedHighlightRow = isRowspanPlaceholder ?
         this.#findRenderableHeaderRow(highlight.row, highlight.col) :
         highlight.row;
@@ -496,7 +497,7 @@ export class NestedHeaders extends BasePlugin {
     for (let row = headerRow; row >= highestHeaderRow; row--) {
       const {
         isRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(row, visualColumnIndex) ?? {};
+      } = this.#stateManager.getHeaderSettings(row, visualColumnIndex) ?? {} as Partial<HeaderNodeData>;
 
       if (!isRowspanPlaceholder) {
         return row;
@@ -872,7 +873,7 @@ export class NestedHeaders extends BasePlugin {
       while (adjustedNextRow <= lowestHeaderRow && adjustedNextRow >= highestHeaderRow) {
         const {
           isRowspanPlaceholder,
-        } = this.#stateManager.getHeaderSettings(adjustedNextRow, targetColumn) ?? {};
+        } = this.#stateManager.getHeaderSettings(adjustedNextRow, targetColumn) ?? {} as Partial<HeaderNodeData>;
 
         if (!isRowspanPlaceholder) {
           break;
@@ -907,7 +908,7 @@ export class NestedHeaders extends BasePlugin {
       const currentHeaderEndColumn = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
       const {
         isRowspanPlaceholder: isTargetRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {};
+      } = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {} as Partial<HeaderNodeData>;
       const isTargetInsideCurrentHeader = targetRow === highlight.row &&
         targetColumn >= currentHeaderStartColumn &&
         targetColumn <= currentHeaderEndColumn;
@@ -928,7 +929,7 @@ export class NestedHeaders extends BasePlugin {
           highlight.row,
           targetColumn,
           -this.getLayersCount(),
-          (headerRow, visualColumn) => this.#stateManager.getHeaderSettings(headerRow, visualColumn),
+          (headerRow: number, visualColumn: number) => this.#stateManager.getHeaderSettings(headerRow, visualColumn) as any,
         );
       }
 
@@ -944,10 +945,10 @@ export class NestedHeaders extends BasePlugin {
     if (isNestedHeadersRange) {
       const {
         isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
-      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
+      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {} as Partial<HeaderNodeData>;
       const {
         isRowspanPlaceholder: isNextHeaderRowspanPlaceholderForBounds,
-      } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {};
+      } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {} as Partial<HeaderNodeData>;
       let visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
       let visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
 

@@ -106,7 +106,7 @@ class GhostTable {
     const columnElementByVisual = new Map();
 
     for (let i = 0; i < allColumns.length; i++) {
-      const th = allColumns[i];
+      const th = allColumns[i] as HTMLTableCellElement;
 
       if (th.colSpan > 1) {
         continue; // eslint-disable-line no-continue
@@ -158,7 +158,7 @@ class GhostTable {
     const fullWidthByPhysical = new Map();
 
     for (let column = 0; column < fullColumns.length; column++) {
-      const visualColumnIndex = Number.parseInt(fullColumns[column].dataset.column, 10);
+      const visualColumnIndex = Number.parseInt((fullColumns[column] as HTMLTableCellElement).dataset.column, 10);
       const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
       fullWidthByPhysical.set(physicalColumnIndex, fullColumns[column].getBoundingClientRect().width);
@@ -186,7 +186,7 @@ class GhostTable {
 
       let found = false;
 
-      treeNode.walkUp((node) => {
+      treeNode.walkUp((node: any) => {
         if (node.data.isCollapsed === true) {
           found = true;
 

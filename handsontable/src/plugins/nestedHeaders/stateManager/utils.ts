@@ -42,7 +42,21 @@ export function createDefaultHeaderSettings({
   isPlaceholder = false,
   isRowspanPlaceholder = false,
   headerClassNames = [] as string[]
-}: Record<string, unknown> = {}) {
+}: {
+  label?: string;
+  colspan?: number;
+  origColspan?: number;
+  rowspan?: number;
+  origRowspan?: number;
+  collapsible?: boolean;
+  crossHiddenColumns?: number[];
+  isCollapsed?: boolean;
+  isHidden?: boolean;
+  isRoot?: boolean;
+  isPlaceholder?: boolean;
+  isRowspanPlaceholder?: boolean;
+  headerClassNames?: string[];
+} = {}) {
   return {
     label,
     colspan,

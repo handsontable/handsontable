@@ -16,7 +16,7 @@ export function cloneDataProviderFiltersPayload(filters: any[] | null): any[] | 
   return filters.map(col => ({
     prop: col.prop,
     operation: col.operation,
-    conditions: (col.conditions || []).map(c => ({
+    conditions: (col.conditions || []).map((c: any) => ({
       name: c.name,
       args: Array.isArray(c.args) ? [...c.args] : [],
     })),
@@ -50,7 +50,7 @@ export function conditionsStackToFiltersPayload(hot: any, conditionsStack: any[]
     payload.push({
       prop: String(prop),
       operation: stack.operation,
-      conditions: stack.conditions.map(c => ({
+      conditions: stack.conditions.map((c: any) => ({
         name: c.name,
         args: Array.isArray(c.args) ? [...c.args] : [],
       })),
@@ -92,7 +92,7 @@ export function filtersPayloadToConditionsStack(hot: any, filtersPayload: any[] 
     stack.push({
       column: physicalColumn,
       operation: col.operation,
-      conditions: (col.conditions || []).map(c => ({
+      conditions: (col.conditions || []).map((c: any) => ({
         name: c.name,
         args: Array.isArray(c.args) ? [...c.args] : [],
       })),

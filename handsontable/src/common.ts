@@ -273,6 +273,7 @@ export interface CellRange {
   setTo(coords: CellCoords): CellRange;
   getHorizontalDirection(): string;
   getVerticalDirection(): string;
+  getInlineDirection(): string;
   containsHeaders(): boolean;
   isHeader(): boolean;
   isSingleHeader(): boolean;
@@ -449,6 +450,8 @@ export interface ViewInstance {
   getRowHeaderWidth(): number;
   getColumnHeaderHeight(): number;
   adjustElementsSize(flush?: boolean): void;
+  invalidateColumnWidthCache(): void;
+  invalidateRowHeightCache(): void;
   [key: string]: unknown;
 }
 
@@ -605,6 +608,8 @@ export interface WtViewport {
   hasHorizontalScroll(): boolean;
   getWorkspaceOffset(): { top: number; left: number };
   resetHasOversizedColumnHeadersMarked(): void;
+  invalidateColumnWidthCache(): void;
+  invalidateRowHeightCache(): void;
   [key: string]: unknown;
 }
 
@@ -723,10 +728,11 @@ export interface ShortcutContext {
 export interface ShortcutManager {
   getContext(name: string): ShortcutContext;
   addContext(name: string): ShortcutContext;
-  getOrCreateContext(name: string): ShortcutContext;
+  getOrCreateContext(name: string, scope?: string): ShortcutContext;
   setActiveContextName(name: string): void;
   getActiveContextName(): string;
   isCtrlPressed(): boolean;
+  hasEventShortcut(contextName: string, event: KeyboardEvent): boolean;
   destroy(): void;
   [key: string]: unknown;
 }
@@ -863,6 +869,10 @@ export interface HotInstance {
   getFirstFullyVisibleColumn(): number;
   getLastFullyVisibleRow(): number;
   getLastFullyVisibleColumn(): number;
+  getFirstPartiallyVisibleRow(): number;
+  getFirstPartiallyVisibleColumn(): number;
+  getLastPartiallyVisibleRow(): number;
+  getLastPartiallyVisibleColumn(): number;
   getFirstRenderedVisibleRow(): number;
   getFirstRenderedVisibleColumn(): number;
   getLastRenderedVisibleRow(): number;
@@ -925,7 +935,7 @@ export interface HotInstance {
   stylesHandler: StylesHandler;
 
   // Internal
-  _registerTimeout(callback: Function | ReturnType<typeof setTimeout>, delay?: number): void;
+  _registerTimeout(callback: Function | ReturnType<typeof setTimeout>, delay?: number): ReturnType<typeof setTimeout>;
   _registerImmediate(handle: Function): void;
 
   // Lifecycle
@@ -1025,6 +1035,7 @@ export interface FocusManagerInstance {
   setRefocusDelay(delay: number): void;
   setRefocusElementGetter(getRefocusElementFunction: () => HTMLElement): void;
   getRefocusElement(): HTMLElement | void;
+  focusElement(element: HTMLElement, options?: Record<string, unknown>): void;
   focusOnHighlightedCell(selectedCell?: HTMLTableCellElement | null): void;
   refocusToEditorTextarea(delay?: number): void;
   [key: string]: unknown;
@@ -1036,7 +1047,7 @@ export interface FocusManagerInstance {
 export interface FocusScopeManagerInstance {
   registerScope(scopeId: string, container: HTMLElement, options?: object): void;
   unregisterScope(scopeId: string): void;
-  activateScope(scopeId: string): void;
+  activateScope(scopeId: string, source?: string): void;
   deactivateScope(scopeId: string): void;
   getActiveScopeId(): string | null;
   [key: string]: unknown;

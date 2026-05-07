@@ -177,14 +177,14 @@ export class IndexMapper {
    *
    * @type {WeakMap<IndexMap, Set<Function>>}
    */
-  #mapObservers = new WeakMap();
+  #mapObservers = new WeakMap<IndexMap, Set<(map: IndexMap) => void>>();
   /**
    * Set of observed maps that have changed during the current batch operation.
    * Drained and notifications fired when {@link IndexMapper#resumeOperations} is called.
    *
    * @type {Set<IndexMap>}
    */
-  #dirtyObservedMaps = new Set();
+  #dirtyObservedMaps = new Set<IndexMap>();
 
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
@@ -212,7 +212,7 @@ export class IndexMapper {
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
-    this.variousMapsCollection.addLocalHook('change', (changedMap: unknown) => {
+    this.variousMapsCollection.addLocalHook('change', (changedMap: IndexMap) => {
       this.#handleObservedMapChange(changedMap);
       this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
@@ -732,7 +732,7 @@ export class IndexMapper {
    * @param {Function} callback Called when the observed map's values change (coalesced during batches).
    * @returns {Function} Disposer function that removes the observer.
    */
-  observeMapChange(map, callback) {
+  observeMapChange(map: IndexMap, callback: (map: IndexMap) => void) {
     if (map instanceof TrimmingMap || map instanceof HidingMap) {
       throwWithCause('The "observeMapChange" method does not support trimming or hiding maps.');
     }
@@ -762,7 +762,7 @@ export class IndexMapper {
    *
    * @param {IndexMap} changedMap The map that changed.
    */
-  #handleObservedMapChange(changedMap) {
+  #handleObservedMapChange(changedMap: IndexMap) {
     if (this.#mapObservers.has(changedMap)) {
       if (this.isBatched) {
         this.#dirtyObservedMaps.add(changedMap);
@@ -777,11 +777,11 @@ export class IndexMapper {
    *
    * @param {IndexMap} map The map whose observers to notify.
    */
-  #notifyMapObservers(map) {
+  #notifyMapObservers(map: IndexMap) {
     const callbacks = this.#mapObservers.get(map);
 
     if (callbacks) {
-      callbacks.forEach(cb => cb(map));
+      callbacks.forEach((cb: (map: IndexMap) => void) => cb(map));
     }
   }
 

@@ -51,15 +51,15 @@ export class Autofill extends BasePlugin {
 
   static get DEFAULT_SETTINGS() {
     return {
-      direction: undefined,
+      direction: undefined as string | undefined,
       autoInsertRow: true,
     };
   }
 
   static get SETTINGS_VALIDATORS() {
     return {
-      direction: value => value === undefined || Object.values(DIRECTIONS).includes(value),
-      autoInsertRow: value => typeof value === 'boolean',
+      direction: (value: unknown) => value === undefined || (Object.values(DIRECTIONS) as string[]).includes(value as string),
+      autoInsertRow: (value: unknown) => typeof value === 'boolean',
     };
   }
 
@@ -110,7 +110,7 @@ export class Autofill extends BasePlugin {
    *
    * @type {string|null}
    */
-  #currentDragDirection = null;
+  #currentDragDirection: string | null = null;
   /**
    * Last mouse client position.
    *
@@ -136,7 +136,7 @@ export class Autofill extends BasePlugin {
     }
 
     const settings = this.hot.getSettings()[SETTING_KEY];
-    const pluginSettings = {};
+    const pluginSettings: { direction?: string; autoInsertRow?: boolean } = {};
 
     if (typeof settings === 'string') {
       pluginSettings.direction = settings;
@@ -147,12 +147,12 @@ export class Autofill extends BasePlugin {
     this.updatePluginSettings(pluginSettings);
 
     if (this.getSetting('direction')) {
-      this.directions = [this.getSetting('direction')];
+      this.directions = [this.getSetting('direction') as string];
     } else {
       this.directions = Object.values(DIRECTIONS);
     }
 
-    this.autoInsertRow = this.getSetting('autoInsertRow');
+    this.autoInsertRow = this.getSetting('autoInsertRow') as boolean;
 
     if (this.directions.length === 1 && this.directions.includes('horizontal')) {
       this.autoInsertRow = false;
@@ -160,8 +160,8 @@ export class Autofill extends BasePlugin {
 
     this.registerEvents();
 
-    this.addHook('afterOnCellCornerMouseDown', (event: MouseEvent) => this.#onAfterCellCornerMouseDown(event));
-    this.addHook('afterOnCellCornerDblClick', (event: MouseEvent) => this.#onCellCornerDblClick(event));
+    this.addHook('afterOnCellCornerMouseDown', () => this.#onAfterCellCornerMouseDown());
+    this.addHook('afterOnCellCornerDblClick', () => this.#onCellCornerDblClick());
     this.addHook('beforeOnCellMouseOver', (_: unknown, coords: { row: number, col: number }) => this.#onBeforeCellMouseOver(coords));
     this.addHook('afterScroll', () => this.#onAfterScroll());
 
@@ -700,7 +700,7 @@ export class Autofill extends BasePlugin {
       this.handleDraggedCells += 1;
 
       if (this.hot.selection.highlight.getFill().isEmpty()) {
-        this.redrawBorders(coords);
+        this.redrawBorders(coords as CellCoords);
       }
 
       this.addNewRowIfNeeded();
@@ -758,7 +758,7 @@ export class Autofill extends BasePlugin {
    */
   #onAfterScroll() {
     if (this.mouseDownOnCellCorner) {
-      this.#onMouseMove(this.#lastMouseClientPosition);
+      this.#onMouseMove(this.#lastMouseClientPosition as MouseEvent);
     }
   }
 

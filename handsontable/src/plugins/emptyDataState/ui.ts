@@ -45,7 +45,7 @@ const templateContent = ({ title, description, buttons }: { title?: string, desc
  * @param {{ element: HTMLElement | null }} placeholderState - In/out placeholder element reference.
  * @returns {void}
  */
-function syncEmptyDataStatePlaceholder(rootDocument, view, rows, classNamePrefix, placeholderState) {
+function syncEmptyDataStatePlaceholder(rootDocument: Document, view: any, rows: number, classNamePrefix: string, placeholderState: { element: HTMLElement | null }) {
   if (rows !== 0) {
     placeholderState.element?.remove();
     placeholderState.element = null;
@@ -71,7 +71,7 @@ function syncEmptyDataStatePlaceholder(rootDocument, view, rows, classNamePrefix
  * @param {boolean} treatAsPopulatedRowsForSizing - When `true`, use viewport width if horizontally window-scrollable.
  * @returns {number} Width in pixels.
  */
-function computeEmptyDataStateWidth(view, cols, treatAsPopulatedRowsForSizing) {
+function computeEmptyDataStateWidth(view: any, cols: number, treatAsPopulatedRowsForSizing: boolean) {
   let width = view.getWorkspaceWidth();
 
   if (view.isHorizontallyScrollableByWindow()) {
@@ -96,7 +96,7 @@ function computeEmptyDataStateWidth(view, cols, treatAsPopulatedRowsForSizing) {
  * @param {number} scrollbarSize - Horizontal scrollbar thickness when scrollbars are shown.
  * @returns {number} Height in pixels.
  */
-function computeEmptyDataStateHeight(view, cols, headerCols, scrollbarSize) {
+function computeEmptyDataStateHeight(view: any, cols: number, headerCols: number, scrollbarSize: number) {
   let height = view.getTableHeight();
 
   if (view.isVerticallyScrollableByWindow() || view.hasVerticalScroll()) {

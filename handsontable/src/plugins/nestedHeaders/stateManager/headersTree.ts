@@ -9,12 +9,15 @@ export interface HeaderSettings {
   label: string;
   colspan: number;
   origColspan: number;
+  rowspan?: number;
+  origRowspan?: number;
   collapsible: boolean;
   isCollapsed: boolean;
   crossHiddenColumns: number[];
   isHidden: boolean;
   isRoot: boolean;
   isPlaceholder: boolean;
+  isRowspanPlaceholder?: boolean;
   headerClassNames: string[];
   [key: string]: unknown;
 }

@@ -259,7 +259,7 @@ export function overlayContainsElement(overlayType: string, element: HTMLElement
  * @param {HTMLTableCellElement} TH The TH element to check.
  * @returns {boolean}
  */
-export function isBottomMostColumnHeader(TH) {
+export function isBottomMostColumnHeader(TH: HTMLTableCellElement) {
   if (!TH || !TH.classList || !TH.parentNode || !TH.parentNode.parentNode) {
     return false;
   }
@@ -270,7 +270,7 @@ export function isBottomMostColumnHeader(TH) {
 
   const headerRow = TH.parentNode;
   const headerRows = Array.from(headerRow.parentNode.childNodes);
-  const headerLevel = headerRows.indexOf(headerRow);
+  const headerLevel = headerRows.indexOf(headerRow as unknown as ChildNode);
   const rowspan = Number.parseInt(TH.getAttribute('rowspan'), 10) || 1;
 
   return headerLevel + rowspan >= headerRows.length;

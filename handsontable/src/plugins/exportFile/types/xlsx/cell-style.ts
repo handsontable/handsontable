@@ -384,7 +384,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): object | null 
   }
 
   const classes = normalizeClassNames(meta.className);
-  const alignment = {};
+  const alignment: Record<string, string> = {};
 
   if (classes.includes('htLeft')) {
     alignment.horizontal = 'left';
@@ -448,7 +448,7 @@ export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
   }
 
   const { borders } = meta;
-  const excelBorder = {};
+  const excelBorder: Record<string, any> = {};
 
   ['top', 'bottom', 'left', 'right'].forEach((side) => {
     if (borders[side] && borders[side].width > 0) {
@@ -491,7 +491,7 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
     return null;
   }
 
-  const font = {};
+  const font: Record<string, any> = {};
 
   if (bold) {
     font.bold = true;

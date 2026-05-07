@@ -301,7 +301,7 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
-      const changesChunks = [];
+      const changesChunks: unknown[][] = [];
 
       changesPerSubSelection.forEach((changesCount, sectionCount) => {
         let changesChunk = changes.splice(0, changesCount);
@@ -317,22 +317,22 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
       });
 
       if (uncheckCheckbox) {
-        const allChanges = [];
+        const allChanges: unknown[] = [];
 
         changesChunks.forEach((changesChunk) => {
-          changesChunk.forEach((change) => {
+          changesChunk.forEach((change: unknown) => {
             allChanges.push(change);
           });
         });
 
         if (allChanges.length > 0) {
-          hotInstance.setDataAtCell(allChanges);
+          hotInstance.setDataAtCell(allChanges as unknown[][]);
         }
 
       } else {
         changesChunks.forEach((changesChunk) => {
           if (changesChunk.length > 0) {
-            hotInstance.setDataAtCell(changesChunk);
+            hotInstance.setDataAtCell(changesChunk as unknown[][]);
           }
         });
       }

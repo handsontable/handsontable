@@ -46,3 +46,4 @@ export const A11Y_RELEVANT = (val: string): [string, string] => ['aria-relevant'
 export const A11Y_SETSIZE = (val: number): [string, number] => ['aria-setsize', val];
 export const A11Y_POSINSET = (val: number): [string, number] => ['aria-posinset', val];
 export const A11Y_MODAL = (): [string, string] => ['aria-modal', 'true'];
+export const A11Y_BUSY = (): [string, string] => ['aria-busy', 'true'];

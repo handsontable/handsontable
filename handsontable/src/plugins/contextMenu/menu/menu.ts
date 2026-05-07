@@ -322,8 +322,8 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
-      modifyRowHeight: (rowHeight, visualRowIndex) => {
-        const item = this.hotMenu.getSourceDataAtRow(visualRowIndex);
+      modifyRowHeight: (rowHeight: number, visualRowIndex: number) => {
+        const item = this.hotMenu.getSourceDataAtRow(visualRowIndex) as { name?: unknown } | null;
 
         return item && item.name === SEPARATOR ? 1 : rowHeight;
       },

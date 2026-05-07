@@ -158,7 +158,7 @@ class TableView {
    *
    * @type {number|null}
    */
-  #recentTouchEndTimeout: number | null = null;
+  #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
@@ -1416,9 +1416,11 @@ class TableView {
    * @private
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event) {
-    if (event.sourceCapabilities) {
-      return event.sourceCapabilities.firesTouchEvents === true;
+  #isSyntheticMouseEvent(event: Event) {
+    const mouseEvent = event as any;
+
+    if (mouseEvent.sourceCapabilities) {
+      return mouseEvent.sourceCapabilities.firesTouchEvents === true;
     }
 
     return this.#recentTouchEnd;

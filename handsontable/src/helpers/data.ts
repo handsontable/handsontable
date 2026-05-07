@@ -161,7 +161,7 @@ export function dataRowToChangesArray(dataRow: unknown[] | object, rowOffset: nu
  * @param {string|number} prop Prop/column identifier to match.
  * @returns {boolean} `true` if at least one change matches the provided row and prop.
  */
-export function hasChangeForCell(changes, visualRow, prop) {
+export function hasChangeForCell(changes: Array<Array<unknown>>, visualRow: number, prop: string | number) {
   return changes.some(([changeRow, changeProp]) => changeRow === visualRow && changeProp === prop);
 }
 
@@ -218,7 +218,7 @@ export function isArrayOfObjects(data: unknown[]): boolean {
  * @param {*} row Row value from the source data.
  * @returns {*}
  */
-export function cloneRow(row) {
+export function cloneRow(row: unknown) {
   if (Array.isArray(row)) {
     return row.slice();
   }

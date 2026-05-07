@@ -165,7 +165,7 @@ export class NotificationUI {
     messageEl.className = `${NOTIFICATION_CLASS_NAME}__message`;
 
     if (typeof options.message === 'string') {
-      fastInnerHTML(messageEl, options.message, this.#sanitizer);
+      fastInnerHTML(messageEl, options.message, this.#sanitizer as boolean | ((html: string) => string));
     } else {
       messageEl.appendChild(options.message);
     }
@@ -177,7 +177,7 @@ export class NotificationUI {
 
       actionsRow.className = `${NOTIFICATION_CLASS_NAME}__actions`;
 
-      options.actions.forEach((action, index) => {
+      options.actions.forEach((action: any, index: number) => {
         const btn = doc.createElement('button');
 
         btn.type = 'button';
@@ -254,16 +254,17 @@ export class NotificationUI {
     const tabIndex = enabled ? 0 : -1;
 
     host.querySelectorAll(`.${NOTIFICATION_CLASS_NAME}__toast`).forEach((toast) => {
-      const buttons = Array.from(toast.querySelectorAll('button')).filter(btn => !btn.disabled);
+      const toastEl = toast as HTMLElement;
+      const buttons = Array.from(toastEl.querySelectorAll('button')).filter(btn => !btn.disabled);
 
       buttons.forEach((btn) => {
         btn.tabIndex = tabIndex;
       });
 
       if (buttons.length === 0) {
-        toast.tabIndex = tabIndex;
+        toastEl.tabIndex = tabIndex;
       } else {
-        toast.tabIndex = -1;
+        toastEl.tabIndex = -1;
       }
     });
   }

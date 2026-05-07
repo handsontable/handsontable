@@ -417,7 +417,7 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'keydown', event => this.#onEditorKeyDown(event));
+    this.eventManager.addEventListener(editorElement, 'keydown', event => this.#onEditorKeyDown(event as KeyboardEvent));
 
     this.eventManager.addEventListener(
       this.getEditorInputElement(),
@@ -654,7 +654,7 @@ export class Comments extends BasePlugin {
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
     const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-    const metaColspan = cellMeta.colspan ?? 1;
+    const metaColspan = (cellMeta.colspan as number | undefined) ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
     const styleData = commentStyle as { width: number; height: number } | undefined;
@@ -667,7 +667,7 @@ export class Comments extends BasePlugin {
     }
 
     const lastColWidth = isBeforeRenderedColumns ? 0 :
-      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
+      getEditorAnchorWidth(metaColspan, TD as HTMLTableCellElement, (wtTable.getColumnWidth as (col: number) => number)(renderableColumn));
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD as HTMLElement) : 0;
 
     const {
@@ -875,7 +875,7 @@ export class Comments extends BasePlugin {
    *
    * @param {KeyboardEvent} event The keydown event from the comment textarea.
    */
-  #onEditorKeyDown(event) {
+  #onEditorKeyDown(event: KeyboardEvent) {
     if (!this.#editor.isVisible()) {
       return;
     }

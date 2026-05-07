@@ -110,7 +110,7 @@ export class ManualRowMove extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
     this.addHook('beforeOnCellMouseOver', (...args: unknown[]) => (this.#onBeforeOnCellMouseOver as Function)(...args));
     this.addHook('beforeOnCellMouseOverOutside',
-      (event, coords, TD, controller) => this.#onBeforeOnCellMouseOverOutside(controller));
+      (event: unknown, coords: unknown, TD: unknown, controller: unknown) => this.#onBeforeOnCellMouseOverOutside(controller as Record<string, unknown>));
     this.addHook('afterScrollHorizontally', () => this.#onAfterScrollHorizontally());
     this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
 
@@ -622,7 +622,7 @@ export class ManualRowMove extends BasePlugin {
    *
    * @param {object} controller The controller object.
    */
-  #onBeforeOnCellMouseOverOutside(controller) {
+  #onBeforeOnCellMouseOverOutside(controller: Record<string, unknown>) {
     if (!this.#pressed) {
       return;
     }

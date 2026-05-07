@@ -115,7 +115,7 @@ export class ManualColumnResize extends BasePlugin {
    *
    * @type {Function|null}
    */
-  #disposeMapObserver = null;
+  #disposeMapObserver: (() => void) | null = null;
   /**
    * Private pool to save configuration from updateSettings.
    *

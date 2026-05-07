@@ -31,6 +31,7 @@ export interface ShortcutManager {
   getContext(contextName: string): Context | undefined;
   getOrCreateContext(contextName: string, scope?: string): Context;
   setActiveContextName(contextName: string): void;
+  hasEventShortcut(contextName: string, event: KeyboardEvent): boolean;
   isCtrlPressed(): boolean;
   releasePressedKeys(): void;
   destroy(): void;
@@ -208,7 +209,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {string[]} keys Normalized pressed keys.
    * @returns {boolean} Whether a shortcut cancelled further handling.
    */
-  const runGlobalScopedShortcuts = (event, keys) => {
+  const runGlobalScopedShortcuts = (event: KeyboardEvent, keys: string[]) => {
     const items = CONTEXTS.getItems();
 
     for (let i = 0; i < items.length; i += 1) {
@@ -252,7 +253,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {KeyboardEvent} event The keyboard event to match.
    * @returns {boolean}
    */
-  const hasEventShortcut = (contextName, event) => {
+  const hasEventShortcut = (contextName: string, event: KeyboardEvent) => {
     const context = getContext(contextName);
 
     if (!context) {

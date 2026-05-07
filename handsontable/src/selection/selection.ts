@@ -200,10 +200,10 @@ class Selection {
    */
   updateHighlightClassNames() {
     this.highlight.updateHighlightClassNames({
-      rowClassName: this.settings.currentRowClassName,
-      columnClassName: this.settings.currentColClassName,
-      headerClassName: this.settings.currentHeaderClassName,
-      activeHeaderClassName: this.settings.activeHeaderClassName,
+      rowClassName: this.settings.currentRowClassName as string | undefined,
+      columnClassName: this.settings.currentColClassName as string | undefined,
+      headerClassName: this.settings.currentHeaderClassName as string | undefined,
+      activeHeaderClassName: this.settings.activeHeaderClassName as string | undefined,
     });
   }
 

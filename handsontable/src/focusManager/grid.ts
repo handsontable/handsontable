@@ -161,7 +161,7 @@ export class FocusGridManager {
    * @param {FocusOptions} [focusOptions] Optional arguments for the native `focus()` call.
    * @returns {boolean} `true` if `focus()` was called, `false` if `element` is not a connected `HTMLElement`.
    */
-  focusElement(element, focusOptions) {
+  focusElement(element: HTMLElement, focusOptions?: FocusOptions) {
     if (!isHTMLElement(element) || !element.isConnected) {
       return false;
     }
@@ -196,7 +196,7 @@ export class FocusGridManager {
         elementToBeFocused &&
         !(this.#hot.getActiveEditor() as ActiveEditorInstance | undefined)?.isOpened()
       ) {
-        this.focusElement(elementToBeFocused, { preventScroll: true });
+        this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
       }
     };
 

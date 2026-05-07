@@ -217,7 +217,7 @@ export default class StateManager {
       return null;
     }
 
-    return (this.#stateMatrix[headerLevel] as unknown[])?.[columnIndex] ?? null;
+    return ((this.#stateMatrix[headerLevel] as unknown[])?.[columnIndex] ?? null) as HeaderNodeData | null;
   }
 
   /**
