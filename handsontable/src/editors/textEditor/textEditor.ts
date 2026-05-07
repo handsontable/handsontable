@@ -53,7 +53,7 @@ export class TextEditor extends BaseEditor {
    * @private
    * @type {HTMLTextAreaElement}
    */
-  declare TEXTAREA: HTMLTextAreaElement;
+  declare TEXTAREA: HTMLTextAreaElement | HTMLInputElement;
   /**
    * Style declaration object of the TEXTAREA element.
    *

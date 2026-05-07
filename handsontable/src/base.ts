@@ -27,7 +27,14 @@ import {
   registerTheme,
 } from './themes/registry';
 import type { HotInstance, GridSettings as GridSettingsType } from './common';
-import type { ColumnSettings as ColumnSettingsType, CellProperties as CellPropertiesType } from './settings';
+import type {
+  ColumnSettings as ColumnSettingsType,
+  CellProperties as CellPropertiesType,
+  CellMeta as CellMetaType,
+  NumericFormatOptions as NumericFormatOptionsType,
+} from './settings';
+import { TextEditor } from './editors/textEditor/textEditor';
+import { empty } from './helpers/dom/element';
 
 /**
  * Hook registry interface for Handsontable.hooks (e.g. getRegistered()).
@@ -66,7 +73,11 @@ const Handsontable = (function Handsontable(
 
 // Static members
 Handsontable.editors = {
-  BaseEditor
+  BaseEditor,
+  TextEditor,
+};
+Handsontable.dom = {
+  empty,
 };
 Handsontable.Core = function(
   this: HotInstance,
@@ -115,10 +126,11 @@ declare namespace Handsontable {
   export type ColumnSettings = ColumnSettingsType;
   export type CellProperties = CellPropertiesType;
   /** @deprecated Use CellProperties */
-  export type CellMeta = CellPropertiesType;
+  export type CellMeta = CellMetaType;
+  export type NumericFormatOptions = NumericFormatOptionsType;
   export namespace editors {
     /** Instance type of the BaseEditor class (for refs and type guards). */
-    export type BaseEditor = InstanceType<typeof BaseEditor>;
+    export type BaseEditor = InstanceType<typeof import('./editors/baseEditor').BaseEditor>;
   }
 }
 
@@ -127,9 +139,9 @@ declare namespace Handsontable {
  * Allows both `Handsontable(elem, opts)` and `new Handsontable(elem, opts)`.
  */
 interface HandsontableFactory {
-  (rootElement: HTMLElement, userSettings?: Record<string, unknown>): HotInstance;
-  new(rootElement: HTMLElement, userSettings?: Record<string, unknown>): HotInstance;
-  Core: new (rootElement: HTMLElement, userSettings?: Record<string, unknown>) => HotInstance;
+  (rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
+  new(rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
+  Core: new (rootElement: HTMLElement, userSettings?: GridSettingsType) => HotInstance;
   DefaultSettings: Record<string, unknown>;
   hooks: HooksRegistry;
   CellCoords: typeof CellCoords;
@@ -140,6 +152,11 @@ interface HandsontableFactory {
   languages: Record<string, unknown>;
   editors: {
     BaseEditor: typeof BaseEditor;
+    TextEditor: typeof TextEditor;
+    [key: string]: unknown;
+  };
+  dom: {
+    empty: typeof empty;
     [key: string]: unknown;
   };
   themes: Record<string, unknown>;
