@@ -35,6 +35,11 @@ export class RemoveRowAction extends BaseAction {
    * @param {Array} removedCellMetas List of removed cell metas.
    */
   removedCellMetas;
+  /**
+   * @param {Array} removedMergedCells List of merged cell ranges fully contained within
+   *   the removed rows. Stored as plain `{ row, col, rowspan, colspan }` objects in visual coords.
+   */
+  removedMergedCells;
 
   constructor({
     index,
@@ -42,8 +47,9 @@ export class RemoveRowAction extends BaseAction {
     fixedRowsBottom,
     fixedRowsTop,
     rowIndexesSequence,
-    removedCellMetas
-  }: { index: number, indexes?: number[], data: unknown[][], fixedRowsBottom: number, fixedRowsTop: number, rowIndexesSequence: number[], removedCellMetas: unknown[] }) {
+    removedCellMetas,
+    removedMergedCells,
+  }: { index: number, indexes?: number[], data: unknown[][], fixedRowsBottom: number, fixedRowsTop: number, rowIndexesSequence: number[], removedCellMetas: unknown[], removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }> }) {
     super('remove_row');
     this.index = index;
     this.data = data;
@@ -51,6 +57,7 @@ export class RemoveRowAction extends BaseAction {
     this.fixedRowsTop = fixedRowsTop;
     this.rowIndexesSequence = rowIndexesSequence;
     this.removedCellMetas = removedCellMetas;
+    this.removedMergedCells = removedMergedCells;
   }
 
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
@@ -70,7 +77,8 @@ export class RemoveRowAction extends BaseAction {
           fixedRowsBottom: hot.getSettings().fixedRowsBottom,
           fixedRowsTop: hot.getSettings().fixedRowsTop,
           rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
-          removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1)
+          removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
+          removedMergedCells: collectAffectedMergedCells(hot, index, amount),
         });
       };
 
@@ -115,6 +123,8 @@ export class RemoveRowAction extends BaseAction {
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
     });
 
+    restoreMergedCells(hot, this.removedMergedCells);
+
     hot.addHookOnce('afterViewRender', undoneCallback);
     hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
   }
@@ -127,4 +137,67 @@ export class RemoveRowAction extends BaseAction {
     hot.addHookOnce('afterRemoveRow', redoneCallback);
     hot.alter('remove_row', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.redo');
   }
+}
+
+/**
+ * Collects merged cells that overlap the removed visual row range.
+ * The plugin's own `shiftCollections` logic mutates surviving merges asymmetrically
+ * (a partial top removal cannot be reversed on `afterCreateRow`), so on undo we
+ * must restore every overlapping merge from its pre-removal state.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {number} visualRow First visual row being removed.
+ * @param {number} amount Number of rows being removed.
+ * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
+ */
+function collectAffectedMergedCells(hot, visualRow, amount) {
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return [];
+  }
+
+  const lastVisualRow = visualRow + amount - 1;
+  const affected = [];
+
+  mergeCellsPlugin.mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }) => {
+    const mergeStart = row;
+    const mergeEnd = row + rowspan - 1;
+
+    if (mergeStart <= lastVisualRow && mergeEnd >= visualRow) {
+      affected.push({ row, col, rowspan, colspan });
+    }
+  });
+
+  return affected;
+}
+
+/**
+ * Re-applies merged cells affected by row removal. Any leftover partial merge in
+ * the captured area is unmerged first so the original range can be re-merged.
+ *
+ * @param {Core} hot The Handsontable instance.
+ * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
+ */
+function restoreMergedCells(hot, mergedCells) {
+  if (!mergedCells || mergedCells.length === 0) {
+    return;
+  }
+
+  const mergeCellsPlugin = hot.getPlugin('mergeCells');
+
+  if (!mergeCellsPlugin?.enabled) {
+    return;
+  }
+
+  mergedCells.forEach(({ row, col, rowspan, colspan }) => {
+    const endRow = row + rowspan - 1;
+    const endCol = col + colspan - 1;
+    const start = hot._createCellCoords(row, col);
+    const end = hot._createCellCoords(endRow, endCol);
+    const range = hot._createCellRange(start, start, end);
+
+    mergeCellsPlugin.unmergeRange(range, true);
+    mergeCellsPlugin.merge(row, col, endRow, endCol);
+  });
 }

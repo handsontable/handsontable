@@ -1736,4 +1736,99 @@ describe('AutoFill', () => {
 
     style.remove();
   });
+
+  describe('selection direction after autofill (#10771)', () => {
+    it('should keep the active cell at the original position when dragging the fill handle down', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 1);
+
+      simulateFillHandleDrag($(getCell(3, 1, true)));
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,1']);
+    });
+
+    it('should keep the active cell at the original position when dragging the fill handle up', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(3, 1);
+
+      simulateFillHandleDrag($(getCell(1, 1, true)));
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 1,1']);
+    });
+
+    it('should keep the active cell at the original position when dragging the fill handle right', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 1);
+
+      simulateFillHandleDrag($(getCell(1, 3, true)));
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,3']);
+    });
+
+    it('should keep the active cell at the original position when dragging the fill handle left', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 3);
+
+      simulateFillHandleDrag($(getCell(1, 1, true)));
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,1']);
+    });
+
+    it('should preserve the multi-cell selection direction when extending downward', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 1, 2, 2);
+
+      simulateFillHandleDrag($(getCell(4, 2, true)));
+
+      expect(getSelected()).toEqual([[1, 1, 4, 2]]);
+    });
+
+    it('should still allow double-click fill after a reversed (upward) autofill drag', async() => {
+      handsontable({
+        data: [
+          [null, 'a'],
+          ['X', 'b'],
+          [null, 'c'],
+          [null, 'd'],
+          [null, 'e'],
+        ],
+        fillHandle: true,
+      });
+
+      await selectCell(1, 0);
+
+      simulateFillHandleDrag($(getCell(0, 0, true)));
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 0,0']);
+      expect(getDataAtCell(0, 0)).toBe('X');
+
+      const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+
+      await mouseDoubleClick(fillHandle);
+
+      expect(getDataAtCell(2, 0)).toBe('X');
+      expect(getDataAtCell(3, 0)).toBe('X');
+      expect(getDataAtCell(4, 0)).toBe('X');
+    });
+  });
 });

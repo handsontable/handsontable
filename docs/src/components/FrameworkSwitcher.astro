@@ -2,12 +2,13 @@
 /**
  * Framework switcher for the site header.
  *
- * Renders a dropdown showing the current framework with icon. Each item
- * in the dropdown has a framework icon. Clicking switches the URL prefix.
+ * Renders three segmented tabs (JS / React / Angular) styled like the
+ * spreadsheet-cell nav-link row. The active framework gets an Excel-style
+ * blue border, mirroring `.nav-link--active` in Header.astro.
  *
  * The legacy classes `nav-frameworks`, `dropdown-title`, and `title` are
- * included in the markup for backward compatibility with the Algolia crawler
- * config that targets `.nav-frameworks .dropdown-title .title`.
+ * preserved for backward compatibility with the Algolia crawler config that
+ * targets `.nav-frameworks .dropdown-title .title`.
  */
 const pathname = Astro.url.pathname;
 
@@ -32,192 +33,87 @@ const items = frameworks.map((fw) => ({
 }));
 ---
 
-<div class="fw-dropdown nav-frameworks">
-  <button
-    class="fw-trigger"
-    aria-haspopup="menu"
-    aria-expanded="false"
-    id="fw-trigger"
-    type="button"
-  >
-    <span class:list={['fw-icon', current.icon]} aria-hidden="true"></span>
-    {current.label}
-    {/* Hidden span provides the legacy .nav-frameworks .dropdown-title .title selector
-        for the Algolia crawler without affecting the visual layout. Uses offscreen
-        positioning (not display:none) so the text is included in innerText-based
-        extraction methods. */}
-    <span class="dropdown-title" aria-hidden="true" style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
-      <span class="title">{current.fullName}</span>
-    </span>
-    <svg class="fw-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
-  </button>
-
-  <ul class="fw-menu" role="menu" aria-labelledby="fw-trigger" hidden>
-    {items.map(({ label, href, isCurrent, icon }) => (
-      <li role="none">
-        <a
-          href={href}
-          class:list={['fw-item', { 'fw-item--current': isCurrent }]}
-          role="menuitem"
-          tabindex="-1"
-          aria-current={isCurrent ? 'page' : undefined}
-        >
-          <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
-          {label}
-        </a>
-      </li>
-    ))}
-  </ul>
+<div class="fw-tabs nav-frameworks" role="group" aria-label="Framework">
+  {/* Hidden span keeps the legacy .nav-frameworks .dropdown-title .title selector
+      alive for the Algolia crawler. Offscreen positioning (not display:none) so
+      innerText-based extraction still picks it up. */}
+  <span class="dropdown-title" aria-hidden="true">
+    <span class="title">{current.fullName}</span>
+  </span>
+  {items.map(({ label, fullName, href, isCurrent, icon }) => (
+    <a
+      href={href}
+      class:list={['fw-tab', { 'fw-tab--current': isCurrent }]}
+      aria-current={isCurrent ? 'page' : undefined}
+      aria-label={`Switch to ${fullName}`}
+    >
+      <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
+      <span class="fw-tab-label">{label}</span>
+    </a>
+  ))}
 </div>
 
-<script>
-  import { attachDropdownKeyboardNav } from '../scripts/a11y-utils';
-
-  const wrapper = document.querySelector('.fw-dropdown') as HTMLElement | null;
-  const trigger = document.getElementById('fw-trigger') as HTMLButtonElement | null;
-  const menu = document.querySelector('.fw-menu') as HTMLElement | null;
-
-  if (wrapper && trigger && menu) {
-    function openMenu() {
-      // Close versions dropdown if open
-      const vMenu = document.querySelector('.versions-menu') as HTMLElement | null;
-      const vTrigger = document.getElementById('versions-trigger');
-      if (vMenu) vMenu.hidden = true;
-      if (vTrigger) vTrigger.setAttribute('aria-expanded', 'false');
-
-      menu!.hidden = false;
-      trigger!.setAttribute('aria-expanded', 'true');
-    }
-
-    function closeMenu() {
-      menu!.hidden = true;
-      trigger!.setAttribute('aria-expanded', 'false');
-    }
-
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = !menu.hidden;
-      if (isOpen) {
-        closeMenu();
-      } else {
-        openMenu();
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!wrapper.contains(e.target as Node)) {
-        closeMenu();
-      }
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !menu.hidden) {
-        closeMenu();
-        trigger.focus();
-      }
-    });
-
-    attachDropdownKeyboardNav(trigger, menu, {
-      itemSelector: 'a[role="menuitem"]',
-      onOpen: openMenu,
-      onClose: closeMenu,
-      isOpen: () => !menu.hidden,
-    });
-  }
-</script>
-
 <style>
-  .fw-dropdown {
-    position: relative;
+  .fw-tabs {
     display: inline-flex;
-    align-items: center;
+    align-items: stretch;
+    position: relative;
   }
 
-  .fw-trigger {
+  .dropdown-title {
+    position: absolute;
+    left: -9999px;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .fw-tab {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    background: none;
-    border: none;
-    border-left: 1px solid var(--sl-color-gray-5);
-    border-right: 1px solid var(--sl-color-gray-5);
+    gap: 0.4rem;
     color: var(--sl-color-gray-2);
-    cursor: pointer;
     font-size: var(--sl-text-sm);
     font-weight: 500;
-    padding: 0.5rem 0.625rem;
-    transition: color 0.15s, background-color 0.15s;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    border-top-color: var(--sl-color-gray-5);
+    border-right-color: var(--sl-color-gray-5);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
     white-space: nowrap;
+    position: relative;
   }
 
-  .fw-trigger:hover {
+  .fw-tab:first-of-type {
+    border-left-color: var(--sl-color-gray-5);
+  }
+
+  .fw-tab:hover {
     color: var(--sl-color-white);
     background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
-  .fw-chevron {
-    flex-shrink: 0;
-    margin-inline-start: 0.1rem;
-    transition: transform 0.15s;
+  /* Below 920px the header runs out of room — show icons only. */
+  @media (max-width: 57.49rem) {
+    .fw-tab {
+      gap: 0;
+      padding: 0.5rem 0.6rem;
+    }
+
+    .fw-tab-label {
+      display: none;
+    }
   }
 
-  .fw-trigger[aria-expanded='true'] .fw-chevron {
-    transform: rotate(180deg);
-  }
-
-  .fw-menu {
-    background: var(--sl-color-bg-nav);
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0;
-    box-shadow: none;
-    inset-inline-end: 0;
-    list-style: none !important;
-    margin: 0;
-    min-width: 8rem;
-    overflow-y: auto;
-    padding: 0 !important;
-    position: absolute;
-    top: 100%;
-    z-index: 100;
-  }
-
-  .fw-menu li {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .fw-menu[hidden] {
-    display: none;
-  }
-
-  .fw-item {
-    align-items: center;
-    color: var(--sl-color-text);
-    display: flex;
-    font-size: var(--sl-text-sm);
-    gap: 0.4rem;
-    padding: 0.5rem 0.75rem;
-    text-decoration: none;
-    border-bottom: 1px solid var(--sl-color-gray-5);
-    transition: background 0.1s, color 0.1s;
-    white-space: nowrap;
-  }
-
-  .fw-item:last-child {
-    border-bottom: none;
-  }
-
-  .fw-item:hover,
-  .fw-item:focus-visible {
-    background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  /* Active = Excel-style blue selection border, matching .nav-link--active */
+  .fw-tab--current,
+  .fw-tab--current:first-of-type {
     color: var(--sl-color-white);
-    outline: none;
-  }
-
-  .fw-item--current {
-    color: var(--sl-color-white);
-    box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+    font-weight: 600;
+    border-color: var(--sl-color-accent);
+    z-index: 1;
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
   /* Framework icons */

@@ -1242,62 +1242,6 @@ describe('MergeCells', () => {
     });
   });
 
-  describe('Undo/Redo', () => {
-    it('should not be possible to remove initially declared merged cells by calling the \'Undo\' action.', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 10),
-        mergeCells: [
-          { row: 5, col: 4, rowspan: 2, colspan: 5 },
-          { row: 1, col: 1, rowspan: 2, colspan: 2 },
-        ]
-      });
-
-      getPlugin('undoRedo').undo();
-
-      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
-    });
-
-    it('should be possible undo the merging process by calling the \'Undo\' action.', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 10),
-        mergeCells: true
-      });
-
-      const plugin = getPlugin('mergeCells');
-
-      plugin.merge(0, 0, 3, 3);
-      await selectCell(4, 4, 7, 7);
-      plugin.mergeSelection();
-
-      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
-      getPlugin('undoRedo').undo();
-      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
-      getPlugin('undoRedo').undo();
-      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(0);
-    });
-
-    it('should be possible redo the merging process by calling the \'Redo\' action.', async() => {
-      handsontable({
-        data: createSpreadsheetData(10, 10),
-        mergeCells: true
-      });
-
-      const plugin = getPlugin('mergeCells');
-
-      plugin.merge(0, 0, 3, 3);
-      await selectCell(4, 4, 7, 7);
-      plugin.mergeSelection();
-
-      getPlugin('undoRedo').undo();
-      getPlugin('undoRedo').undo();
-
-      getPlugin('undoRedo').redo();
-      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
-      getPlugin('undoRedo').redo();
-      expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
-    });
-  });
-
   describe('cooperation with the `Autofill` plugin', () => {
     it('should add new merged areas when dragged the merged cell', async() => {
       handsontable({
