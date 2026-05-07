@@ -377,7 +377,7 @@ export class Autofill extends BasePlugin {
         null
       );
 
-      this.setSelection(cornersOfSelectionAndDragAreas);
+      this.setSelection(cornersOfSelectionAndDragAreas, sourceRange);
       this.hot.runHooks('afterAutofill', fillData, sourceRange, targetRange, directionOfDrag);
       this.hot.render();
 
@@ -472,11 +472,50 @@ export class Autofill extends BasePlugin {
   /**
    * Sets selection based on passed corners.
    *
+   * When `sourceRange` is provided, the active cell (`from`) is anchored to the corner
+   * of the merged selection that wasn't extended by the autofill drag. This keeps the
+   * highlight at its pre-fill position instead of flipping to the top-start corner,
+   * matching Google Sheets and Excel behavior.
+   *
    * @private
    * @param {Array} cornersOfArea An array witch defines selection.
+   * @param {CellRange} [sourceRange] Pre-fill selection range used to preserve the
+   *                                  original `from` corner orientation.
    */
-  setSelection(cornersOfArea) {
-    this.hot.selectCell(...arrayMap(cornersOfArea, index => Math.max(index, 0)), false, false);
+  setSelection(cornersOfArea, sourceRange) {
+    const [minRow, minCol, maxRow, maxCol] = arrayMap(cornersOfArea, index => Math.max(index, 0));
+    let fromRow = minRow;
+    let fromCol = minCol;
+    let toRow = maxRow;
+    let toCol = maxCol;
+
+    if (sourceRange) {
+      const preMinRow = Math.min(sourceRange.from.row, sourceRange.to.row);
+      const preMaxRow = Math.max(sourceRange.from.row, sourceRange.to.row);
+      const preMinCol = Math.min(sourceRange.from.col, sourceRange.to.col);
+      const preMaxCol = Math.max(sourceRange.from.col, sourceRange.to.col);
+
+      if (minRow < preMinRow) {
+        fromRow = maxRow; // dragged up - anchor stays at the (preserved) bottom
+      } else if (maxRow > preMaxRow) {
+        fromRow = minRow; // dragged down - anchor stays at the (preserved) top
+      } else {
+        fromRow = sourceRange.from.row === preMinRow ? minRow : maxRow;
+      }
+
+      if (minCol < preMinCol) {
+        fromCol = maxCol; // dragged left - anchor stays at the (preserved) right
+      } else if (maxCol > preMaxCol) {
+        fromCol = minCol; // dragged right - anchor stays at the (preserved) left
+      } else {
+        fromCol = sourceRange.from.col === preMinCol ? minCol : maxCol;
+      }
+
+      toRow = fromRow === minRow ? maxRow : minRow;
+      toCol = fromCol === minCol ? maxCol : minCol;
+    }
+
+    this.hot.selectCell(fromRow, fromCol, toRow, toCol, false, false);
   }
 
   /**

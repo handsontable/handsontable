@@ -1736,4 +1736,79 @@ describe('AutoFill', () => {
 
     style.remove();
   });
+
+  describe('selection direction after autofill (#10771)', () => {
+    it('should keep the active cell at the original position when dragging the fill handle down', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 1);
+
+      simulateFillHandleDrag($(getCell(3, 1, true)));
+
+      expect(getSelected()).toEqual([[1, 1, 3, 1]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+    });
+
+    it('should keep the active cell at the original position when dragging the fill handle up', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(3, 1);
+
+      simulateFillHandleDrag($(getCell(1, 1, true)));
+
+      expect(getSelected()).toEqual([[3, 1, 1, 1]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(3);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+    });
+
+    it('should keep the active cell at the original position when dragging the fill handle right', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 1);
+
+      simulateFillHandleDrag($(getCell(1, 3, true)));
+
+      expect(getSelected()).toEqual([[1, 1, 1, 3]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(1);
+    });
+
+    it('should keep the active cell at the original position when dragging the fill handle left', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 3);
+
+      simulateFillHandleDrag($(getCell(1, 1, true)));
+
+      expect(getSelected()).toEqual([[1, 3, 1, 1]]);
+      expect(getSelectedRangeLast().highlight.row).toBe(1);
+      expect(getSelectedRangeLast().highlight.col).toBe(3);
+    });
+
+    it('should preserve the multi-cell selection direction when extending downward', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        fillHandle: true,
+      });
+
+      await selectCell(1, 1, 2, 2);
+
+      simulateFillHandleDrag($(getCell(4, 2, true)));
+
+      expect(getSelected()).toEqual([[1, 1, 4, 2]]);
+    });
+  });
 });
