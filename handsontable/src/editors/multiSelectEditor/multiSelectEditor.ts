@@ -154,6 +154,26 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.getInputController()!.listen();
 
     this.dropdownController!.updateDimensions(this.#getAvailableSpace());
+
+    const dropdownStyles = this.hot.rootWindow.getComputedStyle(this.dropdownContainerElement!);
+
+    // #region agent log
+    (this.hot.rootWindow as {
+      agentDebugLog?: (payload: Record<string, unknown>) => void;
+    })?.agentDebugLog?.({
+      hypothesisId: 'B',
+      location: 'src/editors/multiSelectEditor/multiSelectEditor.ts:open',
+      message: 'MultiSelect editor opened with computed sizing',
+      data: {
+        currentThemeName: this.hot.getCurrentThemeName?.() ?? null,
+        clientWidth: this.dropdownContainerElement?.clientWidth ?? null,
+        computedMinWidth: dropdownStyles.minWidth,
+        menuHorizontalPadding: dropdownStyles.getPropertyValue('--ht-menu-horizontal-padding').trim(),
+        menuItemHorizontalPadding: dropdownStyles.getPropertyValue('--ht-menu-item-horizontal-padding').trim(),
+      },
+      timestamp: Date.now(),
+    });
+    // #endregion
   }
 
   close(): void {

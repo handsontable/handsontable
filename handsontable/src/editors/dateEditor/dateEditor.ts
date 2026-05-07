@@ -393,7 +393,7 @@ export class DateEditor extends TextEditor {
 
       const cellLeft = viewportLeft + offset.left;
       const cellRight = viewportLeft + offset.right;
-      let pickerLeftPosition;
+      let pickerLeftPosition: number;
 
       if (this.hot.isRtl()) {
         pickerLeftPosition = cellRight - pickerWidth;

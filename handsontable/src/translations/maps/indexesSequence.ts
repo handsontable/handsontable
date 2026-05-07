@@ -10,9 +10,6 @@ import { getDecreasedIndexes, getIncreasedIndexes } from './utils';
  * @class IndexesSequence
  */
 export class IndexesSequence extends IndexMap {
-  // Mixin-injected properties/methods (inherited from IndexMap via `mixin(IndexMap, localHooks)`)
-  declare addLocalHook: (key: string, callback: Function) => this;
-
   constructor() {
     // Not handling custom init function or init value.
     super((index: number) => index);

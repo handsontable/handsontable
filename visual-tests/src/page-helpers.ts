@@ -442,24 +442,27 @@ export async function filterByCondition(
   value?: string,
   secondValue?: string
 ) {
-  await getPageInstance()
-    .getByRole('listbox')
-    .locator('.htUISelectCaption')
-    .click();
-  await getPageInstance().getByText(condition, { exact: true }).click();
+  const page = getPageInstance();
+
+  await page.getByRole('listbox').locator('.htUISelectCaption').click();
+  await page.getByText(condition, { exact: true }).click();
 
   if (value !== undefined) {
-    await getPageInstance()
-      .getByRole('textbox', { name: 'Value', exact: true })
-      .pressSequentially(value);
+    const valueInput = page.getByRole('textbox', { name: 'Value', exact: true });
+
+    await valueInput.click();
+    await valueInput.pressSequentially(value);
   }
 
   if (secondValue !== undefined) {
-    await getPageInstance()
-      .getByRole('textbox', { name: 'Second value', exact: true })
-      .pressSequentially(secondValue);
+    const secondValueInput = page.getByRole('textbox', { name: 'Second value', exact: true });
+
+    await secondValueInput.waitFor({ state: 'visible' });
+    await secondValueInput.click();
+    await secondValueInput.pressSequentially(secondValue);
   }
-  await getPageInstance().getByRole('button', { name: 'OK' }).click();
+
+  await page.getByRole('button', { name: 'OK' }).click();
 }
 
 /**

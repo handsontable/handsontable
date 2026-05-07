@@ -162,7 +162,7 @@ export function enableAllCheckboxes({
   dropdownListElement,
 }: { dropdownListElement: HTMLUListElement }): void {
   dropdownListElement.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((checkbox) => {
-    checkbox.dataset.disabled = '';
+    checkbox.dataset.disabled = 'false';
   });
 }
 
@@ -197,7 +197,7 @@ export function createListItemElement({
   checkboxElement.type = 'checkbox';
   checkboxElement.dataset.value = itemValue;
   checkboxElement.dataset.index = String(indexWithinList);
-  checkboxElement.dataset.disabled = (disabled && !checked) ? 'true' : '';
+  checkboxElement.dataset.disabled = (disabled && !checked) ? 'true' : 'false';
 
   if (itemKey) {
     checkboxElement.dataset.key = itemKey;

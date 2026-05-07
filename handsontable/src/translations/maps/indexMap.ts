@@ -24,10 +24,10 @@ export class IndexMap {
    */
   initValueOrFn;
 
-  // Mixin declarations for localHooks
-  declare runLocalHooks: (...args: unknown[]) => unknown;
-  declare addLocalHook: (...args: unknown[]) => unknown;
-  declare clearLocalHooks: (...args: unknown[]) => unknown;
+  // Mixin declarations for localHooks (signature must match mixin for subclass assignability)
+  declare runLocalHooks: (key: string, ...args: unknown[]) => unknown;
+  declare addLocalHook: (key: string, callback: Function) => unknown;
+  declare clearLocalHooks: () => void;
 
   constructor(initValueOrFn: unknown = null) {
     this.initValueOrFn = initValueOrFn;
