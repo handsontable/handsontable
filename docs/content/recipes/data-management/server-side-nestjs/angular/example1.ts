@@ -1,28 +1,31 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
+import type { SourceRowData } from 'handsontable/common';
 
-function buildUrl(base: string, params: Record<string, unknown>): string {
+function buildUrl(base: string, params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();
 
-  query.set('page', String(params['page']));
-  query.set('pageSize', String(params['pageSize']));
+  query.set('page', String(params.page));
+  query.set('pageSize', String(params.pageSize));
 
-  const sort = params['sort'] as { column: string; order: string } | undefined;
-
-  if (sort) {
-    query.set('sort[column]', sort.column);
-    query.set('sort[order]', sort.order);
+  if (params.sort) {
+    query.set('sort[prop]', params.sort.prop);
+    query.set('sort[order]', params.sort.order);
   }
 
-  const filters = params['filters'] as Array<{ prop: string; condition: string; value: unknown[] }> | undefined;
+  if (params.filters?.length) {
+    params.filters.forEach(({ prop, conditions }, i) => {
+      const cond = conditions[0];
 
-  if (filters && filters.length > 0) {
-    filters.forEach((filter, i) => {
-      query.set(`filters[${i}][prop]`, filter.prop);
-      query.set(`filters[${i}][condition]`, filter.condition);
+      query.set(`filters[${i}][prop]`, prop);
 
-      filter.value.forEach((v, j) => {
+      if (cond?.name) {
+        query.set(`filters[${i}][condition]`, cond.name);
+      }
+
+      cond?.args.forEach((v, j) => {
         query.set(`filters[${i}][value][${j}]`, String(v));
       });
     });
@@ -47,12 +50,12 @@ export class AppComponent {
   readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
-      fetchRows: (params: unknown, { signal }: { signal: AbortSignal }) =>
-        this.fetchRows(params as Record<string, unknown>, signal),
-      onRowsCreate: (payload: unknown) => this.onRowsCreate(payload),
-      onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
-      onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
-    } as any,
+      fetchRows: (params: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
+        this.fetchRows(params, options.signal),
+      onRowsCreate: (payload: RowsCreatePayload) => this.onRowsCreate(payload),
+      onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
+      onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
+    },
     pagination: { pageSize: 5 },
     columnSorting: true,
     filters: true,
@@ -84,7 +87,7 @@ export class AppComponent {
     autoWrapRow: true,
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
+  async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
     const url = buildUrl('http://localhost:3000/tickets', params);
     const res = await fetch(url, { signal });
 
@@ -92,10 +95,10 @@ export class AppComponent {
       throw new Error(`Server error ${res.status}`);
     }
 
-    return res.json();
+    return res.json() as Promise<{ rows: SourceRowData[]; totalRows: number }>;
   }
 
-  async onRowsCreate(payload: unknown): Promise<unknown> {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
     const res = await fetch('http://localhost:3000/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -106,10 +109,10 @@ export class AppComponent {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    return res.json();
+    await res.json();
   }
 
-  async onRowsUpdate(rows: unknown): Promise<void> {
+  async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
     const res = await fetch('http://localhost:3000/tickets', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -121,7 +124,7 @@ export class AppComponent {
     }
   }
 
-  async onRowsRemove(rowIds: unknown): Promise<void> {
+  async onRowsRemove(rowIds: unknown[]): Promise<void> {
     const res = await fetch('http://localhost:3000/tickets', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
