@@ -490,10 +490,8 @@ export class Autofill extends BasePlugin {
     let toCol = maxCol;
 
     if (sourceRange) {
-      const preMinRow = Math.min(sourceRange.from.row, sourceRange.to.row);
-      const preMaxRow = Math.max(sourceRange.from.row, sourceRange.to.row);
-      const preMinCol = Math.min(sourceRange.from.col, sourceRange.to.col);
-      const preMaxCol = Math.max(sourceRange.from.col, sourceRange.to.col);
+      const { row: preMinRow, col: preMinCol } = sourceRange.getTopStartCorner();
+      const { row: preMaxRow, col: preMaxCol } = sourceRange.getBottomEndCorner();
 
       if (minRow < preMinRow) {
         fromRow = maxRow; // dragged up - anchor stays at the (preserved) bottom

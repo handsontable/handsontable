@@ -1748,9 +1748,7 @@ describe('AutoFill', () => {
 
       simulateFillHandleDrag($(getCell(3, 1, true)));
 
-      expect(getSelected()).toEqual([[1, 1, 3, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,1']);
     });
 
     it('should keep the active cell at the original position when dragging the fill handle up', async() => {
@@ -1763,9 +1761,7 @@ describe('AutoFill', () => {
 
       simulateFillHandleDrag($(getCell(1, 1, true)));
 
-      expect(getSelected()).toEqual([[3, 1, 1, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(3);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 1,1']);
     });
 
     it('should keep the active cell at the original position when dragging the fill handle right', async() => {
@@ -1778,9 +1774,7 @@ describe('AutoFill', () => {
 
       simulateFillHandleDrag($(getCell(1, 3, true)));
 
-      expect(getSelected()).toEqual([[1, 1, 1, 3]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,3']);
     });
 
     it('should keep the active cell at the original position when dragging the fill handle left', async() => {
@@ -1793,9 +1787,7 @@ describe('AutoFill', () => {
 
       simulateFillHandleDrag($(getCell(1, 1, true)));
 
-      expect(getSelected()).toEqual([[1, 3, 1, 1]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(1);
-      expect(getSelectedRangeLast().highlight.col).toBe(3);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,1']);
     });
 
     it('should preserve the multi-cell selection direction when extending downward', async() => {
