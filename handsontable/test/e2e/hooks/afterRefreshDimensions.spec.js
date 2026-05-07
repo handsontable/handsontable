@@ -133,11 +133,13 @@ describe('Hook', () => {
 
       await sleep(6000);
 
-      expect(afterRefreshDimensions.calls.count()).toBeGreaterThanOrEqual(300);
-      expect(afterRefreshDimensions.calls.count()).toBeLessThanOrEqual(400);
+      expect(afterRefreshDimensions).toHaveBeenCalledTimes(300);
       // eslint-disable-next-line no-console
       expect(console.warn).toHaveBeenCalledWith(
-        jasmine.stringMatching(/ResizeObserver callback was fired too many times/)
+        'The ResizeObserver callback was fired too many times in direct succession.' +
+        '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
+        'with the `dvh` units) to a Handsontable container\'s parent. ' +
+        '\nThe observer will be disconnected.'
       );
 
       destroy();

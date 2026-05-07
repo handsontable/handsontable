@@ -845,7 +845,6 @@ describe('Core_view', () => {
     const htCoreWidth = $htCore.width();
     const wtHiderWidth = $wtHider.width();
 
-    // Allow small tolerance for layout timing (nestedRows + wtHider sync)
-    expect(Math.abs(wtHiderWidth - htCoreWidth)).toBeLessThanOrEqual(35);
+    expect(wtHiderWidth).toEqual(htCoreWidth);
   });
 });
