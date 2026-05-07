@@ -27,18 +27,20 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        name: Install pnpm
+
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
         with:
           node-version-file: '.nvmrc'
+          cache: 'pnpm'
 
       - name: Install Angular wrapper dependencies
-        working-directory: wrappers/angular-wrapper
-        run: npm install
+        run: pnpm install --filter @handsontable/angular-wrapper
 
       - name: Build Angular wrapper
-        working-directory: wrappers/angular-wrapper
-        run: npm run build
+        run: pnpm --filter @handsontable/angular-wrapper run build
 
       - name: Install dependencies
         working-directory: docs/angular-type-check
