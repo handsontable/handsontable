@@ -155,12 +155,6 @@ const isLatest = currentMinor === latestVersion;
 
   if (wrapper && trigger && menu) {
     function openMenu() {
-      // Close framework dropdown if open
-      const fwMenu = document.querySelector('.fw-menu') as HTMLElement | null;
-      const fwTrigger = document.getElementById('fw-trigger');
-      if (fwMenu) fwMenu.hidden = true;
-      if (fwTrigger) fwTrigger.setAttribute('aria-expanded', 'false');
-
       menu!.hidden = false;
       trigger!.setAttribute('aria-expanded', 'true');
     }
