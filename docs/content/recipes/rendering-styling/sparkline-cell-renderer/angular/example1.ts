@@ -104,7 +104,7 @@ export class AppComponent {
       { data: 'w4', type: 'numeric', width: 48 },
       { data: 'w5', type: 'numeric', width: 48 },
       {
-        data: undefined,
+        data: null,
         width: 160,
         type: 'sparklineBar',
         className: 'htMiddle sparkline-cell',
