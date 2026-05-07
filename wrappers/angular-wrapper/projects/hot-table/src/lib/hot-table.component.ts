@@ -81,7 +81,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * The initial settings of the table are also prepared here
    */
   ngAfterViewInit(): void {
-    let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings, this.ngZone);
+    let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);
     options = { ...options, ...negotiatedSettings, data: this.data };
@@ -109,8 +109,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
     if (changes.settings && !changes.settings.firstChange) {
       const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
-        changes.settings.currentValue,
-        this.ngZone
+        changes.settings.currentValue
       );
 
       this.updateHotTable(newOptions);
@@ -155,8 +154,19 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
+    const initOnlySettingKeys = new Set<string>(
+      (this.hotInstance.getSettings() as any)?._initOnlySettings ?? []
+    );
+    const filteredSettings: Handsontable.GridSettings = {};
+
+    for (const key of Object.keys(newSettings)) {
+      if (!initOnlySettingKeys.has(key)) {
+        (filteredSettings as any)[key] = (newSettings as any)[key];
+      }
+    }
+
     this.ngZone.runOutsideAngular(() => {
-      this.hotInstance?.updateSettings(newSettings, false);
+      this.hotInstance?.updateSettings(filteredSettings, false);
     });
   }
 
