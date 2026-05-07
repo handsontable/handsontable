@@ -48,7 +48,7 @@ jobs:
           script: |
             const ref = context.ref || '';
             // Match release/x.y.z branches (RC builds)
-            const releaseMatch = ref.match(/^\/refs\/heads\/release\/(\d+\.\d+\.\d+)$/);
+            const releaseMatch = ref.match(/^refs\/heads\/release\/(\d+\.\d+\.\d+)$/);
             const isReleaseBranch = !!releaseMatch;
             const targetVersion = releaseMatch ? releaseMatch[1] : '';
 
