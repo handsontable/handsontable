@@ -7,10 +7,6 @@ on:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
   push:
-    branches:
-      - develop
-      - master
-      - 'release/**'
     paths:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
@@ -45,7 +41,8 @@ jobs:
         run: npm run build --prefix wrappers/angular-wrapper
 
       - name: Install type-check dependencies
-        run: pnpm install --prefix docs/angular-type-check
+        working-directory: docs/angular-type-check
+        run: npm install --legacy-peer-deps
 
       - name: Run type check
         run: npm run typecheck --prefix docs/angular-type-check
