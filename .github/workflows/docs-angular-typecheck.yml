@@ -23,7 +23,7 @@ jobs:
   typecheck:
     name: Type check Angular examples
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
@@ -36,8 +36,8 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
 
-      - name: Install Angular wrapper dependencies
-        run: pnpm install --filter @handsontable/angular-wrapper
+      - name: Install workspace dependencies
+        run: pnpm install
 
       - name: Build Angular wrapper
         run: pnpm --filter @handsontable/angular-wrapper run build
