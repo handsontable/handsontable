@@ -62,3 +62,11 @@ export {
   registerEditor,
 } from './registry';
 export { editorFactory } from './factory';
+
+/**
+ * All built-in editor type names.
+ */
+export type EditorType = typeof AUTOCOMPLETE_EDITOR | typeof BASE_EDITOR | typeof CHECKBOX_EDITOR |
+  typeof DATE_EDITOR | typeof DROPDOWN_EDITOR | typeof HANDSONTABLE_EDITOR | typeof INTL_DATE_EDITOR |
+  typeof INTL_TIME_EDITOR | typeof NUMERIC_EDITOR | typeof PASSWORD_EDITOR | typeof SELECT_EDITOR |
+  typeof TEXT_EDITOR | typeof TIME_EDITOR | string;

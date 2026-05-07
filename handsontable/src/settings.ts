@@ -18,6 +18,39 @@ export interface RowObject {
  */
 export type CellValue = any;
 
+/**
+ * An object containing possible options to use in SelectEditor.
+ */
+export interface SelectOptionsObject {
+  [prop: string]: string;
+}
+
+/**
+ * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
+ */
+export type SourceRowData = RowObject | CellValue[];
+
+/**
+ * A cell change represented by `[row, column, prevValue, nextValue]`.
+ */
+export type CellChange = [number, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue];
+
+/**
+ * The default sources for which the table triggers hooks.
+ */
+export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'populateFromArray' | 'spliceCol' |
+  'spliceRow' | 'timeValidate' | 'dateValidate' | 'validateCells' |
+  'Autofill.fill' | 'ContextMenu.clearColumn' | 'ContextMenu.columnLeft' |
+  'ContextMenu.columnRight' | 'ContextMenu.removeColumn' |
+  'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' |
+  'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
+  'ColumnSummary.reset' | 'DataProvider.revert';
+
+/**
+ * Numeric format options (numbro or Intl).
+ */
+export type NumericFormatOptions = Record<string, unknown> | Intl.NumberFormatOptions;
+
 export interface ColumnDataGetterSetterFunction {
     (row: RowObject | CellValue[]): CellValue;
     (row: RowObject | CellValue[], value: CellValue): void;

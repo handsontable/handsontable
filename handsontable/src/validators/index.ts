@@ -42,3 +42,10 @@ export {
   hasValidator,
   registerValidator,
 } from './registry';
+
+/**
+ * All built-in validator type names.
+ */
+export type ValidatorType = typeof AUTOCOMPLETE_VALIDATOR | typeof DATE_VALIDATOR | typeof DROPDOWN_VALIDATOR |
+  typeof INTL_DATE_VALIDATOR | typeof INTL_TIME_VALIDATOR | typeof MULTISELECT_VALIDATOR |
+  typeof NUMERIC_VALIDATOR | typeof TIME_VALIDATOR | string;

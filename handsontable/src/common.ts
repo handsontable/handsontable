@@ -132,7 +132,7 @@ export interface GridSettings {
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
   dialog?: boolean | object;
-  dragToScroll?: boolean;
+  dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
   filters?: boolean;
@@ -159,10 +159,15 @@ export interface GridSettings {
 
   // Date
   correctFormat?: boolean;
-  dateFormat?: string;
+  dateFormat?: string | Intl.DateTimeFormatOptions;
   timeFormat?: string;
   datePickerConfig?: object;
   defaultDate?: string;
+
+  // Password
+  hashLength?: number;
+  hashRevealDelay?: number;
+  hashSymbol?: string;
 
   // Formatting
   filter?: boolean;
@@ -191,6 +196,22 @@ export interface GridSettings {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
+
+/**
+ * Represents a selection range with start/end row/col coordinates.
+ */
+export interface RangeType {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+}
+
+/**
+ * Overlay type names used by Walkontable.
+ */
+export type OverlayType = 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' |
+  'bottom_inline_start_corner' | 'master';
 
 /**
  * Represents a cell coordinates object.

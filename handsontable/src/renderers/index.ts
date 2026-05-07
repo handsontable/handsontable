@@ -60,3 +60,11 @@ export {
   registerRenderer,
 } from './registry';
 export { rendererFactory } from './factory';
+
+/**
+ * All built-in renderer type names.
+ */
+export type RendererType = typeof AUTOCOMPLETE_RENDERER | typeof BASE_RENDERER | typeof CHECKBOX_RENDERER |
+  typeof DROPDOWN_RENDERER | typeof HANDSONTABLE_RENDERER | typeof HTML_RENDERER | typeof INTL_DATE_RENDERER |
+  typeof INTL_TIME_RENDERER | typeof NUMERIC_RENDERER | typeof PASSWORD_RENDERER | typeof SELECT_RENDERER |
+  typeof TEXT_RENDERER | typeof TIME_RENDERER | typeof DATE_RENDERER | string;

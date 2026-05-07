@@ -57,3 +57,10 @@ export {
   hasCellType,
   registerCellType,
 } from './registry';
+
+/**
+ * All built-in cell type names.
+ */
+export type CellType = typeof AUTOCOMPLETE_TYPE | typeof CHECKBOX_TYPE | typeof DATE_TYPE |
+  typeof DROPDOWN_TYPE | typeof HANDSONTABLE_TYPE | typeof INTL_DATE_TYPE | typeof INTL_TIME_TYPE |
+  typeof NUMERIC_TYPE | typeof PASSWORD_TYPE | typeof SELECT_TYPE | typeof TEXT_TYPE | typeof TIME_TYPE | string;
