@@ -243,8 +243,14 @@
 
 # Angular guide file unique slugs redirect to main pages (forced: framework-loader builds all 3 framework variants)
 /docs/angular-data-grid/recipes/cell-types/color-picker-angular/ /docs/angular-data-grid/recipes/cell-types/color-picker/ 301!
+/docs/javascript-data-grid/recipes/cell-types/color-picker-angular/ /docs/javascript-data-grid/recipes/cell-types/color-picker/ 301!
+/docs/react-data-grid/recipes/cell-types/color-picker-angular/ /docs/react-data-grid/recipes/cell-types/colorful-picker/ 301!
 /docs/angular-data-grid/recipes/cell-types/feedback-angular/ /docs/angular-data-grid/recipes/cell-types/feedback/ 301!
+/docs/javascript-data-grid/recipes/cell-types/feedback-angular/ /docs/javascript-data-grid/recipes/cell-types/feedback/ 301!
+/docs/react-data-grid/recipes/cell-types/feedback-angular/ /docs/react-data-grid/recipes/cell-types/feedback-react/ 301!
 /docs/angular-data-grid/recipes/cell-types/rating-angular/ /docs/angular-data-grid/recipes/cell-types/rating/ 301!
+/docs/javascript-data-grid/recipes/cell-types/rating-angular/ /docs/javascript-data-grid/recipes/cell-types/rating/ 301!
+/docs/react-data-grid/recipes/cell-types/rating-angular/ /docs/react-data-grid/recipes/cell-types/react-rating/ 301!
 /docs/angular-data-grid/recipes/cell-types/datepicker-angular/ /docs/angular-data-grid/recipes/cell-types/datepicker/ 301!
 
 # JS->React: slug mismatches when framework switcher substitutes prefix (forced: pages exist for all frameworks)
