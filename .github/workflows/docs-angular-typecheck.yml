@@ -32,6 +32,14 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      - name: Install Angular wrapper dependencies
+        working-directory: wrappers/angular-wrapper
+        run: npm install
+
+      - name: Build Angular wrapper
+        working-directory: wrappers/angular-wrapper
+        run: npm run build
+
       - name: Install dependencies
         working-directory: docs/angular-type-check
         run: npm install

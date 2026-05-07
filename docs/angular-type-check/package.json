@@ -13,6 +13,7 @@
     "@angular/platform-browser": "latest",
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
+    "@handsontable/pikaday": "latest",
     "@simonwep/pickr": "latest",
     "@types/node": "^25.6.0",
     "@types/papaparse": "^5.5.2",
