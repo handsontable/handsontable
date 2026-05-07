@@ -25,7 +25,7 @@ describe('Core.sanitizer', () => {
 
     expect(getRenderedValue(0, -1))
       .toBe('<div class="relative"><span class="rowHeader"> tag</span></div>');
-    expect(sanitizer).toHaveBeenCalledWith('<danger/> tag');
+    expect(sanitizer).toHaveBeenCalledWith('<danger/> tag', 'innerHTML');
   });
 
   it('should sanitize column header content', async() => {
@@ -41,6 +41,6 @@ describe('Core.sanitizer', () => {
 
     expect(getRenderedValue(-1, 0))
       .toBe('<div class="relative" role="presentation"><span class="colHeader" role="presentation"> tag</span></div>');
-    expect(sanitizer).toHaveBeenCalledWith('<danger/> tag');
+    expect(sanitizer).toHaveBeenCalledWith('<danger/> tag', 'innerHTML');
   });
 });
