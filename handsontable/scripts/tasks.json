@@ -70,11 +70,11 @@
     },
     "build:umd-from-esm": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.mjs",
-      "deps": []
+      "deps": ["build:styles", "build:themes-css"]
     },
     "build:umd-from-cjs": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.js",
-      "deps": []
+      "deps": ["build:styles", "build:themes-css"]
     },
 
     "lint:eslint": {

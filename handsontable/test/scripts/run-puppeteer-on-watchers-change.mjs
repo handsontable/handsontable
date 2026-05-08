@@ -20,12 +20,18 @@ process.env.NODE_NO_WARNINGS = '1';
 
 // concurrently pipes child stdout, breaking process.stdout.isTTY in sub-scripts.
 // HOT_QUIET=1 tells run-step.mjs to use quiet mode even without a visible TTY.
-if (IS_TTY) process.env.HOT_QUIET = '1';
+if (IS_TTY) {
+  process.env.HOT_QUIET = '1';
+}
 
 // Propagate testPathPattern and theme so both the dump step and Puppeteer
 // compute the same run ID and open the matching HTML file.
-if (argv.testPathPattern) process.env.npm_config_testpathpattern = argv.testPathPattern;
-if (argv.theme) process.env.npm_config_theme = argv.theme;
+if (argv.testPathPattern) {
+  process.env.npm_config_testpathpattern = argv.testPathPattern;
+}
+if (argv.theme) {
+  process.env.npm_config_theme = argv.theme;
+}
 
 // On TTY suppress npm lifecycle headers; on CI keep full output.
 const silentize = cmd => (IS_TTY ? cmd.replace(/^npm run /, 'npm --silent run ') : cmd);
@@ -55,6 +61,7 @@ const spawnPuppeteer = debounce(() => {
 
 writableStream._write = (chunk, encoding, next) => {
   // strip colorized logs that may occurs while executing commands
+  // eslint-disable-next-line no-control-regex
   const chunkRawText = chunk.toString().replace(/\x1B[[(?);]{0,2}(;?\d)*./g, '');
   const isProcessFinished = /\x9d\t\x9d/.test(chunkRawText);
 
@@ -76,7 +83,7 @@ writableStream._write = (chunk, encoding, next) => {
     // On CI forward everything for full log visibility.
     process.stdout.write(chunk, encoding, next);
   }
-}
+};
 
 await concurrently(commands, {
   prefix: 'none',
