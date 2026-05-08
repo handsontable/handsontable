@@ -102,7 +102,7 @@ export class AppComponent {
       filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
       mimeType: 'text/csv',
       rowDelimiter: '\r\n',
-      sanitizeValues: (value) => {
+      sanitizeValues: (value: string) => {
         return /WEBSERVICE/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
       },
     });

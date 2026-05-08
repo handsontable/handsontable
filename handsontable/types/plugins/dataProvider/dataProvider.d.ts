@@ -1,7 +1,8 @@
-import Core from '../../core';
+import type { HotInstance as Core } from '../../../tmp/common';
 import { CellValue, RowObject, SourceRowData } from '../../common';
-import { BasePlugin } from '../base';
-import type { Config as ColumnSortingConfig } from '../columnSorting/columnSorting';
+import { BasePlugin } from '../../../tmp/plugins/base/base';
+/** Sort configuration object used by the ColumnSorting plugin. */
+type ColumnSortingConfig = { column: number; sortOrder: 'asc' | 'desc' };
 import type { ColumnConditions, ConditionId, OperationType } from '../filters';
 
 /**

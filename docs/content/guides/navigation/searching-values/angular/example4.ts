@@ -71,7 +71,7 @@ export class AppComponent {
     _value: Handsontable.CellValue,
     result: boolean
   ): void {
-    _instance.getCellMeta(_row, _col).isSearchResult = result;
+    _instance.getCellMeta(_row, _col)['isSearchResult'] = result;
     if (result) {
       this.setResultCounter(this.resultCount + 1);
     }

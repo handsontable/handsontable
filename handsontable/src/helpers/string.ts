@@ -39,16 +39,11 @@ export function equalsIgnoreCase(...strings: string[]): boolean {
  * @returns {string} Returns 16-long character random string (eq. `'92b1bfc74ec4'`).
  */
 export function randomString(): string {
-  /**
-   * @returns {string}
-   */
-  function s4() {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  }
+  const buf = new Uint16Array(4);
 
-  return s4() + s4() + s4() + s4();
+  globalThis.crypto.getRandomValues(buf);
+
+  return Array.from(buf, (v) => v.toString(16).padStart(4, '0')).join('');
 }
 
 /**
@@ -79,7 +74,7 @@ export function isJSON(string: string) {
  * @returns {boolean}
  */
 export function isPercentValue(value: string): boolean {
-  return /^([0-9][0-9]?%$)|(^100%$)/.test(value as string);
+  return /^(?:[0-9][0-9]?%|100%)$/.test(value as string);
 }
 
 /**

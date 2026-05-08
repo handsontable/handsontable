@@ -8,6 +8,7 @@ import { getEditor } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 
 const cellTimeTypeDefinition = {
+  CELL_TYPE: 'moment-time',
   renderer: getRenderer('text'),
   validator(this: any, value: any, callback: (valid: boolean) => void): void {
     const timeFormat = this.timeFormat ?? 'h:mm:ss a';

@@ -135,7 +135,7 @@ export class AppComponent {
     },
     // `afterGetColHeader()` is a Handsontable hook
     // it's fired after Handsontable appends information about a column header to the table header
-    afterGetColHeader(col, TH) {
+    afterGetColHeader(col: number, TH: HTMLElement) {
       // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
       if (col > 1) {
         const button = TH.querySelector('.changeType');

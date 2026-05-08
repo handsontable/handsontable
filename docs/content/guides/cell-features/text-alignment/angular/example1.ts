@@ -39,7 +39,7 @@ export class AppComponent {
       { row: 1, col: 1, className: 'htLeft htMiddle' },
       { row: 3, col: 4, className: 'htLeft htBottom' },
     ],
-    afterSetCellMeta: (row, col, key, val) => {
+    afterSetCellMeta: (row: number, col: number, key: string, val: unknown) => {
       console.log('cell meta changed', row, col, key, val);
     }
   };

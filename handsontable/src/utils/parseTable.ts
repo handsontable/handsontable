@@ -242,7 +242,7 @@ export function replaceTdCellsWithTextContent(html: string): string {
       .replaceAll(paragraphRegexp, '\n') // Only paragraphs should split text using new line characters
       .replace(/^\n+/, '') // First paragraph shouldn't start with new line characters
       .replaceAll(/<\/(.*)>\s+$/mg, '</$1>') // HTML tags may end with whitespace.
-      .replace(/(<(?!br)([^>]+)>)/gi, '') // Removing HTML tags
+      .replace(/<(?!br\b)[^>]+>/gi, '') // Removing HTML tags
       .replaceAll(/^&nbsp;$/mg, ''); // Removing single &nbsp; characters separating new lines
 
     result.push(`${openTag}${rawContent}</td>`);

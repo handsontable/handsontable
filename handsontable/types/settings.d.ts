@@ -1,1 +1,1 @@
-export type { CellProperties } from '../src/settings';
+export type { CellProperties, CellMeta } from '../tmp/settings';

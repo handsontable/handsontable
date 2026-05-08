@@ -1,10 +1,11 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import { registerRenderer, textRenderer } from 'handsontable/renderers';
 
-registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
-  textRenderer(hotInstance, TD, ...rest);
+registerRenderer('customStylesRenderer', (hotInstance: Handsontable, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Handsontable.CellProperties) => {
+  textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
   TD.style.fontWeight = 'bold';
   TD.style.color = 'green';

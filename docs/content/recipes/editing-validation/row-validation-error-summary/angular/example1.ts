@@ -2,6 +2,7 @@
 import { Component, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import { RowObject } from 'handsontable/common';
+import type Handsontable from 'handsontable/base';
 
 const COLUMN_LABELS = ['Item', 'Quantity', 'Unit price'];
 
@@ -88,7 +89,7 @@ export class AppComponent {
         ? 'var(--ht-cell-error-background-color, #ffe4e4)'
         : '';
     },
-    afterChange: (changes, source) => {
+    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
       if (source === 'loadData' || !changes) {
         return;
       }

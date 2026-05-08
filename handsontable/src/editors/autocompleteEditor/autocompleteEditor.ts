@@ -303,7 +303,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     let choices = choicesList;
 
     if (!sortByRelevanceSetting) {
-      choices = choices.toSorted();
+      choices = choices.toSorted((a, b) => stringify(a).localeCompare(stringify(b)));
     }
 
     const filteredChoiceIndexes: number[] = [];

@@ -32,6 +32,9 @@ import type {
   CellProperties as CellPropertiesType,
   CellMeta as CellMetaType,
   NumericFormatOptions as NumericFormatOptionsType,
+  CellChange as CellChangeType,
+  ChangeSource as ChangeSourceType,
+  RowObject as RowObjectType,
 } from './settings';
 import { TextEditor } from './editors/textEditor/textEditor';
 import { empty } from './helpers/dom/element';
@@ -128,6 +131,9 @@ declare namespace Handsontable {
   /** @deprecated Use CellProperties */
   export type CellMeta = CellMetaType;
   export type NumericFormatOptions = NumericFormatOptionsType;
+  export type CellChange = CellChangeType;
+  export type ChangeSource = ChangeSourceType;
+  export type RowObject = RowObjectType;
   export namespace editors {
     /** Instance type of the BaseEditor class (for refs and type guards). */
     export type BaseEditor = InstanceType<typeof import('./editors/baseEditor').BaseEditor>;
@@ -149,7 +155,14 @@ interface HandsontableFactory {
   packageName: string;
   buildDate: string | undefined;
   version: string | undefined;
-  languages: Record<string, unknown>;
+  languages: {
+    dictionaryKeys: unknown;
+    getLanguageDictionary: (languageCode: string) => object;
+    getLanguagesDictionaries: () => object[];
+    registerLanguageDictionary: (languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>) => object;
+    getTranslatedPhrase: (languageCode: string, dictionaryKey: string, argumentsForFormatters?: unknown) => string | null;
+    [key: string]: unknown;
+  };
   editors: {
     BaseEditor: typeof BaseEditor;
     TextEditor: typeof TextEditor;
@@ -163,6 +176,15 @@ interface HandsontableFactory {
   renderers: {
     registerRenderer: (name: string, renderer: unknown) => void;
     BaseRenderer: (
+      instance: HotInstance,
+      td: HTMLTableCellElement,
+      row: number,
+      col: number,
+      prop: string | number,
+      value: unknown,
+      cellProperties: Record<string, unknown>
+    ) => void;
+    TextRenderer: (
       instance: HotInstance,
       td: HTMLTableCellElement,
       row: number,

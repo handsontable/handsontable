@@ -132,7 +132,7 @@ export class RemoveColumnAction extends BaseAction {
     // Changing by the reference as `updateSettings` doesn't work the best.
     settings.fixedColumnsStart = this.fixedColumnsStart;
 
-    const ascendingIndexes = this.indexes.slice(0).sort();
+    const ascendingIndexes = this.indexes.slice(0).sort((a, b) => a - b);
     const sortByIndexes = (elem: unknown, j: number, arr: unknown[]) => arr[this.indexes.indexOf(ascendingIndexes[j])];
 
     const removedDataLength = this.data.length;

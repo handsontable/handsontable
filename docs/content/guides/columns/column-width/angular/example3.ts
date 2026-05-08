@@ -27,7 +27,7 @@ export class AppComponent {
     height: 'auto',
     colHeaders: true,
     rowHeaders: true,
-    colWidths(index) {
+    colWidths(index: number) {
       return (index + 1) * 40;
     },
     manualColumnResize: true,

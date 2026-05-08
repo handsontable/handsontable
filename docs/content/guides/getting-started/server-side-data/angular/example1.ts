@@ -334,7 +334,7 @@ export class AppComponent {
       contextMenu: true,
       emptyDataState: true,
       notification: true,
-      beforeDataProviderFetch: (params) => {
+      beforeDataProviderFetch: (params: { skipLoading?: boolean; [key: string]: unknown }) => {
         this.setFetchStatus(
           params.skipLoading
             ? 'Updating after sort or edit…'
@@ -344,7 +344,7 @@ export class AppComponent {
       afterDataProviderFetch: () => {
         this.setFetchStatus(`Ready (simulated ${LATENCY_MS}ms request).`);
       },
-      afterDataProviderFetchError: (error) => {
+      afterDataProviderFetchError: (error: Error) => {
         this.setFetchStatus(`Could not load data: ${error.message}`);
       },
     };

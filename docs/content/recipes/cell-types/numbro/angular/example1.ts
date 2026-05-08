@@ -39,6 +39,7 @@ function isNumeric(value: any): boolean {
 }
 
 const cellTypeDefinition = {
+  CELL_TYPE: 'numbro',
   renderer: rendererFactory(({ hotInstance, td, row, col, prop, value, cellProperties }: any) => {
     if (isNumeric(value)) {
       let classArr: string[] = [];

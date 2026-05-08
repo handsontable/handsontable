@@ -30,7 +30,7 @@ export class AppComponent implements OnInit {
         destinationColumn: 5,
         reversedRowCoords: true,
         // add your custom summary function
-        customFunction(endpoint) {
+        customFunction(endpoint: any) {
           // implement a function that counts the number of even values in the column
           const hotInstance = this.hot;
           let evenCount = 0;

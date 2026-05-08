@@ -1059,6 +1059,7 @@ export interface HotInstance {
   getData(row?: number, column?: number, row2?: number, column2?: number): unknown[][];
   getDataAtCell(row: number, column: number): unknown;
   getDataAtCol(column: number): unknown[];
+  getDataAtRow(row: number): unknown[];
   getDataAtRowProp(row: number, prop: string): unknown;
   getSourceData(row?: number, column?: number, row2?: number, column2?: number): unknown[] | object[];
   getSourceDataArray(row?: number, column?: number, row2?: number, column2?: number): unknown[][];
@@ -1069,6 +1070,7 @@ export interface HotInstance {
   getCopyableData(row: number, column: number): string;
   getCopyableSourceData(row: number, column: number): string;
   setDataAtCell(row: number | unknown[][], column?: number | null, value?: unknown, source?: string): void;
+  setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(row: number | unknown[][], column?: number | string, value?: unknown, source?: string): void;
   loadData(data: unknown[], source?: string): void;
   updateData(data: unknown[][] | object[], source?: string): void;
@@ -1122,6 +1124,11 @@ export interface HotInstance {
   batch(wrappedOperations: Function): unknown;
   refreshDimensions(): void;
   isRenderSuspended(): boolean;
+  suspendRender(): void;
+  resumeRender(): void;
+  validateCells(callback?: (valid: boolean) => void): void;
+  validateRows(rows: number[], callback?: (valid: boolean) => void): void;
+  validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
   scrollViewportTo(options: { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string; considerHiddenIndexes?: boolean } | number, ...args: unknown[]): boolean;
   scrollToFocusedCell(callback?: Function): void;
 

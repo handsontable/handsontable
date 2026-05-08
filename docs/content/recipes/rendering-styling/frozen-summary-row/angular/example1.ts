@@ -1,8 +1,8 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 import Handsontable from 'handsontable/base';
+import type { CellChange, ChangeSource } from 'handsontable/base';
 
 const SUMMARY_SOURCE = 'updateSummary';
 
@@ -108,8 +108,8 @@ export class AppComponent {
       };
 
       if (prop !== 'item') {
-        meta.type = 'text';
-        meta.className = 'htSummaryRow htRight';
+        meta['type'] = 'text';
+        meta['className'] = 'htSummaryRow htRight';
       }
 
       return meta;
@@ -119,8 +119,8 @@ export class AppComponent {
     },
     afterChange(
       this: Handsontable,
-      changes: Handsontable.CellChange[] | null,
-      source: Handsontable.ChangeSource,
+      changes: CellChange[] | null,
+      source: ChangeSource,
     ): void {
       if (!changes || (source as string) === SUMMARY_SOURCE) {
         return;

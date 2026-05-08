@@ -43,7 +43,7 @@ export class AppComponent implements AfterViewInit {
     this.hotSettings = {
       height: 'auto',
       columns: [{}, { renderer: customRenderer }],
-      colHeaders(col) {
+      colHeaders(col: number) {
         return col === 0
           ? '<b>Bold</b> and <em>Beautiful</em>'
           : `Some <input type="checkbox" class="checker" ${

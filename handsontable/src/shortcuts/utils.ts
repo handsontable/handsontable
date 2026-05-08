@@ -38,7 +38,7 @@ export const normalizeKeys = (keys: string[]) => {
     }
 
     return lowercaseKey;
-  }).sort().join('+');
+  }).sort((a, b) => a.localeCompare(b)).join('+');
 };
 
 /**

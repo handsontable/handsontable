@@ -478,7 +478,7 @@ export function empty(element: HTMLElement): void {
   }
 }
 
-export const HTML_CHARACTERS = /(<(.*)>|&(.*);)/;
+export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
 let dompurifyDeprecatedMessageShown = false;
 
 /**

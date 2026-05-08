@@ -36,9 +36,6 @@ export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selec
     if (coords.row >= 0 && coords.col >= 0 && !controller.cell) {
       sel.setRangeEnd(coords);
 
-    } else if ((selectedCorner || selectedRow) && coords.row >= 0 && coords.col >= 0 && !controller.cell) {
-      sel.setRangeEnd(cellCoordsFactory(coords.row, coords.col));
-
     } else if (selectedCorner && coords.row < 0 && !controller.column) {
       sel.setRangeEnd(cellCoordsFactory(currentSelection.to.row, coords.col));
 
