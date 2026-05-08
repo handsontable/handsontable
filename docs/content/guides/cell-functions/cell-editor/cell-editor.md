@@ -153,7 +153,7 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 
 :::
 
-**Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and call `Handsontable.dom.stopImmediatePropagation(event)` to prevent `EditorManager` from processing a specific key. The native `event.stopImmediatePropagation()` does not stop Handsontable's internal key pipeline -- you must use the `Handsontable.dom` helper (or import `stopImmediatePropagation` from `handsontable/helpers/dom/event`). Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
+**Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and call `Handsontable.dom.stopImmediatePropagation(event)` to prevent `EditorManager` from processing a specific key. The native `event.stopImmediatePropagation()` does not stop Handsontable's internal key pipeline - you must use the `Handsontable.dom` helper (or import `stopImmediatePropagation` from `handsontable/helpers/dom/event`). Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
 
 **Editor singleton:** Each editor class has exactly one instance per table. The constructor and `init()` run once per table; `prepare()` runs every time you select a cell that uses that editor.
 
