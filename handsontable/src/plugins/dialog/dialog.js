@@ -372,7 +372,7 @@ export class Dialog extends BasePlugin {
       this.hot.view.render();
       this.#selectionState = null;
     } else {
-      this.hot.selectCell(0, 0);
+      this.hot.selectCell(0, 0, undefined, undefined, false);
     }
 
     this.hot.runHooks('afterDialogHide');
