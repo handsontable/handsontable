@@ -206,6 +206,19 @@ function getMinimalComputedStyle(element) {
   };
 }
 
+// Module-level so clearComputedStyleCache() can replace it between tests.
+// WeakMap has no .clear() method — reassigning the reference is the only option.
+let computedStyleCache = new WeakMap();
+
+/**
+ * Replaces the per-element computed style cache with a fresh WeakMap.
+ * Call this in a beforeEach hook to prevent stale cached snapshots from leaking
+ * between tests when an element's class list or inline styles change mid-test.
+ */
+function clearComputedStyleCache() {
+  computedStyleCache = new WeakMap();
+}
+
 /**
  * Patches CSSStyleDeclaration to improve CSS custom property support.
  */
@@ -242,13 +255,6 @@ function patchCSSStyleDeclaration() {
 
     return value;
   };
-
-  // Per-element cache for computed style objects.
-  // jsdom evaluates ALL 641 CSS rules per getComputedStyle call (~34ms each).
-  // HOT calls getComputedStyle 195× per init across a small set of elements —
-  // caching per-element drops this to one evaluation per unique element (~10-20 total).
-  // WeakMap keys are DOM elements so entries are GC'd when elements are removed.
-  const computedStyleCache = new WeakMap();
 
   /**
    * Returns a cached CSSStyleDeclaration for the element, calling jsdom's
@@ -490,5 +496,6 @@ function initCSSPolyfill() {
 module.exports = {
   patchCSSStyleSheet,
   patchConsoleErrors,
-  initCSSPolyfill
+  initCSSPolyfill,
+  clearComputedStyleCache
 };

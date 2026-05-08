@@ -87,7 +87,7 @@ if (!fs.existsSync(originalPath)) {
   /* eslint-disable no-console */
   console.log(
     `Runner HTML not found at ${originalPath}. Did \`test:e2e.dump\` run with the same `
-    + `\`--testPathPattern\` / \`--theme\` values?`
+    + '`--testPathPattern` / `--theme` values?'
   );
   process.exit(1);
 }
@@ -225,5 +225,5 @@ try {
 } catch (error) {
   /* eslint-disable no-console */
   console.log(error);
-  cleanup(1);
+  await cleanup(1);
 }
