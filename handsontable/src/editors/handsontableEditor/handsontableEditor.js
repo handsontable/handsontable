@@ -120,7 +120,7 @@ export class HandsontableEditor extends TextEditor {
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_, coords) {
-        if (coords.row < 0) {
+        if (coords.row < 0 || coords.col < 0) {
           return;
         }
 
