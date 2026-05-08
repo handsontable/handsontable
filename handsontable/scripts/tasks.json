@@ -135,7 +135,8 @@
       "cmd": "node test/scripts/run-puppeteer.mjs",
       "deps": [],
       "mode": "inherit",
-      "passthrough": true
+      "passthrough": true,
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
     },
     "test:walkontable.dump": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/test/helpers/index.js ./src/3rdparty/walkontable/test/spec/index.js",
@@ -145,7 +146,8 @@
       "cmd": "node test/scripts/run-puppeteer.mjs src/3rdparty/walkontable/test/SpecRunner.html",
       "deps": [],
       "mode": "inherit",
-      "passthrough": true
+      "passthrough": true,
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
     },
     "test:production.dump": {
       "cmd": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-production env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
@@ -155,7 +157,8 @@
       "cmd": "node test/scripts/run-puppeteer.mjs",
       "deps": [],
       "mode": "inherit",
-      "passthrough": true
+      "passthrough": true,
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
     },
     "test:mobile.dump": {
       "cmd": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/mobile/index.js",

@@ -94,11 +94,11 @@ if (!fs.existsSync(originalPath)) {
 
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
-  const random = flags.includes('random');
+  const random = flagArgs.includes('--random');
   const hotVersionMatch = flags.match(/--hotVersion=([^\s,]+)/);
   const params = [];
 
-  verboseReporting = flags.includes('verbose');
+  verboseReporting = flagArgs.includes('--verbose');
 
   if (seed) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
