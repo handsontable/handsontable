@@ -1015,6 +1015,29 @@ export interface StylesHandler {
 }
 
 /**
+ * Public interface of a Handsontable editor instance (BaseEditor).
+ * Defined here to avoid circular imports between common.ts and BaseEditor.
+ */
+export interface BaseEditorInstance {
+  state: string;
+  beginEditing(newInitialValue?: unknown, event?: Event): void;
+  finishEditing(restoreOriginalValue?: boolean, ctrlDown?: boolean, callback?: Function): void;
+  cancelChanges(): void;
+  discardEditor(result?: boolean): void;
+  getValue(): unknown;
+  setValue(value?: unknown): void;
+  isOpened(): boolean;
+  isWaiting(): boolean;
+  isInFullEditMode(): boolean;
+  enableFullEditMode(): void;
+  focus(): void;
+  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void;
+  refreshValue?(): void;
+  _closeAfterDataChange?: boolean;
+  [key: string]: unknown;
+}
+
+/**
  * Handsontable Core instance interface.
  * Provides type-safe access to the Core API without requiring circular imports.
  */
@@ -1195,7 +1218,7 @@ export interface HotInstance {
   getInitialColumnCount(): number;
   getCurrentThemeName(): string | null;
   getTranslatedPhrase(dictionaryKey: string, extraArguments?: unknown): string;
-  getActiveEditor(): Record<string, unknown>;
+  getActiveEditor(): BaseEditorInstance | undefined;
   destroyEditor(revertOriginal?: boolean, prepareEditorAfterDestroy?: boolean): void;
   dataType: string;
   getTableHeight(): number;
@@ -1339,22 +1362,8 @@ export interface EditorManagerInstance {
   moveSelectionAfterEnter(event: Event): void;
   closeEditorAndSaveChanges(isCtrlPressed?: boolean): void;
   closeEditorAndRestoreOriginalValue(isCtrlPressed?: boolean): void;
-  getActiveEditor(): {
-    isInFullEditMode: () => boolean;
-    state: string;
-    focus: () => void;
-    refreshValue?: () => void;
-    _closeAfterDataChange?: boolean;
-    isOpened?: () => boolean;
-    isWaiting?: () => boolean;
-  } | undefined;
-  activeEditor: {
-    focus: () => void;
-    refreshValue?: () => void;
-    _closeAfterDataChange?: boolean;
-    isOpened?: () => boolean;
-    isWaiting?: () => boolean;
-  } | undefined;
+  getActiveEditor(): BaseEditorInstance | undefined;
+  activeEditor: BaseEditorInstance | undefined;
   cellProperties: Record<string, unknown>;
 }
 

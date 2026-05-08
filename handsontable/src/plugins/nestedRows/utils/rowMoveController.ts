@@ -118,8 +118,12 @@ export default class RowMoveController {
     });
     const willDataChange = physicalStartIndexes.indexOf(physicalDropIndex) === -1;
 
-    if (!allowMove || !willDataChange) {
+    if (!allowMove) {
       return false;
+    }
+
+    if (!willDataChange) {
+      return; // rows already in target position; ManualRowMove's own logic is also a no-op
     }
 
     const baseParent = this.getBaseParent(physicalStartIndexes);

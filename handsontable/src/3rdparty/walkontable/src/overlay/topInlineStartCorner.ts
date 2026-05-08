@@ -97,6 +97,6 @@ export class TopInlineStartCornerOverlay extends Overlay {
     overlayRoot.style.height = `${tableHeight}px`;
     overlayRoot.style.width = `${tableWidth}px`;
 
-    return false;
+    return true;
   }
 }
