@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'jsdom',
+  setupFiles: ['<rootDir>/test/cryptoSetup.js'],
   roots: [
     '<rootDir>/src',
     '<rootDir>/test'

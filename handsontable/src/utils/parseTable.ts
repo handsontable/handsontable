@@ -235,15 +235,23 @@ export function replaceTdCellsWithTextContent(html: string): string {
 
     const cellFragment = html.substring(openStart, closeInfo.start + closeInfo.length);
     const contentEnd = closeInfo.start - openStart;
-    const rawContent = cellFragment
+    let rawContent = cellFragment
       .substring(openTag.length, contentEnd)
       .trim()
       .replaceAll(/\n\s+/g, ' ') // HTML tags may be split using multiple new lines and whitespaces
       .replaceAll(paragraphRegexp, '\n') // Only paragraphs should split text using new line characters
       .replace(/^\n+/, '') // First paragraph shouldn't start with new line characters
-      .replaceAll(/<\/(.*)>\s+$/mg, '</$1>') // HTML tags may end with whitespace.
-      .replace(/<(?!br\b)[^>]+>/gi, '') // Removing HTML tags
-      .replaceAll(/^&nbsp;$/mg, ''); // Removing single &nbsp; characters separating new lines
+      .replaceAll(/<\/(.*)>\s+$/mg, '</$1>'); // HTML tags may end with whitespace.
+
+    // Iterative tag removal prevents crafted inputs (e.g. <<script>script>) from re-forming tags after one pass.
+    let prev: string;
+
+    do {
+      prev = rawContent;
+      rawContent = rawContent.replace(/<(?!br\b)[^>]+>/gi, '');
+    } while (rawContent !== prev);
+
+    rawContent = rawContent.replaceAll(/^&nbsp;$/mg, ''); // Removing single &nbsp; characters separating new lines
 
     result.push(`${openTag}${rawContent}</td>`);
     pos = closeInfo.start + closeInfo.length;
