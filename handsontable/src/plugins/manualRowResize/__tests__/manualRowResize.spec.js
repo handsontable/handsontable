@@ -1273,4 +1273,59 @@ describe('manualRowResize', () => {
       expect(getInlineStartClone().find('table').height()).toBe(getMaster().find('table').height());
     });
   });
+
+  describe('with `preventOverflow: \'vertical\'`', () => {
+    it('should position the resize handle at the visible row header bottom edge after vertical scroll (#10403)', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 5),
+        rowHeaders: true,
+        manualRowResize: true,
+        preventOverflow: 'vertical',
+        width: 200,
+        height: 300,
+      });
+
+      await scrollViewportVertically(150);
+      await waitForNextAnimationFrames(2);
+
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(8) th:eq(0)');
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+
+      expect($headerTH.offset().top + $headerTH.height() - 5).toBeCloseTo($handle.offset().top, 0);
+      expect($headerTH.offset().left).toBeCloseTo($handle.offset().left, 0);
+    });
+
+    it('should resize a row by dragging the handle after vertical scroll (#10403)', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 5),
+        rowHeaders: true,
+        manualRowResize: true,
+        preventOverflow: 'vertical',
+        width: 200,
+        height: 300,
+      });
+
+      await scrollViewportVertically(150);
+      await waitForNextAnimationFrames(2);
+
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(8) th:eq(0)');
+      const initialHeight = $headerTH.outerHeight();
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+      const handleOffset = $handle.offset();
+
+      $handle.simulate('mousedown', { clientY: handleOffset.top });
+      $handle.simulate('mousemove', { clientY: handleOffset.top + 20 });
+      $handle.simulate('mouseup');
+
+      const cellCoords = hot().view._wt.wtTable.getCoords($headerTH[0]);
+
+      expect(hot().getRowHeight(cellCoords.row)).toBe(initialHeight + 20);
+    });
+  });
 });
