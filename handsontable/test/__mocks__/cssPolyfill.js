@@ -250,6 +250,14 @@ function patchCSSStyleDeclaration() {
   // WeakMap keys are DOM elements so entries are GC'd when elements are removed.
   const computedStyleCache = new WeakMap();
 
+  /**
+   * Returns a cached CSSStyleDeclaration for the element, calling jsdom's
+   * getComputedStyle at most once per unique element.
+   *
+   * @param {Element} element The element to compute styles for.
+   * @param {string|null} pseudoElement Optional pseudo-element string.
+   * @returns {CSSStyleDeclaration} The computed style object.
+   */
   function getCachedComputed(element, pseudoElement) {
     // Only cache non-pseudo-element lookups (pseudo-elements are rare and uncacheable).
     if (pseudoElement) {
