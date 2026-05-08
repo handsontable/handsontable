@@ -66,7 +66,9 @@
     },
     "build:walkontable": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
-      "deps": []
+      "deps": [],
+      "passthrough": true,
+      "passthroughFilter": ["--watch"]
     },
     "build:umd-from-esm": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.mjs",
@@ -125,7 +127,9 @@
     },
     "test:e2e.dump": {
       "cmd": "npm --silent run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
-      "deps": []
+      "deps": [],
+      "passthrough": true,
+      "passthroughFilter": ["--watch"]
     },
     "test:e2e.dump.esm-cjs": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e-esm-cjs env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
@@ -140,7 +144,9 @@
     },
     "test:walkontable.dump": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/test/helpers/index.js ./src/3rdparty/walkontable/test/spec/index.js",
-      "deps": []
+      "deps": [],
+      "passthrough": true,
+      "passthroughFilter": ["--watch"]
     },
     "test:walkontable.puppeteer": {
       "cmd": "node test/scripts/run-puppeteer.mjs src/3rdparty/walkontable/test/SpecRunner.html",
