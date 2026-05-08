@@ -200,8 +200,7 @@
         "build:umd",
         "build:umd.min",
         "build:es"
-      ],
-      "after": ["prepare-package-for-publish"]
+      ]
     },
     "lint": {
       "before": ["build:styles"],

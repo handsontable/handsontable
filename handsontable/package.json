@@ -51,6 +51,7 @@
     "test:types": "node scripts/run.mjs test:types",
     "watch": "node scripts/run.mjs --sequential watch",
     "build": "node scripts/run.mjs --parallel build",
+    "postbuild": "node scripts/run.mjs prepare-package-for-publish",
     "build:sequential": "node scripts/run.mjs --sequential build",
     "build:commonjs": "node scripts/run.mjs build:commonjs",
     "build:es": "node scripts/run.mjs build:es",
