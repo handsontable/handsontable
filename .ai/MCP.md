@@ -129,3 +129,7 @@ The `.cursor/mcp.json` and `.mcp.json` files also configure:
 | `filesystem_workspace` | Read/write access to the full repo workspace |
 | `filesystem_docs` | Read/write access to `./docs/content` only |
 | `code-review-graph` | Knowledge graph over the codebase (see above) |
+
+### Cursor secret interpolation
+
+All secrets in `.cursor/mcp.json` must use `${env:VARIABLE_NAME}` syntax — not shell-style `${VARIABLE_NAME}`. This applies to both HTTP server `headers` (e.g., ClickUp's `Authorization` header) and `command`-type server `env` blocks (e.g., the GitHub token). Without the `env:` prefix, Cursor treats the value as a literal string and the secret is never resolved.
