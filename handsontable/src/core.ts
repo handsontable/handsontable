@@ -3212,6 +3212,25 @@ export default function Core(
 
       width = instance.runHooks('beforeWidthChange', width);
       instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
+
+      // When `height` is not set, the table uses window vertical scroll. In that mode, not setting any overflow
+      // on the root element can allow the inner table to visually overflow the configured width.
+      // Setting only the horizontal overflow to `clip` keeps window scrolling intact while ensuring `width`
+      // constrains the grid. `overflow-x: hidden` was considered but rejected because it creates a block
+      // formatting context (BFC), which would interfere with the window-scroll model.
+      // Treat “no effective height” like omitting height: missing key, `null`, or `undefined` after resolution.
+      // Use the processed `height` value (after function resolution and `beforeHeightChange`), not `settings.height`,
+      // so hooks that coerce height to `null` still get horizontal clipping when `width` is set.
+      // Skip clipping for `width: 'auto'` — auto width fills the container naturally and has no
+      // constrained boundary to overflow, so horizontal clipping is unnecessary and causes layout issues.
+      // Browser compatibility note:
+      // - Safari < 16: `overflow-x: clip` is not supported and silently falls back to `visible`. The
+      //   horizontal-overflow fix has no effect on Safari 14.1–15.x (graceful degradation — no regression).
+      // - Safari (all versions): a browser bug causes `overflow-x: clip` to clip both axes. With a
+      //   content-driven height the clip boundary grows with the content, so the practical impact is limited.
+      if ((height === undefined || height === null) && width !== 'auto') {
+        instance.rootElement.style.overflowX = 'clip';
+      }
     }
 
     if (!init) {
