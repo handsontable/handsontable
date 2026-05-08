@@ -42,7 +42,35 @@ const PIPELINES = registry.pipelines;
 const rawArgs = process.argv.slice(2);
 const separatorIdx = rawArgs.indexOf('--');
 const mainArgs = separatorIdx === -1 ? rawArgs : rawArgs.slice(0, separatorIdx);
-const extraArgs = separatorIdx === -1 ? [] : rawArgs.slice(separatorIdx + 1);
+
+// Normalize space-separated flag values to --flag=value form so all downstream
+// code sees a consistent format. Only flags that take a value are listed here;
+// boolean flags (--watch, --random, --verbose) are left as-is.
+const FLAGS_WITH_VALUES = ['--testPathPattern', '--theme'];
+
+/**
+ * Normalizes space-separated flag values to `--flag=value` form.
+ * e.g. `--testPathPattern filters` → `--testPathPattern=filters`
+ *
+ * @param {string[]} args Raw argument array to normalize.
+ * @returns {string[]} Normalized argument array.
+ */
+function normalizeArgs(args) {
+  const result = [];
+
+  for (let i = 0; i < args.length; i += 1) {
+    if (FLAGS_WITH_VALUES.includes(args[i]) && i + 1 < args.length) {
+      result.push(`${args[i]}=${args[i + 1]}`);
+      i += 1;
+    } else {
+      result.push(args[i]);
+    }
+  }
+
+  return result;
+}
+
+const extraArgs = normalizeArgs(separatorIdx === -1 ? [] : rawArgs.slice(separatorIdx + 1));
 
 const isParallel = mainArgs[0] === '--parallel';
 const isSequential = mainArgs[0] === '--sequential';
