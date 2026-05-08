@@ -1,13 +1,14 @@
 /**
  * Crypto polyfill for jsdom environments that lack globalThis.crypto.
- * Call initCryptoPolyfill() in test bootstrap files before Handsontable instances are created.
  */
+const { webcrypto } = require('crypto');
 
-export function initCryptoPolyfill() {
+/**
+ * Sets up the Web Crypto API polyfill for jsdom test environments.
+ * Call this in test bootstrap files before Handsontable instances are created.
+ */
+function initCryptoPolyfill() {
   if (!globalThis.crypto) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { webcrypto } = require('crypto');
-
     Object.defineProperty(globalThis, 'crypto', {
       value: webcrypto,
       writable: false,
@@ -15,3 +16,7 @@ export function initCryptoPolyfill() {
     });
   }
 }
+
+module.exports = {
+  initCryptoPolyfill,
+};
