@@ -1,4 +1,4 @@
-name: Docs Staging Deployment. Documentation Review Delete (if exist).
+name: Docs delete Staging Deployment
 
 on:
   pull_request:
