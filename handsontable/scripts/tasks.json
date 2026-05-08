@@ -115,7 +115,8 @@
       "deps": [],
       "mode": "interactive",
       "passthrough": true,
-      "note": "interactive gives Jest a real TTY so colors/progress work; passthrough forwards --testPathPattern and --watch as argv"
+      "passthroughFilter": ["--testPathPattern", "--watch", "--coverage"],
+      "note": "interactive gives Jest a real TTY so colors/progress work; passthroughFilter limits forwarded flags to Jest-understood args — blocks --random, --verbose, etc."
     },
     "test:types": {
       "cmd": "tsc -p ./test/types -t es2015",

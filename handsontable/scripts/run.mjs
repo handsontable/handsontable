@@ -105,7 +105,17 @@ function resolveMode(task, flags) {
  */
 function buildCmd(task, flags) {
   const base = task.cmd;
-  const extra = (task.passthrough && flags.length) ? ` ${flags.join(' ')}` : '';
+  let effective = flags;
+
+  // passthroughFilter restricts which flags reach this task — e.g. test:unit.jest
+  // should receive --testPathPattern/--watch but not --random (which Jest rejects).
+  if (task.passthroughFilter && flags.length) {
+    effective = flags.filter(f =>
+      task.passthroughFilter.some(p => f === p || f.startsWith(`${p}=`))
+    );
+  }
+
+  const extra = (task.passthrough && effective.length) ? ` ${effective.join(' ')}` : '';
 
   return `${base}${extra}`;
 }
@@ -168,15 +178,16 @@ function runParallelTask(name, spinner) {
     const child = spawn(cmd, [], {
       cwd,
       env: { ...baseEnv, PATH: envPATH, NODE_NO_WARNINGS: '1', ...propagatedEnv },
-      // Ignore stdout to prevent deadlock if child writes more than pipe buffer.
-      // Pipe stderr so we can show the last few lines on failure.
-      stdio: ['ignore', 'ignore', 'pipe'],
+      // Pipe both stdout and stderr so lint errors (written to stdout by ESLint/Stylelint)
+      // are captured and shown on failure alongside any stderr diagnostics.
+      stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
     });
 
-    let stderr = '';
+    let combined = '';
 
-    child.stderr.on('data', (d) => { stderr += d.toString(); });
+    child.stdout.on('data', (d) => { combined += d.toString(); });
+    child.stderr.on('data', (d) => { combined += d.toString(); });
 
     child.on('close', (code) => {
       const elapsed = Math.round(performance.now() - start);
@@ -184,8 +195,8 @@ function runParallelTask(name, spinner) {
       if (code !== 0) {
         spinner.finish(name, false, elapsed);
 
-        if (stderr) {
-          const tail = stderr.trim().split('\n').slice(-3).join('\n    ');
+        if (combined) {
+          const tail = combined.trim().split('\n').slice(-10).join('\n    ');
 
           process.stderr.write(`\n    ${tail}\n`);
         }
