@@ -95,6 +95,15 @@ function resolveMode(task, flags) {
 
   if (task.mode === 'inherit') { return 'inherit'; }
 
+  // Tasks with no explicit mode that forward --watch must use inherit so their stdout
+  // reaches concurrently's output stream — the watcher reads it to detect build-completion
+  // markers and trigger Puppeteer re-runs. Without this, output is piped and swallowed.
+  const forwardsWatch = Array.isArray(task.passthroughFilter) && task.passthroughFilter.includes('--watch');
+
+  if (flags.includes('--watch') && forwardsWatch) {
+    return 'inherit';
+  }
+
   return 'quiet';
 }
 
