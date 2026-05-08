@@ -131,7 +131,7 @@ const ExampleComponent = () => {
           { data: 'q2Revenue', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
         ]}
         rowHeaders={true}
-        selectionMode="row"
+        selectionMode="range"
         height="auto"
         width="100%"
         autoWrapRow={true}

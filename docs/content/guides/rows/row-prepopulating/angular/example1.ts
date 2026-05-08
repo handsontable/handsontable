@@ -53,7 +53,7 @@ export class AppComponent implements AfterViewInit {
       col: number,
       prop: string | number,
       value: Handsontable.CellValue,
-      cellProperties: Handsontable.CellMeta
+      cellProperties: Handsontable.CellProperties
     ) => {
       if (value === null && isEmptyRow(instance, row)) {
         value = templateValues[col];
@@ -92,7 +92,7 @@ export class AppComponent implements AfterViewInit {
         const rowsToFill: Record<string, boolean> = {};
         const ch = changes === null ? [] : changes!;
 
-        for (let i = 0; i < changes.length; i++) {
+        for (let i = 0; i < ch.length; i++) {
           // if oldVal is empty
           if (ch[i]![2] === null && ch[i]![3] !== null) {
             if (isEmptyRow(instance, ch[i]![0])) {
@@ -108,7 +108,7 @@ export class AppComponent implements AfterViewInit {
             for (let c = 0; c < columns; c++) {
               // if it is not provided by user in this change set, take the value from the template
               if (!rowColumnSeen[`${r}/${c}`]) {
-                changes.push([Number(r), c, null, templateValues[c]]);
+                ch.push([Number(r), c, null, templateValues[c]]);
               }
             }
           }

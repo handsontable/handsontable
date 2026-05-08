@@ -349,6 +349,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (choices.length > 0) {
       this.updateDropdownDimensions();
       this.flipDropdownVerticallyIfNeeded();
+      this.flipDropdownHorizontallyIfNeeded();
 
       if (this.cellProperties.strict === true) {
         this.highlightBestMatchingChoice(highlightIndex);

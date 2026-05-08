@@ -1,0 +1,44 @@
+name: Docs Angular Type Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'docs/content/**/angular/*.ts'
+      - 'docs/angular-type-check/**'
+  push:
+    paths:
+      - 'docs/content/**/angular/*.ts'
+      - 'docs/angular-type-check/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Type check Angular examples
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build handsontable
+        run: npm run build --prefix handsontable
+
+      - name: Build angular-wrapper
+        run: npm run build --prefix wrappers/angular-wrapper
+
+      - name: Run type check
+        run: npm run typecheck --prefix docs/angular-type-check

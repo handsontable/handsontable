@@ -1,34 +1,36 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
+import type { SourceRowData } from 'handsontable/common';
 
-function buildUrl(base: string, params: { page: unknown; pageSize: unknown; sort?: unknown; filters?: unknown }): string {
+function buildUrl(base: string, params: DataProviderQueryParameters): string {
   const query = new URLSearchParams({
     page: String(params.page),
     pageSize: String(params.pageSize),
   });
 
-  const sort = params.sort as { prop: string; order: string } | null | undefined;
-
-  if (sort) {
-    query.set('sort[prop]', sort.prop);
-    query.set('sort[order]', sort.order);
+  if (params.sort) {
+    query.set('sort[prop]', params.sort.prop);
+    query.set('sort[order]', params.sort.order);
   }
 
-  const filters = params.filters as Array<{ prop: string; condition: { name: string; args?: unknown[] } }> | null | undefined;
+  if (params.filters?.length) {
+    params.filters.forEach(({ prop, conditions }, i) => {
+      const cond = conditions[0];
 
-  if (filters) {
-    filters.forEach((filter, i) => {
-      query.set(`filters[${i}][prop]`, filter.prop);
-      query.set(`filters[${i}][condition]`, filter.condition.name);
-      const args = filter.condition.args ?? [];
+      query.set(`filters[${i}][prop]`, prop);
 
-      if (args[0] != null) {
-        query.set(`filters[${i}][value]`, String(args[0]));
+      if (cond?.name) {
+        query.set(`filters[${i}][condition]`, cond.name);
       }
 
-      if (args[1] != null) {
-        query.set(`filters[${i}][value2]`, String(args[1]));
+      if (cond?.args[0] != null) {
+        query.set(`filters[${i}][value]`, String(cond.args[0]));
+      }
+
+      if (cond?.args[1] != null) {
+        query.set(`filters[${i}][value2]`, String(cond.args[1]));
       }
     });
   }
@@ -56,11 +58,11 @@ export class AppComponent {
   readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
-      fetchRows: (params: unknown, { signal }: { signal: AbortSignal }) =>
-        this.fetchRows(params as Record<string, unknown>, signal),
-      onRowsCreate: (payload: unknown) => this.onRowsCreate(payload),
-      onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
-      onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
+      fetchRows: (params: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
+        this.fetchRows(params, options.signal),
+      onRowsCreate: (payload: RowsCreatePayload) => this.onRowsCreate(payload),
+      onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
+      onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
     },
     pagination: { pageSize: 10 },
     columnSorting: true,
@@ -84,13 +86,8 @@ export class AppComponent {
     ],
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: unknown[]; totalRows: number }> {
-    const url = buildUrl('/api/products', {
-      page: params['page'],
-      pageSize: params['pageSize'],
-      sort: params['sort'],
-      filters: params['filters'],
-    });
+  async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
+    const url = buildUrl('/api/products', params);
     const res = await fetch(url, { signal });
 
     if (!res.ok) {
@@ -102,7 +99,7 @@ export class AppComponent {
     return { rows: json.data, totalRows: json.total };
   }
 
-  async onRowsCreate(payload: unknown): Promise<void> {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
     await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
@@ -110,7 +107,7 @@ export class AppComponent {
     });
   }
 
-  async onRowsUpdate(rows: unknown): Promise<void> {
+  async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
     await fetch('/api/products', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
@@ -118,7 +115,7 @@ export class AppComponent {
     });
   }
 
-  async onRowsRemove(rowIds: unknown): Promise<void> {
+  async onRowsRemove(rowIds: unknown[]): Promise<void> {
     await fetch('/api/products', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },

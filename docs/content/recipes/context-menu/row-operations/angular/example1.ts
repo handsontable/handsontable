@@ -75,7 +75,12 @@ export class AppComponent {
 
   deleteRow(): void {
     const hot = this.hotTable?.hotInstance;
-    const selected = hot?.getSelected();
+
+    if (!hot) {
+      return;
+    }
+
+    const selected = hot.getSelected();
 
     if (!selected) {
       return;

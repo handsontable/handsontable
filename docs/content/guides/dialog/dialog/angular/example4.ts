@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -20,7 +20,7 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
     </hot-table>
   `,
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -111,7 +111,7 @@ export class AppComponent implements AfterViewInit {
   };
 
   showAlert() {
-    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
+    const dialogPlugin = this.hotTable.hotInstance!.getPlugin('dialog');
 
     dialogPlugin.showAlert({
       title: 'Alert',
@@ -122,10 +122,10 @@ export class AppComponent implements AfterViewInit {
   }
 
   showConfirm() {
-    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
+    const dialogPlugin = this.hotTable.hotInstance!.getPlugin('dialog');
 
     dialogPlugin.showConfirm('Do you want to undo the last action?', () => {
-      this.hotTable.hotInstance.getPlugin('undoRedo').undo();
+      this.hotTable.hotInstance!.getPlugin('undoRedo').undo();
       dialogPlugin.hide();
     }, () => {
       dialogPlugin.hide();
@@ -133,7 +133,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   showCustomConfirm() {
-    const hotInstance = this.hotTable.hotInstance;
+    const hotInstance = this.hotTable.hotInstance!;
     const dialogPlugin = hotInstance.getPlugin('dialog');
 
     dialogPlugin.show({

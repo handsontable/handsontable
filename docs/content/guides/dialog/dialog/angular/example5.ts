@@ -82,7 +82,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         ? 'This dialog uses a solid background (default).'
         : 'This dialog uses a semi-transparent background.';
 
-      hotInstance.getPlugin('dialog').update({ content, background: value });
+      hotInstance.getPlugin('dialog').update({ content, background: value as 'solid' | 'semi-transparent' });
     }
   }
 

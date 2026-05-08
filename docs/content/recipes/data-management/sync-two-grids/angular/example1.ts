@@ -100,7 +100,7 @@ export class AppComponent {
     dropdownMenu: true,
     stretchH: 'all',
     afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
-      if (!changes || source === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
+      if (!changes || (source as string) === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
         return;
       }
 

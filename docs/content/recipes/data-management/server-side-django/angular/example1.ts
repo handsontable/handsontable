@@ -1,6 +1,8 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
+import type { SourceRowData } from 'handsontable/common';
 
 function getCsrfToken(): string {
   return (
@@ -11,26 +13,31 @@ function getCsrfToken(): string {
   );
 }
 
-function buildUrl(base: string, params: { page: unknown; pageSize: unknown; sort?: unknown; filters?: unknown }): string {
+function buildUrl(base: string, params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();
 
   query.set('page', String(params.page));
   query.set('pageSize', String(params.pageSize));
 
-  const sort = params.sort as { prop?: string; order?: string } | undefined;
-
-  if (sort?.prop) {
-    query.set('sort[prop]', sort.prop);
-    query.set('sort[order]', sort.order ?? 'asc');
+  if (params.sort) {
+    query.set('sort[prop]', params.sort.prop);
+    query.set('sort[order]', params.sort.order);
   }
 
-  const filters = params.filters as Array<{ prop: string; value: unknown; condition: string }> | undefined;
-
-  if (filters?.length) {
-    filters.forEach(({ prop, value, condition }, i) => {
+  if (params.filters?.length) {
+    params.filters.forEach(({ prop, operation, conditions }, i) => {
       query.set(`filters[${i}][prop]`, prop);
-      query.set(`filters[${i}][value]`, String(value));
-      query.set(`filters[${i}][condition]`, condition);
+      query.set(`filters[${i}][operation]`, operation);
+      conditions.forEach((cond, j) => {
+        if (cond.name) {
+          query.set(`filters[${i}][conditions][${j}][name]`, cond.name);
+        }
+        cond.args.forEach((arg, k) => {
+          if (arg != null) {
+            query.set(`filters[${i}][conditions][${j}][args][${k}]`, String(arg));
+          }
+        });
+      });
     });
   }
 
@@ -53,11 +60,11 @@ export class AppComponent {
   readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
-      fetchRows: (params: unknown, { signal }: { signal: AbortSignal }) =>
-        this.fetchRows(params as Record<string, unknown>, signal),
-      onRowsCreate: (rows: unknown) => this.onRowsCreate(rows),
-      onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
-      onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
+      fetchRows: (params: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
+        this.fetchRows(params, options.signal),
+      onRowsCreate: (payload: RowsCreatePayload) => this.onRowsCreate(payload),
+      onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
+      onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
     },
     pagination: { pageSize: 10 },
     columnSorting: true,
@@ -79,40 +86,35 @@ export class AppComponent {
     autoWrapRow: true,
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
-    const url = buildUrl('http://localhost:8000/api/employees/', {
-      page: params['page'],
-      pageSize: params['pageSize'],
-      sort: params['sort'],
-      filters: params['filters'],
-    });
+  async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
+    const url = buildUrl('http://localhost:8000/api/employees/', params);
     const res = await fetch(url, { signal });
 
     if (!res.ok) {
       throw new Error(`Fetch failed: ${res.status}`);
     }
 
-    return res.json();
+    return res.json() as Promise<{ rows: SourceRowData[]; totalRows: number }>;
   }
 
-  async onRowsCreate(rows: unknown): Promise<unknown> {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
     const res = await fetch('http://localhost:8000/api/employees/create-rows/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCsrfToken(),
       },
-      body: JSON.stringify(rows),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    return res.json();
+    await res.json();
   }
 
-  async onRowsUpdate(rows: unknown): Promise<void> {
+  async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
     const res = await fetch('http://localhost:8000/api/employees/update-rows/', {
       method: 'PATCH',
       headers: {
@@ -127,7 +129,7 @@ export class AppComponent {
     }
   }
 
-  async onRowsRemove(rowIds: unknown): Promise<void> {
+  async onRowsRemove(rowIds: unknown[]): Promise<void> {
     const res = await fetch('http://localhost:8000/api/employees/remove-rows/', {
       method: 'DELETE',
       headers: {
