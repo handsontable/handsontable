@@ -43,6 +43,7 @@ export class HandsontableEditor extends TextEditor {
     const containerStyle = this.htContainer.style;
 
     if (this.htEditor) {
+      this.htEditor.rootPortalElement = null;
       this.htEditor.destroy();
       containerStyle.width = '';
       containerStyle.height = '';
@@ -369,7 +370,10 @@ export class HandsontableEditor extends TextEditor {
    */
   assignHooks() {
     this.hot.addHook('afterDestroy', () => {
-      this.htEditor?.destroy();
+      if (this.htEditor) {
+        this.htEditor.rootPortalElement = null;
+        this.htEditor.destroy();
+      }
     });
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {

@@ -887,6 +887,35 @@ describe('HandsontableEditor', () => {
       expect(innerHot.rootPortalElement).toBe(hot.rootPortalElement);
     });
 
+    it('should not remove the outer HOT portal element when the editor is reopened', async() => {
+      const hot = handsontable({
+        data: [['BMW'], ['Nissan']],
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country'],
+            data: getManufacturerDataWithFilters(),
+            filters: true,
+            dropdownMenu: true,
+          }
+        }]
+      });
+
+      const portal = hot.rootPortalElement;
+
+      // Open, close, reopen — each open() destroys the previous inner HOT
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('escape');
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('escape');
+
+      expect(hot.rootPortalElement).toBe(portal);
+      expect(document.body.contains(portal)).toBe(true);
+    });
+
     it('should not close the editor when clicking a dropdown menu item in the inner HOT', async() => {
       handsontable({
         data: [['BMW'], ['Nissan']],
