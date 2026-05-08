@@ -1,6 +1,6 @@
 /* file: app.component.ts */
-import { Component, ElementRef, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example-grid-size',
@@ -17,14 +17,9 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
         </button>
       </div>
     </div>
-    <div class="table-container" #tableContainer>
-      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-    </div>`,
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>`,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
-  @ViewChild('tableContainer', { static: false }) readonly tableContainer!: ElementRef<HTMLDivElement>;
-
   // generate an array of arrays with dummy data
   readonly data = new Array(100) // number of rows
     .fill(null)
@@ -36,22 +31,22 @@ export class AppComponent {
 
   isContainerExpanded = false;
 
-  readonly gridSettings: GridSettings = {
+  gridSettings: GridSettings = {
     rowHeaders: true,
     colHeaders: true,
     width: '100%',
-    height: '100%',
+    height: 157,
     colWidths: 100,
     autoWrapRow: true,
-    autoWrapCol: true
+    autoWrapCol: true,
   };
 
   btnClick(): void {
     this.isContainerExpanded = !this.isContainerExpanded;
-    const newHeight = this.isContainerExpanded ? 410 : 157;
-
-    this.tableContainer.nativeElement.style.height = `${newHeight}px`;
-    this.hotTable?.hotInstance?.refreshDimensions();
+    this.gridSettings = {
+      ...this.gridSettings,
+      height: this.isContainerExpanded ? 410 : 157,
+    };
   }
 }
 /* end-file */
