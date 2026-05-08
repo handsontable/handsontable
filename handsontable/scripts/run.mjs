@@ -127,6 +127,15 @@ async function runOne(name, extraFlags = [], envOverride = {}) {
   // resolve without requiring callers to prefix with npx or npm run.
   const env = { PATH: envPATH, ...propagatedEnv, ...envOverride };
 
+  // For direct single-task invocations, resolve deps sequentially so that
+  // e.g. `npm run build:umd` automatically builds styles first.
+  // The parallel pipeline uses runParallelTask + the DAG scheduler instead
+  // and never goes through runOne, so this path does not affect it.
+  for (const dep of (task.deps ?? [])) {
+    // eslint-disable-next-line no-await-in-loop
+    await runOne(dep, [], envOverride);
+  }
+
   await runStep(cmd, {
     cwd,
     env,
