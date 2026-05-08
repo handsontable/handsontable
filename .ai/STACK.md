@@ -106,7 +106,8 @@
 **SWC pipeline (replaces Babel for everything except Jest):**
 - Rspack bundles (`rspack.config.js` + `.config/*`) - JS transpiled by `builtin:swc-loader` using targets from `browser-targets.js`
 - `handsontable/scripts/swc-transpile.mjs` - File-per-file transpiler driven by `@swc/core`; produces the `tmp/` output consumed by wrappers. Handles CJS (`build:commonjs`), ESM (`build:es`, `.mjs` output), and i18n language packs with auto-registration (`build:languages.es --lang-registration`)
-- `handsontable/scripts/parallel-build.mjs` - Build orchestrator invoked by `npm run build`; runs the Rspack and SWC tasks above concurrently where the dependency graph allows
+- `handsontable/scripts/run.mjs` - Unified dispatcher for all `npm run` scripts; reads task definitions and pipeline graphs from `handsontable/scripts/tasks.json`; runs tasks quietly with spinner on TTY, supports `--parallel` (DAG scheduler) and `--sequential` modes
+- `handsontable/scripts/tasks.json` - Single source of truth for all build/lint/test task commands, their `deps`, `mode`, and `cwd`; also defines named `pipelines` (ordered step sequences). Edit this file to add, remove, or change any build/lint/test step — do not add raw shell commands to `package.json` scripts for the core package
 
 **Linting:**
 - `.eslintrc.js` (root) - Monorepo-level ESLint config
