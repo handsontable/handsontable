@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -17,12 +17,13 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
         </button>
       </div>
     </div>
-    <div class="table-container" [style.height.px]="currentHeight">
+    <div class="table-container" #tableContainer>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+  @ViewChild('tableContainer', { static: false }) readonly tableContainer!: ElementRef<HTMLDivElement>;
 
   // generate an array of arrays with dummy data
   readonly data = new Array(100) // number of rows
@@ -34,9 +35,8 @@ export class AppComponent {
     );
 
   isContainerExpanded = false;
-  currentHeight = 157;
 
-  readonly gridSettings: GridSettings ={
+  readonly gridSettings: GridSettings = {
     rowHeaders: true,
     colHeaders: true,
     width: '100%',
@@ -48,8 +48,9 @@ export class AppComponent {
 
   btnClick(): void {
     this.isContainerExpanded = !this.isContainerExpanded;
-    this.currentHeight = this.isContainerExpanded ? 410 : 157;
+    const newHeight = this.isContainerExpanded ? 410 : 157;
 
+    this.tableContainer.nativeElement.style.height = `${newHeight}px`;
     this.hotTable?.hotInstance?.refreshDimensions();
   }
 }
