@@ -449,6 +449,8 @@ class TableView {
           return;
         }
       } else {
+        const { rootPortalElement } = this.hot;
+
         while (next !== documentElement) {
           if (next === null) {
             if (event.isTargetWebComponent) {
@@ -458,8 +460,8 @@ class TableView {
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
-          if (next === rootElement) {
-            // click inside container
+          if (next === rootElement || next === rootPortalElement) {
+            // click inside container or portal
             return;
           }
           next = next.parentNode;

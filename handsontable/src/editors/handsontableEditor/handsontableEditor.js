@@ -55,6 +55,7 @@ export class HandsontableEditor extends TextEditor {
 
     // Constructs and initializes a new Handsontable instance
     this.htEditor = new this.hot.constructor(this.htContainer, this.htOptions);
+    this.htEditor.rootPortalElement = this.hot.rootPortalElement;
     this.htEditor.init();
     this.htEditor.rootElement.style.display = '';
 
@@ -118,7 +119,11 @@ export class HandsontableEditor extends TextEditor {
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_, coords) {
-        const sourceValue = this.getSourceData(coords.row, coords.col);
+        if (coords.row < 0) {
+          return;
+        }
+
+        const sourceValue = this.getDataAtCell(coords.row, coords.col);
 
         // if the value is undefined then it means we don't want to set the value
         if (sourceValue !== undefined) {
