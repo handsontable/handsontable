@@ -75,7 +75,7 @@ class DataFilter {
     const result: unknown[] = [];
 
     arrayEach(needles, (needleRow) => {
-      const row = (needleRow as Record<string, unknown> & { meta: Record<string, unknown> }).meta.visualRow as number;
+      const row = (needleRow as Record<string, unknown> & { meta: Record<string, unknown> }).meta.row as number;
 
       if (data[row] !== undefined) {
         result[row] = data[row];

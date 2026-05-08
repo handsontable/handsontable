@@ -985,15 +985,14 @@ export class Filters extends BasePlugin {
     if (allowFiltering !== false && needToFilter) {
       const trimmedRows: number[] = [];
       const dataFilter = this._createDataFilter();
-      const visibleVisualRows = arrayMap(dataFilter.filter(), (rowData) => (rowData as { meta: { visualRow: number } }).meta.visualRow);
-      const rowIndexesToShow = visibleVisualRows;
-      const visibleVisualRowsAssertion = createArrayAssertion(rowIndexesToShow);
+      const rowIndexesToShow = arrayMap(dataFilter.filter(), (rowData) => (rowData as { meta: { row: number } }).meta.row);
+      const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
 
       this.hot.batchExecution(() => {
         this.filtersRowsMap.clear();
 
         rangeEach(this.hot.countSourceRows() - 1, (row: number) => {
-          if (!visibleVisualRowsAssertion(row)) {
+          if (!rowIndexesToShowAssertion(row)) {
             trimmedRows.push(row);
           }
         });
@@ -1062,25 +1061,37 @@ export class Filters extends BasePlugin {
    * @param {number} physicalColumn The physical column index.
    * @returns {Array<{meta: CellProperties, value: any}>} Array of objects with `meta` and `value`, one per source row.
    */
-  getDataMapAtColumn(column: number): Record<string, unknown>[] {
-    const visualColumn = this.hot.toVisualColumn(column);
-    const sourceCol = this.hot.getSourceDataAtCol(visualColumn);
-    const sourceRowCount = sourceCol.length;
+  getDataMapAtColumn(physicalColumn: number): Record<string, unknown>[] {
+    const countSourceRows = this.hot.countSourceRows();
+    const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data: Record<string, unknown>[] = [];
 
-    rangeEach(sourceRowCount - 1, (physicalRow: number) => {
-      const visualRow = this.hot.toVisualRow(physicalRow);
-      const cellMeta = this.hot.getCellMeta(physicalRow, visualColumn) as Record<string, unknown>;
-      const value = visualRow !== null
-        ? this.hot.getDataAtCell(visualRow, visualColumn)
-        : getValueGetterValue(this.hot.getSourceDataAtCell(physicalRow, visualColumn), cellMeta);
-      const index = data.length;
+    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+      const cellMeta = (this.hot as any)._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
+        visualRow: physicalRow,
+        visualColumn: physicalColumn,
+        skipMetaExtension: true,
+      });
+      let value = getValueGetterValue(
+        this.hot.getSourceDataAtCell(physicalRow, visualColumn),
+        cellMeta
+      );
+
+      if (this.hot.hasHook('modifyData')) {
+        const valueHolder = createObjectPropListener(value);
+
+        this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
+
+        if ((valueHolder as any).isTouched()) {
+          value = (valueHolder as any).value;
+        }
+      }
 
       data.push({
-        meta: { ...cellMeta, row: index, visualRow: index },
+        meta: cellMeta,
         value: toEmptyString(value),
       });
-    });
+    }
 
     return data;
   }
