@@ -1234,6 +1234,115 @@ describe('AutocompleteEditor', () => {
       }
     });
 
+    it('should display the dropdown to the left of the edited cell, when there is not enough space on the right side (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
+      const longChoices = [
+        'Short',
+        'A very long dropdown option that far exceeds the column width',
+        'AnotherVeryLongOptionWithoutAnySpaces',
+      ];
+
+      handsontable({
+        data: createEmptySpreadsheetData(5, 3),
+        editor: 'autocomplete',
+        source: longChoices,
+        trimDropdown: false,
+        width: 400,
+        height: 200,
+        stretchH: 'all',
+      });
+
+      await mouseDoubleClick($(getCell(0, 2)));
+      await waitForNextAnimationFrames(2);
+
+      const tableRight = hot().rootElement.getBoundingClientRect().right;
+      const { dd, td } = getDropdownVsEditedCell();
+
+      expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // stays within table
+      expect(dd.left).toBeLessThan(td.left); // flipped to the left of the cell
+    });
+
+    it('should display the dropdown to the left of the edited cell, when there is not enough space on the right side (table has not defined size)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      const longChoices = [
+        'Short',
+        'A very long dropdown option that far exceeds the column width',
+        'AnotherVeryLongOptionWithoutAnySpaces',
+      ];
+
+      handsontable({
+        data: createEmptySpreadsheetData(5, 30),
+        editor: 'autocomplete',
+        source: longChoices,
+        trimDropdown: false,
+        colWidths: 100,
+      });
+
+      await scrollWindowTo(10000, 0); // scroll to the right edge
+
+      const cell = document.elementsFromPoint(
+        document.documentElement.clientWidth - 10, getDefaultRowHeight() + 10)[0];
+
+      await mouseDoubleClick($(cell));
+      await waitForNextAnimationFrames(2);
+
+      const { dd } = getDropdownVsEditedCell();
+
+      // dropdown must not overflow the viewport
+      expect(dd.right).toBeLessThanOrEqual(document.documentElement.clientWidth + E2E_DOM_RECT_EPSILON_PX);
+    });
+
+    it('should maintain the dropdown flipped to the left of the edited cell, after the choices list is changed (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
+      const longChoices = [
+        'Short',
+        'A very long dropdown option that far exceeds the column width',
+      ];
+
+      handsontable({
+        data: createEmptySpreadsheetData(5, 3),
+        editor: 'autocomplete',
+        source: longChoices,
+        trimDropdown: false,
+        width: 400,
+        height: 200,
+        stretchH: 'all',
+      });
+
+      // Open shows all choices (including long one) — should flip left
+      await mouseDoubleClick($(getCell(0, 2)));
+      await waitForNextAnimationFrames(2);
+
+      {
+        const tableRight = hot().rootElement.getBoundingClientRect().right;
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // flipped left
+        expect(dd.left).toBeLessThan(td.left);
+      }
+
+      // Type 'a' — filters to only the long option ('Short' has no 'a') — dropdown stays wide and flipped
+      const editor = getActiveEditor();
+
+      editor.TEXTAREA.value = 'a';
+      await keyDownUp('a');
+      await waitForNextAnimationFrames(2);
+
+      {
+        const tableRight = hot().rootElement.getBoundingClientRect().right;
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // still flipped left
+        expect(dd.left).toBeLessThan(td.left);
+      }
+    });
+
     it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
       handsontable({
         editor: 'autocomplete',

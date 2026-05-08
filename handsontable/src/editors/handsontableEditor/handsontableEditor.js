@@ -264,15 +264,19 @@ export class HandsontableEditor extends TextEditor {
     const { view } = this.hot;
     const cellRect = this.getEditedCellRect();
     let spaceInlineStart = cellRect.start + cellRect.width;
+    let workspaceWidth = view.getWorkspaceWidth();
 
     if (view.isHorizontallyScrollableByWindow()) {
       const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
 
       spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
+      // For window-scrollable tables, spaceInlineStart is viewport-relative so the right
+      // boundary must also be viewport width, not the holder's offsetWidth.
+      workspaceWidth = this.hot.rootDocument.documentElement.clientWidth;
     }
 
     const dropdownTargetWidth = this.getDropdownWidth();
-    const spaceInlineEnd = view.getWorkspaceWidth() - spaceInlineStart + cellRect.width;
+    const spaceInlineEnd = workspaceWidth - spaceInlineStart + cellRect.width;
     const flipNeeded = dropdownTargetWidth > spaceInlineEnd && spaceInlineStart > spaceInlineEnd;
 
     if (flipNeeded) {
