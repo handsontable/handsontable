@@ -5,7 +5,7 @@ import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
-  KeyboardShortcutConfig,,
+  KeyboardShortcutConfig,
   HotTableModule
 } from '@handsontable/angular-wrapper';
 import { RowObject } from 'handsontable/common';

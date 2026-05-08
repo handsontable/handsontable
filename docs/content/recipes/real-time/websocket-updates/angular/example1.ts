@@ -51,7 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
     width: '100%',
     stretchH: 'all',
     afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
-      if (source !== 'external' || !changes) {
+      if ((source as string) !== 'external' || !changes) {
         return;
       }
 

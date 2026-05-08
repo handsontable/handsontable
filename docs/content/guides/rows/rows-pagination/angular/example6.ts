@@ -2,16 +2,16 @@
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable/base';
+import Handsontable from 'handsontable';
 
 const enUSDictionary = Handsontable.languages.getLanguageDictionary('en-US');
-const C = Handsontable.languages.dictionaryKeys;
+const C = (Handsontable.languages as any).dictionaryKeys as Record<string, string>;
 
 Handsontable.languages.registerLanguageDictionary({
   ...enUSDictionary,
   languageCode: 'en-US-custom',
-  [C.PAGINATION_COUNTER_SECTION]: 'Currently displaying [start]-[end] (total: [total])',
-  [C.PAGINATION_NAV_SECTION]: '[currentPage] / [totalPages]',
+  [C['PAGINATION_COUNTER_SECTION']]: 'Currently displaying [start]-[end] (total: [total])',
+  [C['PAGINATION_NAV_SECTION']]: '[currentPage] / [totalPages]',
 });
 
 @Component({

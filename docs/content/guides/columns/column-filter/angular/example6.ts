@@ -1,12 +1,11 @@
-import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 /* file: app.component.ts */
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
-import { FormControl } from "@angular/forms";
+import { GridSettings, HotTableComponent, HotTableModule } from "@handsontable/angular-wrapper";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
 @Component({
   standalone: true,
-  imports: [HotTableModule],
+  imports: [HotTableModule, ReactiveFormsModule],
   selector: "app-example6",
   template: `
     <div class="example-controls-container">
@@ -153,12 +152,12 @@ export class AppComponent implements OnInit {
   };
 
   ngOnInit() {
-    this.fieldControl.valueChanges.subscribe((fieldValue: string) => {
+    this.fieldControl.valueChanges.subscribe((fieldValue) => {
       const filters = this.hotTable.hotInstance!.getPlugin("filters");
       const columnValue = +this.columnControl.value!;
 
       filters.removeConditions(columnValue);
-      filters.addCondition(columnValue, "contains", [fieldValue]);
+      filters.addCondition(columnValue, "contains", [fieldValue ?? '']);
       filters.filter();
       this.hotTable.hotInstance!.render();
     });

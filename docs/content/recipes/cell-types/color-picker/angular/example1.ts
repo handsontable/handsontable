@@ -3,7 +3,7 @@ import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angu
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
-  HotCellRendererAdvancedComponent,,
+  HotCellRendererAdvancedComponent,
   HotTableModule
 } from '@handsontable/angular-wrapper';
 import { RowObject } from 'handsontable/common';
@@ -104,7 +104,7 @@ export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<s
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const cellRect = this.TD?.getBoundingClientRect();
+        const cellRect = this.editorContainer.nativeElement.getBoundingClientRect();
 
         if (cellRect && this.pickrInstance) {
           (this.pickrInstance as any)._root.app.style.top = `${cellRect.bottom}px`;
