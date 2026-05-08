@@ -160,7 +160,7 @@ const cleanup = cleanupFactory(browser, server);
 const reporter = new JasmineReporter({
   colors: 1,
   cleanStack: 1,
-  verbosity: IS_TTY ? 1 : 4,
+  verbosity: (IS_TTY && !verboseReporting) ? 1 : 4,
   listStyle: 'flat',
   activity: true,
   isVerbose: verboseReporting,
