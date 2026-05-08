@@ -135,9 +135,20 @@ function buildCmd(task, flags) {
  * @param {string} name Task name.
  * @param {string[]} [extraFlags] Passthrough flags appended to the command.
  * @param {object} [envOverride] Additional env vars for this invocation.
+ * @param {Set<string>} [visited] Tasks already executed in this run; shared
+ *   across recursive dep calls so shared deps are not re-executed.
  * @returns {Promise<void>} Resolves on success, rejects on non-zero exit.
  */
-async function runOne(name, extraFlags = [], envOverride = {}) {
+async function runOne(name, extraFlags = [], envOverride = {}, visited = new Set()) {
+  // Deduplication: skip tasks already executed in this run.
+  // Without this, shared deps (e.g. build:styles) re-execute once per downstream
+  // task that has them in its dep chain, roughly doubling sequential build time.
+  if (visited.has(name)) {
+    return;
+  }
+
+  visited.add(name);
+
   const task = resolveTask(name);
   const mode = resolveMode(task, extraFlags);
   const cmd = buildCmd(task, extraFlags);
@@ -152,7 +163,7 @@ async function runOne(name, extraFlags = [], envOverride = {}) {
   // and never goes through runOne, so this path does not affect it.
   for (const dep of (task.deps ?? [])) {
     // eslint-disable-next-line no-await-in-loop
-    await runOne(dep, [], envOverride);
+    await runOne(dep, [], envOverride, visited);
   }
 
   await runStep(cmd, {
@@ -279,11 +290,16 @@ async function runPipeline(name, parallel) {
   } else {
     // Sequential: run each item in order.
     // Items may be pipeline names (e.g. "test:unit" inside "test") or task names.
+    // A single visited Set is shared across all items so shared deps run only once.
+    const visited = new Set();
+
     for (const item of tasks) {
       if (PIPELINES[item]) {
+        // eslint-disable-next-line no-await-in-loop
         await runPipeline(item, false);
       } else {
-        await runOne(item, passthroughFlags);
+        // eslint-disable-next-line no-await-in-loop
+        await runOne(item, passthroughFlags, {}, visited);
       }
     }
   }
