@@ -1,5 +1,5 @@
 import { fastInnerText } from '../../helpers/dom/element';
-import { stringify } from '../../helpers/mixed';
+import { isEmpty, stringify } from '../../helpers/mixed';
 
 export const RENDERER_TYPE = 'text';
 
@@ -18,7 +18,7 @@ export const RENDERER_TYPE = 'text';
 export function textRenderer(hotInstance, TD, row, col, prop, value, cellProperties) {
   let escaped = value;
 
-  if (!escaped && cellProperties.placeholder) {
+  if (isEmpty(escaped) && cellProperties.placeholder) {
     escaped = cellProperties.placeholder;
   }
 
