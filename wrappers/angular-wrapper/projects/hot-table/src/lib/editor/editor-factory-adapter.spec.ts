@@ -36,7 +36,7 @@ describe('FactoryEditorAdapter', () => {
     (instance as any)._angularEnvironmentInjector = environmentInjector;
 
     instance.selectCell(0, 0);
-    (instance.getActiveEditor() as Handsontable.editors.BaseEditor).beginEditing();
+    instance.getActiveEditor().beginEditing();
     adapter = instance.getActiveEditor();
   });
 

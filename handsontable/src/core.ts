@@ -266,6 +266,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     this.rootGridElement.appendChild(this.rootElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
+    this.rootWrapperElement.__hotInstance = this;
 
     addClass(this.rootPortalElement, 'ht-portal');
 

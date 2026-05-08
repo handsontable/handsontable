@@ -277,7 +277,8 @@ export class Filters extends BasePlugin {
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
-    const menuContainer = (dropdownSettings && (dropdownSettings as Record<string, unknown>).uiContainer) as HTMLElement || this.hot.rootPortalElement;
+    const menuContainer = (typeof dropdownSettings === 'object' ? (dropdownSettings as Record<string, unknown>).uiContainer : null) as HTMLElement ||
+      this.hot.rootPortalElement;
     const addConfirmationHooks = (component: BaseComponent) => {
       component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));

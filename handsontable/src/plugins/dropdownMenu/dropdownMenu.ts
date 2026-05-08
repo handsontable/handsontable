@@ -227,7 +227,8 @@ export class DropdownMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
         keepInViewport: true,
-        container: settingsObj.uiContainer || this.hot.rootPortalElement,
+        container: (typeof settings === 'object' ? settingsObj.uiContainer : null) ||
+          this.hot.rootPortalElement,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 

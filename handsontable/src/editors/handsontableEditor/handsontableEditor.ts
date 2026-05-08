@@ -67,6 +67,7 @@ export class HandsontableEditor extends TextEditor {
     const containerStyle = this.htContainer.style;
 
     if (this.htEditor) {
+      this.htEditor.rootPortalElement = null;
       this.htEditor.destroy();
       containerStyle.width = '';
       containerStyle.height = '';
@@ -79,6 +80,7 @@ export class HandsontableEditor extends TextEditor {
 
     // Constructs and initializes a new Handsontable instance
     this.htEditor = new (this.hot.constructor as any)(this.htContainer, this.htOptions) as HotInstance;
+    this.htEditor.rootPortalElement = this.hot.rootPortalElement;
     this.htEditor.init();
     this.htEditor.rootElement.style.display = '';
 
@@ -142,7 +144,11 @@ export class HandsontableEditor extends TextEditor {
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_: Event, coords: Record<string, number>) {
-        const sourceValue = this.getSourceData(coords.row, coords.col);
+        if (coords.row < 0 || coords.col < 0) {
+          return;
+        }
+
+        const sourceValue = this.getDataAtCell(coords.row, coords.col);
 
         // if the value is undefined then it means we don't want to set the value
         if (sourceValue !== undefined) {
@@ -392,7 +398,10 @@ export class HandsontableEditor extends TextEditor {
    */
   assignHooks(): void {
     this.hot.addHook('afterDestroy', () => {
-      this.htEditor?.destroy();
+      if (this.htEditor) {
+        this.htEditor.rootPortalElement = null;
+        this.htEditor.destroy();
+      }
     });
 
     this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
