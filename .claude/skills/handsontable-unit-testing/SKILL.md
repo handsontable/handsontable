@@ -43,8 +43,6 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 - **Targeted:** `npm run test:unit --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
 - **Example:** `npm run test:unit --testPathPattern=filters --prefix handsontable`
 
-**Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm's script runner, not by Jest directly.
-
 ## Large Dataset Testing
 
 When the code under test handles data arrays, include tests with 50k+ rows. Use `forEach` loops to populate arrays -- never `arr.push(...largeArray)` (causes stack overflow at scale).

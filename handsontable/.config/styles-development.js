@@ -24,7 +24,7 @@ module.exports.create = function create(envArgs) {
           use: [
             { loader: rspack.CssExtractRspackPlugin.loader },
             { loader: 'css-loader' },
-            { loader: 'sass-loader' },
+            { loader: 'sass-loader', options: { sassOptions: { silenceDeprecations: ['legacy-js-api'] } } },
           ]
         }
       ],

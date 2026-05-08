@@ -40,7 +40,7 @@ npm run build --prefix handsontable
 npm run test:unit --testPathPattern=<regex> --prefix handsontable
 
 # E2E tests for the area you changed
-npm run test:e2e --testPathPattern=<regex> --prefix handsontable
+npm run test:e2e --prefix handsontable -- --testPathPattern=<regex>
 
 # If you touched a wrapper, test it too
 npm run test --prefix wrappers/react-wrapper

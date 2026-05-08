@@ -44,7 +44,7 @@ module.exports.create = function create() {
           use: [
             { loader: rspack.CssExtractRspackPlugin.loader },
             { loader: 'css-loader' },
-            { loader: 'sass-loader'},
+            { loader: 'sass-loader', options: { sassOptions: { silenceDeprecations: ['legacy-js-api'] } } },
             { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
           ]
         },

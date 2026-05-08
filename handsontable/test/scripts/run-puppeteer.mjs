@@ -59,6 +59,7 @@ function listenOnFreePort(server, startPort) {
 }
 
 const IS_CI = process.env.CI;
+const IS_TTY = process.stdout.isTTY;
 const CI_DOTS_PER_LINE = 120;
 
 // Separate positional args (runner HTML path) from flag args (--random,
@@ -159,7 +160,7 @@ const cleanup = cleanupFactory(browser, server);
 const reporter = new JasmineReporter({
   colors: 1,
   cleanStack: 1,
-  verbosity: 4,
+  verbosity: IS_TTY ? 1 : 4,
   listStyle: 'flat',
   activity: true,
   isVerbose: verboseReporting,
