@@ -306,7 +306,13 @@ async function runPipeline(name, parallel) {
 
   // after: sequential post-steps (e.g. prepare-package-for-publish after build)
   for (const step of (pipeline.after ?? [])) {
-    await runOne(step);
+    if (PIPELINES[step]) {
+      // eslint-disable-next-line no-await-in-loop
+      await runPipeline(step, false);
+    } else {
+      // eslint-disable-next-line no-await-in-loop
+      await runOne(step);
+    }
   }
 }
 
