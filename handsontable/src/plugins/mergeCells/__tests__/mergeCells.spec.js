@@ -120,6 +120,265 @@ describe('MergeCells', () => {
     });
   });
 
+  describe('manualColumnMove integration', () => {
+    it('should follow merged cells when columns are moved (issue #10437 repro)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 6),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 4, rowspan: 3, colspan: 1 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumn(5, 4);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].row).toBe(0);
+      expect(merges[0].col).toBe(5);
+      expect(merges[0].rowspan).toBe(3);
+      expect(merges[0].colspan).toBe(1);
+    });
+
+    it('should shift a horizontal merge that is moved as a whole', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 8),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 2, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumns([2, 3, 4], 0);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].row).toBe(0);
+      expect(merges[0].col).toBe(0);
+      expect(merges[0].colspan).toBe(3);
+    });
+
+    it('should auto-split a horizontal merge bisected by a column move (rowspan kept)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 8),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 2, rowspan: 2, colspan: 3 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumn(3, 0);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells
+        .slice()
+        .sort((a, b) => a.col - b.col);
+
+      expect(merges.length).toBe(2);
+      expect(merges[0].row).toBe(0);
+      expect(merges[0].col).toBe(0);
+      expect(merges[0].rowspan).toBe(2);
+      expect(merges[0].colspan).toBe(1);
+      expect(merges[1].row).toBe(0);
+      expect(merges[1].col).toBe(3);
+      expect(merges[1].rowspan).toBe(2);
+      expect(merges[1].colspan).toBe(2);
+    });
+
+    it('should drop singleton fragments left after bisecting a colspan-only merge', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 8),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 2, rowspan: 1, colspan: 2 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumn(2, 6);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(0);
+    });
+
+    it('should follow merged cells when rows are moved', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 4),
+        manualRowMove: true,
+        mergeCells: [
+          { row: 4, col: 0, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      getPlugin('manualRowMove').moveRow(5, 4);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].row).toBe(5);
+      expect(merges[0].col).toBe(0);
+      expect(merges[0].rowspan).toBe(1);
+      expect(merges[0].colspan).toBe(3);
+    });
+
+    it('should auto-split a vertical merge bisected by a row move (colspan kept)', async() => {
+      handsontable({
+        data: createSpreadsheetData(8, 4),
+        manualRowMove: true,
+        mergeCells: [
+          { row: 2, col: 0, rowspan: 3, colspan: 2 },
+        ],
+      });
+
+      getPlugin('manualRowMove').moveRow(3, 0);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells
+        .slice()
+        .sort((a, b) => a.row - b.row);
+
+      expect(merges.length).toBe(2);
+      expect(merges[0].row).toBe(0);
+      expect(merges[0].col).toBe(0);
+      expect(merges[0].rowspan).toBe(1);
+      expect(merges[0].colspan).toBe(2);
+      expect(merges[1].row).toBe(3);
+      expect(merges[1].col).toBe(0);
+      expect(merges[1].rowspan).toBe(2);
+      expect(merges[1].colspan).toBe(2);
+    });
+
+    it('should restore merged cells after undoing a column move', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 6),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 4, rowspan: 3, colspan: 1 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumn(5, 4);
+      await render();
+
+      getPlugin('undoRedo').undo();
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].col).toBe(4);
+      expect(merges[0].colspan).toBe(1);
+      expect(merges[0].rowspan).toBe(3);
+    });
+
+    it('should reapply a column move via redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 6),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 4, rowspan: 3, colspan: 1 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumn(5, 4);
+      await render();
+      getPlugin('undoRedo').undo();
+      await render();
+      getPlugin('undoRedo').redo();
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].col).toBe(5);
+      expect(merges[0].colspan).toBe(1);
+      expect(merges[0].rowspan).toBe(3);
+    });
+
+    it('should not translate merges when the move is rejected (movePossible=false)', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 6),
+        manualColumnMove: true,
+        mergeCells: [
+          { row: 0, col: 4, rowspan: 1, colspan: 2 },
+        ],
+      });
+
+      // Out-of-bounds final index makes `movePossible` false.
+      getPlugin('manualColumnMove').moveColumn(4, 100);
+
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].col).toBe(4);
+      expect(merges[0].colspan).toBe(2);
+    });
+
+    it('should preserve user-declared merge coords through manualColumnMove initial config', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        manualColumnMove: [1, 0, 2, 3],
+        mergeCells: [
+          { row: 0, col: 2, rowspan: 1, colspan: 2 },
+          { row: 1, col: 2, rowspan: 1, colspan: 2 },
+        ],
+      });
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(2);
+      expect(merges[0].col).toBe(2);
+      expect(merges[1].col).toBe(2);
+    });
+
+    xit('should follow merges through column freeze', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 6),
+        manualColumnFreeze: true,
+        mergeCells: [
+          { row: 0, col: 4, rowspan: 2, colspan: 1 },
+        ],
+      });
+
+      getPlugin('manualColumnFreeze').freezeColumn(4);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBe(1);
+      expect(merges[0].col).toBe(0);
+      expect(merges[0].colspan).toBe(1);
+      expect(merges[0].rowspan).toBe(2);
+    });
+
+    it('should drop overlapping fragments silently after a translation overlap', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 8),
+        manualColumnMove: true,
+        hiddenColumns: { columns: [1] },
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      getPlugin('manualColumnMove').moveColumn(2, 0);
+      await render();
+
+      const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+
+      expect(merges.length).toBeGreaterThanOrEqual(0);
+      expect(merges.length).toBeLessThanOrEqual(2);
+    });
+  });
+
   describe('mergeCells updateSettings', () => {
     it('should allow to overwrite the initial settings using the updateSettings method', async() => {
       const hot = handsontable({

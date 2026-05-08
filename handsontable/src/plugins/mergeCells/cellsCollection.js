@@ -517,6 +517,137 @@ class MergedCellsCollection {
   }
 
   /**
+   * Capture the physical indexes covered by every merged cell along an axis.
+   *
+   * Used by the manual row/column move and column freeze integrations to translate
+   * merges through a reorder: the captured spans pin each merge to the underlying
+   * data so the merge can be repositioned (and split, if a non-contiguous run
+   * results) after the visual sequence changes.
+   *
+   * @param {'column' | 'row'} axis Which axis the upcoming reorder targets.
+   * @returns {Map<MergedCellCoords, number[]>} Map of merge -> physical indexes along the axis.
+   */
+  capturePhysicalSpans(axis) {
+    const isColumn = axis === 'column';
+    const indexProp = isColumn ? 'col' : 'row';
+    const spanProp = isColumn ? 'colspan' : 'rowspan';
+    const toPhysical = isColumn
+      ? visualIndex => this.hot.toPhysicalColumn(visualIndex)
+      : visualIndex => this.hot.toPhysicalRow(visualIndex);
+    const snapshot = new Map();
+
+    this.mergedCells.forEach((merge) => {
+      const physicals = [];
+
+      for (let i = 0; i < merge[spanProp]; i++) {
+        physicals.push(toPhysical(merge[indexProp] + i));
+      }
+
+      snapshot.set(merge, physicals);
+    });
+
+    return snapshot;
+  }
+
+  /**
+   * Group an ascending list of integers into contiguous runs.
+   *
+   * @param {number[]} sortedAscending Already-sorted ascending visual indexes.
+   * @returns {{ start: number, length: number }[]}
+   */
+  static detectContiguousRuns(sortedAscending) {
+    if (sortedAscending.length === 0) {
+      return [];
+    }
+
+    const runs = [];
+    let runStart = sortedAscending[0];
+    let runLength = 1;
+
+    for (let i = 1; i < sortedAscending.length; i++) {
+      if (sortedAscending[i] === sortedAscending[i - 1] + 1) {
+        runLength += 1;
+      } else {
+        runs.push({ start: runStart, length: runLength });
+        runStart = sortedAscending[i];
+        runLength = 1;
+      }
+    }
+
+    runs.push({ start: runStart, length: runLength });
+
+    return runs;
+  }
+
+  /**
+   * Translate the merged cells collection after a manual row/column reorder, splitting
+   * merges whose physical indexes are no longer contiguous in the new visual order.
+   *
+   * Note: single-cell fragments (`colspan === 1 && rowspan === 1`) are dropped because
+   * they no longer represent a merge. Callers should advertise this in user-facing docs.
+   *
+   * @param {'column' | 'row'} axis Axis that was reordered.
+   * @param {Map<MergedCellCoords, number[]>} snapshot Snapshot taken before the reorder.
+   */
+  translateAfterAxisMove(axis, snapshot) {
+    const isColumn = axis === 'column';
+    const indexProp = isColumn ? 'col' : 'row';
+    const spanProp = isColumn ? 'colspan' : 'rowspan';
+    const otherIndexProp = isColumn ? 'row' : 'col';
+    const otherSpanProp = isColumn ? 'rowspan' : 'colspan';
+    const toVisual = isColumn
+      ? physicalIndex => this.hot.toVisualColumn(physicalIndex)
+      : physicalIndex => this.hot.toVisualRow(physicalIndex);
+    const replacements = [];
+
+    this.mergedCells.forEach((merge) => {
+      const physicals = snapshot.get(merge);
+
+      if (!physicals) {
+        replacements.push({
+          row: merge.row,
+          col: merge.col,
+          rowspan: merge.rowspan,
+          colspan: merge.colspan,
+        });
+
+        return;
+      }
+
+      const newVisuals = physicals
+        .map(toVisual)
+        .filter(visualIndex => visualIndex !== null && visualIndex >= 0)
+        .sort((a, b) => a - b);
+
+      if (newVisuals.length === 0) {
+        return;
+      }
+
+      MergedCellsCollection.detectContiguousRuns(newVisuals).forEach((run) => {
+        const replacement = {
+          [indexProp]: run.start,
+          [spanProp]: run.length,
+          [otherIndexProp]: merge[otherIndexProp],
+          [otherSpanProp]: merge[otherSpanProp],
+        };
+
+        if (replacement.colspan === 1 && replacement.rowspan === 1) {
+          return;
+        }
+
+        replacements.push(replacement);
+      });
+    });
+
+    this.mergedCells.length = 0;
+    this.mergedCellsMatrix.clear();
+
+    replacements.forEach((info) => {
+      this.add(info);
+    });
+  }
+
+  /**
    * Adds a merged cell to the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to add.

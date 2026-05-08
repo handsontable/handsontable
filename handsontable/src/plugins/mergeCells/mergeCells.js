@@ -147,6 +147,27 @@ export class MergeCells extends BasePlugin {
    * @type {{before: Function, after: Function}}
    */
   #cellRenderer = createMergeCellRenderer(this);
+  /**
+   * Snapshot of physical column indexes per merge, captured before a column move/freeze.
+   *
+   * @type {Map<MergedCellCoords, number[]> | null}
+   */
+  #columnMoveSnapshot = null;
+  /**
+   * Snapshot of physical row indexes per merge, captured before a row move.
+   *
+   * @type {Map<MergedCellCoords, number[]> | null}
+   */
+  #rowMoveSnapshot = null;
+  /**
+   * `true` once the plugin has finished its initial settings ingestion. Used to skip
+   * snapshot/translate during the bootstrap-time column reorders fired by
+   * `manualColumnMove: [...]` initial config, where the merge collection is empty
+   * anyway but we want to be defensive against future hook-order changes.
+   *
+   * @type {boolean}
+   */
+  #initialized = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -195,6 +216,14 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterRemoveCol', (...args) => this.#onAfterRemoveCol(...args));
     this.addHook('afterCreateRow', (...args) => this.#onAfterCreateRow(...args));
     this.addHook('afterRemoveRow', (...args) => this.#onAfterRemoveRow(...args));
+    this.addHook('beforeColumnMove', (...args) => this.#onBeforeColumnMove(...args));
+    this.addHook('afterColumnMove', (...args) => this.#onAfterColumnMove(...args));
+    this.addHook('beforeRowMove', (...args) => this.#onBeforeRowMove(...args));
+    this.addHook('afterRowMove', (...args) => this.#onAfterRowMove(...args));
+    this.addHook('beforeColumnFreeze', (...args) => this.#onBeforeColumnFreeze(...args));
+    this.addHook('afterColumnFreeze', (...args) => this.#onAfterColumnFreeze(...args));
+    this.addHook('beforeColumnUnfreeze', (...args) => this.#onBeforeColumnFreeze(...args));
+    this.addHook('afterColumnUnfreeze', (...args) => this.#onAfterColumnFreeze(...args));
     this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
     this.addHook('beforeDrawBorders', (...args) => this.#onBeforeDrawAreaBorders(...args));
     this.addHook('afterDrawSelection', (...args) => this.#onAfterDrawSelection(...args));
@@ -219,6 +248,7 @@ export class MergeCells extends BasePlugin {
     this.clearCollections();
     this.unregisterShortcuts();
     this.hot.render();
+    this.#initialized = false;
     super.disablePlugin();
   }
 
@@ -234,6 +264,7 @@ export class MergeCells extends BasePlugin {
     this.enablePlugin();
 
     this.generateFromSettings();
+    this.#initialized = true;
 
     super.updatePlugin();
   }
@@ -599,6 +630,7 @@ export class MergeCells extends BasePlugin {
   #onAfterInit() {
     this.generateFromSettings();
     this.hot.render();
+    this.#initialized = true;
   }
 
   /**
@@ -1351,6 +1383,129 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterRemoveRow(row, count) {
     this.mergedCellsCollection.shiftCollections('up', row, count);
+  }
+
+  /**
+   * `beforeColumnMove` hook callback. Captures physical column positions of every merge
+   * so they can be translated onto the new visual order in `afterColumnMove`.
+   *
+   * @param {number[]} columns Visual column indexes being moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move is allowed.
+   */
+  #onBeforeColumnMove(columns, finalIndex, dropIndex, movePossible) {
+    if (!movePossible || !this.#initialized) {
+      this.#columnMoveSnapshot = null;
+
+      return;
+    }
+
+    this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
+  }
+
+  /**
+   * `afterColumnMove` hook callback. Translates merges using the pre-move snapshot
+   * and the now-updated column index mapping. Auto-splits merges whose physical
+   * columns are no longer contiguous.
+   *
+   * @param {number[]} columns Visual column indexes that were moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move was allowed.
+   * @param {boolean} orderChanged Whether the move actually changed the order.
+   */
+  #onAfterColumnMove(columns, finalIndex, dropIndex, movePossible, orderChanged) {
+    const snapshot = this.#columnMoveSnapshot;
+
+    this.#columnMoveSnapshot = null;
+
+    if (!orderChanged || !snapshot) {
+      return;
+    }
+
+    this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
+    this.hot.render();
+  }
+
+  /**
+   * `beforeRowMove` hook callback. Captures physical row positions of every merge
+   * so they can be translated onto the new visual order in `afterRowMove`.
+   *
+   * @param {number[]} rows Visual row indexes being moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move is allowed.
+   */
+  #onBeforeRowMove(rows, finalIndex, dropIndex, movePossible) {
+    if (!movePossible || !this.#initialized) {
+      this.#rowMoveSnapshot = null;
+
+      return;
+    }
+
+    this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
+  }
+
+  /**
+   * `afterRowMove` hook callback. Translates merges using the pre-move snapshot
+   * and the now-updated row index mapping. Auto-splits merges whose physical
+   * rows are no longer contiguous.
+   *
+   * @param {number[]} rows Visual row indexes that were moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move was allowed.
+   * @param {boolean} orderChanged Whether the move actually changed the order.
+   */
+  #onAfterRowMove(rows, finalIndex, dropIndex, movePossible, orderChanged) {
+    const snapshot = this.#rowMoveSnapshot;
+
+    this.#rowMoveSnapshot = null;
+
+    if (!orderChanged || !snapshot) {
+      return;
+    }
+
+    this.mergedCellsCollection.translateAfterAxisMove('row', snapshot);
+    this.hot.render();
+  }
+
+  /**
+   * `beforeColumnFreeze` / `beforeColumnUnfreeze` hook callback. `manualColumnFreeze`
+   * reorders the visual sequence directly through the column index mapper, so we
+   * need to translate merges through it the same way as for `manualColumnMove`.
+   *
+   * @param {number} column Visual column index being frozen/unfrozen.
+   * @param {boolean} performed Whether the (un)freeze will actually run.
+   */
+  #onBeforeColumnFreeze(column, performed) {
+    if (!performed || !this.#initialized) {
+      this.#columnMoveSnapshot = null;
+
+      return;
+    }
+
+    this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
+  }
+
+  /**
+   * `afterColumnFreeze` / `afterColumnUnfreeze` hook callback.
+   *
+   * @param {number} column Visual column index that was frozen/unfrozen.
+   * @param {boolean} performed Whether the (un)freeze actually ran.
+   */
+  #onAfterColumnFreeze(column, performed) {
+    const snapshot = this.#columnMoveSnapshot;
+
+    this.#columnMoveSnapshot = null;
+
+    if (!performed || !snapshot) {
+      return;
+    }
+
+    this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
+    this.hot.render();
   }
 
   /**
