@@ -50,8 +50,8 @@ jobs:
         run: npm run all build
 
   build-on-windows:
-    name: Build all packages in windows-latest
-    runs-on: windows-latest
+    name: Build all packages in windows-2025-vs2026
+    runs-on: windows-2025-vs2026
     timeout-minutes: 60
     env:
       # Force npm operations to use the D drive (much faster)
