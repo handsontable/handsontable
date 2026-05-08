@@ -8,6 +8,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
+import { isEmpty } from '../../helpers/mixed';
 
 export const RENDERER_TYPE = 'base';
 const TEXT_ELLIPSIS_CLASS_NAME = 'htTextEllipsis';
@@ -65,7 +66,7 @@ export function baseRenderer(hotInstance, TD, row, col, prop, value, cellPropert
     classesToAdd.push(cellProperties.noWordWrapClassName);
   }
 
-  if (!value && cellProperties.placeholder) {
+  if (isEmpty(value) && cellProperties.placeholder) {
     classesToAdd.push(cellProperties.placeholderCellClassName);
   }
 

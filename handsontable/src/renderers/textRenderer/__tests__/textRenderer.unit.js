@@ -42,6 +42,26 @@ describe('textRenderer', () => {
       expect(TD.outerHTML).toMatchHTML('<td>Placeholder</td>');
     });
 
+    it('should not replace 0 with placeholder', () => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+      const cellMeta = { placeholder: 'Placeholder' };
+
+      textRenderer(instance, TD, undefined, undefined, undefined, 0, cellMeta);
+
+      expect(TD.outerHTML).toMatchHTML('<td>0</td>');
+    });
+
+    it('should not replace false with placeholder', () => {
+      const TD = document.createElement('td');
+      const instance = getInstance();
+      const cellMeta = { placeholder: 'Placeholder' };
+
+      textRenderer(instance, TD, undefined, undefined, undefined, false, cellMeta);
+
+      expect(TD.outerHTML).toMatchHTML('<td>false</td>');
+    });
+
     it('should replace white spaces with nbsp entity', () => {
       const TD = document.createElement('td');
       const instance = getInstance({
