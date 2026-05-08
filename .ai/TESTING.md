@@ -28,7 +28,7 @@ pnpm --filter handsontable run test:unit
 pnpm --filter handsontable run test:e2e
 
 # Run specific unit test pattern (must be run from handsontable/ directory):
-npm run test:unit --testPathPattern=cellMeta
+npm run test:unit -- --testPathPattern=cellMeta
 
 # Run specific E2E test pattern (must be run from handsontable/ directory):
 # Pass --testPathPattern and --theme after `--` so they go to the wrapper script,
