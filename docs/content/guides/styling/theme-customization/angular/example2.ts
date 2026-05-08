@@ -2,6 +2,7 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { horizonTheme, registerTheme } from 'handsontable/themes';
+import { registerAllModules } from 'handsontable/registry';
 
 // Register Handsontable's modules
 registerAllModules();

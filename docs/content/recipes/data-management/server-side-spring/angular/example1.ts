@@ -1,7 +1,8 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
+import type { SourceRowData } from 'handsontable/common';
 
 function buildUrl(base: string, params: Record<string, unknown>): string {
   const url = new URL(base, window.location.origin);
@@ -31,11 +32,11 @@ export class AppComponent {
   readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
-      fetchRows: (params: unknown, { signal }: { signal: AbortSignal }) =>
-        this.fetchRows(params as Record<string, unknown>, signal),
-      onRowsCreate: (payload: unknown) => this.onRowsCreate(payload),
-      onRowsUpdate: (rows: unknown) => this.onRowsUpdate(rows),
-      onRowsRemove: (rowIds: unknown) => this.onRowsRemove(rowIds),
+      fetchRows: (params: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
+        this.fetchRows(params, options.signal),
+      onRowsCreate: (payload: RowsCreatePayload) => this.onRowsCreate(payload),
+      onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
+      onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
     },
     columns: [
       { data: 'id', title: 'ID', readOnly: true, width: 60 },
@@ -63,16 +64,13 @@ export class AppComponent {
     notification: true,
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: unknown[]; totalRows: number }> {
-    const sort = params['sort'] as { prop?: string; order?: string } | undefined;
-    const filters = params['filters'] as unknown[] | undefined;
-
+  async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
     const url = buildUrl('/api/products', {
-      page: params['page'],
-      pageSize: params['pageSize'],
-      sortProp: sort?.prop,
-      sortOrder: sort?.order,
-      filters: filters ? JSON.stringify(filters) : undefined,
+      page: params.page,
+      pageSize: params.pageSize,
+      sortProp: params.sort?.prop,
+      sortOrder: params.sort?.order,
+      filters: params.filters ? JSON.stringify(params.filters) : undefined,
     });
 
     const res = await fetch(url, { signal });
@@ -81,7 +79,7 @@ export class AppComponent {
     return { rows: json.rows, totalRows: json.totalRows };
   }
 
-  async onRowsCreate(payload: unknown): Promise<void> {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
     await fetch('/api/products/create-rows', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -89,7 +87,7 @@ export class AppComponent {
     });
   }
 
-  async onRowsUpdate(rows: unknown): Promise<void> {
+  async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
     await fetch('/api/products/update-rows', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -97,7 +95,7 @@ export class AppComponent {
     });
   }
 
-  async onRowsRemove(rowIds: unknown): Promise<void> {
+  async onRowsRemove(rowIds: unknown[]): Promise<void> {
     await fetch('/api/products/remove-rows', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },

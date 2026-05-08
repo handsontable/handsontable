@@ -99,7 +99,7 @@ export class AppComponent {
       }
       for (const change of changes) {
         const [row, prop] = change;
-        const col = typeof prop === 'string' ? hot.propToCol(prop) : (prop as number);
+        const col = (typeof prop === 'string' ? hot.propToCol(prop) : prop) as number;
         const key = cellKey(row, col);
         if (!this.invalidCells.has(key)) {
           continue;

@@ -39,18 +39,18 @@ export class AppComponent {
         uncheckedTemplate: 'no',
         label: {
           position: 'after',
-          value: function(
+          value: (function(
             row: number,
             column: number,
             prop: string | number,
-            value: string
+            value: unknown
           ) {
             if (value === 'yes') {
               return 'In black';
             } else {
               return 'Not in black';
             }
-          },
+          }) as unknown as () => string,
         },
       },
     ]

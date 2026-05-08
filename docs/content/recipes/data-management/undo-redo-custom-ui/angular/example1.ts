@@ -36,7 +36,6 @@ export class AppComponent {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    undoRedo: true,
     columns: [
       { data: 'id', type: 'numeric', width: 60, readOnly: true },
       { data: 'task', type: 'text', width: 220 },

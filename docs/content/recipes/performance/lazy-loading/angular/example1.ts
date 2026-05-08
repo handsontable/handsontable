@@ -87,7 +87,7 @@ export class AppComponent implements OnInit {
         return;
       }
 
-      const lastVisibleRow = hot.view.getLastFullyVisibleRow();
+      const lastVisibleRow = (hot as any).view.getLastFullyVisibleRow();
       const totalRows = hot.countRows();
 
       if (lastVisibleRow >= 0 && lastVisibleRow >= totalRows - LOAD_THRESHOLD) {
