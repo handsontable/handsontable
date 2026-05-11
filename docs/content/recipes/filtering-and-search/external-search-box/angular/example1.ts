@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { RowObject } from 'handsontable/common';
 
 const data = [
   ['Alice Johnson', 'Engineering', 'Berlin', 'alice.johnson@example.com'],
@@ -23,7 +24,6 @@ const data = [
           id="external-search-input"
           type="search"
           placeholder="Type to highlight matching cells..."
-          style="min-width: 20rem"
           (input)="onSearch($event)"
         />
       </div>
