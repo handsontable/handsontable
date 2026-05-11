@@ -217,28 +217,6 @@ Language files were loaded after loading Handsontable.
 
 :::
 
-::: only-for react
-
-::: example #example2 :react-languages --js 1 --ts 2
-
-@[code](@/content/guides/internationalization/language/react/example2.jsx)
-@[code](@/content/guides/internationalization/language/react/example2.tsx)
-
-:::
-
-:::
-
-::: only-for angular
-
-::: example #example2 :angular-languages --ts 1 --html 2
-
-@[code](@/content/guides/internationalization/language/angular/example2.ts)
-@[code](@/content/guides/internationalization/language/angular/example2.html)
-
-:::
-
-:::
-
 ## List of translatable features
 
 Below is a list of features which can be translated:
