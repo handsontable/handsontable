@@ -405,7 +405,7 @@
   box-shadow: none;
   list-style: none;
   margin: -1px 0 0;
-  min-width: 8rem;
+  min-width: 100%;
   overflow-y: auto;
   padding: 0;
   position: absolute;
