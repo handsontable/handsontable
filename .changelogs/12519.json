@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `@handsontable/angular-wrapper` ERROR RuntimeError: NG0100: ExpressionChangedAfterItHasBeenCheckedError",
+  "type": "fixed",
+  "issueOrPR": 12519,
+  "breaking": false,
+  "framework": "none"
+}
