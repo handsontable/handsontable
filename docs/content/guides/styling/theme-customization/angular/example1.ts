@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import 'handsontable/styles/ht-theme-main.css';
 
 @Component({
   selector: 'example1-demo',
@@ -20,6 +21,7 @@ export class AppComponent {
   ];
 
   readonly gridSettings: GridSettings = {
+    theme: 'ht-theme-main',
     colHeaders: ['Name', 'Email', 'City', 'Age', 'Position'],
     columns: [
       { data: 0, type: 'text' },
@@ -31,7 +33,6 @@ export class AppComponent {
     rowHeaders: true,
     width: '100%',
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
   };
 }
 /* end-file */
