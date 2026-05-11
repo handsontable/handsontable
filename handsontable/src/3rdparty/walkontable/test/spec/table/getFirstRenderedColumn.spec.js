@@ -156,5 +156,43 @@ describe('WalkontableTable', () => {
 
       expect(wt.wtTable.getFirstRenderedColumn()).toBe(4);
     });
+
+    it('should return -1 without throwing when the table is initialized inside a hidden container', async() => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170).css('display', 'none');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // draw() is interrupted because the container is hidden — columnsRenderCalculator stays undefined
+      wt.draw();
+
+      // should return -1 instead of throwing "can't access property 'startColumn', columnsRenderCalculator is undefined"
+      expect(wt.wtTable.getFirstRenderedColumn()).toBe(-1);
+    });
+
+    it('should not throw when draw(fastDraw=true) is called after the container becomes visible for the first time', async() => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170).css('display', 'none');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // Initial draw is interrupted — columnsRenderCalculator is never set
+      wt.draw();
+
+      // Container becomes visible (e.g. accordion opens)
+      spec().$wrapper.css('display', '');
+
+      // draw(true) must not throw even though columnsRenderCalculator was undefined
+      expect(() => wt.draw(true)).not.toThrow();
+      expect(wt.wtTable.getFirstRenderedColumn()).toBe(0);
+    });
   });
 });

@@ -333,7 +333,7 @@ export default class CoreAbstract {
         return wot.wtTable; // TODO refactoring: it provides itself
       },
       get startColumnRendered() {
-        return wot.wtViewport.columnsRenderCalculator.startColumn;
+        return wot.wtViewport.columnsRenderCalculator?.startColumn ?? null;
       },
       get startColumnVisible() {
         return wot.wtViewport.columnsVisibleCalculator.startColumn;
@@ -342,7 +342,7 @@ export default class CoreAbstract {
         return wot.wtViewport.columnsPartiallyVisibleCalculator.startColumn;
       },
       get endColumnRendered() {
-        return wot.wtViewport.columnsRenderCalculator.endColumn;
+        return wot.wtViewport.columnsRenderCalculator?.endColumn ?? null;
       },
       get endColumnVisible() {
         return wot.wtViewport.columnsVisibleCalculator.endColumn;
@@ -351,13 +351,13 @@ export default class CoreAbstract {
         return wot.wtViewport.columnsPartiallyVisibleCalculator.endColumn;
       },
       get countColumnsRendered() {
-        return wot.wtViewport.columnsRenderCalculator.count;
+        return wot.wtViewport.columnsRenderCalculator?.count ?? null;
       },
       get countColumnsVisible() {
         return wot.wtViewport.columnsVisibleCalculator.count;
       },
       get startRowRendered() {
-        return wot.wtViewport.rowsRenderCalculator.startRow;
+        return wot.wtViewport.rowsRenderCalculator?.startRow ?? null;
       },
       get startRowVisible() {
         return wot.wtViewport.rowsVisibleCalculator.startRow;
@@ -366,7 +366,7 @@ export default class CoreAbstract {
         return wot.wtViewport.rowsPartiallyVisibleCalculator.startRow;
       },
       get endRowRendered() {
-        return wot.wtViewport.rowsRenderCalculator.endRow;
+        return wot.wtViewport.rowsRenderCalculator?.endRow ?? null;
       },
       get endRowVisible() {
         return wot.wtViewport.rowsVisibleCalculator.endRow;
@@ -375,7 +375,7 @@ export default class CoreAbstract {
         return wot.wtViewport.rowsPartiallyVisibleCalculator.endRow;
       },
       get countRowsRendered() {
-        return wot.wtViewport.rowsRenderCalculator.count;
+        return wot.wtViewport.rowsRenderCalculator?.count ?? null;
       },
       get countRowsVisible() {
         return wot.wtViewport.rowsVisibleCalculator.count;
