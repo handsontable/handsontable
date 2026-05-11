@@ -5,7 +5,7 @@ import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 @Component({
-  selector: 'app-example1',
+  selector: 'app-example3',
   template: `
     <hot-table
       [settings]="hotSettings!" [data]="hotData">

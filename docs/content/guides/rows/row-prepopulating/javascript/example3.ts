@@ -37,7 +37,7 @@ const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value,
   textRenderer(instance, td, row, col, prop, value, cellProperties);
 };
 
-const container = document.querySelector('#example1')!;
+const container = document.querySelector('#example3')!;
 
 const hot = new Handsontable(container, {
   startRows: 8,

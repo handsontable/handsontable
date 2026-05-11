@@ -3,7 +3,7 @@ type: how-to
 id: 42px61id
 title: Row pre-populating
 metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
-description: Pre-populate spare rows with default values, from a simple minSpareRows setting to custom placeholder renderers and auto-filling template values.
+description: Pre-populate spare rows with default values using minSpareRows, custom placeholder renderers, or auto-filling template values.
 permalink: /row-prepopulating
 canonicalUrl: /row-prepopulating
 tags:
@@ -26,7 +26,7 @@ Pre-populate new rows with default values when users add rows to the grid.
 
 ## Basic spare rows
 
-The simplest way to keep an empty row at the bottom of the grid is [`minSpareRows`](@/api/options.md#minsparerows). Set it to `1` to always show one empty row below the data.
+To keep one empty row at the bottom of the grid, set [`minSpareRows`](@/api/options.md#minsparerows) to `1`.
 
 ::: only-for javascript
 
@@ -177,6 +177,10 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
+
+## Result
+
+Your grid keeps one or more empty rows at the bottom. Depending on the approach, spare rows show greyed-out placeholder text or auto-fill all cells with template values when the user starts editing.
 
 ## Related API reference
 
