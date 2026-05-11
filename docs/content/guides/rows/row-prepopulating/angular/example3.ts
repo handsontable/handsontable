@@ -18,21 +18,16 @@ export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   hotData = [
-
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+    ['2017', 10, 11, 12, 13],
+    ['2018', 20, 11, 14, 13],
+    ['2019', 30, 15, 12, 13],
   ];
 
-  hotSettings: GridSettings = {
-
-  };
+  hotSettings: GridSettings = {};
 
   ngAfterViewInit() {
     const templateValues = ['one', 'two', 'three'];
-    const data = [
-      ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-      ['2017', 10, 11, 12, 13],
-      ['2018', 20, 11, 14, 13],
-      ['2019', 30, 15, 12, 13],
-    ];
 
     function isEmptyRow(instance: Handsontable, row: number) {
       const rowData = instance.getDataAtRow(row);
@@ -73,8 +68,6 @@ export class AppComponent implements AfterViewInit {
       );
     };
 
-    const hot = this.hotTable.hotInstance!;
-
     this.hotSettings = {
       startRows: 8,
       startCols: 5,
@@ -85,8 +78,8 @@ export class AppComponent implements AfterViewInit {
       cells() {
         return { renderer: defaultValueRenderer };
       },
-      beforeChange: function (changes) {
-        const instance = hot;
+      beforeChange: (changes) => {
+        const instance = this.hotTable.hotInstance!;
         const columns = instance.countCols();
         const rowColumnSeen: Record<string, boolean> = {};
         const rowsToFill: Record<string, boolean> = {};
@@ -118,7 +111,6 @@ export class AppComponent implements AfterViewInit {
       autoWrapCol: true,
     }
 
-    this.hotTable.hotInstance!.loadData(data);
   }
 
 }
