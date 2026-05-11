@@ -3,7 +3,7 @@ type: how-to
 id: 42px61id
 title: Row pre-populating
 metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
-description: Populate newly-added rows with predefined template values, using cell renderers.
+description: Pre-populate spare rows with default values, from a simple minSpareRows setting to custom placeholder renderers and auto-filling template values.
 permalink: /row-prepopulating
 canonicalUrl: /row-prepopulating
 tags:
@@ -20,13 +20,13 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-Pre-populate new rows with default values when users add rows to the grid. Use the `afterCreateRow` hook to set initial cell values.
+Pre-populate new rows with default values when users add rows to the grid.
 
 [[toc]]
 
-## Example
+## Basic spare rows
 
-The example below shows how cell renderers can be used to populate the template values in empty rows. When a cell in the empty row is edited, the [`beforeChange`](@/api/hooks.md#beforechange) callback fills the row with the template values.
+The simplest way to keep an empty row at the bottom of the grid is [`minSpareRows`](@/api/options.md#minsparerows). Set it to `1` to always show one empty row below the data.
 
 ::: only-for javascript
 
@@ -56,6 +56,80 @@ The example below shows how cell renderers can be used to populate the template 
 
 @[code](@/content/guides/rows/row-prepopulating/angular/example1.ts)
 @[code](@/content/guides/rows/row-prepopulating/angular/example1.html)
+
+:::
+
+:::
+
+## Spare rows with placeholder styling
+
+To hint what to enter in the spare row, add a custom cell renderer that displays greyed-out placeholder text in empty cells. The renderer checks whether the whole row is empty, then shows a template value in a lighter color.
+
+::: only-for javascript
+
+::: example #example2 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-prepopulating/javascript/example2.js)
+@[code](@/content/guides/rows/row-prepopulating/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-prepopulating/react/example2.jsx)
+@[code](@/content/guides/rows/row-prepopulating/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-prepopulating/angular/example2.ts)
+@[code](@/content/guides/rows/row-prepopulating/angular/example2.html)
+
+:::
+
+:::
+
+## Auto-populating with template values
+
+For full pre-population, use the [`beforeChange`](@/api/hooks.md#beforechange) hook to fill all cells in a spare row with template values the moment the user starts editing. The `isEmptyRow()` helper detects whether the row is untouched, and the hook pushes changes for every column except the one the user is editing.
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-prepopulating/javascript/example3.js)
+@[code](@/content/guides/rows/row-prepopulating/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-prepopulating/react/example3.jsx)
+@[code](@/content/guides/rows/row-prepopulating/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-prepopulating/angular/example3.ts)
+@[code](@/content/guides/rows/row-prepopulating/angular/example3.html)
 
 :::
 
@@ -103,10 +177,6 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 ```
-
-## Result
-
-After completing this guide, your grid fills new rows with template values automatically. You can pre-populate rows from static defaults, adjacent row values, or server-fetched data.
 
 ## Related API reference
 
