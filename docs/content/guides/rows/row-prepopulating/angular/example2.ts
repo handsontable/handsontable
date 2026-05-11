@@ -40,19 +40,20 @@ const defaultValueRenderer = (
 @Component({
   selector: 'app-example2',
   template: `
-    <hot-table [settings]="gridSettings"></hot-table>
+    <hot-table [settings]="gridSettings" [data]="hotData"></hot-table>
   `,
   standalone: true,
   imports: [HotTableModule],
 })
 export class AppComponent {
+  readonly hotData = [
+    ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
+    ['2017', 10, 11, 12, 13],
+    ['2018', 20, 11, 14, 13],
+    ['2019', 30, 15, 12, 13],
+  ];
+
   readonly gridSettings: GridSettings = {
-    data: [
-      ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
-      ['2017', 10, 11, 12, 13],
-      ['2018', 20, 11, 14, 13],
-      ['2019', 30, 15, 12, 13],
-    ],
     minSpareRows: 1,
     height: 'auto',
     autoWrapRow: true,
