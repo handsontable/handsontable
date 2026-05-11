@@ -18,8 +18,8 @@
 
 .mobile-nav-overlay > nav {
   display: flex;
-  flex-direction: column;
-  flex: 1;
+  flex-direction: column-reverse;
+  flex: 0;
 }
 
 .mobile-nav-overlay[hidden] {
@@ -69,7 +69,6 @@
 /* Framework section at bottom of mobile overlay */
 .mobile-nav-frameworks-section {
   margin-top: auto;
-  border-top: 1px solid var(--sl-color-gray-5);
 }
 
 .mobile-nav-frameworks-label {
