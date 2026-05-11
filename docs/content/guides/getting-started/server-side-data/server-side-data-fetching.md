@@ -73,19 +73,55 @@ Each folder includes the same Express servers (`server-rest.mjs`, `server-graphq
 
 ## More in this guide
 
+<div class="boxes-list">
+
 - [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
 - [Migrate from client-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md)
 - [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md)
 - [Create, update, and remove](@/guides/getting-started/server-side-data/server-side-data-crud.md)
 
+</div>
+
 ## Related guides
+
+<div class="boxes-list">
 
 - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 
+</div>
+
 ## Related API reference
 
-- Option: [`dataProvider`](@/api/options.md#dataprovider)
-- Plugin: [`DataProvider`](@/api/dataProvider.md)
-- Hooks: [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch), [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch), [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror), [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort), [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource), [`modifyRowHeader`](@/api/hooks.md#modifyrowheader) (global row index with pagination), [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation), [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation), [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror)
+**Options**
+
+<div class="boxes-list">
+
+- [`dataProvider`](@/api/options.md#dataprovider)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [`DataProvider`](@/api/dataProvider.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [`beforeDataProviderFetch`](@/api/hooks.md#beforedataproviderfetch)
+- [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch)
+- [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror)
+- [`afterDataProviderFetchAbort`](@/api/hooks.md#afterdataproviderfetchabort)
+- [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource)
+- [`modifyRowHeader`](@/api/hooks.md#modifyrowheader) (global row index with pagination)
+- [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation)
+- [`afterRowsMutation`](@/api/hooks.md#afterrowsmutation)
+- [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror)
+
+</div>
