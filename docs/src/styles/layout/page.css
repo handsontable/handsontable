@@ -49,6 +49,7 @@
 header.header {
   height: auto !important;
   padding-block: 1rem 0.5rem;
+  padding-right: 8px;
   z-index: 10100;
 }
 
