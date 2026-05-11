@@ -7,6 +7,7 @@
  * - :::: only-for [framework] ... :::: (conditional content blocks)
  * - [[ toc ]] (VuePress TOC macro — Starlight generates ToC automatically)
  * - ::: tip / ::: warning / ::: danger  → :::tip / :::caution / :::danger
+ *     (aside bodies: inline `` `code` ``, **bold**, [text](url) via aside-inline-markdown)
  * - ::: example / ::: example-without-tabs  (strip markers, keep code blocks)
  * - ::: source-code-link URL  (convert to <a> tag)
  * - $withBase('/path') → /path
@@ -16,6 +17,7 @@
  */
 
 import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
+import { convertAsideInlineMarkdown } from './aside-inline-markdown.mjs';
 
 /**
  * @param {{ framework?: string }} options
@@ -57,10 +59,10 @@ function preprocessMarkdown(content, framework) {
   );
   // Closing ::: (3 colons) stays unchanged — Starlight uses the same syntax
 
-  // 3b. Convert backtick inline code to <code> inside aside blocks.
-  //     Starlight/remark-directive does not process inline markdown in aside
-  //     content, so we pre-convert `code` → <code>code</code> ourselves.
-  result = convertInlineCodeInAsides(result);
+  // 3b. Convert inline Markdown inside aside blocks (`:::tip`, `:::caution`, etc.).
+  //     Starlight/remark-directive does not process aside body text; we emit HTML for
+  //     `` `code` ``, **bold**, and [label](href) (see aside-inline-markdown.mjs).
+  result = convertInlineMarkdownInAsides(result);
 
   // 3c. Convert ::: details Title → <details><summary>Title</summary>…</details>
   result = convertDetailsContainers(result);
@@ -316,14 +318,11 @@ function convertDetailsContainers(content) {
 }
 
 /**
- * Converts backtick inline code (`text`) to <code>text</code> inside Starlight
- * aside blocks (:::tip, :::caution, :::danger, :::note).
- *
- * Starlight/remark-directive treats aside body content as plain text and does
- * not process inline markdown. This function pre-converts the backticks so the
- * rendered HTML contains proper <code> elements.
+ * Converts inline Markdown inside Starlight aside blocks (:::tip, :::caution,
+ * :::danger, :::note) to HTML. Starlight/remark-directive treats aside bodies as
+ * plain text; see `./aside-inline-markdown.mjs` for supported syntax.
  */
-function convertInlineCodeInAsides(content) {
+function convertInlineMarkdownInAsides(content) {
   const lines = content.split('\n');
   const result = [];
   let insideAside = false;
@@ -355,7 +354,7 @@ function convertInlineCodeInAsides(content) {
         continue;
       }
 
-      result.push(line.replace(/`([^`]+)`/g, '<code>$1</code>'));
+      result.push(convertAsideInlineMarkdown(line));
       continue;
     }
 
