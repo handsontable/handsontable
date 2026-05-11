@@ -47,20 +47,16 @@ const ExampleComponent = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: '12px' }}>
-        <label
-          htmlFor="external-search-input"
-          style={{ display: 'block', marginBottom: '4px' }}
-        >
-          Search rows
-        </label>
-        <input
-          id="external-search-input"
-          type="text"
-          placeholder="Type to highlight matching cells..."
-          style={{ width: '100%', boxSizing: 'border-box', padding: '8px' }}
-          onInput={handleSearchInput}
-        />
+      <div className="example-controls-container">
+        <div className="controls">
+          <label htmlFor="external-search-input">Search rows</label>
+          <input
+            id="external-search-input"
+            type="search"
+            placeholder="Type to highlight matching cells..."
+            onInput={handleSearchInput}
+          />
+        </div>
       </div>
       <HotTable
         ref={hotRef}
