@@ -351,7 +351,7 @@ export default class CoreAbstract {
         return wot.wtViewport.columnsPartiallyVisibleCalculator.endColumn;
       },
       get countColumnsRendered() {
-        return wot.wtViewport.columnsRenderCalculator?.count ?? null;
+        return wot.wtViewport.columnsRenderCalculator?.count ?? 0;
       },
       get countColumnsVisible() {
         return wot.wtViewport.columnsVisibleCalculator.count;
@@ -375,7 +375,7 @@ export default class CoreAbstract {
         return wot.wtViewport.rowsPartiallyVisibleCalculator.endRow;
       },
       get countRowsRendered() {
-        return wot.wtViewport.rowsRenderCalculator?.count ?? null;
+        return wot.wtViewport.rowsRenderCalculator?.count ?? 0;
       },
       get countRowsVisible() {
         return wot.wtViewport.rowsVisibleCalculator.count;
