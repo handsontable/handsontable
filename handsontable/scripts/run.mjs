@@ -75,11 +75,33 @@ const extraArgs = normalizeArgs(separatorIdx === -1 ? [] : rawArgs.slice(separat
 const isParallel = mainArgs[0] === '--parallel';
 const isSequential = mainArgs[0] === '--sequential';
 const pipelineName = (isParallel || isSequential) ? mainArgs[1] : null;
-const taskNames = (isParallel || isSequential) ? [] : mainArgs;
+// Filter flags out of taskNames: npm sometimes strips '--', landing flags in mainArgs.
+const taskNames = (isParallel || isSequential) ? [] : mainArgs.filter(a => !a.startsWith('--'));
 
-// Extract special env-propagated flags from extra args.
-const patternArg = extraArgs.find(a => a.startsWith('--testPathPattern='));
-const themeArg = extraArgs.find(a => a.startsWith('--theme='));
+// npm sometimes strips the '--' separator when forwarding `npm run cmd -- --flag`
+// extra args, so flags land in mainArgs past the task/pipeline position.
+// Recover them so `npm run task -- --flag` behaves the same as explicit argv.
+const mainFlagStart = pipelineName !== null ? 2 : taskNames.length;
+const recoveredFromMain = normalizeArgs(mainArgs.slice(mainFlagStart).filter(a => a.startsWith('--')));
+
+// `npm run task --flag=val` (no '--') sets npm_config_* in env but never adds
+// to argv. Read those so unit tests behave like e2e (which reads env directly).
+const recoveredFromEnv = [];
+const envPattern = process.env.npm_config_testPathPattern || process.env.npm_config_testpathpattern;
+const envTheme = process.env.npm_config_theme;
+
+if (envPattern && !extraArgs.some(a => a.startsWith('--testPathPattern='))) {
+  recoveredFromEnv.push(`--testPathPattern=${envPattern}`);
+}
+if (envTheme && !extraArgs.some(a => a.startsWith('--theme='))) {
+  recoveredFromEnv.push(`--theme=${envTheme}`);
+}
+
+const allExtraArgs = [...extraArgs, ...recoveredFromMain, ...recoveredFromEnv];
+
+// Extract special env-propagated flags from all extra args.
+const patternArg = allExtraArgs.find(a => a.startsWith('--testPathPattern='));
+const themeArg = allExtraArgs.find(a => a.startsWith('--theme='));
 // testPathPattern and theme are propagated as env to all pipeline tasks so that
 // the dump step (rspack) and run-puppeteer.mjs compute the same run-ID filename.
 // For test:unit.jest, --testPathPattern= is also passed as argv (passthrough task),
@@ -90,7 +112,7 @@ const isVerbose = rawArgs.includes('--verbose');
 // Do NOT strip --verbose from passthroughFlags — puppeteer tasks list it in
 // their passthroughFilter and need it forwarded. buildCmd()'s passthroughFilter
 // already prevents it from reaching tasks that don't expect it (e.g. build tasks).
-const passthroughFlags = extraArgs;
+const passthroughFlags = allExtraArgs;
 
 const propagatedEnv = {};
 
