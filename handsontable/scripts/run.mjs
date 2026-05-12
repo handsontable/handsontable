@@ -84,7 +84,10 @@ const themeArg = extraArgs.find(a => a.startsWith('--theme='));
 // the dump step (rspack) and run-puppeteer.mjs compute the same run-ID filename.
 // For test:unit.jest, --testPathPattern= is also passed as argv (passthrough task),
 // which Jest accepts directly; puppeteer ignores the duplicate argv entry.
-const passthroughFlags = extraArgs;
+// --verbose may appear anywhere in rawArgs: npm strips the '--' separator when
+// forwarding extra args so it lands in mainArgs, not extraArgs.
+const isVerbose = rawArgs.includes('--verbose');
+const passthroughFlags = extraArgs.filter(f => f !== '--verbose');
 
 const propagatedEnv = {};
 
@@ -223,19 +226,23 @@ function runParallelTask(name, spinner) {
 
     if (process.platform === 'win32') { delete baseEnv.Path; }
 
+    // In verbose mode use inherit so tools write directly to the terminal —
+    // many CLI tools (including rspack) suppress output when stdout is piped.
+    const stdio = isVerbose ? 'inherit' : ['ignore', 'pipe', 'pipe'];
+
     const child = spawn(cmd, [], {
       cwd,
       env: { ...baseEnv, PATH: envPATH, NODE_NO_WARNINGS: '1', ...propagatedEnv },
-      // Pipe both stdout and stderr so lint errors (written to stdout by ESLint/Stylelint)
-      // are captured and shown on failure alongside any stderr diagnostics.
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio,
       shell: true,
     });
 
     let combined = '';
 
-    child.stdout.on('data', (d) => { combined += d.toString(); });
-    child.stderr.on('data', (d) => { combined += d.toString(); });
+    if (!isVerbose) {
+      child.stdout.on('data', (d) => { combined += d.toString(); });
+      child.stderr.on('data', (d) => { combined += d.toString(); });
+    }
 
     child.on('close', (code) => {
       const elapsed = Math.round(performance.now() - start);
@@ -252,13 +259,10 @@ function runParallelTask(name, spinner) {
       } else {
         spinner.finish(name, true, elapsed);
 
-        // Flush any captured output (e.g. ESLint/Stylelint warnings) that was
-        // collected while the task ran quietly. Strip rspack's informational
-        // success line — it is noise already conveyed by the spinner ✓ line.
-        const meaningful = combined.replace(/^Rspack compiled successfully in \d+ ms\r?\n?/gm, '').trim();
-
-        if (meaningful) {
-          process.stdout.write(`${meaningful}\n`);
+        // In CI (non-TTY) flush all captured output for log collectors.
+        // On TTY the spinner ✓ line is sufficient; use --verbose to see output.
+        if (!isVerbose && !isTTY && combined.trim()) {
+          process.stdout.write(`${combined.trimEnd()}\n`);
         }
 
         res(elapsed);
@@ -308,7 +312,7 @@ async function runPipeline(name, parallel) {
 
     tasks.forEach((t) => { subTasks[t] = TASKS[t] ?? { cmd: t, deps: [] }; });
 
-    const spinner = new ParallelSpinner();
+    const spinner = isVerbose ? { start: () => {}, finish: () => {} } : new ParallelSpinner();
     const totalStart = performance.now();
 
     try {
