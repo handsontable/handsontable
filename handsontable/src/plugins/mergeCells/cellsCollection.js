@@ -584,7 +584,9 @@ class MergedCellsCollection {
    * merges whose physical indexes are no longer contiguous in the new visual order.
    *
    * Note: single-cell fragments (`colspan === 1 && rowspan === 1`) are dropped because
-   * they no longer represent a merge. Callers should advertise this in user-facing docs.
+   * they no longer represent a merge. The user-facing behavior (auto-split + silent drop
+   * of singletons) is documented in `docs/content/guides/cell-features/merge-cells/merge-cells.md`
+   * under "Behavior during row/column reorder and column freeze".
    *
    * @param {'column' | 'row'} axis Axis that was reordered.
    * @param {Map<MergedCellCoords, number[]>} snapshot Snapshot taken before the reorder.
@@ -643,7 +645,7 @@ class MergedCellsCollection {
     this.mergedCellsMatrix.clear();
 
     replacements.forEach((info) => {
-      this.add(info);
+      this.add(info, true);
     });
   }
 

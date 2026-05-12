@@ -339,7 +339,7 @@ describe('MergeCells', () => {
       expect(merges[1].col).toBe(2);
     });
 
-    xit('should follow merges through column freeze', async() => {
+    it('should follow merges through column freeze', async() => {
       handsontable({
         data: createSpreadsheetData(4, 6),
         manualColumnFreeze: true,
@@ -359,7 +359,7 @@ describe('MergeCells', () => {
       expect(merges[0].rowspan).toBe(2);
     });
 
-    it('should drop overlapping fragments silently after a translation overlap', async() => {
+    it('should keep a merge intact when an internal column move re-permutes its physical columns', async() => {
       handsontable({
         data: createSpreadsheetData(4, 8),
         manualColumnMove: true,
@@ -374,8 +374,11 @@ describe('MergeCells', () => {
 
       const merges = getPlugin('mergeCells').mergedCellsCollection.mergedCells;
 
-      expect(merges.length).toBeGreaterThanOrEqual(0);
-      expect(merges.length).toBeLessThanOrEqual(2);
+      expect(merges.length).toBe(1);
+      expect(merges[0].row).toBe(0);
+      expect(merges[0].col).toBe(0);
+      expect(merges[0].rowspan).toBe(1);
+      expect(merges[0].colspan).toBe(3);
     });
   });
 
