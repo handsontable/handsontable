@@ -558,6 +558,162 @@ describe('MergeCells', () => {
       });
     });
 
+    describe('static `detectContiguousRuns` method', () => {
+      it('should return an empty array for an empty input', () => {
+        expect(MergedCellsCollection.detectContiguousRuns([])).toEqual([]);
+      });
+
+      it('should return a single run for a single index', () => {
+        expect(MergedCellsCollection.detectContiguousRuns([5])).toEqual([
+          { start: 5, length: 1 },
+        ]);
+      });
+
+      it('should detect a single contiguous run', () => {
+        expect(MergedCellsCollection.detectContiguousRuns([2, 3, 4])).toEqual([
+          { start: 2, length: 3 },
+        ]);
+      });
+
+      it('should split into runs at gaps', () => {
+        expect(MergedCellsCollection.detectContiguousRuns([0, 3, 4])).toEqual([
+          { start: 0, length: 1 },
+          { start: 3, length: 2 },
+        ]);
+      });
+
+      it('should handle three separated runs', () => {
+        expect(MergedCellsCollection.detectContiguousRuns([0, 2, 4, 5])).toEqual([
+          { start: 0, length: 1 },
+          { start: 2, length: 1 },
+          { start: 4, length: 2 },
+        ]);
+      });
+    });
+
+    describe('`capturePhysicalSpans` method', () => {
+      it('should map every merge to its visual->physical column indexes', () => {
+        const hot = {
+          ...hotMock,
+          toPhysicalColumn: visualIndex => visualIndex + 100,
+          toPhysicalRow: visualIndex => visualIndex,
+        };
+        const collection = new MergedCellsCollection({ hot });
+
+        collection.add({ row: 0, col: 2, rowspan: 1, colspan: 3 });
+        collection.add({ row: 4, col: 7, rowspan: 2, colspan: 1 });
+
+        const snapshot = collection.capturePhysicalSpans('column');
+
+        expect(snapshot.size).toBe(2);
+        expect(snapshot.get(collection.mergedCells[0])).toEqual([102, 103, 104]);
+        expect(snapshot.get(collection.mergedCells[1])).toEqual([107]);
+      });
+
+      it('should map every merge to its visual->physical row indexes', () => {
+        const hot = {
+          ...hotMock,
+          toPhysicalColumn: visualIndex => visualIndex,
+          toPhysicalRow: visualIndex => visualIndex + 200,
+        };
+        const collection = new MergedCellsCollection({ hot });
+
+        collection.add({ row: 3, col: 0, rowspan: 2, colspan: 1 });
+
+        const snapshot = collection.capturePhysicalSpans('row');
+
+        expect(snapshot.size).toBe(1);
+        expect(snapshot.get(collection.mergedCells[0])).toEqual([203, 204]);
+      });
+    });
+
+    describe('`translateAfterAxisMove` method', () => {
+      function createHot(physicalToVisual) {
+        return {
+          ...hotMock,
+          toVisualColumn: physical => (physicalToVisual.has(physical) ? physicalToVisual.get(physical) : -1),
+          toPhysicalColumn: visual => visual,
+          toVisualRow: physical => (physicalToVisual.has(physical) ? physicalToVisual.get(physical) : -1),
+          toPhysicalRow: visual => visual,
+        };
+      }
+
+      it('should keep a merge intact when its physical span stays contiguous', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 3], [3, 4], [4, 5]])),
+        });
+
+        collection.add({ row: 0, col: 2, rowspan: 1, colspan: 3 });
+
+        const snapshot = new Map();
+
+        snapshot.set(collection.mergedCells[0], [2, 3, 4]);
+
+        collection.translateAfterAxisMove('column', snapshot);
+
+        expect(collection.mergedCells.length).toBe(1);
+        expect(collection.mergedCells[0].col).toBe(3);
+        expect(collection.mergedCells[0].colspan).toBe(3);
+        expect(collection.mergedCells[0].rowspan).toBe(1);
+      });
+
+      it('should split a merge whose physical span becomes non-contiguous', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 3], [3, 0], [4, 4]])),
+        });
+
+        collection.add({ row: 0, col: 2, rowspan: 2, colspan: 3 });
+
+        const snapshot = new Map();
+
+        snapshot.set(collection.mergedCells[0], [2, 3, 4]);
+
+        collection.translateAfterAxisMove('column', snapshot);
+
+        const sorted = collection.mergedCells.slice().sort((a, b) => a.col - b.col);
+
+        expect(sorted.length).toBe(2);
+        expect(sorted[0].col).toBe(0);
+        expect(sorted[0].colspan).toBe(1);
+        expect(sorted[0].rowspan).toBe(2);
+        expect(sorted[1].col).toBe(3);
+        expect(sorted[1].colspan).toBe(2);
+        expect(sorted[1].rowspan).toBe(2);
+      });
+
+      it('should drop fragments that collapse to a single cell', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map([[2, 5], [3, 1]])),
+        });
+
+        collection.add({ row: 0, col: 2, rowspan: 1, colspan: 2 });
+
+        const snapshot = new Map();
+
+        snapshot.set(collection.mergedCells[0], [2, 3]);
+
+        collection.translateAfterAxisMove('column', snapshot);
+
+        expect(collection.mergedCells.length).toBe(0);
+      });
+
+      it('should drop a merge whose physical indexes are all unmapped', () => {
+        const collection = new MergedCellsCollection({
+          hot: createHot(new Map()),
+        });
+
+        collection.add({ row: 0, col: 2, rowspan: 1, colspan: 2 });
+
+        const snapshot = new Map();
+
+        snapshot.set(collection.mergedCells[0], [2, 3]);
+
+        collection.translateAfterAxisMove('column', snapshot);
+
+        expect(collection.mergedCells.length).toBe(0);
+      });
+    });
+
     describe('`getBottomMostRowIndex` method', () => {
       it('should return bottom-most row index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });

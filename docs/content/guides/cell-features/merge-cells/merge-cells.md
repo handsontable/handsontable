@@ -158,6 +158,15 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 :::
 
+## Behavior during row/column reorder and column freeze
+
+When a merged cell's underlying rows or columns are reordered (through [`manualColumnMove`](@/api/options.md#manualcolumnmove), [`manualRowMove`](@/api/options.md#manualrowmove), or [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)), Handsontable follows the merge to the new visual position. Two side effects can occur:
+
+- **Auto-split**: if the move bisects a merge so the underlying cells are no longer contiguous in the new visual order, the merge is split into separate merges, one per contiguous run. The cross-axis span (`rowspan` for column moves, `colspan` for row moves) is preserved on every fragment.
+- **Silent drop of single-cell fragments**: any resulting fragment that ends up as a single cell (`rowspan === 1 && colspan === 1`) is removed, because a single cell is no longer a merge. The [`afterMergeCells`](@/api/hooks.md#aftermergecells) hook is not fired for the dropped fragment.
+
+[`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
+
 ## Related keyboard shortcuts
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
