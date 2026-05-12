@@ -87,7 +87,10 @@ const themeArg = extraArgs.find(a => a.startsWith('--theme='));
 // --verbose may appear anywhere in rawArgs: npm strips the '--' separator when
 // forwarding extra args so it lands in mainArgs, not extraArgs.
 const isVerbose = rawArgs.includes('--verbose');
-const passthroughFlags = extraArgs.filter(f => f !== '--verbose');
+// Do NOT strip --verbose from passthroughFlags — puppeteer tasks list it in
+// their passthroughFilter and need it forwarded. buildCmd()'s passthroughFilter
+// already prevents it from reaching tasks that don't expect it (e.g. build tasks).
+const passthroughFlags = extraArgs;
 
 const propagatedEnv = {};
 
