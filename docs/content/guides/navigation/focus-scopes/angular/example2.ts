@@ -62,12 +62,22 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
   styles: `
     .placeholder-input {
       max-width: 20rem;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.875rem;
+      padding: 0.4rem 0.625rem;
+      font-size: var(--sl-text-sm);
       line-height: 1.25rem;
-      color: black;
-      border: 1px solid #e4e4e7;
-      border-radius: 6px;
+      color: var(--sl-color-text);
+      background: none;
+      border: 1px solid var(--sl-color-gray-5);
+      border-radius: 0;
+      outline: none;
+    }
+
+    .placeholder-input::placeholder {
+      color: var(--sl-color-gray-3);
+    }
+
+    .placeholder-input:focus {
+      border-color: var(--sl-color-accent);
     }
 
     .example-container {
