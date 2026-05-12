@@ -252,11 +252,13 @@ function runParallelTask(name, spinner) {
       } else {
         spinner.finish(name, true, elapsed);
 
-        // Flush captured output only in CI (non-TTY). On TTY the spinner ✓ line
-        // already signals success; flushing stdout noise (e.g. rspack's success
-        // message) would clutter the output without adding value.
-        if (!isTTY && combined.trim()) {
-          process.stdout.write(`${combined.trimEnd()}\n`);
+        // Flush any captured output (e.g. ESLint/Stylelint warnings) that was
+        // collected while the task ran quietly. Strip rspack's informational
+        // success line — it is noise already conveyed by the spinner ✓ line.
+        const meaningful = combined.replace(/^Rspack compiled successfully in \d+ ms\r?\n?/gm, '').trim();
+
+        if (meaningful) {
+          process.stdout.write(`${meaningful}\n`);
         }
 
         res(elapsed);
