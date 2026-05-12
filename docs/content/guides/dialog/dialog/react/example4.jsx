@@ -130,10 +130,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
-        <button onClick={showAlert}>Show Alert</button>
-        <button onClick={showConfirm}>Show Confirm</button>
-        <button onClick={showCustomConfirm}>Show custom Confirm (with solid background)</button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" onClick={showAlert}>Show Alert</button>
+          <button type="button" onClick={showConfirm}>Show Confirm</button>
+          <button type="button" onClick={showCustomConfirm}>Show custom Confirm (with solid background)</button>
+        </div>
       </div>
       <HotTable
         ref={hotTableRef}
