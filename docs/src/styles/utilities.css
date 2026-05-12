@@ -22,7 +22,7 @@ html {
 
 /* Omit demo `.placeholder-input` fields: their example CSS uses an accent border on `:focus`;
    this outline would stack and read as a double ring. */
-:focus-visible:not(.handsontable *, .ht-portal *, .hot-example .placeholder-input, .DocSearch-Input) {
+:focus-visible:not(.handsontable *, .ht-portal *, .hot-example .placeholder-input) {
   outline: 2px solid var(--sl-color-accent);
   outline-offset: 2px;
 }
@@ -52,12 +52,7 @@ html {
 
 /* ── Global checkbox styling ─────────────────────────────────────────── */
 
-/* .sl-markdown-content is the prose area — no HOT instance lives there, so
- * an O(1) class check is safe. .hot-example contains the HOT instance itself,
- * so we must exclude all HOT-internal inputs with :not(.handsontable input)
- * to avoid overriding the multiSelectEditor's own checkbox appearance. The
- * cost is low because the subject is a scoped input selector, not * . */
-.sl-markdown-content input[type="checkbox"]:not(.htCheckboxRendererInput),
+.sl-markdown-content input[type="checkbox"]:not(.handsontable input),
 .hot-example input[type="checkbox"]:not(.handsontable input) {
   appearance: none;
   width: 1rem;
@@ -71,13 +66,13 @@ html {
   vertical-align: middle;
 }
 
-.sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput),
+.sl-markdown-content input[type="checkbox"]:checked:not(.handsontable input),
 .hot-example input[type="checkbox"]:checked:not(.handsontable input) {
   background: var(--sl-color-accent);
   border-color: var(--sl-color-accent);
 }
 
-.sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after,
+.sl-markdown-content input[type="checkbox"]:checked:not(.handsontable input)::after,
 .hot-example input[type="checkbox"]:checked:not(.handsontable input)::after {
   content: '';
   position: absolute;

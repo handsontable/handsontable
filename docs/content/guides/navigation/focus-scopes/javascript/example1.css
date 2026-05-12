@@ -1,59 +1,25 @@
 .placeholder-input {
   max-width: 20rem;
   padding: 0.4rem 0.625rem;
-  font-size: var(--sl-text-sm, 0.875rem);
+  font-size: var(--sl-text-sm);
   line-height: 1.25rem;
-  color: var(--sl-color-text, #333333);
+  color: var(--sl-color-text);
   background: none;
-  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  border: 1px solid var(--sl-color-gray-5);
   border-radius: 0;
   outline: none;
 }
 
 .placeholder-input::placeholder {
-  color: var(--sl-color-gray-3, #777777);
+  color: var(--sl-color-gray-3);
 }
 
 .placeholder-input:focus {
-  border-color: var(--sl-color-accent, #1A42E8);
+  border-color: var(--sl-color-accent);
 }
 
 .example-container {
   gap: 1rem;
   display: flex;
   flex-direction: column;
-}
-
-strong:has(+ table.debug-table) {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--sl-color-white, #333333);
-  margin: 0.75rem 0 0;
-  padding: 0.5rem 0 0.35rem;
-  border-top: 1px solid var(--sl-color-gray-5, #e0e0e0);
-}
-
-table.debug-table {
-  width: 100%;
-  border-collapse: collapse;
-  box-sizing: border-box;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--sl-color-gray-2, #555555);
-  background: transparent;
-}
-
-table.debug-table td {
-  padding: 0.25rem 0.5rem;
-  border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
-  color: var(--sl-color-gray-2, #555555);
-}
-
-table.debug-table td:last-child {
-  font-family: var(--sl-font-mono, ui-monospace, monospace);
-}
-
-table.debug-table td code {
-  font-size: var(--sl-text-xs, 0.75rem);
 }
