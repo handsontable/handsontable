@@ -112,8 +112,17 @@ export function deepExtend(target, extension) {
  * @returns {object}
  */
 export function deepClone(obj) {
-  if (typeof obj === 'object') {
-    return JSON.parse(JSON.stringify(obj));
+  if (Array.isArray(obj)) {
+    return obj.map(item => deepClone(item));
+  }
+  if (typeof obj === 'object' && obj !== null) {
+    const result = {};
+
+    for (const key of Object.keys(obj)) {
+      result[key] = deepClone(obj[key]);
+    }
+
+    return result;
   }
 
   return obj;
@@ -206,7 +215,20 @@ export function mixin(Base, ...mixins) {
  * @returns {boolean}
  */
 export function isObjectEqual(object1, object2) {
-  return JSON.stringify(object1) === JSON.stringify(object2);
+  const stableStringify = obj => {
+    if (Array.isArray(obj)) {
+      return `[${obj.map(stableStringify).join(',')}]`;
+    }
+    if (obj !== null && typeof obj === 'object') {
+      const pairs = Object.keys(obj).sort().map(key => `${JSON.stringify(key)}:${stableStringify(obj[key])}`);
+
+      return `{${pairs.join(',')}}`;
+    }
+
+    return JSON.stringify(obj);
+  };
+
+  return stableStringify(object1) === stableStringify(object2);
 }
 
 /**
