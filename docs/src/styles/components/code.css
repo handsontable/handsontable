@@ -75,6 +75,9 @@
   --ec-codeSelBg: rgba(51, 146, 255, 0.28);
   --ec-uiSelBg: var(--sl-color-gray-5);
   --ec-uiSelFg: var(--sl-color-white);
+  /* Line / inline "mark" highlights: same RGB as .expressive-code defaults, lower alpha for light */
+  --ec-tm-markBg: #174a9028;
+  --ec-tm-markBrdCol: #4d70bc55;
 }
 
 :root[data-theme='light'] .expressive-code .copy button {
