@@ -266,7 +266,7 @@ describe('HotTableComponent', () => {
       expect(instance.getPlugin('copyPaste')).toBeTruthy();
     });
 
-    it(`should use Handsontable as a hook's context, if is defined as a function in settings object`, async () => {
+    it(`should use Handsontable as a hook's context, if is defined as a function in settings object`, () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {
         ...settings,
