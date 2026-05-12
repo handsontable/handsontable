@@ -85,10 +85,6 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
       display: flex;
       flex-direction: column;
     }
-
-    .debug-table td {
-      padding: 10px !important;
-    }
   `,
 })
 export class AppComponent implements AfterViewInit, OnDestroy {
