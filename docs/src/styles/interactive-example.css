@@ -90,6 +90,11 @@
   border-bottom: 1px solid var(--sl-color-gray-5);
 }
 
+/* Controls placed under the grid (default strip has margin-top: 0 for toolbar-at-top demos) */
+.example-controls-container.example-controls-below-grid {
+  margin-top: 0.75rem;
+}
+
 .example-controls-container .controls {
   display: flex;
   align-items: center;
