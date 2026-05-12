@@ -40,8 +40,8 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 ## Run Commands
 
 - **All unit tests:** `npm run test:unit --prefix handsontable`
-- **Targeted:** `npm run test:unit --prefix handsontable -- --testPathPattern=<regex>` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
-- **Example:** `npm run test:unit --prefix handsontable -- --testPathPattern=filters`
+- **Targeted:** `npm run test:unit --prefix handsontable --testPathPattern=<regex>` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Example:** `npm run test:unit --prefix handsontable --testPathPattern=filters`
 
 ## Large Dataset Testing
 

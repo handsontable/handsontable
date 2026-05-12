@@ -139,6 +139,6 @@ Before committing token work, mentally walk the four layers plus tests:
 2. JS token in all 3 runtime files?
 3. Registered in `validation.js` allow-list?
 4. Added to `TokenKey` in `themes.d.ts`?
-5. `npm run test:unit --prefix handsontable -- --testPathPattern=themes` passes?
+5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes?
 6. `npm run test:types --prefix handsontable` passes?
 7. Docs table updated?

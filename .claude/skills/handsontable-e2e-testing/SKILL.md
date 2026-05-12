@@ -131,23 +131,21 @@ Use `it.flaky()` for timing-sensitive tests (auto-retries up to 3 times).
 ## Run commands
 
 - **All:** `npm run test:e2e --prefix handsontable`
-- **Targeted:** `npm run test:e2e --prefix handsontable -- --testPathPattern=<regex>` -- the pattern is matched against test file paths during the Rspack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
-- **With theme:** `npm run test:e2e --prefix handsontable -- --testPathPattern=<regex> --theme=horizon` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
+- **Targeted:** `npm run test:e2e --prefix handsontable --testPathPattern=<regex>` -- the pattern is matched against test file paths during the Rspack `.dump` step (e.g. `collapsibleColumns`, `ghostTable`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- **With theme:** `npm run test:e2e --prefix handsontable --testPathPattern=<regex> --theme=horizon` (available themes: `classic`, `main`, `horizon`; default when `--theme` is omitted: `main`)
 - **Rebuild first:** The E2E runner loads `dist/handsontable.js`. After changing `src/**`, run `npm run build --prefix handsontable` before running E2E tests.
 
-**Always use `--` before `--testPathPattern` and `--theme`.** The `test:e2e` script is now a Node.js wrapper (`scripts/test-e2e.mjs`) that reads these flags from `process.argv` and propagates them as env vars to both the dump step and Puppeteer. Passing them without `--` triggers an npm deprecation warning and will stop working in a future npm major.
-
-**Parallel runs:** Multiple `npm run test:e2e --prefix handsontable -- --testPathPattern=<X>` invocations with different patterns (or themes) can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086` (retries up to 100 ports). Nothing special needs to be passed -- just launch the commands; the practical limit is machine resources, not the tooling.
+**Parallel runs:** Multiple `npm run test:e2e --prefix handsontable --testPathPattern=<X>` invocations with different patterns (or themes) can run simultaneously. The dump step hashes `testPathPattern + theme` into a short run ID and writes per-run artifacts (`test/dist/main.entry.<runId>.js` and `test/E2ERunner-<runId>.html`), and the Puppeteer runner picks its own free port starting at `8086` (retries up to 100 ports). Nothing special needs to be passed -- just launch the commands; the practical limit is machine resources, not the tooling.
 
 **Iterating on a single area:** Prefer `test:e2e.watch` -- it leaves the dev server running and re-bundles + re-runs on every source change, so you don't have to stop and restart between edits:
 
 ```bash
-npm run test:e2e.watch --prefix handsontable -- --testPathPattern=filters --theme=horizon
+npm run test:e2e.watch --prefix handsontable --testPathPattern=filters --theme=horizon
 ```
 
 Under the hood it spawns the regular Rspack dump in `--watch` mode and reopens the browser page, reusing the generic `test/E2ERunner.html` (no run ID needed -- the dump and puppeteer halves share one npm process, so the flags propagate automatically).
 
-**One-shot run:** Use `npm run test:e2e --prefix handsontable -- --testPathPattern=<regex> --theme=<theme>` -- the wrapper script passes the flags to both dump and puppeteer via env, so there's no risk of a mismatch.
+**One-shot run:** Use `npm run test:e2e --prefix handsontable --testPathPattern=<regex> --theme=<theme>` -- the wrapper script passes the flags to both dump and puppeteer via env, so there's no risk of a mismatch.
 
 **Split dump + puppeteer** (what CI does): if you invoke the two steps in separate `npm run` commands, pass `--testPathPattern` AND `--theme` to **both**. Each `npm run` is its own npm process with its own env, and the Puppeteer script recomputes the same hash as dump to find the runner HTML -- a mismatch fails with "Runner HTML not found at ...". `.github/workflows/test.yml` is the canonical example; the same rule applies to `test:production.dump` + `test:e2e.puppeteer`.
 
