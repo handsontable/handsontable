@@ -29,13 +29,7 @@ Use `git log` and `git diff` against the base branch to understand the changes. 
 
 ## Step 2 — Build Handsontable
 
-The PR Build tab loads from `dist/`, so it must be up to date:
-
-```bash
-ls handsontable/dist/handsontable.full.min.js 2>/dev/null || echo "NEEDS BUILD"
-```
-
-If missing or stale, build:
+Always run the build unconditionally — do not check whether `dist/` exists first:
 
 ```bash
 npm run build --prefix handsontable
