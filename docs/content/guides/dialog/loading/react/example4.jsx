@@ -152,10 +152,12 @@ const ExampleComponent = () => {
   return (
     <>
       <Table hotTableRef={hotTableRef} data={data} />
-      <div style={{ marginTop: '16px' }}>
-        <button id="loadData" onClick={loadData} disabled={isLoading}>
-          {data.length > 0 ? 'Reload Data' : 'Load Data'}
-        </button>
+      <div className="example-controls-container example-controls-below-grid">
+        <div className="controls">
+          <button type="button" id="loadData" onClick={loadData} disabled={isLoading}>
+            {data.length > 0 ? 'Reload Data' : 'Load Data'}
+          </button>
+        </div>
       </div>
       <div style={{ marginTop: '16px' }}>
         <p style={{ padding: 0, fontSize: 'var(--sl-text-xs)', color: 'var(--sl-color-gray-3)' }}>

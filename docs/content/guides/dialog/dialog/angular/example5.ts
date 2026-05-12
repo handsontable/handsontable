@@ -1,11 +1,12 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ViewChild, ElementRef, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'app-example5',
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div class="example-controls-container">
       <div class="controls">

@@ -1,18 +1,22 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'app-example3',
+  encapsulation: ViewEncapsulation.None,
   template: `
-    <div style="margin-bottom: 16px; display: flex; gap: 10px">
-      <button 
-        [disabled]="isLoading" 
-        (click)="loadData()"
-        [innerHTML]="buttonText">
-      </button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button
+          type="button"
+          [disabled]="isLoading"
+          (click)="loadData()"
+          [innerHTML]="buttonText">
+        </button>
+      </div>
     </div>
     <hot-table
       #hotTable
