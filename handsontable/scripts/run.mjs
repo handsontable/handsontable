@@ -75,25 +75,30 @@ const extraArgs = normalizeArgs(separatorIdx === -1 ? [] : rawArgs.slice(separat
 const isParallel = mainArgs[0] === '--parallel';
 const isSequential = mainArgs[0] === '--sequential';
 const pipelineName = (isParallel || isSequential) ? mainArgs[1] : null;
+// Normalize before filtering so space-separated `--flag value` pairs are joined
+// into `--flag=value` before the bare value token is discarded.
+const normalizedMain = normalizeArgs(mainArgs);
 // Filter flags out of taskNames: npm sometimes strips '--', landing flags in mainArgs.
-const taskNames = (isParallel || isSequential) ? [] : mainArgs.filter(a => !a.startsWith('--'));
+const taskNames = (isParallel || isSequential) ? [] : normalizedMain.filter(a => !a.startsWith('--'));
 
 // npm sometimes strips the '--' separator when forwarding `npm run cmd -- --flag`
 // extra args, so flags land in mainArgs past the task/pipeline position.
 // Recover them so `npm run task -- --flag` behaves the same as explicit argv.
 const mainFlagStart = pipelineName !== null ? 2 : taskNames.length;
-const recoveredFromMain = normalizeArgs(mainArgs.slice(mainFlagStart).filter(a => a.startsWith('--')));
+const recoveredFromMain = normalizedMain.slice(mainFlagStart).filter(a => a.startsWith('--'));
 
 // `npm run task --flag=val` (no '--') sets npm_config_* in env but never adds
 // to argv. Read those so unit tests behave like e2e (which reads env directly).
 const recoveredFromEnv = [];
 const envPattern = process.env.npm_config_testPathPattern || process.env.npm_config_testpathpattern;
 const envTheme = process.env.npm_config_theme;
+// Dedup against both extraArgs and recoveredFromMain to avoid double-passing a flag.
+const alreadyRecovered = [...extraArgs, ...recoveredFromMain];
 
-if (envPattern && !extraArgs.some(a => a.startsWith('--testPathPattern='))) {
+if (envPattern && !alreadyRecovered.some(a => a.startsWith('--testPathPattern='))) {
   recoveredFromEnv.push(`--testPathPattern=${envPattern}`);
 }
-if (envTheme && !extraArgs.some(a => a.startsWith('--theme='))) {
+if (envTheme && !alreadyRecovered.some(a => a.startsWith('--theme='))) {
   recoveredFromEnv.push(`--theme=${envTheme}`);
 }
 
