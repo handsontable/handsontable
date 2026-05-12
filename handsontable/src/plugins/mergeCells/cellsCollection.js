@@ -553,7 +553,7 @@ class MergedCellsCollection {
    * Group an ascending list of integers into contiguous runs.
    *
    * @param {number[]} sortedAscending Already-sorted ascending visual indexes.
-   * @returns {{ start: number, length: number }[]}
+   * @returns {Array<{ start: number, length: number }>}
    */
   static detectContiguousRuns(sortedAscending) {
     if (sortedAscending.length === 0) {
