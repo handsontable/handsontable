@@ -99,7 +99,6 @@ btnDeleteRow.addEventListener('click', () => {
   const rows = [...rowSet].sort((a, b) => b - a);
 
   rows.forEach(row => hot.alter('remove_row', row, 1));
-  selectedRow = null;
   updateButtonStates();
 });
 

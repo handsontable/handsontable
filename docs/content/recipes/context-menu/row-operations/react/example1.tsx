@@ -60,7 +60,6 @@ const ExampleComponent = () => {
     const rows = [...rowSet].sort((a, b) => b - a);
 
     rows.forEach((row) => hot.alter('remove_row', row, 1));
-    setSelectedRow(null);
   };
 
   const handleMoveUp = (): void => {

@@ -103,7 +103,6 @@ export class AppComponent {
     const rows = [...rowSet].sort((a, b) => b - a);
 
     rows.forEach((row) => hot.alter('remove_row', row, 1));
-    this.selectedRow = null;
   }
 
   moveUp(): void {
