@@ -12,16 +12,16 @@
   --ec-frm-edBg: var(--sl-color-block-bg);
   --ec-frm-termBg: var(--sl-color-block-bg);
   --ec-frm-trmTtbBg: var(--sl-color-block-bg);
-  --ec-frm-trmTtbBrdBtmCol: var(--sl-color-gray-5);
+  --ec-frm-trmTtbBrdBtmCol: #1b1f23;
   /* Border */
   --ec-brdCol: var(--sl-color-gray-5);
   --ec-brdWd: 1px;
   --ec-brdRad: 0;
   /* Tab bar */
-  --ec-frm-edTabBarBg: var(--sl-color-gray-7);
+  --ec-frm-edTabBarBg: #262626;
   --ec-frm-edActTabBg: var(--sl-color-block-bg);
-  --ec-frm-edTabBarBrdCol: var(--sl-color-gray-5);
-  --ec-frm-edTabBarBrdBtmCol: var(--sl-color-gray-5);
+  --ec-frm-edTabBarBrdCol: #1b1f23;
+  --ec-frm-edTabBarBrdBtmCol: #1b1f23;
   --ec-frm-edActTabIndHt: 1px;
   --ec-frm-edActTabIndTopCol: #f9826c;
   --ec-frm-edActTabIndBtmCol: var(--sl-color-block-bg);
@@ -56,7 +56,7 @@
 
 .expressive-code figure.frame {
   border-radius: 0;
-  border: 1px solid var(--sl-color-gray-5);
+  border: 1px solid #1b1f23;
 }
 
 :root[data-theme='light'] .expressive-code figure.frame {
@@ -75,9 +75,6 @@
   --ec-codeSelBg: rgba(51, 146, 255, 0.28);
   --ec-uiSelBg: var(--sl-color-gray-5);
   --ec-uiSelFg: var(--sl-color-white);
-  /* Line / inline "mark" highlights: same RGB as .expressive-code defaults, lower alpha for light */
-  --ec-tm-markBg: #174a9028;
-  --ec-tm-markBrdCol: #4d70bc55;
 }
 
 :root[data-theme='light'] .expressive-code .copy button {
