@@ -2771,6 +2771,117 @@ describe('AutocompleteEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('');
   });
 
+  describe('HTML entities in source values', () => {
+    it('should filter dropdown items when the query contains an ampersand', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editorInput = $('.handsontableInput');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      editorInput.val('&');
+      await keyDownUp('d');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getDataAtCell(0, 0)).toBe('cost&center');
+      expect(innerHot.getDataAtCell(1, 0)).toBe('R&D');
+    });
+
+    it('should filter dropdown items when the query matches a value containing HTML entity characters', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editorInput = $('.handsontableInput');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      editorInput.val('center');
+      await keyDownUp('r');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+
+      expect(innerHot.countRows()).toBe(1);
+      expect(innerHot.getDataAtCell(0, 0)).toBe('cost&center');
+    });
+
+    it('should highlight matching query fragment inside a value containing an ampersand', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editorInput = $('.handsontableInput');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      editorInput.val('cost');
+      await keyDownUp('t');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+      const autocompleteList = $(innerHot.rootElement);
+
+      expect(autocompleteList.find('td:eq(0)').text()).toBe('cost&center');
+      expect(autocompleteList.find('td:eq(0)').html()).toMatch(/<(strong|STRONG)>cost<\/(strong|STRONG)>/);
+    });
+
+    it('should display source values containing ampersand as plain text without decoding HTML entities', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+      const autocompleteList = $(innerHot.rootElement);
+
+      expect(autocompleteList.find('td:eq(0)').text()).toBe('cost&center');
+      expect(autocompleteList.find('td:eq(1)').text()).toBe('R&D');
+    });
+  });
+
   describe('allow html mode', () => {
     it('should allow inject html items (async mode)', async() => {
       handsontable({
