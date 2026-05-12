@@ -168,17 +168,17 @@ export class AutocompleteEditor extends HandsontableEditor {
             cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale).indexOf(query.toLocaleLowerCase(locale));
 
           if (indexOfMatch !== -1) {
-            const match = cellValue.substr(indexOfMatch, query.length);
+            const match = cellValue.slice(indexOfMatch, indexOfMatch + query.length);
             const { rootDocument } = hotInstance;
 
             TD.innerHTML = '';
-            TD.appendChild(rootDocument.createTextNode(cellValue.substr(0, indexOfMatch)));
+            TD.appendChild(rootDocument.createTextNode(cellValue.slice(0, indexOfMatch)));
 
             const strong = rootDocument.createElement('strong');
 
             strong.textContent = match;
             TD.appendChild(strong);
-            TD.appendChild(rootDocument.createTextNode(cellValue.substr(indexOfMatch + query.length)));
+            TD.appendChild(rootDocument.createTextNode(cellValue.slice(indexOfMatch + query.length)));
           }
         }
 
