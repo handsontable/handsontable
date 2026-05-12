@@ -68,7 +68,7 @@ export class AppComponent {
         return;
       }
 
-      fetch('https://handsontable.com/docs/scripts/json/save.json', {
+      fetch('/docs/scripts/json/save.json', {
         method: 'POST',
         mode: 'no-cors',
         headers: {
@@ -99,7 +99,7 @@ export class AppComponent {
   loadClickCallback(event: MouseEvent): void {
     const hot = this.hotTable?.hotInstance;
 
-    fetch('https://handsontable.com/docs/scripts/json/load.json').then(
+    fetch('/docs/scripts/json/load.json').then(
       (response) => {
         response.json().then((data) => {
           hot?.loadData(data.data);
@@ -114,7 +114,7 @@ export class AppComponent {
     const hot = this.hotTable?.hotInstance;
 
     // save all cell's data
-    fetch('https://handsontable.com/docs/scripts/json/save.json', {
+    fetch('/docs/scripts/json/save.json', {
       method: 'POST',
       mode: 'no-cors',
       headers: {
