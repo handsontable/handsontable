@@ -2,7 +2,7 @@
   "issuesOrigin": "public",
   "title": "Fixed HTML entity decoding in autocomplete/dropdown when allowHtml is false",
   "type": "fixed",
-  "issueOrPR": 9183,
+  "issueOrPR": 12553,
   "breaking": false,
   "framework": "none"
 }
