@@ -59,6 +59,7 @@ function listenOnFreePort(server, startPort) {
 }
 
 const IS_CI = process.env.CI;
+const IS_TTY = process.stdout.isTTY;
 const CI_DOTS_PER_LINE = 120;
 
 // Separate positional args (runner HTML path) from flag args (--random,
@@ -86,18 +87,18 @@ if (!fs.existsSync(originalPath)) {
   /* eslint-disable no-console */
   console.log(
     `Runner HTML not found at ${originalPath}. Did \`test:e2e.dump\` run with the same `
-    + `\`--testPathPattern\` / \`--theme\` values?`
+    + '`--testPathPattern` / `--theme` values?'
   );
   process.exit(1);
 }
 
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
-  const random = flags.includes('random');
+  const random = flagArgs.includes('--random');
   const hotVersionMatch = flags.match(/--hotVersion=([^\s,]+)/);
   const params = [];
 
-  verboseReporting = flags.includes('verbose');
+  verboseReporting = flagArgs.includes('--verbose');
 
   if (seed) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
@@ -159,7 +160,7 @@ const cleanup = cleanupFactory(browser, server);
 const reporter = new JasmineReporter({
   colors: 1,
   cleanStack: 1,
-  verbosity: 4,
+  verbosity: (IS_TTY && !verboseReporting) ? 1 : 4,
   listStyle: 'flat',
   activity: true,
   isVerbose: verboseReporting,
@@ -224,5 +225,5 @@ try {
 } catch (error) {
   /* eslint-disable no-console */
   console.log(error);
-  cleanup(1);
+  await cleanup(1);
 }
