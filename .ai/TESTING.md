@@ -44,7 +44,7 @@ npm run test:e2e --testPathPattern=filters
 # the same hash as dump to locate the runner HTML, so the flags must match.
 
 # Coverage:
-npm run test:unit --coverage
+npm run test:unit -- --coverage
 ```
 
 **Parallel E2E runs:**
@@ -477,7 +477,7 @@ Additional viewport helpers in `common.js` (globals in E2E):
 
 **View Coverage:**
 ```bash
-npm run test:unit --coverage    # Show coverage after Jest run
+npm run test:unit -- --coverage    # Show coverage after Jest run
 ```
 
 **Coverage Output:**
