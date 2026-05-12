@@ -82,6 +82,15 @@
   /* min-height prevents layout shift; actual height is set by Handsontable */
 }
 
+/* Demo text inputs: in column flex, a second input after a wide Handsontable sibling can
+   shrink (flex min-width: auto). Stretch to match the row above. Per-example CSS may cap with
+   max-width (e.g. 20rem). */
+.hot-example .placeholder-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
 /* ── Focus scopes: debug readout (DEV-1610, hooks-aligned) ───────────────
    Matches events-and-hooks event log rhythm (#example1_events in example-specific.css).
    No horizontal negative margin here: .hot-example uses overflow:hidden and would clip. */
