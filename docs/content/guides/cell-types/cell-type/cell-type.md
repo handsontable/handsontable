@@ -608,6 +608,8 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 ## Related
 
+<div class="boxes-list">
+
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Checkbox cell type](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)
 - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
@@ -618,6 +620,8 @@ Empty cells may be treated differently in different contexts, for example, the [
 - [Password cell type](@/guides/cell-types/password-cell-type/password-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
+
+</div>
 
 ## Related articles
 
