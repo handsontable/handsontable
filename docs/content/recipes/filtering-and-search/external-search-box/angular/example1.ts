@@ -24,6 +24,7 @@ const data = [
           id="external-search-input"
           type="search"
           placeholder="Type to highlight matching cells..."
+          style="min-width: 20rem"
           (input)="onSearch($event)"
         />
       </div>
