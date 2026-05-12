@@ -1544,7 +1544,9 @@ describe('AutoFill', () => {
           [{ a: 1, b: undefined, c: 3 }, { a: 2, b: 4, c: 5 }, { a: 6, b: 7, c: 8 }],
         ],
         afterChange(changes) {
-          if (!changes) { return; }
+          if (!changes) {
+            return;
+          }
 
           changes.forEach(([row, col,, newVal]) => {
             if (newVal && typeof newVal === 'object' && !Object.prototype.hasOwnProperty.call(newVal, 'b')) {
