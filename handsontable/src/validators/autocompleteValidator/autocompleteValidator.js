@@ -25,8 +25,8 @@ export function autocompleteValidator(value, callback) {
     valueToValidate = '';
   }
 
-  if (this.allowEmpty && valueToValidate === '') {
-    callback(true);
+  if (valueToValidate === '') {
+    callback(!!this.allowEmpty);
 
     return;
   }
