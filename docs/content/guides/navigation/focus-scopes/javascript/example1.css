@@ -23,30 +23,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.example-container > strong {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--sl-color-white);
-  margin: 0.5rem 0 0;
-}
-
-.example-container .debug-table {
-  font-size: var(--sl-text-sm);
-  border-collapse: collapse;
-  width: 100%;
-}
-
-.example-container .debug-table td {
-  padding: 0.4rem 0.75rem !important;
-  border-bottom: 1px solid var(--sl-color-gray-5);
-  color: var(--sl-color-gray-2);
-}
-
-.example-container .debug-table td:last-child {
-  font-family: var(--sl-font-mono, ui-monospace, monospace);
-}
-
-.example-container .debug-table td code {
-  font-size: var(--sl-text-xs);
-}
