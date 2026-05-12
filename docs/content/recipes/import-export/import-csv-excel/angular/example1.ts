@@ -147,29 +147,18 @@ async function parseFile(file: File): Promise<ParsedPayload> {
         (dragleave)="onDragLeave()"
         (drop)="onDrop($event)"
       >
-        <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or use the file picker.</p>
-        <label class="import-file-label">
-          <span>Choose file</span>
-          <input
-            type="file"
-            accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
-            (change)="onFileChange($event)"
-            #fileInput
-          />
-        </label>
-      </div>
-
-      <div class="import-sample-block">
-        <label for="import-sample-csv-ng">Sample CSV (click <strong>Parse sample CSV</strong> to preview):</label>
-        <textarea
-          id="import-sample-csv-ng"
-          rows="5"
-          spellcheck="false"
-          [value]="sampleCsv"
-          (input)="sampleCsv = $any($event.target).value"
-        ></textarea>
-        <div class="import-sample-actions">
-          <button type="button" (click)="parseSampleCsv()">Parse sample CSV</button>
+        <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or pick a source.</p>
+        <div class="import-actions">
+          <label class="import-file-label">
+            <span>Choose file</span>
+            <input
+              type="file"
+              accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+              (change)="onFileChange($event)"
+              #fileInput
+            />
+          </label>
+          <button type="button" class="import-sample-btn" (click)="loadSampleData()">Load sample data</button>
         </div>
       </div>
 
@@ -177,19 +166,22 @@ async function parseFile(file: File): Promise<ParsedPayload> {
         <div class="import-msg import-msg--error">{{ errorMessage }}</div>
       }
 
-      @if (showPreview) {
-        <div class="import-preview">
-          <p class="import-preview-title">Detected column headers (not loaded yet):</p>
-          <ul class="import-header-list">
-            @for (h of pending?.headers ?? []; track h) {
-              <li>{{ h }}</li>
-            }
-          </ul>
-          <button type="button" class="import-apply-btn" (click)="applyToGrid()">Load into grid</button>
+      @if (gridData.length === 0) {
+        <div class="import-empty">
+          <span class="import-empty-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18"/>
+              <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+            </svg>
+          </span>
+          <p class="import-empty-title">No data loaded yet</p>
+          <p class="import-empty-text">
+            Drop a CSV or Excel file above, choose a file, or load the sample data to populate the table.
+          </p>
         </div>
+      } @else {
+        <hot-table [data]="gridData" [settings]="gridSettings"></hot-table>
       }
-
-      <hot-table [data]="gridData" [settings]="gridSettings"></hot-table>
     </div>
   `,
 })
@@ -198,11 +190,9 @@ export class AppComponent {
 
   isDragOver = false;
   errorMessage = '';
-  showPreview = false;
-  pending: ParsedPayload | null = null;
   gridData: Record<string, unknown>[] = [];
 
-  sampleCsv = `Product,Category,In stock,Price
+  private readonly SAMPLE_CSV = `Product,Category,In stock,Price
 Widget A,Hardware,true,19.99
 Widget B,Hardware,false,24.5
 Service Pack,Services,true,0`;
@@ -242,32 +232,14 @@ Service Pack,Services,true,0`;
     input.value = '';
   }
 
-  async parseSampleCsv(): Promise<void> {
+  async loadSampleData(): Promise<void> {
     this.errorMessage = '';
     try {
-      const payload = parseCsvText(this.sampleCsv);
-      this.setPending(payload);
+      const payload = parseCsvText(this.SAMPLE_CSV);
+      this.loadIntoGrid(payload);
     } catch (e) {
-      this.clearPendingPreview();
       this.errorMessage = e instanceof Error ? e.message : String(e);
     }
-  }
-
-  applyToGrid(): void {
-    this.errorMessage = '';
-    if (!this.pending) {
-      this.errorMessage = 'Nothing to load. Import a file first.';
-      return;
-    }
-    const { headers, rows } = this.pending;
-    this.gridSettings = {
-      ...this.gridSettings,
-      colHeaders: headers,
-      columns: this.columnsFromHeaders(headers),
-    };
-    this.gridData = [...rows];
-    this.showPreview = false;
-    this.pending = null;
   }
 
   private async handleFile(file: File): Promise<void> {
@@ -278,30 +250,25 @@ Service Pack,Services,true,0`;
     }
     try {
       const payload = await parseFile(file);
-      this.setPending(payload);
+      this.loadIntoGrid(payload);
     } catch (e) {
-      this.clearPendingPreview();
       this.errorMessage = e instanceof Error ? e.message : String(e);
     }
   }
 
-  private setPending(payload: ParsedPayload): void {
-    this.pending = payload;
-    this.errorMessage = '';
-    this.showPreview = true;
+  private loadIntoGrid(payload: ParsedPayload): void {
+    const { headers, rows } = payload;
+    this.gridSettings = {
+      ...this.gridSettings,
+      colHeaders: headers,
+      columns: this.columnsFromHeaders(headers, rows),
+    };
+    this.gridData = [...rows];
   }
 
-  private clearPendingPreview(): void {
-    this.pending = null;
-    this.showPreview = false;
-  }
-
-  private columnsFromHeaders(headers: string[]): GridSettings['columns'] {
-    if (!this.pending) {
-      return headers.map((data) => ({ data, type: 'text' }));
-    }
+  private columnsFromHeaders(headers: string[], rows: Record<string, unknown>[]): GridSettings['columns'] {
     return headers.map((data) => {
-      const values = (this.pending?.rows ?? [])
+      const values = rows
         .map((row) => row[data])
         .filter((v) => v !== null);
       if (values.length > 0 && values.every((v) => typeof v === 'number')) {

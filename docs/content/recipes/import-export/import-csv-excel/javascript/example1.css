@@ -1,37 +1,61 @@
 .import-csv-excel-wrap {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 12px;
+  margin: 0 -1rem;
 }
 
 .import-dropzone {
-  border: 2px dashed var(--sl-color-gray-4, #ccc);
-  border-radius: 8px;
-  padding: 16px;
+  padding: 1.5rem 1rem;
   text-align: center;
-  background: var(--sl-color-bg-inline-code, rgba(0, 0, 0, 0.04));
-  transition: border-color 0.15s ease, background 0.15s ease;
+  border: 0;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-xs);
+  transition: background 0.15s ease;
+}
+
+.import-dropzone p {
+  margin: 0 0 0.75rem;
 }
 
 .import-dropzone.import-dropzone--active {
-  border-color: var(--sl-color-accent, #3b82f6);
-  background: var(--sl-color-accent-low, rgba(59, 130, 246, 0.08));
+  background: var(--sl-color-gray-6);
+}
+
+.import-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .import-file-label {
   display: inline-block;
-  margin-top: 8px;
   cursor: pointer;
 }
 
-.import-file-label span {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 6px;
-  background: var(--sl-color-accent, #3b82f6);
-  color: var(--sl-color-black, #fff);
-  font-size: 0.875rem;
+.import-file-label span,
+.import-sample-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  background: var(--sl-color-gray-6);
+  color: var(--sl-color-gray-2);
+  font-family: var(--sl-font);
+  font-size: var(--sl-text-xs);
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.import-file-label:hover span,
+.import-sample-btn:hover {
+  background: var(--sl-color-gray-5);
+  color: var(--sl-color-white);
 }
 
 .import-file-label input {
@@ -42,74 +66,65 @@
   pointer-events: none;
 }
 
-.import-sample-block label {
-  display: block;
-  font-size: 0.875rem;
-  margin-bottom: 6px;
-}
-
-#import-sample-csv {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: ui-monospace, monospace;
-  font-size: 0.8rem;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--sl-color-gray-4, #ccc);
-  resize: vertical;
-}
-
-.import-sample-actions {
-  margin-top: 8px;
-}
-
-.import-sample-actions button,
-.import-apply-btn {
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: 1px solid var(--sl-color-gray-4, #ccc);
-  background: var(--sl-color-bg, #fff);
-  cursor: pointer;
-  font-size: 0.875rem;
-}
-
-.import-apply-btn {
-  margin-top: 8px;
-  border-color: var(--sl-color-accent, #3b82f6);
-  color: var(--sl-color-accent, #3b82f6);
-}
-
 .import-msg {
-  padding: 10px 12px;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0;
+  font-size: var(--sl-text-xs);
 }
 
 .import-msg--error {
+  border-bottom: 1px solid var(--sl-color-red, #ef4444);
   background: var(--sl-color-red-low, rgba(239, 68, 68, 0.12));
-  border: 1px solid var(--sl-color-red, #ef4444);
-  color: var(--sl-color-red-high, #b91c1c);
+  color: var(--sl-color-red, #ef4444);
 }
 
-.import-preview {
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--sl-color-gray-4, #ccc);
-  background: var(--sl-color-bg-inline-code, rgba(0, 0, 0, 0.03));
+.import-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  min-height: 200px;
+  color: var(--sl-color-gray-2);
+  text-align: center;
 }
 
-.import-preview-title {
-  margin: 0 0 8px;
-  font-size: 0.875rem;
+.import-empty[hidden] {
+  display: none;
+}
+
+.import-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.25rem;
+  border: 1px solid var(--sl-color-gray-5);
+  color: var(--sl-color-gray-3);
+}
+
+.import-empty-title {
+  margin: 0;
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-sm);
   font-weight: 600;
 }
 
-.import-header-list {
+.import-empty-text {
   margin: 0;
-  padding-left: 1.25rem;
-  font-size: 0.875rem;
+  max-width: 38ch;
+  font-size: var(--sl-text-xs);
+  line-height: 1.5;
 }
 
 #example1 {
+  padding: 1rem;
   min-height: 180px;
+}
+
+#example1[hidden] {
+  display: none;
 }
