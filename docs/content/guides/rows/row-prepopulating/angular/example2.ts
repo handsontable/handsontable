@@ -1,9 +1,44 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const templateValues = ['one', 'two', 'three'];
+
+function isEmptyRow(instance: Handsontable, row: number) {
+  const rowData = instance.getDataAtRow(row);
+
+  for (let i = 0, ilen = rowData.length; i < ilen; i++) {
+    if (rowData[i] !== null) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+const defaultValueRenderer = (
+  instance: Handsontable,
+  td: HTMLTableCellElement,
+  row: number,
+  col: number,
+  prop: string | number,
+  value: Handsontable.CellValue,
+  cellProperties: Handsontable.CellProperties
+) => {
+  if (value === null && isEmptyRow(instance, row)) {
+    value = templateValues[col];
+    td.style.color = '#999';
+  } else {
+    td.style.color = '';
+  }
+
+  textRenderer(instance, td, row, col, prop, value, cellProperties);
+};
 
 @Component({
-  selector: 'app-example1',
+  selector: 'app-example2',
   template: `
     <hot-table [settings]="gridSettings" [data]="hotData"></hot-table>
   `,
@@ -23,6 +58,9 @@ export class AppComponent {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
+    cells() {
+      return { renderer: defaultValueRenderer };
+    },
   };
 }
 /* end-file */
