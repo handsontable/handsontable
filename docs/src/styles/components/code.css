@@ -68,6 +68,13 @@
   --ec-frm-shdCol: transparent;
   --ec-frm-frameBoxShdCssVal: none;
   --ec-frm-trmTtbBrdBtmCol: var(--sl-color-gray-5);
+  /* Base .expressive-code sets dark-theme fg; block bg is light -- line numbers and code must use dark ink */
+  --ec-codeFg: var(--sl-color-white);
+  --ec-gtrFg: var(--sl-color-gray-2);
+  --ec-gtrHlFg: rgba(36, 41, 47, 0.55);
+  --ec-codeSelBg: rgba(51, 146, 255, 0.28);
+  --ec-uiSelBg: var(--sl-color-gray-5);
+  --ec-uiSelFg: var(--sl-color-white);
 }
 
 :root[data-theme='light'] .expressive-code .copy button {
@@ -141,6 +148,12 @@
 .expressive-code .ec-line.ins {
   background-color: rgba(65, 161, 103, 0.15) !important;
   border-inline-start-color: #41a167 !important;
+}
+
+/* Expressive Code del (deleted) line highlight — light theme only; matches ins subtlety */
+:root[data-theme='light'] .expressive-code .ec-line.del {
+  background-color: rgba(134, 45, 39, 0.15) !important;
+  border-inline-start-color: #862d27 !important;
 }
 
 /* -------------------------------------------------------------------------
