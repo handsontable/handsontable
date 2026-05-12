@@ -73,7 +73,11 @@ Respect `signal` so outdated requests abort when the user sorts, filters, or cha
 
 ## More in this guide
 
+<div class="boxes-list">
+
 - [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
 - [Migrate from client-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md)
 - [Create, update, and remove](@/guides/getting-started/server-side-data/server-side-data-crud.md)
 - [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md)
+
+</div>
