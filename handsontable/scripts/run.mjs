@@ -251,6 +251,14 @@ function runParallelTask(name, spinner) {
         rej(new Error(`${name} failed with exit code ${code}`));
       } else {
         spinner.finish(name, true, elapsed);
+
+        // Flush any captured output (e.g. ESLint/Stylelint warnings) that was
+        // collected while the task ran quietly. Build tools that exit 0 with no
+        // warnings produce empty output, so this is a no-op for them.
+        if (combined.trim()) {
+          process.stdout.write(`${combined.trimEnd()}\n`);
+        }
+
         res(elapsed);
       }
     });
