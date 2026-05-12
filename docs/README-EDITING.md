@@ -196,6 +196,8 @@ We use the following Markdown containers:
 
 These containers are processed by the `vuepress-preprocessor.mjs` plugin in `src/plugins/`, which converts the VuePress-style syntax into Astro/Starlight-compatible output.
 
+For `tip` / `warning` / `danger` / `note` callouts, the body is not full CommonMark. The preprocessor turns inline `` `code` ``, `**bold**`, and `[label](url)` into HTML (see `aside-inline-markdown.mjs`).
+
 ### Adding code examples
 
 Using the `example` Markdown container, you can add code snippets that show the code's result:
