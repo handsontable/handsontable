@@ -37,6 +37,25 @@ describe('Object helper', () => {
       expect(isObjectEqual([12], [33])).toBe(false);
       expect(isObjectEqual([{ test: 3 }], [{ test: 1 }])).toBe(false);
     });
+
+    it('should return true when objects have same keys with undefined values in different insertion order', () => {
+      expect(isObjectEqual({ a: 1, b: undefined }, { b: undefined, a: 1 })).toBe(true);
+      expect(isObjectEqual({ x: undefined, y: 2, z: 3 }, { z: 3, x: undefined, y: 2 })).toBe(true);
+    });
+
+    it('should return false when array contains undefined vs empty array', () => {
+      expect(isObjectEqual([undefined], [])).toBe(false);
+      expect(isObjectEqual([], [undefined])).toBe(false);
+    });
+
+    it('should return true for arrays containing undefined at same positions', () => {
+      expect(isObjectEqual([undefined], [undefined])).toBe(true);
+      expect(isObjectEqual([1, undefined, 3], [1, undefined, 3])).toBe(true);
+    });
+
+    it('should return false when array undefined vs null differ', () => {
+      expect(isObjectEqual([undefined], [null])).toBe(false);
+    });
   });
 
   //

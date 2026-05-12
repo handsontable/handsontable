@@ -216,6 +216,9 @@ export function mixin(Base, ...mixins) {
  */
 export function isObjectEqual(object1, object2) {
   const stableStringify = obj => {
+    if (obj === undefined) {
+      return 'undefined';
+    }
     if (Array.isArray(obj)) {
       return `[${obj.map(stableStringify).join(',')}]`;
     }
