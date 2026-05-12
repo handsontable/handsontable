@@ -25,38 +25,35 @@ describe('HotTableComponent', () => {
 
   });
 
-  it(`should render 'hot-table'`, async () => {
+  it(`should render 'hot-table'`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.componentInstance.settings = { ...settings };
     fixture.detectChanges();
-    await fixture.whenStable();
 
     const elem = fixture.nativeElement;
     expect(elem.querySelectorAll('.handsontable').length).toBeGreaterThan(0);
     expect(fixture.componentInstance.hotInstance).toBeDefined();
   });
 
-  it(`should render 'hot-table' even when settings are not provided`, async () => {
+  it(`should render 'hot-table' even when settings are not provided`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.detectChanges();
-    await fixture.whenStable();
 
     const elem = fixture.nativeElement;
     expect(elem.querySelectorAll('.handsontable').length).toBeGreaterThan(0);
     expect(fixture.componentInstance.hotInstance).toBeDefined();
   });
 
-  it(`should set data`, async () => {
+  it(`should set data`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.componentInstance.settings = {};
     fixture.componentInstance.data = createSpreadsheetData(5, 5);
     fixture.detectChanges();
-    await fixture.whenStable();
 
     expect(fixture.componentInstance.hotInstance.getDataAtCell(0, 0)).toBe('A1');
   });
 
-  it(`should be possible to set some option and pass it to Handsontable`, async () => {
+  it(`should be possible to set some option and pass it to Handsontable`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.componentInstance.settings = {
       ...settings,
@@ -67,7 +64,6 @@ describe('HotTableComponent', () => {
     };
 
     fixture.detectChanges();
-    await fixture.whenStable();
 
     const handsontableSettings = fixture.componentInstance.hotInstance.getSettings();
     expect(handsontableSettings.rowHeaders).toBe(true);
@@ -77,12 +73,11 @@ describe('HotTableComponent', () => {
   });
 
   describe('ngOnChanges', () => {
-    it('should update Handsontable settings if settings change and it is not the first change', async () => {
+    it('should update Handsontable settings if settings change and it is not the first change', () => {
       const newSettings = { readOnly: true };
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {};
       fixture.detectChanges();
-      await fixture.whenStable();
       const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
       const component = fixture.componentInstance;
       const applyCustomSettingsSpy = jest.spyOn(hotSettingsResolver, 'applyCustomSettings');
@@ -98,12 +93,11 @@ describe('HotTableComponent', () => {
       expect(updateHotTableSpy).toHaveBeenCalledWith(newSettings, false);
     });
 
-    it('should not update Handsontable settings if it is the first change', async () => {
+    it('should not update Handsontable settings if it is the first change', () => {
       const newSettings = { data: [[1, 2, 3]] };
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {};
       fixture.detectChanges();
-      await fixture.whenStable();
       const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
       const applyCustomSettingsSpy = jest.spyOn(hotSettingsResolver, 'applyCustomSettings');
       const component = fixture.componentInstance;
@@ -119,12 +113,11 @@ describe('HotTableComponent', () => {
       expect(updateHotTableSpy).not.toHaveBeenCalled();
     });
 
-    it('should update Handsontable data if data change and it is not the first change', async () => {
+    it('should update Handsontable data if data change and it is not the first change', () => {
       const newData = [[1, 2, 3]];
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {};
       fixture.detectChanges();
-      await fixture.whenStable();
       const component = fixture.componentInstance;
 
       const updateDataSpy = jest.spyOn(component.hotInstance, 'updateData');
@@ -137,12 +130,11 @@ describe('HotTableComponent', () => {
       expect(updateDataSpy).toHaveBeenCalledWith(newData);
     });
 
-    it('should not update Handsontable data if data change and it is the first change', async () => {
+    it('should not update Handsontable data if data change and it is the first change', () => {
       const newData = [[1, 2, 3]];
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {};
       fixture.detectChanges();
-      await fixture.whenStable();
       const component = fixture.componentInstance;
 
       const updateDataSpy = jest.spyOn(component.hotInstance, 'updateData');
@@ -155,14 +147,13 @@ describe('HotTableComponent', () => {
       expect(updateDataSpy).not.toHaveBeenCalledWith(newData);
     });
 
-    it('should not pass init-only settings to updateSettings after initialization', async () => {
+    it('should not pass init-only settings to updateSettings after initialization', () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {
         renderAllRows: false,
         width: 300,
       };
       fixture.detectChanges();
-      await fixture.whenStable();
       const component = fixture.componentInstance;
       const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
 
@@ -184,7 +175,7 @@ describe('HotTableComponent', () => {
   });
 
   describe('ngOnDestroy', () => {
-    it('should destroy Handsontable instance and editor component references, when columns property is an array', async () => {
+    it('should destroy Handsontable instance and editor component references, when columns property is an array', () => {
       fixture = TestBed.createComponent(HotTableComponent);
       const editorRefMock = {
         destroy: jest.fn(),
@@ -198,7 +189,6 @@ describe('HotTableComponent', () => {
         ],
       };
       fixture.detectChanges();
-      await fixture.whenStable();
       const hotInstance = fixture.componentInstance.hotInstance;
       const destroySpy = jest.spyOn(hotInstance, 'destroy');
 
@@ -208,7 +198,7 @@ describe('HotTableComponent', () => {
       expect(destroySpy).toHaveBeenCalled();
     });
 
-    it('should destroy Handsontable instance, when columns property is a function', async () => {
+    it('should destroy Handsontable instance, when columns property is a function', () => {
       fixture = TestBed.createComponent(HotTableComponent);
 
       fixture.componentInstance.settings = {
@@ -217,7 +207,6 @@ describe('HotTableComponent', () => {
       };
 
       fixture.detectChanges();
-      await fixture.whenStable();
       const hotInstance = fixture.componentInstance.hotInstance;
       const destroySpy = jest.spyOn(hotInstance, 'destroy');
 
@@ -225,7 +214,7 @@ describe('HotTableComponent', () => {
       expect(destroySpy).toHaveBeenCalled();
     });
 
-    it('should destroy Handsontable instance, when columns property is undefined', async () => {
+    it('should destroy Handsontable instance, when columns property is undefined', () => {
       fixture = TestBed.createComponent(HotTableComponent);
 
       fixture.componentInstance.settings = {
@@ -233,29 +222,16 @@ describe('HotTableComponent', () => {
       };
 
       fixture.detectChanges();
-      await fixture.whenStable();
       const hotInstance = fixture.componentInstance.hotInstance;
       const destroySpy = jest.spyOn(hotInstance, 'destroy');
 
       fixture.componentInstance.ngOnDestroy();
       expect(destroySpy).toHaveBeenCalled();
     });
-
-    it('should not create Handsontable instance if component is destroyed before microtask resolves', async () => {
-      fixture = TestBed.createComponent(HotTableComponent);
-      fixture.componentInstance.settings = { ...settings };
-      fixture.detectChanges();
-
-      // Destroy before the pending Promise resolves
-      fixture.componentInstance.ngOnDestroy();
-      await fixture.whenStable();
-
-      expect(fixture.componentInstance.hotInstance).toBeNull();
-    });
   });
 
   describe('hooks', () => {
-    it(`should use Handsontable as a hook's context, if is defined as a component's method`, async () => {
+    it(`should use Handsontable as a hook's context, if is defined as a component's method`, () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {
         ...settings,
@@ -264,7 +240,6 @@ describe('HotTableComponent', () => {
         },
       };
       fixture.detectChanges();
-      await fixture.whenStable();
 
       const instance: Handsontable = fixture.componentInstance.hotInstance;
       instance.runHooks('afterInit');
@@ -282,7 +257,6 @@ describe('HotTableComponent', () => {
         },
       };
       fixture.detectChanges();
-      await fixture.whenStable();
 
       const instance: Handsontable = fixture.componentInstance.hotInstance.runHooks('afterInit');
 
@@ -290,7 +264,7 @@ describe('HotTableComponent', () => {
       expect(instance.getPlugin('copyPaste')).toBeTruthy();
     });
 
-    it(`should allow to block 'before*' hooks`, async () => {
+    it(`should allow to block 'before*' hooks`, () => {
       fixture = TestBed.createComponent(HotTableComponent);
       const component = fixture.componentInstance;
       component.settings = {
@@ -307,7 +281,6 @@ describe('HotTableComponent', () => {
       };
       let afterChangeResult = false;
       fixture.detectChanges();
-      await fixture.whenStable();
 
       component.hotInstance.setDataAtCell(0, 0, 'test');
 

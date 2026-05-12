@@ -48,7 +48,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /** The Handsontable instance. */
   private __hotInstance: Handsontable | null = null;
-  private _pendingDestroy = false;
 
   constructor(
     private readonly _hotSettingsResolver: HotSettingsResolver,
@@ -85,32 +84,23 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngAfterViewInit(): void {
     let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
+
     const negotiatedSettings = this.getNegotiatedSettings(options);
-    options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
+    options = { ...options, ...negotiatedSettings, data: this.data };
 
-    // Defer initialization to the next microtask to prevent NG0100
-    // (ExpressionChangedAfterItHasBeenCheckedError). HOT mutates the input
-    // data array during init (e.g. minSpareRows), which Angular's dev-mode
-    // double-check detects as an illegal mid-cycle change.
-    Promise.resolve().then(() => {
-      if (this._pendingDestroy) {
-        return;
+    this.ngZone.runOutsideAngular(() => {
+      this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
+
+      (this.hotInstance as any)._angularEnvironmentInjector = this.environmentInjector;
+
+      this.hotInstance.init();
+    });
+
+    this._hotConfig.config$.pipe(skip(1), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.hotInstance) {
+        const negotiatedSettings = this.getNegotiatedSettings(this.settings);
+        this.updateHotTable(negotiatedSettings);
       }
-
-      this.ngZone.runOutsideAngular(() => {
-        this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
-
-        (this.hotInstance as any)._angularEnvironmentInjector = this.environmentInjector;
-
-        this.hotInstance.init();
-      });
-
-      this._hotConfig.config$.pipe(skip(1), takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-        if (this.hotInstance) {
-          const negotiatedSettings = this.getNegotiatedSettings(this.settings);
-          this.updateHotTable(negotiatedSettings);
-        }
-      });
     });
   }
 
@@ -141,8 +131,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * Destroys the Handsontable instance and clears the columns from custom editors.
    */
   ngOnDestroy(): void {
-    this._pendingDestroy = true;
-
     if (!this.hotInstance) {
       return;
     }
