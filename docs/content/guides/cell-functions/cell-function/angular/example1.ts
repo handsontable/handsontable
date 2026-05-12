@@ -73,7 +73,7 @@ const stockValidator = (value: Handsontable.CellValue, callback: (valid: boolean
     .htStockBarTrack {
       flex: 1;
       height: 8px;
-      background: #e5e7eb;
+      background: var(--ht-background-secondary-color);
       border-radius: 4px;
       overflow: hidden;
     }
