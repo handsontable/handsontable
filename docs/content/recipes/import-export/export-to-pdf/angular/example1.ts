@@ -20,8 +20,10 @@ const data = Array.from({ length: ROWS }, (_, row) => [
   imports: [HotTableModule],
   selector: 'example1-export-to-pdf',
   template: `
-    <div class="export-pdf-toolbar">
-      <button type="button" class="export-pdf-btn" (click)="exportToPdf()">Export to PDF</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" (click)="exportToPdf()">Export to PDF</button>
+      </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,
