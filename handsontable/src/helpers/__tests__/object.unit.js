@@ -11,6 +11,7 @@ import {
   extend,
   assignObjectDefaults,
   deepMerge,
+  deepClone,
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -55,6 +56,68 @@ describe('Object helper', () => {
 
     it('should return false when array undefined vs null differ', () => {
       expect(isObjectEqual([undefined], [null])).toBe(false);
+    });
+
+    it('should correctly compare Date objects', () => {
+      const d1 = new Date('2024-01-01T00:00:00.000Z');
+      const d2 = new Date('2024-01-01T00:00:00.000Z');
+      const d3 = new Date('2025-06-15T12:00:00.000Z');
+
+      expect(isObjectEqual(d1, d2)).toBe(true);
+      expect(isObjectEqual(d1, d3)).toBe(false);
+      expect(isObjectEqual(d1, {})).toBe(false);
+    });
+  });
+
+  //
+  // Handsontable.helper.deepClone
+  //
+  describe('deepClone', () => {
+    it('should deep clone a plain object preserving undefined-valued properties', () => {
+      const obj = { id: 1, label: undefined };
+      const cloned = deepClone(obj);
+
+      expect(cloned).not.toBe(obj);
+      expect(Object.prototype.hasOwnProperty.call(cloned, 'label')).toBe(true);
+      expect(cloned.label).toBeUndefined();
+      expect(cloned.id).toBe(1);
+    });
+
+    it('should deep clone nested objects preserving undefined', () => {
+      const obj = { a: { b: undefined, c: 3 } };
+      const cloned = deepClone(obj);
+
+      expect(cloned).not.toBe(obj);
+      expect(cloned.a).not.toBe(obj.a);
+      expect(Object.prototype.hasOwnProperty.call(cloned.a, 'b')).toBe(true);
+      expect(cloned.a.b).toBeUndefined();
+    });
+
+    it('should deep clone arrays', () => {
+      const arr = [1, undefined, { x: 2 }];
+      const cloned = deepClone(arr);
+
+      expect(cloned).not.toBe(arr);
+      expect(cloned[0]).toBe(1);
+      expect(cloned[1]).toBeUndefined();
+      expect(cloned[2]).not.toBe(arr[2]);
+      expect(cloned[2].x).toBe(2);
+    });
+
+    it('should clone Date objects as new Date instances with the same time', () => {
+      const d = new Date('2024-03-15T10:00:00.000Z');
+      const cloned = deepClone(d);
+
+      expect(cloned).not.toBe(d);
+      expect(cloned).toBeInstanceOf(Date);
+      expect(cloned.getTime()).toBe(d.getTime());
+    });
+
+    it('should return primitives as-is', () => {
+      expect(deepClone(42)).toBe(42);
+      expect(deepClone('hello')).toBe('hello');
+      expect(deepClone(null)).toBeNull();
+      expect(deepClone(undefined)).toBeUndefined();
     });
   });
 

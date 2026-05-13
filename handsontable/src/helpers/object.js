@@ -106,7 +106,8 @@ export function deepExtend(target, extension) {
 
 /**
  * Perform deep clone of an object.
- * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc.
+ * Clones plain objects, arrays, and primitives recursively, preserving undefined-valued properties.
+ * Non-plain objects (Date, RegExp, Map, Set, class instances) are returned by reference.
  *
  * @param {object} obj An object that will be cloned.
  * @returns {object}
@@ -114,6 +115,9 @@ export function deepExtend(target, extension) {
 export function deepClone(obj) {
   if (Array.isArray(obj)) {
     return obj.map(item => deepClone(item));
+  }
+  if (obj instanceof Date) {
+    return new Date(obj.getTime());
   }
   if (typeof obj === 'object' && obj !== null) {
     const result = {};
@@ -221,6 +225,9 @@ export function isObjectEqual(object1, object2) {
     }
     if (Array.isArray(obj)) {
       return `[${obj.map(stableStringify).join(',')}]`;
+    }
+    if (obj instanceof Date) {
+      return JSON.stringify(obj);
     }
     if (obj !== null && typeof obj === 'object') {
       const pairs = Object.keys(obj).sort().map(key => `${JSON.stringify(key)}:${stableStringify(obj[key])}`);
