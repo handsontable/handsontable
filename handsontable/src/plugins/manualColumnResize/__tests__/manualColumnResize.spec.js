@@ -563,6 +563,67 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
+  it('should apply the return value of beforeColumnResize hook when drag resizing', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      beforeColumnResize: () => 150
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    await resizeColumn(0, 100);
+
+    expect(colWidth(spec().$container, 0)).toEqual(150);
+  });
+
+  it('should cancel column drag resize and revert to the original size when beforeColumnResize returns false', async() => {
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      beforeColumnResize: () => false,
+      afterColumnResize: afterColumnResizeCallback,
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    await resizeColumn(0, 100);
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+    expect(afterColumnResizeCallback).not.toHaveBeenCalled();
+  });
+
+  it('should cancel column double-click resize when beforeColumnResize returns false', async() => {
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: afterColumnResizeCallback,
+    });
+
+    addHook('beforeColumnResize', () => false);
+
+    const $th = getTopClone().find('thead tr:eq(0) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+
+    await waitForNextAnimationFrames(44);
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+    expect(afterColumnResizeCallback).not.toHaveBeenCalled();
+  });
+
   it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),

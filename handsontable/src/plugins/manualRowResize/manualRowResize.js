@@ -460,7 +460,11 @@ export class ManualRowResize extends BasePlugin {
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
 
-      if (hookNewSize !== undefined) {
+      if (hookNewSize === false) {
+        return;
+      }
+
+      if (typeof hookNewSize === 'number') {
         this.#newSize = hookNewSize;
       }
 
@@ -549,13 +553,23 @@ export class ManualRowResize extends BasePlugin {
       this.hot.render();
     };
     const runHooks = (row, forceRender) => {
-      this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
+
+      if (hookNewSize === false) {
+        this.setManualSize(row, this.#startHeight);
+        this.#newSize = this.#startHeight;
+      } else if (typeof hookNewSize === 'number') {
+        this.#newSize = hookNewSize;
+        this.setManualSize(row, this.#newSize);
+      }
 
       if (forceRender) {
         render();
       }
 
-      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
+      if (hookNewSize !== false) {
+        this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
+      }
     };
 
     if (this.#pressed) {

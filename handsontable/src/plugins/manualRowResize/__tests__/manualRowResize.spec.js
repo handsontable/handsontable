@@ -187,6 +187,65 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
+  it('should apply the return value of beforeRowResize hook when drag resizing', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: () => 150
+    });
+
+    await resizeRow(0, 100);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(150);
+  });
+
+  it('should cancel row drag resize and revert to the original size when beforeRowResize returns false', async() => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: () => false,
+      afterRowResize: afterRowResizeCallback,
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+
+    await resizeRow(0, 100);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+  });
+
+  it('should cancel row double-click resize when beforeRowResize returns false', async() => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      afterRowResize: afterRowResizeCallback,
+    });
+
+    addHook('beforeRowResize', () => false);
+
+    const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
+
+    await waitForNextAnimationFrames(44);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+  });
+
   it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
