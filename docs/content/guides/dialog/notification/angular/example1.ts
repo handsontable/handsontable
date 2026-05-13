@@ -1,16 +1,15 @@
 /* file: app.component.ts */
-import { Component, AfterViewInit, ViewChild } from '@angular/core';
-import { GridSettings, HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import type Handsontable from 'handsontable/base';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'notification-example',
-  template: `<hot-table #hotTable [data]="hotData" [settings]="hotSettings"></hot-table>`,
+  template: `<hot-table [data]="hotData" [settings]="hotSettings"></hot-table>`,
 })
-export class AppComponent implements AfterViewInit {
-  @ViewChild('hotTable', { static: false }) hotTable!: HotTableComponent;
-
+export class AppComponent {
   readonly hotData = [
     ['Review pricing sheet', 'Draft', 'Apr 12', 'Morgan Lee', 'Medium', 'Finance'],
     ['Ship partner samples', 'In progress', 'Apr 14', 'Jordan Kim', 'High', 'Sales'],
@@ -43,46 +42,39 @@ export class AppComponent implements AfterViewInit {
     width: '100%',
     height: 420,
     notification: true,
+    afterInit(this: Handsontable) {
+      const notification = this.getPlugin('notification');
+
+      notification.showMessage({
+        title: 'Top start',
+        message: 'Info toast in the top-start corner.',
+        variant: 'info',
+        position: 'top-start',
+        duration: 0,
+      });
+      notification.showMessage({
+        title: 'Top end',
+        message: 'Success toast in the top-end corner.',
+        variant: 'success',
+        position: 'top-end',
+        duration: 0,
+      });
+      notification.showMessage({
+        title: 'Bottom start',
+        message: 'Warning toast in the bottom-start corner.',
+        variant: 'warning',
+        position: 'bottom-start',
+        duration: 0,
+      });
+      notification.showMessage({
+        title: 'Bottom end',
+        message: 'Error toast in the bottom-end corner.',
+        variant: 'error',
+        position: 'bottom-end',
+        duration: 0,
+      });
+    },
   };
-
-  ngAfterViewInit(): void {
-    const hot = this.hotTable?.hotInstance;
-
-    if (!hot) {
-      return;
-    }
-
-    const notification = hot.getPlugin('notification');
-
-    notification.showMessage({
-      title: 'Top start',
-      message: 'Info toast in the top-start corner.',
-      variant: 'info',
-      position: 'top-start',
-      duration: 0,
-    });
-    notification.showMessage({
-      title: 'Top end',
-      message: 'Success toast in the top-end corner.',
-      variant: 'success',
-      position: 'top-end',
-      duration: 0,
-    });
-    notification.showMessage({
-      title: 'Bottom start',
-      message: 'Warning toast in the bottom-start corner.',
-      variant: 'warning',
-      position: 'bottom-start',
-      duration: 0,
-    });
-    notification.showMessage({
-      title: 'Bottom end',
-      message: 'Error toast in the bottom-end corner.',
-      variant: 'error',
-      position: 'bottom-end',
-      duration: 0,
-    });
-  }
 }
 /* end-file */
 
