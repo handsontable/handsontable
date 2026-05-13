@@ -55,10 +55,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="export-pdf-toolbar">
-        <button type="button" className="export-pdf-btn" onClick={exportGridToPdf}>
-          Export to PDF
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" onClick={exportGridToPdf}>
+            Export to PDF
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}
