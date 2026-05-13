@@ -34,7 +34,7 @@ const cellProperties: CellProperties = {
 // Verify the built-in validators exist and have the correct signature
 autocompleteValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
 dropdownValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
-dateValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
+dateValidator.apply(cellProperties as any, ['foo', (valid: boolean) => {}]);
 numericValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
 timeValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
 

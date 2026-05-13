@@ -39,15 +39,15 @@ new Handsontable(document.createElement('div'), {
         },
         key: 'name',
         hidden() {
-          return !!this.getSelectedLast();
+          return !!(this as any).getSelectedLast();
         },
         disabled() {
-          return !!this.getSelectedLast();
+          return !!(this as any).getSelectedLast();
         },
         disableSelection: true,
         isCommand: false,
         callback(key: string, selection: unknown, clickEvent: MouseEvent) {
-          const isSelected = !!this.getSelectedLast();
+          const isSelected = !!(this as any).getSelectedLast();
 
           key.toUpperCase();
           (selection as any)[0].start.row;

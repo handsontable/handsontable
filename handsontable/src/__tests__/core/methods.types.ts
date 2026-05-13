@@ -92,7 +92,7 @@ hot.getColumnMeta(0);
 hot.getColumnMeta(0).type === 'test';
 hot.getColWidth(123) === 123;
 hot.getColWidth(123, 'my_source') === 123;
-hot.getCoords(elem.querySelector('td')).row === 0;
+hot.getCoords(elem.querySelector('td')!)!.row === 0;
 hot.getCopyableData(123, 123).toUpperCase();
 hot.getCopyableSourceData(123, 123).toUpperCase();
 (hot as any).getCopyableText(123, 123, 123, 123).toUpperCase();
@@ -240,7 +240,7 @@ hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString')
 const isDestroyedAfter: boolean = hot.isDestroyed;
 const testToHTMLTableElement: HTMLTableElement = (hot as any).toTableElement();
 const testToHTML: string = (hot as any).toHTML();
-const currentThemeName: string|undefined = hot.getCurrentThemeName();
+const currentThemeName: string|null = hot.getCurrentThemeName();
 
 const autoColumnSize = hot.getPlugin('autoColumnSize');
 

@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify';
 import { stringify } from './mixed';
 
 /**
@@ -112,7 +112,7 @@ export function stripTags(string: string): string {
  * @param {object} [options] DOMPurify's configuration object.
  * @returns {string}
  */
-export function sanitize(string: string, options?: DOMPurify.Config): string {
+export function sanitize(string: string, options?: DOMPurifyConfig): string {
   return DOMPurify.sanitize(string, options) as unknown as string;
 }
 

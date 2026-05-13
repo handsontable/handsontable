@@ -98,14 +98,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   className: oneOf('foo', ['foo']),
   colHeaders: oneOf(true, ['first-class-name', 'second-class-name']),
   collapsibleColumns: true,
-  columnHeaderHeight: oneOf(35, [35, undefined, 55]),
+  columnHeaderHeight: oneOf(35, [35, 55]),
   columns: [
     { type: 'numeric', numericFormat: { pattern: '0,0.00 $' } },
     { type: 'text', readOnly: true }
   ],
   columnSorting: true,
   columnSummary: [],
-  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100, undefined))),
+  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100))),
   commentedCellClassName: 'foo',
   comments: true,
   contextMenu: true,
@@ -248,10 +248,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   skipColumnOnPaste: true,
   skipRowOnPaste: true,
   sortByRelevance: true,
-  source: oneOf(
+  source: (oneOf(
     ['A', 'B', 'C', 'D'],
     (query: string, callback: (item: string[]) => void) => callback(['A', 'B', 'C', 'D'])
-  ),
+  ) as any),
   sourceDataValidator: oneOf((value: any, cellMeta: CellProperties) => true),
   sourceDataWarningMessage: oneOf('The source data is invalid.'),
   startCols: 123,
@@ -460,20 +460,20 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterNotificationShow: (_id, _options) => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
-    const row: number = coords.row;
-    const col: number = coords.col;
+    const row: number | null = coords.row;
+    const col: number | null = coords.col;
     const rowTransform: number = rowTransformDir;
     const colTransform: number = colTransformDir;
   },
   afterModifyTransformFocus: (coords, rowTransformDir, colTransformDir) => {
-    const row: number = coords.row;
-    const col: number = coords.col;
+    const row: number | null = coords.row;
+    const col: number | null = coords.col;
     const rowTransform: number = rowTransformDir;
     const colTransform: number = colTransformDir;
   },
   afterModifyTransformStart: (coords, rowTransformDir, colTransformDir) => {
-    const row: number = coords.row;
-    const col: number = coords.col;
+    const row: number | null = coords.row;
+    const col: number | null = coords.col;
     const rowTransform: number = rowTransformDir;
     const colTransform: number = colTransformDir;
   },
@@ -692,8 +692,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _highlight: CellCoords = highlight;
   },
   beforeSelectionFocusSet: (coords) => {
-    const row: number = coords.row;
-    const col: number = coords.col;
+    const row: number | null = coords.row;
+    const col: number | null = coords.col;
   },
   beforeSelectionHighlightSet: () => {},
   beforeSelectRows: (from, to, highlight) => {},
@@ -786,15 +786,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _overlayType: string = overlayType;
   },
   modifyTransformEnd: (delta) => {
-    const rowDelta: number = delta.row;
-    const colDelta: number = delta.row;
+    const rowDelta: number | null = delta.row;
+    const colDelta: number | null = delta.row;
   },
   modifyTransformFocus: (delta) => {
-    const rowDelta: number = delta.row;
-    const colDelta: number = delta.row;
+    const rowDelta: number | null = delta.row;
+    const colDelta: number | null = delta.row;
   },
   modifyTransformStart: (delta) => {
-    const rowDelta: number = delta.row;
-    const colDelta: number = delta.row;
+    const rowDelta: number | null = delta.row;
+    const colDelta: number | null = delta.row;
   },
 };
