@@ -4681,7 +4681,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @param {number} [endRow] If selecting a range: the visual row index of the last cell in the range.
    * @param {number|string} [endColumn] If selecting a range: the visual column index (or a column property's value) of the last cell in the range.
    * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
@@ -4746,20 +4748,33 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * passed either as an array of arrays (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
    * or as an array of [`CellRange`](@/api/cellRange.md) objects.
    * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
       viewportScroller.suspend();
     }
+    if (changeListener === false) {
+      focusGridManager.suspend();
+    }
 
-    const wasSelected = selection.selectCells(coords);
+    let wasSelected;
+
+    try {
+      wasSelected = selection.selectCells(coords);
+    } finally {
+      // Always release the suspended state even if `selection.selectCells` throws on malformed
+      // coordinates. Otherwise the flags would leak across subsequent calls.
+      viewportScroller.resume();
+      focusGridManager.resume();
+    }
 
     if (wasSelected && changeListener) {
       instance.listen();
     }
-    viewportScroller.resume();
 
     return wasSelected;
   };
