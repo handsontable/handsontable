@@ -5,16 +5,17 @@
 }
 
 .sync-grids-card {
-  border: 1px solid var(--ht-border-color, #e0e0e0);
-  border-radius: var(--ht-border-radius, 8px);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 4px;
   padding: 8px;
-  background: var(--ht-background-color, #ffffff);
+  background: var(--sl-color-gray-7);
 }
 
 .sync-grids-card h4 {
   margin: 0 0 8px;
   font-size: 13px;
   font-weight: 600;
+  color: var(--sl-color-text);
 }
 
 @media (max-width: 960px) {
