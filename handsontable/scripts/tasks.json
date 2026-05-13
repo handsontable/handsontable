@@ -69,7 +69,7 @@
       "note": "needs build:styles.min to finalize handsontableStyles.js"
     },
     "build:walkontable": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.ts",
       "deps": [],
       "passthrough": true,
       "passthroughFilter": ["--watch"]
