@@ -20,12 +20,14 @@ const container = document.querySelector('#example1');
 
 const toolbar = document.createElement('div');
 
-toolbar.classList.add('row-toolbar');
+toolbar.classList.add('example-controls-container');
 toolbar.innerHTML = `
-  <button id="btn-add-row" type="button">Add Row</button>
-  <button id="btn-delete-row" type="button">Delete Row</button>
-  <button id="btn-move-up" type="button">Move Up</button>
-  <button id="btn-move-down" type="button">Move Down</button>
+  <div class="controls">
+    <button id="btn-add-row" type="button">Add Row</button>
+    <button id="btn-delete-row" type="button">Delete Row</button>
+    <button id="btn-move-up" type="button">Move Up</button>
+    <button id="btn-move-down" type="button">Move Down</button>
+  </div>
 `;
 container.before(toolbar);
 
@@ -97,7 +99,6 @@ btnDeleteRow.addEventListener('click', () => {
   const rows = [...rowSet].sort((a, b) => b - a);
 
   rows.forEach(row => hot.alter('remove_row', row, 1));
-  selectedRow = null;
   updateButtonStates();
 });
 
