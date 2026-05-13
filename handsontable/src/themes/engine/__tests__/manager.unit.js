@@ -331,6 +331,55 @@ describe('ThemeManager', () => {
 
         expect(mockHot.themeManager).toBeNull();
       });
+
+      it('should unsubscribe from the theme object on destroy (regression: #12568)', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        // eslint-disable-next-line no-unused-vars
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+        });
+
+        manager.destroy();
+        mockHot.render.mockClear();
+        mockHot.stylesHandler.clearCache.mockClear();
+
+        // Changing the theme after destroy must NOT trigger re-renders — the
+        // subscription must have been removed. Before the fix, destroy() did not
+        // call the unsubscribe function returned by themeObject.subscribe(), so
+        // the listener stayed alive and caused a memory leak.
+        themeObject.setColorScheme('dark');
+
+        expect(mockHot.render).not.toHaveBeenCalled();
+        expect(mockHot.stylesHandler.clearCache).not.toHaveBeenCalled();
+      });
+
+      it('should not accumulate subscriptions across multiple update() calls (regression: #12568)', () => {
+        const mockHot = createMockHot();
+        const themeObject = createTheme(createValidThemeConfig());
+
+        // eslint-disable-next-line no-unused-vars
+        const manager = new ThemeManager({
+          hot: mockHot,
+          themeObject,
+        });
+
+        // Simulate React re-mounting the same themeObject on multiple updateSettings calls.
+        // Before the fix, each update() added another listener without removing the previous one.
+        manager.update(themeObject);
+        manager.update(themeObject);
+        manager.update(themeObject);
+
+        mockHot.render.mockClear();
+
+        themeObject.setColorScheme('dark');
+
+        // With the fix, only one listener is active — render called exactly once.
+        // Without the fix, render would be called N times (once per accumulated subscription).
+        expect(mockHot.render).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

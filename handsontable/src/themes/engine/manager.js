@@ -41,6 +41,13 @@ export class ThemeManager {
   themeConfig;
 
   /**
+   * Unsubscribes from the theme object's change notifications.
+   *
+   * @type {Function|null}
+   */
+  #unsubscribeTheme = null;
+
+  /**
    * The theme manager constructor.
    *
    * @param {object} options - The options object.
@@ -139,7 +146,8 @@ export class ThemeManager {
     this.themeClassName = `${THEME_PREFIX}${this.themeConfig.name}`;
 
     if (typeof themeObject.subscribe === 'function') {
-      themeObject.subscribe((config) => {
+      this.#unsubscribeTheme?.();
+      this.#unsubscribeTheme = themeObject.subscribe((config) => {
         if (!this.hot?.stylesHandler) {
           return;
         }
@@ -176,6 +184,7 @@ export class ThemeManager {
    * Destroys the theme manager.
    */
   destroy() {
+    this.#unsubscribeTheme?.();
     this.unmount();
     this.hot.themeManager = null;
   }
