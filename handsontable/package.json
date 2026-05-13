@@ -17,7 +17,7 @@
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node scripts/run.mjs typecheck",
     "clean": "node scripts/run.mjs clean",
     "lint": "node scripts/run.mjs --parallel lint",
     "lint:fix": "node scripts/run.mjs --sequential lint:fix",

@@ -103,6 +103,11 @@
       "deps": [],
       "mode": "inherit"
     },
+    "typecheck": {
+      "cmd": "tsc --noEmit",
+      "deps": [],
+      "mode": "inherit"
+    },
 
     "test:unit.jest": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest",
@@ -207,7 +212,7 @@
     },
     "lint": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint", "lint:stylelint"]
+      "tasks": ["lint:eslint", "lint:stylelint", "typecheck"]
     },
     "lint:fix": {
       "before": ["build:styles"],
