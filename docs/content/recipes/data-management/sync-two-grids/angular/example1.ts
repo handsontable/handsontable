@@ -42,12 +42,18 @@ const normalizePlanLabel = (plan: MasterRow['plan']): string => {
   return typeof plan === 'string' ? plan.toUpperCase() : 'N/A';
 };
 
+const normalizeCustomer = (firstName: string | null, lastName: string | null): string =>
+  [firstName, lastName].filter(Boolean).join(' ');
+
+const normalizeMonthlyRevenue = (seats: number | null, pricePerSeat: number | null): string =>
+  `$${((seats ?? 0) * (pricePerSeat ?? 0)).toFixed(2)}`;
+
 const toDetailRow = (row: MasterRow): DetailRow => ({
-  customer: `${row.firstName} ${row.lastName}`,
+  customer: normalizeCustomer(row.firstName, row.lastName),
   plan: normalizePlanLabel(row.plan),
   seats: row.seats,
-  monthlyRevenue: `$${(row.seats * row.pricePerSeat).toFixed(2)}`,
-  lastActive: row.lastActive,
+  monthlyRevenue: normalizeMonthlyRevenue(row.seats, row.pricePerSeat),
+  lastActive: row.lastActive ?? '',
 });
 
 const DETAIL_COLUMN_MAP: Record<keyof DetailRow, number> = {
@@ -87,17 +93,15 @@ export class AppComponent {
     columns: [
       { data: 'firstName', type: 'text', width: 120 },
       { data: 'lastName', type: 'text', width: 120 },
-      { data: 'plan', type: 'dropdown', source: ['Starter', 'Team', 'Business', 'Enterprise'], width: 110 },
+      { data: 'plan', type: 'dropdown', source: ['Starter', 'Team', 'Business', 'Enterprise'], width: 130 },
       { data: 'seats', type: 'numeric', width: 70 },
       { data: 'pricePerSeat', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 105 },
-      { data: 'lastActive', type: 'date', dateFormat: 'YYYY-MM-DD', correctFormat: true, width: 110 },
+      { data: 'lastActive', type: 'date', dateFormat: 'YYYY-MM-DD', correctFormat: true, width: 130 },
     ],
     rowHeaders: true,
     height: 260,
     width: '100%',
     autoWrapRow: true,
-    manualColumnResize: true,
-    dropdownMenu: true,
     stretchH: 'all',
     afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
       if (!changes || (source as string) === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
@@ -134,7 +138,7 @@ export class AppComponent {
     colHeaders: ['Customer', 'Plan', 'Seats', 'Monthly revenue', 'Last active'],
     columns: [
       { data: 'customer', readOnly: true, width: 170 },
-      { data: 'plan', readOnly: true, width: 110 },
+      { data: 'plan', readOnly: true, width: 130 },
       { data: 'seats', readOnly: true, type: 'numeric', width: 70 },
       { data: 'monthlyRevenue', readOnly: true, width: 130 },
       { data: 'lastActive', readOnly: true, width: 110 },
@@ -143,7 +147,6 @@ export class AppComponent {
     height: 260,
     width: '100%',
     autoWrapRow: true,
-    manualColumnResize: true,
     stretchH: 'all',
   };
 }
