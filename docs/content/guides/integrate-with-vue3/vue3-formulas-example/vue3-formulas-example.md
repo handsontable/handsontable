@@ -15,6 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
+
 In this tutorial, you will integrate the Formulas plugin (powered by HyperFormula) with Handsontable in a Vue 3 application.
 
 [[toc]]
@@ -31,12 +32,14 @@ When using HyperFormula with Vue 3, never let Vue make the HyperFormula instance
 Vue's proxying interferes with the internal state of the engine and leads to subtle bugs and performance issues.
 
 Wrap the instance with `markRaw()`:
+
 ```js
-import { markRaw } from 'vue';
-import { HyperFormula } from 'hyperformula';
+import { markRaw } from "vue";
+import { HyperFormula } from "hyperformula";
 
 const hfInstance = markRaw(HyperFormula.buildEmpty());
 ```
+
 This keeps the engine untouched and ensures it behaves exactly as intended.
 
 ::: example #example1 :vue3 --html 1 --js 2
@@ -48,29 +51,50 @@ This keeps the engine untouched and ensures it behaves exactly as intended.
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`formulas`](@/api/options.md#formulas)
-- Core methods:
-  - [`getPlugin()`](@/api/core.md#getplugin)
-- Hooks:
-  - [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate)
-  - [`afterNamedExpressionAdded`](@/api/hooks.md#afternamedexpressionadded)
-  - [`afterNamedExpressionRemoved`](@/api/hooks.md#afternamedexpressionremoved)
-  - [`afterSheetAdded`](@/api/hooks.md#aftersheetadded)
-  - [`afterSheetRemoved`](@/api/hooks.md#aftersheetremoved)
-  - [`afterSheetRenamed`](@/api/hooks.md#aftersheetrenamed)
-- Plugins:
-  - [`Formulas`](@/api/formulas.md)
+<div class="boxes-list">
+
+- [formulas](@/api/options.md#formulas)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getPlugin()](@/api/core.md#getplugin)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterFormulasValuesUpdate](@/api/hooks.md#afterformulasvaluesupdate)
+- [afterNamedExpressionAdded](@/api/hooks.md#afternamedexpressionadded)
+- [afterNamedExpressionRemoved](@/api/hooks.md#afternamedexpressionremoved)
+- [afterSheetAdded](@/api/hooks.md#aftersheetadded)
+- [afterSheetRemoved](@/api/hooks.md#aftersheetremoved)
+- [afterSheetRenamed](@/api/hooks.md#aftersheetrenamed)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Formulas](@/api/formulas.md)
+
+</div>
 
 ## What you learned
 
