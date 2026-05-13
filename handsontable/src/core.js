@@ -1252,6 +1252,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   // Editor saves always accept the new value regardless of the original cell type (#3234)
                   if (source === 'edit') {
                     pushData = true;
+                    value = deepClone(value);
                   }
 
                 } else if (orgValue !== null) {

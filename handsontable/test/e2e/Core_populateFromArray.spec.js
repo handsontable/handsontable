@@ -155,6 +155,22 @@ describe('Core_populateFromArray', () => {
     expect(getDataAtCell(0, 0)).toEqual({ id: 10, name: 'New' });
   });
 
+  it('should deep-clone an object set into a null cell when source is "edit" (#3234)', async() => {
+    handsontable({
+      data: [[null]],
+    });
+
+    const newValue = { id: 10, name: 'New' };
+
+    await populateFromArray(0, 0, [[newValue]], null, null, 'edit');
+
+    // Mutate the original object after the call — cell data must be isolated
+    newValue.id = 999;
+    newValue.name = 'Mutated';
+
+    expect(getDataAtCell(0, 0)).toEqual({ id: 10, name: 'New' });
+  });
+
   it('should NOT populate object value with a different schema when source is not "edit" (#3234)', async() => {
     let output = null;
 
