@@ -1,6 +1,6 @@
-import mainIcons from '../../../src/themes/static/variables/icons/main';
-import mainColors from '../../../src/themes/static/variables/colors/main';
-import mainTokens from '../../../src/themes/static/variables/tokens/main';
+import mainIcons from '../../themes/static/variables/icons/main';
+import mainColors from '../../themes/static/variables/colors/main';
+import mainTokens from '../../themes/static/variables/tokens/main';
 
 describe('Core.themeManager', () => {
   const id = 'testContainer';

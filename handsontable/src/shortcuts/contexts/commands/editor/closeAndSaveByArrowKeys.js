@@ -1,4 +1,4 @@
-import { EDITOR_STATE } from '../../../editors/baseEditor';
+import { EDITOR_STATE } from '../../../../editors/baseEditor';
 
 export const command = {
   name: 'editorCloseAndSaveByArrowKeys',

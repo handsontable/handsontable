@@ -13,7 +13,7 @@ import { BasePlugin } from '../base';
 import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
-import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   HEADER_SPAN_CLASS,
   getNextSortOrder,

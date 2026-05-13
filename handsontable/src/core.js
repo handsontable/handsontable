@@ -52,7 +52,7 @@ import {
 } from './focusManager';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
-import { registerAllShortcutContexts } from './shortcutContexts';
+import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';

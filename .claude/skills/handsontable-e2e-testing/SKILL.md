@@ -153,8 +153,19 @@ A generic `test/E2ERunner.html` (no run ID) is always regenerated alongside the 
 
 ## Test location
 
-- **Plugin tests:** `src/plugins/{name}/__tests__/*.spec.js`
-- **Core/hook tests:** `test/e2e/` and `test/e2e/hooks/`
+All E2E tests live under `src/` alongside the code they test. **The spec filename must match the method, hook, or setting name exactly** (e.g., `getSourceData.spec.js`, `afterChange.spec.js`, `height.spec.js`).
+
+| What is tested | Directory |
+|---|---|
+| Core method (e.g., `getSourceData`) | `src/__tests__/core/<methodName>.spec.js` |
+| Hook (e.g., `afterChange`) | `src/__tests__/hooks/<hookName>.spec.js` |
+| Setting (e.g., `height`) | `src/__tests__/settings/<settingName>.spec.js` |
+| Plugin | `src/plugins/{name}/__tests__/*.spec.js` |
+| Keyboard shortcuts | `src/shortcuts/__tests__/keyboardShortcuts/<name>.spec.js` |
+| i18n | `src/i18n/__tests__/<name>.spec.js` |
+| Mobile-specific | `src/__tests__/mobile/<name>.spec.js` |
+
+Do not add new E2E tests to `test/e2e/` — that directory is no longer the home for spec files.
 
 ## Gold standard test organization
 

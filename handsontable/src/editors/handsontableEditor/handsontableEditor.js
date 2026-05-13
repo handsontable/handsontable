@@ -4,7 +4,7 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
-import { EDITOR_EDIT_GROUP } from '../../shortcutContexts';
+import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
