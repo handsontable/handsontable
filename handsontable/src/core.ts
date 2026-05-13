@@ -1278,6 +1278,12 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
                     pushData = true;
                   }
 
+                  // Editor saves always accept the new value regardless of the original cell type (#3234)
+                  if (source === 'edit') {
+                    pushData = true;
+                    value = deepClone(value);
+                  }
+
                 } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : ((orgValue as Record<string, unknown>)[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (((value as Record<string, unknown>)[0] || value) as object));
@@ -1285,6 +1291,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
                   // Allow overwriting values with the same object-based schema or any array-based schema.
                   if (
                     hasValueSetter || // If the cell has a value setter, we don't know the value schema (it's dynamic)
+                    source === 'edit' || // Editor saves always accept the new value regardless of schema (#3234)
                     (
                       isObjectEqual(orgValueSchema as object, valueSchema as object) ||
                       (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))

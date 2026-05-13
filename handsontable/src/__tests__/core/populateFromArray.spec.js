@@ -119,6 +119,78 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[1, 3, 12, 'test'], [1, 4, 13, 'test']]);
   });
 
+  it('should populate object value with a different schema when source is "edit" (#3234)', async() => {
+    let output = null;
+
+    handsontable({
+      data: [
+        [{ id: 1, name: 'Alice' }],
+        [{ id: 2, name: 'Bob' }],
+      ],
+      afterChange(changes) {
+        output = changes;
+      }
+    });
+
+    // Different schema: original has {id, name}, new value has {category, dept}
+    await populateFromArray(0, 0, [[{ category: 'Sales', dept: 'Finance' }]], null, null, 'edit');
+
+    expect(output).toEqual([[0, 0, { id: 1, name: 'Alice' }, { category: 'Sales', dept: 'Finance' }]]);
+    expect(getDataAtCell(0, 0)).toEqual({ category: 'Sales', dept: 'Finance' });
+  });
+
+  it('should populate object value into a null cell when source is "edit" (#3234)', async() => {
+    let output = null;
+
+    handsontable({
+      data: [[null], [{ id: 1, name: 'Alice' }]],
+      afterChange(changes) {
+        output = changes;
+      }
+    });
+
+    await populateFromArray(0, 0, [[{ id: 10, name: 'New' }]], null, null, 'edit');
+
+    expect(output).toEqual([[0, 0, null, { id: 10, name: 'New' }]]);
+    expect(getDataAtCell(0, 0)).toEqual({ id: 10, name: 'New' });
+  });
+
+  it('should deep-clone an object set into a null cell when source is "edit" (#3234)', async() => {
+    handsontable({
+      data: [[null]],
+    });
+
+    const newValue = { id: 10, name: 'New' };
+
+    await populateFromArray(0, 0, [[newValue]], null, null, 'edit');
+
+    // Mutate the original object after the call — cell data must be isolated
+    newValue.id = 999;
+    newValue.name = 'Mutated';
+
+    expect(getDataAtCell(0, 0)).toEqual({ id: 10, name: 'New' });
+  });
+
+  it('should NOT populate object value with a different schema when source is not "edit" (#3234)', async() => {
+    let output = null;
+
+    handsontable({
+      data: [
+        [{ id: 1, name: 'Alice' }],
+        [{ id: 2, name: 'Bob' }],
+      ],
+      afterChange(changes) {
+        output = changes;
+      }
+    });
+
+    // Schema mismatch with paste source — should still be blocked (existing behaviour)
+    await populateFromArray(0, 0, [[{ category: 'Sales', dept: 'Finance' }]], null, null, 'CopyPaste.paste');
+
+    expect(output).toBeNull();
+    expect(getDataAtCell(0, 0)).toEqual({ id: 1, name: 'Alice' });
+  });
+
   it('should populate value for array data when array selection is changed to empty', async() => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
