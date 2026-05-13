@@ -554,4 +554,36 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       |===:===:===:===|
       `).toBeMatchToSelectionPattern();
   });
+
+  it('should not scroll the viewport when Ctrl+click deselects a cell layer', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 200,
+      height: 200,
+    });
+
+    await selectCells([
+      [0, 0, 0, 0],
+      [40, 0, 40, 0],
+    ]);
+
+    await scrollViewportTo({
+      row: 40,
+      col: 0,
+    });
+
+    const scrollTopBefore = topOverlay().getScrollPosition();
+    const scrollLeftBefore = inlineStartOverlay().getScrollPosition();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(40, 0));
+
+    expect(topOverlay().getScrollPosition()).toBe(scrollTopBefore);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(scrollLeftBefore);
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 0,0 from: 0,0 to: 0,0',
+    ]);
+  });
 });
