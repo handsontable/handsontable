@@ -507,4 +507,8 @@ This document does not constitute a legal certification of conformance. Use of t
 
 ## Related
 
+<div class="boxes-list gray">
+
 - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
+
+</div>
