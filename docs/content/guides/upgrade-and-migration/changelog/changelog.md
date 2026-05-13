@@ -27,7 +27,7 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 17.1.0-rc9
+## 17.1.0-rc10
 
 Released on May 13th, 2026
 
@@ -102,6 +102,7 @@ For more information about this release, see:
 - Fixed setDataAtRowProp interrupting edits in progress [#4305](https://github.com/handsontable/handsontable/issues/4305)
 - React: Fixed the React wrapper skipping settings updates when `dataSchema` or `columns` contains non-plain objects such as `Date`, `Set`, or `Map`. [#12207](https://github.com/handsontable/handsontable/pull/12207)
 - Fixed the loading overlay resetting the grid scroll position to the top when no cell was selected before showing the overlay. [#12514](https://github.com/handsontable/handsontable/issues/12514)
+- Fixed a memory leak caused by ThemeManager not unsubscribing from the shared theme object on destroy. [#12570](https://github.com/handsontable/handsontable/issues/12570)
 
 #### Security
 - Patched critical and high dependency vulnerabilities across the monorepo and aligned Angular wrapper tooling for compatibility. [#12237](https://github.com/handsontable/handsontable/issues/12237)
