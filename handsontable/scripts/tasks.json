@@ -52,11 +52,11 @@
       "deps": []
     },
     "build:umd": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles", "build:themes-css"]
     },
     "build:umd.min": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles.min", "build:themes-css.min"]
     },
     "build:es": {
@@ -182,7 +182,7 @@
     },
 
     "watch:rspack": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.ts",
       "deps": [],
       "mode": "inherit"
     },
