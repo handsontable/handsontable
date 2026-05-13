@@ -1,4 +1,4 @@
-import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { stopImmediatePropagation } from '../../../../helpers/dom/event';
 
 export const command = {
   name: 'editorOpen',
