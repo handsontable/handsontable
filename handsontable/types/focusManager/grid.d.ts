@@ -10,4 +10,6 @@ export interface GridFocusManager {
   focusElement(element: HTMLElement, focusOptions?: FocusOptions): boolean;
   focusOnHighlightedCell(): void;
   refocusToEditorTextarea(delay: number): void;
+  suspend(): void;
+  resume(): void;
 }

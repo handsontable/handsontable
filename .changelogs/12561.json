@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `getSourceData()` and `getData()` returning incorrect values when the `formulas` plugin was used together with an initial `manualColumnMove` (or `manualRowMove`) configuration.",
+  "type": "fixed",
+  "issueOrPR": 12561,
+  "breaking": false,
+  "framework": "none"
+}

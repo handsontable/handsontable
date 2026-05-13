@@ -40,7 +40,7 @@ function cellKey(row: number, col: number): string {
   template: `
     <div class="row-validation-demo">
       <div class="row-validation-demo__toolbar">
-        <button type="button" class="row-validation-demo__submit" (click)="onSubmit()">
+        <button type="button" (click)="onSubmit()">
           Submit orders
         </button>
       </div>

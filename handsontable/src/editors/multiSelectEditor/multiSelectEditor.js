@@ -5,7 +5,7 @@ import { SelectedItemsController } from './controllers/selectedItemsController';
 import { addClass, setAttribute } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
 import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
-import { EDITOR_EDIT_GROUP } from '../../shortcutContexts/constants';
+import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts/constants';
 import {
   getValuesIntersection,
   parseStringifiedValue,

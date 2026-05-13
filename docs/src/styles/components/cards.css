@@ -100,6 +100,64 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Info card — clickable card for multi-line metadata (e.g. third-party licenses).
+ * Used inside .ht-card-grid alongside .ht-link-card.
+ * ------------------------------------------------------------------------- */
+.ht-info-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-right: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  margin-top: 0;
+  position: relative;
+  transition: background-color 0.15s;
+}
+
+.ht-info-card:hover {
+  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+}
+
+.ht-info-card p {
+  margin: 0;
+}
+
+.ht-info-card .name {
+  font-weight: 600;
+  color: var(--sl-color-white);
+  margin-bottom: 0.25rem;
+}
+
+.ht-info-card .name .desc {
+  font-weight: 400;
+  color: var(--sl-color-gray-2);
+}
+
+.ht-info-card .meta {
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-3);
+  line-height: 1.6;
+}
+
+.ht-info-card .url {
+  margin-top: 0.625rem;
+  font-size: 0.875rem;
+}
+
+.ht-info-card .url a {
+  color: var(--sl-color-text-accent);
+  word-break: break-all;
+  text-decoration: none;
+}
+
+/* Clickable overlay for the whole card (same a11y pattern as .ht-link-card). */
+.ht-info-card .url a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* -------------------------------------------------------------------------
  * Icon pack grid — spreadsheet-style boxes, 4 per row
  * ------------------------------------------------------------------------- */
 .icons-wrapper {

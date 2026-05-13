@@ -108,6 +108,83 @@ describe('Hook', () => {
       expect(result).toBe(999);
     });
 
+    it('should pass the property string as the col argument with array-of-objects data source', async() => {
+      const colArgs = [];
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          { data: 'id', type: 'numeric' },
+          { data: 'name' },
+          { data: 'lastName' }
+        ],
+        beforeValidate(value, row, col) {
+          colArgs.push(col);
+        }
+      });
+
+      await setDataAtCell(2, 0, 99);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(colArgs.length).toBeGreaterThan(0);
+      expect(colArgs[0]).toBe('id');
+    });
+
+    it('should pass a visual column index (not property function) as the col argument with function-based data accessor', async() => {
+      const colArgs = [];
+
+      function model(opts) {
+        const priv = { id: undefined, name: undefined };
+
+        for (const key in opts) {
+          if (Object.prototype.hasOwnProperty.call(opts, key)) {
+            priv[key] = opts[key];
+          }
+        }
+
+        return {
+          attr(attr, val) {
+            if (typeof val === 'undefined') {
+              return priv[attr];
+            }
+
+            priv[attr] = val;
+
+            return this;
+          }
+        };
+      }
+
+      function property(attr) {
+        return (row, value) => row.attr(attr, value);
+      }
+
+      handsontable({
+        data: [
+          model({ id: 1, name: 'Ted' }),
+          model({ id: 2, name: 'Frank' }),
+        ],
+        dataSchema: model,
+        columns: [
+          { data: property('id'), type: 'numeric' },
+          { data: property('name') },
+        ],
+        beforeValidate(value, row, col) {
+          colArgs.push(col);
+        }
+      });
+
+      await setDataAtCell(0, 0, 99);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(colArgs.length).toBeGreaterThan(0);
+      colArgs.forEach((col) => {
+        expect(typeof col).toBe('number');
+      });
+    });
+
     it('beforeValidate can manipulate value when columns is a function', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
       let result = null;

@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import './example1.css';
 
 registerAllModules();
 
@@ -60,7 +59,6 @@ const ExampleComponent = () => {
     const rows = [...rowSet].sort((a, b) => b - a);
 
     rows.forEach((row) => hot.alter('remove_row', row, 1));
-    setSelectedRow(null);
   };
 
   const handleMoveUp = () => {
@@ -109,23 +107,25 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="row-toolbar" ref={toolbarRef}>
-        <button type="button" onClick={handleAddRow}>
-          Add Row
-        </button>
-        <button type="button" onClick={handleDeleteRow} disabled={selectedRow === null}>
-          Delete Row
-        </button>
-        <button type="button" onClick={handleMoveUp} disabled={selectedRow === null || isFirst}>
-          Move Up
-        </button>
-        <button
-          type="button"
-          onClick={handleMoveDown}
-          disabled={selectedRow === null || isLast}
-        >
-          Move Down
-        </button>
+      <div className="example-controls-container" ref={toolbarRef}>
+        <div className="controls">
+          <button type="button" onClick={handleAddRow}>
+            Add Row
+          </button>
+          <button type="button" onClick={handleDeleteRow} disabled={selectedRow === null}>
+            Delete Row
+          </button>
+          <button type="button" onClick={handleMoveUp} disabled={selectedRow === null || isFirst}>
+            Move Up
+          </button>
+          <button
+            type="button"
+            onClick={handleMoveDown}
+            disabled={selectedRow === null || isLast}
+          >
+            Move Down
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}
