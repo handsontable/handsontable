@@ -1,15 +1,18 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'app-example8',
+  encapsulation: ViewEncapsulation.None,
   template: `
-    <div style="margin-bottom: 16px; display: flex; gap: 10px;">
-      <button (click)="showDialog()">Show Dialog</button>
-      <button (click)="hideDialog()">Hide Dialog</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" (click)="showDialog()">Show Dialog</button>
+        <button type="button" (click)="hideDialog()">Hide Dialog</button>
+      </div>
     </div>
     <hot-table
       #hotTable

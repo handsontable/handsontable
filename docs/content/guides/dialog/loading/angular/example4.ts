@@ -29,12 +29,15 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
       [data]="hotData"
     >
     </hot-table>
-    <div style="margin-top: 16px; display: flex; gap: 10px">
-      <button 
-        [disabled]="isLoading" 
-        (click)="loadData()"
-        [innerHTML]="buttonText">
-      </button>
+    <div class="example-controls-container example-controls-below-grid">
+      <div class="controls">
+        <button
+          type="button"
+          [disabled]="isLoading"
+          (click)="loadData()"
+          [innerHTML]="buttonText">
+        </button>
+      </div>
     </div>
     <div style="margin-top: 16px;">
       <p style="padding: 0; font-size: var(--sl-text-xs); color: var(--sl-color-gray-3);">This is a demonstration of how to use the Loading plugin with pagination in external container. You need to create pagination overlay manually, after that you can use the <code>afterLoadingShow</code> and <code>afterLoadingHide</code> hooks to show and hide the pagination container overlay.</p>

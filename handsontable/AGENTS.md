@@ -52,8 +52,8 @@ For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), en
 - ALL `it()` callbacks in spec files MUST be `async`
 - HOT API calls MUST be `await`-ed
 - E2E helpers are globals (no imports): `handsontable()`, `selectCell()`, `getDataAtCell()`, `createSpreadsheetData()`
-- Targeted unit: `npm run test:unit --testPathPattern=<regex>` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`)
-- Targeted e2e: `npm run test:e2e --testPathPattern=<regex>` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
+- Targeted unit: `npm run test:unit --testPathPattern=<regex>` or `npm run test:unit -- --testPathPattern=<regex>` (regex matched against file paths, e.g. `filters`, `ghostTable.unit`)
+- Targeted e2e: `npm run test:e2e --testPathPattern=<regex>` or `npm run test:e2e -- --testPathPattern=<regex>` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
 - E2E with theme: `npm run test:e2e --testPathPattern=<regex> --theme=horizon` (themes: `classic`, `main`, `horizon`; default: `main`)
 - **Rebuild before E2E:** E2E runner loads `dist/handsontable.js` - rebuild after changing `src/`
 
@@ -111,6 +111,18 @@ npm run lint
 | Compiled CSS | `styles/` |
 
 Two build variants: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). The E2E runner loads `dist/handsontable.js` - rebuild after changing `src/`.
+
+## Build and test scripts
+
+All `npm run` entries are thin shims that delegate to `scripts/run.mjs`. Task commands and pipeline dependency graphs live in `scripts/tasks.json` - edit that file to add, remove, or modify any build/lint/test step. The dispatcher supports three modes:
+
+```
+node scripts/run.mjs <task>                     # run one task
+node scripts/run.mjs --sequential <pipeline>    # run pipeline steps in order
+node scripts/run.mjs --parallel <pipeline>      # run pipeline with DAG scheduler (used by build)
+```
+
+Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks.json`. `--testPathPattern=` and `--theme=` are also propagated as env vars to all pipeline tasks so the dump step and Puppeteer compute the same run-ID filename.
 
 ## For Deeper Guidance
 

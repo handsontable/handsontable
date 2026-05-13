@@ -5,7 +5,7 @@ import { randomString } from '../../helpers/string';
 import * as C from '../../i18n/constants';
 import { NotificationUI } from './ui';
 import { FOCUS_SOURCES } from '../../focusManager/constants';
-import { GRID_SCOPE } from '../../shortcutContexts/constants';
+import { GRID_SCOPE } from '../../shortcuts/contexts/constants';
 import {
   NOTIFICATION_CLASS_NAME,
   NOTIFICATION_POSITIONS,

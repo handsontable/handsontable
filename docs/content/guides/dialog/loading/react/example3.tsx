@@ -113,10 +113,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div style={{ marginBottom: '16px' }}>
-        <button id="loadData" onClick={loadData} disabled={isLoading}>
-          {data.length > 0 ? 'Reload Data' : 'Load Data'}
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" id="loadData" onClick={loadData} disabled={isLoading}>
+            {data.length > 0 ? 'Reload Data' : 'Load Data'}
+          </button>
+        </div>
       </div>
       <Table hotTableRef={hotTableRef} data={data} />
     </>

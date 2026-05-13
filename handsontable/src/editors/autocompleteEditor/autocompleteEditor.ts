@@ -162,17 +162,26 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         const { filteringCaseSensitive, allowHtml, locale } = this.cellProperties;
         const query = this.query;
-        let cellValue = stringify(value);
-        let indexOfMatch;
-        let match;
+        const cellValue = stringify(value);
 
-        if (cellValue && !allowHtml) {
-          indexOfMatch = filteringCaseSensitive === true ?
-            cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale as string).indexOf((query as string).toLocaleLowerCase(locale as string));
+        if (allowHtml) {
+          TD.innerHTML = cellValue;
+        } else if (cellValue && (query as string).length > 0) {
+          const indexOfMatch = filteringCaseSensitive === true ?
+            cellValue.indexOf(query as string) : cellValue.toLocaleLowerCase(locale as string).indexOf((query as string).toLocaleLowerCase(locale as string));
 
           if (indexOfMatch !== -1) {
-            match = cellValue.substr(indexOfMatch, (query as string).length);
-            cellValue = cellValue.replace(match, `<strong>${match}</strong>`);
+            const match = cellValue.slice(indexOfMatch, indexOfMatch + (query as string).length);
+            const { rootDocument } = hotInstance;
+
+            TD.innerHTML = '';
+            TD.appendChild(rootDocument.createTextNode(cellValue.slice(0, indexOfMatch)));
+
+            const strong = rootDocument.createElement('strong');
+
+            strong.textContent = match;
+            TD.appendChild(strong);
+            TD.appendChild(rootDocument.createTextNode(cellValue.slice(indexOfMatch + (query as string).length)));
           }
         }
 
@@ -185,8 +194,6 @@ export class AutocompleteEditor extends HandsontableEditor {
             ['id', `${this.htEditor.rootElement.id}_${row}-${col}`],
           ]);
         }
-
-        TD.innerHTML = cellValue;
       },
       afterSelectionEnd: (startRow: number, startCol: number) => {
         if (rootInstanceAriaTagsEnabled) {

@@ -84,7 +84,11 @@ When `onRowsUpdate` is set, Handsontable skips stacking certain edit sources on 
 
 ## More in this guide
 
+<div class="boxes-list">
+
 - [Server-side data](@/guides/getting-started/server-side-data/server-side-data.md)
 - [Migrate from client-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md)
 - [Configuration and query parameters](@/guides/getting-started/server-side-data/server-side-data-configuration.md)
 - [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md)
+
+</div>

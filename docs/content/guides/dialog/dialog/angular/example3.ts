@@ -103,7 +103,7 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
+      content: '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button type="button" class="hot-doc-dialog-html-button" id="example3-button">Hide dialog</button>',
       closable: true,
     },
   };

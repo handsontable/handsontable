@@ -282,25 +282,14 @@ async function parseFile(file: File): Promise<ParsedPayload> {
   throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
 }
 
-let pending: ParsedPayload | null = null;
+const SAMPLE_CSV = `Product,Category,In stock,Price
+Widget A,Hardware,true,19.99
+Widget B,Hardware,false,24.5
+Service Pack,Services,true,0`;
 
-function renderHeaderPreview(listEl: HTMLElement, headers: string[]): void {
-  listEl.innerHTML = '';
-  for (const h of headers) {
-    const li = document.createElement('li');
-
-    li.textContent = h;
-    listEl.appendChild(li);
-  }
-}
-
-function columnsFromHeaders(headers: string[]): GridSettings['columns'] {
-  if (!pending) {
-    return headers.map((data) => ({ data, type: 'text' as const }));
-  }
-
+function columnsFromHeaders(headers: string[], rows: ParsedRow[]): GridSettings['columns'] {
   return headers.map((data) => {
-    const values = pending?.rows
+    const values = rows
       .map((row) => row[data])
       .filter((v): v is string | number | boolean => v !== null);
 
@@ -317,42 +306,34 @@ function columnsFromHeaders(headers: string[]): GridSettings['columns'] {
 }
 
 const gridContainer = document.querySelector<HTMLElement>('#example1')!;
+const emptyEl = document.querySelector<HTMLElement>('#import-empty');
 const errEl = document.querySelector<HTMLElement>('#import-error');
-const previewEl = document.querySelector<HTMLElement>('#import-preview');
-const headerListEl = document.querySelector<HTMLElement>('#import-header-list');
-const applyBtn = document.querySelector<HTMLButtonElement>('#import-apply');
 const fileInput = document.querySelector<HTMLInputElement>('#import-file');
 const dropzone = document.querySelector<HTMLElement>('#import-dropzone');
-const sampleTa = document.querySelector<HTMLTextAreaElement>('#import-sample-csv');
-const sampleBtn = document.querySelector<HTMLButtonElement>('#import-parse-sample');
+const sampleBtn = document.querySelector<HTMLButtonElement>('#import-load-sample');
 
-const initialSettings: GridSettings = {
-  data: [],
-  columns: [],
-  colHeaders: [],
-  rowHeaders: true,
-  height: 'auto',
-  width: '100%',
-  licenseKey: 'non-commercial-and-evaluation',
-};
+let hot: Handsontable | null = null;
 
-const hot = new Handsontable(gridContainer, initialSettings);
+function loadIntoGrid({ headers, rows }: ParsedPayload): void {
+  const columns = columnsFromHeaders(headers, rows);
 
-function clearPendingPreview(): void {
-  pending = null;
-
-  if (previewEl) {
-    previewEl.hidden = true;
-  }
-}
-
-function setPending(payload: ParsedPayload): void {
-  pending = payload;
-  clearError(errEl);
-
-  if (headerListEl && previewEl) {
-    renderHeaderPreview(headerListEl, payload.headers);
-    previewEl.hidden = false;
+  if (!hot) {
+    if (emptyEl) {
+      emptyEl.hidden = true;
+    }
+    gridContainer.hidden = false;
+    hot = new Handsontable(gridContainer, {
+      data: rows,
+      columns,
+      colHeaders: headers,
+      rowHeaders: true,
+      height: 'auto',
+      width: '100%',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  } else {
+    hot.updateSettings({ colHeaders: headers, columns });
+    hot.loadData(rows);
   }
 }
 
@@ -372,37 +353,11 @@ async function handleFile(file: File | null | undefined): Promise<void> {
   try {
     const payload = await parseFile(file);
 
-    setPending(payload);
+    loadIntoGrid(payload);
   } catch (e) {
-    clearPendingPreview();
-
     showError(errEl, e instanceof Error ? e.message : String(e));
   }
 }
-
-applyBtn?.addEventListener('click', () => {
-  clearError(errEl);
-
-  if (!pending) {
-    showError(errEl, 'Nothing to load. Import a file first.');
-
-    return;
-  }
-
-  const { headers, rows } = pending;
-
-  hot.updateSettings({
-    colHeaders: headers,
-    columns: columnsFromHeaders(headers),
-  });
-  hot.loadData(rows);
-
-  if (previewEl) {
-    previewEl.hidden = true;
-  }
-
-  pending = null;
-});
 
 fileInput?.addEventListener('change', () => {
   const f = fileInput.files?.[0];
@@ -433,12 +388,10 @@ sampleBtn?.addEventListener('click', async () => {
 
   try {
     const PapaRef = await ensurePapa();
-    const text = sampleTa?.value ?? '';
-    const payload = parseCsvText(text, PapaRef);
+    const payload = parseCsvText(SAMPLE_CSV, PapaRef);
 
-    setPending(payload);
+    loadIntoGrid(payload);
   } catch (e) {
-    clearPendingPreview();
     showError(errEl, e instanceof Error ? e.message : String(e));
   }
 });

@@ -159,6 +159,27 @@ export class MergeCells extends BasePlugin {
    * @type {{before: Function, after: Function}}
    */
   #cellRenderer = createMergeCellRenderer(this);
+  /**
+   * Snapshot of physical column indexes per merge, captured before a column move/freeze.
+   *
+   * @type {Map<MergedCellCoords, number[]> | null}
+   */
+  #columnMoveSnapshot = null;
+  /**
+   * Snapshot of physical row indexes per merge, captured before a row move.
+   *
+   * @type {Map<MergedCellCoords, number[]> | null}
+   */
+  #rowMoveSnapshot = null;
+  /**
+   * `true` once the plugin has finished its initial settings ingestion. Used to skip
+   * snapshot/translate during the bootstrap-time column reorders fired by
+   * `manualColumnMove: [...]` initial config, where the merge collection is empty
+   * anyway but we want to be defensive against future hook-order changes.
+   *
+   * @type {boolean}
+   */
+  #initialized = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -207,6 +228,14 @@ export class MergeCells extends BasePlugin {
     this.addHook('afterRemoveCol', (...args: unknown[]) => (this.#onAfterRemoveCol as Function)(...args));
     this.addHook('afterCreateRow', (...args: unknown[]) => (this.#onAfterCreateRow as Function)(...args));
     this.addHook('afterRemoveRow', (...args: unknown[]) => (this.#onAfterRemoveRow as Function)(...args));
+    this.addHook('beforeColumnMove', (...args: unknown[]) => (this.#onBeforeColumnMove as Function)(...args));
+    this.addHook('afterColumnMove', (...args: unknown[]) => (this.#onAfterColumnMove as Function)(...args));
+    this.addHook('beforeRowMove', (...args: unknown[]) => (this.#onBeforeRowMove as Function)(...args));
+    this.addHook('afterRowMove', (...args: unknown[]) => (this.#onAfterRowMove as Function)(...args));
+    this.addHook('beforeColumnFreeze', (...args: unknown[]) => (this.#onBeforeColumnFreeze as Function)(...args));
+    this.addHook('afterColumnFreeze', (...args: unknown[]) => (this.#onAfterColumnFreeze as Function)(...args));
+    this.addHook('beforeColumnUnfreeze', (...args: unknown[]) => (this.#onBeforeColumnFreeze as Function)(...args));
+    this.addHook('afterColumnUnfreeze', (...args: unknown[]) => (this.#onAfterColumnFreeze as Function)(...args));
     this.addHook('afterChange', (...args: unknown[]) => (this.#onAfterChange as Function)(...args));
     this.addHook('beforeDrawBorders', (...args: unknown[]) => (this.#onBeforeDrawAreaBorders as Function)(...args));
     this.addHook('afterDrawSelection', (...args: unknown[]) => (this.#onAfterDrawSelection as Function)(...args));
@@ -231,6 +260,7 @@ export class MergeCells extends BasePlugin {
     this.clearCollections();
     this.unregisterShortcuts();
     this.hot.render();
+    this.#initialized = false;
     super.disablePlugin();
   }
 
@@ -246,6 +276,7 @@ export class MergeCells extends BasePlugin {
     this.enablePlugin();
 
     this.generateFromSettings();
+    this.#initialized = true;
 
     super.updatePlugin();
   }
@@ -613,6 +644,7 @@ export class MergeCells extends BasePlugin {
   #onAfterInit() {
     this.generateFromSettings();
     this.hot.render();
+    this.#initialized = true;
   }
 
   /**
@@ -1335,7 +1367,130 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
-   * `afterChange` hook callback.
+   * `beforeColumnMove` hook callback. Captures physical column positions of every merge
+   * so they can be translated onto the new visual order in `afterColumnMove`.
+   *
+   * @param {number[]} columns Visual column indexes being moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move is allowed.
+   */
+  #onBeforeColumnMove(_columns: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) {
+    if (!movePossible || !this.#initialized) {
+      this.#columnMoveSnapshot = null;
+
+      return;
+    }
+
+    this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
+  }
+
+  /**
+   * `afterColumnMove` hook callback. Translates merges using the pre-move snapshot
+   * and the now-updated column index mapping. Auto-splits merges whose physical
+   * columns are no longer contiguous.
+   *
+   * @param {number[]} columns Visual column indexes that were moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move was allowed.
+   * @param {boolean} orderChanged Whether the move actually changed the order.
+   */
+  #onAfterColumnMove(_columns: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean) {
+    const snapshot = this.#columnMoveSnapshot;
+
+    this.#columnMoveSnapshot = null;
+
+    if (!orderChanged || !snapshot) {
+      return;
+    }
+
+    this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
+    this.hot.render();
+  }
+
+  /**
+   * `beforeRowMove` hook callback. Captures physical row positions of every merge
+   * so they can be translated onto the new visual order in `afterRowMove`.
+   *
+   * @param {number[]} rows Visual row indexes being moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move is allowed.
+   */
+  #onBeforeRowMove(_rows: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) {
+    if (!movePossible || !this.#initialized) {
+      this.#rowMoveSnapshot = null;
+
+      return;
+    }
+
+    this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
+  }
+
+  /**
+   * `afterRowMove` hook callback. Translates merges using the pre-move snapshot
+   * and the now-updated row index mapping. Auto-splits merges whose physical
+   * rows are no longer contiguous.
+   *
+   * @param {number[]} rows Visual row indexes that were moved.
+   * @param {number} finalIndex Drop target visual index.
+   * @param {number} dropIndex Drop index from drag.
+   * @param {boolean} movePossible Whether the move was allowed.
+   * @param {boolean} orderChanged Whether the move actually changed the order.
+   */
+  #onAfterRowMove(_rows: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean) {
+    const snapshot = this.#rowMoveSnapshot;
+
+    this.#rowMoveSnapshot = null;
+
+    if (!orderChanged || !snapshot) {
+      return;
+    }
+
+    this.mergedCellsCollection.translateAfterAxisMove('row', snapshot);
+    this.hot.render();
+  }
+
+  /**
+   * `beforeColumnFreeze` / `beforeColumnUnfreeze` hook callback. `manualColumnFreeze`
+   * reorders the visual sequence directly through the column index mapper, so we
+   * need to translate merges through it the same way as for `manualColumnMove`.
+   *
+   * @param {number} column Visual column index being frozen/unfrozen.
+   * @param {boolean} performed Whether the (un)freeze will actually run.
+   */
+  #onBeforeColumnFreeze(_column: number, performed: boolean) {
+    if (!performed || !this.#initialized) {
+      this.#columnMoveSnapshot = null;
+
+      return;
+    }
+
+    this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
+  }
+
+  /**
+   * `afterColumnFreeze` / `afterColumnUnfreeze` hook callback.
+   *
+   * @param {number} column Visual column index that was frozen/unfrozen.
+   * @param {boolean} performed Whether the (un)freeze actually ran.
+   */
+  #onAfterColumnFreeze(_column: number, performed: boolean) {
+    const snapshot = this.#columnMoveSnapshot;
+
+    this.#columnMoveSnapshot = null;
+
+    if (!performed || !snapshot) {
+      return;
+    }
+
+    this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
+    this.hot.render();
+  }
+
+  /**
+   * `afterChange` hook callback. Used to propagate merged cells after using Autofill.
    *
    * @param {Array} changes The changes array.
    * @param {string} source Determines the source of the change.

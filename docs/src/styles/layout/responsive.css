@@ -55,6 +55,6 @@
 
   /* Remove Starlight's extra header padding for the mobile menu button (we use our own sub-bar) */
   [data-has-sidebar] .header {
-    padding-inline-end: 0.5rem !important;
+    padding-inline-end: 0.25rem !important;
   }
 }

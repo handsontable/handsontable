@@ -2,7 +2,7 @@
 import { IntersectionObserverMock } from './__mocks__/intersectionObserverMock';
 import { ResizeObserverMock } from './__mocks__/resizeObserverMock';
 import { mockDocumentClientDimensions } from './__mocks__/documentClientDimensions';
-import { initCSSPolyfill } from '../../../handsontable/test/__mocks__/cssPolyfill';
+import { initCSSPolyfill, clearComputedStyleCache } from '../../../handsontable/test/__mocks__/cssPolyfill';
 import { initCryptoPolyfill } from '../../../handsontable/test/__mocks__/cryptoPolyfill';
 
 beforeAll(() => {
@@ -16,6 +16,10 @@ beforeAll(() => {
   initCSSPolyfill();
   // Initialize crypto polyfill so Handsontable's randomString() works in jsdom
   initCryptoPolyfill();
+});
+
+beforeEach(() => {
+  clearComputedStyleCache();
 });
 
 afterAll(() => {

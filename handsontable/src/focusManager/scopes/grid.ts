@@ -4,7 +4,7 @@ import {
   getMostTopStartPosition,
   getMostBottomEndPosition,
 } from '../utils/utils';
-import { GRID_SCOPE, GRID_GROUP, GRID_TAB_NAVIGATION_GROUP } from '../../shortcutContexts';
+import { GRID_SCOPE, GRID_GROUP, GRID_TAB_NAVIGATION_GROUP } from '../../shortcuts/contexts';
 
 /**
  * @param {Handsontable} hot The Handsontable instance.

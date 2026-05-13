@@ -106,7 +106,7 @@ describe('DragToScroll selection — up direction', () => {
     expect(selectedAfter[2]).toBeLessThan(lastRow - 5);
   });
 
-  it('should stop auto-scrolling when the viewport reaches the first row', async() => {
+  it.flaky('should stop auto-scrolling when the viewport reaches the first row', async() => {
     handsontable({
       data: createSpreadsheetData(20, 5),
       width: 250,

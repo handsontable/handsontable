@@ -44,7 +44,7 @@
 
 kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview kbd) {
   display: inline-block;
-  margin: 0 0.375rem;
+  margin:  0.25rem 0.375rem;
   padding: 0.075rem 0.375rem;
   font-family: var(--sl-font);
   font-size: var(--sl-text-xs);
@@ -71,10 +71,6 @@ kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview
   border: none;
   box-shadow: none;
   font-size: inherit;
-}
-
-td:has(kbd) {
-  white-space: nowrap;
 }
 
 

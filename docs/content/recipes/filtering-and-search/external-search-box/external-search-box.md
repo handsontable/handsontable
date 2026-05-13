@@ -26,10 +26,11 @@ In this tutorial, you will add a search input outside Handsontable that highligh
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
 @[code](@/content/recipes/filtering-and-search/external-search-box/javascript/example1.js)
 @[code](@/content/recipes/filtering-and-search/external-search-box/javascript/example1.ts)
+@[code](@/content/recipes/filtering-and-search/external-search-box/javascript/example1.css)
 
 :::
 
@@ -37,8 +38,9 @@ In this tutorial, you will add a search input outside Handsontable that highligh
 
 ::: only-for react
 
-::: example #example1 :react-advanced --js 1 --ts 2
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
 
+@[code](@/content/recipes/filtering-and-search/external-search-box/react/example1.css)
 @[code](@/content/recipes/filtering-and-search/external-search-box/react/example1.jsx)
 @[code](@/content/recipes/filtering-and-search/external-search-box/react/example1.tsx)
 :::

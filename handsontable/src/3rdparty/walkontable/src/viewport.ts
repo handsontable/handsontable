@@ -513,7 +513,7 @@ class Viewport {
    *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleRowsAlreadyRendered(proposedFullyVisibleRowsCalculator: RowsCalculationType, proposedPartiallyVisibleRowsCalculator: RowsCalculationType) {
-    if (!this.rowsVisibleCalculator) {
+    if (!this.rowsVisibleCalculator || !this.rowsRenderCalculator) {
       return false;
     }
 
@@ -579,7 +579,7 @@ class Viewport {
     proposedFullyVisibleColumnsCalculator: ColumnsCalculationType,
     proposedPartiallyVisibleColumnsCalculator: ColumnsCalculationType
   ) {
-    if (!this.columnsVisibleCalculator) {
+    if (!this.columnsVisibleCalculator || !this.columnsRenderCalculator) {
       return false;
     }
 

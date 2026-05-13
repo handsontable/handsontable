@@ -82,12 +82,64 @@
   /* min-height prevents layout shift; actual height is set by Handsontable */
 }
 
+/* Demo text inputs: in column flex, a second input after a wide Handsontable sibling can
+   shrink (flex min-width: auto). Stretch to match the row above. Per-example CSS may cap with
+   max-width (e.g. 20rem). */
+.hot-example .placeholder-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Focus scopes: debug readout (DEV-1610, hooks-aligned) ───────────────
+   Matches events-and-hooks event log rhythm (#example1_events in example-specific.css).
+   No horizontal negative margin here: .hot-example uses overflow:hidden and would clip. */
+
+.hot-example strong:has(+ table.debug-table) {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-color-white);
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0 0.35rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+}
+
+.hot-example table.debug-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-sizing: border-box;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+  background: transparent;
+}
+
+.hot-example table.debug-table td {
+  padding: 0.25rem 0.5rem !important;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  color: var(--sl-color-gray-2);
+}
+
+.hot-example table.debug-table td:last-child {
+  font-family: var(--sl-font-mono, ui-monospace, monospace);
+}
+
+.hot-example table.debug-table td code {
+  font-size: var(--sl-text-xs);
+}
+
 /* ── Example controls (buttons, inputs, labels, output) ───────────────── */
 
 .example-controls-container {
   margin: 0 -1rem 0.75rem;
   padding: 0 1rem 0.75rem;
   border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+/* Controls placed under the grid (default strip has margin-top: 0 for toolbar-at-top demos) */
+.example-controls-container.example-controls-below-grid {
+  margin-top: 0.75rem;
 }
 
 .example-controls-container .controls {
@@ -99,7 +151,8 @@
 
 .example-controls-container button,
 .example-controls-container .button,
-.hot-example-preview > button {
+.hot-example-preview > button,
+.ht-dialog__content button.hot-doc-dialog-html-button {
   appearance: none;
   display: inline-flex;
   align-items: center;
@@ -119,15 +172,22 @@
 
 .example-controls-container button:hover,
 .example-controls-container .button:hover,
-.hot-example-preview > button:hover {
+.hot-example-preview > button:hover,
+.ht-dialog__content button.hot-doc-dialog-html-button:hover {
   background: var(--sl-color-gray-5);
   color: var(--sl-color-white);
 }
 
 .example-controls-container button:active,
 .example-controls-container .button:active,
-.hot-example-preview > button:active {
+.hot-example-preview > button:active,
+.ht-dialog__content button.hot-doc-dialog-html-button:active {
   background: var(--sl-color-gray-4);
+}
+
+/* Dialog guide: HTML `content` buttons sit below paragraph copy */
+.ht-dialog__content button.hot-doc-dialog-html-button {
+  margin-top: 0.5rem;
 }
 
 .example-controls-container select {
@@ -405,7 +465,7 @@
   box-shadow: none;
   list-style: none;
   margin: -1px 0 0;
-  min-width: 8rem;
+  min-width: 100%;
   overflow-y: auto;
   padding: 0;
   position: absolute;

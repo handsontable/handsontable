@@ -150,6 +150,30 @@ describe('manualColumnResize (RTL)', () => {
 
         expect($handle.css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
       });
+
+      it('should position the resize handle at the visible column header start edge after horizontal scroll with `preventOverflow: \'horizontal\'` (#10403)', async() => {
+        handsontable({
+          layoutDirection,
+          data: createSpreadsheetData(5, 20),
+          colHeaders: true,
+          manualColumnResize: true,
+          preventOverflow: 'horizontal',
+          width: 400,
+          height: 200,
+        });
+
+        await scrollViewportHorizontally(300);
+        await waitForNextAnimationFrames(2);
+
+        const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(8)');
+
+        $headerTH.simulate('mouseover');
+
+        const $handle = $('.manualColumnResizer');
+
+        expect($handle.offset().left)
+          .toEqual($headerTH.offset().left - ($handle.outerWidth() / 2) + 1);
+      });
     });
   });
 });

@@ -289,7 +289,7 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
   // initialize it with the `'internal-use-in-handsontable'` license key
   licenseKey: 'internal-use-in-handsontable',
 });
- 
+
 const configurationOptions: GridSettings = {
   formulas: {
     engine: hyperformulaInstance
@@ -722,7 +722,9 @@ For more information about named expressions, refer to the
 
 ## View the explainer video
 
-<iframe width="100%" src="https://www.youtube.com/embed/JJXUmACTDdk" style="border:0"></iframe>
+<div class="docs-video-embed">
+  <iframe src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+</div>
 
 ## Known limitations
 

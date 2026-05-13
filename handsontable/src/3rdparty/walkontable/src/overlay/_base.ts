@@ -218,11 +218,19 @@ export class Overlay {
    */
   getRelativeCellPositionWithinWindow(onFixedRowTop: boolean, onFixedColumn: boolean, elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
     const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); // todo refactoring: DEMETER
+    // `preventOverflow` can force this overlay onto the window (see `makeClone()`) while the
+    // master still scrolls its holder. `wtRootElement` does not move with that scroll, so
+    // subtract the master scroll from spreader-based offsets to align with the visible cell (#10403).
+    const masterScrollsHolder = this.wot.wtOverlays.scrollableElement !== this.domBindings.rootWindow;
+    const tableScrollPosition = {
+      horizontal: masterScrollsHolder ? this.wot.wtOverlays.inlineStartOverlay.getScrollPosition() : 0,
+      vertical: masterScrollsHolder ? this.wot.wtOverlays.topOverlay.getScrollPosition() : 0,
+    };
     let horizontalOffset = 0;
     let verticalOffset = 0;
 
     if (!onFixedColumn) {
-      horizontalOffset = spreaderOffset.start;
+      horizontalOffset = spreaderOffset.start - tableScrollPosition.horizontal;
 
     } else {
       let absoluteRootElementStartPosition = absoluteRootElementPosition.left;
@@ -241,7 +249,7 @@ export class Overlay {
       verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
 
     } else {
-      verticalOffset = spreaderOffset.top;
+      verticalOffset = spreaderOffset.top - tableScrollPosition.vertical;
     }
 
     return {

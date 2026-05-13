@@ -37,6 +37,23 @@
   margin-top: 20px;
 }
 
+/* Responsive 16:9 embed (YouTube and similar) */
+.sl-markdown-content .docs-video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 20px;
+}
+
+.sl-markdown-content .docs-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  margin-top: 0;
+}
+
 /* -------------------------------------------------------------------------
  * Constrain entire page layout to ~1500px on wide viewports
  * ------------------------------------------------------------------------- */
@@ -49,6 +66,7 @@
 header.header {
   height: auto !important;
   padding-block: 1rem 0.5rem;
+  padding-right: 8px;
   z-index: 10100;
 }
 

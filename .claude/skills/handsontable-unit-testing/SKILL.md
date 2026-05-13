@@ -40,10 +40,8 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 ## Run Commands
 
 - **All unit tests:** `npm run test:unit --prefix handsontable`
-- **Targeted:** `npm run test:unit --testPathPattern=<regex> --prefix handsontable` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
-- **Example:** `npm run test:unit --testPathPattern=filters --prefix handsontable`
-
-**Important:** Do NOT use `--` before `--testPathPattern`. The flag is consumed by npm's script runner, not by Jest directly.
+- **Targeted:** `npm run test:unit --prefix handsontable --testPathPattern=<regex>` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Example:** `npm run test:unit --prefix handsontable --testPathPattern=filters`
 
 ## Large Dataset Testing
 

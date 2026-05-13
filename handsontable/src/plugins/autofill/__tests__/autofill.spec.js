@@ -1510,6 +1510,67 @@ describe('AutoFill', () => {
         expect(getDataAtCol(2)).toEqual(dataAtBaseCol);
       });
     });
+
+    it('should allow autofill from a previously autofilled cell when the source object has undefined-valued properties', async() => {
+      // Regression test for https://github.com/handsontable/handsontable/issues/3744.
+      // deepClone used JSON round-trip which dropped undefined-valued properties.
+      // The clone then had a different duckSchema than the original, blocking the second autofill.
+      handsontable({
+        data: [
+          [{ id: 1, label: undefined }, { id: 2, label: 'B' }, { id: 3, label: 'C' }],
+        ],
+      });
+
+      // First autofill: drag from (0,0) to (0,1) — fills B1 with a clone of A1
+      await selectCell(0, 0);
+      simulateFillHandleDrag($(getCell(0, 1, true)));
+
+      expect(getSourceDataAtCell(0, 1)).toEqual({ id: 1, label: undefined });
+
+      // Second autofill: drag from (0,1) to (0,2) — previously blocked because
+      // the clone at (0,1) was missing the `label` key after the JSON round-trip.
+      await selectCell(0, 1);
+      simulateFillHandleDrag($(getCell(0, 2, true)));
+
+      expect(getSourceDataAtCell(0, 2)).toEqual({ id: 1, label: undefined });
+    });
+
+    it('should allow chained autofill when object cells have different key insertion order due to undefined properties', async() => {
+      // Regression test for https://github.com/handsontable/handsontable/issues/3744.
+      // After deepClone + afterChange re-adds missing properties in different order,
+      // isObjectEqual via JSON.stringify returned false due to key-order sensitivity.
+      handsontable({
+        data: [
+          [{ a: 1, b: undefined, c: 3 }, { a: 2, b: 4, c: 5 }, { a: 6, b: 7, c: 8 }],
+        ],
+        afterChange(changes) {
+          if (!changes) {
+            return;
+          }
+
+          changes.forEach(([row, col,, newVal]) => {
+            if (newVal && typeof newVal === 'object' && !Object.prototype.hasOwnProperty.call(newVal, 'b')) {
+              // Simulate re-adding the missing undefined property in a different key order
+              const restored = { b: undefined, a: newVal.a, c: newVal.c };
+
+              this.setSourceDataAtCell(row, col, restored);
+            }
+          });
+        },
+      });
+
+      // First autofill: (0,0) → (0,1): clone loses `b`, afterChange adds it back in different order
+      await selectCell(0, 0);
+      simulateFillHandleDrag($(getCell(0, 1, true)));
+
+      // Second autofill: (0,1) → (0,2): previously blocked — key order mismatch in schema comparison
+      await selectCell(0, 1);
+      simulateFillHandleDrag($(getCell(0, 2, true)));
+
+      const result = getSourceDataAtCell(0, 2);
+
+      expect(result).toEqual({ a: 1, b: undefined, c: 3 });
+    });
   });
 
   describe('fill border position', () => {

@@ -108,14 +108,27 @@ export function deepExtend(target: Record<string, unknown>, extension: Record<st
 
 /**
  * Perform deep clone of an object.
- * WARNING! Only clones JSON properties. Will cause error when `obj` contains a function, Date, etc.
+ * Clones plain objects, arrays, and primitives recursively, preserving undefined-valued properties.
+ * Non-plain objects (Date, RegExp, Map, Set, class instances) are returned by reference.
  *
  * @param {object} obj An object that will be cloned.
  * @returns {object}
  */
-export function deepClone(obj: object): object {
-  if (typeof obj === 'object') {
-    return JSON.parse(JSON.stringify(obj));
+export function deepClone(obj: unknown): unknown {
+  if (Array.isArray(obj)) {
+    return obj.map(item => deepClone(item));
+  }
+  if (obj instanceof Date) {
+    return new Date(obj.getTime());
+  }
+  if (typeof obj === 'object' && obj !== null) {
+    const result: Record<string, unknown> = {};
+
+    for (const key of Object.keys(obj as object)) {
+      result[key] = deepClone((obj as Record<string, unknown>)[key]);
+    }
+
+    return result;
   }
 
   return obj;
@@ -208,7 +221,26 @@ export function mixin(Base: Function, ...mixins: object[]): object {
  * @returns {boolean}
  */
 export function isObjectEqual(object1: object | unknown[], object2: object | unknown[]): boolean {
-  return JSON.stringify(object1) === JSON.stringify(object2);
+  const stableStringify = (obj: unknown): string => {
+    if (obj === undefined) {
+      return 'undefined';
+    }
+    if (Array.isArray(obj)) {
+      return `[${obj.map(stableStringify).join(',')}]`;
+    }
+    if (obj instanceof Date) {
+      return JSON.stringify(obj);
+    }
+    if (obj !== null && typeof obj === 'object') {
+      const pairs = Object.keys(obj as object).sort().map(key => `${JSON.stringify(key)}:${stableStringify((obj as Record<string, unknown>)[key])}`);
+
+      return `{${pairs.join(',')}}`;
+    }
+
+    return JSON.stringify(obj);
+  };
+
+  return stableStringify(object1) === stableStringify(object2);
 }
 
 /**

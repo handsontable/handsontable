@@ -20,11 +20,13 @@ const INITIAL_DATA: string[][] = [
   imports: [HotTableModule],
   selector: 'example1-row-operations',
   template: `
-    <div class="row-toolbar" #toolbar>
-      <button type="button" (click)="addRow()">Add Row</button>
-      <button type="button" (click)="deleteRow()" [disabled]="selectedRow === null">Delete Row</button>
-      <button type="button" (click)="moveUp()" [disabled]="selectedRow === null || selectedRow === 0">Move Up</button>
-      <button type="button" (click)="moveDown()" [disabled]="selectedRow === null || isLastRow">Move Down</button>
+    <div class="example-controls-container" #toolbar>
+      <div class="controls">
+        <button type="button" (click)="addRow()">Add Row</button>
+        <button type="button" (click)="deleteRow()" [disabled]="selectedRow === null">Delete Row</button>
+        <button type="button" (click)="moveUp()" [disabled]="selectedRow === null || selectedRow === 0">Move Up</button>
+        <button type="button" (click)="moveDown()" [disabled]="selectedRow === null || isLastRow">Move Down</button>
+      </div>
     </div>
     <hot-table [data]="hotData" [settings]="gridSettings"></hot-table>
   `,
@@ -101,7 +103,6 @@ export class AppComponent {
     const rows = [...rowSet].sort((a, b) => b - a);
 
     rows.forEach((row) => hot.alter('remove_row', row, 1));
-    this.selectedRow = null;
   }
 
   moveUp(): void {

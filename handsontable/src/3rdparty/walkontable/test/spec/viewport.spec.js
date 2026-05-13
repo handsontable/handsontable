@@ -417,4 +417,35 @@ describe('WalkontableViewport', () => {
       expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
     });
   });
+
+  describe('hidden container initialization', () => {
+    it('should not throw when draw(fastDraw=true) is called after container transitions from hidden to visible', async() => {
+      createDataArray(18, 18);
+      spec().$wrapper.width(250).height(170).css('display', 'none');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // draw() is interrupted — rowsRenderCalculator and columnsRenderCalculator stay undefined
+      wt.draw();
+
+      expect(wt.wtViewport.rowsRenderCalculator).toBeUndefined();
+      expect(wt.wtViewport.columnsRenderCalculator).toBeUndefined();
+
+      // Simulate accordion/tab opening: container becomes visible
+      spec().$wrapper.css('display', '');
+
+      // draw(true) triggers areAllProposedVisibleRowsAlreadyRendered() and
+      // areAllProposedVisibleColumnsAlreadyRendered() — both must not throw despite
+      // rowsRenderCalculator / columnsRenderCalculator being undefined;
+      // the guards force a full redraw which sets both calculators
+      expect(() => wt.draw(true)).not.toThrow();
+
+      expect(wt.wtViewport.rowsRenderCalculator).toBeDefined();
+      expect(wt.wtViewport.columnsRenderCalculator).toBeDefined();
+    });
+  });
 });

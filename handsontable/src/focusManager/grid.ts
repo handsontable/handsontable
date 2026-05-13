@@ -71,6 +71,15 @@ export class FocusGridManager {
    * @type {boolean}
    */
   #hasSelectionChange = false;
+  /**
+   * Flag indicating whether automatic focus management for the upcoming selection cycle is suspended.
+   * When `true`, `#focusCell` does not steal an externally focused input/textarea/select element,
+   * and `#focusEditorElement` does not refocus the editor textarea. Set with `suspend()` and
+   * cleared with `resume()`. Mirrors the `viewportScroller.suspend()/resume()` pattern.
+   *
+   * @type {boolean}
+   */
+  #isSuspended = false;
 
   constructor(hotInstance: HotInstance) {
     this.#hot = hotInstance;
@@ -138,6 +147,29 @@ export class FocusGridManager {
    */
   setRefocusElementGetter(getRefocusElementFunction: () => HTMLElement): void {
     this.#refocusElementGetter = getRefocusElementFunction;
+  }
+
+  /**
+   * Suspend automatic focus management until `resume()` is called. While suspended, an
+   * externally focused element (input, textarea, select, or contenteditable located outside
+   * Handsontable) keeps the browser focus when a programmatic selection is applied, and the
+   * editor textarea is not auto-refocused (`imeFastEdit`). Used by `selectCells()` when
+   * `changeListener` is `false`. Note: an `activeElement` of `<body>` or an `<iframe>` element
+   * does not count as an external input - in those cases focus still moves to the cell.
+   *
+   * @since 17.0.2
+   */
+  suspend() {
+    this.#isSuspended = true;
+  }
+
+  /**
+   * Resume automatic focus management. Pair with a prior `suspend()` call.
+   *
+   * @since 17.0.2
+   */
+  resume() {
+    this.#isSuspended = false;
   }
 
   /**
@@ -263,8 +295,21 @@ export class FocusGridManager {
    * Manage the browser's focus after each cell selection change.
    */
   #focusCell() {
+    // Capture the suspend flag synchronously. `#getSelectedCell` may defer its callback via
+    // `afterScroll` when the target cell is not yet rendered, by which time `resume()` may
+    // have run. Reading `this.#isSuspended` inside the callback would miss the suspend window.
+    const suspended = this.#isSuspended;
+
     this.#getSelectedCell((selectedCell) => {
       const { activeElement } = this.#hot.rootDocument;
+
+      // When focus management is suspended and an external focusable element (outside Handsontable)
+      // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
+      // This preserves the focus of inputs that live next to the grid when a programmatic selection
+      // is applied via `selectCells(..., changeListener = false)`. See #10038.
+      if (suspended && activeElement && isOutsideInput(activeElement)) {
+        return;
+      }
 
       // Blurring the `activeElement` removes the unwanted border around the focusable element (#6877)
       // and resets the `document.activeElement` property. The blurring should happen only when the
@@ -282,6 +327,19 @@ export class FocusGridManager {
    * Manage the browser's focus after cell selection end.
    */
   #focusEditorElement() {
+    // When focus management is suspended and an external focusable element (outside Handsontable)
+    // currently owns the browser focus, skip the `imeFastEdit` refocus - otherwise the debounced
+    // `select()` on the editor textarea would steal that external focus. When no external element
+    // owns focus, fall through so the default `imeFastEdit` behavior still moves focus to the
+    // editor textarea (existing per-editor IME support tests rely on this). See #10038.
+    if (this.#isSuspended) {
+      const { activeElement } = this.#hot.rootDocument;
+
+      if (activeElement && isOutsideInput(activeElement)) {
+        return;
+      }
+    }
+
     this.#getSelectedCell((selectedCell) => {
       if (
         this.getFocusMode() === FOCUS_MODES.MIXED &&

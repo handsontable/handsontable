@@ -7,7 +7,7 @@ import ContextMenuUI from './ui/contextMenu';
 import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
 import { TrimmingMap } from '../../translations';
-import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
 
 export const PLUGIN_KEY = 'nestedRows';

@@ -25,8 +25,8 @@ export function autocompleteValidator(this: Record<string, unknown>, value: unkn
     valueToValidate = '';
   }
 
-  if (this.allowEmpty && valueToValidate === '') {
-    callback(true);
+  if (valueToValidate === '') {
+    callback(!!this.allowEmpty);
 
     return;
   }

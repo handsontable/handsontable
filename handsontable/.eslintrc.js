@@ -19,6 +19,12 @@ module.exports = {
   rules: {
     'compat/compat': 'error',
     'handsontable/no-native-error-throw': 'error',
+    'no-restricted-syntax': [
+      'error',
+      'ForInStatement',
+      'LabeledStatement',
+      'WithStatement',
+    ],
     'handsontable/restricted-module-imports': [
       'error',
       '**/cellTypes',

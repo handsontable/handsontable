@@ -1,16 +1,16 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable/base';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { BaseRenderer } from 'handsontable/renderers';
 
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
 
 const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
 
   td.style.backgroundColor = 'green';
 };

@@ -22,26 +22,25 @@ if (!exampleContainer) {
 }
 
 const searchWrapper = document.createElement('div');
-searchWrapper.style.marginBottom = '12px';
+searchWrapper.className = 'example-controls-container';
+
+const controlsDiv = document.createElement('div');
+controlsDiv.className = 'controls';
 
 const searchLabel = document.createElement('label');
 searchLabel.setAttribute('for', 'external-search-input');
 searchLabel.textContent = 'Search rows';
-searchLabel.style.display = 'block';
-searchLabel.style.marginBottom = '4px';
 
 const searchInput = document.createElement('input');
 searchInput.id = 'external-search-input';
-searchInput.type = 'text';
+searchInput.type = 'search';
 searchInput.placeholder = 'Type to highlight matching cells...';
-searchInput.style.width = '100%';
-searchInput.style.boxSizing = 'border-box';
-searchInput.style.padding = '8px';
 
 const hotContainer = document.createElement('div');
 
-searchWrapper.appendChild(searchLabel);
-searchWrapper.appendChild(searchInput);
+controlsDiv.appendChild(searchLabel);
+controlsDiv.appendChild(searchInput);
+searchWrapper.appendChild(controlsDiv);
 exampleContainer.appendChild(searchWrapper);
 exampleContainer.appendChild(hotContainer);
 
