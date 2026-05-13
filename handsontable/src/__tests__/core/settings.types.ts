@@ -1,6 +1,6 @@
 import Handsontable, { CellCoords } from 'handsontable';
 import HyperFormula from 'hyperformula';
-import { CellProperties } from '../../../types/settings';
+import type { CellProperties } from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
