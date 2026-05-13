@@ -1747,7 +1747,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isFunction(validator)) {
       // eslint-disable-next-line no-param-reassign
-      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
+      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.visualCol, source);
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
@@ -1757,11 +1757,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
           // eslint-disable-next-line no-param-reassign
           valid = instance
-            .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+            .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.visualCol, source);
           cellProperties.valid = valid;
 
           done(valid);
-          instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          instance.runHooks(
+            'postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.visualCol, source
+          );
         });
       });
 
