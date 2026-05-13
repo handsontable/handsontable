@@ -317,10 +317,17 @@ export class FocusGridManager {
    * Manage the browser's focus after cell selection end.
    */
   #focusEditorElement() {
-    // While focus management is suspended, do not refocus the editor textarea (`imeFastEdit`).
-    // Without this guard the debounced refocus would steal the externally focused element. See #10038.
+    // When focus management is suspended and an external focusable element (outside Handsontable)
+    // currently owns the browser focus, skip the `imeFastEdit` refocus - otherwise the debounced
+    // `select()` on the editor textarea would steal that external focus. When no external element
+    // owns focus, fall through so the default `imeFastEdit` behavior still moves focus to the
+    // editor textarea (existing per-editor IME support tests rely on this). See #10038.
     if (this.#isSuspended) {
-      return;
+      const { activeElement } = this.#hot.rootDocument;
+
+      if (activeElement && isOutsideInput(activeElement)) {
+        return;
+      }
     }
 
     this.#getSelectedCell((selectedCell) => {
