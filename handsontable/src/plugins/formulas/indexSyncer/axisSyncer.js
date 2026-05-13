@@ -219,9 +219,50 @@ class AxisSyncer {
   }
 
   /**
+   * Synchronizes the initial axis order with HF engine. When the IndexMapper's sequence is non-identity at
+   * setup time (for example, an initial `manualColumnMove` or `manualRowMove` configuration), HF needs to
+   * reorder its data so that HF visual order matches HOT visual order. Without this sync, downstream code
+   * that translates visual indexes through `getHfIndexFromVisualIndex` reads the wrong cells.
+   *
+   * @private
+   */
+  #syncInitialOrder() {
+    const sequence = this.#indexMapper.getIndexesSequence();
+    const isIdentity = sequence.every((value, index) => value === index);
+
+    if (isIdentity || sequence.length === 0) {
+      return;
+    }
+
+    const engine = this.#indexSyncer.getEngine();
+    const sheetId = this.#indexSyncer.getSheetId();
+
+    if (engine === null || sheetId === null) {
+      this.#indexSyncer.getPostponeAction()(() => this.#syncInitialOrder());
+
+      return;
+    }
+
+    const SYNC_ORDER_CHANGE_METHOD_NAME = `set${toUpperCaseFirst(this.#axis)}Order`;
+    const sheetDimensions = engine.getSheetDimensions(sheetId);
+    const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
+    // HF currently holds data in physical order ([0..n-1] identity). The transformation tells HF where each
+    // currently-held element should move to, so that HF's visual order matches HOT's visual order. For each
+    // current position `i`, the target position is the visual index of physical `i`, i.e. `sequence.indexOf(i)`.
+    const transformation = Array.from({ length: sequence.length }, (_, i) => sequence.indexOf(i));
+
+    for (let i = transformation.length; i < sizeForAxis; i += 1) {
+      transformation.push(i);
+    }
+
+    engine[SYNC_ORDER_CHANGE_METHOD_NAME](sheetId, transformation);
+  }
+
+  /**
    * Initialize the AxisSyncer.
    */
   init() {
+    this.#syncInitialOrder();
     this.#indexesSequence = this.#indexMapper.getIndexesSequence();
   }
 }
