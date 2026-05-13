@@ -24,11 +24,10 @@ In this tutorial, you will add, delete, and reorder rows in Handsontable using e
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+::: example #example1 :hot-recipe --js 1 --ts 2
 
 @[code](@/content/recipes/context-menu/row-operations/javascript/example1.js)
 @[code](@/content/recipes/context-menu/row-operations/javascript/example1.ts)
-@[code](@/content/recipes/context-menu/row-operations/javascript/example1.css)
 
 :::
 
@@ -36,9 +35,8 @@ In this tutorial, you will add, delete, and reorder rows in Handsontable using e
 
 ::: only-for react
 
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+::: example #example1 :react-advanced --js 1 --ts 2
 
-@[code](@/content/recipes/context-menu/row-operations/react/example1.css)
 @[code](@/content/recipes/context-menu/row-operations/react/example1.jsx)
 @[code](@/content/recipes/context-menu/row-operations/react/example1.tsx)
 
@@ -48,11 +46,10 @@ In this tutorial, you will add, delete, and reorder rows in Handsontable using e
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --css 3
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/recipes/context-menu/row-operations/angular/example1.ts)
 @[code](@/content/recipes/context-menu/row-operations/angular/example1.html)
-@[code](@/content/recipes/context-menu/row-operations/angular/example1.css)
 
 :::
 

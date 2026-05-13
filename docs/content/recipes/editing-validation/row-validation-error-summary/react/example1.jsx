@@ -140,11 +140,7 @@ const ExampleComponent = () => {
   return (
     <div className="row-validation-demo">
       <div className="row-validation-demo__toolbar">
-        <button
-          type="button"
-          className="row-validation-demo__submit"
-          onClick={handleSubmit}
-        >
+        <button type="button" onClick={handleSubmit}>
           Submit orders
         </button>
       </div>
@@ -164,7 +160,7 @@ const ExampleComponent = () => {
         afterChange={afterChange}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div>
+      <div className="row-validation-demo__summary" aria-live="polite">
         <p className="row-validation-demo__summary-title">Validation summary</p>
         <ul className="row-validation-demo__summary-list">
           {issues.map((issue) => (

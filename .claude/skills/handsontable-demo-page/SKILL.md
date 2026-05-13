@@ -29,13 +29,7 @@ Use `git log` and `git diff` against the base branch to understand the changes. 
 
 ## Step 2 — Build Handsontable
 
-The PR Build tab loads from `dist/`, so it must be up to date:
-
-```bash
-ls handsontable/dist/handsontable.full.min.js 2>/dev/null || echo "NEEDS BUILD"
-```
-
-If missing or stale, build:
+Always run the build unconditionally — do not check whether `dist/` exists first:
 
 ```bash
 npm run build --prefix handsontable
@@ -103,7 +97,8 @@ Each file is a standalone single-instance page. The nav bar at the top links to 
 
   <script src="https://cdn.jsdelivr.net/npm/handsontable@__RELEASED_VERSION__/dist/handsontable.full.min.js"></script>
   <script>
-    new Handsontable(document.getElementById('hot-container'), {
+    // window.hot is exposed for browser console / DevTools debugging
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
       // === ADAPT THIS CONFIG TO THE TEST CASE ===
       data: Handsontable.helper.createSpreadsheetData(10, 6),
       colHeaders: true,
@@ -165,7 +160,8 @@ Each file is a standalone single-instance page. The nav bar at the top links to 
 
   <script src="dist/handsontable.full.js"></script>
   <script>
-    new Handsontable(document.getElementById('hot-container'), {
+    // window.hot is exposed for browser console / DevTools debugging
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
       // === ADAPT THIS CONFIG TO THE TEST CASE ===
       data: Handsontable.helper.createSpreadsheetData(10, 6),
       colHeaders: true,
@@ -203,7 +199,7 @@ Tailor the Handsontable config block based on what the PR changes:
 **Plugin-specific** — Enable the relevant plugin with settings that exercise the changed code paths. Example for Filters:
 
 ```js
-new Handsontable(document.getElementById('hot-container'), {
+window.hot = new Handsontable(document.getElementById('hot-container'), {
   data: Handsontable.helper.createSpreadsheetData(20, 6),
   colHeaders: true,
   rowHeaders: true,
@@ -213,7 +209,7 @@ new Handsontable(document.getElementById('hot-container'), {
   height: 400,
   themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
-});
+})
 ```
 
 **Touch/mobile testing** — Keep the grid width responsive (`width: '100%'`). Mention touch-specific steps in the instructions.
