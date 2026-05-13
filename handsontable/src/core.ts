@@ -4823,7 +4823,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       viewportScroller.suspend();
     }
     if (changeListener === false) {
-      focusGridManager.suspend();
+      (focusGridManager.suspend as Function)();
     }
 
     let wasSelected;
@@ -4834,7 +4834,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       // Always release the suspended state even if `selection.selectCells` throws on malformed
       // coordinates. Otherwise the flags would leak across subsequent calls.
       viewportScroller.resume();
-      focusGridManager.resume();
+      (focusGridManager.resume as Function)();
     }
 
     if (wasSelected && changeListener) {

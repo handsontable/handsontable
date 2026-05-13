@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../../common';
 import { shortcutsEditorContext } from './editor';
 import { shortcutsGridContext } from './grid';
 

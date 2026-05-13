@@ -29,7 +29,7 @@ registerLanguageDictionary(DEFAULT_DICTIONARY);
  * @param {object} dictionary Dictionary for specific language (optional if first parameter has already dictionary).
  * @returns {object}
  */
-export function registerLanguageDictionary(languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>) {
+export function registerLanguageDictionary(languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>): object {
   let languageCode: string = languageCodeOrDictionary as string;
   let dictionaryObject = dictionary;
 
@@ -43,7 +43,7 @@ export function registerLanguageDictionary(languageCodeOrDictionary: string | Re
   registerGloballyLanguageDictionary(languageCode, deepClone(dictionaryObject));
 
   // We do not allow user to work with dictionary by reference, it can cause lot of bugs.
-  return deepClone(dictionaryObject);
+  return deepClone(dictionaryObject) as object;
 }
 
 /**
@@ -65,12 +65,12 @@ function extendLanguageDictionary(languageCode: string, dictionary: Record<strin
  * @param {string} languageCode Language code.
  * @returns {object} Object with constants representing identifiers for translation (as keys) and corresponding translation phrases (as values).
  */
-export function getLanguageDictionary(languageCode: string) {
+export function getLanguageDictionary(languageCode: string): object | null {
   if (!hasLanguageDictionary(languageCode)) {
     return null;
   }
 
-  return deepClone(getGlobalLanguageDictionary(languageCode));
+  return deepClone(getGlobalLanguageDictionary(languageCode)) as object;
 }
 
 /**

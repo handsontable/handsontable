@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../../common';
 
 export const command = {
   name: 'populateSelectedCellsData',

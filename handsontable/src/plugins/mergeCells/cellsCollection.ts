@@ -530,14 +530,14 @@ class MergedCellsCollection {
    * @param {'column' | 'row'} axis Which axis the upcoming reorder targets.
    * @returns {Map<MergedCellCoords, number[]>} Map of merge -> physical indexes along the axis.
    */
-  capturePhysicalSpans(axis) {
+  capturePhysicalSpans(axis: 'column' | 'row'): Map<MergedCellCoords, number[]> {
     const isColumn = axis === 'column';
     const indexProp = isColumn ? 'col' : 'row';
     const spanProp = isColumn ? 'colspan' : 'rowspan';
     const toPhysical = isColumn
-      ? visualIndex => this.hot.toPhysicalColumn(visualIndex)
-      : visualIndex => this.hot.toPhysicalRow(visualIndex);
-    const snapshot = new Map();
+      ? (visualIndex: number) => this.hot.toPhysicalColumn(visualIndex)
+      : (visualIndex: number) => this.hot.toPhysicalRow(visualIndex);
+    const snapshot = new Map<MergedCellCoords, number[]>();
 
     this.mergedCells.forEach((merge) => {
       const physicals = [];
@@ -558,7 +558,7 @@ class MergedCellsCollection {
    * @param {number[]} sortedAscending Already-sorted ascending visual indexes.
    * @returns {Array<{ start: number, length: number }>}
    */
-  static detectContiguousRuns(sortedAscending) {
+  static detectContiguousRuns(sortedAscending: number[]): Array<{ start: number; length: number }> {
     if (sortedAscending.length === 0) {
       return [];
     }
@@ -594,16 +594,16 @@ class MergedCellsCollection {
    * @param {'column' | 'row'} axis Axis that was reordered.
    * @param {Map<MergedCellCoords, number[]>} snapshot Snapshot taken before the reorder.
    */
-  translateAfterAxisMove(axis, snapshot) {
+  translateAfterAxisMove(axis: 'column' | 'row', snapshot: Map<MergedCellCoords, number[]>): void {
     const isColumn = axis === 'column';
     const indexProp = isColumn ? 'col' : 'row';
     const spanProp = isColumn ? 'colspan' : 'rowspan';
     const otherIndexProp = isColumn ? 'row' : 'col';
     const otherSpanProp = isColumn ? 'rowspan' : 'colspan';
     const toVisual = isColumn
-      ? physicalIndex => this.hot.toVisualColumn(physicalIndex)
-      : physicalIndex => this.hot.toVisualRow(physicalIndex);
-    const replacements = [];
+      ? (physicalIndex: number) => this.hot.toVisualColumn(physicalIndex)
+      : (physicalIndex: number) => this.hot.toVisualRow(physicalIndex);
+    const replacements: Array<{ row: number; col: number; rowspan: number; colspan: number }> = [];
 
     this.mergedCells.forEach((merge) => {
       const physicals = snapshot.get(merge);
@@ -621,7 +621,7 @@ class MergedCellsCollection {
 
       const newVisuals = physicals
         .map(toVisual)
-        .filter(visualIndex => visualIndex !== null && visualIndex >= 0)
+        .filter((visualIndex): visualIndex is number => visualIndex !== null && visualIndex >= 0)
         .sort((a, b) => a - b);
 
       if (newVisuals.length === 0) {
@@ -640,7 +640,7 @@ class MergedCellsCollection {
           return;
         }
 
-        replacements.push(replacement);
+        replacements.push(replacement as { row: number; col: number; rowspan: number; colspan: number });
       });
     });
 

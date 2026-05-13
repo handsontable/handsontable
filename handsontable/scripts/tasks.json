@@ -51,6 +51,10 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "build:types": {
+      "cmd": "tsc -p tsconfig.build-types.json",
+      "deps": []
+    },
     "build:umd": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles", "build:themes-css"]
@@ -209,7 +213,8 @@
         "build:themes-umd.min",
         "build:umd",
         "build:umd.min",
-        "build:es"
+        "build:es",
+        "build:types"
       ]
     },
     "lint": {

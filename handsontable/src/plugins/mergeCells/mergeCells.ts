@@ -164,13 +164,13 @@ export class MergeCells extends BasePlugin {
    *
    * @type {Map<MergedCellCoords, number[]> | null}
    */
-  #columnMoveSnapshot = null;
+  #columnMoveSnapshot: Map<MergedCellCoords, number[]> | null = null;
   /**
    * Snapshot of physical row indexes per merge, captured before a row move.
    *
    * @type {Map<MergedCellCoords, number[]> | null}
    */
-  #rowMoveSnapshot = null;
+  #rowMoveSnapshot: Map<MergedCellCoords, number[]> | null = null;
   /**
    * `true` once the plugin has finished its initial settings ingestion. Used to skip
    * snapshot/translate during the bootstrap-time column reorders fired by

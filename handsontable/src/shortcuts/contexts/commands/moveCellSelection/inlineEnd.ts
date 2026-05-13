@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../../common';
 
 export const command = {
   name: 'moveCellSelectionInlineEnd',
@@ -15,7 +15,7 @@ export const command = {
 
     if (
       (
-        selectedRanges.some((range: object) => selection.isMultiple(range as import('../../../common').CellRange)) ||
+        selectedRanges.some((range: object) => selection.isMultiple(range as import('../../../../common').CellRange)) ||
         selectedRanges.length > 1
       ) &&
       !selectedRange.isHeader() &&

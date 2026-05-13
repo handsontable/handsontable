@@ -307,7 +307,7 @@ export class FocusGridManager {
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
       // This preserves the focus of inputs that live next to the grid when a programmatic selection
       // is applied via `selectCells(..., changeListener = false)`. See #10038.
-      if (suspended && activeElement && isOutsideInput(activeElement)) {
+      if (suspended && activeElement && isOutsideInput(activeElement as HTMLElement)) {
         return;
       }
 
@@ -335,7 +335,7 @@ export class FocusGridManager {
     if (this.#isSuspended) {
       const { activeElement } = this.#hot.rootDocument;
 
-      if (activeElement && isOutsideInput(activeElement)) {
+      if (activeElement && isOutsideInput(activeElement as HTMLElement)) {
         return;
       }
     }
