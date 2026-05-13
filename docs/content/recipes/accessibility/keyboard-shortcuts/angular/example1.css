@@ -2,9 +2,9 @@
   display: inline-block;
   margin-top: 8px;
   padding: 6px 12px;
-  background: #1a42e8;
+  background: var(--sl-color-accent);
   color: #fff;
-  font-family: monospace;
+  font-family: var(--sl-font-mono, monospace);
   font-size: 13px;
   border-radius: 4px;
   opacity: 0;
@@ -19,11 +19,11 @@
 .submit-log {
   margin-top: 12px;
   padding: 10px 14px;
-  background: #f4f5f7;
-  border-left: 3px solid #1a42e8;
-  font-family: monospace;
+  background: var(--sl-color-bg-nav);
+  border-left: 3px solid var(--sl-color-accent);
+  font-family: var(--sl-font-mono, monospace);
   font-size: 13px;
-  color: #333;
+  color: var(--sl-color-text);
   min-height: 38px;
   border-radius: 0 4px 4px 0;
 }
