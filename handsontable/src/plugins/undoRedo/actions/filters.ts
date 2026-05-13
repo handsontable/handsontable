@@ -42,7 +42,7 @@ export class FiltersAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', undoneCallback);
 
-    filters.importConditions(this.previousConditionsStack);
+    filters.importConditions(this.previousConditionsStack as unknown as import('../../filters').ColumnConditions[]);
     filters.filter();
   }
 
@@ -55,7 +55,7 @@ export class FiltersAction extends BaseAction {
 
     hot.addHookOnce('afterViewRender', redoneCallback);
 
-    filters.importConditions(this.conditionsStack);
+    filters.importConditions(this.conditionsStack as unknown as import('../../filters').ColumnConditions[]);
     filters.filter();
   }
 }

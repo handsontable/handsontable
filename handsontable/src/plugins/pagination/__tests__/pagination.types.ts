@@ -51,20 +51,15 @@ const hot3 = new Handsontable(document.createElement('div'), {
 });
 const plugin = hot.getPlugin('pagination');
 
-const paginationData: {
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  pageSizeList: Array<number | 'auto'>;
-  autoPageSize: boolean;
-  numberOfRenderedRows: number;
-  firstVisibleRowIndex: number;
-  lastVisibleRowIndex: number;
-} = plugin.getPaginationData();
+const paginationData = plugin.getPaginationData();
+const _currentPage: number = paginationData.currentPage;
+const _totalPages: number = paginationData.totalPages;
+const _autoPageSize: boolean = paginationData.autoPageSize;
+const _numberOfRenderedRows: number = paginationData.numberOfRenderedRows;
 const currentPageIndex: number = plugin.getCurrentPage();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();
-const data: any[][] = plugin.getCurrentPageData();
+const data: unknown[] = plugin.getCurrentPageData();
 
 plugin.setPage(2);
 plugin.resetPage();

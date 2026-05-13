@@ -734,7 +734,7 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     const formulasPlugin = this.hot.getPlugin('formulas');
-    const sheetId = (formulasPlugin as Record<string, unknown> | undefined)?.sheetId;
+    const sheetId = (formulasPlugin as unknown as Record<string, unknown> | undefined)?.sheetId;
 
     const changedColumns = changes.reduce((acc: number[], change: Record<string, unknown>) => {
       if (sheetId !== null && sheetId !== undefined && (change.address as Record<string, unknown>)?.sheet !== sheetId) {

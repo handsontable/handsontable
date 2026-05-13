@@ -11,6 +11,8 @@ export const PLUGIN_PRIORITY = 100;
  * Represents viewport boundaries used for drag-to-scroll detection.
  */
 interface Boundaries {
+  width?: number;
+  height?: number;
   left: number;
   right: number;
   top: number;

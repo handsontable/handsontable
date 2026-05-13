@@ -8,7 +8,7 @@ import { isNullishOrNaN } from './utils';
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
 
-interface SummaryEndpoint {
+export interface SummaryEndpoint {
   ranges?: number[][];
   sourceColumn?: number;
   destinationRow?: number;

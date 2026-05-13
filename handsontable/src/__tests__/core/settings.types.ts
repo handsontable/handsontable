@@ -121,7 +121,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   dataProvider: {
     rowId: 'id',
     fetchRows: async () => ({ rows: [], totalRows: 0 }),
-    onRowsCreate: async () => {},
+    onRowsCreate: async () => [],
     onRowsUpdate: async () => {},
     onRowsRemove: async () => {},
   },

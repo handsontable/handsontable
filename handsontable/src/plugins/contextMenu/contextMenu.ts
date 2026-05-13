@@ -276,7 +276,7 @@ export class ContextMenu extends BasePlugin {
    * menu.open({ top: 50, left: 50 });
    * ```
    */
-  open(position: Record<string, number> | Event, offset: { above: number; below: number; left: number; right: number } = { above: 0, below: 0, left: 0, right: 0 }): void {
+  open(position: Record<string, number> | Event, offset: { above?: number; below?: number; left?: number; right?: number } = { above: 0, below: 0, left: 0, right: 0 }): void {
     if (this.menu?.isOpened()) {
       return;
     }

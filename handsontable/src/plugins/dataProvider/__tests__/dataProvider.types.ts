@@ -5,6 +5,8 @@ import type {
   DataProviderFetchOptions,
   DataProviderFetchResult,
   DataProviderQueryParameters,
+  RowMutationPayload,
+  RowsCreatePayload,
 } from 'handsontable/plugins/dataProvider';
 
 const minimalConfig: DataProviderConfig = {
@@ -21,8 +23,9 @@ const minimalConfig: DataProviderConfig = {
 
     return { rows: [], totalRows: 0 };
   },
-  onRowsCreate: async(p) => {
-    void p.rowsAmount;
+  onRowsCreate: async(p: RowsCreatePayload) => {
+    void p.amount;
+    return [];
   },
   onRowsUpdate: async() => {},
   onRowsRemove: async() => {},
@@ -35,7 +38,7 @@ const hot = new Handsontable(document.createElement('div'), {
 hot.addHook('afterDataProviderFetch', (result: DataProviderFetchResult) => {
   void result.rows;
   void result.totalRows;
-  void result.queryParameters.page;
+  void result.queryParameters?.page;
   void result.columnSortConfig;
   void result.filtersConditionsStack;
 });
@@ -67,15 +70,15 @@ hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryPa
   void reason?.name;
 });
 
-hot.addHook('afterRowsMutation', (operation, payload) => {
+hot.addHook('afterRowsMutation', (operation: string, payload: RowMutationPayload) => {
   if (operation === 'create' && 'rowsCreate' in payload) {
-    void payload.rowsCreate.rowsAmount;
+    void payload.rowsCreate.amount;
   }
   if (operation === 'remove' && 'rowsRemove' in payload && payload.rowsRemove[0]) {
     void payload.rowsRemove[0];
   }
-  if (operation === 'update' && 'rows' in payload && payload.rows[0]) {
-    void payload.rows[0].id;
+  if (operation === 'update' && 'rowsUpdate' in payload && payload.rowsUpdate[0]) {
+    void payload.rowsUpdate[0].rowId;
   }
 });
 

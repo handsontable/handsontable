@@ -13,7 +13,45 @@ import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from './plugi
 import type { DropdownMenu } from './plugins/dropdownMenu';
 import type { ColumnSortingConfig } from './plugins/columnSorting';
 import type { UndoRedoAction } from './plugins/undoRedo';
-import type { DataProviderBeforeFetchParameters, DataProviderQueryParameters, DataProviderFetchResult, RowMutationPayload } from './plugins/dataProvider';
+import type { DataProviderBeforeFetchParameters, DataProviderQueryParameters, DataProviderFetchResult, RowMutationPayload, DataProvider, DataProviderConfig } from './plugins/dataProvider';
+import type { AutoColumnSize } from './plugins/autoColumnSize';
+import type { Autofill } from './plugins/autofill';
+import type { AutoRowSize } from './plugins/autoRowSize';
+import type { BindRowsWithHeaders } from './plugins/bindRowsWithHeaders';
+import type { CollapsibleColumns } from './plugins/collapsibleColumns';
+import type { ColumnSorting } from './plugins/columnSorting';
+import type { ColumnSummary } from './plugins/columnSummary';
+import type { Comments } from './plugins/comments';
+import type { CopyPaste } from './plugins/copyPaste';
+import type { CustomBorders } from './plugins/customBorders';
+import type { Dialog } from './plugins/dialog';
+import type { DragToScroll } from './plugins/dragToScroll';
+import type { EmptyDataState } from './plugins/emptyDataState';
+import type { ExportFile } from './plugins/exportFile';
+import type { Filters } from './plugins/filters';
+import type { Formulas } from './plugins/formulas';
+import type { HiddenColumns } from './plugins/hiddenColumns';
+import type { HiddenRows } from './plugins/hiddenRows';
+import type { Loading } from './plugins/loading';
+import type { ManualColumnFreeze } from './plugins/manualColumnFreeze';
+import type { ManualColumnMove } from './plugins/manualColumnMove';
+import type { ManualColumnResize } from './plugins/manualColumnResize';
+import type { ManualRowMove } from './plugins/manualRowMove';
+import type { ManualRowResize } from './plugins/manualRowResize';
+import type { MergeCells } from './plugins/mergeCells';
+import type { MultiColumnSorting } from './plugins/multiColumnSorting';
+import type { MultipleSelectionHandles } from './plugins/multipleSelectionHandles';
+import type { NestedHeaders } from './plugins/nestedHeaders';
+import type { NestedRows } from './plugins/nestedRows';
+import type { Notification } from './plugins/notification';
+import type { Pagination } from './plugins/pagination';
+import type { PersistentState } from './plugins/persistentState';
+import type { Search } from './plugins/search';
+import type { StretchColumns } from './plugins/stretchColumns';
+import type { TouchScroll } from './plugins/touchScroll';
+import type { TrimRows } from './plugins/trimRows';
+import type { UndoRedo } from './plugins/undoRedo';
+import type { BasePlugin } from './plugins/base';
 
 /**
  * Grid settings interface representing all possible Handsontable configuration options.
@@ -137,14 +175,7 @@ export interface GridSettings {
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
   dialog?: boolean | object;
-  dataProvider?: {
-    rowId?: string;
-    fetchRows?: (...args: unknown[]) => Promise<{ rows: object[]; totalRows: number }>;
-    onRowsCreate?: (...args: unknown[]) => Promise<void>;
-    onRowsUpdate?: (...args: unknown[]) => Promise<void>;
-    onRowsRemove?: (...args: unknown[]) => Promise<void>;
-    [key: string]: unknown;
-  };
+  dataProvider?: DataProviderConfig;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
   emptyDataState?: boolean | object;
@@ -1207,7 +1238,47 @@ export interface HotInstance {
   undoRedo: object;
 
   // Plugins
-  getPlugin(pluginName: string): any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  getPlugin(pluginName: 'autoColumnSize'): AutoColumnSize;
+  getPlugin(pluginName: 'autofill'): Autofill;
+  getPlugin(pluginName: 'autoRowSize'): AutoRowSize;
+  getPlugin(pluginName: 'bindRowsWithHeaders'): BindRowsWithHeaders;
+  getPlugin(pluginName: 'collapsibleColumns'): CollapsibleColumns;
+  getPlugin(pluginName: 'columnSorting'): ColumnSorting;
+  getPlugin(pluginName: 'columnSummary'): ColumnSummary;
+  getPlugin(pluginName: 'comments'): Comments;
+  getPlugin(pluginName: 'contextMenu'): ContextMenu;
+  getPlugin(pluginName: 'copyPaste'): CopyPaste;
+  getPlugin(pluginName: 'customBorders'): CustomBorders;
+  getPlugin(pluginName: 'dataProvider'): DataProvider;
+  getPlugin(pluginName: 'dialog'): Dialog;
+  getPlugin(pluginName: 'dragToScroll'): DragToScroll;
+  getPlugin(pluginName: 'dropdownMenu'): DropdownMenu;
+  getPlugin(pluginName: 'emptyDataState'): EmptyDataState;
+  getPlugin(pluginName: 'exportFile'): ExportFile;
+  getPlugin(pluginName: 'filters'): Filters;
+  getPlugin(pluginName: 'formulas'): Formulas;
+  getPlugin(pluginName: 'hiddenColumns'): HiddenColumns;
+  getPlugin(pluginName: 'hiddenRows'): HiddenRows;
+  getPlugin(pluginName: 'loading'): Loading;
+  getPlugin(pluginName: 'manualColumnFreeze'): ManualColumnFreeze;
+  getPlugin(pluginName: 'manualColumnMove'): ManualColumnMove;
+  getPlugin(pluginName: 'manualColumnResize'): ManualColumnResize;
+  getPlugin(pluginName: 'manualRowMove'): ManualRowMove;
+  getPlugin(pluginName: 'manualRowResize'): ManualRowResize;
+  getPlugin(pluginName: 'mergeCells'): MergeCells;
+  getPlugin(pluginName: 'multiColumnSorting'): MultiColumnSorting;
+  getPlugin(pluginName: 'multipleSelectionHandles'): MultipleSelectionHandles;
+  getPlugin(pluginName: 'nestedHeaders'): NestedHeaders;
+  getPlugin(pluginName: 'nestedRows'): NestedRows;
+  getPlugin(pluginName: 'notification'): Notification;
+  getPlugin(pluginName: 'pagination'): Pagination;
+  getPlugin(pluginName: 'persistentState'): PersistentState;
+  getPlugin(pluginName: 'search'): Search;
+  getPlugin(pluginName: 'stretchColumns'): StretchColumns;
+  getPlugin(pluginName: 'touchScroll'): TouchScroll;
+  getPlugin(pluginName: 'trimRows'): TrimRows;
+  getPlugin(pluginName: 'undoRedo'): UndoRedo;
+  getPlugin(pluginName: string): BasePlugin;
   getPluginName(plugin: object): string;
 
   // Managers

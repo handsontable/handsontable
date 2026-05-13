@@ -242,7 +242,7 @@ export class Filters extends BasePlugin {
    *
    * @type {Array}
    */
-  #previousConditionStack: Record<string, unknown>[] = [];
+  #previousConditionStack: ColumnConditions[] = [];
 
   /**
    * Snapshot of [[#previousConditionStack]] at the start of [[filter]] when the DataProvider plugin is active.
@@ -250,7 +250,7 @@ export class Filters extends BasePlugin {
    *
    * @type {Array}
    */
-  #dataProviderFilterRollbackStack: Record<string, unknown>[] = [];
+  #dataProviderFilterRollbackStack: ColumnConditions[] = [];
 
   /**
    * Indicates if the DataProvider plugin is active.
@@ -287,7 +287,7 @@ export class Filters extends BasePlugin {
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap()) as TrimmingMap;
-    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
+    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu') as unknown as DropdownMenuPluginInterface;
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (typeof dropdownSettings === 'object' ? (dropdownSettings as Record<string, unknown>).uiContainer : null) as HTMLElement ||
@@ -939,7 +939,7 @@ export class Filters extends BasePlugin {
    *
    * @param {Array} conditions Array of conditions.
    */
-  importConditions(conditions: Record<string, unknown>[]): void {
+  importConditions(conditions: ColumnConditions[]): void {
     this.conditionCollection.importAllConditions(conditions);
   }
 
@@ -970,8 +970,8 @@ export class Filters extends BasePlugin {
    *
    * @returns {Array}
    */
-  exportConditions(): Record<string, unknown>[] {
-    return this.conditionCollection.exportAllConditions() as Record<string, unknown>[];
+  exportConditions(): ColumnConditions[] {
+    return this.conditionCollection.exportAllConditions();
   }
   /* eslint-enable jsdoc/require-description-complete-sentence */
 
@@ -987,7 +987,7 @@ export class Filters extends BasePlugin {
     const conditions = this.exportConditions();
 
     if (this.#isDataProviderActive) {
-      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as Record<string, unknown>[];
+      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as unknown as ColumnConditions[];
     }
 
     const allowFiltering = this.hot.runHooks(
@@ -1171,7 +1171,7 @@ export class Filters extends BasePlugin {
    * @param {object} [result] Fetch result (filters match the request that just completed). May include `filtersConditionsStack` (Array).
    */
   #onAfterDataProviderFetch(result: Record<string, unknown> | null) {
-    this.importConditions((result?.filtersConditionsStack as Record<string, unknown>[]) ?? []);
+    this.importConditions((result?.filtersConditionsStack as ColumnConditions[]) ?? []);
   }
 
   /**
@@ -1421,7 +1421,7 @@ export class Filters extends BasePlugin {
       // change to make the undo/redo work properly
       this.#previousConditionStack = this.#previousConditionStack.map((stack) => {
         if (stack.column === column && conditions.length > 0) {
-          (stack.conditions as Record<string, unknown>[]).forEach((condition: Record<string, unknown>) => {
+          stack.conditions.forEach((condition) => {
             if (condition.name === 'by_value') {
               condition.args = [[...conditionArgsChange]];
             }

@@ -47,7 +47,7 @@ export class ColumnSortAction extends BaseAction {
     const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
 
     if ((this.previousSortState as unknown[]).length) {
-      enabledSortPlugin.sort(this.previousSortState);
+      enabledSortPlugin.sort(this.previousSortState as Record<string, unknown> | Record<string, unknown>[]);
 
     } else {
       enabledSortPlugin.clearSort();
@@ -65,7 +65,7 @@ export class ColumnSortAction extends BaseAction {
     const multiSortPlugin = hot.getPlugin('multiColumnSorting');
     const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
 
-    enabledSortPlugin.sort(this.nextSortState);
+    enabledSortPlugin.sort(this.nextSortState as Record<string, unknown> | Record<string, unknown>[]);
 
     redoneCallback();
   }

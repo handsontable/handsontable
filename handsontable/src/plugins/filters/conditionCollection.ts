@@ -1,4 +1,15 @@
 import type { HotInstance } from '../../common';
+import type { OperationType, ConditionId, ColumnConditions } from './filters';
+
+/** Internal representation of a condition — extends the public ConditionId with the resolved function. */
+interface StoredCondition extends ConditionId {
+  func: (...args: unknown[]) => boolean;
+}
+/** Internal column state as stored in filteringStates. */
+interface StoredColumnState {
+  operation: OperationType;
+  conditions: StoredCondition[];
+}
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
@@ -125,7 +136,7 @@ class ConditionCollection {
         \`disjunction\` and \`conjunction\`.`);
     }
 
-    const conditionsForColumn = this.getConditions(column);
+    const conditionsForColumn = this.getConditions(column) as StoredCondition[];
 
     if (conditionsForColumn.length === 0) {
       // Create first condition for particular column.
@@ -156,8 +167,8 @@ class ConditionCollection {
    * @param {number} column The physical column index.
    * @returns {Array} Returns conditions collection as an array.
    */
-  getConditions(column: number): unknown[] {
-    return ((this.filteringStates.getValueAtIndex(column) as Record<string, unknown>)?.conditions ?? []) as unknown[];
+  getConditions(column: number): ConditionId[] {
+    return ((this.filteringStates.getValueAtIndex(column) as StoredColumnState | undefined)?.conditions ?? []) as ConditionId[];
   }
 
   /**
@@ -166,8 +177,8 @@ class ConditionCollection {
    * @param {number} column The physical column index.
    * @returns {string|undefined}
    */
-  getOperation(column: number) {
-    return (this.filteringStates.getValueAtIndex(column) as Record<string, unknown>)?.operation;
+  getOperation(column: number): OperationType | undefined {
+    return (this.filteringStates.getValueAtIndex(column) as StoredColumnState | undefined)?.operation;
   }
 
   /**
@@ -194,14 +205,14 @@ class ConditionCollection {
    *
    * @returns {Array}
    */
-  exportAllConditions() {
-    return this.filteringStates.getEntries()
-      .reduce((allConditions: Record<string, unknown>[], [column, stateValue]: [number, unknown]) => {
-        const { operation, conditions } = stateValue as { operation: string; conditions: { name: string; args: unknown[] }[] };
+  exportAllConditions(): ColumnConditions[] {
+    return (this.filteringStates.getEntries() as [number, StoredColumnState][])
+      .reduce((allConditions: ColumnConditions[], [column, stateValue]) => {
+        const { operation, conditions } = stateValue as StoredColumnState;
         allConditions.push({
           column,
           operation,
-          conditions: conditions.map(({ name, args }: { name: string; args: unknown[] }) => ({ name, args: [...args] })),
+          conditions: conditions.map(({ name, args }) => ({ name, args: [...args] })),
         });
 
         return allConditions;
@@ -213,11 +224,11 @@ class ConditionCollection {
    *
    * @param {Array} conditions The collection of the conditions.
    */
-  importAllConditions(conditions: Record<string, unknown>[]) {
+  importAllConditions(conditions: ColumnConditions[]) {
     this.clean();
 
-    conditions.forEach((stack: Record<string, unknown>) => {
-      (stack.conditions as Record<string, unknown>[]).forEach((condition: Record<string, unknown>) => this.addCondition(stack.column as number, condition, stack.operation as string));
+    conditions.forEach((stack) => {
+      stack.conditions.forEach((condition) => this.addCondition(stack.column, condition as unknown as Record<string, unknown>, stack.operation));
     });
   }
 
@@ -258,7 +269,7 @@ class ConditionCollection {
     const conditions = this.getConditions(column);
 
     if (name) {
-      return conditions.some((condition: Record<string, unknown>) => condition.name === name);
+      return conditions.some((condition: ConditionId) => condition.name === name);
     }
 
     return conditions.length > 0;

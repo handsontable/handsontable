@@ -135,7 +135,7 @@ class ConditionUpdateObserver {
     const conditionsAfter = allConditions.slice(editedColumnPosition);
 
     // Make sure that conditionAfter doesn't contain edited column conditions
-    if (conditionsAfter.length && (conditionsAfter[0] as Record<string, unknown>).column === column) {
+    if (conditionsAfter.length && (conditionsAfter[0] as unknown as Record<string, unknown>).column === column) {
       conditionsAfter.shift();
     }
 

@@ -215,7 +215,7 @@ export class MultiColumnSorting extends ColumnSorting {
    * @param {number} [column] Visual column index.
    * @returns {undefined|object|Array}
    */
-  getSortConfig(column: number | undefined) {
+  getSortConfig(column?: number) {
     return super.getSortConfig(column);
   }
 
