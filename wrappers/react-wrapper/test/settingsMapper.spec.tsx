@@ -32,5 +32,40 @@ describe('Settings mapper unit tests', () => {
       expect((result.afterChange as any)()).toEqual('works!');
       expect((result.afterRender as any)()).toEqual('also works!');
     });
+
+    it('should skip init-only settings after initialization, even when they change', () => {
+      const result = SettingsMapper.getSettings(
+        {
+          renderAllRows: true,
+          rowHeaders: true
+        },
+        {
+          prevProps: {
+            renderAllRows: false,
+            rowHeaders: false
+          },
+          initOnlySettingKeys: ['renderAllRows']
+        }
+      );
+
+      expect(result.renderAllRows).toBeUndefined();
+      expect(result.rowHeaders).toBe(true);
+    });
+
+    it('should include init-only settings during initialization', () => {
+      const result = SettingsMapper.getSettings(
+        {
+          renderAllRows: true,
+          rowHeaders: true
+        },
+        {
+          isInit: true,
+          initOnlySettingKeys: ['renderAllRows']
+        }
+      );
+
+      expect(result.renderAllRows).toBe(true);
+      expect(result.rowHeaders).toBe(true);
+    });
   });
 });

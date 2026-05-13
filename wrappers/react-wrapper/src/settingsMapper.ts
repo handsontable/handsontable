@@ -23,11 +23,7 @@ export class SettingsMapper {
       initOnlySettingKeys?: Array<keyof Handsontable.GridSettings>
     } = {}): Handsontable.GridSettings {
     const shouldSkipProp = (key: keyof Handsontable.GridSettings) => {
-      // Omit settings that can be set only during initialization and are intentionally modified.
-      if (!isInit && initOnlySettingKeys.includes(key)) {
-        return prevProps[key] === properties[key];
-      }
-      return false;
+      return !isInit && initOnlySettingKeys.includes(key);
     };
     let newSettings: Handsontable.GridSettings = {};
 
