@@ -37,7 +37,7 @@ function getShortSha() {
     return execSync('git rev-parse --short HEAD', {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
+    }).trim().slice(0, 7);
   } catch {
     return 'dev';
   }

@@ -83,10 +83,10 @@ jobs:
             | Framework | Link |
             |-----------|------|
             | Angular | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=${{ github.event.pull_request.number }}) |
-            | Vanilla JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=${{ github.event.pull_request.number }}) |
-            | React TS | [Open in CodeSandbox](https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=${{ github.event.pull_request.number }}) |
-            | React JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-browser?example-dir=react-js&handsontable-version=${{ github.event.pull_request.number }}) |
-            | TypeScript | [Open in CodeSandbox](https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Vanilla JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=${{ github.event.pull_request.number }}) |
+            | React TS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=${{ github.event.pull_request.number }}) |
+            | React JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=react-js&handsontable-version=${{ github.event.pull_request.number }}) |
+            | TypeScript | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=${{ github.event.pull_request.number }}) |
             | Vue 3 | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=${{ github.event.pull_request.number }}) |
 
             **SSR Examples:**
