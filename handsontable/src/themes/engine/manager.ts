@@ -74,7 +74,7 @@ export class ThemeManager {
    *
    * @type {Function|null}
    */
-  #unsubscribeTheme = null;
+  #unsubscribeTheme: (() => void) | null = null;
 
   /**
    * The theme manager constructor.
