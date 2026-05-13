@@ -11,7 +11,42 @@ import {
   NOTIFICATION_POSITIONS,
   NOTIFICATION_VARIANTS,
   type NotificationPosition,
+  type NotificationVariant,
 } from './constants';
+
+export type { NotificationPosition, NotificationVariant } from './constants';
+
+export interface NotificationAction {
+  label: string;
+  type?: 'primary' | 'secondary';
+  callback: () => void;
+}
+
+export interface NotificationMessageOptions {
+  variant?: NotificationVariant;
+  title?: string;
+  message: string | HTMLElement;
+  duration?: number;
+  position?: NotificationPosition;
+  closable?: boolean;
+  actions?: NotificationAction[];
+}
+
+export interface NotificationNormalizedOptions {
+  id: string;
+  variant: NotificationVariant;
+  title?: string;
+  message: string | HTMLElement;
+  duration: number;
+  position: NotificationPosition;
+  closable: boolean;
+  actions: NotificationAction[];
+}
+
+export interface NotificationConfig {
+  stackLimit?: number;
+  animation?: boolean;
+}
 
 export const PLUGIN_KEY = 'notification';
 

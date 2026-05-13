@@ -97,6 +97,84 @@ registerConflict('dataProvider', [
  * @property {Array<DataProviderFilterColumn>|null} filters Server-side filters or null.
  */
 
+export interface DataProviderSortDescriptor {
+  prop: string;
+  order: 'asc' | 'desc';
+}
+
+export interface DataProviderFilterCondition {
+  name?: string;
+  args: unknown[];
+}
+
+export interface DataProviderFilterColumn {
+  prop: string;
+  operation: string;
+  conditions: DataProviderFilterCondition[];
+}
+
+export interface DataProviderQueryParameters {
+  page: number;
+  pageSize: number;
+  sort: DataProviderSortDescriptor | null;
+  filters: DataProviderFilterColumn[] | null;
+}
+
+export interface DataProviderBeforeFetchParameters extends DataProviderQueryParameters {
+  skipLoading?: boolean;
+}
+
+export type DataProviderFetchDataOverrides = Partial<DataProviderQueryParameters> & { skipLoading?: boolean };
+
+export interface DataProviderFetchResult {
+  rows: unknown[];
+  totalRows: number;
+  queryParameters?: DataProviderQueryParameters;
+  columnSortConfig?: unknown[];
+  filtersConditionsStack?: unknown[];
+}
+
+export interface DataProviderFetchOptions {
+  signal: AbortSignal;
+}
+
+/** @deprecated Use DataProviderFetchOptions */
+export type DataProviderOptions = DataProviderFetchOptions;
+
+export interface RowsCreatePayload {
+  index?: number;
+  amount?: number;
+  data?: unknown[];
+}
+
+export interface RowUpdatePayload {
+  rowId: unknown;
+  data: Record<string, unknown>;
+}
+
+export interface RowMutationCreatePayload {
+  rowsCreate: RowsCreatePayload;
+}
+
+export interface RowMutationUpdatePayload {
+  rowsUpdate: RowUpdatePayload[];
+}
+
+export interface RowMutationRemovePayload {
+  rowsRemove: unknown[];
+}
+
+export type RowMutationPayload = RowMutationCreatePayload | RowMutationUpdatePayload | RowMutationRemovePayload;
+
+export interface DataProviderConfig {
+  rowId: string;
+  fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) => Promise<DataProviderFetchResult>;
+  onRowCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
+  onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
+  onRowsUpdate?: (payload: RowUpdatePayload[]) => Promise<void>;
+  onRowsRemove?: (payload: unknown[]) => Promise<void>;
+}
+
 export {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,

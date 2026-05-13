@@ -5,3 +5,5 @@ export {
   APPEND_COLUMN_CONFIG_STRATEGY,
   REPLACE_COLUMN_CONFIG_STRATEGY
 } from './columnSorting';
+
+export type { ColumnSortingConfig } from './columnSorting';

@@ -34,7 +34,7 @@ src/validators/{validatorName}/
   index.js              # Re-exports
 ```
 
-Registry: `src/validators/registry.js`.
+Registry: `src/validators/registry.ts`.
 
 ## Registration
 

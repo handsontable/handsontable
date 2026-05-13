@@ -96,7 +96,7 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
     this.hot
-      .addHook('modifyFiltersMultiSelectValue', (value, meta) => this.#onModifyDisplayedValue(value, meta as Record<string, unknown>));
+      .addHook('modifyFiltersMultiSelectValue', (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
   }
 
   /**

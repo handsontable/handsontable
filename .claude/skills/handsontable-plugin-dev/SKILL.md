@@ -96,7 +96,7 @@ this.hot.resumeRender();
 
 1. Plugin's `index.js`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
 2. Wire into `src/plugins/index.js`.
-3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.js`.
+3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.ts`.
 4. Add TypeScript definitions in `types/`.
 
 ## Focus Management

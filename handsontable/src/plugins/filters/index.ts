@@ -3,3 +3,5 @@ export {
   PLUGIN_PRIORITY,
   Filters,
 } from './filters';
+
+export type { OperationType, ConditionId, ColumnConditions } from './filters';

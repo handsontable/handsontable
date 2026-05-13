@@ -33,7 +33,7 @@ src/cellTypes/{typeName}/
   index.js         # Re-exports
 ```
 
-Registry: `src/cellTypes/registry.js`.
+Registry: `src/cellTypes/registry.ts`.
 
 ## Registration
 
@@ -46,7 +46,7 @@ Also export from `src/cellTypes/index.js` so the type is available in the full b
 
 ## Integration with metaSchema
 
-New cell types must be added to `src/dataMap/metaManager/metaSchema.js` so Handsontable recognizes the type name in configuration. Add the type string to the `type` option's accepted values.
+New cell types must be added to `src/dataMap/metaManager/metaSchema.ts` so Handsontable recognizes the type name in configuration. Add the type string to the `type` option's accepted values.
 
 ## Key rules
 
@@ -63,7 +63,7 @@ New cell types must be added to `src/dataMap/metaManager/metaSchema.js` so Hands
 
 ## Common mistakes
 
-- Forgetting to register the cell type in `src/cellTypes/registry.js`.
-- Not adding the type to `metaSchema.js`, causing Handsontable to ignore the type name.
+- Forgetting to register the cell type in `src/cellTypes/registry.ts`.
+- Not adding the type to `metaSchema.ts`, causing Handsontable to ignore the type name.
 - Duplicating editor/renderer/validator logic instead of importing existing components.
 - Not exporting from `src/cellTypes/index.js` for the full bundle.

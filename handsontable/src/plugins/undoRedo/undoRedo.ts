@@ -10,6 +10,11 @@ import { registerActions } from './actions';
 const SHORTCUTS_GROUP = 'undoRedo';
 const deprecationWarns = new Set<unknown>();
 
+export interface UndoRedoAction {
+  actionType: string;
+  [key: string]: unknown;
+}
+
 export const PLUGIN_KEY = 'undoRedo';
 export const PLUGIN_PRIORITY = 1000;
 

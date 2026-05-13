@@ -3,3 +3,5 @@ export {
   PLUGIN_PRIORITY,
   UndoRedo,
 } from './undoRedo';
+
+export type { UndoRedoAction } from './undoRedo';

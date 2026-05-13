@@ -270,42 +270,42 @@ export class Formulas extends BasePlugin {
     this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer.getIndexesChangeSyncMethod());
     this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer.getIndexesChangeSyncMethod());
 
-    this.hot.addHook('beforeRowMove', (movedRows, finalIndex, _, movePossible) => {
-      this.rowAxisSyncer.storeMovesInformation(movedRows as number[], finalIndex as number, movePossible as boolean);
+    this.hot.addHook('beforeRowMove', (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
+      this.rowAxisSyncer.storeMovesInformation(movedRows, finalIndex, movePossible);
     });
 
-    this.hot.addHook('beforeColumnMove', (movedColumns, finalIndex, _, movePossible) => {
-      this.columnAxisSyncer.storeMovesInformation(movedColumns as number[], finalIndex as number, movePossible as boolean);
+    this.hot.addHook('beforeColumnMove', (movedColumns: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
+      this.columnAxisSyncer.storeMovesInformation(movedColumns, finalIndex, movePossible);
     });
 
-    this.hot.addHook('afterRowMove', (movedRows, finalIndex, dropIndex, movePossible, orderChanged) => {
-      this.rowAxisSyncer.calculateAndSyncMoves(movePossible as boolean, orderChanged as boolean);
+    this.hot.addHook('afterRowMove', (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => {
+      this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
     });
 
-    this.hot.addHook('afterColumnMove', (movedColumns, finalIndex, dropIndex, movePossible, orderChanged) => {
-      this.columnAxisSyncer.calculateAndSyncMoves(movePossible as boolean, orderChanged as boolean);
+    this.hot.addHook('afterColumnMove', (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
     });
 
-    this.hot.addHook('beforeColumnFreeze', (column, freezePerformed) => {
+    this.hot.addHook('beforeColumnFreeze', (column: number, freezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
       this.columnAxisSyncer.storeMovesInformation(
-        [column as number], fixedColumnsStart as number, freezePerformed as boolean);
+        [column], fixedColumnsStart as number, freezePerformed);
     });
 
-    this.hot.addHook('afterColumnFreeze', (_, freezePerformed) => {
-      this.columnAxisSyncer.calculateAndSyncMoves(freezePerformed as boolean, freezePerformed as boolean);
+    this.hot.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(freezePerformed, freezePerformed);
     });
 
-    this.hot.addHook('beforeColumnUnfreeze', (column, unfreezePerformed) => {
+    this.hot.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
       this.columnAxisSyncer.storeMovesInformation(
-        [column as number], (fixedColumnsStart as number) - 1, unfreezePerformed as boolean);
+        [column], (fixedColumnsStart as number) - 1, unfreezePerformed);
     });
 
-    this.hot.addHook('afterColumnUnfreeze', (_, unfreezePerformed) => {
-      this.columnAxisSyncer.calculateAndSyncMoves(unfreezePerformed as boolean, unfreezePerformed as boolean);
+    this.hot.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
+      this.columnAxisSyncer.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
     });
 
     // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this

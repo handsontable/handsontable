@@ -34,7 +34,7 @@ src/renderers/{rendererName}/
   index.js             # Re-exports
 ```
 
-Registry: `src/renderers/registry.js`.
+Registry: `src/renderers/registry.ts`.
 
 ## Registration
 

@@ -93,18 +93,6 @@
       "deps": [],
       "mode": "inherit"
     },
-    "lint:types": {
-      "cmd": "eslint \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-      "deps": [],
-      "cwd": "types",
-      "mode": "inherit"
-    },
-    "lint:types.fix": {
-      "cmd": "eslint --fix \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-      "deps": [],
-      "cwd": "types",
-      "mode": "inherit"
-    },
     "lint:stylelint": {
       "cmd": "stylelint --cache \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
       "deps": [],
@@ -219,11 +207,11 @@
     },
     "lint": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint", "lint:types", "lint:stylelint"]
+      "tasks": ["lint:eslint", "lint:stylelint"]
     },
     "lint:fix": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint.fix", "lint:types.fix", "lint:stylelint.fix"]
+      "tasks": ["lint:eslint.fix", "lint:stylelint.fix"]
     },
     "test:unit": {
       "before": ["build:styles"],

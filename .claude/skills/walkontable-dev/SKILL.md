@@ -11,7 +11,7 @@ Walkontable is the low-level rendering engine embedded in Handsontable. It handl
 
 ## Architecture boundary
 
-Walkontable source lives entirely within `src/3rdparty/walkontable/src/`. The bridge between core Handsontable and Walkontable is the `TableView` class in `src/tableView.js`. Plugins must never access Walkontable internals directly - always go through TableView.
+Walkontable source lives entirely within `src/3rdparty/walkontable/src/` and is **TypeScript** (`.ts` files). It is excluded from the main `tsconfig.json` and has its own separate build/test pipeline. The bridge between core Handsontable and Walkontable is the `TableView` class in `src/tableView.ts`. Plugins must never access Walkontable internals directly — always go through TableView.
 
 ## Key subsystems
 
@@ -48,7 +48,7 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 | Path | Purpose |
 |---|---|
 | `src/3rdparty/walkontable/src/` | All Walkontable source code |
-| `src/tableView.js` | Bridge to core Handsontable (the safe boundary for plugins) |
+| `src/tableView.ts` | Bridge to core Handsontable (the safe boundary for plugins) |
 | `src/3rdparty/walkontable/src/overlay/` | Overlay system |
 | `src/3rdparty/walkontable/src/renderer/` | DOM rendering |
 

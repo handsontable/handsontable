@@ -17,7 +17,7 @@ src/editors/{editorName}/
   index.js           # Re-exports
 ```
 
-Registry: `src/editors/registry.js`. Factory: `src/editors/factory.js`.
+Registry: `src/editors/registry.ts`. Factory: `src/editors/factory.ts`.
 
 ## Lifecycle methods (required overrides)
 

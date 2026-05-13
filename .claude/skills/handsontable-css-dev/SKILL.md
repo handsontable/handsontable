@@ -100,10 +100,10 @@ Add the key in the same semantic section as your CSS and tokens changes (e.g., u
 ### Layer 4 - TypeScript type definitions (1 file)
 
 ```
-handsontable/types/themes.d.ts
+handsontable/src/themes/types.ts
 ```
 
-The `TokenKey` union (around lines 300-374) is the **compile-time DX for TypeScript users**. Missing entry → TS consumers calling the JS API with your new token get a type error.
+The `TokenKey` union (around line 79) is the **compile-time DX for TypeScript users**. Missing entry → TS consumers calling the API with your new token get a type error. The declaration is auto-generated into `tmp/themes/types.d.ts` by `build:types` — edit the source `src/themes/types.ts`, not the generated output.
 
 Add the key in the same semantic section as the other layers. The `test:types` script (`npm run test:types --prefix handsontable`, which runs `tsc -p ./test/types`) enforces this.
 
@@ -138,7 +138,7 @@ Before committing token work, mentally walk the four layers plus tests:
 1. CSS in all 6 theme files?
 2. JS token in all 3 runtime files?
 3. Registered in `validation.js` allow-list?
-4. Added to `TokenKey` in `themes.d.ts`?
+4. Added to `TokenKey` in `src/themes/types.ts`?
 5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes?
 6. `npm run test:types --prefix handsontable` passes?
 7. Docs table updated?

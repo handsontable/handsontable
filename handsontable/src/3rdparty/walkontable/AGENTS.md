@@ -4,8 +4,8 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 ## Architecture Boundary
 
-- Walkontable lives in `src/3rdparty/walkontable/src/`
-- The bridge to core Handsontable is `src/tableView.js` (TableView class)
+- Walkontable lives in `src/3rdparty/walkontable/src/` (TypeScript, excluded from main tsconfig — separate build/test pipeline)
+- The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
 

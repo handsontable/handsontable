@@ -86,6 +86,19 @@ interface MenuFocusNavigatorInterface {
   getLastMenuPage(): number;
 }
 
+export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
+
+export interface ConditionId {
+  name: string;
+  args: unknown[];
+}
+
+export interface ColumnConditions {
+  column: number;
+  conditions: ConditionId[];
+  operation: OperationType;
+}
+
 export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
