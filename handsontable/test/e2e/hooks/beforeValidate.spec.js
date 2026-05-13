@@ -108,6 +108,29 @@ describe('Hook', () => {
       expect(result).toBe(999);
     });
 
+    it('should pass the property string as the col argument with array-of-objects data source', async() => {
+      const colArgs = [];
+
+      handsontable({
+        data: arrayOfObjects(),
+        columns: [
+          { data: 'id', type: 'numeric' },
+          { data: 'name' },
+          { data: 'lastName' }
+        ],
+        beforeValidate(value, row, col) {
+          colArgs.push(col);
+        }
+      });
+
+      await setDataAtCell(2, 0, 99);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(colArgs.length).toBeGreaterThan(0);
+      expect(colArgs[0]).toBe('id');
+    });
+
     it('should pass a visual column index (not property function) as the col argument with function-based data accessor', async() => {
       const colArgs = [];
 

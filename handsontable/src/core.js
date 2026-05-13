@@ -1746,8 +1746,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     if (isFunction(validator)) {
+      // When the column data accessor is a function, cellProperties.prop holds the accessor
+      // function itself — not a usable column reference. Fall back to the visual column index
+      // so hook listeners always receive a number or a property string, never a function.
+      const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
+
       // eslint-disable-next-line no-param-reassign
-      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.visualCol, source);
+      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
@@ -1757,12 +1762,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
           // eslint-disable-next-line no-param-reassign
           valid = instance
-            .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.visualCol, source);
+            .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
 
           done(valid);
           instance.runHooks(
-            'postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.visualCol, source
+            'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
           );
         });
       });
