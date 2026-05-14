@@ -471,6 +471,15 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Returns the current page size from internal pagination state. May be `'auto'`.
+   *
+   * @returns {number | 'auto'} Current page size or `'auto'`.
+   */
+  getCurrentPageSize() {
+    return this.#pageSize;
+  }
+
+  /**
    * Allows changing the page for specified page number.
    *
    * @param {number} pageNumber The page number to set (from 1 to N). If `0` is passed, it
