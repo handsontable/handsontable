@@ -1231,11 +1231,9 @@ export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
     entries.forEach((entry) => {
       if (entry.isIntersecting && elementToBeObserved.offsetParent !== null) {
         callback();
-        observer.unobserve(elementToBeObserved);
+        observer.disconnect();
       }
     });
-  }, {
-    root: elementToBeObserved.ownerDocument.body
   });
 
   visibilityObserver.observe(elementToBeObserved);
