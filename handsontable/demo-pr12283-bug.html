@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12283 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .info ol { margin: 8px 0 0 20px; }
+    .info li { margin-bottom: 3px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    kbd { display: inline-block; background: #fff; border: 1px solid #aaa; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-family: monospace; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+    #status { margin-top: 12px; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #ccc; background: #fff; min-height: 42px; }
+    #status.ok { background: #e8f5e9; border-color: #66bb6a; color: #1b5e20; }
+    #status.bug { background: #fdecea; border-color: #ef9a9a; color: #b71c1c; animation: flash 0.3s ease; }
+    @keyframes flash { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    #log { margin-top: 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 120px; overflow-y: auto; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; font-weight: 600; }
+    .entry-ok { color: #2e7d32; }
+    #reset-btn { margin-top: 10px; padding: 5px 14px; font-size: 13px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .shortcut-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12283 - Ctrl+A in comment textarea selects grid instead of text</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12283-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (released v17.0.1).</strong>
+    When the comment textarea is focused, <kbd>Ctrl+A</kbd> triggers the grid's "select all cells" shortcut
+    instead of selecting the text inside the textarea.<br><br>
+    <strong>Steps to reproduce:</strong>
+    <ol>
+      <li>Click on cell <strong>B2</strong> in the grid (it will be selected automatically on load).</li>
+      <li>Press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> to open the comment editor.</li>
+      <li>The textarea opens with pre-filled text "Hello world". The cursor is at the end.</li>
+      <li>Press <kbd>Ctrl</kbd>+<kbd>A</kbd>.</li>
+      <li><strong>Bug:</strong> the entire grid gets selected (all cells highlighted) instead of selecting the textarea text. The status bar below turns red.</li>
+    </ol>
+  </div>
+
+  <div class="shortcut-box">
+    <strong>Quick shortcut:</strong> After clicking cell B2 — press <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> to open comment, then <kbd>Ctrl</kbd>+<kbd>A</kbd> to trigger the bug.
+    On Mac use <kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd> and <kbd>Cmd</kbd>+<kbd>A</kbd>.
+  </div>
+
+  <div id="hot"></div>
+
+  <div id="status">Waiting for interaction... (open a comment and press Ctrl+A)</div>
+
+  <div id="log">
+    <strong>Selection event log:</strong>
+    <div id="entries">(events will appear here)</div>
+  </div>
+
+  <button id="reset-btn">Reset grid selection</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const statusEl = document.getElementById('status');
+    const entriesEl = document.getElementById('entries');
+    let commentOpen = false;
+
+    function addLog(msg, cls) {
+      if (entriesEl.textContent.startsWith('(')) entriesEl.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      entriesEl.prepend(d);
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: Handsontable.helper.createSpreadsheetData(6, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 280,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      comments: true,
+      contextMenu: true,
+      cell: [
+        { row: 1, col: 1, comment: { value: 'Hello world' } },
+      ],
+      afterSelectionEnd(row, col, row2, col2) {
+        const isSingleCell = row === row2 && col === col2;
+        if (commentOpen && !isSingleCell) {
+          // Grid-wide selection triggered while comment was open = the bug
+          statusEl.textContent = `BUG TRIGGERED: Ctrl+A selected grid cells (${row},${col}) to (${row2},${col2}) instead of textarea text!`;
+          statusEl.className = 'bug';
+          addLog(`BUG: grid selection changed to (${row},${col})→(${row2},${col2}) while comment was open`, 'entry-bug');
+        } else if (!commentOpen) {
+          statusEl.textContent = `Grid selection: (${row},${col}) to (${row2},${col2}) — normal cell click`;
+          statusEl.className = '';
+          addLog(`Normal selection: (${row},${col})→(${row2},${col2})`, 'entry-ok');
+        }
+      },
+      afterBeginEditing() {
+        // not the comment editor
+      },
+    });
+
+    // Track when comment editor opens/closes
+    const plugin = hot.getPlugin('comments');
+    const editorEl = plugin.getEditorInputElement();
+
+    editorEl.addEventListener('focus', () => {
+      commentOpen = true;
+      statusEl.textContent = 'Comment editor is open. Now press Ctrl+A — watch if the grid selection changes.';
+      statusEl.className = 'ok';
+      addLog('Comment editor focused', 'entry-ok');
+    });
+
+    editorEl.addEventListener('blur', () => {
+      commentOpen = false;
+      addLog('Comment editor blurred', '');
+    });
+
+    // Auto-select cell B2 on load
+    hot.selectCell(1, 1);
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      hot.selectCell(1, 1);
+      statusEl.textContent = 'Reset. Click B2 and press Ctrl+Alt+M to open the comment again.';
+      statusEl.className = '';
+    });
+  </script>
+</body>
+</html>
