@@ -1,4 +1,4 @@
-import type { WalkontableInstance } from '../../../../common';
+import type { WalkontableInstance } from '../types';
 import type Selection from './selection';
 import {
   removeClass,

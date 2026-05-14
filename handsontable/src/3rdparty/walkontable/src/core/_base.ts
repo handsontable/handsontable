@@ -1,4 +1,5 @@
-import type { CellCoords as CellCoordsType, DomBindings, WtTable, WtViewport, WtOverlays, WtSettings, ScrollDao } from '../../../../common';
+import type { CellCoords as CellCoordsType, ScrollDao } from '../../../../common';
+import type { DomBindings, WtTable, WtViewport, WtOverlays, WtSettings } from '../types';
 import type { SelectionManager } from '../selection/manager';
 import type Event from '../event';
 import {

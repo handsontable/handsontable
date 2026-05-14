@@ -1,4 +1,4 @@
-import type { DomBindings, OverlayInstance, WalkontableInstance, WtSettings } from '../../../../common';
+import type { DomBindings, OverlayInstance, WalkontableInstance, WtSettings } from '../types';
 import {
   outerHeight,
   outerWidth,

@@ -1,4 +1,5 @@
-import type { DataAccessObject, StylesHandler, WtSettings } from '../../../../common';
+import type { DataAccessObject, StylesHandler } from '../../../../common';
+import type { WtSettings } from '../types';
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *

@@ -1,4 +1,5 @@
-import type { DataAccessObject, DomBindings, WtSettings } from '../../../../common';
+import type { DataAccessObject } from '../../../../common';
+import type { DomBindings, WtSettings } from '../types';
 import Table from '../table';
 import stickyRowsBottom from './mixin/stickyRowsBottom';
 import calculatedColumns from './mixin/calculatedColumns';

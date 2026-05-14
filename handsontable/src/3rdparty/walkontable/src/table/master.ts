@@ -1,4 +1,5 @@
-import type { DataAccessObject, DomBindings, WtSettings } from '../../../../common';
+import type { DataAccessObject } from '../../../../common';
+import type { DomBindings, WtSettings } from '../types';
 import {
   getStyle,
   getTrimmingContainer,

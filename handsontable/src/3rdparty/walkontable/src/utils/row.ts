@@ -1,4 +1,5 @@
-import type { DataAccessObject, WtSettings } from '../../../../common';
+import type { DataAccessObject } from '../../../../common';
+import type { WtSettings } from '../types';
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *

@@ -1,4 +1,4 @@
-import type { DomBindings, WalkontableInstance, WtSettings } from '../../../../common';
+import type { DomBindings, WalkontableInstance, WtSettings } from '../types';
 import {
   getScrollableElement,
   getTrimmingContainer,

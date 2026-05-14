@@ -1,5 +1,5 @@
 /* eslint-disable no-continue */
-import type { WalkontableInstance } from '../../../../common';
+import type { WalkontableInstance } from '../types';
 import type Selection from './selection';
 import { addClass, isHTMLElement } from '../../../../helpers/dom/element';
 

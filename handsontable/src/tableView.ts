@@ -1,4 +1,5 @@
-import type { HotInstance, WalkontableInstance } from './common';
+import type { HotInstance } from './common';
+import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import {
   addClass,
   removeClass,

@@ -1,5 +1,5 @@
 import { isSafari } from '../../../helpers/browser';
-import type { WalkontableInstance, DomBindings, WtTable, WtSettings, OverlayInstance } from '../../../common';
+import type { WalkontableInstance, DomBindings, WtTable, WtSettings, OverlayInstance } from './types';
 
 interface OverlaysLike {
   wot: WalkontableInstance;

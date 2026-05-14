@@ -1,4 +1,5 @@
-import type { DomBindings, StylesHandler, WalkontableInstance, WtSettings } from '../../../../common';
+import type { StylesHandler } from '../../../../common';
+import type { DomBindings, WalkontableInstance, WtSettings } from '../types';
 import {
   addClass,
   getMaximumScrollTop,

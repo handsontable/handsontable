@@ -1,4 +1,5 @@
-import type { WalkontableInstance, DataAccessObject, DomBindings, WtSettings, StylesHandler } from '../../../common';
+import type { DataAccessObject, StylesHandler } from '../../../common';
+import type { WalkontableInstance, DomBindings, WtSettings } from './types';
 import {
   hasClass,
   index,

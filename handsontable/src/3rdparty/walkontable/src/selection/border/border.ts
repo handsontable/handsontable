@@ -1,5 +1,5 @@
 
-import type { WalkontableInstance } from '../../../../../common';
+import type { WalkontableInstance } from '../../types';
 import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles } from './types';
 import {
   addClass,

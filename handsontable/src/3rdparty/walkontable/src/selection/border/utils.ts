@@ -1,4 +1,5 @@
-import type { WalkontableInstance, StylesHandler } from '../../../../../common';
+import type { StylesHandler } from '../../../../../common';
+import type { WalkontableInstance } from '../../types';
 import type { CornerDefaultStyle } from './types';
 export const getCornerStyle = (wot: WalkontableInstance): CornerDefaultStyle => {
   const stylesHandler = wot.wtSettings.getSetting('stylesHandler') as StylesHandler;

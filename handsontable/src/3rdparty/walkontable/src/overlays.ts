@@ -1,4 +1,4 @@
-import type { WalkontableInstance, DomBindings, WtSettings, WtTable, OverlayInstance } from '../../../common';
+import type { WalkontableInstance, DomBindings, WtSettings, WtTable, OverlayInstance } from './types';
 import {
   getScrollableElement,
   getScrollbarWidth,

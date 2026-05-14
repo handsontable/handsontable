@@ -1,4 +1,5 @@
-import type { DataAccessObject, DomBindings, StylesHandler, WalkontableInstance, WtSettings, WtTable } from '../../../common';
+import type { DataAccessObject, StylesHandler } from '../../../common';
+import type { DomBindings, WalkontableInstance, WtSettings, WtTable } from './types';
 import type { ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
 import {
   getScrollbarWidth,

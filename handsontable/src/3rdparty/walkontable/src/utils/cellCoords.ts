@@ -1,4 +1,4 @@
-import type { WalkontableInstance } from '../../../../common';
+import type { WalkontableInstance } from '../types';
 
 /**
  * Finds which column the mouse is over within a given column range.

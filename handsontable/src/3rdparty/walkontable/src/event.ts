@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange, DomBindings, WtSettings, WtTable } from '../../../common';
+import type { CellCoords, CellRange } from '../../../common';
+import type { DomBindings, WtSettings, WtTable } from './types';
 import type { SelectionManager } from './selection/manager';
 import {
   closestDown,
