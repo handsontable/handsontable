@@ -2,7 +2,8 @@
  * Internal type definitions for the Walkontable rendering engine.
  * These are NOT part of the public Handsontable API.
  */
-import type { CellCoords, CellRange } from '../../../common';
+import type CellCoords from './cell/coords';
+import type CellRange from './cell/range';
 
 export interface WotSelectionManager {
   getBorderInstances(selection: object): object[];

@@ -38,7 +38,7 @@ export interface CommentObject extends CommentMeta { }
  */
 interface CommentRange {
   from?: CellCoords;
-  [key: string]: unknown;
+  to?: CellCoords;
 }
 
 export const PLUGIN_KEY = 'comments';

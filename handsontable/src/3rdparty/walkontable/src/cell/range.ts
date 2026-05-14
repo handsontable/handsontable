@@ -906,7 +906,7 @@ class CellRange {
    *
    * @param {function(number, number): boolean} callback A callback function.
    */
-  forAll(callback: (row: number, column: number) => boolean): void {
+  forAll(callback: (row: number, column: number) => boolean | void): void {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
 

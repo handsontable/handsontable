@@ -57,7 +57,7 @@ class DisplaySwitch {
    *
    * @param {object} range Coordinates of selected cell.
    */
-  show(range: Record<string, unknown>) {
+  show(range: object) {
     this.wasLastActionShow = true;
     this.showDebounced(range);
   }

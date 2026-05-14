@@ -717,7 +717,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    * @returns {boolean}
    */
-  checkCustomSelections(border: Record<string, any>, cellRange: Record<string, unknown>, place: string | undefined) {
+  checkCustomSelections(border: Record<string, any>, cellRange: object, place: string | undefined) {
     const hideCount = this.countHide(border);
     let check = false;
 
