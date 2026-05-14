@@ -136,15 +136,25 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }) {
   ) {
     const ranges = renderableRange.findAll(lastRenderableRange);
 
-    // if the last selection range is the same as the first one (case when the single cell
-    // is selected twice or more) remove duplicate ranges
+    // Mark the selection source as 'deselect' so `afterSetRangeEnd` in core.js skips the
+    // viewport scroll for this dedup-driven refresh. Other side effects (`closeEditor`,
+    // per-range `render` + `prepareEditor`, and the final batched render in
+    // `afterSelectionFinished`) are guarded against the 'deselect' source in the same way
+    // the existing 'refresh' source is handled - so a single batched render still happens
+    // once the refresh completes.
     if (ranges.length === renderableRange.size()) {
+      // if the last selection range is the same as the first one (case when the single cell
+      // is selected twice or more) remove duplicate ranges
+      selection.markSource('deselect');
       selectionRange.pop();
       selection.refresh();
+      selection.markEndSource();
 
     } else if (ranges.length > 1) {
+      selection.markSource('deselect');
       selectionRange.removeLayers(ranges.map(({ layer }) => layer));
       selection.refresh();
+      selection.markEndSource();
     }
   }
 }
