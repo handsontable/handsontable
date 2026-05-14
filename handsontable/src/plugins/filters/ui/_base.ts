@@ -223,8 +223,7 @@ export class BaseUI {
   /**
    * Focus element.
    */
-  focus() {
-
+  focus() { // intentionally empty
   }
 
   destroy() {

@@ -75,7 +75,8 @@ export function columnFactory(TableMeta: Function, conflictList: string[] = []) 
   /**
    * Base "class" for column meta.
    */
-  function ColumnMeta() {}
+  function ColumnMeta() { // intentionally empty
+  }
 
   inherit(ColumnMeta, TableMeta);
 

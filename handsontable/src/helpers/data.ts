@@ -180,7 +180,7 @@ export function countFirstRowKeys(data: unknown[]): number {
       result = data[0].length;
 
     } else if (data[0] && isObject(data[0])) {
-      result = deepObjectSize(data[0] as object);
+      result = deepObjectSize(data[0]);
     }
   }
 

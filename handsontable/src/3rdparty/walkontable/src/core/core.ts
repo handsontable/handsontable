@@ -18,14 +18,14 @@ export default class Walkontable extends CoreAbstract {
    * @param {SettingsPure} settings The Walkontable settings.
    */
   constructor(table: HTMLTableElement, settings: Record<string, unknown>) {
-    super(table, new Settings(settings) as unknown as Settings);
+    super(table, new Settings(settings));
 
-    const facadeGetter = this.wtSettings.getSetting('facade', this) as Function; // todo rethink. I would like to have no access to facade from the internal scope.
+    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
-    this.wtTable = new MasterTable(this.getTableDao() as any, facadeGetter, this.domBindings, this.wtSettings) as unknown as MasterTable;
+    this.wtTable = new MasterTable(this.getTableDao() as any, facadeGetter, this.domBindings, this.wtSettings);
     this.wtViewport = new Viewport(
       this.getViewportDao() as any, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
-    ) as unknown as Viewport;
+    );
     this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
     this.wtEvent = new Event(
       facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager
@@ -33,7 +33,7 @@ export default class Walkontable extends CoreAbstract {
     this.wtOverlays = new Overlays(
       // TODO create DAO and remove reference to the Walkontable instance.
       this as any, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
-    ) as unknown as Overlays;
+    );
 
     this.exportSettingsAsClassNames();
 

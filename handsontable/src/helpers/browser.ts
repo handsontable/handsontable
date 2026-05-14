@@ -95,7 +95,7 @@ export function isIOS(): boolean {
   return platforms.ios.value;
 }
 
-export function isIpadOS({ maxTouchPoints }: { maxTouchPoints?: number } = navigator as unknown as { maxTouchPoints?: number }): boolean {
+export function isIpadOS({ maxTouchPoints }: { maxTouchPoints?: number } = navigator): boolean {
   return (maxTouchPoints ?? 0) > 2 && platforms.mac.value;
 }
 

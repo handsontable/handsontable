@@ -15,7 +15,7 @@ export class ChangesObservable {
    *
    * @type {ChangesObserver[]}
    */
-  #observers = new Set<ChangesObserver>();
+  readonly #observers = new Set<ChangesObserver>();
   /**
    * An array with default values that act as a base array that will be compared with
    * the last saved index state. The changes are generated and immediately send through

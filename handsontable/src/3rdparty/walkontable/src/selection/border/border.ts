@@ -636,7 +636,7 @@ class Border {
 
         } else {
           cornerEdge = toTdOffsetLeft + outerWidth(toTD as HTMLElement) + (parseInt(this.cornerDefaultStyle.width as string, 10) / 2);
-          cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer as HTMLElement);
+          cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
         }
 
         if (cornerOverlappingContainer) {
@@ -655,7 +655,7 @@ class Border {
       if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
         const toTdOffsetTop = trimToWindow ? (toTD as HTMLElement).getBoundingClientRect().top : (toTD as HTMLElement).offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD as HTMLElement) + (parseInt(this.cornerDefaultStyle.height as string, 10) / 2);
-        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer as HTMLElement);
+        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(

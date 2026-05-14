@@ -823,7 +823,7 @@ export class ColumnSorting extends BasePlugin {
    *
    * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
    */
-  #onAfterDataProviderFetch = (result: { columnSortConfig?: Record<string, unknown>[] }) => {
+  readonly #onAfterDataProviderFetch = (result: { columnSortConfig?: Record<string, unknown>[] }) => {
     this.setSortConfig(result?.columnSortConfig ?? []);
   };
 

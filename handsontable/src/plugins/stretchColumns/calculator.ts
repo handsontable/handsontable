@@ -18,19 +18,19 @@ export class StretchCalculator {
    *
    * @type {Core}
    */
-  #hot;
+  readonly #hot;
   /**
    * The map that stores the calculated column widths.
    *
    * @type {IndexToValueMap}
    */
-  #widthsMap;
+  readonly #widthsMap;
   /**
    * The map that stores the available stretch strategies.
    *
    * @type {Map<string, StretchAllStrategy | StretchLastStrategy>}
    */
-  #stretchStrategies = new Map([
+  readonly #stretchStrategies = new Map([
     ['all', new StretchAllStrategy(this.#overwriteColumnWidthFn.bind(this))],
     ['last', new StretchLastStrategy(this.#overwriteColumnWidthFn.bind(this))],
   ]);

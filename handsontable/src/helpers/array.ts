@@ -268,12 +268,12 @@ export function arrayUnique(array: unknown[]): unknown[] {
  * @param {...Array} arrays Array of strings or array of numbers.
  * @returns {Array} Returns the difference between arrays.
  */
-export function getDifferenceOfArrays(...arrays: Array<Array<string | number>>): (string | number)[] {
+export function getDifferenceOfArrays<T extends string | number>(...arrays: Array<T[]>): T[] {
   const [first, ...rest] = [...arrays];
   let filteredFirstArray = first;
 
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => !(array as Array<string | number>).includes(value));
+    filteredFirstArray = filteredFirstArray.filter(value => !(array as T[]).includes(value));
   });
 
   return filteredFirstArray;
@@ -293,7 +293,7 @@ export function getIntersectionOfArrays(
   let arrays: Array<Array<string | number>> = args as Array<Array<string | number>>;
 
   if (typeof lastArgument === 'function') {
-    comparator = lastArgument as (a: string | number, b: string | number) => boolean;
+    comparator = lastArgument;
     arrays = arrays.slice(0, -1) as Array<Array<string | number>>;
   }
 
@@ -321,7 +321,7 @@ export function getUnionOfArrays(...arrays: Array<Array<string | number>>): (str
   const set = new Set(first);
 
   arrayEach(rest, (array) => {
-    arrayEach(array as Array<string | number>, (value) => {
+    arrayEach(array, (value) => {
       if (!set.has(value as string | number)) {
         set.add(value as string | number);
       }

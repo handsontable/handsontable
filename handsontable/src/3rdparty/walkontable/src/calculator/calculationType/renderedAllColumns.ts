@@ -54,10 +54,12 @@ export class RenderedAllColumnsCalculationType {
   /**
    * Processes the column.
    */
-  process(): void {}
+  process(): void { // intentionally empty
+  }
 
   /**
    * Finalizes the calculation.
    */
-  finalize(): void {}
+  finalize(): void { // intentionally empty
+  }
 }

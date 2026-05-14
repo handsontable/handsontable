@@ -4,7 +4,6 @@ import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { sanitize, isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
-import { deprecatedWarn } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -815,7 +814,7 @@ export class CopyPaste extends BasePlugin {
 
     // Store a copy of the original pasted data before user can modify it in beforePaste hook.
     // This is needed to detect if user modified values and respect their modifications over source data.
-    const originalPastedData = deepClone(pastedData as object);
+    const originalPastedData = deepClone(pastedData);
 
     if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
       return;

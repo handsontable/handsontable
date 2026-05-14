@@ -124,12 +124,12 @@ export function closest(element: HTMLElement, nodes: Array<string | HTMLElement>
  */
 export function closestDown(element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement) {
   const matched = [];
-  let elementToCheck: Node | null = element as Node;
+  let elementToCheck: Node | null = element;
 
   while (elementToCheck) {
     elementToCheck = closest(elementToCheck as HTMLElement, nodes, until);
 
-    if (!elementToCheck || (until && !until.contains(elementToCheck as HTMLElement))) {
+    if (!elementToCheck || (until && !until.contains(elementToCheck))) {
       break;
     }
     matched.push(elementToCheck);

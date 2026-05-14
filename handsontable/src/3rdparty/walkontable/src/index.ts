@@ -21,9 +21,10 @@ import {
   CUSTOM_SELECTION_TYPE,
 } from './selection';
 import * as Renderer from './renderer';
-import { OrderView, SharedOrderView } from './utils/orderView';
 import { NodesPool } from './utils/nodesPool';
-import { getListenersCounter } from '../../../eventManager';
+
+export { OrderView, SharedOrderView } from './utils/orderView';
+export { getListenersCounter } from '../../../eventManager';
 
 export {
   DEFAULT_COLUMN_WIDTH,
@@ -47,9 +48,5 @@ export {
   CUSTOM_SELECTION_TYPE as HIGHLIGHT_CUSTOM_SELECTION_TYPE,
 
   Renderer,
-  NodesPool,
-  OrderView,
-  SharedOrderView,
-
-  getListenersCounter
+  NodesPool
 };

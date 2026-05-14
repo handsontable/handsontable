@@ -22,7 +22,7 @@ export function numbroPatternToExcelNumFmt(pattern: any): string | null {
     return null;
   }
 
-  return pattern.replace(/0,0/g, '#,##0');
+  return pattern.replaceAll('0,0', '#,##0');
 }
 
 /**

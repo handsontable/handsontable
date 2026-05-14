@@ -20,7 +20,7 @@ export const command = {
 
       // Restore the column highlight by header flag after setting up a new selection.
       if (isFocusHighlightedByHeader) {
-        (selection.selectedByColumnHeader as Set<number>).add(selection.getLayerLevel());
+        selection.selectedByColumnHeader.add(selection.getLayerLevel());
       }
 
       selection.setRangeEnd(hot._createCellCoords(to.row, column));

@@ -166,10 +166,10 @@ export function rangeEachReverse(rangeFrom: number, rangeTo: number | Function, 
  * @returns {number}
  */
 export function valueAccordingPercent(value: number, percent: string | number): number {
-  percent = parseInt(percent.toString().replace('%', ''), 10);
+  percent = Number.parseInt(percent.toString().replace('%', ''), 10);
   percent = isNaN(percent) ? 0 : percent;
 
-  return parseInt(String(value * percent / 100), 10);
+  return Number.parseInt(String(value * percent / 100), 10);
 }
 
 /**
@@ -205,15 +205,15 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
   const normalizedNumericData = numericData.trim();
 
   if (isCommaThousandsGroupedInteger(numericData, decimalSeparator)) {
-    return parseFloat(normalizedNumericData.replace(/,/g, ''));
+    return Number.parseFloat(normalizedNumericData.replaceAll(',', ''));
   }
 
   if (isDotThousandsGroupedInteger(numericData, decimalSeparator)) {
-    return parseFloat(normalizedNumericData.replace(/\./g, ''));
+    return Number.parseFloat(normalizedNumericData.replaceAll('.', ''));
   }
 
   if (isDotThousandsGroupedFloat(numericData, decimalSeparator)) {
-    return parseFloat(normalizedNumericData.replace(/\./g, '').replace(',', '.'));
+    return Number.parseFloat(normalizedNumericData.replaceAll('.', '').replace(',', '.'));
   }
 
 
@@ -221,8 +221,8 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
   // for example from `450,65` to `450.65`.
   const unifiedNumericData = normalizedNumericData.replace(',', '.');
 
-  if (isNaN(parseFloat(unifiedNumericData)) === false) {
-    return parseFloat(unifiedNumericData);
+  if (isNaN(Number.parseFloat(unifiedNumericData)) === false) {
+    return Number.parseFloat(unifiedNumericData);
   }
 
   return null;

@@ -59,13 +59,13 @@ export class ManualRowMove extends BasePlugin {
    *
    * @type {object}
    */
-  #backlight = new BacklightUI(this.hot);
+  readonly #backlight = new BacklightUI(this.hot);
   /**
    * Guideline UI object.
    *
    * @type {object}
    */
-  #guideline = new GuidelineUI(this.hot);
+  readonly #guideline = new GuidelineUI(this.hot);
   /**
    * @type {number[]}
    */

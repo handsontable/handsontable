@@ -210,7 +210,7 @@ class DataMap {
    * @returns {number} Amount of physical columns in the first data row.
    */
   countFirstRowKeys() {
-    return countFirstRowKeys(this.dataSource as unknown[]);
+    return countFirstRowKeys(this.dataSource);
   }
 
   /**
@@ -235,9 +235,9 @@ class DataMap {
         if (value === null) {
           prop = propertyParent + key;
           this.colToPropCache.push(prop);
-          this.propToColCache.set(prop, lastColumn as number);
+          this.propToColCache.set(prop, lastColumn);
 
-          (lastColumn as number) += 1;
+          lastColumn += 1;
         } else {
           lastColumn = this.recursiveDuckColumns(value as Record<string, unknown>, lastColumn, `${key}.`);
         }
@@ -285,7 +285,7 @@ class DataMap {
     const cachedPhysicalIndex = this.propToColCache.get(prop);
 
     if (isDefined(cachedPhysicalIndex)) {
-      return this.hot!.toVisualColumn(cachedPhysicalIndex as number);
+      return this.hot!.toVisualColumn(cachedPhysicalIndex);
     }
 
     // Property may be a physical column index.
@@ -323,7 +323,7 @@ class DataMap {
    * @returns {Array|object}
    */
   createDuckSchema() {
-    return this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0] as object) : {};
+    return this.dataSource && this.dataSource[0] ? duckSchema(this.dataSource[0]) : {};
   }
 
   /**
@@ -444,7 +444,7 @@ class DataMap {
    * @fires Hooks#afterCreateCol
    * @returns {number} Returns number of created columns.
    */
-  createCol(index: number, amount = 1, { source, mode = 'start' }: { source?: string; mode?: string } = {}) {
+  createCol(index: number, amount = 1, { source, mode = 'start' }: { source?: string; mode?: 'start' | 'end' } = {}) {
     if (!this.hot.isColumnModificationAllowed()) {
       throwWithCause('Cannot create new column. When data source in an object, ' +
         // eslint-disable-next-line max-len
@@ -508,7 +508,7 @@ class DataMap {
       }
     }
 
-    this.hot!.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, mode as 'start' | 'end');
+    this.hot!.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, mode);
 
     this.hot.runHooks(
       'afterCreateCol',
@@ -734,7 +734,7 @@ class DataMap {
    */
   filterData(index: number, amount: number, physicalRows: number[]) {
     // Custom data filtering (run as a consequence of calling the below hook) provide an array containing new data.
-    let data = this.hot!.runHooks('filterData', index, amount, physicalRows) as unknown;
+    let data = this.hot!.runHooks('filterData', index, amount, physicalRows);
 
     // Hooks by default returns first argument (when there is no callback changing execution result).
     if (Array.isArray(data) === false) {
@@ -742,7 +742,7 @@ class DataMap {
     }
 
     this.dataSource.length = 0;
-    Array.prototype.push.apply(this.dataSource, data as (Record<string, unknown> | unknown[])[]);
+    Array.prototype.push.apply(this.dataSource, data);
   }
 
   /**
@@ -770,7 +770,7 @@ class DataMap {
       value = dataRow[prop];
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
-      let out: Record<string, unknown> = dataRow as Record<string, unknown>;
+      let out: Record<string, unknown> = dataRow;
 
       if (!out) {
         return null;
@@ -792,13 +792,13 @@ class DataMap {
       value = (prop as Function)(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
-    const visualColumnIndex = this.propToCol(prop);
-    const physicalColumn = this.hot!.toPhysicalColumn(visualColumnIndex as number);
+    const visualColumnIndex = this.propToCol(prop) as number;
+    const physicalColumn = this.hot!.toPhysicalColumn(visualColumnIndex);
 
     if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
       value = getValueGetterValue(
         value,
-        this.metaManager!.getCellMeta(physicalRow, physicalColumn as number, {
+        this.metaManager!.getCellMeta(physicalRow, physicalColumn, {
           visualRow: row,
           visualColumn: visualColumnIndex,
           skipMetaExtension: true
@@ -857,7 +857,7 @@ class DataMap {
       this.hot!.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'set');
 
       if (valueHolder.isTouched()) {
-        newValue = valueHolder.value as string;
+        newValue = valueHolder.value;
       }
     }
 
@@ -868,7 +868,7 @@ class DataMap {
       dataRow[prop] = newValue;
 
     } else if (dataDotNotation && typeof prop === 'string' && prop.indexOf('.') > -1) {
-      let out: Record<string, unknown> = dataRow as Record<string, unknown>;
+      let out: Record<string, unknown> = dataRow;
       let i = 0;
       let ilen;
 
@@ -1089,12 +1089,12 @@ class DataMap {
   destroy() {
     this.hot = null;
     this.metaManager = null;
-    this.dataSource = null as unknown as (Record<string, unknown> | unknown[])[];
+    this.dataSource = null;
     this.duckSchema = null;
     this.colToPropCache.length = 0;
 
     this.propToColCache.clear();
-    this.propToColCache = undefined as unknown as Map<string | number, number>;
+    this.propToColCache = undefined;
   }
 }
 

@@ -78,8 +78,8 @@ class ConditionCollection {
    */
   isMatch(value: Record<string, unknown>, column: number) {
     const stateForColumn = this.filteringStates.getValueAtIndex(column) as Record<string, unknown> | null;
-    const conditions = ((stateForColumn as Record<string, unknown>)?.conditions ?? []) as unknown[];
-    const operation = (stateForColumn as Record<string, unknown>)?.operation as string;
+    const conditions = (stateForColumn?.conditions ?? []) as unknown[];
+    const operation = stateForColumn?.operation as string;
 
     return this.isMatchInConditions(conditions, value, operation);
   }
@@ -168,7 +168,7 @@ class ConditionCollection {
    * @returns {Array} Returns conditions collection as an array.
    */
   getConditions(column: number): ConditionId[] {
-    return ((this.filteringStates.getValueAtIndex(column) as StoredColumnState | undefined)?.conditions ?? []) as ConditionId[];
+    return (this.filteringStates.getValueAtIndex(column) as StoredColumnState | undefined)?.conditions ?? [];
   }
 
   /**
@@ -208,7 +208,7 @@ class ConditionCollection {
   exportAllConditions(): ColumnConditions[] {
     return (this.filteringStates.getEntries() as [number, StoredColumnState][])
       .reduce((allConditions: ColumnConditions[], [column, stateValue]) => {
-        const { operation, conditions } = stateValue as StoredColumnState;
+        const { operation, conditions } = stateValue;
         allConditions.push({
           column,
           operation,

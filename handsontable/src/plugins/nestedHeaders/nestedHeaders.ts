@@ -446,7 +446,7 @@ export class NestedHeaders extends BasePlugin {
     return this.hot.getColHeader(visualColumnIndex, headerLevel);
   }
 
-  #updateFocusHighlightPosition = () => {
+  readonly #updateFocusHighlightPosition = () => {
     const selection = this.hot?.getSelectedRangeActive();
 
     if (!selection) {

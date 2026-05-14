@@ -135,7 +135,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
         ...shortcut,
         relativeToGroup: shortcut.relativeToGroup ?? 'editorManager.handlingEditor',
         position: shortcut.position ?? 'before',
-        callback: (event: Event) => (shortcut.callback as (editor: InstanceType<typeof BaseEditor>, event: Event) => void)(editor, event),
+        callback: (event: Event) => shortcut.callback(editor as Extended, event),
       })), contextConfig);
     }
   };

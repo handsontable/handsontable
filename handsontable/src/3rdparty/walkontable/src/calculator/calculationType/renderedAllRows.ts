@@ -54,10 +54,12 @@ export class RenderedAllRowsCalculationType {
   /**
    * Processes the row.
    */
-  process(): void {}
+  process(): void { // intentionally empty
+  }
 
   /**
    * Finalizes the calculation.
    */
-  finalize(): void {}
+  finalize(): void { // intentionally empty
+  }
 }

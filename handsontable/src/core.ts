@@ -475,7 +475,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     instance.runHooks('beforeCompositionStart', event);
   });
 
-  dataSource = new DataSource(instance) as unknown as DataSourceInstance;
+  dataSource = new DataSource(instance);
 
   const moduleRegisterer = staticRegister(this.guid);
 
@@ -802,7 +802,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
             startPhysicalIndex: startRowPhysicalIndex,
           } = datamap.createRow(index as number, amount, { source, mode: insertRowMode });
 
-          selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex as number), rowDelta as number);
+          selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex), rowDelta);
           break;
 
         case 'insert_col_start':
@@ -823,11 +823,11 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
             if (Array.isArray(tableMeta.colHeaders)) {
               const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex), 0];
 
-              spliceArray.length += colDelta as number; // inserts empty (undefined) elements at the end of an array
+              spliceArray.length += colDelta; // inserts empty (undefined) elements at the end of an array
               Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
             }
 
-            selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex as number), colDelta as number);
+            selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex), colDelta);
           }
           break;
 
@@ -900,7 +900,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           };
 
           if (Array.isArray(index)) {
-            removeRow(normalizeIndexesGroup(index as number[][]));
+            removeRow(normalizeIndexesGroup(index));
           } else {
             removeRow([[index, amount]]);
           }
@@ -978,7 +978,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           };
 
           if (Array.isArray(index)) {
-            removeCol(normalizeIndexesGroup(index as number[][]));
+            removeCol(normalizeIndexesGroup(index));
           } else {
             removeCol([[index, amount]]);
           }
@@ -1380,8 +1380,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         settingsArray = Array.isArray(classSettings) ? classSettings : stringToArray(classSettings);
       }
 
-      const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray as string[], settingsArray as string[]) as string[];
-      const classNameToAdd = getDifferenceOfArrays(settingsArray as string[], globalMetaSettingsArray as string[]) as string[];
+      const classNameToRemove = getDifferenceOfArrays(globalMetaSettingsArray, settingsArray);
+      const classNameToAdd = getDifferenceOfArrays(settingsArray, globalMetaSettingsArray);
 
       if (classNameToRemove.length) {
         removeClass(element, classNameToRemove);
@@ -1911,7 +1911,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     let prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
-      const [visualRow, visualColumn, newValue] = input[i];
+      const [visualRow, visualColumn, newValue] = input[i] as [number, string | number, unknown];
 
       if (typeof input[i] !== 'object') {
         throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
@@ -1929,9 +1929,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       }
 
       changes.push([
-        visualRow as number,
+        visualRow,
         prop,
-        dataSource.getAtCell(this.toPhysicalRow(visualRow as number), visualColumn as number),
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
         newValue,
       ]);
     }
@@ -2676,7 +2676,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         dataSource,
         internalSource: 'updateData',
         source,
-        metaManager: metaManager as MetaManagerInstance,
+        metaManager,
         firstRun
       });
   };
@@ -2726,7 +2726,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         dataSource,
         internalSource: 'loadData',
         source,
-        metaManager: metaManager as MetaManagerInstance,
+        metaManager,
         firstRun
       });
   };
@@ -2816,7 +2816,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     return datamap.getRange(instance._createCellCoords(row, column),
-      instance._createCellCoords(row2, column2), DataMap.DESTINATION_RENDERER as number);
+      instance._createCellCoords(row2, column2), DataMap.DESTINATION_RENDERER);
   };
 
   /**
@@ -2950,7 +2950,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           tableMeta[i] = hook;
 
         } else if (Array.isArray(hook)) {
-          Hooks.getSingleton().add(i, hook as unknown as HookCallback[], instance);
+          Hooks.getSingleton().add(i, hook, instance);
           tableMeta[i] = hook;
         }
 
@@ -3025,7 +3025,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           let themeObject;
 
           if (typeof (settings.theme as { getThemeConfig?: () => unknown }).getThemeConfig !== 'function') {
-            themeObject = registerTheme(settings.theme as Parameters<typeof registerTheme>[0]);
+            themeObject = registerTheme(settings.theme);
           } else {
             themeObject = settings.theme;
           }
@@ -3104,7 +3104,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     if (isDefined(settings.cell)) {
       objectEach(settings.cell as Record<string, unknown>, (cell: Record<string, unknown>) => {
-        instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
+        instance.setCellMetaObject(cell.row, cell.col, cell);
       });
     }
 
@@ -3517,7 +3517,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column),
       instance._createCellCoords(tableMeta.data.length - 1, column),
-      DataMap.DESTINATION_RENDERER as number
+      DataMap.DESTINATION_RENDERER
     );
 
     for (let i = 0; i < dataByRows.length; i += 1) {
@@ -3544,7 +3544,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, datamap.propToCol(prop)),
       instance._createCellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
-      DataMap.DESTINATION_RENDERER as number);
+      DataMap.DESTINATION_RENDERER);
 
     for (let i = 0; i < dataByRows.length; i += 1) {
       for (let j = 0; j < dataByRows[i].length; j += 1) {
@@ -3744,7 +3744,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const data = datamap.getRange(
       instance._createCellCoords(row, 0),
       instance._createCellCoords(row, this.countCols() - 1),
-      DataMap.DESTINATION_RENDERER as number
+      DataMap.DESTINATION_RENDERER
     );
 
     return data[0] || [];
@@ -4363,8 +4363,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       result = (columns as Function)(prop).title;
 
     } else if (columns && !isFunction(columns) && (columns as Record<string, unknown>[])[physicalColumn] &&
-               ((columns as Record<string, unknown>[])[physicalColumn] as Record<string, unknown>).title) {
-      result = ((columns as Record<string, unknown>[])[physicalColumn] as Record<string, unknown>).title;
+               (columns as Record<string, unknown>[])[physicalColumn].title) {
+      result = (columns as Record<string, unknown>[])[physicalColumn].title;
 
     } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== undefined) {
       result = tableMeta.colHeaders[physicalColumn];

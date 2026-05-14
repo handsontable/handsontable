@@ -41,7 +41,7 @@ class MergedCellsCollection {
 
   constructor(mergeCellsPlugin: MergeCells) {
     this.plugin = mergeCellsPlugin;
-    this.hot = mergeCellsPlugin.hot as HotInstance;
+    this.hot = mergeCellsPlugin.hot;
   }
 
   /**

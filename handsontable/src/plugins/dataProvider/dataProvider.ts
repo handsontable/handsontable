@@ -233,7 +233,7 @@ export class DataProvider extends BasePlugin {
    *
    * @type {{ tail: Promise<void> }}
    */
-  #mutationQueue: { tail: Promise<void> } = { tail: Promise.resolve() };
+  readonly #mutationQueue: { tail: Promise<void> } = { tail: Promise.resolve() };
 
   /**
    * @param {object} hotInstance Handsontable instance.
@@ -802,12 +802,12 @@ export class DataProvider extends BasePlugin {
    *
    * @returns {boolean}
    */
-  #onHasExternalDataSource = () => isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
+  readonly #onHasExternalDataSource = () => isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
 
   /**
    * @returns {void}
    */
-  #onAfterInit = () => {
+  readonly #onAfterInit = () => {
     this.fetchData();
   };
 
@@ -819,7 +819,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} newPage New 1-based page.
    * @returns {void}
    */
-  #onAfterPageChangeExternalPagination = (oldPage: any, newPage: any) => {
+  readonly #onAfterPageChangeExternalPagination = (oldPage: any, newPage: any) => {
     handleAfterPageChangeExternalPagination(
       {
         hot: this.hot,
@@ -839,7 +839,7 @@ export class DataProvider extends BasePlugin {
    * @param {number | 'auto'} newPageSize New page size.
    * @returns {void}
    */
-  #onAfterPageSizeChangeExternalPagination = (oldPageSize: any, newPageSize: any) => {
+  readonly #onAfterPageSizeChangeExternalPagination = (oldPageSize: any, newPageSize: any) => {
     handleAfterPageSizeChangeExternalPagination(
       {
         hot: this.hot,
@@ -859,7 +859,7 @@ export class DataProvider extends BasePlugin {
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean|void} False when filtering is handled server-side.
    */
-  #onBeforeFilter = (conditionsStack: any) => handleBeforeFilterForServer(
+  readonly #onBeforeFilter = (conditionsStack: any) => handleBeforeFilterForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -878,7 +878,7 @@ export class DataProvider extends BasePlugin {
    * @param {boolean} sortPossible Whether sort is allowed.
    * @returns {boolean|undefined}
    */
-  #onBeforeColumnSort = (currentSortConfig: any, destinationSortConfigs: any, sortPossible: any) => handleBeforeColumnSortForServer(
+  readonly #onBeforeColumnSort = (currentSortConfig: any, destinationSortConfigs: any, sortPossible: any) => handleBeforeColumnSortForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -894,7 +894,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} visualRowIndex Visual row index.
    * @returns {number} Global row index for headers.
    */
-  #onModifyRowHeader = (visualRowIndex: any) => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
+  readonly #onModifyRowHeader = (visualRowIndex: any) => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
 
   /**
    * Skips the local undo stack for edits that batch to `onRowsUpdate` (same sources as `shouldIgnoreAfterChangeForServerUpdate`).
@@ -903,7 +903,7 @@ export class DataProvider extends BasePlugin {
    * @param {string} [source] Change source for the action being pushed onto the stack.
    * @returns {boolean|void} Return `false` to block stacking (see [[Hooks#beforeUndoStackChange]]).
    */
-  #onBeforeUndoStackChange = (doneActionsCopy: any, source: any) => {
+  readonly #onBeforeUndoStackChange = (doneActionsCopy: any, source: any) => {
     if (!isFunction(this.#getOnRowsUpdate())) {
       return;
     }
@@ -922,7 +922,7 @@ export class DataProvider extends BasePlugin {
    * @param {string} [source] Change source.
    * @returns {void}
    */
-  #onAfterChangeForServerUpdate = (changes: any, source: any) => {
+  readonly #onAfterChangeForServerUpdate = (changes: any, source: any) => {
     if (shouldIgnoreAfterChangeForServerUpdate(isFunction(this.#getOnRowsUpdate()), changes, source)) {
       return;
     }
@@ -945,7 +945,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} amount Row count.
    * @returns {boolean|undefined}
    */
-  #onBeforeAlter = (action: any, index: any, amount: any) => handleBeforeAlterForCrud(
+  readonly #onBeforeAlter = (action: any, index: any, amount: any) => handleBeforeAlterForCrud(
     {
       hot: this.hot,
       getOnRowsCreate: () => this.#getOnRowsCreate(),

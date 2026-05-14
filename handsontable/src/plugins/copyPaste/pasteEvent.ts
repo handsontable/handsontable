@@ -8,7 +8,8 @@ export default class PasteEvent {
   constructor() {
     this.clipboardData = new ClipboardData();
   }
-  preventDefault() {}
+  preventDefault() { // intentionally empty
+  }
   composedPath(): unknown[] {
     return [];
   }

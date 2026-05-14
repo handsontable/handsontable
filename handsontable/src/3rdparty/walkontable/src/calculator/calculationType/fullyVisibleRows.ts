@@ -38,7 +38,8 @@ export class FullyVisibleRowsCalculationType {
   /**
    * Initializes the calculation.
    */
-  initialize(): void {}
+  initialize(): void { // intentionally empty
+  }
 
   /**
    * Processes the row.

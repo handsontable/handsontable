@@ -74,7 +74,7 @@ export function isJSON(string: string) {
  * @returns {boolean}
  */
 export function isPercentValue(value: string): boolean {
-  return /^(?:[0-9][0-9]?%|100%)$/.test(value as string);
+  return /^(?:\d\d?%|100%)$/.test(value as string);
 }
 
 /**
@@ -127,5 +127,5 @@ export function toHyphen(str: string): string {
     return str;
   }
 
-  return str.replace(/([A-Z])/g, '-$1').replace(/_/g, '-').toLowerCase();
+  return str.replace(/([A-Z])/g, '-$1').replaceAll('_', '-').toLowerCase();
 }

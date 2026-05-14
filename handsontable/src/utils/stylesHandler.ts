@@ -18,7 +18,7 @@ export class StylesHandler {
    *
    * @type {Core}
    */
-  #hot: HotInstance;
+  readonly #hot: HotInstance;
 
   /**
    * The name of the theme.
@@ -32,7 +32,7 @@ export class StylesHandler {
    *
    * @type {HTMLElement}
    */
-  #rootElement: HTMLElement;
+  readonly #rootElement: HTMLElement;
 
   /**
    * The computed style of the root element.
@@ -47,7 +47,7 @@ export class StylesHandler {
    *
    * @type {Document}
    */
-  #rootDocument: Document;
+  readonly #rootDocument: Document;
 
   /**
    * An object to store CSS variable values.
@@ -68,7 +68,7 @@ export class StylesHandler {
    *
    * @type {function(string)}
    */
-  #onThemeChange: Function;
+  readonly #onThemeChange: Function;
 
   /**
    * Initializes a new instance of the `StylesHandler` class.
@@ -212,7 +212,7 @@ export class StylesHandler {
     // Math.round (not Math.ceil) so that fractional computed values from sub-100% browser zoom
     // (e.g. "1.111px" at 90%) round to the correct 1px rather than overshooting to 2px, which
     // would make the hider taller than the actual table content and leave a visible gap.
-    const bottomBorderWidth = Math.round(parseFloat(this.getStyleForTD('border-bottom-width') as string));
+    const bottomBorderWidth = Math.round(Number.parseFloat(this.getStyleForTD('border-bottom-width') as string));
 
     if (
       lineHeightVarValue === null ||
@@ -292,7 +292,7 @@ export class StylesHandler {
    * @returns {number|null} The parsed value of the CSS property or `null` if non-existent.
    */
   #getParsedNumericCSSValue(property: string) {
-    const parsedValue = Math.ceil(parseFloat(this.#getCSSValue(property) as string));
+    const parsedValue = Math.ceil(Number.parseFloat(this.#getCSSValue(property) as string));
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
   }

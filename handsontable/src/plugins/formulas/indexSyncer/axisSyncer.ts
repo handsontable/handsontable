@@ -31,21 +31,21 @@ class AxisSyncer {
    * @private
    * @type {'row'|'column'}
    */
-  #axis: string;
+  readonly #axis: string;
   /**
    * Reference to index mapper.
    *
    * @private
    * @type {IndexMapper}
    */
-  #indexMapper;
+  readonly #indexMapper;
   /**
    * The index synchronizer for both axis (is storing some more general information).
    *
    * @private
    * @type {IndexSyncer}
    */
-  #indexSyncer;
+  readonly #indexSyncer;
   /**
    * Sequence of physical indexes stored for watching changes and calculating some transformations.
    *

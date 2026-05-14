@@ -1,7 +1,7 @@
 import { AutoColumnSize } from './autoColumnSize';
 import { Autofill } from './autofill';
 import { AutoRowSize } from './autoRowSize';
-import { BasePlugin } from './base';
+export { BasePlugin } from './base';
 import { BindRowsWithHeaders } from './bindRowsWithHeaders';
 import { CollapsibleColumns } from './collapsibleColumns';
 import { ColumnSorting } from './columnSorting';
@@ -91,7 +91,6 @@ export {
   AutoColumnSize,
   Autofill,
   AutoRowSize,
-  BasePlugin,
   BindRowsWithHeaders,
   CollapsibleColumns,
   ColumnSorting,

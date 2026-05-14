@@ -1,5 +1,4 @@
-import type { DataAccessObject, StylesHandler } from './types';
-import type { DomBindings, WalkontableInstance } from './types';
+import type { DataAccessObject, DomBindings, WalkontableInstance } from './types';
 import type Settings from './settings';
 import type Table from './table';
 import type { ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
@@ -398,7 +397,7 @@ class Viewport {
       viewportHeight: height,
       scrollOffset: pos,
       totalRows,
-      overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride') as any,
+      overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,
       rowHeightCache: this.rowHeightCache,
     });
@@ -439,7 +438,7 @@ class Viewport {
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns,
-      overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride') as any,
+      overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
       inlineStartOffset: this.dataAccessObject.inlineStartParentOffset,
       columnWidthCache: this.columnWidthCache,
     });

@@ -1,5 +1,5 @@
 import type { HotInstance } from './core/types';
-import type { WalkontableInstance, DomBindings, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
+import type { WalkontableInstance, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
 import {
   addClass,
   removeClass,
@@ -2110,4 +2110,4 @@ export default TableView;
 
 // DataAccessObject and ScrollDao are defined in ./3rdparty/walkontable/src/types and re-exported here
 // for backward compatibility with code that imports them from tableView.
-export type { DataAccessObject, ScrollDao };
+export type { DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';

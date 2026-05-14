@@ -34,7 +34,7 @@ export function getValuesIntersection(valuesArray: unknown[], source: unknown[])
     valuesArray as (string | number)[],
     source as (string | number)[],
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
-  ) as unknown[];
+  );
 }
 
 /**

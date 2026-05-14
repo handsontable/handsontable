@@ -23,7 +23,7 @@ export function textRenderer(hotInstance: HotInstance, TD: HTMLTableCellElement,
     escaped = cellProperties.placeholder;
   }
 
-  const escapedStr = stringify(escaped) as string;
+  const escapedStr = stringify(escaped);
   let finalStr = escapedStr;
 
   if (cellProperties.trimWhitespace) {

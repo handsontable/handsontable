@@ -217,7 +217,7 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
-    const actionClone = deepClone(action as object);
+    const actionClone = deepClone(action);
     const continueAction = this.hot.runHooks('beforeUndo', actionClone);
 
     if (continueAction === false) {
@@ -262,7 +262,7 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
 
-    const actionClone = deepClone(action as object);
+    const actionClone = deepClone(action);
 
     const continueAction = this.hot.runHooks('beforeRedo', actionClone);
 

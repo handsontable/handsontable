@@ -34,19 +34,19 @@ export class PositionCache {
    *
    * @type {Function}
    */
-  #totalItemsFn: () => number;
+  readonly #totalItemsFn: () => number;
   /**
    * A function that returns the size for a given index.
    *
    * @type {Function}
    */
-  #sizeFn: (index: number) => number;
+  readonly #sizeFn: (index: number) => number;
   /**
    * A function that returns the default size for items that return NaN/undefined.
    *
    * @type {Function}
    */
-  #defaultSizeFn: () => number;
+  readonly #defaultSizeFn: () => number;
 
   /**
    * @param {object} config The configuration object.

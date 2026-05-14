@@ -5,7 +5,8 @@ import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './dropdownType';
 import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './handsontableType';
 import { IntlDateCellType, CELL_TYPE as INTL_DATE_TYPE } from './intlDateType';
 import { IntlTimeCellType, CELL_TYPE as INTL_TIME_TYPE } from './intlTimeType';
-import { MultiSelectCellType, CELL_TYPE as MULTISELECT_TYPE } from './multiSelectType';
+import { MultiSelectCellType } from './multiSelectType';
+export { CELL_TYPE as MULTISELECT_TYPE } from './multiSelectType';
 import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './numericType';
 import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './passwordType';
 import { SelectCellType, CELL_TYPE as SELECT_TYPE } from './selectType';
@@ -42,7 +43,7 @@ export {
   HandsontableCellType, HANDSONTABLE_TYPE,
   IntlDateCellType, INTL_DATE_TYPE,
   IntlTimeCellType, INTL_TIME_TYPE,
-  MultiSelectCellType, MULTISELECT_TYPE,
+  MultiSelectCellType,
   NumericCellType, NUMERIC_TYPE,
   PasswordCellType, PASSWORD_TYPE,
   SelectCellType, SELECT_TYPE,

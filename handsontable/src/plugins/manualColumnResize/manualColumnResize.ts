@@ -376,7 +376,7 @@ export class ManualColumnResize extends BasePlugin {
    */
   setupGuidePosition() {
     const handleHeight = outerHeight(this.#handle);
-    const handleBottomPosition = parseInt(this.#handle.style.top, 10) + handleHeight;
+    const handleBottomPosition = Number.parseInt(this.#handle.style.top, 10) + handleHeight;
     const tableHeight = this.hot.view.getTableHeight();
 
     addClass(this.#handle, 'active');

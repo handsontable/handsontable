@@ -27,11 +27,17 @@ export class CheckboxEditor extends BaseEditor {
     }
   }
 
-  finishEditing(): void {}
-  init(): void {}
-  open(): void {}
-  close(): void {}
+  finishEditing(): void { // intentionally empty
+  }
+  init(): void { // intentionally empty
+  }
+  open(): void { // intentionally empty
+  }
+  close(): void { // intentionally empty
+  }
   getValue(): unknown { return undefined; }
-  setValue(): void {}
-  focus(): void {}
+  setValue(): void { // intentionally empty
+  }
+  focus(): void { // intentionally empty
+  }
 }

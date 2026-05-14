@@ -730,7 +730,7 @@ export class Comments extends BasePlugin {
     let newComment;
 
     if (oldComment) {
-      newComment = deepClone(oldComment as Record<string, unknown>);
+      newComment = deepClone(oldComment);
       deepExtend(newComment as Record<string, unknown>, metaObject);
     } else {
       newComment = metaObject;

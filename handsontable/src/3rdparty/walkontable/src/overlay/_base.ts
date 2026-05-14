@@ -33,7 +33,7 @@ export abstract class Overlay {
    * @private
    * @type {Settings}
    */
-  wtSettings: Settings = null as unknown as Settings;
+  wtSettings!: Settings;
 
   declare wot: WalkontableInstance;
   declare domBindings: DomBindings;

@@ -38,9 +38,10 @@ import { CONDITION_NAME as CONDITION_INTL_TIME_BEFORE_OR_EQUAL } from './conditi
 import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER } from './condition/intlTime/after';
 import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER_OR_EQUAL } from './condition/intlTime/afterOrEqual';
 import { CONDITION_NAME as CONDITION_INTL_TIME_BETWEEN } from './condition/intlTime/between';
-import { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
-import { CONDITION_NAME as CONDITION_TRUE } from './condition/true';
 import { CONDITION_NAME as CONDITION_FALSE } from './condition/false';
+
+export { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
+export { CONDITION_NAME as CONDITION_TRUE } from './condition/true';
 
 import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
 import { OPERATION_ID as OPERATION_OR } from './logicalOperations/disjunction';
@@ -69,8 +70,6 @@ export {
   CONDITION_TOMORROW,
   CONDITION_TODAY,
   CONDITION_YESTERDAY,
-  CONDITION_BY_VALUE,
-  CONDITION_TRUE,
   CONDITION_FALSE,
   OPERATION_AND,
   OPERATION_OR,

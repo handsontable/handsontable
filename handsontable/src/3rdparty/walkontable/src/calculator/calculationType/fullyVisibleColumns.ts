@@ -38,7 +38,8 @@ export class FullyVisibleColumnsCalculationType {
   /**
    * Initializes the calculation.
    */
-  initialize(): void {}
+  initialize(): void { // intentionally empty
+  }
 
   /**
    * Processes the column.

@@ -1003,7 +1003,7 @@ class Xlsx extends BaseType {
       }
 
       const colLetter = colIndexToLetter(colNumber);
-      const escapedName = sheetName.replace(/'/g, '\'\'');
+      const escapedName = sheetName.replaceAll("'", "''");
       const rangeRef = `'${escapedName}'!$${colLetter}$1:$${colLetter}$${source.length}`;
 
       validationMap.set(key, rangeRef);

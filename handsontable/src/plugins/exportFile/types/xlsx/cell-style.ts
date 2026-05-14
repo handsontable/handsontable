@@ -89,15 +89,15 @@ function rgbComputedToHex(rgbStr: string): string | null {
     return null;
   }
 
-  const alpha = isDefined(m[4]) ? parseFloat(m[4]) : 1;
+  const alpha = isDefined(m[4]) ? Number.parseFloat(m[4]) : 1;
 
   if (alpha === 0) {
     return null;
   }
 
-  const r = parseInt(m[1], 10).toString(16).padStart(2, '0');
-  const g = parseInt(m[2], 10).toString(16).padStart(2, '0');
-  const b = parseInt(m[3], 10).toString(16).padStart(2, '0');
+  const r = Number.parseInt(m[1], 10).toString(16).padStart(2, '0');
+  const g = Number.parseInt(m[2], 10).toString(16).padStart(2, '0');
+  const b = Number.parseInt(m[3], 10).toString(16).padStart(2, '0');
 
   return `#${r}${g}${b}`.toUpperCase();
 }
@@ -241,7 +241,7 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
   doc.body.removeChild(probe);
 
   const result = {
-    fontBold: parseInt(styleFull.fontWeight, 10) >= 700 || styleFull.fontWeight === 'bold',
+    fontBold: Number.parseInt(styleFull.fontWeight, 10) >= 700 || styleFull.fontWeight === 'bold',
     fontItalic: styleFull.fontStyle === 'italic',
     fontUnderline: (styleFull.textDecorationLine || styleFull.textDecoration || '').includes('underline'),
     fontColor: colorFull !== colorBase ? rgbComputedToHex(colorFull) : null,
@@ -309,7 +309,7 @@ export function getCssStyleFromElement(
   const hasCustomClass = metaClasses.some(c => !ALIGNMENT_CLASS_NAMES.has(c));
 
   return {
-    fontBold: parseInt(style.fontWeight, 10) >= 700 || style.fontWeight === 'bold',
+    fontBold: Number.parseInt(style.fontWeight, 10) >= 700 || style.fontWeight === 'bold',
     fontItalic: style.fontStyle === 'italic',
     fontUnderline: (style.textDecorationLine || style.textDecoration || '').includes('underline'),
     fontColor: hasCustomClass ? rgbComputedToHex(style.color) : null,

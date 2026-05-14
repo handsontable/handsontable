@@ -269,7 +269,7 @@ class Event {
 
     // doubleclick reacts only for left mouse button or from touch events
     if (((event as MouseEvent).button === 0 || this.touchApplied) && cell.TD) {
-      this.#dblClickOrigin[0] = cell.TD as HTMLElement;
+      this.#dblClickOrigin[0] = cell.TD;
 
       clearTimeout(this.#dblClickTimeout[0]);
 
@@ -557,7 +557,7 @@ class Event {
       this.#dblClickOrigin[1] = null;
 
     } else if (cell.TD && cell.TD === this.#dblClickOrigin[0]) {
-      this.#dblClickOrigin[1] = cell.TD as HTMLElement;
+      this.#dblClickOrigin[1] = cell.TD;
 
       clearTimeout(this.#dblClickTimeout[1]);
 

@@ -166,12 +166,12 @@ export class AutocompleteEditor extends HandsontableEditor {
 
         if (allowHtml) {
           TD.innerHTML = cellValue;
-        } else if (cellValue && (query as string).length > 0) {
+        } else if (cellValue && query && query.length > 0) {
           const indexOfMatch = filteringCaseSensitive === true ?
-            cellValue.indexOf(query as string) : cellValue.toLocaleLowerCase(locale as string).indexOf((query as string).toLocaleLowerCase(locale as string));
+            cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale as string).indexOf(query.toLocaleLowerCase(locale as string));
 
           if (indexOfMatch !== -1) {
-            const match = cellValue.slice(indexOfMatch, indexOfMatch + (query as string).length);
+            const match = cellValue.slice(indexOfMatch, indexOfMatch + query.length);
             const { rootDocument } = hotInstance;
 
             TD.innerHTML = '';
@@ -181,7 +181,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
             strong.textContent = match;
             TD.appendChild(strong);
-            TD.appendChild(rootDocument.createTextNode(cellValue.slice(indexOfMatch + (query as string).length)));
+            TD.appendChild(rootDocument.createTextNode(cellValue.slice(indexOfMatch + query.length)));
           }
         }
 

@@ -491,8 +491,8 @@ function onClick(event: Event, instance: HotInstance) {
     return;
   }
 
-  const row = parseInt(target.getAttribute(ATTR_ROW)!, 10);
-  const col = parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
+  const row = Number.parseInt(target.getAttribute(ATTR_ROW)!, 10);
+  const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (cellProperties.readOnly) {
@@ -517,8 +517,8 @@ function onChange(event: Event, instance: HotInstance) {
     return;
   }
 
-  const row = parseInt(target.getAttribute(ATTR_ROW)!, 10);
-  const col = parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
+  const row = Number.parseInt(target.getAttribute(ATTR_ROW)!, 10);
+  const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
   const cellProperties = instance.getCellMeta(row, col);
 
   if (!cellProperties.readOnly) {

@@ -136,7 +136,8 @@ export class BaseEditor {
   /**
    * Initializes an editor's intance.
    */
-  init(): void {}
+  init(): void { // intentionally empty
+  }
 
   /**
    * Required method to get current value from editable element.
@@ -549,12 +550,12 @@ export class BaseEditor {
 
     const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const inlineStartBorderCompensation = parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
-    const topBorderCompensation = parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
+    const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+    const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
     const height = outerHeight(TD) + topBorderCompensation;
-    const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop as HTMLElement) ? scrollbarWidth : 0;
-    const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft as HTMLElement) ? scrollbarWidth : 0;
+    const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
+    const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
       actualVerticalScrollbarWidth + inlineStartBorderCompensation;
     const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -

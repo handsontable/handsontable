@@ -103,7 +103,7 @@ export class RemoveRowAction extends BaseAction {
       const dataRow = row as unknown as Record<string, unknown>;
 
       Object.keys(dataRow).forEach((columnProp) => {
-        const columnIndex = parseInt(columnProp, 10);
+        const columnIndex = Number.parseInt(columnProp, 10);
 
         changes.push([this.index + rowIndexDelta, isNaN(columnIndex) ? columnProp : columnIndex, dataRow[columnProp]]);
       });

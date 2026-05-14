@@ -17,14 +17,14 @@ export default class StateManager {
    * @private
    * @type {SourceSettings}
    */
-  #sourceSettings = new SourceSettings();
+  readonly #sourceSettings = new SourceSettings();
   /**
    * The instance of the headers tree.
    *
    * @private
    * @type {HeadersTree}
    */
-  #headersTree = new HeadersTree(this.#sourceSettings);
+  readonly #headersTree = new HeadersTree(this.#sourceSettings);
   /**
    * Cached matrix which is generated from the tree structure.
    *

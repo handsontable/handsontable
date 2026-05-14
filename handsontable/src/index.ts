@@ -1,4 +1,5 @@
-import Handsontable, { CellCoords, CellRange } from './base';
+import Handsontable from './base';
+export { CellCoords, CellRange } from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
@@ -189,10 +190,6 @@ Handsontable.themes.getThemes = getThemes;
 Handsontable.themes.registerTheme = registerTheme;
 Handsontable.themes.reinitTheme = reinitTheme;
 
-export {
-  CellCoords,
-  CellRange,
-};
 export { IndexMapper } from './translations';
 
 // Named type exports for user-facing API — direct from canonical sources

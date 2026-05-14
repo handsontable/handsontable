@@ -66,7 +66,7 @@ export function announce(message: string) {
 
   setTimeout(() => {
     if (announcerElement) {
-      announcerElement.textContent = message as string;
+      announcerElement.textContent = message;
     }
   }, 100);
 }

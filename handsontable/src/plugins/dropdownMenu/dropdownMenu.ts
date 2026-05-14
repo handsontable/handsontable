@@ -352,7 +352,7 @@ export class DropdownMenu extends BasePlugin {
         // CSS class is not yet applied. Anchor to the TH's inner bottom (clientHeight, no
         // borders) and use below:-1 so the positioner's +1 cancels out, placing the menu
         // flush with the TH content bottom.
-        const isRowspanned = th && parseInt(th.getAttribute('rowspan') ?? '1', 10) > 1;
+        const isRowspanned = th && Number.parseInt(th.getAttribute('rowspan') ?? '1', 10) > 1;
         const menuTop = isRowspanned
           ? (th.getBoundingClientRect().top + th.clientHeight)
           : buttonRect.bottom;

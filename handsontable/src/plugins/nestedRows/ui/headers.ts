@@ -118,7 +118,7 @@ class HeadersUI extends BaseUI {
 
     arrayEach(previousIndicators, (elem) => {
       if (elem) {
-        innerDiv.removeChild(elem as ChildNode);
+        innerDiv.removeChild(elem as Node);
       }
     });
 
@@ -191,7 +191,7 @@ class HeadersUI extends BaseUI {
 
     const verticalPadding = this.hot.stylesHandler.getCSSVariableValue('cell-horizontal-padding');
 
-    completeVerticalPadding = (verticalPadding as unknown as number) * 2;
+    completeVerticalPadding = (verticalPadding as number) * 2;
 
     this.rowHeaderWidthCache = Math.max(50, completeVerticalPadding + (10 * (deepestLevelIndex as number)) + 25);
 

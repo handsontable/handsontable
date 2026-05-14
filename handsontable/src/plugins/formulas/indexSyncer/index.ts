@@ -17,21 +17,21 @@ class IndexSyncer {
    * @private
    * @type {AxisSyncer}
    */
-  #rowIndexSyncer: AxisSyncer;
+  readonly #rowIndexSyncer: AxisSyncer;
   /**
    * Indexes synchronizer for the axis of the columns.
    *
    * @private
    * @type {AxisSyncer}
    */
-  #columnIndexSyncer: AxisSyncer;
+  readonly #columnIndexSyncer: AxisSyncer;
   /**
    * Method which will postpone execution of some action (needed when synchronization endpoint isn't setup yet).
    *
    * @private
    * @type {Function}
    */
-  #postponeAction: Function;
+  readonly #postponeAction: Function;
   /**
    * Flag informing whether undo is already performed (we don't perform synchronization in such case).
    *

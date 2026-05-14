@@ -29,7 +29,7 @@ interface DropdownControllerCache {
   currentlySelectedItemIndex: number;
   checkboxChangeListeners: Map<HTMLInputElement, { change: () => void; click: (event: Event) => void }>;
   areCheckboxesDisabled: boolean;
-  sourceSortFunction: ((entries: unknown[]) => unknown[]) | null;
+  sourceSortFunction: ((entries: DropdownEntry[]) => DropdownEntry[]) | null;
   actualRenderedItemsCount?: number;
 }
 
@@ -111,7 +111,7 @@ export class DropdownController {
     this.#cache.visibleRowsNumberSetting = visibleRowsNumber;
   }
 
-  setSourceSortFunction(sourceSortFunction: ((entries: unknown[]) => unknown[]) | null): void {
+  setSourceSortFunction(sourceSortFunction: ((entries: DropdownEntry[]) => DropdownEntry[]) | null): void {
     this.#cache.sourceSortFunction = sourceSortFunction ?? null;
   }
 
@@ -140,7 +140,7 @@ export class DropdownController {
 
     let sortedEntries: DropdownEntry[] = entries;
     if (this.#cache.sourceSortFunction) {
-      sortedEntries = this.#cache.sourceSortFunction(entries.slice()) as DropdownEntry[];
+      sortedEntries = this.#cache.sourceSortFunction(entries.slice());
     }
 
     if (!this.#rootDocument || !this.#dropdownListElement || this.#instanceId === null) {

@@ -168,7 +168,7 @@ class EventManager {
 
     if (!rootDocument) {
       rootDocument = element.ownerDocument ? element.ownerDocument : element as unknown as Document;
-      rootWindow = rootDocument.defaultView as Window;
+      rootWindow = rootDocument.defaultView!;
     }
 
     const options = {

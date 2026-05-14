@@ -987,7 +987,7 @@ export class Filters extends BasePlugin {
     const conditions = this.exportConditions();
 
     if (this.#isDataProviderActive) {
-      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as unknown as ColumnConditions[];
+      this.#dataProviderFilterRollbackStack = deepClone(this.#previousConditionStack) as ColumnConditions[];
     }
 
     const allowFiltering = this.hot.runHooks(

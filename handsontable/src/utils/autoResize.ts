@@ -87,8 +87,8 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
 
     body.appendChild(textContainer);
 
-    const paddingStart = parseInt(getComputedStyle(observedElement)?.paddingInlineStart || '0', 10);
-    const paddingEnd = parseInt(getComputedStyle(observedElement)?.paddingInlineEnd || '0', 10);
+    const paddingStart = Number.parseInt(getComputedStyle(observedElement)?.paddingInlineStart || '0', 10);
+    const paddingEnd = Number.parseInt(getComputedStyle(observedElement)?.paddingInlineEnd || '0', 10);
 
     const width = textContainer.clientWidth + paddingStart + paddingEnd + 1;
 
@@ -139,7 +139,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.minHeight === 'inherit') {
         defaults.minHeight = observedElement.clientHeight;
       } else {
-        const minHeight = parseInt(config.minHeight as string, 10);
+        const minHeight = Number.parseInt(config.minHeight as string, 10);
 
         if (!isNaN(minHeight)) {
           defaults.minHeight = minHeight;
@@ -151,7 +151,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.maxHeight === 'inherit') {
         defaults.maxHeight = observedElement.clientHeight;
       } else {
-        const maxHeight = parseInt(config.maxHeight as string, 10);
+        const maxHeight = Number.parseInt(config.maxHeight as string, 10);
 
         if (!isNaN(maxHeight)) {
           defaults.maxHeight = maxHeight;
@@ -163,7 +163,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.minWidth === 'inherit') {
         defaults.minWidth = observedElement.clientWidth;
       } else {
-        const minWidth = parseInt(config.minWidth as string, 10);
+        const minWidth = Number.parseInt(config.minWidth as string, 10);
 
         if (!isNaN(minWidth)) {
           defaults.minWidth = minWidth;
@@ -175,7 +175,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.maxWidth === 'inherit') {
         defaults.maxWidth = observedElement.clientWidth;
       } else {
-        const maxWidth = parseInt(config.maxWidth as string, 10);
+        const maxWidth = Number.parseInt(config.maxWidth as string, 10);
 
         if (!isNaN(maxWidth)) {
           defaults.maxWidth = maxWidth;

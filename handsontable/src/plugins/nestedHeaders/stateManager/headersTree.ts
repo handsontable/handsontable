@@ -44,21 +44,21 @@ export default class HeadersTree {
    * @private
    * @type {Map<number, TreeNode>}
    */
-  #rootNodes = new Map();
+  readonly #rootNodes = new Map();
   /**
    * A map that translates the visual column indexes.
    *
    * @private
    * @type {Map<number, number>}
    */
-  #rootsIndex = new Map();
+  readonly #rootsIndex = new Map();
   /**
    * The instance of the SourceSettings class.
    *
    * @private
    * @type {SourceSettings}
    */
-  #sourceSettings: SourceSettings | null = null;
+  readonly #sourceSettings: SourceSettings | null = null;
 
   constructor(sourceSettings: SourceSettings) {
     this.#sourceSettings = sourceSettings;

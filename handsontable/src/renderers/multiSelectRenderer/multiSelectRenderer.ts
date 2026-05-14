@@ -8,10 +8,9 @@ import {
   registerChipRemovingEvents,
   cacheColumnWidthAndRegisterResizeHook,
   handleChipsOverflow,
-  CHIP_CLASS,
 } from './utils/utils';
 
-export { CHIP_CLASS };
+export { CHIP_CLASS } from './utils/utils';
 export const RENDERER_TYPE = 'multiselect';
 
 const MULTISELECT_RENDERER_CLASS = 'ht-multi-select-renderer';

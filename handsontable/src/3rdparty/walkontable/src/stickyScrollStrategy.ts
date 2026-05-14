@@ -39,7 +39,7 @@ export class StickyScrollStrategy {
    *
    * @type {OverlaysLike}
    */
-  #overlays: OverlaysLike;
+  readonly #overlays: OverlaysLike;
 
   /**
    * Whether sticky-scroll mode is currently active.
@@ -154,10 +154,10 @@ export class StickyScrollStrategy {
     const isRtl = overlays.wtSettings.getSetting('rtlMode');
     const leftProp = isRtl ? 'right' : 'left';
 
-    const startTop = parseInt(spreader.style.top, 10) || 0;
+    const startTop = Number.parseInt(spreader.style.top, 10) || 0;
     const stickyTop = startTop - this.#getScrollTop();
 
-    const startLeft = parseInt(spreader.style[leftProp], 10) || 0;
+    const startLeft = Number.parseInt(spreader.style[leftProp], 10) || 0;
     const stickyLeft = startLeft - this.#getScrollLeft();
 
     this.#active = true;
@@ -181,8 +181,8 @@ export class StickyScrollStrategy {
     overlays.refreshAll();
 
     // Capture the sticky offsets and computed start positions.
-    const lastStickyTop = parseInt(spreader.style.top, 10) || 0;
-    const lastStickyLeft = parseInt(spreader.style[leftProp], 10) || 0;
+    const lastStickyTop = Number.parseInt(spreader.style.top, 10) || 0;
+    const lastStickyLeft = Number.parseInt(spreader.style[leftProp], 10) || 0;
     const startTop = wtViewport.rowsRenderCalculator.startPosition;
     const startLeft = wtViewport.columnsRenderCalculator.startPosition;
 

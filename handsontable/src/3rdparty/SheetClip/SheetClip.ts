@@ -174,7 +174,7 @@ export function stringify(arr: unknown[][]) {
 
       if (typeof val === 'string') {
         if (val.indexOf('\n') > -1) {
-          str += `"${val.replace(/"/g, '""')}"`;
+          str += `"${val.replaceAll('"', '""')}"`;
         } else {
           str += val;
         }

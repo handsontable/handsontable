@@ -1,5 +1,4 @@
-import LinkedList from '../../utils/dataStructures/linkedList';
-import { NodeStructure } from '../../utils/dataStructures/linkedList';
+import LinkedList, { NodeStructure } from '../../utils/dataStructures/linkedList';
 import type { IndexMapper } from '../../translations';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 

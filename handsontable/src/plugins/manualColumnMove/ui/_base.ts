@@ -121,8 +121,8 @@ class BaseUI {
     const style = this._element.style;
 
     return {
-      top: style.top ? parseInt(style.top, 10) : 0,
-      start: style[this.inlineProperty] ? parseInt(style[this.inlineProperty], 10) : 0
+      top: style.top ? Number.parseInt(style.top, 10) : 0,
+      start: style[this.inlineProperty] ? Number.parseInt(style[this.inlineProperty], 10) : 0
     };
   }
 
@@ -148,8 +148,8 @@ class BaseUI {
    */
   getSize() {
     return {
-      width: this._element.style.width ? parseInt(this._element.style.width, 10) : 0,
-      height: this._element.style.height ? parseInt(this._element.style.height, 10) : 0
+      width: this._element.style.width ? Number.parseInt(this._element.style.width, 10) : 0,
+      height: this._element.style.height ? Number.parseInt(this._element.style.height, 10) : 0
     };
   }
 
@@ -178,8 +178,8 @@ class BaseUI {
     const inlineProp = `margin${toUpperCaseFirst(this.inlineProperty)}` as 'marginLeft' | 'marginRight';
 
     return {
-      top: style.marginTop ? parseInt(style.marginTop, 10) : 0,
-      start: style[inlineProp] ? parseInt(style[inlineProp], 10) : 0
+      top: style.marginTop ? Number.parseInt(style.marginTop, 10) : 0,
+      start: style[inlineProp] ? Number.parseInt(style[inlineProp], 10) : 0
     };
   }
 }

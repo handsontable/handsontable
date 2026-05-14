@@ -1,6 +1,5 @@
 import { arrayEach } from './array';
 import { isDefined } from './mixed';
-import { throwWithCause } from '../helpers/errors';
 
 /**
  * Generate schema for passed object.
@@ -119,12 +118,12 @@ export function deepClone(obj: unknown): unknown {
     return obj.map(item => deepClone(item));
   }
   if (obj instanceof Date) {
-    return new Date(obj.getTime());
+    return new Date(obj);
   }
   if (typeof obj === 'object' && obj !== null) {
     const result: Record<string, unknown> = {};
 
-    for (const key of Object.keys(obj as object)) {
+    for (const key of Object.keys(obj)) {
       result[key] = deepClone((obj as Record<string, unknown>)[key]);
     }
 
@@ -179,7 +178,7 @@ export function mixin(Base: Function, ...mixins: object[]): object {
             let result = newValue;
 
             if (Array.isArray(result) || isObject(result)) {
-              result = deepClone(result as object);
+              result = deepClone(result);
             }
 
             return result;
@@ -232,7 +231,7 @@ export function isObjectEqual(object1: object | unknown[], object2: object | unk
       return JSON.stringify(obj);
     }
     if (obj !== null && typeof obj === 'object') {
-      const pairs = Object.keys(obj as object).sort().map(key => `${JSON.stringify(key)}:${stableStringify((obj as Record<string, unknown>)[key])}`);
+      const pairs = Object.keys(obj).sort((a, b) => a.localeCompare(b)).map(key => `${JSON.stringify(key)}:${stableStringify((obj as Record<string, unknown>)[key])}`);
 
       return `{${pairs.join(',')}}`;
     }

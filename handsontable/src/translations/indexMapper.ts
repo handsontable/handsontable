@@ -184,7 +184,7 @@ export class IndexMapper {
    *
    * @type {Set<IndexMap>}
    */
-  #dirtyObservedMaps = new Set<IndexMap>();
+  readonly #dirtyObservedMaps = new Set<IndexMap>();
 
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {

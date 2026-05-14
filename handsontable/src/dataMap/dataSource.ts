@@ -59,7 +59,7 @@ class DataSource {
       modifyRowData = this.hot!.runHooks('modifyRowData', rowIndex);
     }
 
-    return (modifyRowData !== undefined && !Number.isInteger(modifyRowData as number)) ? modifyRowData : this.data[rowIndex as number];
+    return (modifyRowData !== undefined && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
   }
 
   /**
@@ -164,14 +164,14 @@ class DataSource {
         rangeEach(rangeStart, rangeEnd, (column: number) => {
           const prop = this.colToProp(column);
 
-          if (column >= ((startColumn as number) || rangeStart) && column <= ((endColumn as number) || rangeEnd) && !Number.isInteger(prop as number)) {
+          if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
             const cellValue = this.getAtPhysicalCell(row, prop as number, dataRow);
 
             if (toArray) {
               (newDataRow as unknown as unknown[]).push(cellValue);
 
             } else if (dataDotNotation) {
-              setProperty(newDataRow as Record<string, unknown>, prop as string, cellValue);
+              setProperty(newDataRow, prop as string, cellValue);
 
             } else {
               newDataRow![prop as string] = cellValue;
@@ -184,7 +184,7 @@ class DataSource {
           const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
 
           if (dataDotNotation) {
-            setProperty(newDataRow as Record<string, unknown>, prop, cellValue);
+            setProperty(newDataRow, prop, cellValue);
           } else {
             newDataRow![prop] = cellValue;
           }

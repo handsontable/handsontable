@@ -139,7 +139,7 @@ export function debounce(func: (...args: unknown[]) => unknown, wait: number = 2
 
   _debounce.cancel = cancel;
 
-  return _debounce as ((...args: unknown[]) => unknown) & { cancel: () => void };
+  return _debounce;
 }
 
 /**

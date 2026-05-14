@@ -160,7 +160,7 @@ export class ContextMenu extends BasePlugin {
       : null;
 
     if (settingsObj && typeof settingsObj.callback === 'function') {
-      this.commandExecutor.setCommonCallback(settingsObj.callback as Function);
+      this.commandExecutor.setCommonCallback(settingsObj.callback);
     }
 
     this.menu = new Menu(this.hot, {
@@ -232,7 +232,7 @@ export class ContextMenu extends BasePlugin {
           }, {
             left: rect.width,
             above: -rect.height,
-          } as { above: number; below: number; left: number; right: number });
+          });
           // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
           // will block the Esc key for the whole menu.
           this.menu!.getNavigator()!.toFirstItem();

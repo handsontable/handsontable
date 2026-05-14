@@ -13,7 +13,7 @@ export function condition(dataRow: { value: unknown; meta: { type?: string; loca
   let conditionValue = value;
 
   if (dataRow.meta.type === 'numeric') {
-    conditionValue = parseFloat(conditionValue as string);
+    conditionValue = Number.parseFloat(conditionValue as string);
   }
 
   return (dataRow.value as number) <= (conditionValue as number);

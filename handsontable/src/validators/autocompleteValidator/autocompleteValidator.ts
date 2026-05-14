@@ -33,7 +33,7 @@ export function autocompleteValidator(this: Record<string, unknown>, value: unkn
 
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
-      (this.source as Function)(valueToValidate, process(valueToValidate, callback));
+      this.source(valueToValidate, process(valueToValidate, callback));
     } else {
       process(valueToValidate, callback)(this.source as unknown[]);
     }

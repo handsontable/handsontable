@@ -113,14 +113,14 @@ class GhostTable {
       throwWithCause('Doesn\'t support multi-dimensional table');
     }
     if (!this.rows.length) {
-      this.container = this.createContainer((this.hot!.rootElement as HTMLElement).className);
+      this.container = this.createContainer(this.hot!.rootElement.className);
     }
     const rowObject: Record<string, unknown> = { row };
 
     this.rows.push(rowObject);
 
     this.samples = samples;
-    this.table = this.createTable((this.hot!.table as HTMLTableElement).className);
+    this.table = this.createTable(this.hot!.table.className);
     this.table.colGroup.appendChild(this.createColGroupsCol(row));
     this.table.tr.appendChild(this.createRow(row));
 
@@ -142,9 +142,9 @@ class GhostTable {
 
       this.rows.push(rowObject);
 
-      this.container = this.createContainer((this.hot!.rootElement as HTMLElement).className);
+      this.container = this.createContainer(this.hot!.rootElement.className);
       this.samples = samples;
-      this.table = this.createTable((this.hot!.table as HTMLTableElement).className);
+      this.table = this.createTable(this.hot!.table.className);
 
       this.table.colGroup.appendChild(this.createColGroupsCol());
 
@@ -167,19 +167,19 @@ class GhostTable {
       throwWithCause('Doesn\'t support multi-dimensional table');
     }
     if (!this.columns.length) {
-      this.container = this.createContainer((this.hot!.rootElement as HTMLElement).className);
+      this.container = this.createContainer(this.hot!.rootElement.className);
     }
     const columnObject: Record<string, unknown> = { col: column };
 
     this.columns.push(columnObject);
 
     this.samples = samples;
-    this.table = this.createTable((this.hot!.table as HTMLTableElement).className);
+    this.table = this.createTable(this.hot!.table.className);
 
     if (this.getSetting('useHeaders') && this.hot!.getColHeader(column) !== null) {
       // Please keep in mind that the renderable column index equal to the visual columns index for the GhostTable.
       // We render all columns.
-      this.hot!.view.appendColHeader(column, this.table.th as HTMLTableCellElement, undefined, -1);
+      this.hot!.view.appendColHeader(column, this.table.th, undefined, -1);
     }
     this.table.tBody.appendChild(this.createCol(column));
     this.container!.container.appendChild(this.table.fragment);
@@ -310,7 +310,7 @@ class GhostTable {
     const th = rootDocument.createElement('th');
 
     if (this.hot!.hasRowHeaders()) {
-      this.hot!.view.appendRowHeader(row, th as HTMLTableCellElement);
+      this.hot!.view.appendRowHeader(row, th);
 
       fragment.appendChild(th);
     }
@@ -344,7 +344,7 @@ class GhostTable {
     if (this.hot!.hasRowHeaders()) {
       const th = rootDocument.createElement('th');
 
-      columnHeaders.push([-1, th as HTMLTableCellElement]);
+      columnHeaders.push([-1, th]);
       domFragment.appendChild(th);
     }
 
@@ -353,7 +353,7 @@ class GhostTable {
         const column = string.col as number;
         const th = rootDocument.createElement('th');
 
-        columnHeaders.push([column, th as HTMLTableCellElement]);
+        columnHeaders.push([column, th]);
         domFragment.appendChild(th);
       });
     });
@@ -499,7 +499,7 @@ class GhostTable {
     addClass(table, className);
     fragment.appendChild(table);
 
-    return { fragment, table, tHead, tBody, colGroup, tr, th: th as HTMLTableCellElement };
+    return { fragment, table, tHead, tBody, colGroup, tr, th };
   }
 
   /**

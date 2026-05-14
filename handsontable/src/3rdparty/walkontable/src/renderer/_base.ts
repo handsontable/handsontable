@@ -60,5 +60,6 @@ export class BaseRenderer {
   /**
    * Renders the contents to the elements.
    */
-  render() { }
+  render() { // intentionally empty
+  }
 }

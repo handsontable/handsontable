@@ -62,7 +62,8 @@ export class StretchStrategy {
   /**
    * Calculates the width of the column.
    */
-  calculate() {}
+  calculate() { // intentionally empty
+  }
 
   /**
    * Gets the calculated stretched column widths.

@@ -87,7 +87,7 @@ export class RemoveColumnAction extends BaseAction {
           const origRow = originalData[i];
 
           rangeEach(columnIndex, lastColumnIndex, (j) => {
-            column.push((origRow as unknown[])[hot.toPhysicalColumn(j)] as number);
+            column.push(origRow[hot.toPhysicalColumn(j)] as number);
           });
 
           removedData.push(column);

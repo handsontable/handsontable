@@ -11,7 +11,8 @@ import { PasswordEditor, EDITOR_TYPE as PASSWORD_EDITOR } from './passwordEditor
 import { SelectEditor, EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
 import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
 import { TimeEditor, EDITOR_TYPE as TIME_EDITOR } from './timeEditor';
-import { MultiSelectEditor, EDITOR_TYPE as MULTI_SELECT_EDITOR } from './multiSelectEditor';
+import { MultiSelectEditor } from './multiSelectEditor';
+export { EDITOR_TYPE as MULTI_SELECT_EDITOR } from './multiSelectEditor';
 import { registerEditor } from './registry';
 
 /**
@@ -48,7 +49,7 @@ export {
   SelectEditor, SELECT_EDITOR,
   TextEditor, TEXT_EDITOR,
   TimeEditor, TIME_EDITOR,
-  MultiSelectEditor, MULTI_SELECT_EDITOR,
+  MultiSelectEditor,
 };
 
 export {

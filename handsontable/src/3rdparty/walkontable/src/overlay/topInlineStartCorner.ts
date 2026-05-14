@@ -70,8 +70,10 @@ export class TopInlineStartCornerOverlay extends Overlay {
   getOverlayOffset() { return 0; }
   onScroll() {}
   sumCellSizes(_from: number, _to: number) { return 0; }
-  adjustElementsSize() {}
-  applyToDOM() {}
+  adjustElementsSize() { // intentionally empty
+  }
+  applyToDOM() { // intentionally empty
+  }
   scrollTo(_sourceIndex: number, _snapToEdge: boolean) { return false; }
 
   /**

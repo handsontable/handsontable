@@ -122,12 +122,12 @@ export class Notification extends BasePlugin {
   /**
    * @type {Map<string, object>}
    */
-  #toasts: Map<string, any> = new Map();
+  readonly #toasts: Map<string, any> = new Map();
 
   /**
    * @type {Record<string, object[]>}
    */
-  #queues: Record<NotificationPosition, any[]> = {
+  readonly #queues: Record<NotificationPosition, any[]> = {
     'top-start': [],
     'top-end': [],
     'bottom-start': [],
@@ -427,7 +427,7 @@ export class Notification extends BasePlugin {
   /**
    * Aligns toast host `dir` and message sanitizer with the grid after any `updateSettings` call.
    */
-  #onAfterUpdateSettings = () => {
+  readonly #onAfterUpdateSettings = () => {
     if (!this.enabled || !this.#ui) {
       return;
     }
@@ -834,7 +834,7 @@ export class Notification extends BasePlugin {
    *
    * @param {FocusEvent} event Focusin event on the root document (capture phase).
    */
-  #onDocumentFocusInForNotificationTabOrder = (event: FocusEvent) => {
+  readonly #onDocumentFocusInForNotificationTabOrder = (event: FocusEvent) => {
     if (this.#toasts.size === 0) {
       return;
     }

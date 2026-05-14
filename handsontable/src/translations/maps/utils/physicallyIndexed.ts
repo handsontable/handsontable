@@ -36,5 +36,5 @@ export function getListWithInsertedItems(indexedValues: unknown[], insertionInde
  * @returns {Array} Reduced list of mappings.
  */
 export function getListWithRemovedItems(indexedValues: unknown[], removedIndexes: number[]) {
-  return arrayFilter(indexedValues, (_, index) => removedIndexes.includes(index as number) === false);
+  return arrayFilter(indexedValues, (_, index) => removedIndexes.includes(index) === false);
 }

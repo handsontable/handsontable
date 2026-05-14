@@ -1,5 +1,4 @@
-import type { DataAccessObject } from './types';
-import type { WalkontableInstance, DomBindings } from './types';
+import type { DataAccessObject, WalkontableInstance, DomBindings } from './types';
 import type Settings from './settings';
 import {
   hasClass,
@@ -116,8 +115,10 @@ class Table {
   declare getRowHeadersCount: () => number;
 
   // Methods defined in subclass MasterTable but called from Table via `this.isMaster` guards.
-  alignOverlaysWithTrimmingContainer(): void {}
-  markOversizedColumnHeaders(): void {}
+  alignOverlaysWithTrimmingContainer(): void { // intentionally empty
+  }
+  markOversizedColumnHeaders(): void { // intentionally empty
+  }
 
   /**
    *
@@ -503,7 +504,7 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = innerHeight(currentHeader as HTMLElement);
+      currentHeaderHeight = innerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {

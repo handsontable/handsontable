@@ -133,7 +133,7 @@ function createNestedArrayIfNecessary(array: unknown[][], index: number) {
   let subArray: unknown[];
 
   if (Array.isArray(array[index])) {
-    subArray = array[index] as unknown[];
+    subArray = array[index];
   } else {
     subArray = [];
     array[index] = subArray;

@@ -33,7 +33,7 @@ export class BaseTransformation {
    *
    * @type {SelectionRange}
    */
-  #range: SelectionRange;
+  readonly #range: SelectionRange;
   /**
    * Index of the currently active selection layer.
    *
@@ -74,7 +74,7 @@ export class BaseTransformation {
    * @returns {CellRange}
    */
   getCurrentSelection(): CellRange {
-    return this.#range.peekByIndex(this.#activeLayerIndex) as CellRange;
+    return this.#range.peekByIndex(this.#activeLayerIndex)!;
   }
 
   /**

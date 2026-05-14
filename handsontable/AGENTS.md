@@ -131,6 +131,13 @@ node scripts/run.mjs --parallel <pipeline>      # run pipeline with DAG schedule
 
 Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks.json`. `--testPathPattern=` and `--theme=` are also propagated as env vars to all pipeline tasks so the dump step and Puppeteer compute the same run-ID filename.
 
+## TypeScript
+
+- Type check: `npm run test:types`
+- `readonly #field` syntax IS valid TypeScript — do NOT convert `#field` to `private readonly field` to add `readonly`
+- When removing `as T` casts (e.g. SonarCloud S4325), always rerun `npm run test:types` — some casts are load-bearing
+- Prefer fixing function/method signatures or making them generic over adding `as T[]` casts at call sites
+
 ## For Deeper Guidance
 
 Use these skills for detailed workflow instructions:

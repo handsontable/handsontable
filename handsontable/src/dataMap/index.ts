@@ -2,19 +2,15 @@ import DataMap from './dataMap';
 import DataSource from './dataSource';
 import MetaManager from './metaManager';
 import metaSchemaFactory from './metaManager/metaSchema';
-import { replaceData } from './replaceData';
-import { DynamicCellMetaMod } from './metaManager/mods/dynamicCellMeta';
-import { ExtendMetaPropertiesMod } from './metaManager/mods/extendMetaProperties';
-import { runSourceDataValidator, runSourceDataValidators } from './sourceDataValidator';
+
+export { ExtendMetaPropertiesMod } from './metaManager/mods/extendMetaProperties';
+export { DynamicCellMetaMod } from './metaManager/mods/dynamicCellMeta';
+export { replaceData } from './replaceData';
+export { runSourceDataValidator, runSourceDataValidators } from './sourceDataValidator';
 
 export {
   DataMap,
   DataSource,
   MetaManager,
-  DynamicCellMetaMod,
-  ExtendMetaPropertiesMod,
   metaSchemaFactory,
-  replaceData,
-  runSourceDataValidator,
-  runSourceDataValidators
 };

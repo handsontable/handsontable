@@ -18,7 +18,7 @@ export const command = {
 
       // Restore the row highlight by header flag after setting up a new selection.
       if (isFocusHighlightedByHeader) {
-        (selection.selectedByRowHeader as Set<number>).add(selection.getLayerLevel());
+        selection.selectedByRowHeader.add(selection.getLayerLevel());
       }
 
       selection.setRangeEnd(hot._createCellCoords(row, to.col));

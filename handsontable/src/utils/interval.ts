@@ -25,7 +25,7 @@ class Interval {
    *
    * @type {Function}
    */
-  #func: Function;
+  readonly #func: Function;
   /**
    * Flag which indicates if interval object was stopped.
    *
@@ -44,7 +44,7 @@ class Interval {
    *
    * @type {Function}
    */
-  #callback;
+  readonly #callback;
 
   constructor(func: Function, delay: number) {
     this.#func = func;
@@ -114,7 +114,7 @@ export function parseDelay(delay: number) {
   let result = delay;
 
   if (typeof result === 'string' && /fps$/.test(result)) {
-    result = 1000 / parseInt((result as unknown as string).replace('fps', '') || '0', 10);
+    result = 1000 / Number.parseInt((result as unknown as string).replace('fps', '') || '0', 10);
   }
 
   return result;

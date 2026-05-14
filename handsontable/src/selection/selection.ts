@@ -80,13 +80,13 @@ class Selection {
    *
    * @type {ExtenderTransformation}
    */
-  #extenderTransformation;
+  readonly #extenderTransformation;
   /**
    * The module for modifying coordinates of the focus selection.
    *
    * @type {FocusTransformation}
    */
-  #focusTransformation;
+  readonly #focusTransformation;
   /**
    * The collection of the selection layer levels where the whole row was selected using the row header or
    * the corner header.

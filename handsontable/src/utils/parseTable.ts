@@ -74,8 +74,8 @@ export function instanceToHTML(instance: HotInstance): string {
             cell = `<td ${attrs.join(' ')}></td>`;
           } else {
             const value = cellData.toString()
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
+              .replaceAll('<', '&lt;')
+              .replaceAll('>', '&gt;')
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
               .replace(/\x20/gi, '&nbsp;')
               .replace(/\t/gi, '&#9;');
@@ -127,9 +127,9 @@ export function _dataToHTML(input: unknown[][]): string {
       const parsedCellData = isEmpty(cellData) ?
         '' :
         (cellData as any).toString()
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
           .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
           .replace(/\x20{2,}/gi, (substring: string) => {
             // The way how Excel serializes data with at least two spaces.

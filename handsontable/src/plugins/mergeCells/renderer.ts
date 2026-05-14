@@ -47,7 +47,8 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
    *
    * @private
    */
-  function before() {}
+  function before() { // intentionally empty
+  }
 
   /**
    * Runs after the cell is rendered.

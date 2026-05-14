@@ -60,20 +60,20 @@ export class PaginationUI {
    *
    * @type {HTMLElement}
    */
-  #rootElement: HTMLElement;
+  readonly #rootElement: HTMLElement;
   /**
    * The container element where the pagination UI will be installed.
    * If not provided, the pagination container will be injected after the root element.
    *
    * @type {HTMLElement}
    */
-  #uiContainer: HTMLElement | null;
+  readonly #uiContainer: HTMLElement | null;
   /**
    * Indicates if the UI is in RTL mode.
    *
    * @type {boolean}
    */
-  #isRtl = false;
+  readonly #isRtl: boolean = false;
   /**
    * The references to the UI elements.
    *
@@ -91,19 +91,19 @@ export class PaginationUI {
    *
    * @type {function(string): string}
    */
-  #phraseTranslator: (...args: unknown[]) => string;
+  readonly #phraseTranslator: (...args: unknown[]) => string;
   /**
    * A function that determines whether the pagination should have a border.
    *
    * @type {function(): void}
    */
-  #shouldHaveBorder: () => boolean;
+  readonly #shouldHaveBorder: () => boolean;
   /**
    * A function allowing to announce accessibility messages.
    *
    * @type {function(string): void}
    */
-  #a11yAnnouncer: (message: unknown) => void;
+  readonly #a11yAnnouncer: (message: unknown) => void;
 
   constructor({
     rootElement,

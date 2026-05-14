@@ -142,7 +142,7 @@ class Csv extends BaseType {
       || returnValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0
       || returnValue.indexOf(CHAR_LINE_FEED) >= 0
       || returnValue.indexOf(this.options.columnDelimiter as string) >= 0) {
-      returnValue = returnValue.replace(new RegExp('"', 'g'), '""');
+      returnValue = returnValue.replaceAll('"', '""');
       returnValue = `"${returnValue}"`;
     }
 
