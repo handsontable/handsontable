@@ -30,6 +30,18 @@ import { isDefined } from '../../helpers/mixed';
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
+/**
+ * Describes style properties for a single border side or corner.
+ */
+export interface BorderSettings {
+  width?: number;
+  color?: string;
+  cornerVisible?: boolean | ((...args: unknown[]) => boolean);
+  hide?: boolean;
+  className?: string;
+  [key: string]: unknown;
+}
+
 const SUPPORTED_STYLES = ['dashed', 'dotted', 'solid'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
