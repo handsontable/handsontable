@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable/base';
-import type { HotInstance } from 'handsontable/common';
+import type { HotInstance } from 'handsontable';
 import {
   AutocompleteCellType,
   CheckboxCellType,

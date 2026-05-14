@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import type { HotInstance } from 'handsontable/common';
+import type { HotInstance } from 'handsontable';
 import { IntlTimeEditor } from 'handsontable/editors';
 
 const element = document.createElement('div');

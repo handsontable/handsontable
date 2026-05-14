@@ -1,5 +1,5 @@
 import type { HookCallback } from "../../../core/hooks/bucket";
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
 import { getMoves } from '../../../helpers/moves';
 

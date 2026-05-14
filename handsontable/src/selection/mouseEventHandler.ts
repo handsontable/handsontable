@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange } from './../common';
+import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
+import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
 import type { default as SelectionManager } from './selection';
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
 

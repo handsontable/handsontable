@@ -112,7 +112,7 @@ These are the only external libraries bundled or referenced at runtime:
 - Core component: `wrappers/angular-wrapper/projects/hot-table/src/lib/`
 - Runtime deps: `rxjs` ^7.8.1, `tslib` ^2.3.0, `zone.js` ~0.13.0
 - Tests require `NODE_OPTIONS=--openssl-legacy-provider`
-- **Modern pattern (required for all examples):** Components use `standalone: true` with `imports: [HotTableModule]`. Use `app.config.ts` (`ApplicationConfig` + `provideZoneChangeDetection`) instead of `AppModule`. License is set globally via `HOT_GLOBAL_CONFIG` -- no per-table `licenseKey`. Templates use `@if`/`@for` control flow, not `*ngIf`/`*ngFor`. Row data typed as `RowObject[]` from `handsontable/common`.
+- **Modern pattern (required for all examples):** Components use `standalone: true` with `imports: [HotTableModule]`. Use `app.config.ts` (`ApplicationConfig` + `provideZoneChangeDetection`) instead of `AppModule`. License is set globally via `HOT_GLOBAL_CONFIG` -- no per-table `licenseKey`. Templates use `@if`/`@for` control flow, not `*ngIf`/`*ngFor`. Row data typed as `RowObject[]` from `handsontable`.
 
 **Vue 3 (`wrappers/vue3/`):**
 - Peer dependency: `handsontable` ^17.0.0, `vue` ^3.2.22

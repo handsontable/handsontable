@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import type { OperationType, ConditionId, ColumnConditions } from './filters';
 
 /** Internal representation of a condition — extends the public ConditionId with the resolved function. */

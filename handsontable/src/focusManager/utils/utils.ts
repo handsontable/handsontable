@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { clamp } from '../../helpers/number';
 
 /**

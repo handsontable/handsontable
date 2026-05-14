@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { CellAlignmentAction } from './cellAlignment';
 import { ColumnMoveAction } from './columnMove';
 import { ColumnSortAction } from './columnSort';

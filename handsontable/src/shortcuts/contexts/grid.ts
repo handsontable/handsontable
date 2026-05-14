@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { isDefined } from '../../helpers/mixed';
 import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';

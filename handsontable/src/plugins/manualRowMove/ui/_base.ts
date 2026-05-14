@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
 const STATE_APPENDED = 2;

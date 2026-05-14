@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
 import { deprecatedWarn } from '../../helpers/console';

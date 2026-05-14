@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../core/types';
 /**
  * Utility to register editors and common namespace for keeping reference to all editor classes.
  */

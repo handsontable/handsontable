@@ -1,7 +1,8 @@
 import { hasClass } from '../../helpers/dom/element';
 import { isMobileBrowser } from '../../helpers/browser';
 import { BasePlugin } from '../base';
-import type { CellRange, CellCoords } from '../../common';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
 export const PLUGIN_KEY = 'multipleSelectionHandles';
 export const PLUGIN_PRIORITY = 160;

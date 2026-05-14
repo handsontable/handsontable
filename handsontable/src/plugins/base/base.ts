@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
 import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';

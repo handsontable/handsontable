@@ -365,8 +365,8 @@ Handsontable uses three test pipelines:
 | Type | Pattern | Framework | Location |
 |---|---|---|---|
 | Unit test | `*.unit.js` | Jest (jsdom) | `src/**/__tests__/` |
-| E2E test | `*.spec.js` | Jasmine (Puppeteer) | `test/e2e/` and `src/plugins/**/__tests__/` |
-| Type test | `*.types.ts` | `tsc` only | `test/types/` |
+| E2E test | `*.spec.js` | Jasmine (Puppeteer) | `src/**/__tests__/` (do NOT use `test/e2e/`) |
+| Type test | `*.types.ts` | `tsc` only | `src/**/__tests__/` (do NOT use `test/types/`) |
 
 ### Standard E2E test boilerplate
 
@@ -621,10 +621,12 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. See `.c
 
 | Area | Path |
 |---|---|
-| E2E tests | `handsontable/test/e2e/` |
+| E2E tests (source) | `handsontable/src/**/__tests__/*.spec.js` |
+| E2E tests (legacy, read-only) | `handsontable/test/e2e/` |
 | Test helpers | `handsontable/test/helpers/` |
 | Test bootstrap | `handsontable/test/bootstrap.js` |
-| Type tests | `handsontable/test/types/` |
+| Type tests | `handsontable/src/**/__tests__/*.types.ts` |
+| Type test tsconfig | `handsontable/test/types/tsconfig.json` |
 | Visual regression tests | `visual-tests/` |
 
 ### Wrappers

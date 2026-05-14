@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import { getScrollbarWidth } from '../../helpers/dom/element';
 import { StretchAllStrategy } from './strategies/all';

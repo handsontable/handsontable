@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { Positioner } from './positioner';
 import { createMenuNavigator } from './navigator';
 import { createKeyboardShortcutsCtrl } from './shortcuts';

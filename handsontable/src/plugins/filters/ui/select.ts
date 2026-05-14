@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { Menu } from '../../../plugins/contextMenu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { isObject, objectEach } from '../../helpers/object';
 import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { isDefined } from '../../helpers/mixed';

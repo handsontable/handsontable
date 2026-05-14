@@ -7,7 +7,7 @@ import DataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 
 export const PLUGIN_KEY = 'exportFile';
 

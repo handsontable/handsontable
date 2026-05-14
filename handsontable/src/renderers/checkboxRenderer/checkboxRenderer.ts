@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import EventManager from '../../eventManager';
 import { empty, addClass, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';

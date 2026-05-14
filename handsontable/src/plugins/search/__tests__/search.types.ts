@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import type { HotInstance } from 'handsontable/common';
+import type { HotInstance } from 'handsontable';
 
 const hot = new Handsontable(document.createElement('div'), {
   search: true,

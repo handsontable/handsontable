@@ -11,7 +11,7 @@ import { getNormalizedDate } from 'handsontable/helpers/date';
 import { isCtrlKey, isKey, isPrintableChar } from 'handsontable/helpers/unicode';
 import { instanceToHTML, htmlToGridSettings } from 'handsontable/utils/parseTable';
 import Handsontable from 'handsontable/base';
-import type { GridSettings, HotInstance } from 'handsontable/common';
+import type { GridSettings, HotInstance } from 'handsontable';
 
 const gridSettings: GridSettings = { };
 

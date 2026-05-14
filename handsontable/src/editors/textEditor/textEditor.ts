@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { isNumeric } from '../../../helpers/number';
 import { toUpperCaseFirst } from '../../../helpers/string';
 

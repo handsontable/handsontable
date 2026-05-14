@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import type { NestedRows } from '../nestedRows';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';

@@ -2,7 +2,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
-import type { SourceRowData } from 'handsontable/common';
+import type { SourceRowData } from 'handsontable';
 
 function buildUrl(base: string, params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();

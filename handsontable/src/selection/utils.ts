@@ -1,4 +1,6 @@
-import type { HotInstance, CellCoords, CellRange } from '../common';
+import type { HotInstance } from '../core/types';
+import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
+import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
 import { CellRange as CellRangeClass } from './../3rdparty/walkontable/src';
 import { arrayEach, arrayReduce } from './../helpers/array';
 import { isUndefined } from './../helpers/mixed';

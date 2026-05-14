@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { CellValue } from 'handsontable/common';
+import { CellValue } from 'handsontable';
 
 @Component({
   selector: 'example6-configuration-options',

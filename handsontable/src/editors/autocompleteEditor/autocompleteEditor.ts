@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
 import { isKeyValueObject, isObject } from '../../helpers/object';

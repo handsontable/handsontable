@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../core/types';
 import { isEmpty } from './../helpers/mixed';
 
 const ESCAPED_HTML_CHARS: Record<string, string> = {

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 /**
  * Adds appropriate CSS class to table cell, based on cellProperties.
  */

@@ -21,7 +21,7 @@ import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 
 /**

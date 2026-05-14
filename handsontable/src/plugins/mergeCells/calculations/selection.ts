@@ -4,7 +4,8 @@
  * @private
  * @class SelectionCalculations
  */
-import type { HotInstance, CellRange } from '../../../common';
+import type { HotInstance } from '../../../core/types';
+import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
 import type MergedCellCoords from '../cellCoords';
 
 class SelectionCalculations {

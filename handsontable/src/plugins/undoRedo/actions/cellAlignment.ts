@@ -1,5 +1,6 @@
 import type { HookCallback } from "../../../core/hooks/bucket";
-import type { HotInstance, CellRange } from '../../../common';
+import type { HotInstance } from '../../../core/types';
+import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';
 import { align } from '../../contextMenu/utils';
 import { arrayEach } from '../../../helpers/array';

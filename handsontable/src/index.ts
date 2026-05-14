@@ -180,7 +180,7 @@ HOT.plugins.registerPlugin = registerPlugin as unknown;
 HOT.plugins.getPlugin = getPlugin as unknown;
 
 // Export themes namespace.
-Handsontable.themes = Handsontable.themes ?? {};
+HOT.themes = HOT.themes ?? {};
 
 Handsontable.themes.hasTheme = hasTheme;
 Handsontable.themes.getTheme = getTheme;
@@ -193,9 +193,14 @@ export {
   CellCoords,
   CellRange,
 };
+export { IndexMapper } from './translations';
 
-// Named type exports for user-facing API — all curated public types from the common barrel
-export type * from './common';
+// Named type exports for user-facing API — direct from canonical sources
+export type { GridSettings, Events } from './core/settings';
+export type { CellValue, CellChange, RowObject, ChangeSource, NumericFormatOptions, CellMeta, CellProperties, ColumnSettings, SourceRowData } from './settings';
+export type { RangeType, HotInstance } from './core/types';
+export type { OverlayType } from './3rdparty/walkontable/src/types';
+export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export type { SelectOptionsObject } from './settings';
 export type { CellType } from './cellTypes';
 export type { EditorType } from './editors';

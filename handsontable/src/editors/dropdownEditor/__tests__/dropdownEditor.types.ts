@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import type { HotInstance } from 'handsontable/common';
+import type { HotInstance } from 'handsontable';
 import { DropdownEditor } from 'handsontable/editors';
 
 const element = document.createElement('div');

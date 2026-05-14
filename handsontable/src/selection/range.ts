@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange } from '../common';
+import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
+import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
 
 /**
  * The SelectionRange class is a simple CellRanges collection designed for easy manipulation of the multiple

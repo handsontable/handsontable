@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import type { HotInstance } from 'handsontable/common';
+import type { HotInstance } from 'handsontable';
 import { BasePlugin } from 'handsontable/plugins';
 
 const elem = document.createElement('div');

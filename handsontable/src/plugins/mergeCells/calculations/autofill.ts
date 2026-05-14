@@ -1,6 +1,6 @@
 import { extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import type MergedCellsCollection from '../cellsCollection';
 import type MergedCellCoords from '../cellCoords';
 

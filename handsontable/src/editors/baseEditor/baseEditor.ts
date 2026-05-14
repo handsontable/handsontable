@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { mixin } from '../../helpers/object';

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { clone, extend, mixin, objectEach } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import EventManager from '../../../eventManager';

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../core/types';
 import { warn } from '../helpers/console';
 import { isHTMLElement, isOutsideInput } from '../helpers/dom/element';
 import { debounce } from '../helpers/function';

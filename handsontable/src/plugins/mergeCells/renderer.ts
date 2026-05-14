@@ -1,7 +1,7 @@
 import { isObject } from '../../helpers/object';
 import { isSafari } from '../../helpers/browser';
 import { sumCellsHeights } from './utils';
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 
 /**
  * Represents a merged cell entry.

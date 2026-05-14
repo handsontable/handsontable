@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../core/types';
 import { warn } from '../helpers/console';
 import handsontableStyles from '../styles/handsontableStyles';
 

@@ -1,5 +1,6 @@
 import { clamp } from '../number';
-import type { HotInstance, CellCoords } from '../../common';
+import type { HotInstance } from '../../core/types';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
 /**
  * Finds which column the mouse is over within a given column range.

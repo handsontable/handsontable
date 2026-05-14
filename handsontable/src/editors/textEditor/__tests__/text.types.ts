@@ -1,4 +1,4 @@
-import type { HotInstance } from 'handsontable/common';
+import type { HotInstance } from 'handsontable';
 import { TextEditor } from 'handsontable/editors';
 
 interface CellProperties {

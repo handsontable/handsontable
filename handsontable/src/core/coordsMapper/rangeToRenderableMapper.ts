@@ -1,4 +1,5 @@
-import type { CellRange, CellCoords } from '../../common';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { IndexMapper } from '../../translations';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */

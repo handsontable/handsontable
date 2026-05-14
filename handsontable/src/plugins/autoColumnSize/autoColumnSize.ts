@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';

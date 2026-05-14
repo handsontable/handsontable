@@ -4,7 +4,7 @@
  */
 import Handsontable from './base';
 import { CommentObject } from './plugins/comments';
-import { GridSettings } from './common';
+import type { GridSettings } from './core/settings';
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
  * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
@@ -56,7 +56,7 @@ export interface ColumnDataGetterSetterFunction {
     (row: RowObject | CellValue[], value: CellValue): void;
   }
 
-export type { GridSettings } from './common';
+export type { GridSettings } from './core/settings';
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */

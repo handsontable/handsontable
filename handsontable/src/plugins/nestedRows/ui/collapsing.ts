@@ -1,4 +1,5 @@
-import type { CellCoords, HotInstance } from '../../../common';
+import type { default as CellCoords } from '../../../3rdparty/walkontable/src/cell/coords';
+import type { HotInstance } from '../../../core/types';
 import type { NestedRows } from '../nestedRows';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach } from '../../../helpers/array';

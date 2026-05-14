@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { arrayEach, arrayMap, arrayFilter } from '../../helpers/array';
 import { mixin, objectEach } from '../../helpers/object';
 import { curry } from '../../helpers/function';

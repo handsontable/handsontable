@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { TextEditor } from '../textEditor';
 import { setCaretPosition } from '../../helpers/dom/element';
 import {

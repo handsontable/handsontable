@@ -1,4 +1,4 @@
-import type { CellCoords } from '../../common';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
 import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';

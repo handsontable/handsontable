@@ -20,7 +20,6 @@
     "skipLibCheck": false
   },
   "include": [
-    "./common.types.ts",
     "../../src/**/*.types.ts"
   ]
 }

@@ -20,7 +20,7 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
-import type { CellCoords } from '../../common';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
 /**
  * Represents a comment's metadata stored in cell meta.

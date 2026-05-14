@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { isUndefined } from '../../../helpers/mixed';
 import { warn } from '../../../helpers/console';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';

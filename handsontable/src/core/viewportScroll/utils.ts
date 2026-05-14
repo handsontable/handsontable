@@ -1,4 +1,5 @@
-import type { HotInstance, CellCoords } from '../../common';
+import type { HotInstance } from '../types';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { isHTMLElement } from '../../helpers/dom/element';
 
 /**

@@ -1,7 +1,7 @@
 import Handsontable, {
   CellCoords,
 } from 'handsontable/base';
-import { HotInstance } from 'handsontable/common';
+import { HotInstance } from 'handsontable';
 import { BasePlugin } from 'handsontable/plugins';
 
 interface CellProperties {

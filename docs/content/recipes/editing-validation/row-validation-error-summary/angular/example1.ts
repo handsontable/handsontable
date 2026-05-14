@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 import type Handsontable from 'handsontable/base';
 
 const COLUMN_LABELS = ['Item', 'Quantity', 'Unit price'];

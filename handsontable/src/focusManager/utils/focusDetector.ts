@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { setAttribute } from '../../helpers/dom/element';
 import { A11Y_LABEL } from '../../helpers/a11y';
 import { FOCUS_SOURCES } from '../constants';

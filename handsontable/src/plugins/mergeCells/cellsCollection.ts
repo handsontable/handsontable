@@ -1,10 +1,10 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import MergedCellCoords from './cellCoords';
 import { rangeEach, clamp } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
-import type { CellRange } from '../../common';
 import type { MergeCells } from './mergeCells';
 
 /**

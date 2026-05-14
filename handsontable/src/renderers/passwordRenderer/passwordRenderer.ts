@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
 

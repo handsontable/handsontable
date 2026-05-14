@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../core/types';
 import type { default as DataSourceInstance } from './dataSource';
 import type { default as MetaManagerInstance } from './metaManager';
 import { toUpperCaseFirst } from '../helpers/string';

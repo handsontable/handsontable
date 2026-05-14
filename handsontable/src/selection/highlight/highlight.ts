@@ -1,4 +1,4 @@
-import type { CellCoords } from '../../common';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { arrayEach } from '../../helpers/array';
 import { createHighlight as createActiveHighlight } from './types/activeHeader';
 import { createHighlight as createAreaLayeredHighlight } from './types/areaLayered';

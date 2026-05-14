@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
 import { roundFloat } from './utils';

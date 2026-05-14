@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { rangeEach } from '../../../helpers/number';
 import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';

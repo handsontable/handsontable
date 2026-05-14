@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../types';
 import { scrollWindowToCell } from '../utils';
 
 /**

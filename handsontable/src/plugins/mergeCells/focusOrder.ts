@@ -1,7 +1,7 @@
 import LinkedList from '../../utils/dataStructures/linkedList';
 import { NodeStructure } from '../../utils/dataStructures/linkedList';
 import type { IndexMapper } from '../../translations';
-import type { CellRange } from '../../common';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
 /**
  * Class responsible for providing the correct focus order (vertical and horizontal) within a selection that

@@ -1,6 +1,6 @@
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
-import type { CellRange } from '../../common';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
 /**
  * The utils class produces the selection ranges in the `{startRow, startCol, endRow, endCol}` format

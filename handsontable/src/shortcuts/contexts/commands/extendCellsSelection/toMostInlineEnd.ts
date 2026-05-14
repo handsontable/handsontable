@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../../common';
+import type { HotInstance } from '../../../../core/types';
 
 export const command = {
   name: 'extendCellsSelectionToMostInlineEnd',

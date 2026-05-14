@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { autocompleteRenderer } from '../autocompleteRenderer';
 
 export const RENDERER_TYPE: 'handsontable' = 'handsontable';

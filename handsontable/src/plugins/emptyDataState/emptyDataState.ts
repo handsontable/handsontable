@@ -2,7 +2,7 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
-import type { CellRange } from '../../common';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
 interface SelectionState {
   ranges: CellRange[];

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../../common';
+import type { HotInstance } from '../../../../core/types';
 
 export const command = {
   name: 'moveCellSelectionInlineEnd',
@@ -15,7 +15,7 @@ export const command = {
 
     if (
       (
-        selectedRanges.some((range: object) => selection.isMultiple(range as import('../../../../common').CellRange)) ||
+        selectedRanges.some((range: object) => selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
         selectedRanges.length > 1
       ) &&
       !selectedRange.isHeader() &&

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';

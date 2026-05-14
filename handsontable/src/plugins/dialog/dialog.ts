@@ -3,7 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
-import type { CellRange } from '../../common';
+import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;

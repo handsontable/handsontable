@@ -1,6 +1,6 @@
 ---
 name: handsontable-unit-testing
-description: Use when writing or modifying Jest unit tests (*.unit.js) for Handsontable core, plugins, or utilities, or when a bug fix or internal refactor needs unit test coverage - covers Jest setup, test location conventions, mocking patterns, module aliases, and when to choose unit tests over E2E tests
+description: Use when writing or modifying Jest unit tests (*.unit.js) or TypeScript type tests (*.types.ts) for Handsontable core, plugins, or utilities, or when a bug fix or internal refactor needs unit or type test coverage - covers Jest setup, test location conventions, mocking patterns, module aliases, type test patterns (no declare, real assignments, ESM + UMD patterns), and when to choose unit tests over E2E tests
 ---
 
 # Writing Jest Unit Tests for Handsontable
@@ -74,6 +74,35 @@ describe('calculateSomething', () => {
 - Skipping large dataset tests when the code processes arrays.
 - Forgetting to test `updateSettings()` and `enablePlugin()`/`disablePlugin()` cycles for plugin logic.
 - Using globals from E2E helpers (`handsontable()`, `selectCell()`) -- these are not available in unit tests.
+
+## TypeScript Type Tests
+
+Type tests (`*.types.ts`) verify that the generated declarations in `tmp/` are correct after running `npm run build:types`. They live **in `src/**/__tests__/`** alongside unit and E2E tests — never under `test/types/` (that directory holds only the `tsconfig.json` that drives compilation).
+
+**File pattern:** `*.types.ts` — e.g., `src/__tests__/common.types.ts`, `src/__tests__/core/namespace.types.ts`
+
+**Run:** `node_modules/.bin/tsc --noEmit -p test/types/tsconfig.json`
+
+**Key rule — no `declare`, only real assignments.** Every line must be a real `const x: Type = actualValue` assignment so the compiler verifies assignability against the generated `tmp/` types. A `declare let x: SomeType` bypasses the check entirely.
+
+**Cover both access patterns:**
+
+```ts
+// ESM/modular: import from subpath, assign to namespace type
+import { DateEditor } from 'handsontable/editors';
+const _editor: Handsontable.editors.DateEditor = new DateEditor(hot);
+
+// UMD/namespace: extract constructor from namespace object, instantiate it
+const EditorCtor = Handsontable.editors.DateEditor;
+const _umdEditor: Handsontable.editors.DateEditor = new EditorCtor(hot);
+```
+
+**Negative assertions** use `@ts-expect-error` to prove internal symbols are NOT exported:
+
+```ts
+// @ts-expect-error SelectionManager is not part of the public API
+import type { SelectionManager } from 'handsontable';
+```
 
 ## Further Reading
 

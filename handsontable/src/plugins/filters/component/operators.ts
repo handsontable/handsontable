@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { addClass } from '../../../helpers/dom/element';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';

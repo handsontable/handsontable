@@ -1,4 +1,4 @@
-import type { HotInstance } from './common';
+import type { HotInstance } from './core/types';
 import type { WalkontableInstance, DomBindings, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
 import {
   addClass,

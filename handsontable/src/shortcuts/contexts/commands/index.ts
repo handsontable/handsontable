@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { getAllCommands as getAllEditorCommands } from './editor';
 import { getAllCommands as getAllSelectionExtendCommands } from './extendCellsSelection';
 import { getAllCommands as getAllSelectionMoveCommands } from './moveCellSelection';

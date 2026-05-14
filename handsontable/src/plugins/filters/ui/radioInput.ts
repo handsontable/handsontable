@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { clone, extend } from '../../../helpers/object';
 import { BaseUI, BaseUIOptions } from './_base';
 

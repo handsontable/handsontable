@@ -1,4 +1,4 @@
-import type { HotInstance } from '../common';
+import type { HotInstance } from '../core/types';
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { throwWithCause } from '../helpers/errors';
 import { createFocusScope } from './scope';

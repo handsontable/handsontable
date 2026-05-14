@@ -2,7 +2,7 @@ import moment from 'moment';
 import { getEditorInstance } from '../../editors/registry';
 import { EDITOR_TYPE as DATE_EDITOR_TYPE } from '../../editors/dateEditor';
 import { getNormalizedDate } from '../../helpers/date';
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 
 export const VALIDATOR_TYPE: 'date' = 'date';
 

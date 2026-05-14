@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
-import type { HotInstance } from '../../common';
+import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';

@@ -1,4 +1,4 @@
-import type { HotInstance } from '../../../common';
+import type { HotInstance } from '../../../core/types';
 import { addClass } from '../../../helpers/dom/element';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
