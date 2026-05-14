@@ -8,7 +8,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 - HyperFormula - Spreadsheet formula calculation engine
   - Package: `hyperformula` ^3.0.0 (optional dependency)
   - Integration: Plugin-based via `handsontable/src/plugins/formulas/`
-  - Engine setup: `handsontable/src/plugins/formulas/engine/register.js`
+  - Engine setup: `handsontable/src/plugins/formulas/engine/register.ts`
   - No network calls; runs entirely in-browser
   - Bundled in `handsontable.full.js` variant; external in `handsontable.js`
 
@@ -35,10 +35,10 @@ Handsontable is a frontend-only library with no built-in external API integratio
 
 **Error Tracking:**
 - None built-in. No telemetry or error reporting services.
-- Errors use custom handler: `handsontable/src/helpers/errors.js` with `throwWithCause(error, cause)` utility.
+- Errors use custom handler: `handsontable/src/helpers/errors.ts` with `throwWithCause(error, cause)` utility.
 
 **Logs:**
-- Console helpers via `handsontable/src/helpers/console.js` (wraps `console` to avoid direct global access).
+- Console helpers via `handsontable/src/helpers/console.ts` (wraps `console` to avoid direct global access).
 - No external logging service integration.
 
 ## CI/CD & Deployment
@@ -122,7 +122,7 @@ These are the only external libraries bundled or referenced at runtime:
 ## Import/Export Capabilities
 
 **Supported formats (client-side only):**
-- CSV - Parsed via `handsontable/src/utils/parseTable.js`
+- CSV - Parsed via `handsontable/src/utils/parseTable.ts`
 - HTML tables - HTML parsing utility for copy/paste and export
 - JSON - Data structure is plain arrays/objects
 - Excel formulas - When Formulas plugin enabled via HyperFormula

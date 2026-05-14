@@ -7,9 +7,9 @@ description: Use when writing or modifying Jest unit tests (*.unit.js) or TypeSc
 
 ## When to Use Unit Tests vs E2E
 
-**Favor E2E tests over unit tests.** The key rule: if a unit test requires mocking a module, write an E2E test instead. Mocking couples tests tightly to internal module shape, making code resistant to refactoring and extension -- every internal restructure forces test updates even when behavior hasn't changed.
+**Favor E2E tests over unit tests.** The key rule: if a unit test requires mocking a module, write an E2E test instead. Mocking couples tests tightly to internal module shape, making code resistant to refactoring and extension - every internal restructure forces test updates even when behavior hasn't changed.
 
-- **Good unit test candidates:** Pure logic, utility functions, data transformations, calculations -- anything that needs **no mocking**.
+- **Good unit test candidates:** Pure logic, utility functions, data transformations, calculations - anything that needs **no mocking**.
 - **Use E2E instead for:** DOM interaction, rendering, browser events, visual behavior, and anything that would require mocking modules to test in isolation.
 - **Anti-pattern:** Unit tests that mock internal modules just to achieve isolation. This creates brittle tests that resist refactoring.
 
@@ -40,12 +40,12 @@ For custom mocking, use `jest.fn()` for stubs and `jest.spyOn(object, 'method')`
 ## Run Commands
 
 - **All unit tests:** `npm run test:unit --prefix handsontable`
-- **Targeted:** `npm run test:unit --prefix handsontable --testPathPattern=<regex>` -- the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
+- **Targeted:** `npm run test:unit --prefix handsontable --testPathPattern=<regex>` - the pattern is matched against test file paths (e.g. `filters`, `ghostTable.unit`, `metaManager`)
 - **Example:** `npm run test:unit --prefix handsontable --testPathPattern=filters`
 
 ## Large Dataset Testing
 
-When the code under test handles data arrays, include tests with 50k+ rows. Use `forEach` loops to populate arrays -- never `arr.push(...largeArray)` (causes stack overflow at scale).
+When the code under test handles data arrays, include tests with 50k+ rows. Use `forEach` loops to populate arrays - never `arr.push(...largeArray)` (causes stack overflow at scale).
 
 ## Test Structure Example
 
@@ -70,10 +70,10 @@ describe('calculateSomething', () => {
 ## Common Mistakes
 
 - Writing unit tests for DOM or rendering behavior (use E2E instead).
-- Covering only the happy path -- always test edge cases, error states, and boundary conditions.
+- Covering only the happy path - always test edge cases, error states, and boundary conditions.
 - Skipping large dataset tests when the code processes arrays.
 - Forgetting to test `updateSettings()` and `enablePlugin()`/`disablePlugin()` cycles for plugin logic.
-- Using globals from E2E helpers (`handsontable()`, `selectCell()`) -- these are not available in unit tests.
+- Using globals from E2E helpers (`handsontable()`, `selectCell()`) - these are not available in unit tests.
 
 ## TypeScript Type Tests
 

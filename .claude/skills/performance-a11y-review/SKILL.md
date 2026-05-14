@@ -7,7 +7,7 @@ description: Use when reviewing code changes for performance impact and accessib
 
 ## Purpose
 
-Review staged or changed code for performance regressions and accessibility (a11y) violations. Both areas are critical -- performance affects large-dataset users and a11y is a compliance requirement.
+Review staged or changed code for performance regressions and accessibility (a11y) violations. Both areas are critical - performance affects large-dataset users and a11y is a compliance requirement.
 
 ## Performance Checks
 
@@ -34,7 +34,7 @@ Review staged or changed code for performance regressions and accessibility (a11
 
 ## Accessibility (WCAG 2.1 AA)
 
-1. **Keyboard navigation -- both modes must work:**
+1. **Keyboard navigation - both modes must work:**
    - Spreadsheet mode: `navigableHeaders: false`, `tabNavigation: true`.
    - Data grid mode: `navigableHeaders: true`, `tabNavigation: false`.
    - Verify that new interactive elements are reachable and operable via keyboard alone.

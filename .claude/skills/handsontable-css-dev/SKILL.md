@@ -50,9 +50,9 @@ All CSS features must work in browsers listed in `browser-targets.js` (latest 2 
 - **Renaming/removing a CSS class** = breaking change. Keep the old class in the DOM.
 - **Always test all 3 themes** after any visual or styling change.
 
-## Adding a New Theme Token -- The Four-Layer Process
+## Adding a New Theme Token - The Four-Layer Process
 
-Handsontable's theme system maintains defense-in-depth across CSS and JS consumers, plus TypeScript support. A new token needs to land in **four layers** -- updating fewer looks complete but breaks either the runtime DX or the type contract.
+Handsontable's theme system maintains defense-in-depth across CSS and JS consumers, plus TypeScript support. A new token needs to land in **four layers** - updating fewer looks complete but breaks either the runtime DX or the type contract.
 
 Use this flow whenever you add a `--ht-<component>-<property>` CSS variable or its matching JS token. Renaming or removing a token follows the same playbook plus a legacy-alias path (see Breaking Change Rules above).
 
@@ -81,7 +81,7 @@ handsontable/src/themes/static/variables/tokens/classic.ts
 handsontable/src/themes/static/variables/tokens/horizon.ts
 ```
 
-These objects drive the `ThemeBuilder` class at runtime (the JS API for programmatic theming). Use camelCase keys that mirror the CSS variable -- `paginationButtonBorderColor` maps to `--ht-pagination-button-border-color`. Values reference other tokens with the `'tokens.otherTokenName'` string syntax or primitive arrays like `['colors.palette.100', 'colors.palette.700']`.
+These objects drive the `ThemeBuilder` class at runtime (the JS API for programmatic theming). Use camelCase keys that mirror the CSS variable - `paginationButtonBorderColor` maps to `--ht-pagination-button-border-color`. Values reference other tokens with the `'tokens.otherTokenName'` string syntax or primitive arrays like `['colors.palette.100', 'colors.palette.700']`.
 
 **Symptom when missing**: `ThemeBuilder` doesn't recognize the token at runtime; users passing it to `createTheme()` get no-op behavior.
 
@@ -95,7 +95,7 @@ The `VALID_TOKEN_KEYS` Set (around lines 319-363) is the **runtime DX guardrail*
 
 Add the key in the same semantic section as your CSS and tokens changes (e.g., under the `// Pagination` comment).
 
-**Symptom when missing**: unit test `src/themes/engine/__tests__/builder.unit.js` fails the "should not warn for unknown token keys when using built-in tokens in createTheme" case. The test iterates every real token in `mainTokens` and asserts none trigger the warning -- it exists specifically to catch drift between layer 2 and layer 3.
+**Symptom when missing**: unit test `src/themes/engine/__tests__/builder.unit.js` fails the "should not warn for unknown token keys when using built-in tokens in createTheme" case. The test iterates every real token in `mainTokens` and asserts none trigger the warning - it exists specifically to catch drift between layer 2 and layer 3.
 
 ### Layer 4 - TypeScript type definitions (1 file)
 
@@ -115,11 +115,11 @@ Add the key in the same semantic section as the other layers. The `test:types` s
 docs/content/guides/styling/theme-customization/theme-customization.md
 ```
 
-Not load-bearing for the runtime, but anything registered in the allow-list and type union is part of the public API contract -- it belongs in the variables reference table on this page. Match the existing two-column pattern (CSS name + JS name, then description).
+Not load-bearing for the runtime, but anything registered in the allow-list and type union is part of the public API contract - it belongs in the variables reference table on this page. Match the existing two-column pattern (CSS name + JS name, then description).
 
 ### Naming Convention
 
-JS camelCase ↔ CSS kebab-case, prefixed with `--ht-`. The mapping is by convention -- there is no generator, so consistency is on the author:
+JS camelCase ↔ CSS kebab-case, prefixed with `--ht-`. The mapping is by convention - there is no generator, so consistency is on the author:
 
 | JS token name | CSS variable |
 |---|---|
@@ -129,7 +129,7 @@ JS camelCase ↔ CSS kebab-case, prefixed with `--ht-`. The mapping is by conven
 
 ### Consumption in SCSS
 
-Reference the new variable from the component's SCSS file under `src/styles/components/` (for example, `_pagination.scss`). Default to `var(--ht-<name>)` -- only use the `var(--ht-<name>, <fallback>)` form when a legacy compatibility fallback is genuinely needed, since a fallback can mask missing-variable bugs.
+Reference the new variable from the component's SCSS file under `src/styles/components/` (for example, `_pagination.scss`). Default to `var(--ht-<name>)` - only use the `var(--ht-<name>, <fallback>)` form when a legacy compatibility fallback is genuinely needed, since a fallback can mask missing-variable bugs.
 
 ### Pre-Flight Checklist
 
@@ -137,7 +137,7 @@ Before committing token work, mentally walk the four layers plus tests:
 
 1. CSS in all 6 theme files?
 2. JS token in all 3 runtime files?
-3. Registered in `validation.js` allow-list?
+3. Registered in `validation.ts` allow-list?
 4. Added to `TokenKey` in `src/themes/types.ts`?
 5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes?
 6. `npm run test:types --prefix handsontable` passes?

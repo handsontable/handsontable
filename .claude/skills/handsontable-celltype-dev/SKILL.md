@@ -50,16 +50,16 @@ New cell types must be added to `src/dataMap/metaManager/metaSchema.ts` so Hands
 
 ## Key rules
 
-- **Think of cell types as pre-configured bundles.** They exist for convenience -- users set one `type` instead of specifying `editor`, `renderer`, and `validator` separately.
+- **Think of cell types as pre-configured bundles.** They exist for convenience - users set one `type` instead of specifying `editor`, `renderer`, and `validator` separately.
 - **All components are optional.** A cell type can omit `validator` if no validation is needed, or omit `editor` for read-only display types.
 - **Individual overrides win.** If a user sets both `type: 'myType'` and `renderer: customRenderer`, the explicit `renderer` takes precedence over the one from the cell type.
 
 ## Reference implementations
 
-- `src/cellTypes/numericType/numericType.ts` -- Composes numeric editor, renderer, and validator.
-- `src/cellTypes/textType/textType.ts` -- Simplest type, good starting template.
-- `src/cellTypes/dateType/dateType.ts` -- Date handling with format options.
-- `src/cellTypes/checkboxType/checkboxType.ts` -- Boolean toggle pattern.
+- `src/cellTypes/numericType/numericType.ts` - Composes numeric editor, renderer, and validator.
+- `src/cellTypes/textType/textType.ts` - Simplest type, good starting template.
+- `src/cellTypes/dateType/dateType.ts` - Date handling with format options.
+- `src/cellTypes/checkboxType/checkboxType.ts` - Boolean toggle pattern.
 
 ## Common mistakes
 

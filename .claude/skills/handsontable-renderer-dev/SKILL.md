@@ -45,16 +45,16 @@ registerRenderer('myRenderer', myRenderer);
 
 ## Reference implementations
 
-- `src/renderers/baseRenderer/baseRenderer.ts` -- Must be called by every renderer.
-- `src/renderers/textRenderer/textRenderer.ts` -- Simplest renderer, good starting template.
-- `src/renderers/htmlRenderer/htmlRenderer.ts` -- Renders raw HTML (use with caution).
-- `src/renderers/numericRenderer/numericRenderer.ts` -- Formatting with numeral.js.
+- `src/renderers/baseRenderer/baseRenderer.ts` - Must be called by every renderer.
+- `src/renderers/textRenderer/textRenderer.ts` - Simplest renderer, good starting template.
+- `src/renderers/htmlRenderer/htmlRenderer.ts` - Renders raw HTML (use with caution).
+- `src/renderers/numericRenderer/numericRenderer.ts` - Formatting with numeral.js.
 
 ## Performance
 
 Renderers are called **for every cell in the viewport on every render cycle** (both fast and slow renders). They must be highly optimized:
-- Keep logic minimal -- avoid DOM-heavy operations
-- Never read layout properties inside a renderer (`getBoundingClientRect`, `offsetWidth`) -- causes layout thrashing
+- Keep logic minimal - avoid DOM-heavy operations
+- Never read layout properties inside a renderer (`getBoundingClientRect`, `offsetWidth`) - causes layout thrashing
 - Avoid object allocations and complex string concatenations in the hot path
 - The simpler the renderer, the better
 

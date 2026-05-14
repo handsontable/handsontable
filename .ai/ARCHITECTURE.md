@@ -24,7 +24,7 @@
 
 **View Layer (TableView + Walkontable):**
 - Purpose: Bridges Core to the DOM rendering engine (Walkontable)
-- Location: `handsontable/src/tableView.ts` (TableView), `handsontable/src/3rdparty/walkontable/src/` (Walkontable, still JavaScript)
+- Location: `handsontable/src/tableView.ts` (TableView), `handsontable/src/3rdparty/walkontable/src/` (Walkontable, TypeScript with its own separate build/test pipeline)
 - Contains: DOM element creation, event delegation (mouse/touch/keyboard), scroll handling, overlay management
 - Depends on: Walkontable engine, Core instance for data callbacks
 - Used by: Core (via `this.view`)
@@ -190,7 +190,7 @@
 
 **CellCoords / CellRange:**
 - Purpose: Coordinate and range primitives used throughout the codebase
-- Examples: `handsontable/src/3rdparty/walkontable/src/cell/coords.js`, `handsontable/src/3rdparty/walkontable/src/cell/range.js`
+- Examples: `handsontable/src/3rdparty/walkontable/src/cell/coords.ts`, `handsontable/src/3rdparty/walkontable/src/cell/range.ts`
 - Pattern: Value objects with methods like `isEqual()`, `includes()`, `getTopStartCorner()`, etc.
 
 **IndexMapper:**

@@ -51,9 +51,9 @@ registerValidator('myValidator', myValidator);
 
 ## Reference implementations
 
-- `src/validators/numericValidator/numericValidator.ts` -- Numeric validation with `allowEmpty` support.
-- `src/validators/dateValidator/dateValidator.ts` -- Date format validation.
-- `src/validators/autocompleteValidator/autocompleteValidator.ts` -- Validates against a list of allowed values.
+- `src/validators/numericValidator/numericValidator.ts` - Numeric validation with `allowEmpty` support.
+- `src/validators/dateValidator/dateValidator.ts` - Date format validation.
+- `src/validators/autocompleteValidator/autocompleteValidator.ts` - Validates against a list of allowed values.
 
 ## Correcting cell values inside a validator
 

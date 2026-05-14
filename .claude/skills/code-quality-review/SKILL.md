@@ -12,7 +12,7 @@ Review staged or changed code for compliance with Handsontable coding convention
 ## Checklist
 
 1. **ESLint rules (custom):**
-   - Errors must use `throwWithCause('...', cause)` from `src/helpers/errors.ts` -- never `throw new Error()`.
+   - Errors must use `throwWithCause('...', cause)` from `src/helpers/errors.ts` - never `throw new Error()`.
    - No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from the specific submodule path.
    - Every `it()` callback in `*.spec.js` files must be `async`. HOT API calls inside tests must be `await`-ed.
    - No bare `window`, `document`, or `console` globals. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`.
@@ -61,16 +61,16 @@ Review staged or changed code for compliance with Handsontable coding convention
 13. **Public API naming:**
     - New option, hook, and method names must be generic, self-explanatory, and free of internal jargon.
     - Check for collisions with existing API names (options, hooks, methods, plugin keys, CSS classes) before approving.
-    - Public API names carry long-term maintenance weight -- once released, they must be maintained indefinitely.
+    - Public API names carry long-term maintenance weight - once released, they must be maintained indefinitely.
 
 ## Output Format
 
 List findings numbered by severity. Use these levels:
 
-- **Critical** -- will break builds, tests, or runtime behavior.
-- **High** -- violates enforced ESLint rules or mandatory conventions.
-- **Medium** -- style or maintainability concern.
-- **Low** -- suggestion for improvement.
+- **Critical** - will break builds, tests, or runtime behavior.
+- **High** - violates enforced ESLint rules or mandatory conventions.
+- **Medium** - style or maintainability concern.
+- **Low** - suggestion for improvement.
 
 Each finding must include `file:line` reference and a short explanation.
 

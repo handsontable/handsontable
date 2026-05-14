@@ -342,16 +342,16 @@ handsontable/src/
 **`handsontable/src/3rdparty/walkontable/`:**
 - Purpose: Self-contained rendering engine with its own test suite
 - Contains: DOM rendering, viewport calculation, overlay management, scroll handling
-- Key files: `src/facade/core.js` (public API), `src/core/core.js` (internal core)
+- Key files: `src/facade/core.ts` (public API), `src/core/core.ts` (internal core)
 - Note: Has its own test runner (`npm run test:walkontable`). Do not mix with main E2E tests.
 
 **`handsontable/src/dataMap/metaManager/`:**
 - Purpose: Cascading configuration through prototype chain
 - Contains: Four meta layers, meta schema with all default settings, modifier mods
 
-**`handsontable/types/`:**
-- Purpose: Auto-generated TypeScript definitions for the public API (via `npm run build:types`)
-- Contains: `.d.ts` files only. Do not hand-edit — regenerate with `npm run build:types` after changing source.
+**`handsontable/tmp/`:**
+- Purpose: Auto-generated TypeScript definitions for the public API (`.d.ts`) plus ES/CJS module output consumed by wrapper packages.
+- Contains: `.d.ts` files (from `tsc --emitDeclarationOnly`) and module output. Do not hand-edit — regenerate with `npm run build:types` after changing source. The old `handsontable/types/` directory has been deleted; do not recreate it.
 
 ## Key File Locations
 
@@ -391,9 +391,9 @@ handsontable/src/
 ## Naming Conventions
 
 **Files:**
-- Source files: `camelCase.ts` (e.g., `dataMap.ts`, `indexMapper.ts`, `baseEditor/`); Walkontable remains `camelCase.js`
+- Source files: `camelCase.ts` (e.g., `dataMap.ts`, `indexMapper.ts`, `baseEditor/`). Walkontable is also `camelCase.ts`.
 - Test files: `*.unit.js` (Jest unit), `*.spec.js` (Jasmine E2E)
-- Type files: `*.d.ts` in `handsontable/types/`, `*.types.ts` for type tests
+- Type files: generated `*.d.ts` in `handsontable/tmp/`, `*.types.ts` for type tests
 - Plugin directories: `camelCase` matching the plugin key (e.g., `hiddenColumns/`, `contextMenu/`)
 
 **Directories:**
@@ -415,12 +415,12 @@ handsontable/src/
 - Register in: `handsontable/src/plugins/index.ts` (add to `registerAllPlugins()`)
 - E2E tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.spec.js`
 - Unit tests: `handsontable/src/plugins/myPlugin/__tests__/myPlugin.unit.js`
-- Types: auto-generated in `handsontable/types/` via `npm run build:types`
+- Types: auto-generated in `handsontable/tmp/` via `npm run build:types`
 
 **New Editor:**
 - Create directory: `handsontable/src/editors/myEditor/`
 - Register in: `handsontable/src/editors/index.ts`
-- Types: auto-generated in `handsontable/types/` via `npm run build:types`
+- Types: auto-generated in `handsontable/tmp/` via `npm run build:types`
 
 **New Renderer:**
 - Create directory: `handsontable/src/renderers/myRenderer/`
@@ -462,10 +462,8 @@ handsontable/src/
 - Generated: Yes (via build from `src/styles/`)
 - Committed: Yes (published to npm)
 
-**`handsontable/types/`:**
-- Purpose: Auto-generated TypeScript `.d.ts` definitions (via `npm run build:types`)
-- Generated: Yes (via `tsc --emitDeclarationOnly` using `tsconfig.build-types.json`)
-- Committed: Yes
+**`handsontable/types/` (deleted):**
+- This directory no longer exists. Type declarations are generated into `handsontable/tmp/` instead. Do not recreate it.
 
 **`handsontable/languages/`:**
 - Purpose: Compiled language dictionary files

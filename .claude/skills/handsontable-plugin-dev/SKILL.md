@@ -37,9 +37,9 @@ destroy()        // Null out all fields. Call super.destroy() AT THE END.
 
 ## Key Patterns (from Pagination gold standard)
 
-**Private fields** -- Use `#` prefix for all internal state. No `@private` JSDoc.
+**Private fields** - Use `#` prefix for all internal state. No `@private` JSDoc.
 
-**Hook callbacks** -- Arrow function class fields so `removeLocalHook` works:
+**Hook callbacks** - Arrow function class fields so `removeLocalHook` works:
 ```js
 #onIndexCacheUpdate = () => {
   if (!this.#internalCall && this.hot?.view) {
@@ -48,37 +48,37 @@ destroy()        // Null out all fields. Call super.destroy() AT THE END.
 };
 ```
 
-**Hook registration** -- `this.addHook()` auto-cleans on `disablePlugin()`. `this.hot.addHook()` does NOT.
+**Hook registration** - `this.addHook()` auto-cleans on `disablePlugin()`. `this.hot.addHook()` does NOT.
 Register new hook names at module level:
 ```js
 import Hooks from '../../core/hooks';
 Hooks.getSingleton().register('beforeMyAction');
 ```
 
-**Settings** -- Read via `this.getSetting('key')` (supports dot notation). Defaults come from `DEFAULT_SETTINGS`.
+**Settings** - Read via `this.getSetting('key')` (supports dot notation). Defaults come from `DEFAULT_SETTINGS`.
 
-**Conflict registration** -- At module level, before the class:
+**Conflict registration** - At module level, before the class:
 ```js
 import { registerConflict } from '../base/conflictRegistry';
 registerConflict(PLUGIN_KEY, ['nestedRows', 'mergeCells']);
 ```
 Check in `enablePlugin()` with `this.isHardConflictBlocked()`.
 
-**IndexMapper** -- Create maps in `enablePlugin()`, unregister in `disablePlugin()`:
+**IndexMapper** - Create maps in `enablePlugin()`, unregister in `disablePlugin()`:
 ```js
 this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
 // 'hiding' = HidingMap (not rendered, stays in DataMap)
 // 'trimming' = TrimmingMap (removed from DataMap entirely)
 ```
 
-**UI separation** -- Extract UI into its own class with dependency injection (no direct `hot` reference).
+**UI separation** - Extract UI into its own class with dependency injection (no direct `hot` reference).
 
-**Strategy pattern** -- Use for swappable logic (e.g., `autoPageSize` vs `fixedPageSize`).
+**Strategy pattern** - Use for swappable logic (e.g., `autoPageSize` vs `fixedPageSize`).
 
-**Batch rendering** -- When making multiple data/render changes, wrap them to avoid redundant render cycles:
+**Batch rendering** - When making multiple data/render changes, wrap them to avoid redundant render cycles:
 ```js
 this.hot.batch(() => {
-  // multiple operations here -- only one render at the end
+  // multiple operations here - only one render at the end
 });
 // Or for render-only batching:
 this.hot.suspendRender();
@@ -91,7 +91,7 @@ this.hot.resumeRender();
 - No direct cross-plugin imports. Use hooks or `hot.getPlugin('{Name}')`.
 - No circular dependencies between plugins.
 - Conflict ownership: the plugin introducing the incompatibility owns the blocking logic.
-- **DataProvider built-in errors** -- The DataProvider plugin surfaces request failures through `getPlugin('notification')` when `notification` is enabled (error toasts). **Fetch** failures include a primary **Refetch** action and `duration: 0` so the user can retry `fetchData()` from the toast. It does not use Dialog for that path. Dialog is still used elsewhere (for example Loading plugin, ExportFile overlay). Prefer hooks (`afterDataProviderFetchError`, `afterRowsMutationError`) for fully custom error UI when Notification is off.
+- **DataProvider built-in errors** - The DataProvider plugin surfaces request failures through `getPlugin('notification')` when `notification` is enabled (error toasts). **Fetch** failures include a primary **Refetch** action and `duration: 0` so the user can retry `fetchData()` from the toast. It does not use Dialog for that path. Dialog is still used elsewhere (for example Loading plugin, ExportFile overlay). Prefer hooks (`afterDataProviderFetchError`, `afterRowsMutationError`) for fully custom error UI when Notification is off.
 
 ## Registration Checklist
 
@@ -105,14 +105,14 @@ this.hot.resumeRender();
 If your plugin provides UI elements (buttons, inputs, navigation bars), you must integrate with the focus manager (`src/focusManager/`).
 
 - **Register a focus scope** with a unique name for your plugin's UI region.
-- **Implement focus entry logic** -- when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
+- **Implement focus entry logic** - when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
 - The focus manager listens to Tab/Shift+Tab keyboard events and blocks or allows them to ensure the correct UI module is focused during normal focus navigation.
 - **Scopes switch automatically** based on which element the user clicks or focuses. The Core switches the active scope and sets the listen mode so the user can interact with either the grid or another module (e.g., pagination bar).
 - See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`).
 
 ## Important Gotchas
 
-- **Merged cells -- read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM element attributes. The meta is authoritative and always available regardless of viewport state.
+- **Merged cells - read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM element attributes. The meta is authoritative and always available regardless of viewport state.
 
 ## Testing Requirements
 
