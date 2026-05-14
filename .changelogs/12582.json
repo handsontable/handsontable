@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "internal",
-  "title": "Fixed an issue where the Pagination plugin's user-selected `pageSize` reverted to the value from settings after sorting a column in DataProvider mode.",
-  "type": "fixed",
-  "issueOrPR": 12582,
-  "breaking": false,
-  "framework": "none"
-}
