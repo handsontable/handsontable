@@ -1,5 +1,5 @@
-import type { DataAccessObject } from '../../../../common';
-import type { DomBindings, WtSettings } from '../types';
+import type { DataAccessObject, DomBindings } from '../types';
+import type Settings from '../settings';
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
 import stickyColumnsStart from './mixin/stickyColumnsStart';
@@ -16,7 +16,7 @@ class InlineStartOverlayTable extends Table {
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: WtSettings) {
+  constructor(dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings) {
     super(dataAccessObject, facadeGetter, domBindings, wtSettings, CLONE_INLINE_START);
   }
 }

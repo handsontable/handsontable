@@ -1,5 +1,8 @@
-import type { CellCoords as CellCoordsType, ScrollDao } from '../../../../common';
-import type { DomBindings, WtTable, WtViewport, WtOverlays, WtSettings } from '../types';
+import type { ScrollDao, DomBindings } from '../types';
+import type Settings from '../settings';
+import type Table from '../table';
+import type Viewport from '../viewport';
+import type Overlays from '../overlays';
 import type { SelectionManager } from '../selection/manager';
 import type Event from '../event';
 import {
@@ -17,10 +20,10 @@ import CellRange from '../cell/range';
  * @class Walkontable
  */
 export default class CoreAbstract {
-  declare wtTable: WtTable;
+  declare wtTable: Table;
   declare wtScroll: Scroll;
-  declare wtViewport: WtViewport;
-  declare wtOverlays: WtOverlays;
+  declare wtViewport: Viewport;
+  declare wtOverlays: Overlays;
   declare selectionManager: SelectionManager;
   declare wtEvent: Event;
   declare cloneSource: CoreAbstract;
@@ -56,7 +59,7 @@ export default class CoreAbstract {
    * @public
    * @type {Settings}
    */
-  declare wtSettings: WtSettings;
+  declare wtSettings: Settings;
 
   get eventManager() {
     return new (EventManager as any)(this);
@@ -66,7 +69,7 @@ export default class CoreAbstract {
    * @param {HTMLTableElement} table Main table.
    * @param {Settings} settings The Walkontable settings.
    */
-  constructor(table: HTMLTableElement, settings: WtSettings) {
+  constructor(table: HTMLTableElement, settings: Settings) {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
@@ -150,7 +153,7 @@ export default class CoreAbstract {
    * @returns {HTMLElement}
    */
   getCell(coords: { row: number; col: number }, topmost = false) {
-    const cellCoords = coords as CellCoordsType;
+    const cellCoords = coords as CellCoords;
 
     if (!topmost) {
       return this.wtTable.getCell(cellCoords);

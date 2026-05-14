@@ -1,5 +1,5 @@
-import type { DataAccessObject } from '../../../../common';
-import type { WtSettings } from '../types';
+import type { DataAccessObject } from '../types';
+import type Settings from '../settings';
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *
@@ -19,7 +19,7 @@ export default class RowUtils {
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
-  constructor(dataAccessObject: DataAccessObject, wtSettings: WtSettings) {
+  constructor(dataAccessObject: DataAccessObject, wtSettings: Settings) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
   }

@@ -1,4 +1,6 @@
-import type { HotInstance, DataSourceInstance, MetaManagerInstance } from '../common';
+import type { HotInstance } from '../common';
+import type { default as DataSourceInstance } from './dataSource';
+import type { default as MetaManagerInstance } from './metaManager';
 import { toUpperCaseFirst } from '../helpers/string';
 import { isFunction } from '../helpers/function';
 import DataMap from './dataMap';

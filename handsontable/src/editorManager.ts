@@ -1,4 +1,5 @@
-import type { HotInstance, GridSettings, SelectionManager } from './common';
+import type { HotInstance, GridSettings } from './common';
+import type { default as SelectionManager } from './selection/selection';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';

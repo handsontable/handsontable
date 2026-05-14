@@ -1,5 +1,5 @@
-import type { DataAccessObject, StylesHandler } from '../../../../common';
-import type { WtSettings } from '../types';
+import type { DataAccessObject } from '../types';
+import type Settings from '../settings';
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -23,7 +23,7 @@ export default class ColumnUtils {
    * @param {TableDao} dataAccessObject The table Data Access Object.
    * @param {Settings} wtSettings The walkontable settings.
    */
-  constructor(dataAccessObject: DataAccessObject, wtSettings: WtSettings) {
+  constructor(dataAccessObject: DataAccessObject, wtSettings: Settings) {
     this.dataAccessObject = dataAccessObject;
     this.wtSettings = wtSettings;
   }
@@ -48,7 +48,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderHeight(level: number) {
-    let height = (this.wtSettings.getSetting('stylesHandler') as StylesHandler).getDefaultRowHeight();
+    let height = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
 
     if (oversizedHeight !== undefined) {

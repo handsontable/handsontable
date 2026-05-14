@@ -692,7 +692,7 @@ export class CustomBorders extends BasePlugin {
 
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection: Record<string, unknown>) => {
       if (border.id === (customSelection.settings as Record<string, unknown>).id) {
-        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
 
         arrayEach(borders, (borderObject: Record<string, unknown>) => {
           (borderObject.toggleHiddenClass as Function)(place, remove); // TODO this also bad?
@@ -732,7 +732,7 @@ export class CustomBorders extends BasePlugin {
           (customSelection as { commit(): void }).commit();
 
           if (place) {
-            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection);
+            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
 
             arrayEach(borders, (borderObject: Record<string, unknown>) => {
               (borderObject.changeBorderStyle as Function)(place, border);

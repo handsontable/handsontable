@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange } from '../../../../common';
+import type CellCoords from '../cell/coords';
+import type CellRange from '../cell/range';
 import { mixin } from '../../../../helpers/object';
 import localHooks from '../../../../mixins/localHooks';
 

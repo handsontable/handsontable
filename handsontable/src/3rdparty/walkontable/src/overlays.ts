@@ -1,4 +1,7 @@
-import type { WalkontableInstance, DomBindings, WtSettings, WtTable, OverlayInstance } from './types';
+import type { WalkontableInstance, DomBindings } from './types';
+import type Settings from './settings';
+import type Table from './table';
+import type { Overlay } from './overlay/_base';
 import {
   getScrollableElement,
   getScrollbarWidth,
@@ -43,7 +46,7 @@ class Overlays {
    * @protected
    * @type {MasterTable}
    */
-  wtTable: WtTable = null;
+  wtTable: Table = null;
 
   /**
    * Legacy support reference to the Walkontable instance.
@@ -146,7 +149,7 @@ class Overlays {
    *
    * @type {Overlay[]}
    */
-  #overlays: OverlayInstance[] = [];
+  #overlays: Overlay[] = [];
 
   /**
    * Refer to the TopOverlay instance.
@@ -154,7 +157,7 @@ class Overlays {
    * @protected
    * @type {TopOverlay}
    */
-  topOverlay: OverlayInstance = null;
+  topOverlay: Overlay = null;
 
   /**
    * Refer to the BottomOverlay instance.
@@ -162,7 +165,7 @@ class Overlays {
    * @protected
    * @type {BottomOverlay}
    */
-  bottomOverlay: OverlayInstance = null;
+  bottomOverlay: Overlay = null;
 
   /**
    * Refer to the InlineStartOverlay or instance.
@@ -170,7 +173,7 @@ class Overlays {
    * @protected
    * @type {InlineStartOverlay}
    */
-  inlineStartOverlay: OverlayInstance = null;
+  inlineStartOverlay: Overlay = null;
 
   /**
    * Refer to the TopInlineStartCornerOverlay instance.
@@ -178,7 +181,7 @@ class Overlays {
    * @protected
    * @type {TopInlineStartCornerOverlay}
    */
-  topInlineStartCornerOverlay: OverlayInstance = null;
+  topInlineStartCornerOverlay: Overlay = null;
 
   /**
    * Refer to the BottomInlineStartCornerOverlay instance.
@@ -186,7 +189,7 @@ class Overlays {
    * @protected
    * @type {BottomInlineStartCornerOverlay}
    */
-  bottomInlineStartCornerOverlay: OverlayInstance = null;
+  bottomInlineStartCornerOverlay: Overlay = null;
 
   /**
    * Browser line height for purposes of translating mouse wheel.
@@ -202,7 +205,7 @@ class Overlays {
    * @protected
    * @type {Settings}
    */
-  wtSettings: WtSettings = null;
+  wtSettings: Settings = null;
 
   /**
    * Indicates whether the rendering state has changed for one of the overlays.
@@ -306,7 +309,7 @@ class Overlays {
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {MasterTable} wtTable The master table.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings, wtSettings: WtSettings, eventManager: Record<string, Function>, wtTable: WtTable) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: Record<string, Function>, wtTable: Table) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
@@ -391,16 +394,16 @@ class Overlays {
 
     // todo refactoring: IOC, collection or factories.
     // TODO refactoring, conceive about using generic collection of overlays.
-    this.topOverlay = new TopOverlay(args[0], args[1], args[2], args[3]) as unknown as OverlayInstance;
-    this.bottomOverlay = new BottomOverlay(args[0], args[1], args[2], args[3]) as unknown as OverlayInstance;
-    this.inlineStartOverlay = new InlineStartOverlay(args[0], args[1], args[2], args[3]) as unknown as OverlayInstance;
+    this.topOverlay = new TopOverlay(args[0], args[1], args[2], args[3]);
+    this.bottomOverlay = new BottomOverlay(args[0], args[1], args[2], args[3]);
+    this.inlineStartOverlay = new InlineStartOverlay(args[0], args[1], args[2], args[3]);
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
     this.topInlineStartCornerOverlay = new TopInlineStartCornerOverlay(args[0], args[1], args[2], args[3],
-      this.topOverlay, this.inlineStartOverlay) as unknown as OverlayInstance;
+      this.topOverlay, this.inlineStartOverlay);
     this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(args[0], args[1], args[2], args[3],
-      this.bottomOverlay, this.inlineStartOverlay) as unknown as OverlayInstance;
+      this.bottomOverlay, this.inlineStartOverlay);
 
     this.#overlays = [
       this.topOverlay,
@@ -1002,9 +1005,9 @@ class Overlays {
    * Get the parent overlay of the provided element.
    *
    * @param {HTMLElement} element An element to process.
-   * @returns {object|null}
+   * @returns {WalkontableInstance|null}
    */
-  getParentOverlay(element: HTMLElement): object | null {
+  getParentOverlay(element: HTMLElement): WalkontableInstance | null {
     if (!element) {
       return null;
     }

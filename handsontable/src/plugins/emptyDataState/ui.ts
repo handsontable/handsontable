@@ -2,7 +2,7 @@ import { html } from '../../helpers/templateLiteralTag';
 import { addClass, removeClass, removeAttribute, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
 import { A11Y_TABINDEX, A11Y_BUSY } from '../../helpers/a11y';
 import { stripTags } from '../../helpers/string';
-import { ViewInstance } from '../../common';
+import type { default as ViewInstance } from '../../tableView';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;

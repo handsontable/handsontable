@@ -6,6 +6,7 @@ interface ColumnConditions {
   conditions: { name: string; args: unknown[] }[];
 }
 
+type Maybe<T> = T | undefined;
 type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
 interface Condition {

@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange, SelectionTableProps } from '../../common';
+import type { CellCoords, CellRange } from '../../common';
+import type { SelectionTableProps } from '../types';
 import type SelectionRange from '../range';
 import { mixin, createObjectPropListener } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';

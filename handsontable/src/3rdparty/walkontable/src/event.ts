@@ -1,5 +1,8 @@
-import type { CellCoords, CellRange } from '../../../common';
-import type { DomBindings, WtSettings, WtTable } from './types';
+import type CellCoords from './cell/coords';
+import type CellRange from './cell/range';
+import type { DomBindings } from './types';
+import type Settings from './settings';
+import type Table from './table';
 import type { SelectionManager } from './selection/manager';
 import {
   closestDown,
@@ -114,7 +117,7 @@ class Event {
    * @param {SelectionManager} selectionManager Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(facadeGetter: Function, domBindings: DomBindings, wtSettings: WtSettings, eventManager: Record<string, Function>, wtTable: WtTable, selectionManager: SelectionManager, parent: Event | null = null) {
+  constructor(facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: Record<string, Function>, wtTable: Table, selectionManager: SelectionManager, parent: Event | null = null) {
     this.#wtSettings = wtSettings;
     this.#domBindings = domBindings;
     this.#wtTable = wtTable;
@@ -334,7 +337,7 @@ class Event {
       const lastCoords = this.#mouseOverOutsideLastCoords;
 
       if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
-        const TD = this.#wtTable.getCell(coords, true);
+        const TD = this.#wtTable.getCell(coords);
 
         if (TD instanceof HTMLElement) {
           this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };

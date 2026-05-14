@@ -66,7 +66,13 @@ import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
-import type { DataMapInstance, DataSourceInstance, EditorManagerInstance, GridHelperInstance, MetaManagerInstance, ViewportScrollerInstance, SelectionTableProps, CellCoords, CellRange } from './common';
+import type { CellCoords, CellRange } from './common';
+import type { GridHelperInstance, ViewportScrollerInstance } from './core/types';
+import type { SelectionTableProps } from './selection/types';
+import type { default as DataMapInstance } from './dataMap/dataMap';
+import type { default as DataSourceInstance } from './dataMap/dataSource';
+import type { default as EditorManagerInstance } from './editorManager';
+import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import DataMap from './dataMap/dataMap';
 
 let activeGuid: string | null = null;

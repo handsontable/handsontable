@@ -194,22 +194,9 @@ export {
   CellRange,
 };
 
-// Named type exports for user-facing API
-export type {
-  GridSettings,
-} from './common';
-export type {
-  CellValue,
-  CellChange,
-  RowObject,
-  SelectOptionsObject,
-  SourceRowData,
-  ChangeSource,
-  NumericFormatOptions,
-  CellMeta,
-  CellProperties,
-  ColumnSettings,
-} from './settings';
+// Named type exports for user-facing API — all curated public types from the common barrel
+export type * from './common';
+export type { SelectOptionsObject } from './settings';
 export type { CellType } from './cellTypes';
 export type { EditorType } from './editors';
 export type { RendererType } from './renderers';

@@ -204,21 +204,13 @@ export {
 };
 
 // Named type exports for user-facing API (mirrors src/index.ts)
+// Note: CellCoords and CellRange are already exported as runtime values above.
 export type {
-  GridSettings,
+  GridSettings, Events, RangeType, OverlayType, HotInstance, BaseEditorInstance,
+  CellValue, CellChange, RowObject, SourceRowData, ChangeSource,
+  NumericFormatOptions, CellMeta, CellProperties, ColumnSettings,
 } from './common';
-export type {
-  CellValue,
-  CellChange,
-  RowObject,
-  SelectOptionsObject,
-  SourceRowData,
-  ChangeSource,
-  NumericFormatOptions,
-  CellMeta,
-  CellProperties,
-  ColumnSettings,
-} from './settings';
+export type { SelectOptionsObject } from './settings';
 export type { CellType } from './cellTypes';
 export type { EditorType } from './editors';
 export type { RendererType } from './renderers';

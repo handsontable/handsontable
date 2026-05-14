@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange, SelectionTableProps } from '../common';
+import type { CellCoords, CellRange } from '../common';
+import type { SelectionTableProps } from './types';
 import Highlight, {
   AREA_TYPE,
   HEADER_TYPE,

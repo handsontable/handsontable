@@ -1,5 +1,6 @@
-import type { DataAccessObject, StylesHandler } from '../../../common';
-import type { WalkontableInstance, DomBindings, WtSettings } from './types';
+import type { DataAccessObject } from './types';
+import type { WalkontableInstance, DomBindings } from './types';
+import type Settings from './settings';
 import {
   hasClass,
   index,
@@ -47,7 +48,7 @@ class Table {
    * @protected
    * @type {Settings}
    */
-  wtSettings: WtSettings = null;
+  wtSettings: Settings = null;
   domBindings;
   TBODY: HTMLTableSectionElement | null = null;
   THEAD: HTMLTableSectionElement | null = null;
@@ -74,6 +75,7 @@ class Table {
   tableOffset: number | { top: number; left: number } = 0;
   holderOffset: number | { top: number; left: number } = 0;
 
+  declare bordersHolder?: HTMLElement;
   declare isMaster: boolean;
   declare name: string;
   declare dataAccessObject: DataAccessObject;
@@ -126,7 +128,7 @@ class Table {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
    */
-  constructor(dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: WtSettings, name: string) {
+  constructor(dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, name: string) {
     this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
@@ -485,7 +487,7 @@ class Table {
   markIfOversizedColumnHeader(col: number) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = (this.wtSettings.getSetting('columnHeaders') as Function[]).length;
-    const defaultRowHeight = (this.wtSettings.getSetting('stylesHandler') as StylesHandler).getDefaultRowHeight();
+    const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -654,7 +656,7 @@ class Table {
       throwWithCause('TD or TH was expected to be rendered but is not');
     }
 
-    return TD;
+    return TD as HTMLElement;
   }
 
   /**
@@ -699,7 +701,7 @@ class Table {
   getColumnHeader(col: number, level = 0) {
     const TR = this.THEAD.childNodes[level];
 
-    return TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+    return TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)] as HTMLElement | undefined;
   }
 
   /**
@@ -743,7 +745,7 @@ class Table {
     const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
     const TR = parentElement.childNodes[visibleRow];
 
-    return TR?.childNodes[level];
+    return TR?.childNodes[level] as HTMLElement | undefined;
   }
 
   /**
@@ -842,7 +844,7 @@ class Table {
       return;
     }
     let rowCount = this.TBODY.childNodes.length;
-    const stylesHandler = this.wtSettings.getSetting('stylesHandler') as StylesHandler;
+    const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
     const borderBoxSizing = stylesHandler.areCellsBorderBox();

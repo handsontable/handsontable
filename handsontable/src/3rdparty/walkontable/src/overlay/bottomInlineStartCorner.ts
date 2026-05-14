@@ -1,4 +1,5 @@
-import type { DomBindings, OverlayInstance, WalkontableInstance, WtSettings } from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
+import type Settings from '../settings';
 import {
   getScrollbarWidth,
   outerHeight,
@@ -15,8 +16,8 @@ import {
  * @class BottomInlineStartCornerOverlay
  */
 export class BottomInlineStartCornerOverlay extends Overlay {
-  declare bottomOverlay: OverlayInstance;
-  declare inlineStartOverlay: OverlayInstance;
+  declare bottomOverlay: Overlay;
+  declare inlineStartOverlay: Overlay;
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
@@ -26,7 +27,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * @param {BottomOverlay} bottomOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: WtSettings, domBindings: DomBindings, bottomOverlay: OverlayInstance, inlineStartOverlay: OverlayInstance) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings, bottomOverlay: Overlay, inlineStartOverlay: Overlay) {
     super(wotInstance, facadeGetter, CLONE_BOTTOM_INLINE_START_CORNER, wtSettings, domBindings);
     this.bottomOverlay = bottomOverlay;
     this.inlineStartOverlay = inlineStartOverlay;
@@ -99,6 +100,16 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     return true;
   }
+
+  setScrollPosition(_pos: number) { return false; }
+  getScrollPosition() { return 0; }
+  getTableParentOffset() { return 0; }
+  getOverlayOffset() { return 0; }
+  onScroll() {}
+  sumCellSizes(_from: number, _to: number) { return 0; }
+  adjustElementsSize() {}
+  applyToDOM() {}
+  scrollTo(_sourceIndex: number, _snapToEdge: boolean) { return false; }
 
   /**
    * Reposition the overlay.

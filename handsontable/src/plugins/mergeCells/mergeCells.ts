@@ -310,7 +310,7 @@ export class MergeCells extends BasePlugin {
     rowIndexesToRefresh.forEach((rowIndex: number) => {
       const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
 
-      ((this.hot.view._wt.wtOverlays as Record<string, Function>).getOverlays(true) as Record<string, unknown>[]).map(
+      ((this.hot.view._wt.wtOverlays as unknown as Record<string, Function>).getOverlays(true) as Record<string, unknown>[]).map(
         (overlay: Record<string, unknown>) => (overlay?.name === 'master' ? overlay : (overlay.clone as Record<string, unknown>).wtTable)
       ).forEach((wtTableRef: Record<string, unknown>) => {
         const rowToRefresh = (wtTableRef.getRow as Function)(renderableRowIndex) as HTMLElement | null;

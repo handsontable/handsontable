@@ -1,4 +1,4 @@
-import type { MetaManagerInstance } from '../../../common';
+import type { default as MetaManagerInstance } from '..';
 import { deprecatedWarn } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
 

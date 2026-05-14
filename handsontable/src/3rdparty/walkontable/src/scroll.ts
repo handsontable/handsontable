@@ -1,5 +1,5 @@
 
-import type { ScrollDao } from '../../../common';
+import type { ScrollDao } from './types';
 import {
   innerHeight,
   innerWidth,

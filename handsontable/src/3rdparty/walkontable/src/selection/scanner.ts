@@ -132,7 +132,7 @@ export class SelectionScanner {
           TH = wtTable.getColumnHeader(newSourceCol as number, positiveBasedHeaderLevel);
         }
 
-        callback(TH);
+        callback(TH as HTMLElement);
       }
 
       cursor += 1;
@@ -181,7 +181,7 @@ export class SelectionScanner {
           TH = wtTable.getRowHeader(newSourceRow as number, positiveBasedHeaderLevel);
         }
 
-        callback(TH);
+        callback(TH as HTMLElement);
       }
 
       cursor += 1;

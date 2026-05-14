@@ -1,4 +1,5 @@
-import type { CellCoords, CellRange, SelectionManager } from './../common';
+import type { CellCoords, CellRange } from './../common';
+import type { default as SelectionManager } from './selection';
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
 
 interface MouseDownOptions {

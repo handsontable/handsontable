@@ -1,4 +1,4 @@
-import type { CellCoords } from '../../../../common';
+import type CellCoords from '../cell/coords';
 import Walkontable from '../core/core';
 import CoreAbstract from '../core/_base';
 
@@ -121,7 +121,7 @@ export default class WalkontableFacade {
   }
 
   createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords) {
-    return this._wot.createCellRange(highlight as unknown as Parameters<typeof this._wot.createCellRange>[0], from as unknown as Parameters<typeof this._wot.createCellRange>[1], to as unknown as Parameters<typeof this._wot.createCellRange>[2]);
+    return this._wot.createCellRange(highlight, from, to);
   }
 
   draw(fastDraw = false) {

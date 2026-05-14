@@ -1,4 +1,4 @@
-import type { MetaManagerInstance } from '../../../common';
+import type { default as MetaManagerInstance } from '..';
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';

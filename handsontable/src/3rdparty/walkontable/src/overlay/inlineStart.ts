@@ -1,4 +1,5 @@
-import type { DomBindings, WalkontableInstance, WtSettings } from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
+import type Settings from '../settings';
 import {
   addClass,
   getScrollbarWidth,
@@ -28,7 +29,7 @@ export class InlineStartOverlay extends Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: WtSettings, domBindings: DomBindings) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_INLINE_START, wtSettings, domBindings);
   }
 

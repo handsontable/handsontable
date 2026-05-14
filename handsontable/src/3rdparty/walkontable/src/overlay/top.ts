@@ -1,5 +1,5 @@
-import type { StylesHandler } from '../../../../common';
-import type { DomBindings, WalkontableInstance, WtSettings } from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
+import type Settings from '../settings';
 import {
   addClass,
   getMaximumScrollTop,
@@ -37,7 +37,7 @@ export class TopOverlay extends Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: WtSettings, domBindings: DomBindings) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_TOP, wtSettings, domBindings);
     this.cachedFixedRowsTop = this.wtSettings.getSetting('fixedRowsTop') as number;
   }
@@ -158,7 +158,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from: number, to: number) {
-    const stylesHandler = this.wtSettings.getSetting('stylesHandler') as StylesHandler;
+    const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const defaultRowHeight = stylesHandler.getDefaultRowHeight();
     let row = from;
     let sum = 0;

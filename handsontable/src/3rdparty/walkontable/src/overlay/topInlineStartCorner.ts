@@ -1,4 +1,5 @@
-import type { DomBindings, OverlayInstance, WalkontableInstance, WtSettings } from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
+import type Settings from '../settings';
 import {
   outerHeight,
   outerWidth,
@@ -20,13 +21,13 @@ export class TopInlineStartCornerOverlay extends Overlay {
    *
    * @type {TopOverlay}
    */
-  declare topOverlay: OverlayInstance;
+  declare topOverlay: Overlay;
   /**
    * The instance of the InlineStart overlay.
    *
    * @type {InlineStartOverlay}
    */
-  declare inlineStartOverlay: OverlayInstance;
+  declare inlineStartOverlay: Overlay;
 
   /**
    * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
@@ -36,7 +37,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
    * @param {TopOverlay} topOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: WtSettings, domBindings: DomBindings, topOverlay: OverlayInstance, inlineStartOverlay: OverlayInstance) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings, topOverlay: Overlay, inlineStartOverlay: Overlay) {
     super(wotInstance, facadeGetter, CLONE_TOP_INLINE_START_CORNER, wtSettings, domBindings);
     this.topOverlay = topOverlay;
     this.inlineStartOverlay = inlineStartOverlay;
@@ -62,6 +63,16 @@ export class TopInlineStartCornerOverlay extends Overlay {
     return (this.wtSettings.getSetting('shouldRenderTopOverlay') as boolean)
       && (this.wtSettings.getSetting('shouldRenderInlineStartOverlay') as boolean);
   }
+
+  setScrollPosition(_pos: number) { return false; }
+  getScrollPosition() { return 0; }
+  getTableParentOffset() { return 0; }
+  getOverlayOffset() { return 0; }
+  onScroll() {}
+  sumCellSizes(_from: number, _to: number) { return 0; }
+  adjustElementsSize() {}
+  applyToDOM() {}
+  scrollTo(_sourceIndex: number, _snapToEdge: boolean) { return false; }
 
   /**
    * Updates the corner overlay position.

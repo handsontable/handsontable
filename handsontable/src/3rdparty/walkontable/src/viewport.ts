@@ -1,5 +1,7 @@
-import type { DataAccessObject, StylesHandler } from '../../../common';
-import type { DomBindings, WalkontableInstance, WtSettings, WtTable } from './types';
+import type { DataAccessObject, StylesHandler } from './types';
+import type { DomBindings, WalkontableInstance } from './types';
+import type Settings from './settings';
+import type Table from './table';
 import type { ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
 import {
   getScrollbarWidth,
@@ -31,8 +33,8 @@ class Viewport {
   declare wot: WalkontableInstance;
   declare instance: WalkontableInstance;
   declare domBindings: DomBindings;
-  declare wtSettings: WtSettings;
-  declare wtTable: WtTable;
+  declare wtSettings: Settings;
+  declare wtTable: Table;
   declare oversizedRows: Record<number, number | undefined>;
   declare oversizedColumnHeaders: Record<number, number | undefined>;
   declare hasOversizedColumnHeadersMarked: Record<string, unknown>;
@@ -58,7 +60,7 @@ class Viewport {
    * @param {EventManager} eventManager The instance event manager.
    * @param {Table} wtTable The table.
    */
-  constructor(dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: WtSettings, eventManager: Record<string, Function>, wtTable: WtTable) {
+  constructor(dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings, eventManager: Record<string, Function>, wtTable: Table) {
     this.dataAccessObject = dataAccessObject;
     // legacy support
     this.wot = dataAccessObject.wot;
@@ -95,7 +97,7 @@ class Viewport {
     this.rowHeightCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting('totalRows') as number,
       sizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
-      defaultSizeFn: () => (wtSettings.getSetting('stylesHandler') as StylesHandler).getDefaultRowHeight(),
+      defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
     });
     /**
      * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
@@ -458,8 +460,8 @@ class Viewport {
     const columnsCalculator = this.createColumnsCalculator();
 
     if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
-      const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible') as unknown as RowsCalculationType;
-      const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible') as unknown as RowsCalculationType;
+      const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
+      const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible');
 
       fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(
         proposedFullyVisibleRowsCalculator,
@@ -468,8 +470,8 @@ class Viewport {
     }
 
     if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
-      const proposedFullyVisibleColumnsCalculator = columnsCalculator.getResultsFor('fullyVisible') as unknown as ColumnsCalculationType;
-      const proposedPartiallyVisibleColumnsCalculator = columnsCalculator.getResultsFor('partiallyVisible') as unknown as ColumnsCalculationType;
+      const proposedFullyVisibleColumnsCalculator = columnsCalculator.getResultsFor('fullyVisible');
+      const proposedPartiallyVisibleColumnsCalculator = columnsCalculator.getResultsFor('partiallyVisible');
 
       fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(
         proposedFullyVisibleColumnsCalculator,
@@ -478,14 +480,14 @@ class Viewport {
     }
 
     if (!fastDraw) {
-      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered') as unknown as RowsCalculationType;
-      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered') as unknown as ColumnsCalculationType;
+      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
+      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
     }
 
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') as unknown as RowsCalculationType;
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') as unknown as ColumnsCalculationType;
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') as unknown as RowsCalculationType;
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') as unknown as ColumnsCalculationType;
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
 
     return fastDraw;
   }
@@ -498,10 +500,10 @@ class Viewport {
     const rowsCalculator = this.createRowsCalculator(['fullyVisible', 'partiallyVisible']);
     const columnsCalculator = this.createColumnsCalculator(['fullyVisible', 'partiallyVisible']);
 
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') as unknown as RowsCalculationType;
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') as unknown as ColumnsCalculationType;
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') as unknown as RowsCalculationType;
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') as unknown as ColumnsCalculationType;
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
   }
 
   /**

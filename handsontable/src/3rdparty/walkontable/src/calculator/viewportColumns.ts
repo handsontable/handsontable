@@ -1,6 +1,6 @@
 import type { PositionCache } from '../utils/positionCache';
 import { calculateAxis } from './axisCalculation';
-import { ViewportBaseCalculator, CalculationTypeLike } from './viewportBase';
+import { ViewportBaseCalculator, CalculationTypeLike, ColumnsCalculationType } from './viewportBase';
 
 
 /**
@@ -78,6 +78,14 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
       setTotalCalculated: (ctx, v) => { ctx.totalCalculatedWidth = v; },
       getTotalCalculated: ctx => ctx.totalCalculatedWidth as number,
     });
+  }
+
+  /**
+   * @param {string} calculatorId The id of the calculator.
+   * @returns {ColumnsCalculationType | undefined}
+   */
+  getResultsFor(calculatorId: string): (ColumnsCalculationType & CalculationTypeLike) | undefined {
+    return this.calculationResults.get(calculatorId) as (ColumnsCalculationType & CalculationTypeLike) | undefined;
   }
 
   /**

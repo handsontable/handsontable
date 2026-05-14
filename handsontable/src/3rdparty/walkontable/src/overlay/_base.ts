@@ -1,4 +1,5 @@
-import type { DomBindings, WalkontableInstance, WtSettings } from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
+import type Settings from '../settings';
 import {
   getScrollableElement,
   getTrimmingContainer,
@@ -25,14 +26,14 @@ import { throwWithCause } from '../../../../helpers/errors';
  * @class Overlay
  * @property {Walkontable} wot The Walkontable instance.
  */
-export class Overlay {
+export abstract class Overlay {
   /**
    *  The Walkontable settings.
    *
    * @private
    * @type {Settings}
    */
-  wtSettings: WtSettings = null as unknown as WtSettings;
+  wtSettings: Settings = null as unknown as Settings;
 
   declare wot: WalkontableInstance;
   declare domBindings: DomBindings;
@@ -43,7 +44,7 @@ export class Overlay {
   declare TABLE: HTMLTableElement;
   declare hider: HTMLElement;
   declare spreader: HTMLElement;
-  declare holder: HTMLElement;
+  declare holder: HTMLElement | Window;
   declare wtRootElement: HTMLElement;
   declare trimmingContainer: HTMLElement | Window;
   declare needFullRender: boolean;
@@ -56,7 +57,7 @@ export class Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, type: string, wtSettings: WtSettings, domBindings: DomBindings) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, type: string, wtSettings: Settings, domBindings: DomBindings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
@@ -86,6 +87,18 @@ export class Overlay {
     this.needFullRender = this.shouldBeRendered();
     this.clone = this.makeClone();
   }
+
+  abstract resetFixedPosition(): boolean;
+  abstract createTable(...args: unknown[]): unknown;
+  abstract setScrollPosition(pos: number): boolean;
+  abstract getScrollPosition(): number;
+  abstract getTableParentOffset(): number;
+  abstract getOverlayOffset(): number;
+  abstract onScroll(): void;
+  abstract sumCellSizes(from: number, to: number): number;
+  abstract adjustElementsSize(): void;
+  abstract applyToDOM(): void;
+  abstract scrollTo(sourceIndex: number, snapToEdge: boolean): boolean;
 
   /**
    * Checks if the overlay rendering state has changed.

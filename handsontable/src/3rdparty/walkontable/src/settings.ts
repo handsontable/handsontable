@@ -1,6 +1,7 @@
 import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
 import { throwWithCause } from '../../../helpers/errors';
+import type { StylesHandler } from './types';
 
 /**
  * @todo Describe options.
@@ -277,6 +278,8 @@ export default class Settings {
    * @param {*} [param4] Additional parameter passed to the options defined as function.
    * @returns {*}
    */
+  getSetting(key: 'stylesHandler'): StylesHandler;
+  getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): any;
   getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown) {
     if (typeof this.settings[key] === 'function') {
       return this.settings[key](param1, param2, param3, param4);

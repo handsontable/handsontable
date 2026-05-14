@@ -1,16 +1,19 @@
 import { isSafari } from '../../../helpers/browser';
-import type { WalkontableInstance, DomBindings, WtTable, WtSettings, OverlayInstance } from './types';
+import type { WalkontableInstance, DomBindings } from './types';
+import type Settings from './settings';
+import type Table from './table';
+import type { Overlay } from './overlay/_base';
 
 interface OverlaysLike {
   wot: WalkontableInstance;
-  wtTable: WtTable;
-  wtSettings: WtSettings;
+  wtTable: Table;
+  wtSettings: Settings;
   domBindings: DomBindings;
   eventManager: { addEventListener(el: EventTarget, type: string, handler: (event: MouseEvent) => void): void };
   scrollableElement: HTMLElement | Window;
-  topOverlay: OverlayInstance;
-  bottomOverlay: OverlayInstance;
-  inlineStartOverlay: OverlayInstance;
+  topOverlay: Overlay;
+  bottomOverlay: Overlay;
+  inlineStartOverlay: Overlay;
   refreshAll(): void;
   applyToDOM(): void;
 }
