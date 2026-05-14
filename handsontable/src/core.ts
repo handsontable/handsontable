@@ -602,7 +602,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     );
 
     const selectionSource = selection.getSelectionSource();
-    const ignoreScrollSources = ['loadData', 'updateData'];
+    const ignoreScrollSources = ['loadData', 'updateData', 'deselect'];
 
     if (
       isLastSelectionLayer &&
@@ -633,11 +633,11 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (!['shift', 'refresh', 'loadData', 'updateData'].includes(selectionSource)) {
-      editorManager.closeEditor(undefined);
+    if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
+      editorManager.closeEditor();
     }
 
-    if (!['refresh', 'loadData', 'updateData'].includes(selectionSource)) {
+    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -670,7 +670,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     this.runHooks('afterSelectionEndByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
 
-    if (selection.getSelectionSource() === 'refresh') {
+    if (['refresh', 'deselect'].includes(selection.getSelectionSource())) {
       instance.view.render();
       editorManager.prepareEditor();
     }
