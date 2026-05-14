@@ -2301,13 +2301,13 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       syncSources.calls.reset();
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2331,7 +2331,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('d'); // d
       }
 
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2364,7 +2364,7 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2387,7 +2387,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2429,7 +2429,7 @@ describe('AutocompleteEditor', () => {
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2452,7 +2452,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('e'); // E (same as 'e')
       }
 
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2481,12 +2481,12 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('enter');
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       editorInput.val('e');
 
       await keyDownUp('e'); // e
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
@@ -2499,7 +2499,7 @@ describe('AutocompleteEditor', () => {
         await keyDownUp('d'); // d
       }
 
-      await waitForNextAnimationFrames(2);
+      await sleep(200);
 
       {
         const ac = getActiveEditor();
