@@ -626,8 +626,8 @@ export class Formulas extends BasePlugin {
     const dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
     const visibleColumnCount = this.hot.countCols();
     const physicalColumnCount = this.hot.countSourceCols();
-    const isAoAWithSkippedColumns = isArrayOfArrays(this.hot.getSourceData())
-      && visibleColumnCount < physicalColumnCount;
+    const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
+      && isArrayOfArrays(this.hot.getSourceData());
 
     if (!isAoAWithSkippedColumns) {
       return dataArray.map((rowObject, rowIndex) => {
