@@ -57,6 +57,7 @@ const _totalPages: number = paginationData.totalPages;
 const _autoPageSize: boolean = paginationData.autoPageSize;
 const _numberOfRenderedRows: number = paginationData.numberOfRenderedRows;
 const currentPageIndex: number = plugin.getCurrentPage();
+const currentPageSize: number | 'auto' = plugin.getCurrentPageSize();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();
 const data: unknown[] = plugin.getCurrentPageData();

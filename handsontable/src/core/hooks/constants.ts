@@ -2529,7 +2529,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} newSize Calculated new column width.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
-   * @returns {number} Returns a new column size or `undefined`, if column size should be calculated automatically.
+   * @returns {number|false|undefined} Returns a new column size, `false` to cancel the resize, or `undefined` to keep the size set by the drag or auto-calculation.
    */
   'beforeColumnResize',
 
@@ -2552,7 +2552,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} newSize Calculated new row height.
    * @param {number} row Visual index of the resized row.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
-   * @returns {number|undefined} Returns the new row size or `undefined` if row size should be calculated automatically.
+   * @returns {number|false|undefined} Returns a new row size, `false` to cancel the resize, or `undefined` to keep the size set by the drag or auto-calculation.
    */
   'beforeRowResize',
 

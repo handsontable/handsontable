@@ -5,11 +5,18 @@ const PAGINATION_PLUGIN_KEY = 'pagination';
 /**
  * Copies enabled Pagination `pageSize` and current page into query parameters.
  *
- * Uses [[Pagination#getCurrentPage]] when present so refetches (e.g. after sort) keep the active page
- * without calling [[Pagination#getPaginationData]] (unsafe before DataProvider registers external-pagination hooks).
- * Falls back to `initialPage` from settings when `getCurrentPage` is missing (tests) or returns an invalid value.
+ * Uses [[Pagination#getCurrentPage]] and [[Pagination#getCurrentPageSize]] when present so refetches
+ * (e.g. after sort) keep the user-selected state without calling [[Pagination#getPaginationData]]
+ * (unsafe before DataProvider registers external-pagination hooks).
+ * Falls back to `pageSize` / `initialPage` from settings when the state getters are missing (tests)
+ * or return a non-numeric value (e.g. `'auto'`).
  *
- * @param {{ enabled?: boolean, getSetting: function(string): *, getCurrentPage?: function(): number }|null|undefined} paginationPlugin Pagination plugin instance.
+ * @param {{
+ *   enabled?: boolean,
+ *   getSetting: function(string): *,
+ *   getCurrentPage?: function(): number,
+ *   getCurrentPageSize?: function(): number | 'auto' | undefined,
+ * }|null|undefined} paginationPlugin Pagination plugin instance.
  * @param {{ page: number, pageSize: number }} queryParameters Target object (mutated).
  * @returns {void}
  */
@@ -18,14 +25,19 @@ export function applyPaginationToQueryParameters(paginationPlugin: any, queryPar
     return;
   }
 
-  const pageSize = paginationPlugin.getSetting('pageSize');
+  const currentPageSize = typeof paginationPlugin.getCurrentPageSize === 'function'
+    ? paginationPlugin.getCurrentPageSize()
+    : undefined;
+  const settingsPageSize = paginationPlugin.getSetting('pageSize');
   const initialPage = paginationPlugin.getSetting('initialPage');
   const currentPage = typeof paginationPlugin.getCurrentPage === 'function'
     ? paginationPlugin.getCurrentPage()
     : undefined;
 
-  if (typeof pageSize === 'number') {
-    queryParameters.pageSize = pageSize;
+  if (typeof currentPageSize === 'number') {
+    queryParameters.pageSize = currentPageSize;
+  } else if (typeof settingsPageSize === 'number') {
+    queryParameters.pageSize = settingsPageSize;
   }
 
   if (typeof currentPage === 'number' && currentPage >= 1) {

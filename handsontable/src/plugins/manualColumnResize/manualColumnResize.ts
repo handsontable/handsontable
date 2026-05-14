@@ -492,8 +492,12 @@ export class ManualColumnResize extends BasePlugin {
     const resize = (column: number, forceRender?: boolean) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, true);
 
-      if (hookNewSize !== undefined) {
-        this.#newSize = hookNewSize as number;
+      if (hookNewSize === false) {
+        return;
+      }
+
+      if (typeof hookNewSize === 'number') {
+        this.#newSize = hookNewSize;
       }
 
       this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
@@ -581,13 +585,23 @@ export class ManualColumnResize extends BasePlugin {
       this.hot.render();
     };
     const resize = (column: number, forceRender?: boolean) => {
-      this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
+      const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
+
+      if (hookNewSize === false) {
+        this.setManualSize(column, this.#startWidth);
+        this.#newSize = this.#startWidth;
+      } else if (typeof hookNewSize === 'number') {
+        this.#newSize = hookNewSize;
+        this.setManualSize(column, this.#newSize);
+      }
 
       if (forceRender) {
         render();
       }
 
-      this.hot.runHooks('afterColumnResize', this.#newSize, column, false);
+      if (hookNewSize !== false) {
+        this.hot.runHooks('afterColumnResize', this.#newSize, column, false);
+      }
     };
 
     if (this.#pressed) {
