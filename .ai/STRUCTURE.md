@@ -3,10 +3,10 @@
 ## Directory Layout
 
 ```
-handsontable-develop/
+handsontable/
 ├── handsontable/               # Core data grid package (TypeScript)
 │   ├── src/                    # Source code (.ts files, including the Walkontable subdirectory)
-│   ├── test/                   # E2E tests and test infrastructure
+│   ├── test/                   # Test infrastructure only (helpers, bootstrap, runners, types). Tests themselves live co-located with the modules they cover, in `__tests__/` directories under `src/`.
 │   ├── dist/                   # UMD/minified build output
 │   ├── tmp/                    # Auto-generated .d.ts + ES/CJS module build output (used by wrappers; replaces the deleted handsontable/types/ directory)
 │   ├── styles/                 # Compiled CSS output
