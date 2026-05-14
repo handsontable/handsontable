@@ -228,3 +228,9 @@ export interface WtSettings {
   has(key: string): boolean;
   [key: string]: unknown;
 }
+
+/**
+ * Overlay type names used by Walkontable.
+ */
+export type OverlayType = 'inline_start' | 'top' | 'top_inline_start_corner' | 'bottom' |
+  'bottom_inline_start_corner' | 'master';

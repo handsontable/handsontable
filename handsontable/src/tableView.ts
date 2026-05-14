@@ -1,5 +1,5 @@
 import type { HotInstance } from './common';
-import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
+import type { WalkontableInstance, WtTable, WtViewport, WtOverlays, DomBindings, WotSelectionManager, OverlayInstance, WtSettings } from './3rdparty/walkontable/src/types';
 import {
   addClass,
   removeClass,
@@ -2107,3 +2107,48 @@ class TableView {
 }
 
 export default TableView;
+
+/**
+ * Interface for DataAccessObject used in Walkontable rendering.
+ */
+export interface DataAccessObject {
+  wot: WalkontableInstance;
+  wtTable: WtTable;
+  wtViewport: WtViewport;
+  wtOverlays: WtOverlays;
+  domBindings: DomBindings;
+  cloneSource: WalkontableInstance;
+  selectionManager: WotSelectionManager;
+  drawn: boolean;
+  parentTableOffset: { top: number; left: number } | number;
+  topOverlayTrimmingContainer: HTMLElement | Window;
+  inlineStartOverlayTrimmingContainer: HTMLElement | Window;
+  topScrollPosition: number;
+  topParentOffset: number;
+  inlineStartScrollPosition: number;
+  inlineStartParentOffset: number;
+  topOverlay: OverlayInstance;
+  bottomOverlay: OverlayInstance;
+  inlineStartOverlay: OverlayInstance;
+  workspaceWidth: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Scroll data access object.
+ */
+export interface ScrollDao {
+  drawn: boolean;
+  topOverlay: OverlayInstance;
+  inlineStartOverlay: OverlayInstance;
+  wtTable: WtTable;
+  wtViewport: WtViewport;
+  wtSettings: WtSettings;
+  rootWindow: Window & typeof globalThis;
+  totalRows: number;
+  totalColumns: number;
+  fixedRowsTop: number;
+  fixedRowsBottom: number;
+  fixedColumnsStart: number;
+  [key: string]: unknown;
+}
