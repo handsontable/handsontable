@@ -49,6 +49,45 @@ describe('dataProvider/query/pagination', () => {
       expect(query.page).toBe(4);
     });
 
+    it('should prefer getCurrentPageSize over getSetting("pageSize")', () => {
+      const query = { page: 1, pageSize: 10 };
+      const pagination = {
+        enabled: true,
+        getSetting: key => ({ pageSize: 5, initialPage: 1 }[key]),
+        getCurrentPageSize: () => 50,
+      };
+
+      applyPaginationToQueryParameters(pagination, query);
+
+      expect(query.pageSize).toBe(50);
+    });
+
+    it('should fall back to getSetting("pageSize") when getCurrentPageSize returns "auto"', () => {
+      const query = { page: 1, pageSize: 10 };
+      const pagination = {
+        enabled: true,
+        getSetting: key => ({ pageSize: 25, initialPage: 1 }[key]),
+        getCurrentPageSize: () => 'auto',
+      };
+
+      applyPaginationToQueryParameters(pagination, query);
+
+      expect(query.pageSize).toBe(25);
+    });
+
+    it('should fall back to getSetting("pageSize") when getCurrentPageSize returns non-numeric value', () => {
+      const query = { page: 1, pageSize: 10 };
+      const pagination = {
+        enabled: true,
+        getSetting: key => ({ pageSize: 25, initialPage: 1 }[key]),
+        getCurrentPageSize: () => undefined,
+      };
+
+      applyPaginationToQueryParameters(pagination, query);
+
+      expect(query.pageSize).toBe(25);
+    });
+
     it('should no-op when plugin is missing or disabled', () => {
       const query = { page: 1, pageSize: 10 };
 
