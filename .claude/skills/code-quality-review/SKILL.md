@@ -51,7 +51,7 @@ Review staged or changed code for compliance with Handsontable coding convention
 
 11. **Core language boundary:**
     - `handsontable/src/` is **TypeScript** — all source files are `.ts`, including Walkontable (`src/3rdparty/walkontable/src/`). Walkontable is excluded from the main `tsconfig.json` and has its own separate build/test pipeline.
-    - Type declarations are **auto-generated** into `handsontable/tmp/*.d.ts` by `build:types` (`tsc -p tsconfig.build-types.json`). The `handsontable/types/` directory has been deleted — do not recreate it.
+    - Type declarations are **auto-generated** into `handsontable/tmp/*.d.ts` by `build:types` (`tsc -p tsconfig.build-types.json`).
     - Do not hand-edit files in `tmp/`. Regenerate with `npm run build:types` after changing source.
 
 12. **Documentation and AGENTS.md updates:**

@@ -63,7 +63,7 @@ src/cellTypes/{typeName}/        index.ts, {typeName}.ts
 
 Test files stay as `.js`: `*.spec.js` (E2E) and `*.unit.js` (unit).
 
-`handsontable/src/` is fully TypeScript. `.d.ts` files in `handsontable/tmp/` are **auto-generated** by `npm run build:types`. There is no `handsontable/types/` directory.
+`handsontable/src/` is fully TypeScript. `.d.ts` files are **auto-generated** by `npm run build:types` directly into `handsontable/tmp/`.
 
 ---
 
@@ -97,7 +97,7 @@ The same applies to `any`. If you need `any` to make something compile, the func
 
 Declarations are generated from source. Never edit anything under `handsontable/tmp/`. If a type isn't appearing in the public API, fix the JSDoc/export in the `.ts` source and rerun `npm run build:types`.
 
-The old `handsontable/types/` mirror directory is gone — do not recreate it.
+Type declarations live exclusively in `handsontable/tmp/` and are regenerated from source — there is no separate `types/` mirror to keep in sync.
 
 ### 3. Always `import type` for types
 

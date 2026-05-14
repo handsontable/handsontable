@@ -98,7 +98,7 @@ this.hot.resumeRender();
 1. Plugin's `index.ts`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
 2. Wire into `src/plugins/index.ts`.
 3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.ts`.
-4. If the plugin introduces new hook signatures or settings, add them to `src/core/settings.ts` (`GridSettings`) — `npm run build:types` then regenerates the public `.d.ts` files in `tmp/`. There is no `handsontable/types/` directory; do not recreate it.
+4. If the plugin introduces new hook signatures or settings, add them to `src/core/settings.ts` (`GridSettings`) — `npm run build:types` then regenerates the public `.d.ts` files directly into `tmp/`.
 
 ## Focus Management
 

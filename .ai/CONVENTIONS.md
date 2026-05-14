@@ -7,7 +7,7 @@
 - Plugin directories: `camelCase/` (e.g., `src/plugins/hiddenColumns/`, `src/plugins/copyPaste/`)
 - Helper files: `camelCase.ts` in `src/helpers/` (e.g., `array.ts`, `object.ts`, `unicode.ts`)
 - Test files: `*.unit.js` for Jest unit tests, `*.spec.js` for Jasmine E2E tests
-- Type definition files: `*.types.ts` in `handsontable/test/types/`; generated `.d.ts` in `handsontable/tmp/` (the `handsontable/types/` directory has been deleted)
+- Type definition files: `*.types.ts` in `handsontable/test/types/`; generated `.d.ts` in `handsontable/tmp/`
 - Each plugin directory has an `index.ts` barrel that re-exports `PLUGIN_KEY`, `PLUGIN_PRIORITY`, and the class
 
 **Functions:**
@@ -26,7 +26,7 @@
 **Types:**
 - Class names: `PascalCase` (e.g., `BasePlugin`, `HiddenColumns`, `CellMeta`, `EditorManager`)
 - Type annotations use TypeScript syntax directly in `.ts` source files
-- TypeScript `.d.ts` files in `handsontable/tmp/` are auto-generated — do not hand-edit them. The `handsontable/types/` directory has been deleted; do not recreate it.
+- TypeScript `.d.ts` files in `handsontable/tmp/` are auto-generated — do not hand-edit them.
 - TypeScript compilation uses `strict: false`, `noImplicitAny: true`
 
 ## Code Style
