@@ -394,6 +394,80 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /**
+   * Splits a docs example HTML fragment into style blocks and body markup using the browser's
+   * HTML parser (avoids regex-based sanitization gaps flagged by CodeQL).
+   * All style elements are collected for injection into StackBlitz head; script elements are
+   * removed from the body fragment.
+   *
+   * @param {string} raw
+   * @returns {{ styleChunks: string[], bodyRemainder: string }}
+   */
+  function parseDocsExampleHtmlForStackBlitz(raw) {
+    var styleChunks = [];
+    var text = String(raw || '');
+
+    if (!text.trim()) {
+      return { styleChunks: [], bodyRemainder: '' };
+    }
+
+    var doc = new DOMParser().parseFromString(
+      '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>' + text + '</body></html>',
+      'text/html',
+    );
+    var body = doc.body;
+
+    if (!body) {
+      return { styleChunks: [], bodyRemainder: text.trim() };
+    }
+
+    var styles = body.querySelectorAll('style');
+    var i;
+
+    for (i = 0; i < styles.length; i++) {
+      styleChunks.push(styles[i].outerHTML);
+      styles[i].remove();
+    }
+
+    var scripts = body.querySelectorAll('script');
+
+    for (i = 0; i < scripts.length; i++) {
+      scripts[i].remove();
+    }
+
+    return { styleChunks: styleChunks, bodyRemainder: body.innerHTML.trim() };
+  }
+
+  function indentMarkupForBody(markup) {
+    return markup.split('\n').map(function (line) {
+      return '  ' + line;
+    }).join('\n');
+  }
+
+  /**
+   * Pushes companion-example `<style>` blocks onto `headParts` and returns indented body HTML.
+   *
+   * @param {string[]} headParts
+   * @param {Record<string,string>} userFiles
+   * @param {string} defaultBodyIndented
+   * @returns {string}
+   */
+  function mergeCompanionHtmlForStackBlitz(headParts, userFiles, defaultBodyIndented) {
+    var wrapperHtmlFile = findFile(userFiles, '.html');
+
+    if (!wrapperHtmlFile || !userFiles[wrapperHtmlFile]) {
+      return defaultBodyIndented;
+    }
+
+    var parsed = parseDocsExampleHtmlForStackBlitz(userFiles[wrapperHtmlFile]);
+
+    for (var i = 0; i < parsed.styleChunks.length; i++) {
+      headParts.push(parsed.styleChunks[i]);
+    }
+
+    return parsed.bodyRemainder ? indentMarkupForBody(parsed.bodyRemainder) : defaultBodyIndented;
+  }
+
+  /**
    * Assembles the full set of project files to send to StackBlitz.
    *
    * @param {string} framework - 'javascript' | 'react' | 'vue' | 'angular'
@@ -447,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
-    var html = [
+    var indexParts = [
       '<!DOCTYPE html>',
       '<html lang="en">',
       '<head>',
@@ -456,13 +530,19 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <title>Handsontable Example</title>',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
       '  <style>body { padding: 1rem; font-family: sans-serif; }</style>',
-      '</head>',
-      '<body>',
-      '  <div id="' + exampleId + '"></div>',
-      '  <script type="module" src="/src/main.js"><\/script>',
-      '</body>',
-      '</html>',
-    ].join('\n');
+    ];
+
+    var defaultMountDiv = '<div id="' + exampleId + '"></div>';
+    var bodyInner = mergeCompanionHtmlForStackBlitz(indexParts, userFiles, '  ' + defaultMountDiv);
+
+    indexParts.push('</head>');
+    indexParts.push('<body>');
+    indexParts.push(bodyInner);
+    indexParts.push('  <script type="module" src="/src/main.js"><\/script>');
+    indexParts.push('</body>');
+    indexParts.push('</html>');
+
+    var html = indexParts.join('\n');
 
     var files = {
       'package.json': pkg,
@@ -522,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
-    var html = [
+    var indexPartsR = [
       '<!DOCTYPE html>',
       '<html lang="en">',
       '<head>',
@@ -530,13 +610,19 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable React Example</title>',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
-      '</head>',
-      '<body>',
-      '  <div id="' + exampleId + '"></div>',
-      '  <script type="module" src="/src/main.jsx"><\/script>',
-      '</body>',
-      '</html>',
-    ].join('\n');
+    ];
+
+    var defaultMountDivR = '<div id="' + exampleId + '"></div>';
+    var bodyInnerR = mergeCompanionHtmlForStackBlitz(indexPartsR, userFiles, '  ' + defaultMountDivR);
+
+    indexPartsR.push('</head>');
+    indexPartsR.push('<body>');
+    indexPartsR.push(bodyInnerR);
+    indexPartsR.push('  <script type="module" src="/src/main.jsx"><\/script>');
+    indexPartsR.push('</body>');
+    indexPartsR.push('</html>');
+
+    var html = indexPartsR.join('\n');
 
     return {
       'package.json':   pkg,
@@ -588,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
-    var html = [
+    var indexPartsV = [
       '<!DOCTYPE html>',
       '<html lang="en">',
       '<head>',
@@ -596,13 +682,19 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable Vue Example</title>',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
-      '</head>',
-      '<body>',
-      '  <div id="' + exampleId + '"></div>',
-      '  <script type="module" src="/src/main.js"><\/script>',
-      '</body>',
-      '</html>',
-    ].join('\n');
+    ];
+
+    var defaultMountDivV = '<div id="' + exampleId + '"></div>';
+    var bodyInnerV = mergeCompanionHtmlForStackBlitz(indexPartsV, userFiles, '  ' + defaultMountDivV);
+
+    indexPartsV.push('</head>');
+    indexPartsV.push('<body>');
+    indexPartsV.push(bodyInnerV);
+    indexPartsV.push('  <script type="module" src="/src/main.js"><\/script>');
+    indexPartsV.push('</body>');
+    indexPartsV.push('</html>');
+
+    var html = indexPartsV.join('\n');
 
     return {
       'package.json': pkg,
@@ -775,7 +867,8 @@ document.addEventListener('DOMContentLoaded', function () {
       },
     }, null, 2);
 
-    var indexHtml = [
+    // Merge companion example*.html into StackBlitz (styles in head, markup in body).
+    var indexParts = [
       '<!DOCTYPE html>',
       '<html lang="en">',
       '<head>',
@@ -783,12 +876,18 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <title>Handsontable Angular Example</title>',
       '  <base href="/">',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
-      '</head>',
-      '<body>',
-      '  <' + selector + '></' + selector + '>',
-      '</body>',
-      '</html>',
-    ].join('\n');
+    ];
+
+    var defaultBodyMarkup = '  <' + selector + '></' + selector + '>';
+    var bodyMarkup = mergeCompanionHtmlForStackBlitz(indexParts, userFiles, defaultBodyMarkup);
+
+    indexParts.push('</head>');
+    indexParts.push('<body>');
+    indexParts.push(bodyMarkup);
+    indexParts.push('</body>');
+    indexParts.push('</html>');
+
+    var indexHtml = indexParts.join('\n');
 
     // NgModule examples bootstrap via platformBrowserDynamic;
     // standalone examples (no app.module.ts) use bootstrapApplication.
