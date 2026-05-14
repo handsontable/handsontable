@@ -91,14 +91,14 @@ class Selection {
    *
    * @type {Set<number>}
    */
-  selectedByRowHeader = new Set();
+  selectedByRowHeader = new Set<number>();
   /**
    * The collection of the selection layer levels where the whole column was selected using the column header or
    * the corner header.
    *
    * @type {Set<number>}
    */
-  selectedByColumnHeader = new Set();
+  selectedByColumnHeader = new Set<number>();
   /**
    * The flag which determines if the focus selection was changed.
    *

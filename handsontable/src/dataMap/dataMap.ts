@@ -841,7 +841,7 @@ class DataMap {
    * @param {number|string} prop The column property.
    * @param {string} value The value to set.
    */
-  set(row: number, prop: string | number, value: string) {
+  set(row: number, prop: string | number, value: unknown) {
     const physicalRow = this.hot.toPhysicalRow(row);
     let newValue = value;
     let dataRow: Record<string | number, unknown> = this.dataSource[physicalRow] as Record<string | number, unknown>;

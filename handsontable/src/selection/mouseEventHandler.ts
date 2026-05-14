@@ -1,4 +1,4 @@
-import type { CellCoords, SelectionManager } from './../common';
+import type { CellCoords, CellRange, SelectionManager } from './../common';
 import { isRightClick as isRightClickEvent, isLeftClick as isLeftClickEvent } from './../helpers/dom/event';
 
 interface MouseDownOptions {
@@ -130,7 +130,7 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
 interface MouseUpOptions {
   isLeftClick: boolean;
   selection: SelectionManager;
-  cellRangeMapper: { toRenderable: (range: unknown) => unknown };
+  cellRangeMapper: { toRenderable: (range: CellRange) => CellRange };
 }
 
 /**
@@ -152,7 +152,7 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
   const selectionRange = sel.getSelectedRange();
   const renderableRange = selectionRange
     .clone()
-    .map((range: unknown) => cellRangeMapper.toRenderable(range));
+    .map((range) => cellRangeMapper.toRenderable(range));
   const lastRenderableRange = renderableRange.current();
 
   if (

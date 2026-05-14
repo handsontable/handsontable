@@ -11,7 +11,7 @@ const __kindOf = Symbol('shortcut-context');
 export interface Shortcut {
   keys: string[][];
   callback: (event: KeyboardEvent, keys?: string[]) => boolean | void;
-  group: string;
+  group?: string;
   runOnlyIf?: (event?: KeyboardEvent) => boolean;
   captureCtrl?: boolean;
   preventDefault?: boolean;

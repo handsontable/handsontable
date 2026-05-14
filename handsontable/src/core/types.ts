@@ -7,20 +7,16 @@ import type { HookCallback } from './hooks/bucket';
 import type { PluginTypeMap } from '../plugins/types';
 import type { BasePlugin } from '../plugins/base';
 import { IndexMapper } from '../translations';
-import type {
-  CellCoords,
-  CellRange,
-  Events,
-  GridSettings,
-  SelectionManager,
-  ViewInstance,
-  ShortcutManager,
-  FocusManagerInstance,
-  FocusScopeManagerInstance,
-  EditorManagerInstance,
-  BaseEditorInstance,
-  StylesHandler,
-} from '../common';
+import type { CellCoords, CellRange } from '../common';
+import type { Events, GridSettings } from './settings';
+import type { default as SelectionManager } from '../selection/selection';
+import type { default as ViewInstance } from '../tableView';
+import type { ShortcutManager } from '../shortcuts/manager';
+import type { FocusGridManager as FocusManagerInstance } from '../focusManager/grid';
+import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
+import type { default as EditorManagerInstance } from '../editorManager';
+import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
+import type { StylesHandler } from '../utils/stylesHandler';
 
 /**
  * Represents a selection range with start/end row/col coordinates.

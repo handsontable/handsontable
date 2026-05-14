@@ -417,6 +417,11 @@ export class BaseEditor {
   }
 
   /**
+   * Refreshes the editor's value from the source data. Overridden in editors that support it.
+   */
+  refreshValue?(): void;
+
+  /**
    * Returns information whether the editor is waiting, eg.: for async validation.
    *
    * @returns {boolean}

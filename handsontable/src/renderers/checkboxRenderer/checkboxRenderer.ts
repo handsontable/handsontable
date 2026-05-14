@@ -166,7 +166,7 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
     const config = {
       group: SHORTCUTS_GROUP,
       relativeToGroup: SHORTCUTS_GROUP_EDITOR,
-      position: 'before',
+      position: 'before' as const,
     };
 
     gridContext.addShortcuts([{

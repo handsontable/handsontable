@@ -38,6 +38,7 @@ class DataSource {
 
   colToProp: (column: unknown) => unknown = (_column: unknown) => undefined;
   propToCol: (prop: unknown) => unknown = (_prop: unknown) => undefined;
+  countCachedColumns?: () => number;
 
   constructor(hotInstance: HotInstance, dataSource: unknown[][] | object[][] = []) {
     this.hot = hotInstance;
@@ -126,7 +127,7 @@ class DataSource {
    * @param {boolean} [toArray=false] `true` if the returned value should be forced to be presented as an array.
    * @returns {Array|object}
    */
-  getAtRow(row: number, startColumn: number | undefined, endColumn: number | undefined, toArray = false) {
+  getAtRow(row: number, startColumn?: number, endColumn?: number, toArray = false) {
     const getAllProps = startColumn === undefined && endColumn === undefined;
     const { dataDotNotation } = this.hot!.getSettings();
     let dataRow = null;
@@ -278,7 +279,7 @@ class DataSource {
    * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row: number, columnOrProp: number) {
+  getAtCell(row: number, columnOrProp: number | string) {
     const dataRow = this.modifyRowData(row);
 
     return this.getAtPhysicalCell(row, this.colToProp(columnOrProp) as number | string | Function, dataRow);

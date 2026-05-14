@@ -479,7 +479,7 @@ export class CopyPaste extends BasePlugin {
    * @returns {boolean}
    */
   isEditorOpened() {
-    return ((this.hot.getActiveEditor() as Record<string, unknown>)?.isOpened as Function | undefined)?.();
+    return this.hot.getActiveEditor()?.isOpened();
   }
 
   /**

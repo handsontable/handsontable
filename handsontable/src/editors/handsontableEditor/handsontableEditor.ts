@@ -425,7 +425,7 @@ export class HandsontableEditor extends TextEditor {
     const contextConfig = {
       group: SHORTCUTS_GROUP,
       relativeToGroup: EDITOR_EDIT_GROUP,
-      position: 'before',
+      position: 'before' as const,
     };
 
     const action = (rowToSelect: number | undefined, event: KeyboardEvent) => {

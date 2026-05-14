@@ -243,7 +243,7 @@ class TableView {
    * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords: {row: number, col: number}, horizontalSnap: string, verticalSnap: string) {
+  scrollViewport(coords: {row: number, col: number}, horizontalSnap?: string, verticalSnap?: string) {
     return this._wt.scrollViewport(coords, horizontalSnap, verticalSnap);
   }
 
@@ -1438,7 +1438,7 @@ class TableView {
   isCellEdited() {
     const activeEditor = this.hot.getActiveEditor();
 
-    return activeEditor && ((activeEditor as Record<string, unknown>).isOpened as Function | undefined)?.();
+    return activeEditor?.isOpened();
   }
 
   /**

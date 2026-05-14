@@ -182,7 +182,7 @@ export class FocusGridManager {
       return this.#refocusElementGetter();
     }
 
-    return (this.#hot.getActiveEditor() as ActiveEditorInstance | undefined)?.TEXTAREA;
+    return (this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.TEXTAREA;
   }
 
   /**
@@ -226,7 +226,7 @@ export class FocusGridManager {
 
       if (
         elementToBeFocused &&
-        !(this.#hot.getActiveEditor() as ActiveEditorInstance | undefined)?.isOpened()
+        !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened()
       ) {
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
       }
@@ -249,9 +249,9 @@ export class FocusGridManager {
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
       this.#hot.getSettings().imeFastEdit &&
-      !(this.#hot.getActiveEditor() as ActiveEditorInstance | undefined)?.isOpened()
+      !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened()
     ) {
-      (this.#hot.getActiveEditor() as ActiveEditorInstance | undefined)?.refreshValue?.();
+      (this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.refreshValue?.();
 
       if (!this.#debouncedSelect.has(delay)) {
         this.#debouncedSelect.set(delay, debounce(() => {

@@ -9,7 +9,7 @@ import { createKeyboardShortcutCommandsPool } from './commands';
  */
 export function shortcutsEditorContext(hot: HotInstance) {
   const context = hot.getShortcutManager().addContext(EDITOR_SCOPE);
-  const commandsPool: Record<string, (...args: unknown[]) => unknown> = createKeyboardShortcutCommandsPool(hot);
+  const commandsPool = createKeyboardShortcutCommandsPool(hot) as unknown as Record<string, (...args: unknown[]) => boolean | void>;
   const config = { group: EDITOR_EDIT_GROUP };
 
   context.addShortcuts([{

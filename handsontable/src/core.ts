@@ -67,6 +67,7 @@ import { createThemeManager } from './themes/engine';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { DataMapInstance, DataSourceInstance, EditorManagerInstance, GridHelperInstance, MetaManagerInstance, ViewportScrollerInstance, SelectionTableProps, CellCoords, CellRange } from './common';
+import DataMap from './dataMap/dataMap';
 
 let activeGuid: string | null = null;
 
@@ -1655,7 +1656,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1] as string | number) > instance.countCols() - 1) {
+        while ((datamap.propToCol(changes[i][1] as string | number) as number) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
           } = datamap.createCol(undefined, undefined, { source: 'auto' });
@@ -2808,7 +2809,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     return datamap.getRange(instance._createCellCoords(row, column),
-      instance._createCellCoords(row2, column2), datamap.DESTINATION_RENDERER as number);
+      instance._createCellCoords(row2, column2), DataMap.DESTINATION_RENDERER as number);
   };
 
   /**
@@ -3509,7 +3510,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, column),
       instance._createCellCoords(tableMeta.data.length - 1, column),
-      datamap.DESTINATION_RENDERER as number
+      DataMap.DESTINATION_RENDERER as number
     );
 
     for (let i = 0; i < dataByRows.length; i += 1) {
@@ -3536,7 +3537,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const dataByRows = datamap.getRange(
       instance._createCellCoords(0, datamap.propToCol(prop)),
       instance._createCellCoords(tableMeta.data.length - 1, datamap.propToCol(prop)),
-      datamap.DESTINATION_RENDERER as number);
+      DataMap.DESTINATION_RENDERER as number);
 
     for (let i = 0; i < dataByRows.length; i += 1) {
       for (let j = 0; j < dataByRows[i].length; j += 1) {
@@ -3736,7 +3737,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const data = datamap.getRange(
       instance._createCellCoords(row, 0),
       instance._createCellCoords(row, this.countCols() - 1),
-      datamap.DESTINATION_RENDERER as number
+      DataMap.DESTINATION_RENDERER as number
     );
 
     return data[0] || [];

@@ -203,7 +203,7 @@ class EditorManager {
    * @param {boolean} isCtrlPressed If `true`, then editor will save value to each cell in the last selected range.
    * @param {Function} callback The callback function, fired after editor closing.
    */
-  closeEditor(restoreOriginalValue: boolean, isCtrlPressed: boolean, callback?: Function) {
+  closeEditor(restoreOriginalValue = false, isCtrlPressed = false, callback?: Function) {
     if (this.activeEditor) {
       this.activeEditor.finishEditing(restoreOriginalValue, isCtrlPressed, callback);
 

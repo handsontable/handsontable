@@ -3,6 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
+import type { CellRange } from '../../common';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
@@ -234,7 +235,7 @@ export class Dialog extends BasePlugin {
    *
    * @type {SelectionState | null}
    */
-  #selectionState: { ranges: unknown[]; [key: string]: unknown } | null = null;
+  #selectionState: { ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number; selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean } | null = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -533,7 +534,7 @@ export class Dialog extends BasePlugin {
       callback: () => {
         this.hide();
       },
-      runOnlyIf: () => this.#isVisible && this.getSetting('closable'),
+      runOnlyIf: () => this.#isVisible && Boolean(this.getSetting('closable')),
       group: SHORTCUTS_GROUP,
     });
 

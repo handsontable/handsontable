@@ -3,7 +3,8 @@
  */
 
 import type { IndexMapper } from '../translations';
-import type { CellCoords, CellRange, ShortcutManager } from '../common';
+import type { CellCoords, CellRange } from '../common';
+import type { ShortcutManager } from '../shortcuts/manager';
 
 /**
  * Interface for table properties passed to the Selection module.

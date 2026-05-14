@@ -2,10 +2,15 @@ import { BasePlugin } from '../base';
 import { EmptyDataStateUI } from './ui';
 import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
+import type { CellRange } from '../../common';
 
 interface SelectionState {
-  ranges: unknown[];
-  [key: string]: unknown;
+  ranges: CellRange[];
+  activeRange: CellRange;
+  activeSelectionLayer: number;
+  selectedByRowHeader: number[];
+  selectedByColumnHeader: number[];
+  disableHeadersHighlight: boolean;
 }
 
 export const PLUGIN_KEY = 'emptyDataState';

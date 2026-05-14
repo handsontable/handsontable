@@ -817,7 +817,7 @@ export class Pagination extends BasePlugin {
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
-        runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
+        runOnlyIf: () => Boolean(this.getSetting('showPageSize')) || Boolean(this.getSetting('showNavigation')),
         onActivate: (focusSource: unknown) => {
           const focusableElements = this.#ui.getFocusableElements();
 

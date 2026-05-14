@@ -1616,7 +1616,7 @@ export class MergeCells extends BasePlugin {
     } else {
       const activeOverlay = this.hot.view.getOverlayByName(overlayType);
 
-      const overlayClone = (activeOverlay as { clone: { wtTable: { getFirstRenderedColumn(): number; getLastRenderedColumn(): number } } }).clone;
+      const overlayClone = (activeOverlay as unknown as { clone: { wtTable: { getFirstRenderedColumn(): number; getLastRenderedColumn(): number } } }).clone;
 
       firstColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(overlayClone.wtTable.getFirstRenderedColumn());
