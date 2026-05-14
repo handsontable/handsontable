@@ -130,6 +130,8 @@ The `angular/example1.html` file is the outer wrapper (not the component templat
 </div>
 ```
 
+**Edit on StackBlitz:** When you use **Edit on StackBlitz**, `docs/public/example-tabs.js` merges each framework's companion `example*.html` into the generated app shell. `parseDocsExampleHtmlForStackBlitz` uses the browser `DOMParser` to collect `style` nodes for `<head>` and drop `script` nodes from the body fragment. `mergeCompanionHtmlForStackBlitz` wires that into the StackBlitz template. Examples with no HTML tab keep the previous default mount markup.
+
 See skill `angular-wrapper-dev` for the full reference.
 
 **Vue 3:**
