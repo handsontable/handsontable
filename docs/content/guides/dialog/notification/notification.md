@@ -74,10 +74,11 @@ Use separate buttons for save, error recovery, and warnings. Primary and seconda
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 2
+::: example #example2 --js 1 --ts 2 --html 3
 
 @[code](@/content/guides/dialog/notification/javascript/example2.js)
 @[code](@/content/guides/dialog/notification/javascript/example2.ts)
+@[code](@/content/guides/dialog/notification/javascript/example2.html)
 
 :::
 
