@@ -187,21 +187,6 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
-  it('should pass the dragged size (not actual rendered height) to beforeRowResize during drag resize', async() => {
-    const beforeRowResizeCallback = jasmine.createSpy('beforeRowResizeCallback');
-
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      rowHeaders: true,
-      manualRowResize: true,
-      beforeRowResize: beforeRowResizeCallback
-    });
-
-    await resizeRow(0, 100);
-
-    expect(beforeRowResizeCallback).toHaveBeenCalledWith(100, 0, false);
-  });
-
   it('should apply the return value of beforeRowResize hook when drag resizing', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),

@@ -553,7 +553,7 @@ export class ManualRowResize extends BasePlugin {
       this.hot.render();
     };
     const runHooks = (row, forceRender) => {
-      const hookNewSize = this.hot.runHooks('beforeRowResize', this.#newSize, row, false);
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
 
       if (hookNewSize === false) {
         this.setManualSize(row, this.#startHeight);
