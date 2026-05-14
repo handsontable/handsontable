@@ -27,7 +27,7 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 17.1.0-rc11
+## 17.1.0-rc12
 
 Released on May 14th, 2026
 

@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [17.1.0-rc11] - 2026-05-14
+## [17.1.0-rc12] - 2026-05-14
 
 ### Added
 - Added a hit area for dropdown menu and collapsible buttons [#12070](https://github.com/handsontable/handsontable/pull/12070)
