@@ -208,7 +208,7 @@ export interface Events {
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
   beforeColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void | boolean;
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
-  beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
+  beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isColumnFlipped: boolean) => void;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
@@ -257,7 +257,7 @@ export interface Events {
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: CellProperties) => void;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
-  beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
+  beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | false | void;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isRowFlipped: boolean) => void;
   beforeSelectAll?: (from: CellCoords, to: CellCoords, highlight?: CellCoords) => void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
