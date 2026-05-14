@@ -7,8 +7,9 @@ description: Use when creating a new Handsontable plugin, modifying an existing 
 
 ```
 src/plugins/{pluginName}/
-├── index.js              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
-├── {pluginName}.js       # Main class extending BasePlugin
+├── index.ts              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
+├── {pluginName}.ts       # Main class extending BasePlugin
+├── types.ts              # (optional) exported plugin-local types
 ├── __tests__/            # Tests (*.spec.js for E2E, *.unit.js for unit)
 └── {submodules}/         # Additional files (UI classes, strategies, etc.)
 ```
@@ -94,10 +95,10 @@ this.hot.resumeRender();
 
 ## Registration Checklist
 
-1. Plugin's `index.js`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
-2. Wire into `src/plugins/index.js`.
+1. Plugin's `index.ts`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
+2. Wire into `src/plugins/index.ts`.
 3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.ts`.
-4. Add TypeScript definitions in `types/`.
+4. If the plugin introduces new hook signatures or settings, add them to `src/core/settings.ts` (`GridSettings`) — `npm run build:types` then regenerates the public `.d.ts` files in `tmp/`. There is no `handsontable/types/` directory; do not recreate it.
 
 ## Focus Management
 
@@ -120,5 +121,5 @@ If your plugin provides UI elements (buttons, inputs, navigation bars), you must
 - Test `updateSettings()`, `enablePlugin()`/`disablePlugin()` toggling.
 - Test interactions with other plugins (sorting, filters, hidden rows).
 
-**Gold standard:** `src/plugins/pagination/pagination.js`. **Base class:** `src/plugins/base/base.js`.
+**Gold standard:** `src/plugins/pagination/pagination.ts`. **Base class:** `src/plugins/base/base.ts`.
 See `.ai/ARCHITECTURE.md` and `.ai/CONVENTIONS.md` for deeper context.

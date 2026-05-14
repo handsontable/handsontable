@@ -21,7 +21,7 @@ Always call `baseRenderer` first. It applies common properties: readonly CSS cla
 ## Key rules
 
 - **Stateless and read-only.** Renderers only modify the TD element's DOM content and attributes. Never store state, attach event listeners, or mutate data.
-- **Use `fastInnerText(TD, value)`** from `src/helpers/dom/element.js` for setting cell text content. It is XSS-safe and cross-browser optimized.
+- **Use `fastInnerText(TD, value)`** from `src/helpers/dom/element.ts` for setting cell text content. It is XSS-safe and cross-browser optimized.
 - **Never use `innerHTML`** without sanitization. All user-provided content must be escaped to prevent XSS.
 - **No event listeners.** If you need interactivity, that belongs in an editor or a plugin, not a renderer.
 - **ARIA attributes.** `baseRenderer` handles standard ARIA. If your renderer changes the cell's role or state, update ARIA attributes accordingly.
@@ -30,8 +30,8 @@ Always call `baseRenderer` first. It applies common properties: readonly CSS cla
 
 ```
 src/renderers/{rendererName}/
-  {rendererName}.js    # Renderer function
-  index.js             # Re-exports
+  {rendererName}.ts    # Renderer function
+  index.ts             # Re-exports
 ```
 
 Registry: `src/renderers/registry.ts`.
@@ -45,10 +45,10 @@ registerRenderer('myRenderer', myRenderer);
 
 ## Reference implementations
 
-- `src/renderers/baseRenderer/baseRenderer.js` -- Must be called by every renderer.
-- `src/renderers/textRenderer/textRenderer.js` -- Simplest renderer, good starting template.
-- `src/renderers/htmlRenderer/htmlRenderer.js` -- Renders raw HTML (use with caution).
-- `src/renderers/numericRenderer/numericRenderer.js` -- Formatting with numeral.js.
+- `src/renderers/baseRenderer/baseRenderer.ts` -- Must be called by every renderer.
+- `src/renderers/textRenderer/textRenderer.ts` -- Simplest renderer, good starting template.
+- `src/renderers/htmlRenderer/htmlRenderer.ts` -- Renders raw HTML (use with caution).
+- `src/renderers/numericRenderer/numericRenderer.ts` -- Formatting with numeral.js.
 
 ## Performance
 

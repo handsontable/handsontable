@@ -29,8 +29,8 @@ When a column or cell sets `type: 'myType'`, Handsontable applies all composed c
 
 ```
 src/cellTypes/{typeName}/
-  {typeName}.js    # Cell type object
-  index.js         # Re-exports
+  {typeName}.ts    # Cell type object
+  index.ts         # Re-exports
 ```
 
 Registry: `src/cellTypes/registry.ts`.
@@ -42,7 +42,7 @@ import { registerCellType } from '../../cellTypes/registry';
 registerCellType(MyCellType);
 ```
 
-Also export from `src/cellTypes/index.js` so the type is available in the full bundle.
+Also export from `src/cellTypes/index.ts` so the type is available in the full bundle.
 
 ## Integration with metaSchema
 
@@ -56,14 +56,14 @@ New cell types must be added to `src/dataMap/metaManager/metaSchema.ts` so Hands
 
 ## Reference implementations
 
-- `src/cellTypes/numericType/numericType.js` -- Composes numeric editor, renderer, and validator.
-- `src/cellTypes/textType/textType.js` -- Simplest type, good starting template.
-- `src/cellTypes/dateType/dateType.js` -- Date handling with format options.
-- `src/cellTypes/checkboxType/checkboxType.js` -- Boolean toggle pattern.
+- `src/cellTypes/numericType/numericType.ts` -- Composes numeric editor, renderer, and validator.
+- `src/cellTypes/textType/textType.ts` -- Simplest type, good starting template.
+- `src/cellTypes/dateType/dateType.ts` -- Date handling with format options.
+- `src/cellTypes/checkboxType/checkboxType.ts` -- Boolean toggle pattern.
 
 ## Common mistakes
 
 - Forgetting to register the cell type in `src/cellTypes/registry.ts`.
 - Not adding the type to `metaSchema.ts`, causing Handsontable to ignore the type name.
 - Duplicating editor/renderer/validator logic instead of importing existing components.
-- Not exporting from `src/cellTypes/index.js` for the full bundle.
+- Not exporting from `src/cellTypes/index.ts` for the full bundle.

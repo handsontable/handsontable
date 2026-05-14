@@ -48,7 +48,7 @@ These are injected automatically. Do not import them manually.
 - **DOM:** `getCell()`, `spec()`, `hot()`
 - **Plugins:** `getPlugin()`
 - **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `.ai/TESTING.md`)
-- **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` -- from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutFromTokens.js`, auto-discovered from `src/themes/theme/index.js` (add a theme there and the list updates automatically).
+- **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` -- from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutFromTokens.js`, auto-discovered from `src/themes/theme/index.ts` (add a theme there and the list updates automatically).
 - Full list in `test/helpers/common.js`.
 
 ## Theme-agnostic assertions
@@ -57,7 +57,7 @@ Every test must pass under every theme. Never branch on `getLoadedTheme()` or ha
 
 Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpers/themeLayoutFromTokens.js`, which exposes token primitives, `overlayHeight` / `verticalScrollForRow` helpers, and scenario-specific `e2e*` regression helpers with descriptive names like `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`, etc.).
 
-**Entry point:** `themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.js`. Changing a theme's `density` in that module propagates to all tests automatically.
+**Entry point:** `themeLayoutFromTokens(themeName)` reads `density` and `tokens` from `handsontable/src/themes/theme/<name>.ts`. Changing a theme's `density` in that module propagates to all tests automatically.
 
 **Fundamental rule:** All expectations must be pure expressions over tokens + density tokens + sizing tokens, or derived from live DOM measurements. Numeric density triplets (`{ compact: N, default: N, comfortable: N }`) are not used anywhere.
 
@@ -78,7 +78,7 @@ Use `const layout = getThemeLayout()` (token-backed; merged API from `test/helpe
 
 Prefer, in order: (1) named `layout.e2e*()` helpers when a shared formula exists (e.g. `layout.e2eGcrEditedCellOuterHeight()`), (2) a direct formula in primitives (`layout.defaultDataRowHeight + layout.cellBorderWidth`), (3) a DOM/plugin-API read, (4) a relational assertion. **Do not** branch on `layout.densityLevel` or theme name in specs -- the primitives already vary per theme.
 
-**Adding a new theme:** See the `handsontable-css-dev` skill for the full four-layer token process. E2E-specific steps: (1) tokens JS at `src/themes/static/variables/tokens/<name>.js`, (2) colors JS at `src/themes/static/variables/colors/<name>.js`, (3) icons JS at `src/themes/static/variables/icons/<name>.js` (or reuse an existing one), (4) CSS source `src/themes/static/css/theme/ht-theme-<name>.css` + `-no-icons.css` variant, (5) theme module `src/themes/theme/<name>.js` exporting `{ name, density, icons, colors, tokens }`, (6) re-export from `src/themes/theme/index.js`, (7) add any new token keys to the `VALID_TOKEN_KEYS` allow-list in `src/themes/engine/utils/validation.js`, (8) add any new token keys to the `TokenKey` union in `types/themes.d.ts`, (9) add E2E matrix jobs in `.github/workflows/test.yml`. No edits needed to `themeLayoutFromTokens.js`, `common.js`, or any spec file -- auto-discovery handles the rest.
+**Adding a new theme:** See the `handsontable-css-dev` skill for the full four-layer token process. E2E-specific steps: (1) tokens at `src/themes/static/variables/tokens/<name>.ts`, (2) colors at `src/themes/static/variables/colors/<name>.ts`, (3) icons at `src/themes/static/variables/icons/<name>.ts` (or reuse an existing one), (4) CSS source `src/themes/static/css/theme/ht-theme-<name>.css` + `-no-icons.css` variant, (5) theme module `src/themes/theme/<name>.ts` exporting `{ name, density, icons, colors, tokens }`, (6) re-export from `src/themes/theme/index.ts`, (7) add any new token keys to the `VALID_TOKEN_KEYS` allow-list in `src/themes/engine/utils/validation.ts`, (8) add any new token keys to the `TokenKey` union in `src/themes/types.ts`, (9) add E2E matrix jobs in `.github/workflows/test.yml`. No edits needed to `themeLayoutFromTokens.js`, `common.js`, or any spec file -- auto-discovery handles the rest.
 
 **Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Every test should run under every theme.
 

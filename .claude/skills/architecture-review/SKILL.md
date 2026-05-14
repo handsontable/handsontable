@@ -30,7 +30,7 @@ No deep property chains like `this.hot.view.wt.wtTable`. Each architectural laye
 
 ## Conflict Ownership
 
-The plugin that introduces an incompatibility owns the blocking logic. Other plugins must NOT contain awareness checks like `if (dataProviderEnabled) return;` -- that logic belongs in the conflicting plugin. Compatibility tests also belong with the owning plugin, not the affected one. For hard conflicts, use `registerConflict()` from `src/plugins/base/conflictRegistry.js` at module load time.
+The plugin that introduces an incompatibility owns the blocking logic. Other plugins must NOT contain awareness checks like `if (dataProviderEnabled) return;` -- that logic belongs in the conflicting plugin. Compatibility tests also belong with the owning plugin, not the affected one. For hard conflicts, use `registerConflict()` from `src/plugins/base/conflictRegistry.ts` at module load time.
 
 ## Configuration Compatibility
 
@@ -75,5 +75,5 @@ The Pagination plugin (`src/plugins/pagination/`) demonstrates the expected patt
 
 - `.ai/ARCHITECTURE.md` for full system architecture details.
 - `.ai/CONCERNS.md` for known issues and technical debt.
-- `src/plugins/base/base.js` for the BasePlugin contract.
-- `src/plugins/base/conflictRegistry.js` for conflict registration API.
+- `src/plugins/base/base.ts` for the BasePlugin contract.
+- `src/plugins/base/conflictRegistry.ts` for conflict registration API.

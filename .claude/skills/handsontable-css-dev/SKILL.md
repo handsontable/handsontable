@@ -76,9 +76,9 @@ Group the new variable next to related ones (e.g. `pagination-button-*` next to 
 ### Layer 2 - Token JS runtime defaults (3 files)
 
 ```
-handsontable/src/themes/static/variables/tokens/main.js
-handsontable/src/themes/static/variables/tokens/classic.js
-handsontable/src/themes/static/variables/tokens/horizon.js
+handsontable/src/themes/static/variables/tokens/main.ts
+handsontable/src/themes/static/variables/tokens/classic.ts
+handsontable/src/themes/static/variables/tokens/horizon.ts
 ```
 
 These objects drive the `ThemeBuilder` class at runtime (the JS API for programmatic theming). Use camelCase keys that mirror the CSS variable -- `paginationButtonBorderColor` maps to `--ht-pagination-button-border-color`. Values reference other tokens with the `'tokens.otherTokenName'` string syntax or primitive arrays like `['colors.palette.100', 'colors.palette.700']`.
@@ -88,7 +88,7 @@ These objects drive the `ThemeBuilder` class at runtime (the JS API for programm
 ### Layer 3 - Validation allow-list (1 file)
 
 ```
-handsontable/src/themes/engine/utils/validation.js
+handsontable/src/themes/engine/utils/validation.ts
 ```
 
 The `VALID_TOKEN_KEYS` Set (around lines 319-363) is the **runtime DX guardrail**. If a user passes a token key not in this set, the ThemeBuilder logs `[ThemeBuilder] Unknown token key: "xxx"` to help them catch typos. Legitimate new tokens must be registered here or users get spurious warnings when they use your new API.

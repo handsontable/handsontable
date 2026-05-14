@@ -13,8 +13,8 @@ Editors are stateful objects cycling through four states: **VIRGIN** (just creat
 
 ```
 src/editors/{editorName}/
-  {editorName}.js    # Main class extending BaseEditor
-  index.js           # Re-exports
+  {editorName}.ts    # Main class extending BaseEditor
+  index.ts           # Re-exports
 ```
 
 Registry: `src/editors/registry.ts`. Factory: `src/editors/factory.ts`.
@@ -39,7 +39,7 @@ Always use `getEditedCellRect()` for viewport-, scroll-, and overlay-aware posit
 
 ## Key patterns
 
-- All editors extend `BaseEditor` from `src/editors/baseEditor/baseEditor.js`.
+- All editors extend `BaseEditor` from `src/editors/baseEditor/baseEditor.ts`.
 - Support both **full edit mode** (Enter key opens editor, all keys go to the editor) and **fast edit mode** (typing a character immediately opens the editor with that character).
 - `finishEditing()` supports async validation -- the editor enters WAITING state until the validator resolves.
 - Use `this.hot.rootDocument` instead of `document` for DOM creation (required for iframe support).
@@ -47,9 +47,9 @@ Always use `getEditedCellRect()` for viewport-, scroll-, and overlay-aware posit
 
 ## Reference implementations
 
-- `src/editors/textEditor/textEditor.js` -- Standard text editing with a textarea.
-- `src/editors/selectEditor/selectEditor.js` -- Dropdown selection pattern.
-- `src/editors/baseEditor/baseEditor.js` -- Base class defining all lifecycle methods and state transitions.
+- `src/editors/textEditor/textEditor.ts` -- Standard text editing with a textarea.
+- `src/editors/selectEditor/selectEditor.ts` -- Dropdown selection pattern.
+- `src/editors/baseEditor/baseEditor.ts` -- Base class defining all lifecycle methods and state transitions.
 
 ## IME (Input Method Editor) gotcha
 
