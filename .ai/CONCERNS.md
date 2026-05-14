@@ -6,7 +6,7 @@
 - Issue: The Walkontable rendering engine uses a DAO (Data Access Object) pattern with deeply nested getter properties that should be replaced with proper dependency injection (IOC). Over 20 TODO comments across Walkontable files acknowledge this debt.
 - Files: `handsontable/src/3rdparty/walkontable/src/core/_base.ts`, `handsontable/src/3rdparty/walkontable/src/core/core.ts`, `handsontable/src/3rdparty/walkontable/src/table.ts`
 - Impact: Makes Walkontable difficult to test in isolation, creates tight coupling between components, and hinders refactoring. Every overlay, table, and viewport component reaches through DAOs rather than receiving dependencies explicitly.
-- Fix approach: Introduce constructor-based dependency injection. Replace DAO getter objects with direct parameter passing. Start with `createScrollDao()` and `getTableDao()` in `_base.js`.
+- Fix approach: Introduce constructor-based dependency injection. Replace DAO getter objects with direct parameter passing. Start with `createScrollDao()` and `getTableDao()` in `_base.ts`.
 
 **Broken Plugin Initialization Abstraction (#6806):**
 - Issue: Multiple plugins contain explicit workarounds for a broken plugin initialization order. Plugins must guard against uninitialized state (`!this.hot.view`) and force `updatePlugin()` calls during `enablePlugin()`.
@@ -26,14 +26,14 @@
 - Impact: Unnecessary re-renders degrade performance, especially with large datasets. Each redundant call triggers layout recalculations.
 - Fix approach: Consolidate these operations into a single per-render-cycle hook. Use the existing `batchRender()` / `suspendRender()` / `resumeRender()` infrastructure to coalesce these calls.
 
-**core.js Monolith:**
-- Issue: `core.js` is covering initialization, data manipulation, rendering coordination, selection management, and the entire public API surface. Functions use `this` binding via closure (constructor function pattern), not class syntax.
+**core.ts Monolith:**
+- Issue: `core.ts` is covering initialization, data manipulation, rendering coordination, selection management, and the entire public API surface. Functions use `this` binding via closure (constructor function pattern), not class syntax.
 - Files: `handsontable/src/core.ts`
 - Impact: Any change to core behavior requires understanding the entire file. High risk of unintended side effects. The large number of eslint-disable comments indicates code that does not conform to the project's own standards.
 - Fix approach: Extract logical groups into separate modules (data operations, rendering coordination, public API facade). The existing `handsontable/src/core/` directory already contains some extractions (`hooks/`, `coordsMapper/`); continue this pattern.
 
 **NestedRows ManualRowMove Reimplementation:**
-- Issue: The `rowMoveController.js` in `nestedRows` contains three TODO comments about "mocking real work" of the `ManualRowMove` plugin and reimplementing its internal function.
+- Issue: The `rowMoveController.ts` in `nestedRows` contains three TODO comments about "mocking real work" of the `ManualRowMove` plugin and reimplementing its internal function.
 - Files: `handsontable/src/plugins/nestedRows/utils/rowMoveController.ts`
 - Impact: Logic duplication between `NestedRows` and `ManualRowMove` plugins. Bugs fixed in one may not be fixed in the other.
 - Fix approach: Extract shared row-move logic into a reusable utility or expose the necessary methods from `ManualRowMove` as a proper API.
@@ -79,13 +79,13 @@
 - Recommendations: Document clearly that `sanitizer: false` disables XSS protection. Add a console warning when sanitizer is set to a non-function falsy value. Consider keeping a lightweight built-in sanitizer after DOMPurify removal.
 
 **innerHTML Usage in Template Literal Tag:**
-- Risk: The `templateLiteralTag.js` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.
+- Risk: The `templateLiteralTag.ts` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.
 - Files: `handsontable/src/helpers/templateLiteralTag.ts`
 - Current mitigation: The function is used internally for UI element construction, not directly with user data.
 - Recommendations: Add a comment documenting that this function must not be used with unsanitized user input. Consider using `DOMParser` or `textContent` where possible.
 
 **innerHTML in Mixed Helper:**
-- Risk: `helpers/mixed.js` uses `messageNode.innerHTML` to render domain-specific messages.
+- Risk: `helpers/mixed.ts` uses `messageNode.innerHTML` to render domain-specific messages.
 - Files: `handsontable/src/helpers/mixed.ts`
 - Current mitigation: The messages are internally generated string templates, not user input.
 - Recommendations: Switch to `textContent` or DOM API construction to eliminate the innerHTML call entirely.
@@ -96,7 +96,7 @@
 - Problem: At least 28 instances of `array.push(...otherArray)` exist in production source code. With arrays of 10k+ elements, this causes stack overflow due to argument count limits.
 - Files: `handsontable/src/dataMap/metaManager/metaLayers/cellMeta.ts`, `handsontable/src/plugins/nestedRows/nestedRows.ts`, `handsontable/src/plugins/nestedRows/ui/collapsing.ts`, `handsontable/src/plugins/collapsibleColumns/collapsibleColumns.ts`, `handsontable/src/plugins/hiddenRows/contextMenuItem/showRow.ts`, `handsontable/src/plugins/hiddenColumns/contextMenuItem/showColumn.ts`, `handsontable/src/core.ts`
 - Cause: `Function.prototype.apply` (which spread desugars to) has a maximum argument count (~65k in V8, lower in other engines).
-- Improvement path: Replace `arr.push(...largeArr)` with `for` or `forEach` loops in all code paths that may handle large datasets. Priority: `cellMeta.js` handles per-cell metadata and scales with table size.
+- Improvement path: Replace `arr.push(...largeArr)` with `for` or `forEach` loops in all code paths that may handle large datasets. Priority: `cellMeta.ts` handles per-cell metadata and scales with table size.
 
 **Walkontable Filter Object Recreation:**
 - Problem: `rowFilter` and `columnFilter` are set to `null` and recreated on every render pass instead of updating state in place. Two TODO comments acknowledge this.
@@ -134,7 +134,7 @@
 
 **Cell Metadata Storage:**
 - Current capacity: Linear growth with row * column count.
-- Limit: The `cellMeta.js` layer uses `push(...values())` to collect metadata, which risks stack overflow at large scales (50k+ rows with many columns).
+- Limit: The `cellMeta.ts` layer uses `push(...values())` to collect metadata, which risks stack overflow at large scales (50k+ rows with many columns).
 - Scaling path: Replace spread-based collection with iterative approach. Consider lazy metadata initialization.
 
 ## Dependencies at Risk
@@ -193,13 +193,13 @@
 - Priority: Medium (mobile usage is increasing).
 
 **Walkontable DAO Layer:**
-- What's not tested: The DAO objects in `_base.js` are not unit tested. They are exercised only indirectly through higher-level integration tests.
+- What's not tested: The DAO objects in `_base.ts` are not unit tested. They are exercised only indirectly through higher-level integration tests.
 - Files: `handsontable/src/3rdparty/walkontable/src/core/_base.ts`
 - Risk: Refactoring the DAO layer could break property access patterns without test detection.
 - Priority: Medium (blocks the DAO refactoring effort).
 
 **Visual Selection Highlight Internals:**
-- What's not tested: The coordinate adjustment logic in `visualSelection.js` with MergeCells interaction has TODO comments but no dedicated unit tests.
+- What's not tested: The coordinate adjustment logic in `visualSelection.ts` with MergeCells interaction has TODO comments but no dedicated unit tests.
 - Files: `handsontable/src/selection/highlight/visualSelection.ts`
 - Risk: Selection highlight bugs with merged cells in hidden row/column scenarios.
 - Priority: High (user-visible behavior).

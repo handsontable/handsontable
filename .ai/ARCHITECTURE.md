@@ -32,17 +32,17 @@
 **Walkontable Rendering Engine:**
 - Purpose: Low-level table rendering, viewport calculation, scroll synchronization, overlays for frozen rows/columns
 - Location: `handsontable/src/3rdparty/walkontable/src/`
-- Contains: Table renderers (`renderer/`), overlay managers (`overlay/`), viewport calculators (`calculator/`), cell/range coordinate primitives (`cell/`), scroll logic (`scroll.js`), selection rendering (`selection/`)
+- Contains: Table renderers (`renderer/`), overlay managers (`overlay/`), viewport calculators (`calculator/`), cell/range coordinate primitives (`cell/`), scroll logic (`scroll.ts`), selection rendering (`selection/`)
 - Depends on: Settings object provided by TableView, DOM APIs
-- Used by: TableView exclusively (via Facade pattern in `facade/core.js`)
+- Used by: TableView exclusively (via Facade pattern in `facade/core.ts`)
 - Key submodules:
-  - `core/_base.js`, `core/core.js`, `core/clone.js` - Walkontable core and clone instances
-  - `table/master.js` - Master table, `table/top.js`, `table/bottom.js`, etc. - Overlay tables
+  - `core/_base.ts`, `core/core.ts`, `core/clone.ts` - Walkontable core and clone instances
+  - `table/master.ts` - Master table, `table/top.ts`, `table/bottom.ts`, etc. - Overlay tables
   - `overlay/` - 6 overlay types (top, bottom, inlineStart, topInlineStartCorner, bottomInlineStartCorner, plus base)
   - `calculator/` - Viewport row/column calculators
   - `renderer/` - Low-level cell/row/colgroup/header renderers
-  - `scroll.js` - Scroll position management
-  - `viewport.js` - Viewport state
+  - `scroll.ts` - Scroll position management
+  - `viewport.ts` - Viewport state
 
 **Data Layer (DataMap + DataSource):**
 - Purpose: Manages source data, data transformations, and the mapping between data and grid cells
@@ -54,7 +54,7 @@
 **Metadata Layer (MetaManager):**
 - Purpose: Cascading configuration system - GlobalMeta -> TableMeta -> ColumnMeta -> CellMeta
 - Location: `handsontable/src/dataMap/metaManager/`
-- Contains: Four meta layers (`metaLayers/globalMeta.js`, `tableMeta.js`, `columnMeta.js`, `cellMeta.js`), meta schema (`metaSchema.js`), modifier mods (`mods/`)
+- Contains: Four meta layers (`metaLayers/globalMeta.ts`, `tableMeta.ts`, `columnMeta.ts`, `cellMeta.ts`), meta schema (`metaSchema.ts`), modifier mods (`mods/`)
 - Depends on: Helpers
 - Used by: Core, plugins (via `hot.getCellMeta()`, `hot.getSettings()`)
 - Pattern: Prototype chain inheritance. GlobalMeta is the prototype of ColumnMeta, which is the prototype of CellMeta. TableMeta is a direct instance of GlobalMeta. This allows cascading: cell-level settings override column-level, which override table-level, which override global defaults.
@@ -69,14 +69,14 @@
 **Selection Layer:**
 - Purpose: Manages cell/range selection, multi-selection, focus, and selection transformations
 - Location: `handsontable/src/selection/`
-- Contains: `Selection` class (`selection.js`), `SelectionRange` (`range.js`), `Highlight` system (`highlight/`), transformation modules (`transformation/`), mouse event handler (`mouseEventHandler.js`), utilities (`utils.js`)
+- Contains: `Selection` class (`selection.ts`), `SelectionRange` (`range.ts`), `Highlight` system (`highlight/`), transformation modules (`transformation/`), mouse event handler (`mouseEventHandler.ts`), utilities (`utils.ts`)
 - Depends on: IndexMapper (for coordinate translation), Walkontable Selection (for rendering highlights)
 - Used by: Core (via `selection` internal variable), EditorManager, plugins
 
 **Plugin System:**
 - Purpose: All grid features are implemented as plugins that extend `BasePlugin`
 - Location: `handsontable/src/plugins/`
-- Contains: 40+ plugins, each in its own directory with an `index.js` barrel export
+- Contains: 40+ plugins, each in its own directory with an `index.ts` barrel export
 - Depends on: Core (via `this.hot`), Hooks system, IndexMapper
 - Used by: Core instantiates all registered plugins
 - Key plugins: `autoColumnSize`, `autoRowSize`, `columnSorting`, `dataProvider`, `filters`, `formulas`, `hiddenColumns`, `hiddenRows`, `mergeCells`, `nestedHeaders`, `nestedRows`, `notification`, `undoRedo`, `contextMenu`, `copyPaste`, `comments`, `stretchColumns`
@@ -85,7 +85,7 @@
 **Hooks System:**
 - Purpose: Event bus for inter-component communication (before/after patterns)
 - Location: `handsontable/src/core/hooks/`
-- Contains: `Hooks` class (singleton), `HooksBucket`, hook constants (`constants.js` with REGISTERED_HOOKS, REMOVED_HOOKS, DEPRECATED_HOOKS)
+- Contains: `Hooks` class (singleton), `HooksBucket`, hook constants (`constants.ts` with REGISTERED_HOOKS, REMOVED_HOOKS, DEPRECATED_HOOKS)
 - Depends on: Helpers
 - Used by: Core, all plugins, EditorManager, Selection
 - Pattern: Global singleton + per-instance buckets. Hooks can be added globally or per-instance. Plugins use `this.addHook()` (auto-cleaned on disable) vs `this.hot.addHook()` (manual cleanup).
@@ -130,14 +130,14 @@
 **Theme System:**
 - Purpose: CSS theme management with CSS variables
 - Location: `handsontable/src/themes/` (engine, registry, static themes), `handsontable/src/styles/` (SCSS sources)
-- Contains: Theme engine (`engine/`), theme registry (`registry.js`), static theme definitions (`static/`), theme class (`theme/`)
+- Contains: Theme engine (`engine/`), theme registry (`registry.ts`), static theme definitions (`static/`), theme class (`theme/`)
 - Used by: Core (via `stylesHandler` and `themeManager`)
 
 ## Data Flow
 
 **Initialization Flow:**
 
-1. User calls `new Handsontable(element, settings)` which calls `base.js` -> `Core(element, settings, rootInstanceSymbol)`
+1. User calls `new Handsontable(element, settings)` which calls `base.ts` -> `Core(element, settings, rootInstanceSymbol)`
 2. Core creates: `MetaManager`, `IndexMapper` (row + column), `DataSource`, `Selection`, `EditorManager`, `ShortcutManager`, `FocusGridManager`, `StylesHandler`, `ThemeManager`
 3. Core creates `TableView` which creates `Walkontable` instance
 4. All registered plugins are instantiated (each calls `constructor(hotInstance)`)
@@ -216,7 +216,7 @@
 **Registry Pattern:**
 - Purpose: Dynamic registration and lookup of components by string key
 - Examples: `handsontable/src/plugins/registry.ts`, `handsontable/src/editors/registry.ts`, `handsontable/src/renderers/registry.ts`, `handsontable/src/validators/registry.ts`, `handsontable/src/cellTypes/registry.ts`, `handsontable/src/themes/registry.ts`
-- Pattern: Map-based registries with `register()` / `get()` / `getNames()` methods. The `registry.js` module in `src/` aggregates all `registerAll*()` calls.
+- Pattern: Map-based registries with `register()` / `get()` / `getNames()` methods. The `registry.ts` module in `src/` aggregates all `registerAll*()` calls.
 
 ## Entry Points
 
@@ -232,7 +232,7 @@
 
 **Core Constructor:**
 - Location: `handsontable/src/core.ts` (exported as `Core`)
-- Triggers: Called by `Handsontable()` wrapper in `base.js`
+- Triggers: Called by `Handsontable()` wrapper in `base.ts`
 - Responsibilities: Instantiates all subsystems, creates DOM structure, sets up hooks
 
 ## Error Handling

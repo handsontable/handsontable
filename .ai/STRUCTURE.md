@@ -5,11 +5,10 @@
 ```
 handsontable-develop/
 ├── handsontable/               # Core data grid package (TypeScript)
-│   ├── src/                    # Source code (.ts files; Walkontable subdirectory remains .js)
+│   ├── src/                    # Source code (.ts files, including the Walkontable subdirectory)
 │   ├── test/                   # E2E tests and test infrastructure
-│   ├── types/                  # Auto-generated TypeScript .d.ts definitions (via build:types)
 │   ├── dist/                   # UMD/minified build output
-│   ├── tmp/                    # ES/CJS module build output (used by wrappers)
+│   ├── tmp/                    # Auto-generated .d.ts + ES/CJS module build output (used by wrappers; replaces the deleted handsontable/types/ directory)
 │   ├── styles/                 # Compiled CSS output
 │   ├── languages/              # Compiled language files
 │   ├── .config/                # Rspack configs (the `.config/` name predates the Webpack→Rspack switch)
@@ -54,9 +53,9 @@ handsontable/src/
 │
 ├── core/                       # Core submodules
 │   ├── hooks/                  # Hooks (event bus) system
-│   │   ├── index.js            # Hooks class (singleton)
-│   │   ├── bucket.js           # HooksBucket storage
-│   │   └── constants.js        # REGISTERED_HOOKS, REMOVED_HOOKS, DEPRECATED_HOOKS
+│   │   ├── index.ts            # Hooks class (singleton)
+│   │   ├── bucket.ts           # HooksBucket storage
+│   │   └── constants.ts        # REGISTERED_HOOKS, REMOVED_HOOKS, DEPRECATED_HOOKS
 │   ├── coordsMapper/           # CellRange to renderable coordinate mapping
 │   └── viewportScroll/         # Viewport scroll management
 │
@@ -210,44 +209,44 @@ handsontable/src/
 ├── 3rdparty/walkontable/       # Walkontable rendering engine
 │   ├── src/
 │   │   ├── core/               # Walkontable core classes
-│   │   │   ├── _base.js        # Base Walkontable class
-│   │   │   ├── core.js         # Main Walkontable core
-│   │   │   └── clone.js        # Clone Walkontable (for overlays)
+│   │   │   ├── _base.ts        # Base Walkontable class
+│   │   │   ├── core.ts         # Main Walkontable core
+│   │   │   └── clone.ts        # Clone Walkontable (for overlays)
 │   │   ├── facade/             # Facade pattern for external access
-│   │   │   └── core.js         # Public Walkontable API
+│   │   │   └── core.ts         # Public Walkontable API
 │   │   ├── table/              # Table implementations
-│   │   │   ├── master.js       # Master (main) table
-│   │   │   ├── top.js          # Top frozen overlay table
-│   │   │   ├── bottom.js       # Bottom frozen overlay table
-│   │   │   ├── inlineStart.js  # Left/right frozen overlay table
-│   │   │   ├── topInlineStartCorner.js    # Top-left corner table
-│   │   │   └── bottomInlineStartCorner.js # Bottom-left corner table
+│   │   │   ├── master.ts       # Master (main) table
+│   │   │   ├── top.ts          # Top frozen overlay table
+│   │   │   ├── bottom.ts       # Bottom frozen overlay table
+│   │   │   ├── inlineStart.ts  # Left/right frozen overlay table
+│   │   │   ├── topInlineStartCorner.ts    # Top-left corner table
+│   │   │   └── bottomInlineStartCorner.ts # Bottom-left corner table
 │   │   ├── overlay/            # Overlay system (frozen rows/cols)
-│   │   │   ├── _base.js        # Base overlay
-│   │   │   ├── top.js          # Top overlay
-│   │   │   ├── bottom.js       # Bottom overlay
-│   │   │   ├── inlineStart.js  # Inline-start (left/right) overlay
-│   │   │   ├── topInlineStartCorner.js    # Corner overlays
-│   │   │   └── bottomInlineStartCorner.js
+│   │   │   ├── _base.ts        # Base overlay
+│   │   │   ├── top.ts          # Top overlay
+│   │   │   ├── bottom.ts       # Bottom overlay
+│   │   │   ├── inlineStart.ts  # Inline-start (left/right) overlay
+│   │   │   ├── topInlineStartCorner.ts    # Corner overlays
+│   │   │   └── bottomInlineStartCorner.ts
 │   │   ├── renderer/           # Low-level DOM renderers
-│   │   │   ├── _base.js        # Base renderer
-│   │   │   ├── table.js        # Table renderer orchestrator
-│   │   │   ├── rows.js         # Row renderer
-│   │   │   ├── cells.js        # Cell renderer
-│   │   │   ├── columnHeaders.js # Column header renderer
-│   │   │   ├── rowHeaders.js   # Row header renderer
-│   │   │   └── colGroup.js     # ColGroup renderer
+│   │   │   ├── _base.ts        # Base renderer
+│   │   │   ├── table.ts        # Table renderer orchestrator
+│   │   │   ├── rows.ts         # Row renderer
+│   │   │   ├── cells.ts        # Cell renderer
+│   │   │   ├── columnHeaders.ts # Column header renderer
+│   │   │   ├── rowHeaders.ts   # Row header renderer
+│   │   │   └── colGroup.ts     # ColGroup renderer
 │   │   ├── calculator/         # Viewport calculators
 │   │   ├── cell/               # CellCoords and CellRange
 │   │   ├── selection/          # Selection rendering in Walkontable
 │   │   ├── filter/             # Row/column filters for rendering
 │   │   ├── utils/              # Walkontable utilities
-│   │   ├── scroll.js           # Scroll position management
-│   │   ├── viewport.js         # Viewport state
-│   │   ├── overlays.js         # Overlay manager
-│   │   ├── settings.js         # Walkontable settings adapter
-│   │   ├── event.js            # Walkontable event handling
-│   │   └── table.js            # Table abstraction
+│   │   ├── scroll.ts           # Scroll position management
+│   │   ├── viewport.ts         # Viewport state
+│   │   ├── overlays.ts         # Overlay manager
+│   │   ├── settings.ts         # Walkontable settings adapter
+│   │   ├── event.ts            # Walkontable event handling
+│   │   └── table.ts            # Table abstraction
 │   └── test/                   # Walkontable-specific tests
 │
 ├── shortcuts/                  # Keyboard shortcut system
@@ -278,7 +277,7 @@ handsontable/src/
 │
 ├── styles/                     # SCSS source files
 │   ├── handsontable.scss       # Main stylesheet
-│   ├── handsontableStyles.js   # Style injection
+│   ├── handsontableStyles.ts   # Style injection
 │   ├── base/                   # Base styles
 │   ├── components/             # Component styles
 │   └── utils/                  # Style utilities
@@ -335,8 +334,8 @@ handsontable/src/
 
 **`handsontable/src/plugins/`:**
 - Purpose: All grid features as self-contained plugins
-- Contains: Each plugin in its own directory with `index.js` barrel export
-- Key files: `base/base.js` (BasePlugin), `registry.js` (plugin registry)
+- Contains: Each plugin in its own directory with `index.ts` barrel export
+- Key files: `base/base.ts` (BasePlugin), `registry.ts` (plugin registry)
 - Convention: Each plugin directory exports `{ PLUGIN_KEY, PLUGIN_PRIORITY, PluginClassName }` from `index.ts`
 
 **`handsontable/src/3rdparty/walkontable/`:**

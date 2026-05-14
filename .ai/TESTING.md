@@ -84,10 +84,10 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 **Structure Examples:**
 ```
 src/dataMap/metaManager/metaLayers/
-├── cellMeta.js
-├── columnMeta.js
-├── globalMeta.js
-├── tableMeta.js
+├── cellMeta.ts
+├── columnMeta.ts
+├── globalMeta.ts
+├── tableMeta.ts
 └── __tests__/
     ├── cellMeta.unit.js
     ├── columnMeta.unit.js
@@ -97,9 +97,9 @@ src/dataMap/metaManager/metaLayers/
 
 ```
 src/plugins/filters/
-├── filters.js
-├── index.js
-├── conditionCollection.js
+├── filters.ts
+├── index.ts
+├── conditionCollection.ts
 └── __tests__/
     ├── filters.spec.js
     ├── filtersUI.spec.js
