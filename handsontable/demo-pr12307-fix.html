@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12307 — FIX (patched)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .info ol { margin: 8px 0 0 20px; }
+    .grids { display: flex; gap: 24px; flex-wrap: wrap; }
+    .grid-block { flex: 1; min-width: 240px; }
+    .grid-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .grid-sub { font-size: 11px; color: #666; margin-bottom: 8px; }
+    .tag { font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+    .tag-bug { background: #fdecea; color: #b71c1c; }
+    .tag-ok { background: #e8f5e9; color: #1b5e20; }
+    .tag-neutral { background: #f3e5f5; color: #6a1b9a; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 16px; font-size: 12px; color: #1565c0; }
+    #patch-info code { background: #bbdefb; }
+  </style>
+</head>
+<body>
+  <h1>PR #12307 - disableVisualSelection treating undefined as true</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12307-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12307 patch).</strong>
+    <code>Highlight.isEnabledFor()</code> now uses <code>!disableHighlight</code> instead of <code>disableHighlight === false</code>,
+    so <code>undefined</code> and <code>false</code> both correctly enable selection.<br><br>
+    <strong>Steps to verify:</strong>
+    <ol>
+      <li>Click any cell in the <strong>left grid</strong> (<code>disableVisualSelection: undefined</code>).</li>
+      <li><strong>Fixed:</strong> blue selection highlight appears - same as the middle grid (<code>false</code>).</li>
+      <li>The <strong>right grid</strong> (<code>true</code>) still correctly disables selection.</li>
+    </ol>
+  </div>
+
+  <div id="patch-info">
+    Patch applied at runtime: in <code>Highlight.prototype.isEnabledFor</code>, changed
+    <code>disableHighlight === false</code> to <code>!disableHighlight</code> - matching the one-line fix in PR #12307.
+  </div>
+
+  <div class="grids">
+    <div class="grid-block">
+      <div class="grid-label">
+        <code>disableVisualSelection: undefined</code>
+        <span class="tag tag-ok">FIXED: selection works</span>
+      </div>
+      <div class="grid-sub"><code>undefined</code> now correctly falls back to <code>false</code> (selection enabled).</div>
+      <div id="hot-undefined"></div>
+    </div>
+
+    <div class="grid-block">
+      <div class="grid-label">
+        <code>disableVisualSelection: false</code>
+        <span class="tag tag-ok">CORRECT: selection works</span>
+      </div>
+      <div class="grid-sub">Explicit <code>false</code> - selection enabled. Reference baseline.</div>
+      <div id="hot-false"></div>
+    </div>
+
+    <div class="grid-block">
+      <div class="grid-label">
+        <code>disableVisualSelection: true</code>
+        <span class="tag tag-neutral">CORRECT: selection disabled</span>
+      </div>
+      <div class="grid-sub">Explicit <code>true</code> - selection intentionally disabled. Reference baseline.</div>
+      <div id="hot-true"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // --- Apply PR #12307 fix as a runtime patch ---
+    // Bug: Highlight.isEnabledFor() uses `disableHighlight === false` (strict equality).
+    //      undefined === false evaluates to false, so isEnabledFor returns false (disabled).
+    // Fix: Change to `!disableHighlight` so undefined and false both mean "enabled".
+    (function applyPr12307Fix() {
+      // Create a throw-away instance to reach the Highlight prototype.
+      const tmp = document.createElement('div');
+      document.body.appendChild(tmp);
+      let highlightProto = null;
+
+      const probe = new Handsontable(tmp, {
+        data: [[1]],
+        licenseKey: 'non-commercial-and-evaluation',
+        afterInit() {
+          try {
+            highlightProto = Object.getPrototypeOf(this.selection.highlight);
+          } catch (e) {
+            console.warn('[PR #12307 patch] Could not access highlight prototype:', e);
+          }
+          this.destroy();
+        },
+      });
+
+      document.body.removeChild(tmp);
+
+      if (!highlightProto || !highlightProto.isEnabledFor) {
+        console.warn('[PR #12307 patch] isEnabledFor not found - patch not applied');
+        return;
+      }
+
+      // Patch: replace === false with !
+      highlightProto.isEnabledFor = function isEnabledFor(type, coords) {
+        let disableHighlight = this.options.disabledCellSelection(coords.row, coords.col);
+
+        if (typeof disableHighlight === 'string') {
+          disableHighlight = [disableHighlight];
+        }
+
+        // Fixed check: !disableHighlight treats both undefined and false as "enabled"
+        return !disableHighlight || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
+      };
+
+      console.log('[PR #12307 patch] Applied: Highlight.isEnabledFor uses !disableHighlight');
+    })();
+    // --- End patch ---
+
+    const COMMON = {
+      data: Handsontable.helper.createSpreadsheetData(5, 4),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    window.hotUndefined = new Handsontable(document.getElementById('hot-undefined'), {
+      ...COMMON,
+      disableVisualSelection: undefined,
+    });
+
+    window.hotFalse = new Handsontable(document.getElementById('hot-false'), {
+      ...COMMON,
+      disableVisualSelection: false,
+    });
+
+    window.hotTrue = new Handsontable(document.getElementById('hot-true'), {
+      ...COMMON,
+      disableVisualSelection: true,
+    });
+  </script>
+</body>
+</html>
