@@ -136,7 +136,7 @@ export class Pagination extends BasePlugin {
    *
    * @type {number | 'auto'}
    */
-  #pageSize: number | string = 10;
+  #pageSize: number | 'auto' = 10;
   /**
    * UI instance of the pagination plugin.
    *
@@ -202,7 +202,7 @@ export class Pagination extends BasePlugin {
     }
 
     if ((settings as Record<string, unknown>)?.pageSize !== undefined) {
-      this.#pageSize = this.getSetting('pageSize') as number | string;
+      this.#pageSize = this.getSetting('pageSize') as number | 'auto';
     }
 
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;

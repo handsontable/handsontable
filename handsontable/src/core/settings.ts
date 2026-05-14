@@ -340,7 +340,7 @@ export interface GridSettings {
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
   beforeColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void | boolean;
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
-  beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number;
+  beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords, isColumnFlipped: boolean) => void;
@@ -395,7 +395,7 @@ export interface GridSettings {
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: Record<string, unknown>) => void;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
-  beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
+  beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
   beforeRowsMutation?: (operation: string, payload: RowMutationPayload) => void | boolean;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords, isRowFlipped: boolean) => void;
   beforeSelectAll?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight?: WalkontableCellCoords) => void;
