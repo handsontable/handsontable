@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12285 — FIX (patched)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .info ol { margin: 8px 0 0 20px; }
+    .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+    .tag-bug { background: #fdecea; color: #b71c1c; }
+    .tag-ok { background: #e8f5e9; color: #1b5e20; }
+    #log { margin-top: 20px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 13px; min-height: 48px; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; }
+    .entry { padding: 2px 0; }
+    .entry-discard { color: #b71c1c; }
+    .entry-save { color: #2e7d32; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; }
+    #reset-btn { margin-top: 10px; padding: 5px 14px; font-size: 13px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12285 - Autocomplete strict+allowInvalid click-away</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12285-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12285 patch).</strong><br>
+    <strong>Steps to verify the fix:</strong>
+    <ol>
+      <li>Double-click a cell in column <strong>A</strong> (Autocomplete, strict+allowInvalid).</li>
+      <li>Type a value NOT in the list, e.g. <code>Purple</code>.</li>
+      <li>Click any cell in column <strong>B</strong> or outside the table.</li>
+      <li><strong>Fixed:</strong> the cell keeps your typed value.</li>
+      <li>Also try column <strong>C</strong> (Dropdown) - click-away still discards there (correct, unchanged).</li>
+    </ol>
+  </div>
+
+  <div id="patch-info">
+    Patch applied at runtime: <code>finishEditing()</code> override moved from <code>AutocompleteEditor</code> to <code>DropdownEditor</code> prototype - matching the source change in PR #12285.
+  </div>
+
+  <table style="width:100%;margin-bottom:6px;font-size:12px;color:#555;border-collapse:collapse">
+    <tr>
+      <td style="width:40%;padding:0 4px">
+        <strong>A - Autocomplete</strong> strict+allowInvalid
+        <span class="tag tag-ok">click-away now SAVES - fixed</span>
+      </td>
+      <td style="width:20%;padding:0 4px"><strong>B - Plain text</strong></td>
+      <td style="width:40%;padding:0 4px">
+        <strong>C - Dropdown</strong>
+        <span class="tag tag-ok">click-away correctly discards</span>
+      </td>
+    </tr>
+  </table>
+
+  <div id="hot"></div>
+
+  <button id="reset-btn">Reset data</button>
+
+  <div id="log">
+    <strong>Event log:</strong>
+    <div id="entries">(interact with the grid to see events)</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // --- Apply PR #12285 fix as a runtime patch ---
+    // The bug: AutocompleteEditor.finishEditing() forces restoreOriginalValue=true when
+    //          the user clicks away (different cell selected). This is wrong for Autocomplete.
+    // The fix: move that override to DropdownEditor only.
+    (function applyPr12285Fix() {
+      const editors = Handsontable.editors;
+      const AutocompleteEditor = editors.AutocompleteEditor;
+      const DropdownEditor = editors.DropdownEditor;
+
+      if (!AutocompleteEditor || !DropdownEditor) {
+        console.warn('PR #12285 patch: editors not found on Handsontable.editors');
+        return;
+      }
+
+      // Save the buggy override that lives on AutocompleteEditor.prototype
+      const discardOnClickAway = AutocompleteEditor.prototype.finishEditing;
+
+      // Remove it from AutocompleteEditor - restore the inherited BaseEditor version
+      // by deleting the own property (prototype chain falls through to BaseEditor)
+      delete AutocompleteEditor.prototype.finishEditing;
+
+      // Add it to DropdownEditor so Dropdown still discards on click-away
+      DropdownEditor.prototype.finishEditing = discardOnClickAway;
+
+      console.log('[PR #12285 patch] Applied: finishEditing override moved from AutocompleteEditor to DropdownEditor');
+    })();
+    // --- End patch ---
+
+    const INITIAL_DATA = () => [
+      ['Yellow', 'text', 'Yellow'],
+      ['Red',    'text', 'Red'],
+      ['Green',  'text', 'Green'],
+      ['Blue',   'text', 'Blue'],
+      ['Orange', 'text', 'Orange'],
+    ];
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: INITIAL_DATA(),
+      colHeaders: ['A - Autocomplete (strict+allowInvalid)', 'B - Plain text', 'C - Dropdown'],
+      rowHeaders: true,
+      width: '100%',
+      height: 260,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [
+        {
+          type: 'autocomplete',
+          source: ['Yellow', 'Red', 'Orange', 'Green', 'Blue'],
+          strict: true,
+          allowInvalid: true,
+        },
+        {},
+        {
+          type: 'dropdown',
+          source: ['Yellow', 'Red', 'Orange', 'Green', 'Blue'],
+        },
+      ],
+      afterChange(changes, source) {
+        if (!changes) return;
+        changes.forEach(([row, col, oldVal, newVal]) => {
+          if (newVal === oldVal) return;
+          const label = ['Autocomplete', 'Plain', 'Dropdown'][col];
+          addLog(`[${label}] row ${row}: "${oldVal}" → "${newVal}" (${source})`, 'entry-save');
+        });
+      },
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      hot.loadData(INITIAL_DATA());
+      document.getElementById('entries').textContent = '(data reset)';
+    });
+  </script>
+</body>
+</html>
