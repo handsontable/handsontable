@@ -1229,13 +1229,11 @@ export function isDetached(element) {
 export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
   const visibilityObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting && elementToBeObserved.offsetParent !== null) {
+      if (entry.isIntersecting) {
         callback();
-        observer.unobserve(elementToBeObserved);
+        observer.disconnect();
       }
     });
-  }, {
-    root: elementToBeObserved.ownerDocument.body
   });
 
   visibilityObserver.observe(elementToBeObserved);
