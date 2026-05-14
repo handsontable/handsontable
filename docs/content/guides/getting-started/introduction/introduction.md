@@ -45,10 +45,10 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 <div class="boxes-list gray">
 
 - [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})
-- [Vanilla JS](https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version={{$currentVersion}})
-- [React TS](https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version={{$currentVersion}})
-- [React JS](https://handsontable.com/codesandbox-browser?example-dir=react-js&handsontable-version={{$currentVersion}})
-- [TypeScript](https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version={{$currentVersion}})
+- [Vanilla JS](https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox-vm?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [TypeScript](https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version={{$currentVersion}})
 - [Vue 3](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version={{$currentVersion}})
 
 </div>
