@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12275 — BUG (v17.0.1 + regression simulation)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-collapse { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-collapse:hover { background: #c62828; }
+    .btn-expand  { background: #64b5f6; color: #fff; border-color: #1565c0; font-weight: 600; }
+    .btn-expand:hover  { background: #1565c0; }
+    .btn-snapshot { background: #fff9c4; border-color: #f9a825; }
+    .width-table { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; margin-bottom: 14px; }
+    .width-table strong { display: block; margin-bottom: 6px; color: #333; }
+    .wt { width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace; }
+    .wt th { background: #f5f5f5; padding: 4px 8px; text-align: left; border: 1px solid #ddd; }
+    .wt td { padding: 4px 8px; border: 1px solid #ddd; }
+    .wt .drifted { color: #b71c1c; font-weight: 700; background: #fdecea; }
+    .wt .stable { color: #2e7d32; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 110px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; }
+    .entry-ok { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+    .regression-css { background: #1e1e1e; color: #f48771; border-radius: 6px; padding: 8px 14px; font-size: 12px; font-family: monospace; margin-bottom: 12px; }
+  </style>
+  <!-- Simulate the regression from PR #12129: remove thead-scoped border suppression.
+       In the buggy state, the ghost table had no <thead> wrapper, so
+       `.htGhostTable table thead th { border-bottom-width: 0 }` stopped matching,
+       causing theme border-bottom to apply to ghost table headers and skewing width measurements. -->
+  <style id="regression-style">
+    .htGhostTable table thead th {
+      border-bottom-width: 4px !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>PR #12275 - NestedHeaders ghost table width regression (collapse/expand jumping)</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">v17.0.1 + regression CSS <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12275-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>Regression simulated.</strong>
+    PR #12129 (rowspan in NestedHeaders) changed the ghost table from HTML-string rendering to a DOM-based approach that omitted the <code>&lt;thead&gt;</code> wrapper. This broke
+    <code>.htGhostTable table thead th { border-bottom-width: 0 }</code> — the theme's bottom-border
+    suppression for ghost headers. Without it, each ghost header cell gets an extra bottom border,
+    skewing the column width measurements returned on every collapse/expand cycle.
+    The regression CSS is injected via <code>&lt;style id="regression-style"&gt;</code> in this page.
+  </div>
+
+  <div class="regression-css">/* Injected to simulate the regression */<br>
+.htGhostTable table thead th {<br>
+&nbsp;&nbsp;border-bottom-width: 4px !important;<br>
+}</div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"Snapshot initial widths"</strong> to record column widths now.</li>
+      <li>Click <strong>"Collapse A–C"</strong> to collapse the "Personal Info" group.</li>
+      <li>Click <strong>"Expand A–C"</strong> to expand it back.</li>
+      <li>Repeat steps 2–3 several times. Watch the width table — columns should <strong>drift wider</strong> with each cycle (highlighted in red).</li>
+      <li>Compare with the <a href="demo-pr12275-fix.html">PR Fix page</a> where widths stay stable.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-snapshot" id="btn-snapshot">Snapshot initial widths</button>
+    <button class="btn btn-collapse" id="btn-collapse">Collapse A–C (Personal Info)</button>
+    <button class="btn btn-expand" id="btn-expand">Expand A–C (Personal Info)</button>
+    <button class="btn" id="btn-reset">Reset (re-init grid)</button>
+  </div>
+
+  <div class="width-table">
+    <strong>Column widths (px) — snapshot vs current:</strong>
+    <table class="wt" id="w-table">
+      <thead><tr><th>Col</th><th>Snapshot</th><th>Current</th><th>Drift</th></tr></thead>
+      <tbody id="w-tbody"><tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr></tbody>
+    </table>
+  </div>
+
+  <div id="log"><strong>Event log (latest first):</strong><div id="entries">(collapse or expand to see events)</div></div>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = Array.from({ length: 10 }, (_, r) => [
+      r + 1,
+      ['Alice Smith', 'Bob Jones', 'Carol Lee', 'Dave Brown', 'Eve Taylor'][r % 5],
+      ['Engineering', 'Marketing', 'Sales', 'HR', 'Operations'][r % 5],
+      `2020-${String((r % 12) + 1).padStart(2, '0')}-01`,
+      `user${r + 1}@example.com`,
+      `555-01${String(r).padStart(2, '0')}`,
+      r % 2 === 0 ? 'Active' : 'Inactive',
+    ]);
+
+    const HEADERS = [
+      ['ID', { label: 'Personal Info', colspan: 3 }, { label: 'Contact', colspan: 2 }, 'Status'],
+      ['', 'Name', 'Department', 'Hire Date', 'Email', 'Phone', ''],
+    ];
+
+    const COL_HEADERS = ['ID', 'Name', 'Dept', 'Hire', 'Email', 'Phone', 'Status'];
+
+    let snapshot = null;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+      while (el.children.length > 40) el.removeChild(el.lastChild);
+    }
+
+    function getWidths() {
+      if (!window.hot) return [];
+      return COL_HEADERS.map((_, i) => hot.getColWidth(i));
+    }
+
+    function updateWidthTable() {
+      const current = getWidths();
+      const tbody = document.getElementById('w-tbody');
+      if (!snapshot) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr>';
+        return;
+      }
+      tbody.innerHTML = COL_HEADERS.map((name, i) => {
+        const snap = snapshot[i];
+        const cur = current[i];
+        const drift = cur - snap;
+        const cls = Math.abs(drift) > 1 ? 'drifted' : 'stable';
+        return `<tr>
+          <td>${name}</td>
+          <td>${snap}px</td>
+          <td class="${cls}">${cur}px</td>
+          <td class="${cls}">${drift > 0 ? '+' : ''}${drift}px ${Math.abs(drift) > 1 ? '⚠' : '✓'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      snapshot = null;
+      document.getElementById('w-tbody').innerHTML =
+        '<tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr>';
+
+      window.hot = new Handsontable(document.getElementById('hot'), {
+        data: DATA,
+        colHeaders: COL_HEADERS,
+        nestedHeaders: HEADERS,
+        collapsibleColumns: true,
+        dropdownMenu: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 320,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+
+        afterColumnCollapse(currentCollapsedColumns) {
+          addLog(`afterColumnCollapse: ${currentCollapsedColumns.length} collapsed`, 'entry-bug');
+          setTimeout(updateWidthTable, 50);
+        },
+        afterColumnExpand(currentCollapsedColumns) {
+          addLog(`afterColumnExpand: ${currentCollapsedColumns.length} collapsed`, 'entry-info');
+          setTimeout(updateWidthTable, 50);
+        },
+      });
+      addLog('Grid (re)initialized', 'entry-info');
+    }
+
+    document.getElementById('btn-snapshot').addEventListener('click', () => {
+      snapshot = getWidths();
+      addLog(`Snapshot taken: [${snapshot.join(', ')}]`, 'entry-ok');
+      updateWidthTable();
+    });
+
+    document.getElementById('btn-collapse').addEventListener('click', () => {
+      const cc = hot.getPlugin('collapsibleColumns');
+      cc.collapseSection({ r: 0, c: 1 });
+      hot.render();
+      setTimeout(updateWidthTable, 50);
+    });
+
+    document.getElementById('btn-expand').addEventListener('click', () => {
+      const cc = hot.getPlugin('collapsibleColumns');
+      cc.expandSection({ r: 0, c: 1 });
+      hot.render();
+      setTimeout(updateWidthTable, 50);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      initHot();
+    });
+
+    initHot();
+  </script>
+</body>
+</html>

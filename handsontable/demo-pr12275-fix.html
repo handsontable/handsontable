@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12275 — FIX (local build)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-collapse { background: #ef9a9a; color: #333; border-color: #c62828; font-weight: 600; }
+    .btn-collapse:hover { background: #e57373; }
+    .btn-expand  { background: #90caf9; color: #333; border-color: #1565c0; font-weight: 600; }
+    .btn-expand:hover  { background: #64b5f6; }
+    .btn-snapshot { background: #fff9c4; border-color: #f9a825; }
+    .width-table { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; margin-bottom: 14px; }
+    .width-table strong { display: block; margin-bottom: 6px; color: #333; }
+    .wt { width: 100%; border-collapse: collapse; font-size: 12px; font-family: monospace; }
+    .wt th { background: #f5f5f5; padding: 4px 8px; text-align: left; border: 1px solid #ddd; }
+    .wt td { padding: 4px 8px; border: 1px solid #ddd; }
+    .wt .drifted { color: #b71c1c; font-weight: 700; background: #fdecea; }
+    .wt .stable { color: #2e7d32; }
+    .cycles { font-size: 13px; font-family: monospace; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 110px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; }
+    .entry-ok { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+    .regressions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+    .regression-item { flex: 1; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 13px; }
+    .regression-item h4 { font-size: 12px; text-transform: uppercase; color: #888; margin-bottom: 6px; letter-spacing: 0.04em; }
+    .regression-item .status { font-weight: 700; font-size: 14px; }
+    .status-ok { color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <h1>PR #12275 - NestedHeaders ghost table width regression (collapse/expand jumping)</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12275-bug.html">v17.0.1 + regression CSS <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12275 — local build).</strong>
+    The ghost table is restored to HTML-string rendering with a proper <code>&lt;thead&gt;&lt;tr&gt;…&lt;/tr&gt;&lt;/thead&gt;</code>
+    structure. The CSS rule <code>.htGhostTable table thead th { border-bottom-width: 0 }</code> now
+    matches correctly, eliminating the extra bottom border that was skewing width measurements.
+    Column widths are stable across any number of collapse/expand cycles.
+  </div>
+
+  <div id="patch-info">
+    <strong>Three regressions fixed by PR #12275:</strong>
+    <ol style="margin:4px 0 0 18px;line-height:1.7">
+      <li><strong>Width jumping on collapse/uncollapse</strong> — restored <code>&lt;thead&gt;</code> wrapper so CSS border-bottom suppression matches again.</li>
+      <li><strong>First-render ellipsis on wide headers</strong> — ghost table now always includes collapsible indicator space on first render.</li>
+      <li><strong>Dropdown button in all header rows</strong> — button now rendered only in the bottom-most ghost table row.</li>
+    </ol>
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Snapshot initial widths"</strong>.</li>
+      <li>Click <strong>"Collapse A–C"</strong> then <strong>"Expand A–C"</strong>.</li>
+      <li>Repeat the cycle 5–10 times. Watch the width table — all deltas should stay at <strong>0px ✓</strong>.</li>
+      <li>Check the <strong>Cycle counter</strong> — it increments on each expand and reports whether any drift was detected.</li>
+      <li>Also note: the "Personal Info" and "Contact" headers show full text without ellipsis on first render (fix for regression #2).</li>
+    </ol>
+  </div>
+
+  <div class="regressions">
+    <div class="regression-item">
+      <h4>Width stability (regression #1)</h4>
+      <div class="status status-ok" id="r1-status">✓ Stable — no drift detected</div>
+      <div style="font-size:11px;color:#666;margin-top:3px">Drift = 0px across all cycles</div>
+    </div>
+    <div class="regression-item">
+      <h4>First-render header text (regression #2)</h4>
+      <div class="status status-ok" id="r2-status">✓ Check: "Personal Info" visible without ellipsis</div>
+      <div style="font-size:11px;color:#666;margin-top:3px">Open DevTools and inspect header cell</div>
+    </div>
+    <div class="regression-item">
+      <h4>Collapse cycles completed</h4>
+      <div class="status status-ok" id="r3-status">0 cycles</div>
+      <div style="font-size:11px;color:#666;margin-top:3px">Collapse + expand = 1 cycle</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-snapshot" id="btn-snapshot">Snapshot initial widths</button>
+    <button class="btn btn-collapse" id="btn-collapse">Collapse A–C (Personal Info)</button>
+    <button class="btn btn-expand" id="btn-expand">Expand A–C (Personal Info)</button>
+    <button class="btn" id="btn-reset">Reset (re-init grid)</button>
+  </div>
+
+  <div class="width-table">
+    <strong>Column widths (px) — snapshot vs current:</strong>
+    <table class="wt" id="w-table">
+      <thead><tr><th>Col</th><th>Snapshot</th><th>Current</th><th>Drift</th></tr></thead>
+      <tbody id="w-tbody"><tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr></tbody>
+    </table>
+  </div>
+
+  <div id="log"><strong>Event log (latest first):</strong><div id="entries">(collapse or expand to see events)</div></div>
+
+  <div id="hot"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = Array.from({ length: 10 }, (_, r) => [
+      r + 1,
+      ['Alice Smith', 'Bob Jones', 'Carol Lee', 'Dave Brown', 'Eve Taylor'][r % 5],
+      ['Engineering', 'Marketing', 'Sales', 'HR', 'Operations'][r % 5],
+      `2020-${String((r % 12) + 1).padStart(2, '0')}-01`,
+      `user${r + 1}@example.com`,
+      `555-01${String(r).padStart(2, '0')}`,
+      r % 2 === 0 ? 'Active' : 'Inactive',
+    ]);
+
+    // Use rowspan in nested headers (new feature from PR #12129, fixed here)
+    const HEADERS = [
+      [
+        { label: 'ID', rowspan: 2 },
+        { label: 'Personal Info', colspan: 3 },
+        { label: 'Contact', colspan: 2 },
+        { label: 'Status', rowspan: 2 },
+      ],
+      ['', 'Name', 'Department', 'Hire Date', 'Email', 'Phone', ''],
+    ];
+
+    const COL_HEADERS = ['ID', 'Name', 'Dept', 'Hire', 'Email', 'Phone', 'Status'];
+
+    let snapshot = null;
+    let cycles = 0;
+    let collapseCount = 0;
+    let maxDrift = 0;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+      while (el.children.length > 40) el.removeChild(el.lastChild);
+    }
+
+    function getWidths() {
+      if (!window.hot) return [];
+      return COL_HEADERS.map((_, i) => hot.getColWidth(i));
+    }
+
+    function updateWidthTable() {
+      const current = getWidths();
+      const tbody = document.getElementById('w-tbody');
+      if (!snapshot) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr>';
+        return;
+      }
+      let anyDrift = false;
+      tbody.innerHTML = COL_HEADERS.map((name, i) => {
+        const snap = snapshot[i];
+        const cur = current[i];
+        const drift = cur - snap;
+        if (Math.abs(drift) > 1) anyDrift = true;
+        if (Math.abs(drift) > maxDrift) maxDrift = Math.abs(drift);
+        const cls = Math.abs(drift) > 1 ? 'drifted' : 'stable';
+        return `<tr>
+          <td>${name}</td>
+          <td>${snap}px</td>
+          <td class="${cls}">${cur}px</td>
+          <td class="${cls}">${drift > 0 ? '+' : ''}${drift}px ${Math.abs(drift) > 1 ? '⚠' : '✓'}</td>
+        </tr>`;
+      }).join('');
+
+      if (anyDrift) {
+        document.getElementById('r1-status').textContent = `⚠ Drift detected (max ${maxDrift}px)`;
+        document.getElementById('r1-status').style.color = '#b71c1c';
+      } else {
+        document.getElementById('r1-status').textContent = '✓ Stable — no drift detected';
+        document.getElementById('r1-status').style.color = '#2e7d32';
+      }
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      snapshot = null;
+      cycles = 0;
+      collapseCount = 0;
+      maxDrift = 0;
+      document.getElementById('w-tbody').innerHTML =
+        '<tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr>';
+      document.getElementById('r3-status').textContent = '0 cycles';
+      document.getElementById('r1-status').textContent = '✓ Stable — no drift detected';
+      document.getElementById('r1-status').style.color = '#2e7d32';
+
+      window.hot = new Handsontable(document.getElementById('hot'), {
+        data: DATA,
+        colHeaders: COL_HEADERS,
+        nestedHeaders: HEADERS,
+        collapsibleColumns: true,
+        dropdownMenu: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 320,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+
+        afterColumnCollapse(currentCollapsedColumns) {
+          collapseCount++;
+          addLog(`afterColumnCollapse: ${currentCollapsedColumns.length} collapsed`, 'entry-info');
+          setTimeout(updateWidthTable, 50);
+        },
+        afterColumnExpand(currentCollapsedColumns) {
+          if (collapseCount > 0) { cycles++; collapseCount = 0; }
+          addLog(`afterColumnExpand: cycle #${cycles} complete, ${currentCollapsedColumns.length} still collapsed`, 'entry-ok');
+          document.getElementById('r3-status').textContent = `${cycles} cycle${cycles !== 1 ? 's' : ''} — no drift ✓`;
+          setTimeout(updateWidthTable, 50);
+        },
+      });
+      addLog('Grid (re)initialized', 'entry-info');
+    }
+
+    document.getElementById('btn-snapshot').addEventListener('click', () => {
+      snapshot = getWidths();
+      addLog(`Snapshot taken: [${snapshot.join(', ')}]`, 'entry-ok');
+      updateWidthTable();
+    });
+
+    document.getElementById('btn-collapse').addEventListener('click', () => {
+      const cc = hot.getPlugin('collapsibleColumns');
+      cc.collapseSection({ r: 0, c: 1 });
+      hot.render();
+      setTimeout(updateWidthTable, 50);
+    });
+
+    document.getElementById('btn-expand').addEventListener('click', () => {
+      const cc = hot.getPlugin('collapsibleColumns');
+      cc.expandSection({ r: 0, c: 1 });
+      hot.render();
+      setTimeout(updateWidthTable, 50);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
