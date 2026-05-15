@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12135 — FIX (multiSelect alias works; HyperFormula array values handled)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    h2 { font-size: 15px; margin: 18px 0 10px; border-top: 1px solid #ddd; padding-top: 14px; }
+    .section { margin-bottom: 20px; }
+    .status-box { border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; font-family: monospace; }
+    .status-idle { background: #fff; border: 1px solid #ddd; color: #555; }
+    .status-error { background: #fdecea; border: 1px solid #ef9a9a; color: #b71c1c; }
+    .status-ok { background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32; }
+    .row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; align-items: flex-start; }
+    .panel { flex: 1; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px; }
+    .panel-label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 8px; }
+    .panel-value { font-family: monospace; font-size: 13px; }
+    .panel-value.bad { color: #b71c1c; font-weight: 700; }
+    .panel-value.ok { color: #2e7d32; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>PR #12135 - MultiSelect: camelCase alias works; HyperFormula array values handled</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12135-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12135 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12135 — local build).</strong>
+    Two fixes: (1) <code>LEGACY_CELL_TYPE = 'multiSelect'</code> added to <code>multiSelectType.js</code>
+    and registered as an alias in <code>registerAllCellTypes()</code> — both spellings now resolve
+    to the same cell type. (2) A new <code>normalizeValueForFormulaEngine()</code> utility in
+    <code>formulas/utils.js</code> converts arrays to comma-separated strings before passing
+    values to HyperFormula. Source data stays as an array; formula cells see <code>"Frontend, Backend"</code>.
+  </div>
+
+  <pre><span class="comment">// multiSelectType.js — new alias:</span>
+<span class="new">export const LEGACY_CELL_TYPE = 'multiSelect'; // both spellings now work</span>
+
+<span class="comment">// formulas/utils.js — new normalizer:</span>
+<span class="new">export function normalizeValueForFormulaEngine(value) {
+  if (Array.isArray(value)) {
+    return multiSelectValueGetter(value); // e.g. ['A','B'] → 'A, B'
+  }
+  return value;
+}</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12135.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fixes:</strong>
+    <ol>
+      <li><strong>Fix 1 (alias):</strong> Grid A now uses <code>type: 'multiSelect'</code> (camelCase) and chips render correctly — same as Grid B. ✓</li>
+      <li><strong>Fix 2 (formulas):</strong> Grid C shows the formula cell <code>=A1</code> as <code>'Frontend, Backend'</code> with no errors. Source data remains an array. ✓</li>
+    </ol>
+  </div>
+
+  <!-- FIX 1: camelCase alias -->
+  <h2>Fix 1 — <code>type: 'multiSelect'</code> (camelCase) now renders chips</h2>
+  <div class="section">
+    <div class="row">
+      <div class="panel">
+        <div class="panel-label">Grid A — <code>type: 'multiSelect'</code> (camelCase) — FIXED</div>
+        <div id="hot-alias-container"></div>
+        <div class="panel-value ok" style="margin-top:8px">Chips render correctly ✓</div>
+      </div>
+      <div class="panel">
+        <div class="panel-label">Grid B — <code>type: 'multiselect'</code> (canonical) — OK</div>
+        <div id="hot-canonical-container"></div>
+        <div class="panel-value ok" style="margin-top:8px">Chips render correctly ✓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIX 2: formulas + multiselect array -->
+  <h2>Fix 2 — HyperFormula no longer errors on MultiSelect array values</h2>
+  <div class="section">
+    <div class="status-box status-idle" id="formula-status">Initializing grid with Formulas + multiselect...</div>
+    <div id="hot-formulas-container"></div>
+  </div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    // Fix 1a: camelCase alias — chips now render
+    new Handsontable(document.getElementById('hot-alias-container'), {
+      data: [[['Frontend', 'Backend']]],
+      columns: [{ type: 'multiSelect', source: ['Frontend', 'Backend', 'DevOps'] }],
+      colHeaders: ['Tags'],
+      rowHeaders: true,
+      width: '100%',
+      height: 100,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Fix 1b: canonical name — chips also render
+    new Handsontable(document.getElementById('hot-canonical-container'), {
+      data: [[['Frontend', 'Backend']]],
+      columns: [{ type: 'multiselect', source: ['Frontend', 'Backend', 'DevOps'] }],
+      colHeaders: ['Tags'],
+      rowHeaders: true,
+      width: '100%',
+      height: 100,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Fix 2: formulas + multiselect array value — no error
+    const statusEl = document.getElementById('formula-status');
+    const prevError = window.onerror;
+    let errorCaught = false;
+
+    window.onerror = (msg, src, line, col, err) => {
+      errorCaught = true;
+      statusEl.textContent = 'ERROR: ' + (err ? err.message : msg);
+      statusEl.className = 'status-box status-error';
+      window.onerror = prevError;
+      return true;
+    };
+
+    try {
+      const hot = new Handsontable(document.getElementById('hot-formulas-container'), {
+        data: [
+          [['Frontend', 'Backend'], '=A1'],
+        ],
+        columns: [
+          { type: 'multiselect', source: ['Frontend', 'Backend', 'DevOps'] },
+          { type: 'text' },
+        ],
+        colHeaders: ['Tags (multiselect)', 'Formula =A1'],
+        rowHeaders: true,
+        width: '100%',
+        height: 100,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      setTimeout(() => {
+        if (!errorCaught) {
+          const formulaCell = hot.getDataAtCell(0, 1);
+          const sourceData = hot.getSourceDataAtCell(0, 0);
+          statusEl.textContent = 'OK — formula cell shows: ' + JSON.stringify(formulaCell) +
+            ' | source data array: ' + JSON.stringify(sourceData) + ' ✓';
+          statusEl.className = 'status-box status-ok';
+        }
+        window.onerror = prevError;
+      }, 400);
+    } catch (e) {
+      statusEl.textContent = 'ERROR thrown on init: ' + e.message;
+      statusEl.className = 'status-box status-error';
+      window.onerror = prevError;
+    }
+  </script>
+</body>
+</html>

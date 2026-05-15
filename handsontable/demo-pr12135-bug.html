@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12135 — BUG (multiSelect alias broken; HyperFormula errors with array values)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    h2 { font-size: 15px; margin: 18px 0 10px; border-top: 1px solid #ddd; padding-top: 14px; }
+    .section { margin-bottom: 20px; }
+    .status-box { border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; font-family: monospace; }
+    .status-idle { background: #fff; border: 1px solid #ddd; color: #555; }
+    .status-error { background: #fdecea; border: 1px solid #ef9a9a; color: #b71c1c; }
+    .status-ok { background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32; }
+    .row { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; align-items: flex-start; }
+    .panel { flex: 1; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px; }
+    .panel-label { font-size: 11px; text-transform: uppercase; color: #888; margin-bottom: 8px; }
+    .panel-value { font-family: monospace; font-size: 13px; }
+    .panel-value.bad { color: #b71c1c; font-weight: 700; }
+    .panel-value.ok { color: #2e7d32; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>PR #12135 - MultiSelect: camelCase alias broken + HyperFormula array errors</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12135-fix.html">PR #12135 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    Two separate issues: (1) <code>type: 'multiSelect'</code> (camelCase) is not a registered
+    cell type — chips are not rendered, editor does not open. (2) When the Formulas plugin
+    is active, MultiSelect cells storing <code>['A','B']</code> arrays cause HyperFormula to
+    throw <code>InvalidArgumentsError</code> because arrays are not valid cell values.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bugs:</strong>
+    <ol>
+      <li><strong>Bug 1 (alias):</strong> Grid A uses <code>type: 'multiSelect'</code> — the column renders as plain text, no chip badges visible. Grid B uses <code>type: 'multiselect'</code> — chips render correctly.</li>
+      <li><strong>Bug 2 (formulas):</strong> Grid C uses <code>type: 'multiselect'</code> together with the Formulas plugin. The formula cell <code>=A1</code> should show <code>'Frontend, Backend'</code>. Instead a HyperFormula error is thrown on initialization.</li>
+    </ol>
+  </div>
+
+  <!-- BUG 1: camelCase alias -->
+  <h2>Bug 1 — <code>type: 'multiSelect'</code> (camelCase) does not render chips</h2>
+  <div class="section">
+    <div class="row">
+      <div class="panel">
+        <div class="panel-label">Grid A — <code>type: 'multiSelect'</code> (camelCase) — BUG</div>
+        <div id="hot-alias-container"></div>
+        <div class="panel-value bad" style="margin-top:8px">Chips not rendered — plain text only</div>
+      </div>
+      <div class="panel">
+        <div class="panel-label">Grid B — <code>type: 'multiselect'</code> (canonical) — OK</div>
+        <div id="hot-canonical-container"></div>
+        <div class="panel-value ok" style="margin-top:8px">Chips render correctly</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUG 2: formulas + multiselect array -->
+  <h2>Bug 2 — HyperFormula throws when MultiSelect cell has array value</h2>
+  <div class="section">
+    <div class="status-box status-idle" id="formula-status">Initializing grid with Formulas + multiselect...</div>
+    <div id="hot-formulas-container"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.1/dist/hyperformula.full.min.js"></script>
+  <script>
+    // Bug 1a: camelCase alias — chips will NOT render
+    new Handsontable(document.getElementById('hot-alias-container'), {
+      data: [[['Frontend', 'Backend']]],
+      columns: [{ type: 'multiSelect', source: ['Frontend', 'Backend', 'DevOps'] }],
+      colHeaders: ['Tags'],
+      rowHeaders: true,
+      width: '100%',
+      height: 100,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Bug 1b: canonical name — chips WILL render
+    new Handsontable(document.getElementById('hot-canonical-container'), {
+      data: [[['Frontend', 'Backend']]],
+      columns: [{ type: 'multiselect', source: ['Frontend', 'Backend', 'DevOps'] }],
+      colHeaders: ['Tags'],
+      rowHeaders: true,
+      width: '100%',
+      height: 100,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Bug 2: formulas + multiselect array value
+    const statusEl = document.getElementById('formula-status');
+    const prevError = window.onerror;
+
+    window.onerror = (msg, src, line, col, err) => {
+      statusEl.textContent = 'ERROR: ' + (err ? err.message : msg);
+      statusEl.className = 'status-box status-error';
+      window.onerror = prevError;
+      return true;
+    };
+
+    try {
+      new Handsontable(document.getElementById('hot-formulas-container'), {
+        data: [
+          [['Frontend', 'Backend'], '=A1'],
+        ],
+        columns: [
+          { type: 'multiselect', source: ['Frontend', 'Backend', 'DevOps'] },
+          { type: 'text' },
+        ],
+        colHeaders: ['Tags (multiselect)', 'Formula =A1'],
+        rowHeaders: true,
+        width: '100%',
+        height: 100,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      setTimeout(() => {
+        if (statusEl.className.includes('status-idle')) {
+          statusEl.textContent = 'Grid initialized — check if =A1 shows array value or error. Formula cell likely shows error.';
+          statusEl.className = 'status-box status-error';
+        }
+        window.onerror = prevError;
+      }, 500);
+    } catch (e) {
+      statusEl.textContent = 'ERROR thrown on init: ' + e.message;
+      statusEl.className = 'status-box status-error';
+      window.onerror = prevError;
+    }
+  </script>
+</body>
+</html>

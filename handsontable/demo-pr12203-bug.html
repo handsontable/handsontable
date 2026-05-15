@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12203 — BUG (autofill overwrites extra visible columns when crossing hidden columns)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .results { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .result-cell { flex: 1; min-width: 130px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .result-value { font-size: 26px; font-weight: 700; font-family: monospace; }
+    .result-value.bad { color: #b71c1c; }
+    .result-value.ok  { color: #2e7d32; }
+    .result-value.neutral { color: #555; }
+    .result-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12203 - Autofill across hidden columns overwrites extra visible columns</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12203-fix.html">PR #12203 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When dragging autofill across hidden columns with <code>copyPasteEnabled: false</code>,
+    the visual vs raw column index tracking diverges. <code>getInputValue()</code> was called
+    with <code>visualColumn</code> (skipping hidden cols) instead of the raw column index,
+    causing the input pattern to repeat into columns beyond the drag target.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Grid has 6 columns (A–F). Columns B and C (indices 1 and 2) are hidden with <code>copyPasteEnabled: false</code>.</li>
+      <li>Cell A1 contains <code>'A'</code>.</li>
+      <li>Click <strong>"Simulate autofill A1 → D1"</strong> — equivalent to dragging the fill handle from A1 to D1.</li>
+      <li>Cell D1 gets <code>'A'</code> as expected. But cells E1 and F1 also get <code>'A'</code> — bug.</li>
+      <li>Expected: only D1 = 'A'; E1 and F1 remain <code>null</code>.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-autofill">Simulate autofill A1 → D1</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="results">
+    <div class="result-cell">
+      <div class="result-label">D1 (col 3)</div>
+      <div class="result-value neutral" id="r-d1">—</div>
+      <div class="result-sub">Expected: 'A' (autofill target)</div>
+    </div>
+    <div class="result-cell">
+      <div class="result-label">E1 (col 4)</div>
+      <div class="result-value neutral" id="r-e1">—</div>
+      <div class="result-sub">Expected: null — BUG: 'A'</div>
+    </div>
+    <div class="result-cell">
+      <div class="result-label">F1 (col 5)</div>
+      <div class="result-value neutral" id="r-f1">—</div>
+      <div class="result-sub">Expected: null — BUG: 'A'</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    function fmt(v) { return v === null || v === undefined ? 'null' : JSON.stringify(v); }
+
+    function updateResults() {
+      const d1 = hotInstance.getDataAtCell(0, 3);
+      const e1 = hotInstance.getDataAtCell(0, 4);
+      const f1 = hotInstance.getDataAtCell(0, 5);
+
+      document.getElementById('r-d1').textContent = fmt(d1);
+      document.getElementById('r-d1').className = 'result-value ' + (d1 === 'A' ? 'ok' : 'neutral');
+
+      document.getElementById('r-e1').textContent = fmt(e1);
+      document.getElementById('r-e1').className = 'result-value ' + (e1 !== null ? 'bad' : 'neutral');
+
+      document.getElementById('r-f1').textContent = fmt(f1);
+      document.getElementById('r-f1').className = 'result-value ' + (f1 !== null ? 'bad' : 'neutral');
+    }
+
+    function initHot() {
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
+      ['r-d1', 'r-e1', 'r-f1'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'result-value neutral';
+      });
+
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: [['A', null, null, null, null, null]],
+        colHeaders: ['A (src)', 'B (hidden)', 'C (hidden)', 'D (target)', 'E', 'F'],
+        rowHeaders: true,
+        width: '100%',
+        height: 120,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        hiddenColumns: {
+          copyPasteEnabled: false,
+          columns: [1, 2],
+        },
+      });
+    }
+
+    document.getElementById('btn-autofill').addEventListener('click', () => {
+      // populateFromArray with source 'Autofill.fill' triggers the buggy code path
+      hotInstance.populateFromArray(0, 0, [['A']], 0, 3, null, 'overwrite', 'Autofill.fill');
+      updateResults();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>

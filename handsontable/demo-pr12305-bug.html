@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12305 — BUG (shared HyperFormula engine + autoColumnSize causes TypeError)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .status-box { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; font-family: monospace; }
+    .status-idle { background: #fff; border: 1px solid #ddd; }
+    .status-error { background: #fdecea; border: 1px solid #ef9a9a; color: #b71c1c; }
+    .status-ok { background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32; }
+    .grids { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+    .grid-wrap { flex: 1; min-width: 240px; }
+    .grid-label { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12305 - Shared HyperFormula engine + autoColumnSize/autoRowSize causes TypeError</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12305-fix.html">PR #12305 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    <code>afterFormulasValuesUpdate</code> is broadcast to every Handsontable instance sharing
+    the same HyperFormula engine. <code>AutoColumnSize</code> and <code>AutoRowSize</code>
+    process all change addresses without filtering by <code>sheetId</code>. When Sheet2 changes
+    arrive in the Sheet1 handler, out-of-range row/column indices cause <code>toVisualRow</code>
+    / <code>toVisualColumn</code> to return <code>null</code>, propagating a TypeError into
+    GhostTable sampling.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Two grids share the same HyperFormula engine: Table 1 (1 row × 2 cols), Table 2 (2 rows × 1 col).</li>
+      <li>Click <strong>"Edit Table 2 cell"</strong> — this triggers <code>afterFormulasValuesUpdate</code> on both instances.</li>
+      <li>Table 1 receives Sheet2 changes with row index 1 which is out of range for its 1-row layout.</li>
+      <li>A TypeError is thrown. The error is captured and shown below.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-edit">Edit Table 2 cell (triggers cross-sheet update)</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="status-box status-idle" id="status">Waiting — click the button to trigger the bug.</div>
+
+  <div class="grids">
+    <div class="grid-wrap">
+      <div class="grid-label">Table 1 — Sheet1 (1 row × 2 cols)</div>
+      <div id="hot1-container"></div>
+    </div>
+    <div class="grid-wrap">
+      <div class="grid-label">Table 2 — Sheet2 (2 rows × 1 col)</div>
+      <div id="hot2-container"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.1/dist/hyperformula.full.min.js"></script>
+  <script>
+    let hot1 = null;
+    let hot2 = null;
+    let caughtError = null;
+
+    function setStatus(msg, cls) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = 'status-box ' + cls;
+    }
+
+    function initGrids() {
+      caughtError = null;
+      if (hot1) { hot1.destroy(); hot1 = null; }
+      if (hot2) { hot2.destroy(); hot2 = null; }
+      setStatus('Waiting — click the button to trigger the bug.', 'status-idle');
+
+      const engine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+
+      hot1 = window.hot1 = new Handsontable(document.getElementById('hot1-container'), {
+        data: [['a', 'b']],
+        colHeaders: ['Col A', 'Col B'],
+        rowHeaders: true,
+        width: '100%',
+        height: 100,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine,
+          sheetName: 'Sheet1',
+        },
+      });
+
+      hot2 = window.hot2 = new Handsontable(document.getElementById('hot2-container'), {
+        data: [['c'], ['d']],
+        colHeaders: ['Col A'],
+        rowHeaders: true,
+        width: '100%',
+        height: 130,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        autoRowSize: true,
+        autoColumnSize: true,
+        formulas: {
+          engine,
+          sheetName: 'Sheet2',
+        },
+      });
+    }
+
+    document.getElementById('btn-edit').addEventListener('click', () => {
+      caughtError = null;
+      const prevError = window.onerror;
+
+      window.onerror = (msg, src, line, col, err) => {
+        caughtError = err || new Error(msg);
+        setStatus('ERROR caught: ' + (caughtError.message || msg), 'status-error');
+        window.onerror = prevError;
+        return true;
+      };
+
+      try {
+        hot2.setDataAtCell(0, 0, 'updated');
+        setTimeout(() => {
+          if (!caughtError) {
+            setStatus('No error caught this time (may depend on timing/browser). Try again or check console.', 'status-idle');
+          }
+          window.onerror = prevError;
+        }, 300);
+      } catch (e) {
+        caughtError = e;
+        setStatus('ERROR caught: ' + e.message, 'status-error');
+        window.onerror = prevError;
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initGrids);
+
+    initGrids();
+  </script>
+</body>
+</html>
