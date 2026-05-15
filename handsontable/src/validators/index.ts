@@ -17,9 +17,9 @@ export function registerAllValidators() {
   registerValidator(autocompleteValidator);
   registerValidator(dropdownValidator);
   registerValidator(dateValidator);
-  registerValidator(intlDateValidator as unknown as Function & { VALIDATOR_TYPE: string });
-  registerValidator(intlTimeValidator as unknown as Function & { VALIDATOR_TYPE: string });
-  registerValidator(multiSelectValidator as unknown as Function & { VALIDATOR_TYPE: string });
+  registerValidator(intlDateValidator);
+  registerValidator(intlTimeValidator);
+  registerValidator(multiSelectValidator);
   registerValidator(numericValidator);
   registerValidator(timeValidator);
 }

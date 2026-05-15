@@ -63,15 +63,33 @@ import {
 registerAllModules();
 jQueryWrapper(Handsontable as unknown as Record<string, unknown>);
 
-// Use Record-typed alias to allow dynamic property assignments on the Handsontable namespace.
-const HOT = Handsontable as unknown as Record<string, Record<string, unknown>>;
+/**
+ * Typed alias that describes the dynamic properties attached to the Handsontable namespace object.
+ * Using a concrete interface avoids `as unknown as X` casts on every assignment.
+ */
+interface HandsontableNamespace {
+  __GhostTable: typeof GhostTable;
+  _getListenersCounter: typeof getListenersCounter;
+  _getRegisteredMapsCounter: typeof getRegisteredMapsCounter;
+  EventManager: typeof EventManager;
+  helper: Record<string, unknown>;
+  dom: Record<string, unknown>;
+  cellTypes: Record<string, unknown>;
+  editors: Record<string, unknown>;
+  renderers: Record<string, unknown>;
+  validators: Record<string, unknown>;
+  plugins: Record<string, unknown>;
+  themes: Record<string, unknown>;
+}
+
+const HOT = Handsontable as unknown as HandsontableNamespace;
 
 // TODO: Remove this exports after rewrite tests about this module
-HOT.__GhostTable = GhostTable as unknown as Record<string, unknown>;
+HOT.__GhostTable = GhostTable;
 
-HOT._getListenersCounter = getListenersCounter as unknown as Record<string, unknown>; // For MemoryLeak tests
-HOT._getRegisteredMapsCounter = getRegisteredMapsCounter as unknown as Record<string, unknown>; // For MemoryLeak tests
-HOT.EventManager = EventManager as unknown as Record<string, unknown>;
+HOT._getListenersCounter = getListenersCounter; // For MemoryLeak tests
+HOT._getRegisteredMapsCounter = getRegisteredMapsCounter; // For MemoryLeak tests
+HOT.EventManager = EventManager;
 
 // Export all helpers to the Handsontable object
 const HELPERS = [
@@ -101,7 +119,7 @@ HOT.dom = {};
 arrayHelpers.arrayEach(HELPERS, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
     if ((key as string).charAt(0) !== '_') {
-      HOT.helper[key as string] = (helper as Record<string, unknown>)[key as string] as unknown as Record<string, unknown>;
+      HOT.helper[key as string] = (helper as Record<string, unknown>)[key as string];
     }
   });
 });
@@ -110,7 +128,7 @@ arrayHelpers.arrayEach(HELPERS, (helper) => {
 arrayHelpers.arrayEach(DOM, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
     if ((key as string).charAt(0) !== '_') {
-      HOT.dom[key as string] = (helper as Record<string, unknown>)[key as string] as unknown as Record<string, unknown>;
+      HOT.dom[key as string] = (helper as Record<string, unknown>)[key as string];
     }
   });
 });
@@ -119,7 +137,7 @@ arrayHelpers.arrayEach(DOM, (helper) => {
 HOT.cellTypes = HOT.cellTypes ?? {};
 
 arrayHelpers.arrayEach(getRegisteredCellTypeNames(), (cellTypeName) => {
-  HOT.cellTypes[cellTypeName as string] = getCellType(cellTypeName as string) as unknown as Record<string, unknown>;
+  HOT.cellTypes[cellTypeName as string] = getCellType(cellTypeName as string) as unknown;
 });
 
 HOT.cellTypes.registerCellType = registerCellType as unknown;
@@ -129,7 +147,7 @@ HOT.cellTypes.getCellType = getCellType as unknown;
 HOT.editors = HOT.editors ?? {};
 
 arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
-  HOT.editors[`${stringHelpers.toUpperCaseFirst(editorName as string)}Editor`] = getEditor(editorName as string) as unknown as Record<string, unknown>;
+  HOT.editors[`${stringHelpers.toUpperCaseFirst(editorName as string)}Editor`] = getEditor(editorName as string) as unknown;
 });
 
 HOT.editors.registerEditor = registerEditor as unknown;
@@ -145,7 +163,7 @@ arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
   if (rendererName === 'base') {
     HOT.renderers.cellDecorator = renderer as unknown;
   }
-  HOT.renderers[`${stringHelpers.toUpperCaseFirst(rendererName as string)}Renderer`] = renderer as unknown as Record<string, unknown>;
+  HOT.renderers[`${stringHelpers.toUpperCaseFirst(rendererName as string)}Renderer`] = renderer as unknown;
 });
 
 HOT.renderers.registerRenderer = registerRenderer as unknown;
@@ -156,7 +174,7 @@ HOT.renderers.rendererFactory = rendererFactory as unknown;
 HOT.validators = HOT.validators ?? {};
 
 arrayHelpers.arrayEach(getRegisteredValidatorNames(), (validatorName) => {
-  HOT.validators[`${stringHelpers.toUpperCaseFirst(validatorName as string)}Validator`] = getValidator(validatorName as string) as unknown as Record<string, unknown>;
+  HOT.validators[`${stringHelpers.toUpperCaseFirst(validatorName as string)}Validator`] = getValidator(validatorName as string) as unknown;
 });
 
 HOT.validators.registerValidator = registerValidator as unknown;
@@ -172,10 +190,10 @@ HOT.validators.getValidator = getValidator as unknown;
 HOT.plugins = HOT.plugins ?? {};
 
 arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
-  HOT.plugins[pluginName as string] = getPlugin(pluginName as string) as unknown as Record<string, unknown>;
+  HOT.plugins[pluginName as string] = getPlugin(pluginName as string) as unknown;
 });
 
-HOT.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin as unknown as Record<string, unknown>;
+HOT.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin as unknown;
 
 HOT.plugins.registerPlugin = registerPlugin as unknown;
 HOT.plugins.getPlugin = getPlugin as unknown;

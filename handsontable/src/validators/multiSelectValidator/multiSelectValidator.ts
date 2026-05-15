@@ -41,7 +41,7 @@ export function multiSelectValidator(this: CellMeta, value: unknown, callback: (
   }
 }
 
-(multiSelectValidator as unknown as Record<string, unknown>).VALIDATOR_TYPE = VALIDATOR_TYPE;
+multiSelectValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
 function process(value: unknown[], callback: (valid: boolean) => void): (source: unknown[]) => void {
   const originalVal = value;

@@ -26,4 +26,4 @@ export function intlDateValidator(this: CellMeta, value: unknown, callback: (val
   callback(isValidISODate(value));
 }
 
-(intlDateValidator as unknown as Record<string, unknown>).VALIDATOR_TYPE = VALIDATOR_TYPE;
+intlDateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
