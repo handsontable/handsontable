@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12300 — FIX (setDataAtRowProp preserves source)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .old { color: #f48771; text-decoration: line-through; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-run:hover { background: #2e7d32; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 160px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug  { color: #b71c1c; }
+    .entry-ok   { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12300 - setDataAtRowProp now correctly propagates source to hooks</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12300-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12300 — local build).</strong>
+    A one-character fix in <code>core.js</code>: <code>processChanges(changes, <s>source</s> changeSource)</code>.
+    The reassigned <code>changeSource</code> variable (which correctly holds the caller's source string)
+    is now passed to <code>processChanges()</code>, so <code>beforeChange</code> and <code>afterChange</code>
+    hooks receive the caller's source instead of falling back to <code>'edit'</code>.
+  </div>
+
+  <pre><span class="comment">// handsontable/src/core.js — CHANGED (one word):</span>
+<span class="old">const processedChanges = processChanges(changes, source);</span>
+<span class="new">const processedChanges = processChanges(changes, changeSource);</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12300.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Call setDataAtRowProp"</strong> — same array-form call with source <code>'myCustomSource'</code>.</li>
+      <li>Both <code>beforeChange</code> and <code>afterChange</code> now correctly report <strong><code>'myCustomSource'</code></strong>.</li>
+      <li>Compare with the <a href="demo-pr12300-bug.html">BUG page</a> where the hooks receive <code>'edit'</code>.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-run">Call setDataAtRowProp (array form) with source='myCustomSource'</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">beforeChange source received</div>
+      <div class="metric-value neutral" id="m-before">—</div>
+      <div class="metric-sub">Expected: <code>'myCustomSource'</code> — fix: correct ✓</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">afterChange source received</div>
+      <div class="metric-value neutral" id="m-after">—</div>
+      <div class="metric-sub">Expected: <code>'myCustomSource'</code> — fix: correct ✓</div>
+    </div>
+  </div>
+
+  <div id="log"><strong>Hook invocation log:</strong><div id="entries">(click the button to run the test)</div></div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString('en', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }) + '  ' + msg;
+      el.prepend(d);
+    }
+
+    hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [
+        { name: 'Alice', age: 30 },
+        { name: 'Bob', age: 25 },
+        { name: 'Carol', age: 35 },
+      ],
+      colHeaders: ['Name', 'Age'],
+      columns: [{ data: 'name' }, { data: 'age', type: 'numeric' }],
+      rowHeaders: true,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+
+      beforeChange(changes, source) {
+        const isCorrect = source === 'myCustomSource';
+        const el = document.getElementById('m-before');
+        el.textContent = "'" + source + "'";
+        el.className = 'metric-value ' + (isCorrect ? 'ok' : 'bad');
+        addLog('beforeChange  source=' + JSON.stringify(source) + (isCorrect ? ' ✓' : ' ⚠'), isCorrect ? 'entry-ok' : 'entry-bug');
+      },
+      afterChange(changes, source) {
+        if (!changes) return;
+        const isCorrect = source === 'myCustomSource';
+        const el = document.getElementById('m-after');
+        el.textContent = "'" + source + "'";
+        el.className = 'metric-value ' + (isCorrect ? 'ok' : 'bad');
+        addLog('afterChange   source=' + JSON.stringify(source) + (isCorrect ? ' ✓' : ' ⚠'), isCorrect ? 'entry-ok' : 'entry-bug');
+      },
+    });
+
+    document.getElementById('btn-run').addEventListener('click', () => {
+      addLog('--- calling setDataAtRowProp([[0, "name", "Test"]], "myCustomSource") ---', 'entry-info');
+      hotInstance.setDataAtRowProp([[0, 'name', 'Test']], 'myCustomSource');
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      hotInstance.setSourceDataAtCell(0, 'name', 'Alice');
+      document.getElementById('m-before').textContent = '—';
+      document.getElementById('m-before').className = 'metric-value neutral';
+      document.getElementById('m-after').textContent = '—';
+      document.getElementById('m-after').className = 'metric-value neutral';
+      document.getElementById('entries').textContent = '(click the button to run the test)';
+    });
+  </script>
+</body>
+</html>

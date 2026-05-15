@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12143 — BUG (setSourceDataAtCell updates parent with nestedRows)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .data-panels { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+    .data-panel { flex: 1; min-width: 240px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px; }
+    .data-panel h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #666; margin-bottom: 8px; }
+    .data-panel pre { background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; padding: 8px; font-size: 12px; white-space: pre-wrap; margin: 0; }
+    .highlight-bug { background: #fdecea !important; color: #b71c1c !important; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>PR #12143 - setSourceDataAtCell updates parent row instead of nested child when nestedRows is enabled</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12143-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    With <code>nestedRows: true</code>, calling <code>hot.setSourceDataAtCell(1, 'artist', 'UPDATED')</code>
+    should update the first child row (visual row 1 = Child of Parent A). Instead, the old
+    <code>DataSource.setAtCell()</code> wrote directly to <code>this.data[row]</code> — which is
+    the second top-level entry in the flat array (<strong>Second Parent</strong>). The child row
+    is left unchanged.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>The grid has: <em>Parent A</em> → <em>Child (row 1)</em>, then <em>Second Parent (row 2)</em>.</li>
+      <li>Click <strong>"Call setSourceDataAtCell(1, 'artist', 'UPDATED')"</strong> — this targets visual row 1 (the Child).</li>
+      <li>In the "After" data panel, see that <strong>Second Parent's artist</strong> changed to UPDATED. The child is unchanged.</li>
+      <li>Compare with the <a href="demo-pr12143-fix.html">PR Fix page</a> where the Child is correctly updated.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-run">Call setSourceDataAtCell(1, 'artist', 'UPDATED')</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="data-panels">
+    <div class="data-panel">
+      <h3>Source data — Before</h3>
+      <pre id="data-before"></pre>
+    </div>
+    <div class="data-panel">
+      <h3>Source data — After</h3>
+      <pre id="data-after">(click the button)</pre>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    const sourceData = [
+      {
+        artist: 'Parent A',
+        __children: [
+          { artist: 'Child of Parent A' },
+        ],
+      },
+      {
+        artist: 'Second Parent',
+      },
+    ];
+
+    function renderDataTree(data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    document.getElementById('data-before').textContent = renderDataTree(sourceData);
+
+    hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: sourceData,
+      colHeaders: ['Artist'],
+      columns: [{ data: 'artist' }],
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      nestedRows: true,
+    });
+
+    document.getElementById('btn-run').addEventListener('click', () => {
+      hotInstance.setSourceDataAtCell(1, 'artist', 'UPDATED');
+      hotInstance.render();
+
+      const afterEl = document.getElementById('data-after');
+      const text = renderDataTree(sourceData);
+      afterEl.textContent = text;
+
+      // Highlight which value changed
+      const lines = text.split('\n');
+      afterEl.innerHTML = lines.map(line => {
+        if (line.includes('UPDATED')) {
+          return '<span class="highlight-bug">' + line + '  ← CHANGED (bug: wrong row!)</span>';
+        }
+        return line;
+      }).join('\n');
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      sourceData[0].artist = 'Parent A';
+      sourceData[0].__children[0].artist = 'Child of Parent A';
+      sourceData[1].artist = 'Second Parent';
+      hotInstance.render();
+      document.getElementById('data-after').textContent = '(click the button)';
+      document.getElementById('data-after').innerHTML = '(click the button)';
+    });
+  </script>
+</body>
+</html>
