@@ -8,15 +8,15 @@ import { arrayReduce } from '../helpers/array';
  * @returns {string}
  */
 export function toSingleLine(strings: TemplateStringsArray | string[], ...expressions: unknown[]): string {
-  const result = arrayReduce(strings as unknown[], (previousValue, currentValue, index) => {
+  const result = arrayReduce(Array.from(strings), (previousValue, currentValue, index) => {
 
-    const valueWithoutWhiteSpaces = (currentValue as string).replace(/\r?\n\s*/g, '');
-    const expressionForIndex = expressions[index as number] ? expressions[index as number] : '';
+    const valueWithoutWhiteSpaces = currentValue.replace(/\r?\n\s*/g, '');
+    const expressionForIndex = expressions[index] ? expressions[index] : '';
 
-    return (previousValue as string) + valueWithoutWhiteSpaces + expressionForIndex;
+    return previousValue + valueWithoutWhiteSpaces + expressionForIndex;
   }, '');
 
-  return (result as string).trim();
+  return result.trim();
 }
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -51,7 +51,7 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]) {
   // eslint-disable-next-line no-restricted-globals
   const template = document.createElement('template');
 
-  template.innerHTML = (strings as unknown as string[]).reduce((acc: string, string: string, i: number) => {
+  template.innerHTML = Array.from(strings).reduce((acc: string, string: string, i: number) => {
     return acc + string + (values[i] ?? '');
   }, '');
 

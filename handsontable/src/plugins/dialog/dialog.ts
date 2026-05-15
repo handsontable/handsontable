@@ -191,25 +191,25 @@ export class Dialog extends BasePlugin {
   static get SETTINGS_VALIDATORS() {
     return {
       template: (value: Record<string, unknown>) => isObject(value) &&
-        (typeof ['alert', 'confirm'].includes(value.type as string)) &&
+        (typeof ['alert', 'confirm'].includes(String(value.type))) &&
         (typeof value.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
         (typeof value?.buttons === 'undefined' || Array.isArray(value?.buttons) && value.buttons.every((item: Record<string, unknown>) =>
           typeof item === 'object' &&
           typeof item.text === 'string' &&
-          ['primary', 'secondary'].includes(item.type as string) &&
+          ['primary', 'secondary'].includes(String(item.type)) &&
           (typeof item.callback === 'undefined' || typeof item.callback === 'function')
         )),
       content: (value: unknown) => typeof value === 'string' ||
         (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
         (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
       customClassName: (value: unknown) => typeof value === 'string',
-      background: (value: unknown) => ['solid', 'semi-transparent'].includes(value as string),
+      background: (value: unknown) => typeof value === 'string' && ['solid', 'semi-transparent'].includes(value),
       contentBackground: (value: unknown) => typeof value === 'boolean',
       animation: (value: unknown) => typeof value === 'boolean',
       closable: (value: unknown) => typeof value === 'boolean',
       a11y: (value: Record<string, unknown>) => isObject(value) &&
-        (typeof value?.role === 'undefined' || ['dialog', 'alertdialog'].includes(value?.role as string)) &&
+        (typeof value?.role === 'undefined' || typeof value?.role === 'string' && ['dialog', 'alertdialog'].includes(value.role)) &&
         (typeof value?.ariaLabel === 'undefined' || typeof value?.ariaLabel === 'string') &&
         (typeof value?.ariaLabelledby === 'undefined' || typeof value?.ariaLabelledby === 'string') &&
         (typeof value?.ariaDescribedby === 'undefined' || typeof value?.ariaDescribedby === 'string'),

@@ -436,7 +436,7 @@ export class NestedRows extends BasePlugin {
    * @param {object} element New child element.
    */
   #onAfterAddChild(parent: Record<string, unknown>, element: Record<string, unknown>) {
-    this.collapsingUI!.collapsedRowsStash.shiftStash(this.dataManager!.getRowIndex(element) as unknown);
+    this.collapsingUI!.collapsedRowsStash.shiftStash(this.dataManager!.getRowIndex(element));
     this.collapsingUI!.collapsedRowsStash.applyStash();
 
     this.headersUI!.updateRowHeaderWidth(undefined);

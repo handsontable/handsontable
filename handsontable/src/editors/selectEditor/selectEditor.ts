@@ -78,7 +78,7 @@ export class SelectEditor extends BaseEditor {
    * @param {*} value A new select's value.
    */
   setValue(value?: unknown): void {
-    this.select.value = value as string;
+    this.select.value = value == null ? '' : String(value);
   }
 
   /**
@@ -160,8 +160,8 @@ export class SelectEditor extends BaseEditor {
       for (let i = 0; i < options.length; i++) {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
-        optionElement.value = options[i] as string;
-        fastInnerHTML(optionElement, options[i] as string, sanitizer);
+        optionElement.value = String(options[i]);
+        fastInnerHTML(optionElement, String(options[i]), sanitizer);
         this.select.appendChild(optionElement);
       }
     } else {
@@ -169,7 +169,7 @@ export class SelectEditor extends BaseEditor {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
         optionElement.value = key;
-        fastInnerHTML(optionElement, optionValue as string, sanitizer);
+        fastInnerHTML(optionElement, String(optionValue), sanitizer);
         this.select.appendChild(optionElement);
       });
     }

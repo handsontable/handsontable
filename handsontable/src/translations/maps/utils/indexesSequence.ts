@@ -21,8 +21,8 @@ export function getListWithInsertedItems(indexedValues: number[], insertionIndex
  * @param {Array} removedIndexes List of removed indexes.
  * @returns {Array} Reduced list of mappings.
  */
-export function getListWithRemovedItems(indexedValues: number[], removedIndexes: number[]) {
+export function getListWithRemovedItems(indexedValues: number[], removedIndexes: number[]): number[] {
   return arrayFilter(indexedValues, (index) => {
-    return removedIndexes.includes(index as number) === false;
+    return removedIndexes.includes(index) === false;
   });
 }

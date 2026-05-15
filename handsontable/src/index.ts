@@ -137,7 +137,7 @@ arrayHelpers.arrayEach(DOM, (helper) => {
 HOT.cellTypes = HOT.cellTypes ?? {};
 
 arrayHelpers.arrayEach(getRegisteredCellTypeNames(), (cellTypeName) => {
-  HOT.cellTypes[cellTypeName as string] = getCellType(cellTypeName as string) as unknown;
+  HOT.cellTypes[cellTypeName] = getCellType(cellTypeName) as unknown;
 });
 
 HOT.cellTypes.registerCellType = registerCellType as unknown;
@@ -147,7 +147,7 @@ HOT.cellTypes.getCellType = getCellType as unknown;
 HOT.editors = HOT.editors ?? {};
 
 arrayHelpers.arrayEach(getRegisteredEditorNames(), (editorName) => {
-  HOT.editors[`${stringHelpers.toUpperCaseFirst(editorName as string)}Editor`] = getEditor(editorName as string) as unknown;
+  HOT.editors[`${stringHelpers.toUpperCaseFirst(editorName)}Editor`] = getEditor(editorName) as unknown;
 });
 
 HOT.editors.registerEditor = registerEditor as unknown;
@@ -158,12 +158,12 @@ HOT.editors.editorFactory = editorFactory as unknown;
 HOT.renderers = HOT.renderers ?? {};
 
 arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
-  const renderer = getRenderer(rendererName as string);
+  const renderer = getRenderer(rendererName);
 
   if (rendererName === 'base') {
     HOT.renderers.cellDecorator = renderer as unknown;
   }
-  HOT.renderers[`${stringHelpers.toUpperCaseFirst(rendererName as string)}Renderer`] = renderer as unknown;
+  HOT.renderers[`${stringHelpers.toUpperCaseFirst(rendererName)}Renderer`] = renderer as unknown;
 });
 
 HOT.renderers.registerRenderer = registerRenderer as unknown;
@@ -174,7 +174,7 @@ HOT.renderers.rendererFactory = rendererFactory as unknown;
 HOT.validators = HOT.validators ?? {};
 
 arrayHelpers.arrayEach(getRegisteredValidatorNames(), (validatorName) => {
-  HOT.validators[`${stringHelpers.toUpperCaseFirst(validatorName as string)}Validator`] = getValidator(validatorName as string) as unknown;
+  HOT.validators[`${stringHelpers.toUpperCaseFirst(validatorName)}Validator`] = getValidator(validatorName) as unknown;
 });
 
 HOT.validators.registerValidator = registerValidator as unknown;
@@ -190,7 +190,7 @@ HOT.validators.getValidator = getValidator as unknown;
 HOT.plugins = HOT.plugins ?? {};
 
 arrayHelpers.arrayEach(getPluginsNames(), (pluginName) => {
-  HOT.plugins[pluginName as string] = getPlugin(pluginName as string) as unknown;
+  HOT.plugins[pluginName] = getPlugin(pluginName) as unknown;
 });
 
 HOT.plugins[`${stringHelpers.toUpperCaseFirst(BasePlugin.PLUGIN_KEY)}Plugin`] = BasePlugin as unknown;

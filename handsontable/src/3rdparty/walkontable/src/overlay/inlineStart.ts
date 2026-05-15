@@ -138,7 +138,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Width sum.
    */
   sumCellSizes(from: number, to: number) {
-    const defaultColumnWidth = this.wtSettings.getSetting('defaultColumnWidth') as number;
+    const defaultColumnWidth = this.wtSettings.getSetting<number>('defaultColumnWidth');
     let column = from;
     let sum = 0;
 
@@ -260,7 +260,7 @@ export class InlineStartOverlay extends Overlay {
   scrollTo(sourceCol: number, beyondRendered: boolean) {
     const { wtSettings } = this;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
-    const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart') as number;
+    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
     const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     const mainHolder = sourceInstance.wtTable.holder;
     const rowHeaderBorderCompensation = (
@@ -290,7 +290,7 @@ export class InlineStartOverlay extends Overlay {
       newX += rowHeaderBorderCompensation;
 
     } else {
-      newX += this.sumCellSizes(this.wtSettings.getSetting('fixedColumnsStart') as number, sourceCol);
+      newX += this.sumCellSizes(this.wtSettings.getSetting<number>('fixedColumnsStart'), sourceCol);
     }
 
     newX += scrollbarCompensation;
@@ -370,8 +370,8 @@ export class InlineStartOverlay extends Overlay {
     const { wtSettings } = this;
     const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
-    const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart') as number;
-    const totalRows = wtSettings.getSetting('totalRows') as number;
+    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
+    const totalRows = wtSettings.getSetting<number>('totalRows');
     const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
 
     if (totalRows) {

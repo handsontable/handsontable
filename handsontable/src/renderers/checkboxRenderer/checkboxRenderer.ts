@@ -71,14 +71,16 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
 
   empty(TD); // TODO identify under what circumstances this line can be removed
 
+  const locale = cellProperties.locale as string | undefined;
+
   if (value === cellProperties.checkedTemplate ||
-    stringify(value).toLocaleLowerCase(cellProperties.locale as string | undefined) ===
-    stringify(cellProperties.checkedTemplate).toLocaleLowerCase(cellProperties.locale as string | undefined)) {
+    stringify(value).toLocaleLowerCase(locale) ===
+    stringify(cellProperties.checkedTemplate).toLocaleLowerCase(locale)) {
     input.checked = true;
 
   } else if (value === cellProperties.uncheckedTemplate ||
-    stringify(value).toLocaleLowerCase(cellProperties.locale as string | undefined) ===
-    stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(cellProperties.locale as string | undefined)) {
+    stringify(value).toLocaleLowerCase(locale) ===
+    stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(locale)) {
     input.checked = false;
 
   } else if (isEmpty(value)) { // default value

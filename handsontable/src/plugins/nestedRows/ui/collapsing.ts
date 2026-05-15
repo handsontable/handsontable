@@ -8,6 +8,7 @@ import { eventTargetEl, hasClass } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import HeadersUI from './headers';
 import type DataManager from '../data/dataManager';
+import type { RowObject } from '../data/dataManager';
 
 /**
  * Class responsible for the UI for collapsing and expanding groups.
@@ -36,9 +37,9 @@ class CollapsingUI extends BaseUI {
    */
   collapsedRowsStash: {
     stash: (forceRender?: boolean) => void;
-    shiftStash: (baseIndex: unknown, targetIndex?: unknown, delta?: number) => void;
+    shiftStash: (baseIndex: number, targetIndex?: number | null, delta?: number) => void;
     applyStash: (forceRender?: boolean) => void;
-    trimStash: (realElementIndex: unknown, amount: number) => void;
+    trimStash: (realElementIndex: number, amount: number) => void;
   };
   /**
    * Stashed copy of collapsed rows from the last stash operation.
@@ -62,13 +63,11 @@ class CollapsingUI extends BaseUI {
         // Workaround for wrong indexes being set in the trimRows plugin
         this.expandMultipleChildren(this.lastCollapsedRows, forceRender);
       },
-      shiftStash: (baseIndex: unknown, targetIndex: unknown, delta = 1) => {
-        if (targetIndex === null || targetIndex === undefined) {
-          targetIndex = Infinity;
-        }
+      shiftStash: (baseIndex: number, targetIndex: number | null | undefined = undefined, delta = 1) => {
+        const targetIdx = targetIndex === null || targetIndex === undefined ? Infinity : targetIndex;
 
         arrayEach(this.lastCollapsedRows, (elem: number, i: number) => {
-          if (elem >= (baseIndex as number) && elem < (targetIndex as number)) {
+          if (elem >= baseIndex && elem < targetIdx) {
             this.lastCollapsedRows![i] = elem + delta;
           }
         });
@@ -77,8 +76,8 @@ class CollapsingUI extends BaseUI {
         this.collapseMultipleChildren(this.lastCollapsedRows, forceRender);
         this.lastCollapsedRows = undefined;
       },
-      trimStash: (realElementIndex: unknown, amount: number) => {
-        rangeEach(realElementIndex as number, (realElementIndex as number) + amount - 1, (i: number) => {
+      trimStash: (realElementIndex: number, amount: number) => {
+        rangeEach(realElementIndex, realElementIndex + amount - 1, (i: number) => {
           const indexOfElement = this.lastCollapsedRows!.indexOf(i);
 
           if (indexOfElement > -1) {
@@ -266,7 +265,7 @@ class CollapsingUI extends BaseUI {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children, (elem: unknown) => {
+      arrayEach(parentObject.__children, (elem: RowObject) => {
         if (!this.isAnyParentCollapsed(elem)) {
           const elemIndex = this.dataManager.getRowIndex(elem);
 
@@ -354,10 +353,10 @@ class CollapsingUI extends BaseUI {
    */
   collapseAll() {
     const data = this.dataManager.getData()!;
-    const parentsToCollapse: unknown[] = [];
+    const parentsToCollapse: RowObject[] = [];
 
-    arrayEach(data, (elem: unknown) => {
-      if (this.dataManager.hasChildren(elem as number)) {
+    arrayEach(data, (elem: RowObject) => {
+      if (this.dataManager.hasChildren(elem)) {
         parentsToCollapse.push(elem);
       }
     });
@@ -372,10 +371,10 @@ class CollapsingUI extends BaseUI {
    */
   expandAll() {
     const data = this.dataManager.getData()!;
-    const parentsToExpand: unknown[] = [];
+    const parentsToExpand: RowObject[] = [];
 
-    arrayEach(data, (elem: unknown) => {
-      if (this.dataManager.hasChildren(elem as number)) {
+    arrayEach(data, (elem: RowObject) => {
+      if (this.dataManager.hasChildren(elem)) {
         parentsToExpand.push(elem);
       }
     });
@@ -452,11 +451,11 @@ class CollapsingUI extends BaseUI {
    * @param {object} rowObj Row object.
    * @returns {boolean}
    */
-  isAnyParentCollapsed(rowObj: unknown): boolean {
-    let parent: unknown = rowObj;
+  isAnyParentCollapsed(rowObj: RowObject | null): boolean {
+    let parent: RowObject | null = rowObj;
 
     while (parent !== null) {
-      parent = this.dataManager.getRowParent(parent as number);
+      parent = this.dataManager.getRowParent(parent);
       const parentIndex = this.dataManager.getRowIndex(parent);
 
       if (this.collapsedRows.indexOf(parentIndex) > -1) {

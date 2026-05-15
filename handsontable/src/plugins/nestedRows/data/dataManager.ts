@@ -4,6 +4,8 @@ import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import type { NestedRows } from '../nestedRows';
 
+type ReadTreeResult = number | { result: unknown; end: boolean };
+
 export interface RowObject {
   __children?: RowObject[];
   [key: string]: unknown;
@@ -171,9 +173,9 @@ class DataManager {
    * @param {object} neededObject The row object we search for.
    * @returns {number|object}
    */
-  readTreeNodes(parent: RowObject | null, readCount: number, neededIndex: number, neededObject: Record<string, unknown>): unknown {
+  readTreeNodes(parent: RowObject | null, readCount: ReadTreeResult, neededIndex: number, neededObject: Record<string, unknown>): ReadTreeResult {
     let rootLevel = false;
-    let readNodesCount = readCount as number | { result: unknown; end: boolean };
+    let readNodesCount: ReadTreeResult = readCount;
 
     if (typeof readNodesCount !== 'number' && readNodesCount.end) {
       return readNodesCount;
@@ -186,7 +188,7 @@ class DataManager {
         __children: this.data as RowObject[]
       };
       rootLevel = true;
-      (readNodesCount as number) -= 1;
+      readNodesCount = (readNodesCount as number) - 1;
     }
 
     if (neededIndex !== null && neededIndex !== undefined && readNodesCount === neededIndex) {
@@ -197,14 +199,14 @@ class DataManager {
       return { result: readNodesCount, end: true };
     }
 
-    (readNodesCount as number) += 1;
+    readNodesCount = (readNodesCount as number) + 1;
 
     if (parentObj.__children) {
       arrayEach(parentObj.__children, (val: RowObject) => {
 
         this.parentReference.set(val, rootLevel ? null : parentObj);
 
-        readNodesCount = this.readTreeNodes(val, readNodesCount as number, neededIndex, neededObject) as number | { result: unknown; end: boolean };
+        readNodesCount = this.readTreeNodes(val, readNodesCount, neededIndex, neededObject);
 
         if (typeof readNodesCount !== 'number' && readNodesCount.end) {
           return false;

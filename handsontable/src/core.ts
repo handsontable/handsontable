@@ -798,12 +798,12 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
           // Calling the `insert_row_above` action adds a new row at the beginning of the data set.
           // eslint-disable-next-line no-param-reassign
-          index = index ?? (insertRowMode === 'below' ? numberOfSourceRows : 0);
+          const rowIndex = typeof index === 'number' ? index : (insertRowMode === 'below' ? numberOfSourceRows : 0);
 
           const {
             delta: rowDelta,
             startPhysicalIndex: startRowPhysicalIndex,
-          } = datamap.createRow(index as number, amount, { source, mode: insertRowMode });
+          } = datamap.createRow(rowIndex, amount, { source, mode: insertRowMode });
 
           selection.shiftRows(instance.toVisualRow(startRowPhysicalIndex), rowDelta);
           break;
@@ -815,12 +815,12 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
           // Calling the `insert_col_start` action adds a new column to the left of the data set.
           // eslint-disable-next-line no-param-reassign
-          index = index ?? (insertColumnMode === 'end' ? instance.countSourceCols() : 0);
+          const colIndex = typeof index === 'number' ? index : (insertColumnMode === 'end' ? instance.countSourceCols() : 0);
 
           const {
             delta: colDelta,
             startPhysicalIndex: startColumnPhysicalIndex,
-          } = datamap.createCol(index as number, amount, { source, mode: insertColumnMode });
+          } = datamap.createCol(colIndex, amount, { source, mode: insertColumnMode });
 
           if (colDelta) {
             if (Array.isArray(tableMeta.colHeaders)) {
@@ -1375,8 +1375,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       let settingsArray: string[] = [];
 
       if (globalMeta[className]) {
-        globalMetaSettingsArray = Array.isArray(globalMeta[className]) ?
-          globalMeta[className] as string[] : stringToArray(globalMeta[className] as string);
+        const globalMetaValue = globalMeta[className];
+
+        globalMetaSettingsArray = Array.isArray(globalMetaValue) ?
+          globalMetaValue as string[] : stringToArray(String(globalMetaValue));
       }
 
       if (classSettings) {
@@ -1666,7 +1668,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
-        while ((datamap.propToCol(changes[i][1] as string | number) as number) > instance.countCols() - 1) {
+        while (Number(datamap.propToCol(changes[i][1] as string | number)) > instance.countCols() - 1) {
           const {
             delta: numberOfCreatedColumns
           } = datamap.createCol(undefined, undefined, { source: 'auto' });
@@ -1924,11 +1926,14 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         throwWithCause('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`');
       }
 
-      if (visualColumn >= this.countCols()) {
-        prop = visualColumn;
+      // setDataAtCell validates that column is numeric above (throws if not number).
+      const visualColumnIndex = typeof visualColumn === 'number' ? visualColumn : 0;
+
+      if (visualColumnIndex >= this.countCols()) {
+        prop = visualColumnIndex;
 
       } else {
-        prop = datamap.colToProp(visualColumn as number);
+        prop = datamap.colToProp(visualColumnIndex);
       }
 
       changes.push([
@@ -3150,7 +3155,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         }
 
       } else if (height !== undefined) {
-        instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
+        instance.rootElement.style.height = typeof height !== 'number' ? `${height}` : `${height}px`;
         instance.rootElement.style.overflow = 'clip';
       }
     }
@@ -3163,7 +3168,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       }
 
       width = instance.runHooks('beforeWidthChange', width);
-      instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
+      instance.rootElement.style.width = typeof width !== 'number' ? `${width}` : `${width}px`;
     }
 
     if (!init) {
@@ -3206,8 +3211,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       if (isFunction(tableMeta.getValue)) {
         return tableMeta.getValue.call(instance);
 
-      } else if (activeSelection) {
-        return instance.getData()[activeSelection.highlight.row][tableMeta.getValue as string];
+      } else if (activeSelection && typeof tableMeta.getValue === 'string') {
+        return instance.getData()[activeSelection.highlight.row][tableMeta.getValue];
       }
 
     } else if (activeSelection) {
@@ -3682,7 +3687,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       );
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
-        dataSource.setAtCell(changeRow, changeProp as number, newValue);
+        // changeProp is a physical column index for array-based data sources.
+        dataSource.setAtCell(changeRow, Number(changeProp), newValue);
       }
     });
 

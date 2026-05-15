@@ -165,7 +165,7 @@ class DataSource {
           const prop = this.colToProp(column);
 
           if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
-            const cellValue = this.getAtPhysicalCell(row, prop as number, dataRow);
+            const cellValue = this.getAtPhysicalCell(row, prop as string | number | Function, dataRow);
 
             if (toArray) {
               (newDataRow as unknown as unknown[]).push(cellValue);
@@ -337,8 +337,8 @@ class DataSource {
   getCopyable(row: number, prop: string | number) {
     const visualColumn = this.propToCol(prop);
 
-    if (this.hot!.getCellMeta(row, visualColumn as number).copyable) {
-      return this.getAtCell(this.hot!.toPhysicalRow(row), visualColumn as number);
+    if (typeof visualColumn === 'number' && this.hot!.getCellMeta(row, visualColumn).copyable) {
+      return this.getAtCell(this.hot!.toPhysicalRow(row), visualColumn);
     }
 
     return '';
@@ -353,8 +353,8 @@ class DataSource {
     if (this.hot!.hasHook('modifySourceLength')) {
       const modifiedSourceLength = this.hot!.runHooks('modifySourceLength');
 
-      if (Number.isInteger(modifiedSourceLength)) {
-        return modifiedSourceLength as number;
+      if (typeof modifiedSourceLength === 'number' && Number.isInteger(modifiedSourceLength)) {
+        return modifiedSourceLength;
       }
     }
 

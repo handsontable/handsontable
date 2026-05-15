@@ -289,11 +289,11 @@ class DataMap {
     }
 
     // Property may be a physical column index.
-    const visualColumn = this.hot!.toVisualColumn(prop as number);
-
-    if (visualColumn === null) {
+    if (typeof prop !== 'number') {
       return prop;
     }
+
+    const visualColumn = this.hot!.toVisualColumn(prop);
 
     return visualColumn;
   }
@@ -759,7 +759,7 @@ class DataMap {
     // TODO: To remove, use 'modifyData' hook instead (see below)
     const modifiedRowData = this.hot.runHooks('modifyRowData', physicalRow);
 
-    dataRow = isNaN(modifiedRowData as number) ? modifiedRowData as Record<string | number, unknown> : dataRow;
+    dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
     //
 
     const { dataDotNotation } = this.hot!.getSettings();
@@ -792,8 +792,10 @@ class DataMap {
       value = (prop as (row: unknown) => unknown)(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
-    const visualColumnIndex = this.propToCol(prop) as number;
-    const physicalColumn = this.hot!.toPhysicalColumn(visualColumnIndex);
+    const visualColumnIndex = this.propToCol(prop);
+    const physicalColumn = typeof visualColumnIndex === 'number'
+      ? this.hot!.toPhysicalColumn(visualColumnIndex)
+      : null;
 
     if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
       value = getValueGetterValue(
@@ -827,7 +829,9 @@ class DataMap {
    * @returns {string}
    */
   getCopyable(row: number, prop: string | number) {
-    if (this.hot!.getCellMeta(row, this.propToCol(prop) as number).copyable) {
+    const colIndex = this.propToCol(prop);
+
+    if (typeof colIndex === 'number' && this.hot!.getCellMeta(row, colIndex).copyable) {
       return this.get(row, prop);
     }
 
@@ -848,7 +852,7 @@ class DataMap {
     // TODO: To remove, use 'modifyData' hook instead (see below)
     const modifiedRowData = this.hot.runHooks('modifyRowData', physicalRow);
 
-    dataRow = isNaN(modifiedRowData as number) ? modifiedRowData as Record<string | number, unknown> : dataRow;
+    dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
     //
 
     if (this.hot!.hasHook('modifyData')) {

@@ -10,7 +10,7 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortSer
  * @returns {Function} The compare function.
  */
 export function compareFunctionFactory(sortOrder: string, columnMeta: Record<string, unknown>, columnPluginSettings: Record<string, unknown>) {
-  const locale = columnMeta.locale;
+  const locale = columnMeta.locale as string | undefined;
 
   return function(value: unknown, nextValue: unknown) {
     const { sortEmptyCells } = columnPluginSettings;
@@ -24,11 +24,11 @@ export function compareFunctionFactory(sortOrder: string, columnMeta: Record<str
     }
 
     if (typeof value === 'string') {
-      value = value.toLocaleLowerCase(locale as string);
+      value = value.toLocaleLowerCase(locale);
     }
 
     if (typeof nextValue === 'string') {
-      nextValue = nextValue.toLocaleLowerCase(locale as string);
+      nextValue = nextValue.toLocaleLowerCase(locale);
     }
 
     if (value === nextValue) {
@@ -64,8 +64,8 @@ export function compareFunctionFactory(sortOrder: string, columnMeta: Record<str
       return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
 
     } else if (!(isNaN(value as number) || isNaN(nextValue as number))) {
-      value = parseFloat(value as string);
-      nextValue = parseFloat(nextValue as string);
+      value = parseFloat(String(value));
+      nextValue = parseFloat(String(nextValue));
     }
 
     if (value < nextValue) {

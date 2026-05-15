@@ -215,7 +215,7 @@ export class AutoColumnSize extends BasePlugin {
     let cellValue = '';
 
     if (!cellMeta.spanned) {
-      cellValue = this.hot.getDataAtCell(row, column) as string;
+      cellValue = String(this.hot.getDataAtCell(row, column) ?? '');
 
       if (typeof cellMeta.valueFormatter === 'function') {
         cellValue = (cellMeta.valueFormatter as (value: unknown, meta: typeof cellMeta) => string)(cellValue, cellMeta);
@@ -225,7 +225,7 @@ export class AutoColumnSize extends BasePlugin {
     let bundleSeed = '';
 
     if (this.hot.hasHook('modifyAutoColumnSizeSeed')) {
-      bundleSeed = this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue) as string;
+      bundleSeed = String(this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue) ?? bundleSeed);
     }
 
     return { value: cellValue, bundleSeed };
@@ -538,17 +538,17 @@ export class AutoColumnSize extends BasePlugin {
   getSyncCalculationLimit(): number {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     /* eslint-disable no-bitwise */
-    let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
+    let limit: number = AutoColumnSize.SYNC_CALCULATION_LIMIT;
     const colsLimit = this.hot.countCols() - 1;
 
     if (isObject(settings)) {
-      limit = (settings as { syncLimit: number | string }).syncLimit as number;
+      const syncLimit = (settings as { syncLimit: number | string }).syncLimit;
 
-      if (isPercentValue(limit as unknown as string)) {
-        limit = valueAccordingPercent(colsLimit, limit as unknown as string);
+      if (typeof syncLimit === 'string' && isPercentValue(syncLimit)) {
+        limit = valueAccordingPercent(colsLimit, syncLimit);
       } else {
         // Force to Number
-        limit >>= 0;
+        limit = Number(syncLimit) >> 0;
       }
     }
 
@@ -601,14 +601,18 @@ export class AutoColumnSize extends BasePlugin {
    * @private
    * @returns {Array} It returns an array of visual column indexes.
    */
-  findColumnsWhereHeaderWasChanged() {
+  findColumnsWhereHeaderWasChanged(): number[] {
     const columnHeaders = this.hot.getColHeader();
 
-    const changedColumns = (columnHeaders as string[]).reduce((acc: number[], columnTitle: unknown, physicalColumn: number) => {
+    const changedColumns = (columnHeaders as unknown[]).reduce<number[]>((acc, columnTitle: unknown, physicalColumn: number) => {
       const cachedColumnsLength = this.#cachedColumnHeaders.length;
 
       if (cachedColumnsLength - 1 < physicalColumn || this.#cachedColumnHeaders[physicalColumn] !== columnTitle) {
-        acc.push(this.hot.toVisualColumn(physicalColumn));
+        const visualColumn = this.hot.toVisualColumn(physicalColumn);
+
+        if (visualColumn !== null) {
+          acc.push(visualColumn);
+        }
       }
       if (cachedColumnsLength - 1 < physicalColumn) {
         this.#cachedColumnHeaders.push(columnTitle);
@@ -718,7 +722,7 @@ export class AutoColumnSize extends BasePlugin {
    * On after Handsontable init fill plugin with all necessary values.
    */
   #onInit() {
-    this.#cachedColumnHeaders = this.hot.getColHeader() as string[];
+    this.#cachedColumnHeaders = this.hot.getColHeader() as unknown[];
     this.recalculateAllColumnsWidth();
     this.#isInitialized = true;
   }
