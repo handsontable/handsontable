@@ -469,3 +469,14 @@ type HookKey = { [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> exten
  * Use with addHook/addHookOnce/removeHook for IDE autocomplete and compile-time safety.
  */
 export type Events = Required<Pick<GridSettings, HookKey>>;
+
+/**
+ * Resolves the typed callback signature for a specific hook name.
+ * Use as the type of private hook-handler fields in plugins to enable direct passing
+ * to addHook without as-Function wrapper casts.
+ *
+ * @example
+ * #onAfterRender: Hook<'afterRender'> = () => { ... };
+ * this.addHook('afterRender', this.#onAfterRender);
+ */
+export type Hook<K extends keyof Events> = Events[K];
