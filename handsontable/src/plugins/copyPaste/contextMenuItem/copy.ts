@@ -4,7 +4,11 @@ import { CONTEXTMENU_ITEMS_COPY } from '../../../i18n/constants';
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
  */
-export default function copyItem(copyPastePlugin: Record<string, Function>) {
+interface CopyPastePluginLike {
+  copyCellsOnly(): void;
+}
+
+export default function copyItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy',
     name() {

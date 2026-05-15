@@ -5,7 +5,11 @@ import { clamp } from '../../../helpers/number';
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
  */
-export default function copyWithColumnHeadersItem(copyPastePlugin: Record<string, Function>) {
+interface CopyPastePluginLike {
+  copyWithColumnHeaders(): void;
+}
+
+export default function copyWithColumnHeadersItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy_with_column_headers',
     name() {

@@ -24,6 +24,11 @@ import {
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
+/** Internet Explorer-specific window extension with legacy clipboard API. */
+interface IEWindow extends Window {
+  clipboardData: DataTransfer;
+}
+
 Hooks.getSingleton().register('afterCopyLimit');
 Hooks.getSingleton().register('modifyCopyableRange');
 Hooks.getSingleton().register('beforeCut');
@@ -243,17 +248,17 @@ export class CopyPaste extends BasePlugin {
 
     // Events are attached to the document, not the root table element - as it should,
     // for Chrome 133 and lower to copy/paste/cut work properly (#dev-2277).
-    this.eventManager.addEventListener(this.hot.rootDocument as unknown as Element, 'copy', (...args: unknown[]) => (this.onCopy as Function)(...args));
-    this.eventManager.addEventListener(this.hot.rootDocument as unknown as Element, 'cut', (...args: unknown[]) => (this.onCut as Function)(...args));
-    this.eventManager.addEventListener(this.hot.rootDocument as unknown as Element, 'paste', (...args: unknown[]) => (this.onPaste as Function)(...args));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (e: Event) => this.onCopy(e as ClipboardEvent));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (e: Event) => this.onCut(e as ClipboardEvent));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (e: Event) => this.onPaste(e as ClipboardEvent));
 
     // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
     if (isSafari()) {
       this.eventManager.addEventListener(
-        this.hot.rootDocument.body, 'mouseenter', (...args: unknown[]) => (this.#onSafariMouseEnter as Function)(...args)
+        this.hot.rootDocument.body, 'mouseenter', this.#onSafariMouseEnter
       );
       this.eventManager.addEventListener(
-        this.hot.rootDocument.body, 'mouseleave', (...args: unknown[]) => (this.#onSafariMouseLeave as Function)(...args)
+        this.hot.rootDocument.body, 'mouseleave', this.#onSafariMouseLeave
       );
 
       this.addHook('afterSelection', () => this.#onSafariAfterSelection());
@@ -413,7 +418,7 @@ export class CopyPaste extends BasePlugin {
       pasteData.clipboardData.setData('text/html', pastableHtml);
     }
 
-    this.onPaste(pasteData as unknown as Record<string, unknown>);
+    this.onPaste(pasteData);
   }
 
   /**
@@ -747,8 +752,8 @@ export class CopyPaste extends BasePlugin {
    * @param {Event} event ClipboardEvent or pseudo ClipboardEvent, if paste was called manually.
    * @private
    */
-  onPaste(event: Record<string, unknown>) {
-    const eventTarget = (event as unknown as { composedPath?(): HTMLElement[] }).composedPath?.()[0] as HTMLElement | undefined;
+  onPaste(event: ClipboardEvent | PasteEvent) {
+    const eventTarget = event.composedPath()[0] as HTMLElement | undefined;
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
     const isHotInput = eventTarget?.hasAttribute('data-hot-input');
 
@@ -767,13 +772,13 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    (event as unknown as { preventDefault?(): void }).preventDefault?.();
+    event.preventDefault?.();
 
     let pastedData: unknown;
     let pastedSourceData: unknown;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      const clipboardData = event.clipboardData as DataTransfer;
+      const clipboardData = event.clipboardData;
       const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
 
       if (sourceDataHTML) {
@@ -782,15 +787,15 @@ export class CopyPaste extends BasePlugin {
         pastedSourceData = parsedSourceConfig.data;
       }
 
-      const rawTextHTML = clipboardData.getData('text/html');
+      const rawTextHTML = clipboardData.getData('text/html') ?? '';
       const customSanitizer = this.hot.getSettings().sanitizer;
-      const textHTML = (typeof customSanitizer === 'function'
+      const textHTML: string = typeof customSanitizer === 'function'
         ? (customSanitizer as (html: string, context: string) => string)(rawTextHTML, 'CopyPaste.paste')
         : sanitize(rawTextHTML, {
           ADD_TAGS: ['meta'],
           ADD_ATTR: ['content'],
           FORCE_BODY: true,
-        })) as unknown as string;
+        });
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
@@ -800,8 +805,8 @@ export class CopyPaste extends BasePlugin {
         pastedData = clipboardData.getData('text/plain');
       }
 
-    } else if (typeof ClipboardEvent === 'undefined' && typeof (this.hot.rootWindow as unknown as { clipboardData?: DataTransfer }).clipboardData !== 'undefined') {
-      pastedData = (this.hot.rootWindow as unknown as { clipboardData: DataTransfer }).clipboardData.getData('Text');
+    } else if (typeof ClipboardEvent === 'undefined' && typeof (this.hot.rootWindow as unknown as IEWindow).clipboardData !== 'undefined') {
+      pastedData = (this.hot.rootWindow as unknown as IEWindow).clipboardData.getData('Text');
     }
 
     if (typeof pastedData === 'string') {
@@ -857,7 +862,7 @@ export class CopyPaste extends BasePlugin {
       event.clipboardData.setData(SOURCE_DATA_HTML_MIME_TYPE, [META_HEAD, textSourceDataHTML].join(''));
 
     } else if (typeof ClipboardEvent === 'undefined') {
-      (this.hot.rootWindow as unknown as { clipboardData: DataTransfer }).clipboardData.setData('Text', textPlain);
+      (this.hot.rootWindow as unknown as IEWindow).clipboardData.setData('Text', textPlain);
     }
   }
 
@@ -869,26 +874,26 @@ export class CopyPaste extends BasePlugin {
   #onAfterContextMenuDefaultOptions(options: Record<string, any>) {
     (options.items as unknown[]).push(
       { name: '---------' },
-      copyItem(this as unknown as Record<string, Function>),
+      copyItem(this),
     );
 
     if (this.#enableCopyColumnHeaders) {
       (options.items as unknown[]).push(
-        copyWithColumnHeadersItem(this as unknown as Record<string, Function>),
+        copyWithColumnHeadersItem(this),
       );
     }
     if (this.#enableCopyColumnGroupHeaders) {
       (options.items as unknown[]).push(
-        copyWithColumnGroupHeadersItem(this as unknown as Record<string, Function>),
+        copyWithColumnGroupHeadersItem(this),
       );
     }
     if (this.#enableCopyColumnHeadersOnly) {
       (options.items as unknown[]).push(
-        copyColumnHeadersOnlyItem(this as unknown as Record<string, Function>),
+        copyColumnHeadersOnlyItem(this),
       );
     }
 
-    (options.items as unknown[]).push(cutItem(this as unknown as Record<string, Function>));
+    (options.items as unknown[]).push(cutItem(this));
   }
 
   /**

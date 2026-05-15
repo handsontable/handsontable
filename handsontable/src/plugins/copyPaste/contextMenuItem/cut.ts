@@ -4,7 +4,11 @@ import * as C from '../../../i18n/constants';
  * @param {CopyPaste} copyPastePlugin The plugin instance.
  * @returns {object}
  */
-export default function cutItem(copyPastePlugin: Record<string, Function>) {
+interface CopyPastePluginLike {
+  cut(): void;
+}
+
+export default function cutItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'cut',
     name() {
