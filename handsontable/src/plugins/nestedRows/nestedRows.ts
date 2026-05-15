@@ -366,7 +366,7 @@ export class NestedRows extends BasePlugin {
    * @returns {number}
    */
   #onModifyRowHeaderWidth(rowHeaderWidth: number) {
-    return Math.max(this.headersUI!.rowHeaderWidthCache as number, rowHeaderWidth);
+    return Math.max(this.headersUI!.rowHeaderWidthCache ?? 0, rowHeaderWidth);
   }
 
   /**

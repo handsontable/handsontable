@@ -1012,7 +1012,7 @@ export class Filters extends BasePlugin {
         });
 
         arrayEach(trimmedRows, (physicalRow) => {
-          this.filtersRowsMap.setValueAtIndex(physicalRow as number, true);
+          this.filtersRowsMap.setValueAtIndex(physicalRow, true);
         });
       }, true);
 

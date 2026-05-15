@@ -229,16 +229,16 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    this.pasteMode = (this.getSetting('pasteMode') as string) ?? this.pasteMode;
-    this.rowsLimit = isNaN(this.getSetting('rowsLimit') as number) ? this.rowsLimit : this.getSetting('rowsLimit') as number;
-    this.columnsLimit = isNaN(this.getSetting('columnsLimit') as number) ? this.columnsLimit : this.getSetting('columnsLimit') as number;
-    this.#enableCopyColumnHeaders = this.getSetting('copyColumnHeaders') as boolean;
-    this.#enableCopyColumnGroupHeaders = this.getSetting('copyColumnGroupHeaders') as boolean;
-    this.#enableCopyColumnHeadersOnly = this.getSetting('copyColumnHeadersOnly') as boolean;
-    this.uiContainer = (this.getSetting('uiContainer') as HTMLElement) ?? this.uiContainer;
+    this.pasteMode = this.getSetting<string>('pasteMode') ?? this.pasteMode;
+    this.rowsLimit = isNaN(this.getSetting<number>('rowsLimit')!) ? this.rowsLimit : this.getSetting<number>('rowsLimit')!;
+    this.columnsLimit = isNaN(this.getSetting<number>('columnsLimit')!) ? this.columnsLimit : this.getSetting<number>('columnsLimit')!;
+    this.#enableCopyColumnHeaders = this.getSetting<boolean>('copyColumnHeaders')!;
+    this.#enableCopyColumnGroupHeaders = this.getSetting<boolean>('copyColumnGroupHeaders')!;
+    this.#enableCopyColumnHeadersOnly = this.getSetting<boolean>('copyColumnHeadersOnly')!;
+    this.uiContainer = this.getSetting<HTMLElement>('uiContainer') ?? this.uiContainer;
 
     this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterSelection', (...args: unknown[]) => (this.#onAfterSelection as Function)(...args));
+    this.addHook('afterSelection', (fromRow: number, fromColumn: number, toRow: number, toColumn: number, preventScrolling: { value: boolean }) => this.#onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
     // Events are attached to the document, not the root table element - as it should,

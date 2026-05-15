@@ -179,29 +179,29 @@ export class NestedHeaders extends BasePlugin {
     }
 
     this.addHook('init', () => this.#onInit());
-    this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
-    this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
-    this.addHook('afterOnCellMouseDown', (...args: unknown[]) => (this.#onAfterOnCellMouseDown as Function)(...args));
-    this.addHook('beforeOnCellMouseOver', (...args: unknown[]) => (this.#onBeforeOnCellMouseOver as Function)(...args));
-    this.addHook('beforeOnCellMouseUp', (...args: unknown[]) => (this.#onBeforeOnCellMouseUp as Function)(...args));
-    this.addHook('beforeSelectionHighlightSet', (...args: unknown[]) => (this.#onBeforeSelectionHighlightSet as Function)(...args));
-    this.addHook('modifyTransformStart', (...args: unknown[]) => (this.#onModifyTransformStart as Function)(...args));
+    this.addHook('afterLoadData', (sourceData: unknown[], initialLoad: boolean) => this.#onAfterLoadData(sourceData, initialLoad));
+    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+    this.addHook('afterOnCellMouseDown', (event: MouseEvent, coords: { row: number, col: number, clone: () => any }) => this.#onAfterOnCellMouseDown(event, coords));
+    this.addHook('beforeOnCellMouseOver', (event: MouseEvent, coords: { row: number, col: number }, TD: HTMLElement, controller: { column: boolean, cell: boolean }) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseUp', () => this.#onBeforeOnCellMouseUp());
+    this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
+    this.addHook('modifyTransformStart', (delta: { row: number, col: number }) => this.#onModifyTransformStart(delta));
     this.addHook('afterSelection', () => this.#updateFocusHighlightPosition());
     this.addHook('afterSelectionFocusSet', () => this.#updateFocusHighlightPosition());
-    this.addHook('beforeViewportScrollHorizontally', (...args: unknown[]) => (this.#onBeforeViewportScrollHorizontally as Function)(...args));
+    this.addHook('beforeViewportScrollHorizontally', (visualColumn: number, snapping: { value: string }) => this.#onBeforeViewportScrollHorizontally(visualColumn, snapping));
     this.addHook('afterGetColumnHeaderRenderers', (array: unknown[]) => this.#onAfterGetColumnHeaderRenderers(array));
-    this.addHook('modifyColWidth', (...args: unknown[]) => (this.#onModifyColWidth as Function)(...args));
-    this.addHook('modifyColumnHeaderHeight', (...args: unknown[]) => (this.#onModifyColumnHeaderHeight as Function)(...args));
-    this.addHook('modifyColumnHeaderValue', (...args: unknown[]) => (this.#onModifyColumnHeaderValue as Function)(...args));
-    this.addHook('beforeHighlightingColumnHeader', (...args: unknown[]) => (this.#onBeforeHighlightingColumnHeader as Function)(...args));
-    this.addHook('beforeCopy', (...args: unknown[]) => (this.#onBeforeCopy as Function)(...args));
-    this.addHook('beforeSelectColumns', (...args: unknown[]) => (this.#onBeforeSelectColumns as Function)(...args));
+    this.addHook('modifyColWidth', (width: number, column: number) => this.#onModifyColWidth(width, column));
+    this.addHook('modifyColumnHeaderHeight', () => this.#onModifyColumnHeaderHeight());
+    this.addHook('modifyColumnHeaderValue', (value: string, visualColumnIndex: number, headerLevel: number) => this.#onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel));
+    this.addHook('beforeHighlightingColumnHeader', (visualColumn: number, headerLevel: number, highlightMeta: { columnCursor: number, selectionType: string, selectionWidth: number }) => this.#onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta));
+    this.addHook('beforeCopy', (data: unknown[][], copyableRanges: { startRow: number, startCol: number, endRow: number, endCol: number }[], extra: { columnHeadersCount: number }) => this.#onBeforeCopy(data, copyableRanges, extra));
+    this.addHook('beforeSelectColumns', (from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => any }) => this.#onBeforeSelectColumns(from, to, highlight));
     this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook(
       'afterViewportColumnCalculatorOverride',
-      (...args: unknown[]) => (this.#onAfterViewportColumnCalculatorOverride as Function)(...args)
+      (calc: { startColumn: number }) => this.#onAfterViewportColumnCalculatorOverride(calc)
     );
-    this.addHook('modifyFocusedElement', (...args: unknown[]) => (this.#onModifyFocusedElement as Function)(...args));
+    this.addHook('modifyFocusedElement', (row: number, column: number) => this.#onModifyFocusedElement(row, column));
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
@@ -417,7 +417,7 @@ export class NestedHeaders extends BasePlugin {
       (this.hot.view as any).appendColHeader(
         visualColumnIndex,
         TH,
-        (...args: unknown[]) => (this.getColumnHeaderValue as Function)(...args),
+        (colIndex: number, level: number) => this.getColumnHeaderValue(colIndex, level),
         headerLevel,
       );
 

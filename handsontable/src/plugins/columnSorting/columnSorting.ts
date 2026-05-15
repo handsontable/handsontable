@@ -192,11 +192,11 @@ export class ColumnSorting extends BasePlugin {
     this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
 
     this.addHook('afterGetColHeader', (column: number, TH: HTMLTableCellElement) => this.#onAfterGetColHeader(column, TH));
-    this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
+    this.addHook('beforeOnCellMouseDown', (event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown', (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.#loadOrSortBySettings());
-    this.addHook('afterLoadData', (...args: unknown[]) => this.#onAfterLoadData(...(args as [boolean])));
-    this.addHook('afterDataProviderFetch', (...args: unknown[]) => (this.#onAfterDataProviderFetch as Function)(...args), -1);
+    this.addHook('afterLoadData', (initialLoad: boolean) => this.#onAfterLoadData(initialLoad));
+    this.addHook('afterDataProviderFetch', (result: { columnSortConfig?: Record<string, unknown>[] }) => this.#onAfterDataProviderFetch(result), -1);
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {

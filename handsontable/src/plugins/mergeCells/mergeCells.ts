@@ -204,45 +204,45 @@ export class MergeCells extends BasePlugin {
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations(this as unknown as Record<string, unknown>);
 
-    this.addHook('afterInit', (...args: unknown[]) => (this.#onAfterInit as Function)(...args));
-    this.addHook('modifyTransformFocus', (...args: unknown[]) => (this.#onModifyTransformFocus as Function)(...args));
-    this.addHook('modifyTransformStart', (...args: unknown[]) => (this.#onModifyTransformStart as Function)(...args));
-    this.addHook('modifyTransformEnd', (...args: unknown[]) => (this.#onModifyTransformEnd as Function)(...args));
-    this.addHook('beforeSelectionHighlightSet', (...args: unknown[]) => (this.#onBeforeSelectionHighlightSet as Function)(...args));
-    this.addHook('beforeSetRangeStart', (...args: unknown[]) => (this.#onBeforeSetRangeStart as Function)(...args));
-    this.addHook('beforeSetRangeStartOnly', (...args: unknown[]) => (this.#onBeforeSetRangeStart as Function)(...args));
-    this.addHook('beforeSelectionFocusSet', (...args: unknown[]) => (this.#onBeforeSelectionFocusSet as Function)(...args));
-    this.addHook('afterSelectionFocusSet', (...args: unknown[]) => (this.#onAfterSelectionFocusSet as Function)(...args));
-    this.addHook('afterSelectionEnd', (...args: unknown[]) => (this.#onAfterSelectionEnd as Function)(...args));
-    this.addHook('modifyGetCellCoords', (...args: unknown[]) => (this.#onModifyGetCellCoords as Function)(...args));
-    this.addHook('modifyGetCoordsElement', (...args: unknown[]) => (this.#onModifyGetCellCoords as Function)(...args));
-    this.addHook('afterIsMultipleSelection', (...args: unknown[]) => (this.#onAfterIsMultipleSelection as Function)(...args));
-    this.addHook('afterRenderer', (...args: unknown[]) => (this.#cellRenderer.after as Function)(...args));
-    this.addHook('afterContextMenuDefaultOptions', (...args: unknown[]) => (this.#addMergeActionsToContextMenu as Function)(...args));
-    this.addHook('afterGetCellMeta', (...args: unknown[]) => (this.#onAfterGetCellMeta as Function)(...args));
+    this.addHook('afterInit', () => this.#onAfterInit());
+    this.addHook('modifyTransformFocus', (delta: { row: number, col: number }) => this.#onModifyTransformFocus(delta));
+    this.addHook('modifyTransformStart', (delta: { row: number, col: number }) => this.#onModifyTransformStart(delta));
+    this.addHook('modifyTransformEnd', (delta: { row: number, col: number }) => this.#onModifyTransformEnd(delta));
+    this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
+    this.addHook('beforeSetRangeStart', () => this.#onBeforeSetRangeStart());
+    this.addHook('beforeSetRangeStartOnly', () => this.#onBeforeSetRangeStart());
+    this.addHook('beforeSelectionFocusSet', () => this.#onBeforeSelectionFocusSet());
+    this.addHook('afterSelectionFocusSet', (row: number, column: number) => this.#onAfterSelectionFocusSet(row, column));
+    this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
+    this.addHook('modifyGetCellCoords', (row: number, column: number, topmost: boolean, source: string) => this.#onModifyGetCellCoords(row, column, topmost, source));
+    this.addHook('modifyGetCoordsElement', (row: number, column: number, topmost: boolean, source: string) => this.#onModifyGetCellCoords(row, column, topmost, source));
+    this.addHook('afterIsMultipleSelection', (isMultiple: boolean) => this.#onAfterIsMultipleSelection(isMultiple));
+    this.addHook('afterRenderer', (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
+    this.addHook('afterContextMenuDefaultOptions', (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
+    this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => this.#onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('afterViewportRowCalculatorOverride',
-      (...args: unknown[]) => (this.#onAfterViewportRowCalculatorOverride as Function)(...args));
+      (calc: { startRow: number, endRow: number }) => this.#onAfterViewportRowCalculatorOverride(calc));
     this.addHook('afterViewportColumnCalculatorOverride',
-      (...args: unknown[]) => (this.#onAfterViewportColumnCalculatorOverride as Function)(...args));
-    this.addHook('modifyAutofillRange', (...args: unknown[]) => (this.#onModifyAutofillRange as Function)(...args));
-    this.addHook('afterCreateCol', (...args: unknown[]) => (this.#onAfterCreateCol as Function)(...args));
-    this.addHook('afterRemoveCol', (...args: unknown[]) => (this.#onAfterRemoveCol as Function)(...args));
-    this.addHook('afterCreateRow', (...args: unknown[]) => (this.#onAfterCreateRow as Function)(...args));
-    this.addHook('afterRemoveRow', (...args: unknown[]) => (this.#onAfterRemoveRow as Function)(...args));
-    this.addHook('beforeColumnMove', (...args: unknown[]) => (this.#onBeforeColumnMove as Function)(...args));
-    this.addHook('afterColumnMove', (...args: unknown[]) => (this.#onAfterColumnMove as Function)(...args));
-    this.addHook('beforeRowMove', (...args: unknown[]) => (this.#onBeforeRowMove as Function)(...args));
-    this.addHook('afterRowMove', (...args: unknown[]) => (this.#onAfterRowMove as Function)(...args));
-    this.addHook('beforeColumnFreeze', (...args: unknown[]) => (this.#onBeforeColumnFreeze as Function)(...args));
-    this.addHook('afterColumnFreeze', (...args: unknown[]) => (this.#onAfterColumnFreeze as Function)(...args));
-    this.addHook('beforeColumnUnfreeze', (...args: unknown[]) => (this.#onBeforeColumnFreeze as Function)(...args));
-    this.addHook('afterColumnUnfreeze', (...args: unknown[]) => (this.#onAfterColumnFreeze as Function)(...args));
-    this.addHook('afterChange', (...args: unknown[]) => (this.#onAfterChange as Function)(...args));
-    this.addHook('beforeDrawBorders', (...args: unknown[]) => (this.#onBeforeDrawAreaBorders as Function)(...args));
-    this.addHook('afterDrawSelection', (...args: unknown[]) => (this.#onAfterDrawSelection as Function)(...args));
-    this.addHook('beforeRemoveCellClassNames', (...args: unknown[]) => (this.#onBeforeRemoveCellClassNames as Function)(...args));
-    this.addHook('beforeBeginEditing', (...args: unknown[]) => (this.#onBeforeBeginEditing as Function)(...args));
-    this.addHook('modifyRowHeightByOverlayName', (...args: unknown[]) => (this.#onModifyRowHeightByOverlayName as Function)(...args));
+      (calc: { startColumn: number, endColumn: number }) => this.#onAfterViewportColumnCalculatorOverride(calc));
+    this.addHook('modifyAutofillRange', (fullArea: number[], baseArea: number[]) => this.#onModifyAutofillRange(fullArea, baseArea));
+    this.addHook('afterCreateCol', (column: number, count: number) => this.#onAfterCreateCol(column, count));
+    this.addHook('afterRemoveCol', (column: number, count: number) => this.#onAfterRemoveCol(column, count));
+    this.addHook('afterCreateRow', (row: number, count: number, source: string) => this.#onAfterCreateRow(row, count, source));
+    this.addHook('afterRemoveRow', (row: number, count: number) => this.#onAfterRemoveRow(row, count));
+    this.addHook('beforeColumnMove', (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean) => this.#onBeforeColumnMove(columns, finalIndex, dropIndex, movePossible));
+    this.addHook('afterColumnMove', (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) => this.#onAfterColumnMove(columns, finalIndex, dropIndex, movePossible, orderChanged));
+    this.addHook('beforeRowMove', (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean) => this.#onBeforeRowMove(rows, finalIndex, dropIndex, movePossible));
+    this.addHook('afterRowMove', (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) => this.#onAfterRowMove(rows, finalIndex, dropIndex, movePossible, orderChanged));
+    this.addHook('beforeColumnFreeze', (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
+    this.addHook('afterColumnFreeze', (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
+    this.addHook('beforeColumnUnfreeze', (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
+    this.addHook('afterColumnUnfreeze', (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
+    this.addHook('afterChange', (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
+    this.addHook('beforeDrawBorders', (corners: number[], className: string) => this.#onBeforeDrawAreaBorders(corners, className));
+    this.addHook('afterDrawSelection', (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined) => this.#onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel));
+    this.addHook('beforeRemoveCellClassNames', () => this.#onBeforeRemoveCellClassNames());
+    this.addHook('beforeBeginEditing', (row: number, column: number, initialValue: string | null, event: MouseEvent | KeyboardEvent) => this.#onBeforeBeginEditing(row, column, initialValue, event));
+    this.addHook('modifyRowHeightByOverlayName', (height: number, row: number, overlayType: string) => this.#onModifyRowHeightByOverlayName(height, row, overlayType));
     this.addHook('beforeUndoStackChange', (action: unknown, source: unknown) => {
       if (source === 'MergeCells') {
         return false;
@@ -379,7 +379,7 @@ export class MergeCells extends BasePlugin {
    * @private
    */
   generateFromSettings() {
-    const validSettings = (this.getSetting('cells') as { row: number, col: number, rowspan: number, colspan: number }[])
+    const validSettings = this.getSetting<{ row: number, col: number, rowspan: number, colspan: number }[]>('cells')
       .filter((mergeCellInfo) => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
       .filterOverlappingMergeCells(validSettings);
