@@ -21,3 +21,28 @@ export function mergeEntriesWithHighlights(autoEntries, highlightFiles) {
     };
   });
 }
+
+export function buildReleaseSummaries(autoEntries, currentVersion) {
+  const seen = new Map();
+  for (const entry of autoEntries) {
+    if (!entry.version.endsWith('.0')) continue;
+    const [major, minor] = entry.version.split('.').map(Number);
+    const key = `${major}.${minor}`;
+    if (!seen.has(key)) {
+      seen.set(key, {
+        version: key,
+        releaseDate: entry.releaseDate,
+        major,
+        minor,
+      });
+    }
+  }
+
+  const currentMinor = currentVersion
+    ? currentVersion.split('.').slice(0, 2).join('.')
+    : null;
+
+  return Array.from(seen.values())
+    .sort((a, b) => (b.major - a.major) || (b.minor - a.minor))
+    .map((r) => ({ ...r, isCurrent: r.version === currentMinor }));
+}
