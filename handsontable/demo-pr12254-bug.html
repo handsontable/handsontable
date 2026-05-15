@@ -39,7 +39,7 @@
     .metric-value.ok  { color: #2e7d32; }
     .metric-value.neutral { color: #555; }
     .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
-    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 130px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 140px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
     #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
     .entry { padding: 1px 0; }
     .entry-bug  { color: #b71c1c; }
@@ -59,47 +59,47 @@
 
   <div class="info info-bug">
     <strong>BUG present (v17.0.1).</strong>
-    The <code>isEmptyRow</code> implementation treats only <code>null</code>, <code>''</code>, and
-    <code>undefined</code> as empty. When <code>dataSchema: { name: '', active: false }</code> is used
-    with a checkbox column, newly-added spare rows have <code>active: false</code> — which is the
-    schema default but is <em>not</em> treated as empty. So <code>minSpareRows</code> always sees
-    0 spare rows and keeps appending new rows on every user interaction.
+    <code>isEmptyRow</code> only treats <code>null</code>, <code>''</code>, and <code>undefined</code>
+    as empty. With <code>dataSchema: { name: '', active: false }</code>, newly-added spare rows have
+    <code>active: false</code> — which is the schema default but fails the empty check.
+    <code>minSpareRows</code> always sees 0 spare rows and keeps appending rows on every render.
+    The demo stops automatically at 12 rows to prevent a browser hang.
   </div>
 
   <div class="hint">
     <strong>How to observe the bug:</strong>
     <ol>
-      <li>Click <strong>"Add a data row via API"</strong> to trigger a change — watch the row count increase by more than 1 (spare row cascade).</li>
-      <li>Or click directly in the <strong>Active</strong> checkbox in the grid — each click adds extra rows.</li>
-      <li>Watch the <strong>Rows added by afterCreateRow</strong> counter — it keeps climbing.</li>
-      <li>Compare with the <a href="demo-pr12254-fix.html">PR #12254 Fix</a> or <a href="demo-pr12255-fix.html">PR #12255 Fix</a> page where the count stabilizes.</li>
+      <li>Click <strong>"Enable minSpareRows: 1 and trigger"</strong>.</li>
+      <li>Watch the row count shoot up to 12 (stopped by a safeguard). In a real app this would grow until the tab crashes.</li>
+      <li>The <code>afterCreateRow</code> log shows multiple events fired in a single render cycle.</li>
+      <li>Compare with the <a href="demo-pr12254-fix.html">PR #12254 Fix</a> page where the count stabilizes at 3.</li>
     </ol>
   </div>
 
   <div class="controls">
-    <button class="btn btn-run" id="btn-add">Add a data row via API (triggers minSpareRows check)</button>
-    <button class="btn btn-reset" id="btn-reset">Reset (re-init grid)</button>
+    <button class="btn btn-run" id="btn-trigger">Enable minSpareRows: 1 and trigger change</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
   </div>
 
   <div class="metrics">
     <div class="metric">
       <div class="metric-label">Total rows</div>
       <div class="metric-value bad" id="m-rows">—</div>
-      <div class="metric-sub">Should stabilize at initial + 1 spare</div>
+      <div class="metric-sub">Expected: 3 (2 data + 1 spare) — BUG: grows to 12+</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Rows added (afterCreateRow)</div>
+      <div class="metric-label">afterCreateRow fires</div>
       <div class="metric-value bad" id="m-created">0</div>
-      <div class="metric-sub">Each interaction — BUG: keeps growing</div>
+      <div class="metric-sub">Expected: 1 — BUG: fires many times</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Expected spare rows</div>
+      <div class="metric-label">minSpareRows setting</div>
       <div class="metric-value neutral">1</div>
-      <div class="metric-sub">minSpareRows setting value</div>
+      <div class="metric-sub">One spare row is all that should be added</div>
     </div>
   </div>
 
-  <div id="log"><strong>afterCreateRow events:</strong><div id="entries">(interact with the grid to see events)</div></div>
+  <div id="log"><strong>afterCreateRow events:</strong><div id="entries">(click the button to start)</div></div>
 
   <div id="hot-container"></div>
 
@@ -107,6 +107,7 @@
   <script>
     let hotInstance = null;
     let createCount = 0;
+    let safeguardActive = false;
 
     function addLog(msg, cls) {
       const el = document.getElementById('entries');
@@ -115,16 +116,17 @@
       d.className = 'entry ' + (cls || '');
       d.textContent = new Date().toLocaleTimeString('en', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }) + '  ' + msg;
       el.prepend(d);
-      while (el.children.length > 40) el.removeChild(el.lastChild);
+      while (el.children.length > 60) el.removeChild(el.lastChild);
     }
 
     function initHot() {
       if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
       createCount = 0;
+      safeguardActive = false;
       document.getElementById('m-created').textContent = '0';
-      document.getElementById('m-rows').textContent = '—';
-      document.getElementById('entries').textContent = '(interact with the grid to see events)';
+      document.getElementById('entries').textContent = '(click the button to start)';
 
+      // Initialize WITHOUT minSpareRows to avoid the cascade at page load
       hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
         data: [
           { name: 'Alice', active: true },
@@ -138,28 +140,39 @@
         ],
         rowHeaders: true,
         width: '100%',
-        height: 280,
+        height: 300,
         themeName: 'ht-theme-main',
         licenseKey: 'non-commercial-and-evaluation',
-        minSpareRows: 1,
 
         afterCreateRow(index, amount) {
           createCount += amount;
           document.getElementById('m-created').textContent = createCount;
           document.getElementById('m-rows').textContent = hotInstance.countRows();
-          addLog('afterCreateRow: index=' + index + ' amount=' + amount + ' totalRows=' + hotInstance.countRows() + (createCount > 3 ? ' ⚠ GROWING!' : ''), 'entry-bug');
+
+          const rows = hotInstance.countRows();
+          addLog('afterCreateRow index=' + index + ' amount=' + amount + ' → totalRows=' + rows + ' ⚠', 'entry-bug');
+
+          // Safeguard: stop cascade above 12 rows to prevent browser hang
+          if (rows > 12 && !safeguardActive) {
+            safeguardActive = true;
+            hotInstance.updateSettings({ minSpareRows: 0 });
+            addLog('SAFEGUARD: stopped at ' + rows + ' rows — bug demonstrated. In a real app rows would grow until tab crashes.', 'entry-bug');
+          }
         },
         afterRender() {
-          document.getElementById('m-rows').textContent = hotInstance ? hotInstance.countRows() : '—';
+          if (hotInstance) document.getElementById('m-rows').textContent = hotInstance.countRows();
         },
       });
 
       document.getElementById('m-rows').textContent = hotInstance.countRows();
     }
 
-    document.getElementById('btn-add').addEventListener('click', () => {
-      addLog('--- adding a data row via setDataAtCell ---', 'entry-info');
-      hotInstance.setDataAtCell(0, 0, 'Alice (updated)');
+    document.getElementById('btn-trigger').addEventListener('click', () => {
+      safeguardActive = false;
+      addLog('--- enabling minSpareRows: 1 and triggering a cell change ---', 'entry-info');
+      // Enable minSpareRows — this triggers the bug because existing spare rows have active: false
+      hotInstance.updateSettings({ minSpareRows: 1 });
+      hotInstance.setDataAtCell(0, 0, 'Alice (changed)');
     });
 
     document.getElementById('btn-reset').addEventListener('click', initHot);
