@@ -3206,7 +3206,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     if (tableMeta.getValue) {
       if (isFunction(tableMeta.getValue)) {
-        return (tableMeta.getValue as Function).call(instance);
+        return tableMeta.getValue.call(instance);
 
       } else if (activeSelection) {
         return instance.getData()[activeSelection.highlight.row][tableMeta.getValue as string];
@@ -4345,7 +4345,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       let index = 0;
 
       for (; index < columnsLen; index++) {
-        if (isFunction(columns) && (columns as Function)(index)) {
+        if (isFunction(columns) && columns(index)) {
           arr.push(index);
         }
       }
@@ -4359,9 +4359,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     if (tableMeta.colHeaders === false) {
       result = null;
 
-    } else if (columns && isFunction(columns) && (columns as Function)(prop) &&
-               (columns as Function)(prop).title) {
-      result = (columns as Function)(prop).title;
+    } else if (columns && isFunction(columns) && columns(prop) &&
+               (columns(prop) as Record<string, unknown>).title) {
+      result = (columns(prop) as Record<string, unknown>).title;
 
     } else if (columns && !isFunction(columns) && (columns as Record<string, unknown>[])[physicalColumn] &&
                (columns as Record<string, unknown>[])[physicalColumn].title) {

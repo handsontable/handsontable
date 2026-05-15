@@ -7,7 +7,7 @@ import { isDefined } from './mixed';
  * @param {*} func Variable to check.
  * @returns {boolean}
  */
-export function isFunction(func: unknown): boolean {
+export function isFunction<T>(func: T): func is T & ((...args: unknown[]) => unknown) {
   return typeof func === 'function';
 }
 

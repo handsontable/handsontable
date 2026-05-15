@@ -11,7 +11,7 @@ export function getValueSetterValue(value: unknown, cellMeta: Record<string, unk
   const { instance, visualRow, visualCol, valueSetter } = cellMeta;
 
   if (isFunction(valueSetter)) {
-    return (valueSetter as Function).call(instance, value, visualRow, visualCol, cellMeta);
+    return valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
   }
 
   return value;
@@ -28,7 +28,7 @@ export function getValueGetterValue(value: unknown, cellMeta: Record<string, unk
   const { instance, visualRow, visualCol, valueGetter } = cellMeta;
 
   if (isFunction(valueGetter)) {
-    return (valueGetter as Function).call(instance, value, visualRow, visualCol, cellMeta);
+    return valueGetter.call(instance, value, visualRow, visualCol, cellMeta);
   }
 
   return value;

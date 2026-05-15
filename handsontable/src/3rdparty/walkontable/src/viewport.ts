@@ -94,7 +94,7 @@ class Viewport {
      * @type {PositionCache}
      */
     this.rowHeightCache = new PositionCache({
-      totalItemsFn: () => wtSettings.getSetting('totalRows') as number,
+      totalItemsFn: () => wtSettings.getSetting<number>('totalRows'),
       sizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
       defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
     });
@@ -105,7 +105,7 @@ class Viewport {
      * @type {PositionCache}
      */
     this.columnWidthCache = new PositionCache({
-      totalItemsFn: () => wtSettings.getSetting('totalColumns') as number,
+      totalItemsFn: () => wtSettings.getSetting<number>('totalColumns'),
       sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
     });
@@ -177,7 +177,7 @@ class Viewport {
     let width;
 
     if (trimmingContainer === rootWindow) {
-      const totalColumns = this.wtSettings.getSetting('totalColumns') as number;
+      const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
 
       width = this.wtTable.holder.offsetWidth;
 
@@ -344,8 +344,8 @@ class Viewport {
       }
     }
 
-    this.rowHeaderWidth = (this.wtSettings
-      .getSetting('onModifyRowHeaderWidth', this.rowHeaderWidth) as number) || this.rowHeaderWidth;
+    this.rowHeaderWidth = this.wtSettings
+      .getSetting<number>('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
 
     return this.rowHeaderWidth;
   }
@@ -361,7 +361,7 @@ class Viewport {
    */
   createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
-    const totalRows = wtSettings.getSetting('totalRows') as number;
+    const totalRows = wtSettings.getSetting<number>('totalRows');
 
     let height = this.getViewportHeight();
     let scrollbarHeight;
@@ -371,8 +371,8 @@ class Viewport {
 
     let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
 
-    const fixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
-    const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom') as number;
+    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+    const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
 
     if (fixedRowsTop && pos >= 0) {
       fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
@@ -414,14 +414,14 @@ class Viewport {
    */
   createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
-    const totalColumns = wtSettings.getSetting('totalColumns') as number;
+    const totalColumns = wtSettings.getSetting<number>('totalColumns');
 
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
 
     this.columnHeaderHeight = NaN;
 
-    const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart') as number;
+    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
 
     if (fixedColumnsStart && pos >= 0) {
       const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
@@ -546,12 +546,12 @@ class Viewport {
       rowEndOffset,
     } = this.rowsRenderCalculator;
 
-    const totalRows = (this.wtSettings.getSetting('totalRows') as number) - 1;
+    const totalRows = this.wtSettings.getSetting<number>('totalRows') - 1;
     const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
 
-    if (Number.isInteger(renderingThreshold) && (renderingThreshold as number) > 0) {
-      startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold as number));
-      endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold as number));
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold));
+      endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold));
 
     } else if (renderingThreshold === 'auto') {
       startRow = Math.max(0, startRow - Math.ceil(rowStartOffset / 2));
@@ -612,12 +612,12 @@ class Viewport {
       columnEndOffset,
     } = this.columnsRenderCalculator;
 
-    const totalColumns = (this.wtSettings.getSetting('totalColumns') as number) - 1;
+    const totalColumns = this.wtSettings.getSetting<number>('totalColumns') - 1;
     const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');
 
-    if (Number.isInteger(renderingThreshold) && (renderingThreshold as number) > 0) {
-      startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold as number));
-      endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold as number));
+    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+      startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold));
+      endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold));
 
     } else if (renderingThreshold === 'auto') {
       startColumn = Math.max(0, startColumn - Math.ceil(columnStartOffset / 2));

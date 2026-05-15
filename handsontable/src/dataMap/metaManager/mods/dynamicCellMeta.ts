@@ -70,7 +70,7 @@ export class DynamicCellMetaMod {
 
     // extend a `type` value, added or changed in the `beforeGetCellMeta` hook
     const cellType = hasOwnProperty(cellMeta, 'type') ? cellMeta.type : null;
-    let cellSettings = isFunction(cellMeta.cells) ? (cellMeta.cells as Function)(physicalRow, physicalColumn, prop) as Record<string, unknown> | null : null;
+    let cellSettings = isFunction(cellMeta.cells) ? cellMeta.cells(physicalRow, physicalColumn, prop) as Record<string, unknown> | null : null;
 
     if (cellType) {
       if (cellSettings) {

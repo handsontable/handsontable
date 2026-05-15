@@ -697,7 +697,7 @@ export class Menu {
 
     if (className) {
       if (isFunction(className)) {
-        className = (className as unknown as Function).call(this.hot);
+        className = className.call(this.hot);
 
         if (className === null || isUndefined(className)) {
           className = '';

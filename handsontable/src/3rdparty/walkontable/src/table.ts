@@ -1231,7 +1231,8 @@ class Table {
    * @returns {number}
    */
   _modifyRowHeaderWidth(rowHeaderWidthFactory: Function | unknown) {
-    let widths = isFunction(rowHeaderWidthFactory) ? (rowHeaderWidthFactory as Function)() : null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let widths = isFunction(rowHeaderWidthFactory) ? (rowHeaderWidthFactory as (...args: unknown[]) => any)() : null;
 
     if (Array.isArray(widths)) {
       widths = [...widths];
