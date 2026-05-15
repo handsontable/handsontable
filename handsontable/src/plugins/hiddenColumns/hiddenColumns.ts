@@ -346,7 +346,7 @@ export class HiddenColumns extends BasePlugin {
     if (isConfigValid) {
       this.hot.batchExecution(() => {
       arrayEach(columns, (visualColumn) => {
-        this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn as number), true);
+        this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
       });
       }, true);
     }
@@ -370,9 +370,9 @@ export class HiddenColumns extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenColumns(): number[] {
-    return arrayMap(this.#hiddenColumnsMap.getHiddenIndexes() as unknown[], (physicalColumnIndex) => {
-      return this.hot.toVisualColumn(physicalColumnIndex as number);
-    }) as number[];
+    return arrayMap(this.#hiddenColumnsMap.getHiddenIndexes(), (physicalColumnIndex) => {
+      return this.hot.toVisualColumn(physicalColumnIndex)!;
+    });
   }
 
   /**

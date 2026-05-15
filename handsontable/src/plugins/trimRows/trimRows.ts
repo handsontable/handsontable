@@ -213,7 +213,7 @@ export class TrimRows extends BasePlugin {
         this.trimmedRowsMap!.clear();
 
         arrayEach(trimmedRows, (physicalRow) => {
-          this.trimmedRowsMap!.setValueAtIndex(physicalRow as number, true);
+          this.trimmedRowsMap!.setValueAtIndex(physicalRow, true);
         });
       }, true);
     }
@@ -236,7 +236,7 @@ export class TrimRows extends BasePlugin {
    * @returns {Array} Physical rows.
    */
   getTrimmedRows(): number[] {
-    return this.trimmedRowsMap!.getTrimmedIndexes() as number[];
+    return this.trimmedRowsMap!.getTrimmedIndexes();
   }
 
   /**
@@ -300,17 +300,17 @@ export class TrimRows extends BasePlugin {
     if (isValidConfig && isAnyRowUntrimmed) {
       // Preparing new values for trimming map.
       arrayEach(rows, (physicalRow) => {
-        trimmingMapValues[physicalRow as number] = false;
+        trimmingMapValues[physicalRow] = false;
       });
 
       // Preparing new trimming config.
-      destinationTrimConfig = arrayReduce(trimmingMapValues, (trimmedIndexes, isTrimmed, physicalIndex) => {
+      destinationTrimConfig = arrayReduce(trimmingMapValues, (trimmedIndexes: number[], isTrimmed, physicalIndex) => {
         if (isTrimmed) {
-          (trimmedIndexes as number[]).push(physicalIndex as number);
+          trimmedIndexes.push(physicalIndex);
         }
 
         return trimmedIndexes;
-      }, []) as number[];
+      }, []);
     }
 
     const allowUntrimRow = this.hot
@@ -376,7 +376,7 @@ export class TrimRows extends BasePlugin {
     if (Array.isArray(trimmedRows)) {
       this.hot.batchExecution(() => {
         arrayEach(trimmedRows, (physicalRow) => {
-          this.trimmedRowsMap!.setValueAtIndex(physicalRow as number, true);
+          this.trimmedRowsMap!.setValueAtIndex(physicalRow, true);
         });
       }, true);
     }

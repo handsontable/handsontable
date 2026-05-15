@@ -516,7 +516,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     } else if (action === 'expand') {
       destinationCollapsedColumns = arrayFilter(currentCollapsedColumns,
-        (index: unknown) => !affectedColumnsIndexes.includes(index as number)) as number[];
+        (index) => !affectedColumnsIndexes.includes(index));
     }
 
     const actionTranslator = actionDictionary.get(action);
@@ -537,9 +537,9 @@ export class CollapsibleColumns extends BasePlugin {
     }
 
     this.hot.batchExecution(() => {
-      arrayEach(affectedColumnsIndexes, (visualColumn: unknown) => {
+      arrayEach(affectedColumnsIndexes, (visualColumn) => {
         this.#collapsedColumnsMap
-          .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn as number), actionTranslator.hideColumn);
+          .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
     }, true);
 
@@ -579,7 +579,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @returns {number[]}
    */
   getCollapsedColumns(): number[] {
-    return this.#collapsedColumnsMap.getHiddenIndexes() as number[];
+    return this.#collapsedColumnsMap.getHiddenIndexes();
   }
 
   /**

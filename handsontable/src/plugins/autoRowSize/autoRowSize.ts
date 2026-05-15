@@ -298,10 +298,10 @@ export class AutoRowSize extends BasePlugin {
 
     this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
 
-    const samplingRatio = this.getSetting('samplingRatio');
+    const samplingRatio = this.getSetting<number | null>('samplingRatio');
 
-    if (samplingRatio && !isNaN(samplingRatio as number)) {
-      this.samplesGenerator.setSampleCount(parseInt(samplingRatio as string, 10));
+    if (samplingRatio && !isNaN(samplingRatio)) {
+      this.samplesGenerator.setSampleCount(samplingRatio);
     }
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
@@ -569,11 +569,11 @@ export class AutoRowSize extends BasePlugin {
       return defaultHeight;
     }
 
-    const cachedHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
+    const cachedHeight = this.rowHeightsMap.getValueAtIndex<number>(physicalRow);
     let height = defaultHeight;
 
-    if (cachedHeight !== null && (cachedHeight as number) > defaultHeight) {
-      height = cachedHeight as number;
+    if (cachedHeight !== null && cachedHeight > defaultHeight) {
+      height = cachedHeight;
 
       if (row === this.hot.view.getFirstRenderedVisibleRow()) {
         // add 1px border-top-width compensation for the first rendered row

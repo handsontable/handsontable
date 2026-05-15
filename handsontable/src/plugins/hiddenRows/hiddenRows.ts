@@ -342,7 +342,7 @@ export class HiddenRows extends BasePlugin {
     if (isConfigValid) {
       this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
-          this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow as number), true);
+          this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });
       }, true);
     }
@@ -366,9 +366,9 @@ export class HiddenRows extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenRows(): number[] {
-    return arrayMap(this.#hiddenRowsMap.getHiddenIndexes() as unknown[], (physicalRowIndex) => {
-      return this.hot.toVisualRow(physicalRowIndex as number);
-    }) as number[];
+    return arrayMap(this.#hiddenRowsMap.getHiddenIndexes(), (physicalRowIndex) => {
+      return this.hot.toVisualRow(physicalRowIndex)!;
+    });
   }
 
   /**
