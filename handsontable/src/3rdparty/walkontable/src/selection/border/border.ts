@@ -306,8 +306,8 @@ class Border {
     };
 
     objectEach(hitAreaStyle, (value: string, key: string) => {
-      (this.selectionHandles.styles.bottomHitArea as any)[key] = value;
-      (this.selectionHandles.styles.topHitArea as any)[key] = value;
+      (this.selectionHandles.styles.bottomHitArea as unknown as Record<string, string>)[key] = value;
+      (this.selectionHandles.styles.topHitArea as unknown as Record<string, string>)[key] = value;
     });
 
     const handleStyle: Record<string, string> = {
@@ -321,8 +321,8 @@ class Border {
     };
 
     objectEach(handleStyle, (value: string, key: string) => {
-      (this.selectionHandles.styles.bottom as any)[key] = value;
-      (this.selectionHandles.styles.top as any)[key] = value;
+      (this.selectionHandles.styles.bottom as unknown as Record<string, string>)[key] = value;
+      (this.selectionHandles.styles.top as unknown as Record<string, string>)[key] = value;
     });
   }
 
@@ -335,7 +335,7 @@ class Border {
    * @returns {boolean}
    */
   isSouthEastOfAreaSelection(row: number, col: number) {
-    const areaSelection = (this.wot.selectionManager as any).getAreaSelection();
+    const areaSelection = this.wot.selectionManager.getAreaSelection();
 
     if (!areaSelection) {
       return false;
@@ -526,7 +526,7 @@ class Border {
       let fromTH = null;
 
       if (modifiedValues) {
-        [fromTH, inlineStartPos, width] = modifiedValues as any;
+        [fromTH, inlineStartPos, width] = modifiedValues as [HTMLElement, number, number];
       }
 
       if (fromTH) {
@@ -543,7 +543,7 @@ class Border {
       let fromTH = null;
 
       if (modifiedValues) {
-        [fromTH, top, height] = modifiedValues as any;
+        [fromTH, top, height] = modifiedValues as [HTMLElement, number, number];
       }
 
       if (fromTH) {
@@ -614,7 +614,7 @@ class Border {
       this.cornerStyle.display = 'none';
 
       let trimmingContainer = getTrimmingContainer(wtTable.TABLE) as HTMLElement | Window;
-      const trimToWindow = (trimmingContainer as any) === rootWindow;
+      const trimToWindow = (trimmingContainer as unknown) === rootWindow;
 
       if (trimToWindow) {
         trimmingContainer = rootDocument.documentElement;
@@ -760,8 +760,8 @@ class Border {
       const endOffset = offset(endHeader);
 
       if (startHeader && endHeader) {
-        index = (startHeaderOffset as any)[dimensionProperty] - (containerOffset as any)[dimensionProperty] - 1;
-        dimension = (endOffset as any)[dimensionProperty] + dimensionFn(endHeader) - (startHeaderOffset as any)[dimensionProperty];
+        index = (startHeaderOffset as Record<string, number>)[dimensionProperty] - (containerOffset as Record<string, number>)[dimensionProperty] - 1;
+        dimension = (endOffset as Record<string, number>)[dimensionProperty] + dimensionFn(endHeader) - (startHeaderOffset as Record<string, number>)[dimensionProperty];
       }
 
       return [startHeader, index, dimension];
@@ -778,18 +778,19 @@ class Border {
    * @param {object} border The border object descriptor.
    */
   changeBorderStyle(borderElement: string, border: Record<string, unknown>) {
-    const style = (this as any)[borderElement].style;
+    const self = this as unknown as Record<string, HTMLElement>;
+    const style = self[borderElement].style;
     const borderStyle = border[borderElement] as Record<string, unknown>;
 
     if (!borderStyle || borderStyle.hide) {
-      addClass((this as any)[borderElement], 'hidden');
+      addClass(self[borderElement], 'hidden');
 
     } else {
-      if (hasClass((this as any)[borderElement], 'hidden')) {
-        removeClass((this as any)[borderElement], 'hidden');
+      if (hasClass(self[borderElement], 'hidden')) {
+        removeClass(self[borderElement], 'hidden');
       }
 
-      style.backgroundColor = borderStyle.color;
+      style.backgroundColor = borderStyle.color as string;
 
       if (borderElement === 'top' || borderElement === 'bottom') {
         style.height = `${borderStyle.width}px`;
@@ -812,7 +813,7 @@ class Border {
       width: 1,
       color: '#000',
     };
-    const style = (this as any)[position].style;
+    const style = (this as unknown as Record<string, HTMLElement>)[position].style;
 
     style.backgroundColor = defaultBorder.color;
     style.width = `${defaultBorder.width}px`;
@@ -829,10 +830,12 @@ class Border {
   toggleHiddenClass(borderElement: string, remove: boolean) {
     this.changeBorderToDefaultStyle(borderElement);
 
+    const self = this as unknown as Record<string, HTMLElement>;
+
     if (remove) {
-      addClass((this as any)[borderElement], 'hidden');
+      addClass(self[borderElement], 'hidden');
     } else {
-      removeClass((this as any)[borderElement], 'hidden');
+      removeClass(self[borderElement], 'hidden');
     }
   }
 
