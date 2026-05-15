@@ -91,7 +91,7 @@ export class DialogUI {
    *
    * @type {Array<function(MouseEvent)>}
    */
-  #templateButtonCallbacks: Function[] = [];
+  #templateButtonCallbacks: EventListener[] = [];
   /**
    * Optional sanitizer for dialog content (from settings).
    */
@@ -122,7 +122,7 @@ export class DialogUI {
     }
 
     this.#template = TEMPLATES.get(templateName)(templateVars);
-    this.#templateButtonCallbacks = ((templateVars.buttons ?? []) as Array<Record<string, unknown>>).map((button) => button.callback as Function);
+    this.#templateButtonCallbacks = ((templateVars.buttons ?? []) as Array<Record<string, unknown>>).map((button) => button.callback as EventListener);
   }
 
   /**

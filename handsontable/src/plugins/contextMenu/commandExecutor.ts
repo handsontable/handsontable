@@ -94,7 +94,7 @@ export class CommandExecutor {
       callbacks.push(this.commonCallback);
     }
     params.unshift(commandSplit.join(':'));
-    arrayEach(callbacks, callback => (callback as Function).apply(this.hot, params));
+    arrayEach(callbacks, callback => callback.apply(this.hot, params));
   }
 }
 

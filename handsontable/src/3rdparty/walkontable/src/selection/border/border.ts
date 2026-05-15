@@ -747,7 +747,7 @@ class Border {
     }
 
     if (rootHotElement.classList.contains(entireSelectionClassname)) {
-      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as Function[]).length;
+      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[]).length;
 
       startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - headerIndex);
       endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - headerIndex);

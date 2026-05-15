@@ -368,7 +368,7 @@ export class BottomOverlay extends Overlay {
   adjustHeaderBordersPosition(position: number) {
     const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom') as number;
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
-    const columnHeaders = this.wtSettings.getSetting('columnHeaders') as Function[];
+    const columnHeaders = this.wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
     let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {

@@ -140,7 +140,7 @@ export class DragToScroll extends BasePlugin {
     this.addHook('beforeOnCellMouseDown',
       (event: Event, coords: unknown, TD: unknown, controller: unknown) => this.#setupListening('cell', event as MouseEvent, controller));
     this.addHook('afterOnCellCornerMouseDown', (event: Event) => this.#setupListening('corner', event as MouseEvent));
-    this.addHook('afterSelection', (...args: unknown[]) => (this.#onAfterSelection as Function)(...args));
+    this.addHook('afterSelection', (row: unknown, column: unknown, endRow: unknown, endColumn: unknown, preventScrolling: unknown) => this.#onAfterSelection(row, column, endRow, endColumn, preventScrolling));
     this.addHook('afterScroll', () => this.#onAfterScroll());
 
     this.registerEvents();

@@ -285,7 +285,7 @@ export class TopOverlay extends Overlay {
     const { wot, wtSettings } = this;
     const sourceInstance = wot.cloneSource ? wot.cloneSource : wot;
     const mainHolder = sourceInstance.wtTable.holder;
-    const columnHeaders = wtSettings.getSetting('columnHeaders') as Function[];
+    const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
     const columnHeaderBorderCompensation = (
       fixedRowsTop === 0 &&
@@ -408,7 +408,7 @@ export class TopOverlay extends Overlay {
     if (!skipInnerBorderAdjusting && !preventHorizontalOverflow) {
       const fixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
       const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
-      const columnHeaders = wtSettings.getSetting('columnHeaders') as Function[];
+      const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
 
       if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
         const previousState = hasClass(masterParent, 'innerBorderTop');

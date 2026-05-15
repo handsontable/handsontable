@@ -780,7 +780,7 @@ export class ColumnSorting extends BasePlugin {
     removeClass(headerSpanElement as HTMLElement, getClassesToRemove(headerSpanElement as HTMLElement));
 
     if (this.enabled !== false) {
-      addClass(headerSpanElement as HTMLElement, (getClassesToAdd as Function)(...args));
+      addClass(headerSpanElement as HTMLElement, (getClassesToAdd as (...a: unknown[]) => string[])(...args));
     }
   }
 

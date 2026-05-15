@@ -312,9 +312,9 @@ export class AutoColumnSize extends BasePlugin {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio as string, 10));
     }
 
-    this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
-    this.addHook('beforeChangeRender', (...args: unknown[]) => (this.#onBeforeChange as Function)(...args));
-    this.addHook('afterFormulasValuesUpdate', (...args: unknown[]) => (this.#onAfterFormulasValuesUpdate as Function)(...args));
+    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => this.#onAfterLoadData(sourceData, isFirstLoad));
+    this.addHook('beforeChangeRender', (changes: unknown[][][]) => this.#onBeforeChange(changes));
+    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => this.#onAfterFormulasValuesUpdate(changes));
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width));
     this.addHook('init', () => this.#onInit());

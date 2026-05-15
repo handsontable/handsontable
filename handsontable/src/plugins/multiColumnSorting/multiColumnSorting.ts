@@ -277,7 +277,7 @@ export class MultiColumnSorting extends ColumnSorting {
     removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
-      addClass(headerSpanElement, (getClassesToAdd as Function)(...args));
+      addClass(headerSpanElement, (getClassesToAdd as (...a: unknown[]) => string[])(...args));
     }
   }
 

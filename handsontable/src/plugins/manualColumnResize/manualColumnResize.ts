@@ -167,9 +167,9 @@ export class ManualColumnResize extends BasePlugin {
         this.hot.view?.invalidateColumnWidthCache();
       });
 
-    this.addHook('modifyColWidth', (...args: unknown[]) => (this.#onModifyColWidth as Function)(...args), 1);
-    this.addHook('beforeStretchingColumnWidth', (...args: unknown[]) => (this.#onBeforeStretchingColumnWidth as Function)(...args), 1);
-    this.addHook('beforeColumnResize', (...args: unknown[]) => (this.#onBeforeColumnResize as Function)(...args));
+    this.addHook('modifyColWidth', (width: number, column: number) => this.#onModifyColWidth(width, column), 1);
+    this.addHook('beforeStretchingColumnWidth', (stretchedWidth: number, column: number) => this.#onBeforeStretchingColumnWidth(stretchedWidth, column), 1);
+    this.addHook('beforeColumnResize', () => this.#onBeforeColumnResize());
 
     this.bindEvents();
 

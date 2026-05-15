@@ -11,7 +11,7 @@ export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
     return;
   }
 
-  (jQuery as Function & { fn: Record<string, unknown> }).fn.handsontable = function(action: unknown, ...args: unknown[]) {
+  (jQuery as ((...jqueryArgs: unknown[]) => unknown) & { fn: Record<string, unknown> }).fn.handsontable = function(action: unknown, ...args: unknown[]) {
     const $this = this.first(); // Use only first element from list
     let instance = $this.data('handsontable');
 

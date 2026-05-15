@@ -147,7 +147,7 @@ export class SelectEditor extends BaseEditor {
     let options;
 
     if (typeof selectOptions === 'function') {
-      options = this.prepareOptions((selectOptions as Function)(this.row, this.col, this.prop));
+      options = this.prepareOptions((selectOptions as (row: number, col: number, prop: string | number) => unknown)(this.row, this.col, this.prop));
     } else {
       options = this.prepareOptions(selectOptions);
     }

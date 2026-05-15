@@ -52,7 +52,7 @@ export function generateMatrix(headerRoots: TreeNode[]) {
         const isColumnHidden = crossHiddenColumns.includes(i);
 
         if (isColumnHidden || isRootSettingsFound) {
-          colspanHeaderLayer.push((createPlaceholderHeaderSettings as Function)(nodeData));
+          colspanHeaderLayer.push(createPlaceholderHeaderSettings());
         } else {
           const headerRootSettings = createHeaderSettings(nodeData);
 

@@ -18,7 +18,7 @@ export function getListWithInsertedItems(indexedValues: unknown[], insertionInde
     ...indexedValues.slice(0, firstInsertedIndex),
     ...insertedIndexes.map((insertedIndex: number, ordinalNumber: number) => {
       if (isFunction(insertedValuesMapping)) {
-        return (insertedValuesMapping as Function)(insertedIndex, ordinalNumber);
+        return (insertedValuesMapping as (insertedIndex: number, ordinalNumber: number) => unknown)(insertedIndex, ordinalNumber);
       }
 
       return insertedValuesMapping;

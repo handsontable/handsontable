@@ -279,7 +279,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.query = query;
 
     if (typeof source === 'function') {
-      (source as Function).call(this.cellProperties, query, (choices: unknown[]) => {
+      (source as (query: string, callback: (choices: unknown[]) => void) => void).call(this.cellProperties, query, (choices: unknown[]) => {
         this.rawChoices = choices;
         this.updateChoicesList(this.stripValuesIfNeeded(choices));
       });

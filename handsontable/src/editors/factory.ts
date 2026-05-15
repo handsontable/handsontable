@@ -59,7 +59,7 @@ const editorBaseFactory = <E>(params: EditorBaseFactoryParams<E>): typeof BaseEd
 
       proto[fnName] = function(this: E, ...args: unknown[]) {
         if (!skipSuperApply.includes(fnName)) {
-          (superFn as Function).apply(this, args);
+          superFn.apply(this, args);
         }
         return params[fnName](this, ...args);
       };

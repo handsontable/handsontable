@@ -258,7 +258,7 @@ export class InlineStartOverlay extends Overlay {
    */
   scrollTo(sourceCol: number, beyondRendered: boolean) {
     const { wtSettings } = this;
-    const rowHeaders = wtSettings.getSetting('rowHeaders') as Function[];
+    const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart') as number;
     const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     const mainHolder = sourceInstance.wtTable.holder;
@@ -368,7 +368,7 @@ export class InlineStartOverlay extends Overlay {
   adjustHeaderBordersPosition(position: number) {
     const { wtSettings } = this;
     const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
-    const rowHeaders = wtSettings.getSetting('rowHeaders') as Function[];
+    const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart') as number;
     const totalRows = wtSettings.getSetting('totalRows') as number;
     const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';

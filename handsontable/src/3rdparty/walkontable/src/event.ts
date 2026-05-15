@@ -786,7 +786,7 @@ class Event {
    * @param {HTMLElement} target Event target.
    */
   callListener(name: string, event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement) {
-    const listener = this.#wtSettings.getSettingPure(name) as Function;
+    const listener = this.#wtSettings.getSettingPure(name) as ((event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement, facade: unknown) => void) | undefined;
 
     if (listener) {
       listener(event, coords, target, this.#facadeGetter());

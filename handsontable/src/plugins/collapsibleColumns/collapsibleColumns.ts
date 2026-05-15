@@ -529,8 +529,8 @@ export class CollapsibleColumns extends BasePlugin {
 
     if (isActionAllowed === false) {
       // Rollback all header nodes modification (collapse or expand).
-      arrayEach(nodeModRollbacks, (nodeModRollback: unknown) => {
-        (nodeModRollback as Function)();
+      arrayEach(nodeModRollbacks, (nodeModRollback) => {
+        nodeModRollback();
       });
 
       return;

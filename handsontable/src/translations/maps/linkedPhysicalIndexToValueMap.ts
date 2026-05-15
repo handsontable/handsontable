@@ -79,7 +79,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
     this.orderOfIndexes = getListWithoutIndexes(this.orderOfIndexes, [physicalIndex]) as number[];
 
     if (isFunction(this.initValueOrFn)) {
-      super.setValueAtIndex(physicalIndex, (this.initValueOrFn as Function)(physicalIndex));
+      super.setValueAtIndex(physicalIndex, (this.initValueOrFn as (index: number) => unknown)(physicalIndex));
 
     } else {
       super.setValueAtIndex(physicalIndex, this.initValueOrFn);

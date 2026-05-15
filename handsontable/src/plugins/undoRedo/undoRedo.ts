@@ -95,7 +95,7 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    this.addHook('afterChange', (...args: unknown[]) => (this.#onAfterChange as Function)(...args));
+    this.addHook('afterChange', (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
     this.registerShortcuts();
 
     super.enablePlugin();

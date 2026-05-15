@@ -48,7 +48,7 @@ class Selection {
    */
   add(coords: CellCoords) {
     if (this.isEmpty()) {
-      this.cellRange = (this.settings.createCellRange as Function)(coords);
+      this.cellRange = (this.settings.createCellRange as (coords: CellCoords) => typeof this.cellRange)(coords);
 
     } else {
       this.cellRange.expand(coords);

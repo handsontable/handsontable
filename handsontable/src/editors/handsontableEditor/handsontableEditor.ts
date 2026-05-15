@@ -173,7 +173,7 @@ export class HandsontableEditor extends TextEditor {
    * @param {*} event The keyboard event object.
    */
   beginEditing(newInitialValue?: unknown, event?: Event): void {
-    const onBeginEditing = this.hot.getSettings().onBeginEditing as Function | undefined;
+    const onBeginEditing = this.hot.getSettings().onBeginEditing as (() => boolean | undefined) | undefined;
 
     if (onBeginEditing && onBeginEditing() === false) {
       return;
