@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: xndxqkoc
 title: Column summary
 metaTitle: Column summary - JavaScript Data Grid | Handsontable
