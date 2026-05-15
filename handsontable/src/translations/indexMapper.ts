@@ -625,29 +625,29 @@ export class IndexMapper {
       movedIndexes = [movedIndexes];
     }
 
-    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex as number));
+    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
     const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
     // Removing moved indexes without re-indexing.
     const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes as number[]);
-    const notTrimmedNotMovedItems = (notMovedIndexes as number[]).filter(index => this.isTrimmed(index) === false);
+    const notTrimmedNotMovedItems = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
-    let destinationPosition = (notMovedIndexes as number[]).indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
+    let destinationPosition = notMovedIndexes.indexOf(notTrimmedNotMovedItems[notTrimmedNotMovedItems.length - 1]) + 1;
 
     // Otherwise, we find proper index for inserted item(s).
     if (finalIndex + movedIndexesLength < notTrimmedIndexesLength) {
       // Physical index at final index position.
       const physicalIndex = notTrimmedNotMovedItems[finalIndex];
 
-      destinationPosition = (notMovedIndexes as number[]).indexOf(physicalIndex);
+      destinationPosition = notMovedIndexes.indexOf(physicalIndex);
     }
 
     this.indexesChangeSource = 'move';
 
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes as number[], destinationPosition, physicalMovedIndexes as number[]));
+    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes as number[]));
 
     this.indexesChangeSource = undefined;
   }
@@ -865,7 +865,7 @@ export class IndexMapper {
     for (let renderableIndex = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
       // Can't use getRenderableFromVisualIndex here because we're building the cache here
       const physicalIndex = this.getPhysicalFromRenderableIndex(renderableIndex);
-      const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex as number);
+      const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex!);
 
       this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
     }

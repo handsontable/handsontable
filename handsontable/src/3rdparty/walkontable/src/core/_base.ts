@@ -159,10 +159,10 @@ export default class CoreAbstract {
       return this.wtTable.getCell(cellCoords);
     }
 
-    const totalRows = this.wtSettings.getSetting('totalRows') as number;
-    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop') as number;
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom') as number;
-    const fixedColumnsStart = this.wtSettings.getSetting('fixedColumnsStart') as number;
+    const totalRows = this.wtSettings.getSetting<number>('totalRows');
+    const fixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
+    const fixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
+    const fixedColumnsStart = this.wtSettings.getSetting<number>('fixedColumnsStart');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
       return this.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.getCell(cellCoords);
@@ -284,19 +284,19 @@ export default class CoreAbstract {
       },
       // TODO refactoring, consider about using injecting wtSettings into scroll (it'll enables remove dao layer)
       get totalRows() {
-        return wot.wtSettings.getSetting('totalRows') as number;
+        return wot.wtSettings.getSetting<number>('totalRows');
       },
       get totalColumns() {
-        return wot.wtSettings.getSetting('totalColumns') as number;
+        return wot.wtSettings.getSetting<number>('totalColumns');
       },
       get fixedRowsTop() {
-        return wot.wtSettings.getSetting('fixedRowsTop') as number;
+        return wot.wtSettings.getSetting<number>('fixedRowsTop');
       },
       get fixedRowsBottom() {
-        return wot.wtSettings.getSetting('fixedRowsBottom') as number;
+        return wot.wtSettings.getSetting<number>('fixedRowsBottom');
       },
       get fixedColumnsStart() {
-        return wot.wtSettings.getSetting('fixedColumnsStart') as number;
+        return wot.wtSettings.getSetting<number>('fixedColumnsStart');
       },
     } as unknown as ScrollDao;
   }
