@@ -14,6 +14,23 @@ import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
+import { loadVersionHighlights } from './version-highlights-loader.mjs';
+
+const VC_SCRIPT_PATTERN = /<script type="application\/json" id="version-comparison-data">[\s\S]*?<\/script>/;
+let _vcDataJsonCache = null;
+
+function getVersionComparisonDataJson() {
+  if (_vcDataJsonCache === null) {
+    _vcDataJsonCache = JSON.stringify(loadVersionHighlights()).replace(/</g, '\\u003c');
+  }
+  return _vcDataJsonCache;
+}
+
+function injectVersionComparisonData(body) {
+  if (!VC_SCRIPT_PATTERN.test(body)) return body;
+  const json = getVersionComparisonDataJson();
+  return body.replace(VC_SCRIPT_PATTERN, `<script type="application/json" id="version-comparison-data">${json}</script>`);
+}
 
 // Read the current handsontable library version for StackBlitz package.json.
 const _require = createRequire(import.meta.url);
@@ -407,7 +424,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v34';
+const LOADER_VERSION = 'v35';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -1311,7 +1328,11 @@ export function frameworkLoader({ contentDir }) {
           const exampleProcessedBody = await processExampleBlocks(filteredBody, contentDir);
 
           // 3. Apply remaining VuePress preprocessing
-          const processedBody = applyVuepressPreprocessing(exampleProcessedBody, prefix, contentDir);
+          const vuepressBody = applyVuepressPreprocessing(exampleProcessedBody, prefix, contentDir);
+
+          // 4. Inject version-comparison data into the empty JSON script tag
+          //    (only fires on the version-comparison page; cheap regex check).
+          const processedBody = injectVersionComparisonData(vuepressBody);
 
           // Make each framework entry unique; include LOADER_VERSION to bust
           // Astro's data store cache when the loader logic changes.
