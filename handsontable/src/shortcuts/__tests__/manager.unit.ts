@@ -1,7 +1,7 @@
 import { createShortcutManager } from '../manager';
 
 /**
- * @param {object} [overrides]
+ * @param {object} [overrides] - Optional overrides for the shortcut manager configuration.
  */
 function createTestManager(overrides = {}) {
   const manager = createShortcutManager({

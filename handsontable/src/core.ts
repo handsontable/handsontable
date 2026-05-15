@@ -798,7 +798,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
           // Calling the `insert_row_above` action adds a new row at the beginning of the data set.
           // eslint-disable-next-line no-param-reassign
-          const rowIndex = typeof index === 'number' ? index : (insertRowMode === 'below' ? numberOfSourceRows : 0);
+          const defaultRowIndex = insertRowMode === 'below' ? numberOfSourceRows : 0;
+          // eslint-disable-next-line no-param-reassign
+          const rowIndex = typeof index === 'number' ? index : defaultRowIndex;
 
           const {
             delta: rowDelta,
@@ -815,7 +817,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
           // Calling the `insert_col_start` action adds a new column to the left of the data set.
           // eslint-disable-next-line no-param-reassign
-          const colIndex = typeof index === 'number' ? index : (insertColumnMode === 'end' ? instance.countSourceCols() : 0);
+          const defaultColIndex = insertColumnMode === 'end' ? instance.countSourceCols() : 0;
+          // eslint-disable-next-line no-param-reassign
+          const colIndex = typeof index === 'number' ? index : defaultColIndex;
 
           const {
             delta: colDelta,
@@ -4764,8 +4768,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       return false;
     }
 
-    const rowNum = row == null || Number.isNaN(Number(row)) ? 0 : Number(row);
-    const col = column == null || (typeof column === 'number' && Number.isNaN(column)) ? 0 : column;
+    const rowNum = (row === null || row === undefined) || Number.isNaN(Number(row)) ? 0 : Number(row);
+    const col = (column === null || column === undefined) || (typeof column === 'number' && Number.isNaN(column)) ? 0 : column;
 
     const coords = [
       [

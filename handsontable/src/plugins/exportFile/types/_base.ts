@@ -38,8 +38,6 @@ class BaseType {
 
   /**
    * Performs the actual export and returns the data as a string or a Promise.
-   *
-   * @returns {string|Promise<unknown>}
    */
   export(): string | Promise<unknown> {
     throwWithCause('export() must be implemented by subclass');

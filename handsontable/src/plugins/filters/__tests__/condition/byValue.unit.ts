@@ -4,7 +4,7 @@ import { dateRowFactory } from '../helpers/utils';
 describe('Filters condition (`by_value`)', () => {
 
   /**
-   * @param items
+   * @param items - The list of allowed values to match against.
    */
   function assertion(items) {
     return function(value) {

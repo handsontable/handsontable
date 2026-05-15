@@ -490,7 +490,7 @@ export class Menu {
     const dataItem = this.hotMenu!.getSourceDataAtRow(row) as MenuItemConfig;
     const subMenu = new Menu(this.hot, {
       parent: this,
-      name: typeof dataItem.name === 'function' ? dataItem.name() : dataItem.name,
+      name: typeof dataItem.name === 'function' ? dataItem.name.call(this.hot) : dataItem.name,
       className: this.options.className,
       keepInViewport: true,
       container: this.options.container,

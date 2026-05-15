@@ -78,7 +78,7 @@ export class SelectEditor extends BaseEditor {
    * @param {*} value A new select's value.
    */
   setValue(value?: unknown): void {
-    this.select.value = value == null ? '' : String(value);
+    this.select.value = (value === null || value === undefined) ? '' : String(value);
   }
 
   /**

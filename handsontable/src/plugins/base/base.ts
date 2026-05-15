@@ -13,6 +13,7 @@ import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { getHardConflict } from './conflictRegistry';
 
+// eslint-disable-next-line no-spaced-func, func-call-spacing
 const DEPS_TYPE_CHECKERS = new Map<string, (name: string) => boolean>([
   ['plugin', hasPlugin],
   ['cell-type', hasCellType],
@@ -481,7 +482,6 @@ export class BasePlugin {
     if (!this.isEnabled) {
       return;
     }
-
 
     const relevantToSettings = this.#isRelevantToSettings(newSettings);
 

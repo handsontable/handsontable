@@ -1289,7 +1289,7 @@ class TableView {
         }
       },
       viewportRowCalculatorOverride: (calc: RowsCalculationType) => {
-        let viewportOffset: number | undefined = this.settings.viewportRowRenderingOffset === 'auto'
+        const viewportOffset: number | undefined = this.settings.viewportRowRenderingOffset === 'auto'
           ? 1
           : this.settings.viewportRowRenderingOffset;
 
@@ -1304,7 +1304,7 @@ class TableView {
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc: ColumnsCalculationType) => {
-        let viewportOffset: number | undefined = this.settings.viewportColumnRenderingOffset === 'auto'
+        const viewportOffset: number | undefined = this.settings.viewportColumnRenderingOffset === 'auto'
           ? 1
           : this.settings.viewportColumnRenderingOffset;
 
@@ -1525,7 +1525,13 @@ class TableView {
           this.hot.getColumnMeta(visualColumnIndex).headerClassName :
           null;
 
-      return metaHeaderClassNames ? [(metaHeaderClassNames as string | string[])].flat() : [];
+      if (!metaHeaderClassNames) {
+        return [];
+      }
+
+      const classes = Array.isArray(metaHeaderClassNames) ? metaHeaderClassNames : (metaHeaderClassNames as string).split(' ');
+
+      return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);
     };
 
     if (TH.firstChild) {

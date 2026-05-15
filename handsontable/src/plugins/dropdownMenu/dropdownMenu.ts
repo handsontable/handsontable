@@ -243,6 +243,7 @@ export class DropdownMenu extends BasePlugin {
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => {
         const cmd = command as Record<string, unknown>;
+
         this.commandExecutor.registerCommand(
           cmd.key as string,
           command as Parameters<CommandExecutor['registerCommand']>[1]
@@ -503,6 +504,7 @@ export class DropdownMenu extends BasePlugin {
   setListening(listen = true) {
     if (this.menu.isOpened()) {
       const hotMenu = this.menu.hotMenu as { listen(): void; unlisten(): void };
+
       if (listen) {
         hotMenu.listen();
       } else {
@@ -535,6 +537,7 @@ export class DropdownMenu extends BasePlugin {
    */
   #adjustPositionForTheme(position: Record<string, number>, menuOpensOnLeft?: boolean): Record<string, number> {
     const themeName = this.hot.getCurrentThemeName?.();
+
     if (!themeName) {
       return position;
     }
@@ -549,9 +552,10 @@ export class DropdownMenu extends BasePlugin {
       return position;
     }
     // Horizon: RTL menu left alignment (e2e expects ~912; -4 matches).
-    const leftCorrection = this.hot.isLtr()
-      ? (menuOpensOnLeft ? -4 : 4)
-      : (menuOpensOnLeft ? 4 : -4);
+    const ltrCorrection = menuOpensOnLeft ? -4 : 4;
+    const rtlCorrection = menuOpensOnLeft ? 4 : -4;
+    const leftCorrection = this.hot.isLtr() ? ltrCorrection : rtlCorrection;
+
     return {
       top: position.top - 4,
       left: position.left + leftCorrection,
@@ -566,6 +570,7 @@ export class DropdownMenu extends BasePlugin {
    */
   #onTableClick(event: Event) {
     const target = eventTargetEl(event)!;
+
     if (hasClass(target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const buttonRect = this.#getButtonRect(target);

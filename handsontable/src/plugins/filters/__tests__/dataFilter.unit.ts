@@ -2,7 +2,7 @@ import DataFilter from 'handsontable/plugins/filters/dataFilter';
 
 describe('DataFilter', () => {
   /**
-   * @param column
+   * @param column - The column index used to select the mock data row.
    */
   function columnDataMock(column) {
     const data = [

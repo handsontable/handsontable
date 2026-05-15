@@ -140,6 +140,7 @@ export class DropdownController {
     }
 
     let sortedEntries: DropdownEntry[] = entries;
+
     if (this.#cache.sourceSortFunction) {
       sortedEntries = this.#cache.sourceSortFunction(entries.slice());
     }
@@ -152,6 +153,7 @@ export class DropdownController {
       const itemValue = typeof elem === 'object' && elem !== null && 'value' in elem
         ? (elem as { value?: string }).value
         : elem;
+
       this.#addDropdownItem({
         rootDocument: this.#rootDocument!,
         itemKey: typeof elem === 'object' && elem !== null && 'key' in elem ? elem.key : undefined,
@@ -236,9 +238,10 @@ export class DropdownController {
   }
 
   focusPreviousItem(): void {
-    if (!this.#dropdownListElement) return;
+    if (!this.#dropdownListElement) { return; }
     if (this.#cache.currentlySelectedItemIndex === 0) {
       this.focusSearchInput();
+
       return;
     }
     defocusItem({
@@ -249,7 +252,7 @@ export class DropdownController {
   }
 
   focusNextItem(): void {
-    if (!this.#dropdownListElement) return;
+    if (!this.#dropdownListElement) { return; }
     if (this.#cache.currentlySelectedItemIndex === this.#cache.entriesCount - 1) {
       return;
     }
@@ -287,8 +290,9 @@ export class DropdownController {
   }
 
   getHeight(maxRowsCalculation = false, outerWidth = false): number {
-    if (!this.#rootDocument || !this.#containerElement) return 0;
+    if (!this.#rootDocument || !this.#containerElement) { return 0; }
     const computedStyle = this.#rootDocument.defaultView!.getComputedStyle(this.#containerElement);
+
     return (
       this.#getListHeight(maxRowsCalculation) +
       this.#getSearchInputWrapperHeight() +
@@ -301,8 +305,8 @@ export class DropdownController {
   }
 
   removeAllDropdownItems(): void {
-    if (!this.#dropdownListElement) return;
-    Array.from(this.#dropdownListElement.children).forEach((itemElement) =>
+    if (!this.#dropdownListElement) { return; }
+    Array.from(this.#dropdownListElement.children).forEach(itemElement =>
       this.#unregisterEvents(itemElement as HTMLLIElement)
     );
     this.#cache.checkboxChangeListeners.clear();
@@ -311,6 +315,7 @@ export class DropdownController {
 
   disableCheckboxes(): void {
     this.#cache.areCheckboxesDisabled = true;
+
     if (this.#dropdownListElement) {
       disableUncheckedCheckboxes({ dropdownListElement: this.#dropdownListElement });
     }
@@ -318,6 +323,7 @@ export class DropdownController {
 
   enableCheckboxes(): void {
     this.#cache.areCheckboxesDisabled = false;
+
     if (this.#dropdownListElement) {
       enableAllCheckboxes({ dropdownListElement: this.#dropdownListElement });
     }
@@ -325,6 +331,7 @@ export class DropdownController {
 
   #focusItem(index: number): void {
     this.#cache.currentlySelectedItemIndex = index;
+
     if (this.#dropdownListElement) {
       focusItemAt({ dropdownListElement: this.#dropdownListElement, index });
     }
@@ -332,11 +339,12 @@ export class DropdownController {
 
   #requiresFlippingVertically(availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }): boolean {
     const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
+
     return this.getHeight(true) > spaceBelow && spaceAbove > spaceBelow + cellHeight;
   }
 
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
-    if (!this.#containerElement) return;
+    if (!this.#containerElement) { return; }
     const { cellHeight } = availableSpace;
     const flipNeeded = this.#cache.flippedVertically;
 
@@ -350,10 +358,11 @@ export class DropdownController {
   }
 
   #getEntryHeight(): number {
-    if (!this.#rootDocument || !this.#containerElement) return 0;
+    if (!this.#rootDocument || !this.#containerElement) { return 0; }
     const computedStyle = this.#rootDocument.defaultView!.getComputedStyle(this.#containerElement);
+
     return (
-      2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10) +
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
       parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10)
     );
   }
@@ -364,6 +373,7 @@ export class DropdownController {
       ? maxRenderedItems
       : this.#cache.actualRenderedItemsCount ?? maxRenderedItems;
     const entryHeight = this.#getEntryHeight();
+
     return actualRenderedItems * entryHeight;
   }
 
@@ -375,7 +385,8 @@ export class DropdownController {
     const searchInputWrapperHeight = this.#searchInputWrapper.offsetHeight;
     const separatorHeight =
       this.#separatorElement.offsetHeight +
-      2 * parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10);
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-vertical-padding'), 10));
+
     return searchInputWrapperHeight + separatorHeight;
   }
 
@@ -394,7 +405,7 @@ export class DropdownController {
     checked?: boolean;
     disabled?: boolean;
   }): void {
-    if (!this.#dropdownListElement || this.#instanceId === null) return;
+    if (!this.#dropdownListElement || this.#instanceId === null) { return; }
     const itemElement = createListItemElement({
       rootDocument,
       instanceId: this.#instanceId,
@@ -415,11 +426,13 @@ export class DropdownController {
 
   #registerEvents(itemElement: HTMLLIElement): void {
     const checkbox = getCheckboxElement(itemElement);
-    if (!checkbox || !this.#dropdownListElement) return;
+
+    if (!checkbox || !this.#dropdownListElement) { return; }
 
     const checkboxChangeListener = () => {
       if (checkbox.dataset.disabled === 'true' && checkbox.checked) {
         checkbox.checked = false;
+
         return;
       }
       if (checkbox.checked) {
@@ -433,6 +446,7 @@ export class DropdownController {
 
     const itemClickListener = (event: Event): void => {
       const target = eventTargetEl(event)!;
+
       if (
         target === checkbox ||
         checkbox.dataset.disabled === 'true' ||
@@ -454,8 +468,10 @@ export class DropdownController {
 
   #unregisterEvents(itemElement: HTMLLIElement): void {
     const checkbox = getCheckboxElement(itemElement);
-    if (!checkbox) return;
+
+    if (!checkbox) { return; }
     const checkboxListeners = this.#cache.checkboxChangeListeners.get(checkbox);
+
     if (checkboxListeners) {
       this.#eventManager.removeEventListener(checkbox, 'change', checkboxListeners.change);
       this.#eventManager.removeEventListener(itemElement, 'click', checkboxListeners.click);

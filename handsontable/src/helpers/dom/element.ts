@@ -490,7 +490,7 @@ export function empty(element: HTMLElement): void {
 }
 
 export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
-let dompurifyDeprecatedMessageShown = false;
+const dompurifyDeprecatedMessageShown = false;
 
 /**
  * Insert content into element trying to avoid innerHTML method.
@@ -502,23 +502,30 @@ let dompurifyDeprecatedMessageShown = false;
  */
 let fastInnerHTMLDeprecationWarned = false;
 
+/**
+ *
+ */
 export function fastInnerHTML(element: HTMLElement, content: string, sanitizer: boolean | ((html: string, context: string) => string) = true, context = 'innerHTML'): void {
   if (HTML_CHARACTERS.test(content)) {
-    const sanitized = typeof sanitizer === 'function'
-      ? sanitizer(content, context)
-      : sanitizer
-        ? (() => {
-          if (!fastInnerHTMLDeprecationWarned) {
-            fastInnerHTMLDeprecationWarned = true;
-            deprecatedWarn(
-              'The HTML sanitization using DOMPurify library is deprecated and will be removed in the next major release. Use the `sanitizer` option instead.\n\n' +
-              'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-              '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
-            );
-          }
-          return sanitize(content, undefined);
-        })()
-        : content;
+    let sanitized: string;
+
+    if (typeof sanitizer === 'function') {
+      sanitized = sanitizer(content, context);
+    } else if (sanitizer) {
+      if (!fastInnerHTMLDeprecationWarned) {
+        fastInnerHTMLDeprecationWarned = true;
+        deprecatedWarn(
+          'The HTML sanitization using DOMPurify library is deprecated and will be removed in the next major release. Use the `sanitizer` option instead.\n\n' +
+          'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
+          '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
+        );
+      }
+
+      sanitized = sanitize(content, undefined);
+    } else {
+      sanitized = content;
+    }
+
     element.innerHTML = sanitized;
   } else {
     fastInnerText(element, content);
@@ -1277,6 +1284,7 @@ export function makeElementContentEditableAndSelectItsContent(element: HTMLEleme
 
   if (ariaHidden) {
     const hiddenAttr = A11Y_HIDDEN();
+
     setAttribute(element, hiddenAttr[0], hiddenAttr[1]);
   }
 

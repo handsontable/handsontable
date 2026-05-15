@@ -56,7 +56,7 @@ export class DataChangeAction extends BaseAction {
 
       // Only record changes that were not nullified by other beforeChange hooks (e.g. user setting changes[i] = null).
       const effectiveChanges = (changes as (unknown[] | null)[]).filter(
-        (change): change is unknown[] => change != null && Array.isArray(change)
+        (change): change is unknown[] => change !== null && change !== undefined && Array.isArray(change)
       );
 
       if (effectiveChanges.length === 0) {
