@@ -81,7 +81,7 @@ class Scroll {
       return false;
     }
 
-    snapping = (snappingObject as any).value;
+    snapping = snappingObject.value as string;
 
     const {
       fixedColumnsStart,
@@ -137,7 +137,7 @@ class Scroll {
       return false;
     }
 
-    snapping = (snappingObject as any).value;
+    snapping = snappingObject.value as string;
 
     const {
       fixedRowsBottom,

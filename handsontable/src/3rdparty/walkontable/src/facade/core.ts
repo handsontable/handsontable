@@ -1,4 +1,5 @@
 import type CellCoords from '../cell/coords';
+import type { Overlay } from '../overlay/_base';
 import Walkontable from '../core/core';
 import CoreAbstract from '../core/_base';
 
@@ -30,7 +31,7 @@ export default class WalkontableFacade {
       return () => facade;
     };
 
-    this._wot = new Walkontable(settings.table, settings) as any;
+    this._wot = new Walkontable(settings.table, settings) as CoreAbstract & Record<string, any>;
   }
 
   get guid() {
@@ -151,7 +152,7 @@ export default class WalkontableFacade {
   }
 
   getOverlayName() {
-    return this._wot.cloneOverlay ? (this._wot.cloneOverlay as any).type : 'master';
+    return this._wot.cloneOverlay ? (this._wot.cloneOverlay as Overlay).type : 'master';
   }
 
   getOverlayByName(overlayName: string) {

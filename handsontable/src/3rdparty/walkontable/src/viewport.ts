@@ -2,7 +2,7 @@ import type { DataAccessObject, DomBindings, WalkontableInstance } from './types
 import type Settings from './settings';
 import type Table from './table';
 import type EventManager from '../../../eventManager';
-import type { ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
+import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
 import {
   getScrollbarWidth,
   offset,
@@ -394,7 +394,7 @@ class Viewport {
     }
 
     return new ViewportRowsCalculator({
-      calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]) as any,
+      calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
       viewportHeight: height,
       scrollOffset: pos,
       totalRows,
@@ -435,7 +435,7 @@ class Viewport {
     }
 
     return new ViewportColumnsCalculator({
-      calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]) as any,
+      calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns,

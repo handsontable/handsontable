@@ -300,7 +300,7 @@ export default class Settings {
    */
   getSettingPure<T = any>(key: string): T;
   getSettingPure(key: string) {
-    return (this.settings as any)[key];
+    return this.settings[key];
   }
 
   /**
@@ -310,6 +310,6 @@ export default class Settings {
    * @returns {boolean}
    */
   has(key: string) {
-    return !!(this.settings as any)[key];
+    return !!this.settings[key];
   }
 }

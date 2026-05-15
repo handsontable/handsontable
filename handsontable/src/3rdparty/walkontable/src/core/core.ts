@@ -6,6 +6,8 @@ import MasterTable from '../table/master';
 import Viewport from '../viewport';
 import CoreAbstract from './_base';
 import { SelectionManager } from '../selection/manager';
+import type { DataAccessObject, WalkontableInstance } from '../types';
+import type { Overlay } from '../overlay/_base';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
 
@@ -22,9 +24,9 @@ export default class Walkontable extends CoreAbstract {
 
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
-    this.wtTable = new MasterTable(this.getTableDao() as any, facadeGetter, this.domBindings, this.wtSettings);
+    this.wtTable = new MasterTable(this.getTableDao() as unknown as DataAccessObject, facadeGetter, this.domBindings, this.wtSettings);
     this.wtViewport = new Viewport(
-      this.getViewportDao() as any, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
+      this.getViewportDao() as unknown as DataAccessObject, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
     );
     this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
     this.wtEvent = new Event(
@@ -32,7 +34,7 @@ export default class Walkontable extends CoreAbstract {
     );
     this.wtOverlays = new Overlays(
       // TODO create DAO and remove reference to the Walkontable instance.
-      this as any, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
+      this as unknown as WalkontableInstance, facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable
     );
 
     this.exportSettingsAsClassNames();
@@ -74,7 +76,7 @@ export default class Walkontable extends CoreAbstract {
 
     const camelCaseOverlay = overlayName.replace(/_([a-z])/g, (_match: string, letter: string) => letter.toUpperCase());
 
-    return (this.wtOverlays as any)[`${camelCaseOverlay}Overlay`] ?? null;
+    return (this.wtOverlays as unknown as Record<string, Overlay | null>)[`${camelCaseOverlay}Overlay`] ?? null;
   }
 
   /**

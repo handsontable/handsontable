@@ -31,7 +31,7 @@ class MasterTable extends Table {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.domBindings;
 
-    if (trimmingElement === rootWindow as any) {
+    if ((trimmingElement as unknown) === rootWindow) {
       const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
       if (!preventOverflow) {
@@ -126,12 +126,12 @@ class MasterTable extends Table {
     const { wtSettings } = this;
     const { wtViewport } = this.dataAccessObject;
     const overlayName = 'master';
-    const columnHeaders = wtSettings.getSetting('columnHeaders');
-    const columnHeadersCount = (columnHeaders as any[]).length;
+    const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
+    const columnHeadersCount = columnHeaders.length;
 
     if (columnHeadersCount && !wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
-      const rowHeaders = wtSettings.getSetting('rowHeaders');
-      const rowHeaderCount = (rowHeaders as any[]).length;
+      const rowHeaders = wtSettings.getSetting<unknown[]>('rowHeaders');
+      const rowHeaderCount = rowHeaders.length;
       const columnCount = this.getRenderedColumnsCount();
 
       for (let i = 0; i < columnHeadersCount; i++) {
