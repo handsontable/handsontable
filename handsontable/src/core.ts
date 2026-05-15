@@ -47,6 +47,7 @@ import {
   CellRangeToRenderableMapper,
 } from './core/index';
 import type { HookCallback } from './core/hooks/bucket';
+import type { GridSettings } from './core/settings';
 import {
   FocusGridManager,
   createFocusScopeManager,
@@ -198,10 +199,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
 
-  const mergedUserSettings = {
+  const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
     ...userSettings,
-  };
+  } as GridSettings;
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -315,7 +316,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.executionSuspendedCounter = 0;
 
-  const layoutDirection = (mergedUserSettings?.layoutDirection ?? 'inherit') as string;
+  const layoutDirection = mergedUserSettings?.layoutDirection ?? 'inherit';
   const rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ?
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
 
@@ -397,7 +398,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.themeManager = null;
 
-  mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language as string);
+  mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language ?? '');
 
   const settingsWithoutHooks = Object.fromEntries(
     Object.entries(mergedUserSettings).filter(([key]) => {
@@ -1428,7 +1429,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey as string, this.rootWrapperElement, process.env.HOT_RELEASE_DATE);
+      _injectProductInfo(mergedUserSettings.licenseKey!, this.rootWrapperElement, process.env.HOT_RELEASE_DATE);
     }
 
     instance.runHooks('init');
@@ -2909,7 +2910,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @fires Hooks#afterCellMetaReset
    * @fires Hooks#afterUpdateSettings
    */
-  this.updateSettings = function(settings: Record<string, unknown>, init = false) {
+  this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
     let i;
     let j;
@@ -2936,10 +2937,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         // Do nothing. loadData and language change will be triggered later
 
       } else if (i === 'className') {
-        setClassName('className', settings.className as string);
+        setClassName('className', settings.className);
 
       } else if (i === 'tableClassName' && instance.table) {
-        setClassName('tableClassName', settings.tableClassName as string);
+        setClassName('tableClassName', settings.tableClassName);
 
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
@@ -3072,7 +3073,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     if (!firstRun && settings.language) {
-      setLanguage(settings.language as string);
+      setLanguage(settings.language);
     }
 
     const clen = instance.countCols();
@@ -3101,7 +3102,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     if (isDefined(settings.cell)) {
-      objectEach(settings.cell as Record<string, unknown>, (cell: Record<string, unknown>) => {
+      objectEach(settings.cell as unknown as Record<string, unknown>, (cell: Record<string, unknown>) => {
         instance.setCellMetaObject(cell.row, cell.col, cell);
       });
     }
@@ -3132,7 +3133,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     if (typeof settings.height !== 'undefined') {
       if (isFunction(height)) {
-        height = height();
+        height = (height as () => string | number)();
       }
 
       height = instance.runHooks('beforeHeightChange', height);
@@ -3158,7 +3159,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       let width = settings.width;
 
       if (isFunction(width)) {
-        width = width();
+        width = (width as () => string | number)();
       }
 
       width = instance.runHooks('beforeWidthChange', width);
