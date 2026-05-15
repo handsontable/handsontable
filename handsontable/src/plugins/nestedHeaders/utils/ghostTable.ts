@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../core/types';
+import type { GridSettings } from '../../../core/settings';
 
 
 /**
@@ -213,11 +214,11 @@ class GhostTable {
    * @param {boolean} hasCollapsedGroups Whether any collapsed groups exist.
    */
   #buildGhostTable(container: HTMLElement, hasCollapsedGroups: boolean) {
-    const settings = this.hot.getSettings();
-    const isDropdownEnabled = !!(settings as any).dropdownMenu;
-    const isCollapsibleEnabled = !!(settings as any).collapsibleColumns;
+    const settings = this.hot.getSettings() as GridSettings & { sanitizer?: (value: unknown, context: string) => string };
+    const isDropdownEnabled = !!settings.dropdownMenu;
+    const isCollapsibleEnabled = !!settings.collapsibleColumns;
     const maxColumnsCount = this.hot.countCols();
-    const sanitizer = (settings as any).sanitizer;
+    const sanitizer = settings.sanitizer;
 
     if (hasCollapsedGroups) {
       container.innerHTML = this.#buildFullColumnsTableHTML(

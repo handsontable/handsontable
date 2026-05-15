@@ -326,15 +326,15 @@ export class DragToScroll extends BasePlugin {
       const boundaries = (scrollHandler as HTMLElement).getBoundingClientRect();
 
       this.setBoundaries({
-        left: boundaries.left + (this.hot.view as any).getRowHeaderWidth(),
+        left: boundaries.left + this.hot.view.getRowHeaderWidth(),
         right: boundaries.right,
-        top: boundaries.top + (this.hot.view as any).getColumnHeaderHeight(),
+        top: boundaries.top + this.hot.view.getColumnHeaderHeight(),
         bottom: boundaries.bottom,
       });
     }
 
     this.setCallback((scrollX: number, scrollY: number) => {
-      const { selection } = this.hot as any;
+      const { selection } = this.hot;
 
       // Suppress the irrelevant scroll axis for header-based selections:
       // row header drags only need vertical scrolling, column header drags only horizontal.

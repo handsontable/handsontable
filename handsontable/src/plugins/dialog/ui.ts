@@ -242,7 +242,7 @@ export class DialogUI {
         A11Y_LABEL(typedA11y.ariaLabel),
       ]);
     } else {
-      removeAttribute(dialogElement, 'aria-label' as unknown as string);
+      removeAttribute(dialogElement, 'aria-label');
     }
 
     if (typedA11y.ariaLabelledby) {
@@ -250,7 +250,7 @@ export class DialogUI {
         A11Y_LABELED_BY(typedA11y.ariaLabelledby),
       ]);
     } else {
-      removeAttribute(dialogElement, 'aria-labelledby' as unknown as string);
+      removeAttribute(dialogElement, 'aria-labelledby');
     }
 
     if (typedA11y.ariaDescribedby) {
@@ -258,7 +258,7 @@ export class DialogUI {
         A11Y_DESCRIBED_BY(typedA11y.ariaDescribedby),
       ]);
     } else {
-      removeAttribute(dialogElement, 'aria-describedby' as unknown as string);
+      removeAttribute(dialogElement, 'aria-describedby');
     }
 
     // Dialog content class name
