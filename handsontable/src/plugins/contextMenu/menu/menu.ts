@@ -177,8 +177,10 @@ export class Menu {
 
     this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
       if (this.options.container !== this.hot.rootPortalElement) {
-        removeClass(this.options.container as HTMLElement, /ht-theme-.*/g);
-        addClass(this.options.container as HTMLElement, themeName);
+        const menuContainer = this.options.container as HTMLElement;
+
+        removeClass(menuContainer, /ht-theme-.*/g);
+        addClass(menuContainer, themeName);
       }
 
       if (!firstRun) {
@@ -693,7 +695,8 @@ export class Menu {
    * @returns {HTMLElement}
    */
   createContainer(name: string | null = null) {
-    const doc = (this.options.container as HTMLElement).ownerDocument;
+    const menuContainer = this.options.container as HTMLElement;
+    const doc = menuContainer.ownerDocument;
     let className = name;
     let container;
 
@@ -724,7 +727,7 @@ export class Menu {
         addClass(container, className);
       }
 
-      (this.options.container as HTMLElement).appendChild(container);
+      menuContainer.appendChild(container);
     }
 
     return container as HTMLElement;
