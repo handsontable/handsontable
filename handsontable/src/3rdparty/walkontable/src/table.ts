@@ -304,11 +304,13 @@ class Table {
         parent.insertBefore(holder, hider);
       }
       if (this.isMaster) {
-        (holder.parentNode as HTMLElement).className += 'ht_master handsontable';
-        (holder.parentNode as HTMLElement).setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
+        const holderParent = holder.parentNode as HTMLElement;
+
+        holderParent.className += 'ht_master handsontable';
+        holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
 
         if (this.wtSettings.getSetting('ariaTags')) {
-          setAttribute(holder.parentNode as HTMLElement, [
+          setAttribute(holderParent, [
             A11Y_PRESENTATION()
           ]);
         }
@@ -541,7 +543,9 @@ class Table {
         if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        (children[i].childNodes[0] as HTMLElement).style.height = `${oversizedColumnHeaders[i]}px`;
+        const firstChild = children[i].childNodes[0] as HTMLElement;
+
+        firstChild.style.height = `${oversizedColumnHeaders[i]}px`;
       }
     }
   }

@@ -228,10 +228,12 @@ export class TopOverlay extends Overlay {
     const selectionCornerOffset = this.wot.selectionManager
       .getFocusSelection() ? parseInt(cornerStyle.height as string, 10) / 2 : 0;
     this.clone.wtTable.hider.style.width = this.hider.style.width;
-    holder.style.width = (holder.parentNode as HTMLElement).style.width;
+    const holderParent = holder.parentNode as HTMLElement;
+
+    holder.style.width = holderParent.style.width;
     // Add selection corner protruding part to the holder total height to make sure that
     // borders' corner won't be cut after vertical scroll (#6937).
-    holder.style.height = `${parseInt((holder.parentNode as HTMLElement).style.height, 10) + selectionCornerOffset}px`;
+    holder.style.height = `${parseInt(holderParent.style.height, 10) + selectionCornerOffset}px`;
   }
 
   /**
@@ -391,14 +393,14 @@ export class TopOverlay extends Overlay {
    */
   adjustHeaderBordersPosition(position: number, skipInnerBorderAdjusting = false) {
     const { wtSettings } = this;
-    const masterParent = this.wot.wtTable.holder.parentNode;
+    const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
     const totalColumns = wtSettings.getSetting('totalColumns');
     const preventHorizontalOverflow = wtSettings.getSetting('preventOverflow') === 'horizontal';
 
     if (totalColumns) {
-      removeClass(masterParent as HTMLElement, 'emptyColumns');
+      removeClass(masterParent, 'emptyColumns');
     } else {
-      addClass(masterParent as HTMLElement, 'emptyColumns');
+      addClass(masterParent, 'emptyColumns');
     }
 
     let positionChanged = false;
@@ -409,15 +411,15 @@ export class TopOverlay extends Overlay {
       const columnHeaders = wtSettings.getSetting('columnHeaders') as Function[];
 
       if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
-        const previousState = hasClass(masterParent as HTMLElement, 'innerBorderTop');
+        const previousState = hasClass(masterParent, 'innerBorderTop');
 
         this.cachedFixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
 
         if (position || wtSettings.getSetting('totalRows') === 0) {
-          addClass(masterParent as HTMLElement, 'innerBorderTop');
+          addClass(masterParent, 'innerBorderTop');
           positionChanged = !previousState;
         } else {
-          removeClass(masterParent as HTMLElement, 'innerBorderTop');
+          removeClass(masterParent, 'innerBorderTop');
           positionChanged = previousState;
         }
       }

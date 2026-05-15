@@ -200,10 +200,12 @@ export class InlineStartOverlay extends Overlay {
     const selectionCornerOffset = this.wot.selectionManager
       .getFocusSelection() ? parseInt(cornerStyle.width as string, 10) / 2 : 0;
     this.clone.wtTable.hider.style.height = this.hider.style.height;
-    holder.style.height = (holder.parentNode as HTMLElement).style.height;
+    const holderParent = holder.parentNode as HTMLElement;
+
+    holder.style.height = holderParent.style.height;
     // Add selection corner protruding part to the holder total width to make sure that
     // borders' corner won't be cut after horizontal scroll (#6937).
-    holder.style.width = `${parseInt((holder.parentNode as HTMLElement).style.width, 10) + selectionCornerOffset}px`;
+    holder.style.width = `${parseInt(holderParent.style.width, 10) + selectionCornerOffset}px`;
   }
 
   /**
@@ -365,16 +367,16 @@ export class InlineStartOverlay extends Overlay {
    */
   adjustHeaderBordersPosition(position: number) {
     const { wtSettings } = this;
-    const masterParent = this.wot.wtTable.holder.parentNode;
+    const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as Function[];
     const fixedColumnsStart = wtSettings.getSetting('fixedColumnsStart') as number;
     const totalRows = wtSettings.getSetting('totalRows') as number;
     const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
 
     if (totalRows) {
-      removeClass(masterParent as HTMLElement, 'emptyRows');
+      removeClass(masterParent, 'emptyRows');
     } else {
-      addClass(masterParent as HTMLElement, 'emptyRows');
+      addClass(masterParent, 'emptyRows');
     }
 
     let positionChanged = false;
@@ -382,16 +384,16 @@ export class InlineStartOverlay extends Overlay {
     if (!preventVerticalOverflow) {
       if (fixedColumnsStart && !rowHeaders.length) {
         // "innerBorderLeft" is for backward compatibility
-        addClass(masterParent as HTMLElement, 'innerBorderLeft innerBorderInlineStart');
+        addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
 
       } else if (!fixedColumnsStart && rowHeaders.length) {
-        const previousState = hasClass(masterParent as HTMLElement, 'innerBorderInlineStart');
+        const previousState = hasClass(masterParent, 'innerBorderInlineStart');
 
         if (position) {
-          addClass(masterParent as HTMLElement, 'innerBorderLeft innerBorderInlineStart');
+          addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
           positionChanged = !previousState;
         } else {
-          removeClass(masterParent as HTMLElement, 'innerBorderLeft innerBorderInlineStart');
+          removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
           positionChanged = previousState;
         }
       }

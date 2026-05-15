@@ -235,8 +235,10 @@ export class BottomOverlay extends Overlay {
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
     this.clone.wtTable.hider.style.width = this.hider.style.width;
-    holder.style.width = (holder.parentNode as HTMLElement).style.width;
-    holder.style.height = (holder.parentNode as HTMLElement).style.height;
+    const holderParent = holder.parentNode as HTMLElement;
+
+    holder.style.width = holderParent.style.width;
+    holder.style.height = holderParent.style.height;
   }
 
   /**
@@ -370,16 +372,16 @@ export class BottomOverlay extends Overlay {
     let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
-      const masterParent = this.wot.wtTable.holder.parentNode;
-      const previousState = hasClass(masterParent as HTMLElement, 'innerBorderBottom');
+      const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
+      const previousState = hasClass(masterParent, 'innerBorderBottom');
 
       this.cachedFixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom') as number;
 
       if (position || this.wtSettings.getSetting('totalRows') === 0) {
-        addClass(masterParent as HTMLElement, 'innerBorderBottom');
+        addClass(masterParent, 'innerBorderBottom');
         positionChanged = !previousState;
       } else {
-        removeClass(masterParent as HTMLElement, 'innerBorderBottom');
+        removeClass(masterParent, 'innerBorderBottom');
         positionChanged = previousState;
       }
     }
