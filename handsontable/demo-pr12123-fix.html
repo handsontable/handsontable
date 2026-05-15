@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12123 — FIX (stretchH last respects minimum width)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .old { color: #f48771; text-decoration: line-through; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .slider-group { display: flex; flex-direction: column; gap: 4px; }
+    .slider-group label { font-size: 13px; color: #444; }
+    input[type=range] { width: 260px; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 140px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 28px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .container-wrapper { background: #fff; border: 2px solid #a5d6a7; border-radius: 6px; padding: 4px; margin-bottom: 14px; overflow: hidden; }
+    .container-wrapper .wrapper-label { font-size: 11px; color: #2e7d32; padding: 2px 6px; margin-bottom: 4px; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>PR #12123 - stretchH: 'last' respects minimum column width in narrow viewport</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12123-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12123 — local build).</strong>
+    <code>StretchLastStrategy.calculate()</code> now checks if the calculated width would be less
+    than the column's defined base width. When the viewport is too narrow, it calls
+    <code>this.stretchedWidths.clear()</code> and returns without applying any stretch — preserving
+    the last column's minimum width instead of shrinking it to 0px.
+  </div>
+
+  <pre><span class="comment">// strategies/last.js — CHANGED:</span>
+<span class="old">const lastColumnWidth = Math.max(viewportWidth - allColumnsWidth + lastColumnWidth, 0);</span>
+<span class="new">const lastColumnWidth = viewportWidth - allColumnsWidth + this.#lastColumnWidth;
+if (lastColumnWidth &lt; this.#lastColumnWidth) {
+  this.stretchedWidths.clear(); // don't shrink below defined width
+  return;
+}</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12123. No runtime patches needed.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Drag the container width slider left toward <strong>140px</strong>.</li>
+      <li>Column C width stays at <strong>100px</strong> (its defined width) even as the container narrows below 160px.</li>
+      <li>A horizontal scrollbar appears — the table is wider than the container — but all 3 columns remain visible and usable.</li>
+      <li>Compare with the <a href="demo-pr12123-bug.html">BUG page</a> where Column C collapses to 0px.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <div class="slider-group">
+      <label>Container width: <strong id="width-display">400px</strong></label>
+      <input type="range" id="width-slider" min="130" max="600" value="400">
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Column A width</div>
+      <div class="metric-value neutral" id="m-a">—</div>
+      <div class="metric-sub">Defined: 80px</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Column B width</div>
+      <div class="metric-value neutral" id="m-b">—</div>
+      <div class="metric-sub">Defined: 80px</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Column C width (last)</div>
+      <div class="metric-value ok" id="m-c">—</div>
+      <div class="metric-sub">Defined: 100px — fix: never shrinks below 100px</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Viewport width</div>
+      <div class="metric-value neutral" id="m-vp">—</div>
+      <div class="metric-sub">Available to Walkontable</div>
+    </div>
+  </div>
+
+  <div class="container-wrapper" id="container-wrapper" style="width:400px">
+    <div class="wrapper-label">Container (drag slider to resize) — Column C stays at 100px ✓</div>
+    <div id="hot-container"></div>
+  </div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    function readWidths() {
+      if (!hotInstance) return;
+      const a = hotInstance.getColWidth(0);
+      const b = hotInstance.getColWidth(1);
+      const c = hotInstance.getColWidth(2);
+
+      document.getElementById('m-a').textContent = a + 'px';
+      document.getElementById('m-b').textContent = b + 'px';
+
+      const mc = document.getElementById('m-c');
+      mc.textContent = c + 'px';
+      mc.className = 'metric-value ' + (c >= 100 ? 'ok' : 'bad');
+
+      try {
+        const vp = hotInstance.view._wt.wtViewport.getWorkspaceWidth();
+        document.getElementById('m-vp').textContent = Math.round(vp) + 'px';
+      } catch (e) { /* ignore */ }
+    }
+
+    hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(5, 3),
+      colHeaders: ['Column A', 'Column B', 'Column C (last)'],
+      rowHeaders: false,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      stretchH: 'last',
+      columns: [
+        { width: 80 },
+        { width: 80 },
+        { width: 100 },
+      ],
+      afterRender() { readWidths(); },
+    });
+
+    readWidths();
+
+    const slider = document.getElementById('width-slider');
+    const wrapper = document.getElementById('container-wrapper');
+    const display = document.getElementById('width-display');
+
+    slider.addEventListener('input', () => {
+      const w = parseInt(slider.value, 10);
+      display.textContent = w + 'px';
+      wrapper.style.width = w + 'px';
+      hotInstance.render();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12286 — BUG (columnHeaderHeight overrides content height)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-measure { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-measure:hover { background: #c62828; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 28px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .result-panel { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; display: none; }
+    .result-panel strong { display: block; margin-bottom: 6px; }
+    .r-bug { color: #b71c1c; font-weight: 700; }
+    .r-ok  { color: #2e7d32; }
+    /* Force wrapping headers for the demo */
+    #hot-container .colHeader { white-space: normal !important; word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1>PR #12286 - columnHeaderHeight overrides actual content height — overlay THEAD mismatch</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12286-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    <code>columnHeaderHeight: 30</code> is set, but header cells wrap their content to ~50px.
+    The master table's THEAD row grows to accommodate the wrapping content.
+    The overlay THEADs (inline-start, corner) do not — they stay at 30px. This creates a
+    height mismatch: the first data row is partially hidden behind the taller master header.
+    Click <strong>"Measure THEAD heights"</strong> to see the mismatch values.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Look at the grid — the <strong>row header column</strong> (left) has a shorter header row than the main column area. Row 1 appears cut off or partially hidden.</li>
+      <li>Click <strong>"Measure THEAD heights"</strong> — the master THEAD is taller than the overlay THEAD.</li>
+      <li>Compare with the <a href="demo-pr12286-fix.html">PR Fix page</a> where all THEADs match.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-measure" id="btn-measure">Measure THEAD heights</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Master THEAD height</div>
+      <div class="metric-value neutral" id="m-master">—</div>
+      <div class="metric-sub">Main table header row (grows with wrapping content)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Inline-start overlay THEAD height</div>
+      <div class="metric-value neutral" id="m-inline">—</div>
+      <div class="metric-sub">Row-header overlay header row (should match master)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Height mismatch</div>
+      <div class="metric-value neutral" id="m-diff">—</div>
+      <div class="metric-sub">Expected: 0px — BUG: non-zero means row 1 is partially hidden</div>
+    </div>
+  </div>
+
+  <div class="result-panel" id="result-panel">
+    <strong>Measurement result:</strong>
+    <div id="result-detail"></div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(10, 6),
+      colHeaders: [
+        'First Name and Last Name',
+        'Department and Team',
+        'Hire Date',
+        'Email Address',
+        'Phone Number',
+        'Status',
+      ],
+      rowHeaders: true,
+      width: '100%',
+      height: 320,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      fixedColumnsStart: 1,
+      columnHeaderHeight: 30,
+    });
+
+    document.getElementById('btn-measure').addEventListener('click', () => {
+      const root = hotInstance.rootElement;
+
+      const masterThead = root.querySelector('.ht_master .wtHolder thead');
+      const inlineThead = root.querySelector('.ht_clone_inline_start .wtHolder thead');
+
+      if (!masterThead || !inlineThead) {
+        alert('Could not find THEAD elements. Try after the grid has rendered.');
+        return;
+      }
+
+      const masterH = Math.round(masterThead.getBoundingClientRect().height);
+      const inlineH = Math.round(inlineThead.getBoundingClientRect().height);
+      const diff = masterH - inlineH;
+
+      document.getElementById('m-master').textContent = masterH + 'px';
+      document.getElementById('m-inline').textContent = inlineH + 'px';
+
+      const diffEl = document.getElementById('m-diff');
+      diffEl.textContent = (diff > 0 ? '+' : '') + diff + 'px';
+      diffEl.className = 'metric-value ' + (Math.abs(diff) > 1 ? 'bad' : 'ok');
+
+      const panel = document.getElementById('result-panel');
+      const detail = document.getElementById('result-detail');
+      panel.style.display = '';
+      const isBug = Math.abs(diff) > 1;
+      detail.innerHTML =
+        `<span class="${isBug ? 'r-bug' : 'r-ok'}">` +
+        `Master THEAD: <strong>${masterH}px</strong>, inline-start overlay THEAD: <strong>${inlineH}px</strong>. ` +
+        `Difference: <strong>${diff > 0 ? '+' : ''}${diff}px</strong>. ` +
+        `${isBug ? '⚠ BUG — overlays are shorter than master. Row 1 is partially hidden.' : '✓ Heights match.'}` +
+        `</span>`;
+    });
+  </script>
+</body>
+</html>
