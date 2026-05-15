@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { objectEach } from '../../helpers/object';
-import Endpoints from './endpoints';
+import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNullishOrNaN } from './utils';
 
@@ -187,7 +187,7 @@ export class ColumnSummary extends BasePlugin {
     }
 
     this.settings = this.hot.getSettings()[PLUGIN_KEY] as unknown as Record<string, unknown>;
-    this.endpoints = new Endpoints(this, this.settings as any);
+    this.endpoints = new Endpoints(this, this.settings as unknown as EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[]));
 
     this.addHook('afterInit', (...args: unknown[]) => (this.#onAfterInit as Function)(...args));
     this.addHook('afterChange', (...args: unknown[]) => (this.#onAfterChange as Function)(...args));
@@ -202,8 +202,8 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('beforeRemoveCol',
       (...args: unknown[]) => (this.endpoints!.resetSetupBeforeStructureAlteration as Function)('remove_col', ...args));
 
-    this.addHook('afterCreateRow', (index: number, amount: number, source: string) => this.endpoints!.resetSetupAfterStructureAlteration('insert_row', index, amount, null as any, source)); // eslint-disable-line max-len
-    this.addHook('afterCreateCol', (index: number, amount: number, source: string) => this.endpoints!.resetSetupAfterStructureAlteration('insert_col', index, amount, null as any, source)); // eslint-disable-line max-len
+    this.addHook('afterCreateRow', (index: number, amount: number, source: string) => this.endpoints!.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterCreateCol', (index: number, amount: number, source: string) => this.endpoints!.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('afterRemoveRow',
       (...args: unknown[]) => (this.endpoints!.resetSetupAfterStructureAlteration as Function)('remove_row', ...args));
     this.addHook('afterRemoveCol',

@@ -4,7 +4,7 @@ import { warn } from '../../helpers/console';
 import { roundFloat } from './utils';
 import type { ColumnSummary } from './columnSummary';
 
-interface EndpointConfig {
+export interface EndpointConfig {
   ranges?: number[][];
   reversedRowCoords?: boolean;
   destinationRow?: number;
@@ -52,7 +52,7 @@ class Endpoints {
    * @type {object|Function}
    * @default null
    */
-  declare settings: EndpointConfig[] | Function;
+  declare settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[]);
   /**
    * Settings type. Can be either 'array' or 'function'.
    *
@@ -74,9 +74,9 @@ class Endpoints {
    * @type {Array}
    * @default {[]}
    */
-  cellsToSetCache: unknown[][] = [];
+  cellsToSetCache: [number, number | undefined, unknown][] = [];
 
-  constructor(plugin: ColumnSummary, settings: EndpointConfig[] | Function) {
+  constructor(plugin: ColumnSummary, settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])) {
     this.plugin = plugin;
     this.hot = this.plugin.hot;
     this.settings = settings;
@@ -98,7 +98,7 @@ class Endpoints {
    */
   getEndpoint(index: number): EndpointConfig {
     if (this.settingsType === 'function') {
-      return this.fillMissingEndpointData(this.settings as Function)[index];
+      return this.fillMissingEndpointData(this.settings as (...args: unknown[]) => EndpointConfig[])[index];
     }
 
     return this.endpoints[index];
@@ -111,7 +111,7 @@ class Endpoints {
    */
   getAllEndpoints(): EndpointConfig[] {
     if (this.settingsType === 'function') {
-      return this.fillMissingEndpointData(this.settings as Function);
+      return this.fillMissingEndpointData(this.settings as (...args: unknown[]) => EndpointConfig[]);
     }
 
     return this.endpoints;
@@ -124,8 +124,8 @@ class Endpoints {
    * @param {Function} func Function provided in the HOT settings.
    * @returns {Array} An array of endpoints.
    */
-  fillMissingEndpointData(func: Function): EndpointConfig[] {
-    return this.parseSettings((func as Function).call(this)) as EndpointConfig[];
+  fillMissingEndpointData(func: (...args: unknown[]) => EndpointConfig[]): EndpointConfig[] {
+    return this.parseSettings(func.call(this)) as EndpointConfig[];
   }
 
   /**
@@ -258,7 +258,7 @@ class Endpoints {
    * @param {string} [source] Source of change.
    * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
    */
-  resetSetupAfterStructureAlteration(action: string, index: number, number: number, logicRows: number[], source: string, forceRefresh = true) {
+  resetSetupAfterStructureAlteration(action: string, index: number, number: number, logicRows: number[] | null | undefined, source: string, forceRefresh = true) {
     // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
     if (source === 'auto') {
       return;
@@ -461,7 +461,7 @@ class Endpoints {
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as any, 'ColumnSummary.reset' as any);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
     }
 
     this.cellsToSetCache = [];
@@ -481,7 +481,7 @@ class Endpoints {
     this.currentEndpoint = null;
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as any, 'ColumnSummary.reset' as any);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
     }
 
     this.cellsToSetCache = [];
@@ -516,7 +516,7 @@ class Endpoints {
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as any, 'ColumnSummary.reset' as any);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
     }
 
     this.cellsToSetCache = [];
@@ -543,7 +543,7 @@ class Endpoints {
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as any, 'ColumnSummary.reset' as any);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
     }
 
     this.cellsToSetCache = [];
