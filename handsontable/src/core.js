@@ -5194,7 +5194,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {BaseEditor | undefined} The active editor instance, or `undefined` if no cell is selected.
    */
   this.getActiveEditor = function() {
-    return editorManager.getActiveEditor();
+    // During the first `afterLoadData` hook (fired from `loadData` inside `init`),
+    // `editorManager` has not been assigned yet. Guard so callers (e.g.
+    // `setSourceDataAtCell`) invoked from that hook do not crash.
+    return editorManager?.getActiveEditor();
   };
 
   /**
