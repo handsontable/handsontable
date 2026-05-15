@@ -52,6 +52,17 @@ export function isInternalElement(element: HTMLElement, thisHotContainer: HTMLEl
 }
 
 /**
+ * Gets the event target element cast to the specified HTML element type.
+ * Centralizes the `event.target as HTMLElement` cast pattern.
+ *
+ * @param {Event} event The event.
+ * @returns {T|null} The target element or null.
+ */
+export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event): T | null {
+  return event.target as T | null;
+}
+
+/**
  * Gets `frameElement` of the specified frame. Returns null if it is a top frame or if script has no access to read property.
  *
  * @param {Window} frame Frame from which should be get frameElement in safe way.
@@ -90,7 +101,7 @@ export function hasAccessToParentWindow(frame: Window): boolean {
  * @param {Node} [until] The element until the traversing ends.
  * @returns {Node|null}
  */
-export function closest(element: HTMLElement, nodes: Array<string | HTMLElement> = [], until?: Node) {
+export function closest(element: HTMLElement, nodes: Array<string | HTMLElement> = [], until?: Node): HTMLElement | null {
   const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck: Node | null = element;
 
@@ -98,7 +109,7 @@ export function closest(element: HTMLElement, nodes: Array<string | HTMLElement>
     const { nodeType, nodeName } = elementToCheck;
 
     if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck as HTMLElement))) {
-      return elementToCheck;
+      return elementToCheck as HTMLElement;
     }
 
     const { host } = elementToCheck as ShadowRoot;
@@ -122,23 +133,23 @@ export function closest(element: HTMLElement, nodes: Array<string | HTMLElement>
  * @param {HTMLElement} [until] The list of elements until the traversing ends.
  * @returns {HTMLElement|null}
  */
-export function closestDown(element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement) {
-  const matched = [];
-  let elementToCheck: Node | null = element;
+export function closestDown(element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement | null {
+  const matched: HTMLElement[] = [];
+  let elementToCheck: HTMLElement | null = element as HTMLElement;
 
   while (elementToCheck) {
-    elementToCheck = closest(elementToCheck as HTMLElement, nodes, until);
+    elementToCheck = closest(elementToCheck, nodes, until);
 
     if (!elementToCheck || (until && !until.contains(elementToCheck))) {
       break;
     }
     matched.push(elementToCheck);
 
-    if ((elementToCheck as ShadowRoot).host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = (elementToCheck as ShadowRoot).host;
+    if ((elementToCheck as unknown as ShadowRoot).host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      elementToCheck = (elementToCheck as unknown as ShadowRoot).host as HTMLElement;
 
     } else {
-      elementToCheck = elementToCheck.parentNode;
+      elementToCheck = elementToCheck.parentNode as HTMLElement | null;
     }
   }
   const length = matched.length;
