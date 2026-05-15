@@ -374,7 +374,7 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    (this.hot.rowIndexMapper as import('../../translations').IndexMapper & { removeLocalHook: Function })
+    this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
 

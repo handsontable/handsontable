@@ -49,6 +49,7 @@ export class IndexMapper {
   // Mixin-injected properties/methods (added by `mixin(IndexMapper, localHooks)`)
   declare _localHooks: Record<string, Function[]>;
   declare addLocalHook: (key: string, callback: Function) => this;
+  declare removeLocalHook: (key: string, callback: Function) => this;
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
 
   /**

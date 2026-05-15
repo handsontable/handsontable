@@ -272,9 +272,9 @@ export class NestedHeaders extends BasePlugin {
   }
 
   disablePlugin() {
-    (this.hot.rowIndexMapper as any)
+    this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
-    (this.hot.columnIndexMapper as any)
+    this.hot.columnIndexMapper
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
     this.clearColspans();
