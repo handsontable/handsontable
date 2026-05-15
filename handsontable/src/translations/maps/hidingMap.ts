@@ -26,6 +26,6 @@ export class HidingMap extends PhysicalIndexToValueMap {
       }
 
       return indexesList;
-    }, [] as unknown as number[]);
+    }, [] as number[]);
   }
 }

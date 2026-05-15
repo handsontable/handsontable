@@ -26,6 +26,6 @@ export class TrimmingMap extends PhysicalIndexToValueMap {
       }
 
       return indexesList;
-    }, [] as unknown as number[]);
+    }, [] as number[]);
   }
 }

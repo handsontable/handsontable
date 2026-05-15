@@ -177,7 +177,7 @@ export class IndexMap {
   destroy(): void {
     this.clearLocalHooks();
 
-    this.indexedValues = null as unknown as unknown[];
+    this.indexedValues = [];
     this.initValueOrFn = null;
   }
 }
