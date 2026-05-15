@@ -92,6 +92,46 @@ function FilterTabs({ value, onChange }: FilterTabsProps) {
   );
 }
 
+interface StatCardsProps {
+  entries: VersionEntry[];
+  activeFilter: FilterKind;
+  onSelect: (filter: FilterKind) => void;
+}
+
+function StatCards({ entries, activeFilter, onSelect }: StatCardsProps) {
+  const counts: Record<Exclude<FilterKind, 'all'>, number> = {
+    breaking: 0, deprecated: 0, new: 0, fixed: 0,
+  };
+  for (const e of entries) {
+    if (matchesFilter(e, 'breaking')) counts.breaking += 1;
+    if (matchesFilter(e, 'deprecated')) counts.deprecated += 1;
+    if (matchesFilter(e, 'new')) counts.new += 1;
+    if (matchesFilter(e, 'fixed')) counts.fixed += 1;
+  }
+
+  const cards: { kind: Exclude<FilterKind, 'all'>; label: string }[] = [
+    { kind: 'breaking', label: 'Breaking changes' },
+    { kind: 'deprecated', label: 'Deprecations' },
+    { kind: 'new', label: 'New APIs' },
+    { kind: 'fixed', label: 'Fixes' },
+  ];
+
+  return (
+    <div className="vc-stat-cards">
+      {cards.map((c) => (
+        <button
+          key={c.kind}
+          className={`vc-stat-card vc-stat-${c.kind} ${activeFilter === c.kind ? 'is-active' : ''}`}
+          onClick={() => onSelect(c.kind)}
+        >
+          <span className="vc-stat-count">{counts[c.kind]}</span>
+          <span className="vc-stat-label">{c.label}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function VersionComparison() {
   const data = useMemo(() => readData(), []);
   const [{ from, to }, setRange] = useState(() => defaultRange(data.releases));
@@ -113,6 +153,7 @@ export function VersionComparison() {
         <VersionSelector label="From" value={from} releases={data.releases} onChange={(v) => setRange((s) => ({ ...s, from: v }))} />
         <VersionSelector label="To" value={to} releases={data.releases} onChange={(v) => setRange((s) => ({ ...s, to: v }))} />
       </div>
+      <StatCards entries={filtered} activeFilter={filter} onSelect={setFilter} />
       <FilterTabs value={filter} onChange={setFilter} />
       <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
     </div>
