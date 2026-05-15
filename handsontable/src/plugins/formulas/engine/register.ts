@@ -5,6 +5,8 @@ import { warn } from '../../../helpers/console';
 import { isObjectEqual } from '../../../helpers/object';
 import { PLUGIN_KEY } from '../formulas';
 import { DEFAULT_LICENSE_KEY, DEFAULT_SETTINGS, getEngineSettingsWithDefaultsAndOverrides } from './settings';
+import type { HyperFormulaEngine, HyperFormulaClass } from './types';
+import type { HotInstance } from '../../../core/types';
 
 /**
  * Prepares and returns the collection for the engine relationship with the HoT instances.
@@ -45,14 +47,18 @@ function getSharedEngineUsageRegistry() {
  * @param {Handsontable} hotInstance Handsontable instance.
  * @returns {null|object} Returns the engine instance if everything worked right and `null` otherwise.
  */
-export function setupEngine(hotInstance: Record<string, Function>) {
+export function setupEngine(hotInstance: HotInstance) {
   const hotSettings = hotInstance.getSettings();
   const pluginSettings = hotSettings[PLUGIN_KEY];
-  const engineConfigItem = pluginSettings?.engine;
 
-  if (pluginSettings === true) {
+  if (!pluginSettings || pluginSettings === true) {
     return null;
   }
+
+  // engineConfig may be an engine class, an engine instance, or { hyperformula: engineClass }
+  const engineConfigItem = pluginSettings?.engine as (HyperFormulaEngine & HyperFormulaClass & {
+    hyperformula?: HyperFormulaClass;
+  }) | undefined;
 
   if (isUndefined(engineConfigItem)) {
     return null;
@@ -87,7 +93,7 @@ export function setupEngine(hotInstance: Record<string, Function>) {
     }
 
     if (engineConfigItem.getConfig().leapYear1900 !== DEFAULT_SETTINGS.leapYear1900
-      || isObjectEqual(engineConfigItem.getConfig().nullDate, DEFAULT_SETTINGS.nullDate) === false) {
+      || isObjectEqual(engineConfigItem.getConfig().nullDate as object, DEFAULT_SETTINGS.nullDate) === false) {
       warn(toSingleLine`If you use HyperFormula with Handsontable, keep the default \`leapYear1900\` and \`nullDate\` 
       settings. Otherwise, HyperFormula's dates may not sync correctly with Handsontable's dates.`);
     }
@@ -106,7 +112,7 @@ export function setupEngine(hotInstance: Record<string, Function>) {
  * @param {Handsontable} hotInstance Handsontable instance.
  * @returns {object} Returns the engine instance.
  */
-export function registerEngine(engineClass: Record<string, Function>, hotSettings: Record<string, unknown>, hotInstance: Record<string, unknown>) {
+export function registerEngine(engineClass: HyperFormulaClass, hotSettings: Record<string, unknown>, hotInstance: HotInstance) {
   const pluginSettings = hotSettings[PLUGIN_KEY] as Record<string, unknown>;
   const engineSettings = getEngineSettingsWithDefaultsAndOverrides(hotSettings);
   const engineRegistry = getEngineRelationshipRegistry();
@@ -142,11 +148,11 @@ export function registerEngine(engineClass: Record<string, Function>, hotSetting
  * @param {object} engine The engine instance.
  * @returns {Map<number, Handsontable>} Returns Map with Handsontable instances.
  */
-export function getRegisteredHotInstances(engine: Record<string, unknown>) {
+export function getRegisteredHotInstances(engine: HyperFormulaEngine) {
   const engineRegistry = getEngineRelationshipRegistry();
   const hotInstances = engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
 
-  return new Map(hotInstances.map(hot => [(hot as Record<string, Function>).getPlugin('formulas').sheetId, hot]));
+  return new Map(hotInstances.map(hot => [(hot as HotInstance).getPlugin('formulas').sheetId, hot]));
 }
 
 /**
@@ -156,7 +162,7 @@ export function getRegisteredHotInstances(engine: Record<string, unknown>) {
  * @param {object} engine The engine instance.
  * @param {string} hotInstance The Handsontable instance.
  */
-export function unregisterEngine(engine: Record<string, Function>, hotInstance: Record<string, unknown>) {
+export function unregisterEngine(engine: HyperFormulaEngine, hotInstance: HotInstance) {
   if (engine) {
     const engineRegistry = getEngineRelationshipRegistry();
     const engineHotRelationship = engineRegistry.get(engine);
@@ -188,7 +194,7 @@ export function unregisterEngine(engine: Record<string, Function>, hotInstance: 
  * @param {Function} engineClass The engine class.
  * @param {Array} customFunctions The custom functions array.
  */
-export function registerCustomFunctions(engineClass: Record<string, Function>, customFunctions: unknown[]) {
+export function registerCustomFunctions(engineClass: HyperFormulaClass, customFunctions: unknown[]) {
   if (customFunctions) {
     customFunctions.forEach((func: Record<string, unknown>) => {
       const {
@@ -213,7 +219,7 @@ export function registerCustomFunctions(engineClass: Record<string, Function>, c
  * @param {Function} engineClass The engine class.
  * @param {object} languageSetting The engine's language object.
  */
-export function registerLanguage(engineClass: Record<string, Function>, languageSetting: Record<string, unknown>) {
+export function registerLanguage(engineClass: HyperFormulaClass, languageSetting: Record<string, unknown>) {
   if (languageSetting) {
     const {
       langCode,
@@ -234,7 +240,7 @@ export function registerLanguage(engineClass: Record<string, Function>, language
  * @param {object} engineInstance The engine instance.
  * @param {Array} namedExpressions Array of the named expressions to be registered.
  */
-export function registerNamedExpressions(engineInstance: Record<string, Function>, namedExpressions: unknown[]) {
+export function registerNamedExpressions(engineInstance: HyperFormulaEngine, namedExpressions: unknown[]) {
   if (namedExpressions) {
     engineInstance.suspendEvaluation();
 
@@ -265,7 +271,7 @@ export function registerNamedExpressions(engineInstance: Record<string, Function
  * @param {string} sheetName The new sheet name.
  * @returns {*}
  */
-export function setupSheet(engineInstance: Record<string, Function>, sheetName: string) {
+export function setupSheet(engineInstance: HyperFormulaEngine, sheetName: string) {
   if (isUndefined(sheetName) || !engineInstance.doesSheetExist(sheetName)) {
     sheetName = engineInstance.addSheet(sheetName);
   }

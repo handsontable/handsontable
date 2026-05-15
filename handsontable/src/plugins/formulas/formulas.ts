@@ -23,43 +23,7 @@ import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
 import type { HotInstance } from '../../core/types';
 import type AxisSyncer from './indexSyncer/axisSyncer';
-
-/**
- * Local interface describing the HyperFormula engine instance shape.
- */
-interface HyperFormulaEngine {
-  doesSheetExist(sheetName: string): boolean;
-  getSheetId(sheetName: string): number;
-  addSheet(sheetName?: string): string;
-  setSheetContent(sheetId: number | null, data: unknown[][]): unknown[];
-  getSheetSerialized(sheetId: number | null): unknown[][];
-  getSheetDimensions(sheetId: number): { width: number; height: number };
-  getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
-  doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
-  getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
-  getCellSerialized(address: { sheet: number | null; row: number; col: number }): unknown;
-  isItPossibleToSetCellContents(address: object): boolean;
-  setCellContents(address: { sheet: number | null; row: number; col: number }, value: unknown): unknown[];
-  isItPossibleToReplaceSheetContent(sheetId: number | null, data: unknown[][]): boolean;
-  isItPossibleToAddRows(sheetId: number | null, spec: [number, number]): boolean;
-  isItPossibleToAddColumns(sheetId: number | null, spec: [number, number]): boolean;
-  isItPossibleToRemoveRows(sheetId: number | null, spec: [number, number]): boolean;
-  isItPossibleToRemoveColumns(sheetId: number | null, spec: [number, number]): boolean;
-  addRows(sheetId: number | null, spec: [number, number]): unknown[];
-  addColumns(sheetId: number | null, spec: [number, number]): unknown[];
-  removeRows(sheetId: number | null, spec: [number, number]): void;
-  removeColumns(sheetId: number | null, spec: [number, number]): void;
-  getFillRangeData(sourceRange: object, targetRange: object): unknown[][];
-  batch(callback: () => void): unknown[];
-  getConfig(): Record<string, unknown>;
-  updateConfig(config: Record<string, unknown>): void;
-  on(eventName: string, listener: Function): void;
-  off(eventName: string, listener: Function): void;
-  undo(): void;
-  redo(): void;
-  destroy(): void;
-  [key: string]: unknown;
-}
+import type { HyperFormulaEngine } from './engine/types';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -211,7 +175,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.engine = setupEngine(this.hot as unknown as Record<string, Function>) ?? this.engine;
+    this.engine = setupEngine(this.hot) ?? this.engine;
 
     if (!this.engine) {
       warn('Missing the required `engine` key in the Formulas settings. Please fill it with either an' +
@@ -349,7 +313,7 @@ export class Formulas extends BasePlugin {
   disablePlugin() {
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.off(eventName, listener));
 
-    unregisterEngine(this.engine as unknown as Record<string, Function>, this.hot as unknown as Record<string, unknown>);
+    unregisterEngine(this.engine, this.hot);
 
     this.engine = null;
 
@@ -406,7 +370,7 @@ export class Formulas extends BasePlugin {
     this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
-    unregisterEngine(this.engine as unknown as Record<string, Function>, this.hot as unknown as Record<string, unknown>);
+    unregisterEngine(this.engine, this.hot);
 
     this.engine = null;
 
@@ -853,7 +817,7 @@ export class Formulas extends BasePlugin {
     this.#internalOperationPending = true;
     const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-    this.indexSyncer.setupSyncEndpoint(this.engine as unknown as Record<string, Function>, this.sheetId as unknown as string);
+    this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
     this.renderDependentSheets(dependentCells);
     this.#internalOperationPending = false;
   }
@@ -871,7 +835,7 @@ export class Formulas extends BasePlugin {
     }
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY] as { sheetName?: string; engine: unknown };
-    const sheetName = setupSheet(this.engine as unknown as Record<string, Function>, formulasSettings.sheetName) as string | boolean;
+    const sheetName = setupSheet(this.engine, formulasSettings.sheetName) as string | boolean;
 
     this.#updateSheetNameAndSheetId(sheetName);
 
@@ -888,7 +852,7 @@ export class Formulas extends BasePlugin {
 
         const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.indexSyncer.setupSyncEndpoint(this.engine as unknown as Record<string, Function>, this.sheetId as unknown as string);
+        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;

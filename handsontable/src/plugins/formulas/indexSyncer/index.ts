@@ -1,5 +1,6 @@
 import AxisSyncer from './axisSyncer';
 import { IndexMapper } from '../../../translations';
+import type { HyperFormulaEngine } from '../engine/types';
 
 /**
  * @private
@@ -52,14 +53,14 @@ class IndexSyncer {
    * @private
    * @type {HyperFormula|null}
    */
-  #engine: Record<string, Function> | null = null;
+  #engine: HyperFormulaEngine | null = null;
   /**
-   * HyperFormula's sheet name.
+   * HyperFormula's sheet id.
    *
    * @private
-   * @type {string|null}
+   * @type {number|null}
    */
-  #sheetId: string | null = null;
+  #sheetId: number | null = null;
 
   constructor(rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper, postponeAction: Function) {
     this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
@@ -112,7 +113,7 @@ class IndexSyncer {
   /**
    * Gets HyperFormula's sheet id.
    *
-   * @returns {string|null}
+   * @returns {number|null}
    */
   getSheetId() {
     return this.#sheetId;
@@ -142,7 +143,7 @@ class IndexSyncer {
    * @param {HyperFormula|null} engine The HF's engine instance which will be synced.
    * @param {string|null} sheetId HyperFormula's sheet name.
    */
-  setupSyncEndpoint(engine: Record<string, Function> | null, sheetId: string | null) {
+  setupSyncEndpoint(engine: HyperFormulaEngine | null, sheetId: number | null) {
     this.#engine = engine;
     this.#sheetId = sheetId;
 

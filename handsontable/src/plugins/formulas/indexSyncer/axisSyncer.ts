@@ -1,5 +1,6 @@
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
+import type { HyperFormulaEngine } from '../engine/types';
 
 interface AxisIndexMapper {
   getVisualFromPhysicalIndex(physicalIndex: number): number | null;
@@ -9,8 +10,8 @@ interface AxisIndexMapper {
 }
 
 interface ParentIndexSyncer {
-  getEngine(): Record<string, Function>;
-  getSheetId(): string | null;
+  getEngine(): HyperFormulaEngine | null;
+  getSheetId(): number | null;
   getPostponeAction(callback?: Function): Function;
   isPerformingUndoRedo(): boolean;
 }
