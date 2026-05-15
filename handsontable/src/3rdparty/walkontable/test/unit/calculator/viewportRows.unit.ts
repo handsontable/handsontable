@@ -6,10 +6,16 @@ import {
 } from '../../../src/calculator';
 import { PositionCache } from '../../../src/utils/positionCache';
 
+/**
+ *
+ */
 function allRows20() {
   return 20;
 }
 
+/**
+ *
+ */
 function createViewportRowsCalculator(options) {
   const {
     totalRows = 0,

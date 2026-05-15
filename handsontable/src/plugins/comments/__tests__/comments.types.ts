@@ -3,6 +3,7 @@ import Handsontable, { CellCoords } from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   comments: true,
 });
+
 new Handsontable(document.createElement('div'), {
   comments: {
     displayDelay: 100,

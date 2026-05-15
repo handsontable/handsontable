@@ -3,6 +3,9 @@ import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
 import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
 import { DifferBasedRendererAdapter } from 'walkontable/utils/orderView/rendererAdapter/differBasedRendererAdapter';
 
+/**
+ *
+ */
 function createOrderView() {
   const rootNode = document.createElement('tr');
   const nodeFactoryFunction = () => {};

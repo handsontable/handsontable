@@ -79,6 +79,7 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
       if (sourceDataWarningMessage) {
         const message = sourceDataWarningMessage;
         const list = invalidByMessageType.get(message) ?? [];
+
         list.push({ row, col, value, message });
         invalidByMessageType.set(message, list);
       }
@@ -90,6 +91,9 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
   });
 }
 
+/**
+ *
+ */
 function logSourceDataWarning(message: string, items: Array<{ row?: number; col?: number; value?: unknown }>): void {
   logAggregatedItems({
     logFunction: warn,
@@ -98,6 +102,7 @@ function logSourceDataWarning(message: string, items: Array<{ row?: number; col?
     itemFormatter: ({ row, col, value }) => {
       const rawValue = stringify(value);
       const shortValue = rawValue.length > 64 ? `${rawValue.slice(0, 64)}...` : rawValue;
+
       return `row ${row}, col ${col}, value: "${shortValue}"`;
     },
   });

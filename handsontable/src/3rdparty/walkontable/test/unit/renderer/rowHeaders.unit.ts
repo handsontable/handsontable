@@ -1,5 +1,8 @@
 import { RowHeadersRenderer } from 'walkontable/renderer/rowHeaders';
 
+/**
+ *
+ */
 function createRenderer() {
   const renderer = new RowHeadersRenderer();
 

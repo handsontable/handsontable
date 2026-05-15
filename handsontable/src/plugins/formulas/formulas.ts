@@ -248,13 +248,13 @@ export class Formulas extends BasePlugin {
 
     this.hot.addHook('afterRowMove',
       (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined,
-        movePossible: boolean, orderChanged: boolean) => {
+       movePossible: boolean, orderChanged: boolean) => {
         this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
       });
 
     this.hot.addHook('afterColumnMove',
       (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined,
-        movePossible: boolean, orderChanged: boolean) => {
+       movePossible: boolean, orderChanged: boolean) => {
         this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
       });
 

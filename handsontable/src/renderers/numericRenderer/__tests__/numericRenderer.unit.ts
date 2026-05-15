@@ -37,6 +37,9 @@ describe('numericRenderer', () => {
   });
 
   describe('rendering', () => {
+    /**
+     *
+     */
     function getInstance() {
       return new Core(document.createElement('div'), {});
     }

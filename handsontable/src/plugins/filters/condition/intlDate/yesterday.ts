@@ -9,6 +9,9 @@ type DataRow = {
   meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
 };
 
+/**
+ *
+ */
 export function condition(dataRow: DataRow): boolean {
   const dataDate = parseToLocalDate(dataRow.value);
 

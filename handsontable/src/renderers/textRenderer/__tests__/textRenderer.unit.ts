@@ -26,6 +26,9 @@ describe('textRenderer', () => {
   });
 
   describe('rendering', () => {
+    /**
+     *
+     */
     function getInstance(config = {}) {
       return new Core(document.createElement('div'), config);
     }

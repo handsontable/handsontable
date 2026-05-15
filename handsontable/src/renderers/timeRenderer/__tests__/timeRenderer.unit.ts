@@ -35,6 +35,9 @@ describe('timeRenderer', () => {
   });
 
   describe('rendering', () => {
+    /**
+     *
+     */
     function getInstance(config = {}) {
       return new Core(document.createElement('div'), config);
     }

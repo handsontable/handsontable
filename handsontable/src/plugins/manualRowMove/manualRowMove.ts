@@ -109,10 +109,10 @@ export class ManualRowMove extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown',
       (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
-        controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+       controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('beforeOnCellMouseOver',
       (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
-        controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
+       controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
     this.addHook('beforeOnCellMouseOverOutside',
       (event: unknown, coords: unknown, TD: unknown, controller: unknown) =>
         this.#onBeforeOnCellMouseOverOutside(controller as Record<string, unknown>));

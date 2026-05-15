@@ -296,8 +296,8 @@ export class Comments extends BasePlugin {
       (options: Record<string, unknown>) => this.addToContextMenu(options));
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
-        value: unknown, cellProperties: Record<string, unknown>) =>
-          this.#onAfterRenderer(TD, cellProperties));
+       value: unknown, cellProperties: Record<string, unknown>) =>
+        this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', (event: Event) => this.#onAfterDocumentKeyDown(event));

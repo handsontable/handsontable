@@ -69,7 +69,6 @@ export function valueSetter(newValue: unknown, row: number, column: number, cell
 
   const decimalSeparator = getCellDecimalSeparator(cellMeta);
 
-
   if (
     isNumericLike(newValue) ||
     isCommaThousandsGroupedInteger(newValue, decimalSeparator) ||

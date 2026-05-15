@@ -3,6 +3,9 @@ import { OrderView } from 'walkontable/utils/orderView/view';
 
 jest.mock('walkontable/utils/orderView/view');
 
+/**
+ *
+ */
 function createRenderer() {
   const rootNode = document.createElement('tbody');
   const renderer = new RowsRenderer(rootNode);

@@ -1067,6 +1067,7 @@ class Selection {
     } = options;
 
     type FocusPos = { row?: number; col?: number };
+
     if (focusPosition &&
         Number.isInteger((focusPosition as FocusPos)?.row) &&
         Number.isInteger((focusPosition as FocusPos)?.col)) {

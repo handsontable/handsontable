@@ -1084,6 +1084,7 @@ export class Filters extends BasePlugin {
     const countSourceRows = this.hot.countSourceRows();
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data: Record<string, unknown>[] = [];
+
     type HotWithMetaManager = {
       _getMetaManager(): {
         getCellMeta(row: number, col: number, opts: Record<string, unknown>): Record<string, unknown>;
@@ -1093,10 +1094,10 @@ export class Filters extends BasePlugin {
     for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
       const cellMeta = (this.hot as unknown as HotWithMetaManager)
         ._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
-        visualRow: physicalRow,
-        visualColumn: physicalColumn,
-        skipMetaExtension: true,
-      });
+          visualRow: physicalRow,
+          visualColumn: physicalColumn,
+          skipMetaExtension: true,
+        });
       let value = getValueGetterValue(
         this.hot.getSourceDataAtCell(physicalRow, visualColumn),
         cellMeta

@@ -209,6 +209,7 @@ class ConditionCollection {
     return (this.filteringStates.getEntries() as [number, StoredColumnState][])
       .reduce((allConditions: ColumnConditions[], [column, stateValue]) => {
         const { operation, conditions } = stateValue;
+
         allConditions.push({
           column,
           operation,
@@ -228,7 +229,7 @@ class ConditionCollection {
     this.clean();
 
     conditions.forEach((stack) => {
-      stack.conditions.forEach((condition) => this.addCondition(stack.column, condition as unknown as Record<string, unknown>, stack.operation));
+      stack.conditions.forEach(condition => this.addCondition(stack.column, condition as unknown as Record<string, unknown>, stack.operation));
     });
   }
 

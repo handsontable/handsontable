@@ -8,6 +8,9 @@ interface CopyPastePluginLike {
   cut(): void;
 }
 
+/**
+ *
+ */
 export default function cutItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'cut',

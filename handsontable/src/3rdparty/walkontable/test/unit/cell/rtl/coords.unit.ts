@@ -1,5 +1,8 @@
 import CellCoords from 'walkontable/cell/coords';
 
+/**
+ *
+ */
 function createCoords(row, column) {
   return new CellCoords(row, column, true);
 }

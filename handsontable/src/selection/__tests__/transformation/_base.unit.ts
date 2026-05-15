@@ -1,6 +1,9 @@
 import { CellCoords, CellRange } from 'walkontable';
 import { BaseTransformation } from '../../transformation/_base';
 
+/**
+ *
+ */
 function createCellRange(row, col, rowFrom = row, columnFrom = col, rowTo = row, columnTo = col) {
   return new CellRange(
     new CellCoords(row, col),
@@ -9,6 +12,9 @@ function createCellRange(row, col, rowFrom = row, columnFrom = col, rowTo = row,
   );
 }
 
+/**
+ *
+ */
 function createSelectionRangeModule(ranges) {
   return {
     current() {
@@ -26,6 +32,9 @@ function createSelectionRangeModule(ranges) {
   };
 }
 
+/**
+ *
+ */
 function createTransformationModule(options) {
   class Transformation extends BaseTransformation {
     calculateOffset() {
@@ -74,6 +83,9 @@ function createTransformationModule(options) {
   });
 }
 
+/**
+ *
+ */
 function transformResult(row, column, layer = 0) {
   return {
     selectionLayer: layer,

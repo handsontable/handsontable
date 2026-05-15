@@ -19,28 +19,28 @@ export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
 Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
   function(bundleSeed: string, cellMeta: Record<string, unknown>, cellValue: unknown) {
-  const { label, type, row, column, prop } = cellMeta;
+    const { label, type, row, column, prop } = cellMeta;
 
-  if (type !== RENDERER_TYPE || !label) {
-    return;
-  }
+    if (type !== RENDERER_TYPE || !label) {
+      return;
+    }
 
-  const labelObj = label as Record<string, unknown>;
-  const { value: labelValue, property: labelProperty } = labelObj;
-  let labelText = cellValue;
+    const labelObj = label as Record<string, unknown>;
+    const { value: labelValue, property: labelProperty } = labelObj;
+    let labelText = cellValue;
 
-  if (labelValue) {
-    labelText = typeof labelValue === 'function' ?
-      labelValue(row, column, prop, cellValue) : labelValue;
+    if (labelValue) {
+      labelText = typeof labelValue === 'function' ?
+        labelValue(row, column, prop, cellValue) : labelValue;
 
-  } else if (labelProperty) {
-    const labelData = this.getDataAtRowProp(row, labelProperty);
+    } else if (labelProperty) {
+      const labelData = this.getDataAtRowProp(row, labelProperty);
 
-    labelText = labelData !== null ? labelData : cellValue;
-  }
+      labelText = labelData !== null ? labelData : cellValue;
+    }
 
-  return `${stringify(labelText).length}`;
-});
+    return `${stringify(labelText).length}`;
+  });
 /**
  * Checkbox renderer.
  *

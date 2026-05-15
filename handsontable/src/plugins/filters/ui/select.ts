@@ -125,7 +125,7 @@ export class SelectUI extends BaseUI {
       ]);
     }
 
-    arrayEach([caption, dropdown] as BaseUI[], (element) => this._element.appendChild((element as BaseUI).element));
+    arrayEach([caption, dropdown] as BaseUI[], element => this._element.appendChild((element as BaseUI).element));
 
     this.#menu.addLocalHook('select', (command: Record<string, unknown>) => this.#onMenuSelect(command));
     this.#menu.addLocalHook('afterClose', () => this.#onMenuClosed());

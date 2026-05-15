@@ -14,6 +14,9 @@ type SetterContext = {
   toPhysicalColumn: (col: number) => number;
 };
 
+/**
+ *
+ */
 export function valueSetter(this: SetterContext, newValue: unknown, row: number, column: number): unknown {
   const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), this.toPhysicalColumn(column));
 

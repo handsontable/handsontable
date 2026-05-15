@@ -50,7 +50,7 @@ let targetProcess = null;
 const puppeteerArgs = argv.runnerFile ? ` ${argv.runnerFile}` : '';
 
 const spawnPuppeteer = debounce(() => {
-  console.log(`${PUPPETEER_CMD}${puppeteerArgs}`);
+  console.log(`${PUPPETEER_CMD}${puppeteerArgs}`); // eslint-disable-line no-console
   targetProcess = execaCommand(`${PUPPETEER_CMD}${puppeteerArgs}`, {
     stdin: 'ignore',
   });

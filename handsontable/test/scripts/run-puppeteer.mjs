@@ -102,7 +102,6 @@ if (flags) {
 
   verboseReporting = flagArgs.includes('--verbose');
 
-
   if (seed) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
   }

@@ -5,6 +5,9 @@ import {
 } from 'handsontable/plugins/nestedHeaders/__tests__/helpers';
 import { normalizeSettings } from 'handsontable/plugins/nestedHeaders/stateManager/settingsNormalizer';
 
+/**
+ *
+ */
 function createColspanSourceSettings(overwriteProps) {
   return {
     ...createColspanSettings(overwriteProps),

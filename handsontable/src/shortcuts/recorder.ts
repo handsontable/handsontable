@@ -75,7 +75,6 @@ export function useRecorder(
 
       afterKeyDown(event);
 
-
       return;
     }
 

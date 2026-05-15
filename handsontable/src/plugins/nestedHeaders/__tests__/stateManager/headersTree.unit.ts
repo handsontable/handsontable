@@ -1,6 +1,9 @@
 import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headersTree';
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 
+/**
+ *
+ */
 function createTree(nestedHeadersSettings) {
   const source = new SourceSettings();
 

@@ -1,5 +1,8 @@
 import TreeNode, { TRAVERSAL_DF_PRE, TRAVERSAL_DF_POST, TRAVERSAL_BF } from 'handsontable/utils/dataStructures/tree';
 
+/**
+ *
+ */
 function createNode(id, childs = []) {
   const node = new TreeNode({ id });
 

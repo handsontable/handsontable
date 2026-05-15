@@ -393,6 +393,9 @@ type CommitRowsUpdateCallbacks = {
   logError: (...args: any[]) => void;
   onRequestFailed?: (kind: string, err: Error) => void;
 };
+/**
+ *
+ */
 export async function commitRowsUpdate(
   hot: any, callbacks: CommitRowsUpdateCallbacks,
   rowPayloads: object[], options: { revertOptimistic?: () => void } = {}
@@ -451,6 +454,9 @@ type ManualUpdateCtx = {
   getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null;
   commitRowsUpdate: (payloads: Array<{ id?: any; changes?: any; rowData?: any }>) => Promise<void>;
 };
+/**
+ *
+ */
 export async function runManualUpdateRowsMutation(
   hot: any, ctx: ManualUpdateCtx, rowPayloads: Array<{ id?: any; changes?: any; rowData?: any }>
 ): Promise<void> {
@@ -496,6 +502,9 @@ type UpdateFromChangesCtx = {
   getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null;
   commitRowsUpdate: (payloads: object[], opts?: object) => Promise<void>;
 };
+/**
+ *
+ */
 export async function runUpdateFromChanges(
   hot: any, ctx: UpdateFromChangesCtx, changes: any[]
 ): Promise<void> {
@@ -586,6 +595,9 @@ type QueueCrudCtx = {
   logError: (...args: any[]) => void;
   onRequestFailed?: (op: string, err: Error) => void;
 };
+/**
+ *
+ */
 export function queueCrud(
   ctx: QueueCrudCtx, operation: string, payload: object,
   userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void

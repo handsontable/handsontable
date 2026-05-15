@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   autoRowSize: true,
 });
+
 new Handsontable(document.createElement('div'), {
   autoRowSize: {
     syncLimit: '40%'

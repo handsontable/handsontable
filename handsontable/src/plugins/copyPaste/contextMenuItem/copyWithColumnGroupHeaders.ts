@@ -9,6 +9,9 @@ interface CopyPastePluginLike {
   copyWithAllColumnHeaders(): void;
 }
 
+/**
+ *
+ */
 export default function copyWithColumnGroupHeadersItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy_with_column_group_headers',

@@ -1,4 +1,4 @@
-import type { HookCallback } from "../../../core/hooks/bucket";
+import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';

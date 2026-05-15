@@ -20,6 +20,7 @@ export function getListWithInsertedItems(
     ...insertedIndexes.map((insertedIndex: number, ordinalNumber: number) => {
       if (isFunction(insertedValuesMapping)) {
         type MappingFn = (insertedIndex: number, ordinalNumber: number) => unknown;
+
         return (insertedValuesMapping as MappingFn)(insertedIndex, ordinalNumber);
       }
 

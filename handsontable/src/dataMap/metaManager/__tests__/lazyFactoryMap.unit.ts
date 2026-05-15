@@ -2,6 +2,9 @@
 /* eslint-disable comma-spacing */
 import LazyFactoryMap from '../lazyFactoryMap';
 
+/**
+ *
+ */
 function createLazyFactoryMap(valueFactory) {
   if (!valueFactory) {
     valueFactory = key => ({ i: key });

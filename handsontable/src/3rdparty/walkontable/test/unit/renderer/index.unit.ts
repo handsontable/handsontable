@@ -3,6 +3,9 @@ import {
   Renderer,
 } from 'walkontable/renderer';
 
+/**
+ *
+ */
 function createRenderer() {
   const TABLE = document.createElement('table');
   const THEAD = document.createElement('thead');

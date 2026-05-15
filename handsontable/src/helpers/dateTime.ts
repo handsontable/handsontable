@@ -28,6 +28,7 @@ export function parseToLocalDate(value: unknown): Date | null {
 
   if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
     const [y, m, d] = value.split('-').map(Number);
+
     return new Date(y, m - 1, d);
   }
 
@@ -42,6 +43,7 @@ export function isValidISODate(value: unknown): value is string {
     return false;
   }
   const date = new Date(value);
+
   return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
 }
 
@@ -61,6 +63,7 @@ export function parseToLocalTime(value: unknown): Date | null {
     return null;
   }
   const match = TIME_REGEX.exec(value);
+
   if (!match) {
     return null;
   }
@@ -71,6 +74,7 @@ export function parseToLocalTime(value: unknown): Date | null {
   const milliseconds = msString !== undefined
     ? Number(msString.padEnd(3, '0').slice(0, 3))
     : 0;
+
   return new Date(1970, 0, 1, hours, minutes, seconds, milliseconds);
 }
 

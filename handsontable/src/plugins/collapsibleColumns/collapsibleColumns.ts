@@ -516,7 +516,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     } else if (action === 'expand') {
       destinationCollapsedColumns = arrayFilter(currentCollapsedColumns,
-        (index) => !affectedColumnsIndexes.includes(index));
+        index => !affectedColumnsIndexes.includes(index));
     }
 
     const actionTranslator = actionDictionary.get(action);

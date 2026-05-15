@@ -196,7 +196,7 @@ export class ColumnSorting extends BasePlugin {
       (column: number, TH: HTMLTableCellElement) => this.#onAfterGetColHeader(column, TH));
     this.addHook('beforeOnCellMouseDown',
       (event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-        controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+       controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown',
       (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.#loadOrSortBySettings());

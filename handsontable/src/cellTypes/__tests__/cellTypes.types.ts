@@ -91,7 +91,7 @@ registerCellType('custom', {
   CELL_TYPE: 'custom',
   editor: CustomEditor,
   renderer: (hot: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-    prop: number | string, value: unknown, cellProperties: Record<string, unknown>) => TD,
+             prop: number | string, value: unknown, cellProperties: Record<string, unknown>) => TD,
   validator: (value: unknown, callback: (valid: boolean) => void) => {},
   className: 'my-cell',
   allowInvalid: true,

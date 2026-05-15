@@ -25,6 +25,7 @@ const minimalConfig: DataProviderConfig = {
   },
   onRowsCreate: async(p: RowsCreatePayload) => {
     void p.amount;
+
     return [];
   },
   onRowsUpdate: async() => {},
@@ -54,11 +55,13 @@ hot.addHook('hasExternalDataSource', () => false);
 hot.addHook('afterDataProviderFetchError', (error: Error, queryParameters: DataProviderQueryParameters) => {
   void error;
   void queryParameters.filters;
+
   if (queryParameters.filters) {
     const col = queryParameters.filters[0];
+
     void col.prop;
     void col.operation;
-    col.conditions.forEach(c => {
+    col.conditions.forEach((c) => {
       void c.name;
       void c.args;
     });

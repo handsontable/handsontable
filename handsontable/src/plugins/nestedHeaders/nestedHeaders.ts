@@ -184,14 +184,14 @@ export class NestedHeaders extends BasePlugin {
       (sourceData: unknown[], initialLoad: boolean) => this.#onAfterLoadData(sourceData, initialLoad));
     this.addHook('beforeOnCellMouseDown',
       (event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-        controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+       controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
     this.addHook('afterOnCellMouseDown',
       (event: MouseEvent, coords: { row: number, col: number, clone: () => any }) =>
         this.#onAfterOnCellMouseDown(event, coords));
     this.addHook('beforeOnCellMouseOver',
       (event: MouseEvent, coords: { row: number, col: number }, TD: HTMLElement,
-        controller: { column: boolean, cell: boolean }) =>
-          this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
+       controller: { column: boolean, cell: boolean }) =>
+        this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
     this.addHook('beforeOnCellMouseUp', () => this.#onBeforeOnCellMouseUp());
     this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
     this.addHook('modifyTransformStart', (delta: { row: number, col: number }) => this.#onModifyTransformStart(delta));
@@ -208,11 +208,11 @@ export class NestedHeaders extends BasePlugin {
         this.#onModifyColumnHeaderValue(value, visualColumnIndex, headerLevel));
     this.addHook('beforeHighlightingColumnHeader',
       (visualColumn: number, headerLevel: number,
-        highlightMeta: { columnCursor: number, selectionType: string, selectionWidth: number }) =>
-          this.#onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta));
+       highlightMeta: { columnCursor: number, selectionType: string, selectionWidth: number }) =>
+        this.#onBeforeHighlightingColumnHeader(visualColumn, headerLevel, highlightMeta));
     this.addHook('beforeCopy',
       (data: unknown[][], copyableRanges: { startRow: number, startCol: number, endRow: number, endCol: number }[],
-        extra: { columnHeadersCount: number }) => this.#onBeforeCopy(data, copyableRanges, extra));
+       extra: { columnHeadersCount: number }) => this.#onBeforeCopy(data, copyableRanges, extra));
     this.addHook('beforeSelectColumns',
       (from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => any }) =>
         this.#onBeforeSelectColumns(from, to, highlight));

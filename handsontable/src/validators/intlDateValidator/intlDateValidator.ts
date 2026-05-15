@@ -9,6 +9,9 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
 
 type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
 
+/**
+ *
+ */
 export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean {
   if (cellMeta.allowEmpty && isEmpty(value)) {
     return true;
@@ -17,9 +20,13 @@ export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean
   return isValidISODate(value);
 }
 
+/**
+ *
+ */
 export function intlDateValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
   if (this.allowEmpty && isEmpty(value)) {
     callback(true);
+
     return;
   }
 

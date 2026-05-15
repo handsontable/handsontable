@@ -258,7 +258,7 @@ export class ValueComponent extends BaseComponent {
       disableSelection: true,
       hidden: () => this.isHidden() || (typeof this.hiddenWhen === 'function' && this.hiddenWhen()),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
-        prop: string | number, value: string) => {
+                 prop: string | number, value: string) => {
         addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuValue');
 
         const label = this.hot.rootDocument.createElement('div');

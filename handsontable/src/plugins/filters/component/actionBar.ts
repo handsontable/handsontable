@@ -76,7 +76,7 @@ export class ActionBarComponent extends BaseComponent {
       hidden: () => this.isHidden(),
       renderer: (hot: HotInstance, wrapper: HTMLElement) => {
         addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuActionBar');
-        arrayEach(this.elements, (ui) => wrapper.appendChild((ui as InputUI).element));
+        arrayEach(this.elements, ui => wrapper.appendChild((ui as InputUI).element));
 
         return wrapper;
       }

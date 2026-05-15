@@ -4,6 +4,9 @@ import {
 } from '../../../src/calculator';
 import { PositionCache } from '../../../src/utils/positionCache';
 
+/**
+ *
+ */
 function createViewportColumnsCalculator(options) {
   const {
     totalColumns = 0,

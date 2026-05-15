@@ -7,6 +7,9 @@ import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headers
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 import { generateMatrix } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';
 
+/**
+ *
+ */
 function createTree(nestedHeadersSettings) {
   const source = new SourceSettings();
 
@@ -15,6 +18,9 @@ function createTree(nestedHeadersSettings) {
   return new HeadersTree(source);
 }
 
+/**
+ *
+ */
 function generateMatrixFromTree(tree) {
   return generateMatrix(tree.getRoots());
 }

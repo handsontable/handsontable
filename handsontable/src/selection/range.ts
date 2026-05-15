@@ -140,7 +140,7 @@ class SelectionRange {
    */
   remove(cellRanges: CellRange[]) {
     this.ranges = this.ranges
-      .filter(range => !cellRanges.some((cellRange) => cellRange.isEqual(range)));
+      .filter(range => !cellRanges.some(cellRange => cellRange.isEqual(range)));
 
     return this;
   }

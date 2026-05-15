@@ -9,7 +9,7 @@ import { arrayMap } from '../../../helpers/array';
  * @returns {Array} List with decreased indexes.
  */
 export function getDecreasedIndexes(indexedValues: number[], removedIndexes: number[]): number[] {
-  return arrayMap(indexedValues, (index) => index - removedIndexes.filter((removedIndex) => removedIndex < index).length);
+  return arrayMap(indexedValues, index => index - removedIndexes.filter(removedIndex => removedIndex < index).length);
 }
 
 /**

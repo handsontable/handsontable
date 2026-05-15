@@ -8,6 +8,9 @@ interface CopyPastePluginLike {
   copyCellsOnly(): void;
 }
 
+/**
+ *
+ */
 export default function copyItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy',

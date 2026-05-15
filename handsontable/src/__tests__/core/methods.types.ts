@@ -76,11 +76,12 @@ hot.destroyEditor(true, true);
 hot.emptySelectedCells();
 hot.getActiveEditor();
 const activeSelectionLayerIndex: number = hot.getActiveSelectionLayerIndex();
+
 hot.getCell(123, 123, true)!.focus();
 hot.getCellEditor(123, 123);
-hot.getCellMeta(123, 123).type === "text";
-hot.getCellMeta(123, 123, { skipMetaExtension: true }).type === "text";
-hot.getCellMetaAtRow(123).forEach(meta => meta.type === "text");
+hot.getCellMeta(123, 123).type === 'text';
+hot.getCellMeta(123, 123, { skipMetaExtension: true }).type === 'text';
+hot.getCellMetaAtRow(123).forEach(meta => meta.type === 'text');
 hot.getCellRenderer(123, 123)(hot, mockTD, 1, 2, 'prop', '', cellProperties);
 hot.getCellsMeta()[0].visualRow;
 hot.getCellValidator(123, 123);
@@ -116,6 +117,7 @@ const lastPartiallyVisibleColumn: number | null = (hot as any).getLastPartiallyV
 const lastPartiallyVisibleRow: number | null = (hot as any).getLastPartiallyVisibleRow();
 const lastRenderedVisibleColumn: number | null = hot.getLastRenderedVisibleColumn();
 const lastRenderedVisibleRow: number | null = hot.getLastRenderedVisibleRow();
+
 hot.getFocusManager();
 
 const _hot: HotInstance = (hot as any).getInstance();
@@ -124,7 +126,7 @@ const _hot: HotInstance = (hot as any).getInstance();
 hot.getRowHeader(123) === '';
 hot.getRowHeight(123) === 123;
 hot.getRowHeight(123, 'my_source') === 123;
-(hot as any).getSchema()['foo'];
+(hot as any).getSchema().foo;
 hot.getSelected()![0][0] === 123;
 hot.getSelectedLast()![0] === 123;
 hot.getSelectedActive()![0] === 123;
@@ -141,6 +143,7 @@ hot.getSourceDataAtRow(123) as any[];
 hot.getTranslatedPhrase('foo', 123)!.toLowerCase();
 const tableWidth: number = hot.getTableWidth();
 const tableHeight: number = hot.getTableHeight();
+
 hot.getValue() === '';
 
 const hasColHeaders: boolean = hot.hasColHeaders();
@@ -210,9 +213,9 @@ hot.selectRows(1, 4);
 hot.selectRows(1);
 hot.setCellMeta(123, 123, 'foo', 'foo');
 hot.setCellMetaObject(123, 123, {});
-(hot as any).setDataAtCell([[123, 123, 'foo'], [123, 123, {myProperty: 'foo'}]], 'foo');
+(hot as any).setDataAtCell([[123, 123, 'foo'], [123, 123, { myProperty: 'foo' }]], 'foo');
 hot.setDataAtCell(123, 123, 'foo', 'foo');
-hot.setDataAtCell(123, 123, {myProperty: 'foo'}, 'foo');
+hot.setDataAtCell(123, 123, { myProperty: 'foo' }, 'foo');
 (hot as any).setDataAtRowProp([[123, 'foo', 'foo'], [123, 'foo', 'foo']], 'foo');
 (hot as any).setDataAtRowProp(123, 'foo', 'foo', 'foo');
 hot.setSourceDataAtCell([[1, 'foo', 'foo']]);

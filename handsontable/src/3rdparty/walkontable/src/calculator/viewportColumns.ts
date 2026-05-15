@@ -2,7 +2,6 @@ import type { PositionCache } from '../utils/positionCache';
 import { calculateAxis, AxisCalculatorContext } from './axisCalculation';
 import { ViewportBaseCalculator, CalculationTypeLike, ColumnsCalculationType } from './viewportBase';
 
-
 /**
  * @typedef {object} ViewportColumnsCalculatorOptions
  * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.

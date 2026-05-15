@@ -3,6 +3,9 @@ import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 import { CellRangeToRenderableMapper } from '../rangeToRenderableMapper';
 
 describe('CellRangeToRenderableMapper', () => {
+  /**
+   *
+   */
   function createRangeMapper(indexesLength = 10) {
     const rowIndexMapper = new IndexMapper();
     const columnIndexMapper = new IndexMapper();
@@ -22,6 +25,9 @@ describe('CellRangeToRenderableMapper', () => {
     };
   }
 
+  /**
+   *
+   */
   function createCellRange(
     highlightRow,
     highlightColumn,

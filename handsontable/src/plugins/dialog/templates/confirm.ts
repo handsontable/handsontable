@@ -35,7 +35,7 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
         </div>
         ${buttons.length > 0 ? `
           <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
-            ${buttons.map((button) => `
+            ${buttons.map(button => `
               <button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>
             `).join('')}
           </div>

@@ -43,7 +43,7 @@ export function randomString(): string {
 
   globalThis.crypto.getRandomValues(buf);
 
-  return Array.from(buf, (v) => v.toString(16).padStart(4, '0')).join('');
+  return Array.from(buf, v => v.toString(16).padStart(4, '0')).join('');
 }
 
 /**

@@ -4,6 +4,9 @@ import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sour
 import { triggerNodeModification } from 'handsontable/plugins/nestedHeaders/stateManager/nodeModifiers';
 import './../custom-matchers';
 
+/**
+ *
+ */
 function createTree(nestedHeadersSettings) {
   const source = new SourceSettings();
 

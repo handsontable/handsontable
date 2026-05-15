@@ -3,6 +3,9 @@ import MergedCell from '../cellCoords';
 import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 
 describe('MergeCells', () => {
+  /**
+   *
+   */
   function createMergedCell(row, col, rowspan, colspan) {
     return new MergedCell(
       row,
@@ -24,6 +27,9 @@ describe('MergeCells', () => {
       _createCellRange: (highlight, from, to) => new CellRange(highlight, from, to),
     };
 
+    /**
+     *
+     */
     function createCellRange(fromRow, fromColumn, toRow, toColumn) {
       return new CellRange(
         new CellCoords(fromRow, fromColumn),
@@ -628,6 +634,9 @@ describe('MergeCells', () => {
     });
 
     describe('`translateAfterAxisMove` method', () => {
+      /**
+       *
+       */
       function createHot(physicalToVisual) {
         return {
           ...hotMock,

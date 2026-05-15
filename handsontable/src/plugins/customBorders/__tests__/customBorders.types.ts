@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   customBorders: true,
 });
+
 // borders using range
 new Handsontable(document.createElement('div'), {
   customBorders: [

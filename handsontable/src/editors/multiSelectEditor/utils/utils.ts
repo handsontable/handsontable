@@ -52,5 +52,6 @@ export function includesValue(array: unknown[], element: unknown): boolean {
       }
     );
   }
+
   return array.includes(element);
 }

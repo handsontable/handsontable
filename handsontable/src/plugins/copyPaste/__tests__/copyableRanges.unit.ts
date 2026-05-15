@@ -2,6 +2,9 @@ import { CopyableRangesFactory, normalizeRanges } from '../copyableRanges';
 import CellRange from '../../../3rdparty/walkontable/src/cell/range';
 import CellCoords from '../../../3rdparty/walkontable/src/cell/coords';
 
+/**
+ *
+ */
 function createCellRange(startRow, startColumn, endRow, endColumn) {
   return new CellRange(
     new CellCoords(startRow, startColumn),

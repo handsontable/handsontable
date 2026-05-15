@@ -248,8 +248,8 @@ export class CopyPaste extends BasePlugin {
       (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
     this.addHook('afterSelection',
       (fromRow: number, fromColumn: number, toRow: number, toColumn: number,
-        preventScrolling: { value: boolean }) =>
-          this.#onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling));
+       preventScrolling: { value: boolean }) =>
+        this.#onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
     // Events are attached to the document, not the root table element - as it should,

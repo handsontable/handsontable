@@ -6,10 +6,16 @@ import {
 } from '../../../src/calculator';
 import { PositionCache } from '../../../src/utils/positionCache';
 
+/**
+ *
+ */
 function allColumns20() {
   return 20;
 }
 
+/**
+ *
+ */
 function createViewportColumnsCalculator(options) {
   const {
     totalColumns = 0,

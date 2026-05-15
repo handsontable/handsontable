@@ -1,6 +1,9 @@
 import { StretchLastStrategy } from '../../strategies/last';
 
 describe('StretchLastStrategy', () => {
+  /**
+   *
+   */
   function createStretchStrategy(overwriteColumnWidthFn = width => width) {
     return new StretchLastStrategy(overwriteColumnWidthFn);
   }

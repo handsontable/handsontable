@@ -49,7 +49,7 @@ export function createKeyboardShortcutsCtrl(menu: Menu, customKeyboardShortcuts:
     const context = getContext(contextName);
 
     shortcuts.forEach(({ keys }) => {
-      keys.forEach((k) => context.removeShortcutsByKeys(k));
+      keys.forEach(k => context.removeShortcutsByKeys(k));
     });
 
     customShortcuts.push({

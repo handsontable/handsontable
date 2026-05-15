@@ -197,6 +197,7 @@ export class MultipleSelectUI extends BaseUI {
       }],
       beforeRenderer: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => {
         const cp = cellProperties as { instance: HotInstance; label: { property: string } };
+
         TD.title = cp.instance.getDataAtRowProp(row, cp.label.property) as string;
       },
       afterListen: () => {

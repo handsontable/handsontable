@@ -43,7 +43,7 @@ export class SelectedItemsController {
     }
 
     if (Array.isArray(items)) {
-      items.forEach((item) => this.selectedItems.add(item));
+      items.forEach(item => this.selectedItems.add(item));
     } else {
       this.selectedItems.add(items);
     }
@@ -58,10 +58,11 @@ export class SelectedItemsController {
   remove(item: unknown): boolean {
     if (isKeyValueObject(item)) {
       const itemsArray = Array.from(this.selectedItems);
-      const foundItem = itemsArray.find((selectedItem) => isObjectEqual(selectedItem as object, item as object));
+      const foundItem = itemsArray.find(selectedItem => isObjectEqual(selectedItem as object, item as object));
 
       if (foundItem !== undefined) {
         this.selectedItems.delete(foundItem);
+
         return true;
       }
     } else {

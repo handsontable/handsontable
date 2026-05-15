@@ -345,9 +345,9 @@ export class HiddenColumns extends BasePlugin {
 
     if (isConfigValid) {
       this.hot.batchExecution(() => {
-      arrayEach(columns, (visualColumn) => {
-        this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
-      });
+        arrayEach(columns, (visualColumn) => {
+          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
+        });
       }, true);
     }
 

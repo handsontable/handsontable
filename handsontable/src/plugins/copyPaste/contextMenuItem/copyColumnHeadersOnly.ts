@@ -9,6 +9,9 @@ interface CopyPastePluginLike {
   copyColumnHeadersOnly(): void;
 }
 
+/**
+ *
+ */
 export default function copyColumnHeadersOnlyItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy_column_headers_only',

@@ -84,12 +84,12 @@
     },
 
     "lint:eslint": {
-      "cmd": "eslint --cache src/ test/ .config/plugin scripts/",
+      "cmd": "eslint --cache --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
       "deps": [],
       "mode": "inherit"
     },
     "lint:eslint.fix": {
-      "cmd": "eslint --fix src/ test/ .config/plugin scripts/",
+      "cmd": "eslint --fix --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
       "deps": [],
       "mode": "inherit"
     },

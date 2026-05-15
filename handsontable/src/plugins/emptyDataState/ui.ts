@@ -30,7 +30,7 @@ const templateContent = ({ title, description, buttons }: { title?: string, desc
   ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
   : ''}"
   >${!isLoading && buttons?.length && buttons.length > 0 ?
-    buttons.map((button) =>
+    buttons.map(button =>
       `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
     : ''}</div>`;
 };

@@ -268,6 +268,9 @@ describe('Function helper', () => {
         true
       ];
 
+      /**
+       *
+       */
       function namedFunc() {}
 
       expect(isFunction(toCheck[0])).toBeTruthy();

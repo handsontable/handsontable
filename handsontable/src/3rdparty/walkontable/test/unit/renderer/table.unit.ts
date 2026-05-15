@@ -1,5 +1,8 @@
 import { TableRenderer } from 'walkontable/renderer/table';
 
+/**
+ *
+ */
 function createRenderer() {
   const rootNode = document.createElement('table');
   const cellRenderer = function() {};

@@ -1,6 +1,9 @@
 import { CellCoords, CellRange } from 'walkontable';
 import { ExtenderTransformation } from '../../transformation/extender';
 
+/**
+ *
+ */
 function createCellRange(row, col, rowFrom = row, columnFrom = col, rowTo = row, columnTo = col) {
   return new CellRange(
     new CellCoords(row, col),
@@ -9,6 +12,9 @@ function createCellRange(row, col, rowFrom = row, columnFrom = col, rowTo = row,
   );
 }
 
+/**
+ *
+ */
 function createSelectionRangeModule(ranges) {
   return {
     current() {
@@ -29,6 +35,9 @@ function createSelectionRangeModule(ranges) {
   };
 }
 
+/**
+ *
+ */
 function createTransformationModule(options) {
   return new ExtenderTransformation(options.range, {
     createCellCoords(row, column) {

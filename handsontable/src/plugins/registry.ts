@@ -120,6 +120,9 @@ interface PluginClassWithMeta extends Function {
   PLUGIN_PRIORITY: number;
 }
 
+/**
+ *
+ */
 function unifyPluginArguments(pluginName: string | Function, pluginClass?: Function, priority?: number): [string, Function | undefined, number | undefined] {
   if (typeof pluginName === 'function') {
     pluginClass = pluginName;

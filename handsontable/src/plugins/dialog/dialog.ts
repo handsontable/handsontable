@@ -423,6 +423,7 @@ export class Dialog extends BasePlugin {
 
     if (templateValue) {
       const template = templateValue as { type: string; [key: string]: unknown };
+
       this.#ui.useTemplate(template.type, {
         id: this.hot.guid,
         ...template,

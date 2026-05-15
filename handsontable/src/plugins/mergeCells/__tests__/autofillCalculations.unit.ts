@@ -3,6 +3,9 @@ import MergedCellCoords from '../cellCoords';
 import MergedCellsCollection from '../cellsCollection';
 import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
 
+/**
+ *
+ */
 function createMergedCellCoords(row, column, rowspan, colspan) {
   return new MergedCellCoords(row, column, rowspan, colspan,
     (...args) => new CellCoords(...args),

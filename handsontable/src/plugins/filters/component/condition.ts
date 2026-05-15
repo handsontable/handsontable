@@ -139,7 +139,7 @@ export class ConditionComponent extends BaseComponent {
     });
 
     if (!condition) {
-      arrayEach(this.getInputElements(), (element) => (element as InputUI).setValue(null));
+      arrayEach(this.getInputElements(), element => (element as InputUI).setValue(null));
     }
   }
 
@@ -201,7 +201,7 @@ export class ConditionComponent extends BaseComponent {
         // The SelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
         if (!wrapper.parentElement.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, (ui) => wrapper.appendChild((ui as BaseUI).element));
+          arrayEach(this.elements, ui => wrapper.appendChild((ui as BaseUI).element));
         }
 
         return wrapper;
@@ -222,7 +222,7 @@ export class ConditionComponent extends BaseComponent {
       items = getOptionsList(this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex));
     }
 
-    arrayEach(this.getInputElements(), (element) => (element as InputUI).hide());
+    arrayEach(this.getInputElements(), element => (element as InputUI).hide());
     this.getSelectElement().setItems(items);
     super.reset();
     // Select element as default 'None'

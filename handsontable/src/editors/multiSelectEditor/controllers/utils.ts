@@ -48,7 +48,9 @@ export function deselectItem(itemElement: HTMLLIElement): void {
  */
 export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivElement {
   const wrapperElement = root.createElement('div');
+
   wrapperElement.className = SEARCH_INPUT_WRAPPER_CLASS;
+
   return wrapperElement;
 }
 
@@ -57,8 +59,10 @@ export function createSearchInputWrapper({ root }: { root: Document }): HTMLDivE
  */
 export function createSearchIcon({ root }: { root: Document }): HTMLDivElement {
   const iconElement = root.createElement('div');
+
   addClass(iconElement, SEARCH_ICON_CLASS);
   setAttribute(iconElement, [A11Y_HIDDEN()]);
+
   return iconElement;
 }
 
@@ -67,6 +71,7 @@ export function createSearchIcon({ root }: { root: Document }): HTMLDivElement {
  */
 export function createSearchInputElement({ root }: { root: Document }): HTMLInputElement {
   const inputElement = root.createElement('input');
+
   setAttribute(inputElement, [
     A11Y_LABEL(SEARCH_INPUT_ARIA_LABEL),
     ['type', 'text'],
@@ -75,6 +80,7 @@ export function createSearchInputElement({ root }: { root: Document }): HTMLInpu
     ['id', SEARCH_INPUT_CLASS],
   ]);
   addClass(inputElement, SEARCH_INPUT_CLASS);
+
   return inputElement;
 }
 
@@ -83,7 +89,9 @@ export function createSearchInputElement({ root }: { root: Document }): HTMLInpu
  */
 export function createSeparatorElement({ root }: { root: Document }): HTMLElement {
   const separatorElement = root.createElement('div');
+
   separatorElement.className = SEPARATOR_CLASS;
+
   return separatorElement;
 }
 
@@ -106,7 +114,7 @@ export function getDropdownWidth({ dropdownListElement }: { dropdownListElement:
  */
 export function deselectAllItems({ dropdownListElement }: { dropdownListElement: HTMLUListElement }): void {
   dropdownListElement.querySelectorAll<HTMLLIElement>(`.${SELECTED_ITEM_CLASS}`).forEach(
-    (itemElement) => deselectItem(itemElement)
+    itemElement => deselectItem(itemElement)
   );
 }
 
@@ -121,6 +129,7 @@ export function defocusItem({
 
   if (itemElement) {
     const checkbox = getCheckboxElement(itemElement);
+
     if (checkbox) {
       checkbox.blur();
     }
@@ -138,6 +147,7 @@ export function focusItemAt({
 
   if (itemElement) {
     const checkbox = getCheckboxElement(itemElement);
+
     if (checkbox) {
       checkbox.focus();
     }

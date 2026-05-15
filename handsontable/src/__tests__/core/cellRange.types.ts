@@ -75,6 +75,7 @@ const getOuterTopEndCorner: CellCoords = cellRange.getOuterTopEndCorner();
 const getOuterTopRightCorner: CellCoords = cellRange.getOuterTopRightCorner();
 const getOuterBottomStartCorner: CellCoords = cellRange.getOuterBottomStartCorner();
 const getOuterBottomLeftCorner: CellCoords = cellRange.getOuterBottomLeftCorner();
+
 {
   const isCorner: boolean = cellRange.isCorner(cellCoords);
 }

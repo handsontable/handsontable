@@ -6,8 +6,8 @@ const hot = new Handsontable(document.createElement('div'), {
     { type: 'password', hashRevealDelay: 500, hashSymbol: '#', hashLength: 8 },
   ],
 });
-hot.updateSettings({ hashRevealDelay: 0 });
 
+hot.updateSettings({ hashRevealDelay: 0 });
 
 class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {

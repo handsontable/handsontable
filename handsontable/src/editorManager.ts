@@ -285,7 +285,6 @@ class EditorManager {
       return;
     }
 
-
     const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
       this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 

@@ -10,6 +10,9 @@ import { stringify } from '../../../helpers/mixed';
  */
 type SetterContext = { getCellMeta: (row: number, col: number) => Record<string, unknown> };
 
+/**
+ *
+ */
 export function valueSetter(this: SetterContext, newValue: unknown, row: number, column: number): unknown {
   const { checkedTemplate, uncheckedTemplate } = this.getCellMeta(row, column);
 

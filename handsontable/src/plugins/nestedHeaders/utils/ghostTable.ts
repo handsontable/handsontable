@@ -1,7 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import type { GridSettings } from '../../../core/settings';
 
-
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
  * each column.

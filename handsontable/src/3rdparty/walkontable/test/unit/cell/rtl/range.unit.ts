@@ -1,10 +1,16 @@
 import CellRange from 'walkontable/cell/range';
 import CellCoords from 'walkontable/cell/coords';
 
+/**
+ *
+ */
 function createCoords(row, column) {
   return new CellCoords(row, column, true);
 }
 
+/**
+ *
+ */
 function createRange(highlightRow, highlightCol, fromRow, fromCol, toRow, toCol) {
   return new CellRange(
     createCoords(highlightRow, highlightCol),

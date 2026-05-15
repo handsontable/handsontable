@@ -17,7 +17,7 @@ class CustomTextEditor extends TextEditor {
   }
 
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement,
-      originalValue: unknown, cellProperties: CellProperties) {
+          originalValue: unknown, cellProperties: CellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
   }
 
