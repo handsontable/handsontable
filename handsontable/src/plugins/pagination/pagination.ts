@@ -7,6 +7,7 @@ import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { registerConflict } from '../base/conflictRegistry';
+import type { Hook } from '../../core/settings';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
 registerConflict('pagination', [
@@ -198,11 +199,11 @@ export class Pagination extends BasePlugin {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
 
     if ((settings as Record<string, unknown>)?.initialPage !== undefined) {
-      this.#currentPage = this.getSetting('initialPage') as number;
+      this.#currentPage = this.getSetting<number>('initialPage')!;
     }
 
     if ((settings as Record<string, unknown>)?.pageSize !== undefined) {
-      this.#pageSize = this.getSetting('pageSize') as number | 'auto';
+      this.#pageSize = this.getSetting<number | 'auto'>('pageSize')!;
     }
 
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
@@ -221,8 +222,8 @@ export class Pagination extends BasePlugin {
         rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
-        themeName: (this.hot as any).getCurrentThemeName(),
-        phraseTranslator: (...args: unknown[]) => (this.hot.getTranslatedPhrase as Function)(...args),
+        themeName: this.hot.getCurrentThemeName(),
+        phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: (message: unknown) => announce(message as string),
       });
@@ -239,19 +240,19 @@ export class Pagination extends BasePlugin {
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
-    this.addHook('init', (...args: unknown[]) => (this.#onInit as Function)(...args), -1);
-    this.addHook('beforeSelectAll', (...args: unknown[]) => (this.#onBeforeSelectAllRows as Function)(...args));
-    this.addHook('beforeSelectColumns', (...args: unknown[]) => (this.#onBeforeSelectAllRows as Function)(...args));
-    this.addHook('beforeSetRangeEnd', (...args: unknown[]) => (this.#onBeforeSetRangeEnd as Function)(...args));
-    this.addHook('beforeSelectionHighlightSet', (...args: unknown[]) => (this.#onBeforeSelectionHighlightSet as Function)(...args));
-    this.addHook('beforePaste', (...args: unknown[]) => (this.#onBeforePaste as Function)(...args));
-    this.addHook('afterViewRender', (...args: unknown[]) => (this.#onAfterViewRender as Function)(...args));
-    this.addHook('afterRender', (...args: unknown[]) => (this.#onAfterRender as Function)(...args));
-    this.addHook('afterScrollVertically', (...args: unknown[]) => (this.#onAfterScrollVertically as Function)(...args));
-    this.addHook('afterLanguageChange', (...args: unknown[]) => (this.#onAfterLanguageChange as Function)(...args));
-    this.addHook('beforeHeightChange', (...args: unknown[]) => (this.#onBeforeHeightChange as Function)(...args));
-    this.addHook('afterSetTheme', (...args: unknown[]) => (this.#onAfterSetTheme as Function)(...args));
-    this.addHook('afterDataProviderFetch', (...args: unknown[]) => (this.#onAfterDataProviderFetch as Function)(...args), -1);
+    this.addHook('init', () => this.#onInit(), -1);
+    this.addHook('beforeSelectAll', (from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) => this.#onBeforeSelectAllRows(from, to));
+    this.addHook('beforeSelectColumns', (from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) => this.#onBeforeSelectAllRows(from, to));
+    this.addHook('beforeSetRangeEnd', (coords: { row: number }) => this.#onBeforeSetRangeEnd(coords));
+    this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
+    this.addHook('beforePaste', (data: unknown[][][], ranges: { startRow: number; endRow: number }[]) => this.#onBeforePaste(data, ranges));
+    this.addHook('afterViewRender', () => this.#onAfterViewRender());
+    this.addHook('afterRender', () => this.#onAfterRender());
+    this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
+    this.addHook('afterLanguageChange', () => this.#onAfterLanguageChange());
+    this.addHook('beforeHeightChange', (height: number | string) => this.#onBeforeHeightChange(height));
+    this.addHook('afterSetTheme', (themeName: unknown) => this.#onAfterSetTheme(themeName));
+    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
@@ -453,7 +454,7 @@ export class Pagination extends BasePlugin {
       currentPage: this.#currentPage,
       totalPages,
       pageSize: (stateForReturn as any)?.pageSize ?? this.#pageSize,
-      pageSizeList: [...(this.getSetting('pageSizeList') as unknown[])],
+      pageSizeList: [...(this.getSetting<unknown[]>('pageSizeList') ?? [])],
       autoPageSize: this.#pageSize === 'auto',
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
       firstVisibleRowIndex,
@@ -505,7 +506,7 @@ export class Pagination extends BasePlugin {
    * Resets the current page to the initial page (`initialValue`) defined in the settings.
    */
   resetPage(): void {
-    this.setPage(this.getSetting('initialPage') as number);
+    this.setPage(this.getSetting<number>('initialPage')!);
   }
 
   /**
@@ -539,7 +540,7 @@ export class Pagination extends BasePlugin {
    * Resets the page size to the initial value (`pageSize`) defined in the settings.
    */
   resetPageSize(): void {
-    this.setPageSize(this.getSetting('pageSize') as number | 'auto');
+    this.setPageSize(this.getSetting<number | 'auto'>('pageSize')!);
   }
 
   /**
@@ -980,15 +981,15 @@ export class Pagination extends BasePlugin {
 
     const isPixelValue = (
       typeof height === 'number' ||
-      (typeof height === 'string' && /^\d+$/.test(height as string)) ||
-      (typeof height === 'string' && (height as string).endsWith('px'))
+      (typeof height === 'string' && /^\d+$/.test(height)) ||
+      (typeof height === 'string' && height.endsWith('px'))
     );
 
     if (!isPixelValue) {
       return height;
     }
 
-    const heightValue = typeof height === 'string' && (height as string).endsWith('px')
+    const heightValue = typeof height === 'string' && height.endsWith('px')
       ? height : `${height}px`;
 
     return `calc(${heightValue} - ${this.#ui.getHeight()}px)`;
