@@ -1,4 +1,4 @@
-import type { DomBindings, WalkontableInstance } from '../types';
+import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import {
   outerHeight,
@@ -50,8 +50,8 @@ export class TopInlineStartCornerOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {TopInlineStartCornerOverlayTable}
    */
-  createTable(...args: unknown[]) {
-    return new TopInlineStartCornerOverlayTable(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
+  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
+    return new TopInlineStartCornerOverlayTable(...args);
   }
 
   /**

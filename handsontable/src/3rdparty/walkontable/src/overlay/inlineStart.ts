@@ -1,4 +1,4 @@
-import type { DomBindings, WalkontableInstance } from '../types';
+import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import {
   addClass,
@@ -40,8 +40,8 @@ export class InlineStartOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {InlineStartOverlayTable}
    */
-  createTable(...args: unknown[]) {
-    return new InlineStartOverlayTable(args[0] as any, args[1] as any, args[2] as any, args[3] as any);
+  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
+    return new InlineStartOverlayTable(...args);
   }
 
   /**
