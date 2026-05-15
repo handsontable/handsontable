@@ -163,11 +163,13 @@ class EventManager {
    * @param {string} eventName Event name.
    */
   fireEvent(element: Element, eventName: string): void {
-    let rootDocument = (element as unknown as { document?: Document }).document;
-    let rootWindow: Window = element as unknown as Window;
+    let rootDocument = 'document' in element ? (element as unknown as Window).document : undefined;
+    let rootWindow: Window = 'window' in element ? (element as unknown as Window) : undefined!;
 
     if (!rootDocument) {
-      rootDocument = element.ownerDocument ? element.ownerDocument : element as unknown as Document;
+      rootDocument = (element as Element).ownerDocument
+        ? (element as Element).ownerDocument!
+        : element as unknown as Document;
       rootWindow = rootDocument.defaultView!;
     }
 

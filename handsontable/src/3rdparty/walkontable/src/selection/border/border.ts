@@ -1,5 +1,6 @@
 
 import type { WalkontableInstance } from '../../types';
+import type EventManager from '../../../../../eventManager';
 import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles } from './types';
 import {
   addClass,
@@ -26,7 +27,7 @@ const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
  *
  */
 class Border {
-  declare eventManager: Record<string, Function>;
+  declare eventManager: EventManager;
   declare instance: WalkontableInstance;
   declare wot: WalkontableInstance;
   declare settings: BorderInstanceSettings;
@@ -58,7 +59,7 @@ class Border {
     if (!settings) {
       return;
     }
-    this.eventManager = wotInstance.eventManager as Record<string, Function>;
+    this.eventManager = wotInstance.eventManager;
     this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;
@@ -98,7 +99,7 @@ class Border {
       const element = this.main.childNodes[c];
 
       this.eventManager
-        .addEventListener(element, 'mouseenter', (event: MouseEvent) => this.onMouseEnter(event, this.main.childNodes[c] as HTMLElement));
+        .addEventListener(element as Element, 'mouseenter', (event: MouseEvent) => this.onMouseEnter(event, this.main.childNodes[c] as HTMLElement));
     }
   }
 

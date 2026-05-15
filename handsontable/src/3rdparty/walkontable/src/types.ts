@@ -11,6 +11,7 @@ import type { default as WalkontableScroll } from './scroll';
 import type { default as WalkontableOverlays } from './overlays';
 import type { SelectionManager as WalkontableSelectionManager } from './selection/manager';
 import type { Overlay as WalkontableOverlay } from './overlay/_base';
+import type EventManager from '../../../eventManager';
 
 
 export interface WalkontableInstance {
@@ -24,7 +25,7 @@ export interface WalkontableInstance {
   domBindings: DomBindings;
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
-  eventManager: Record<string, Function>;
+  eventManager: EventManager;
   activeOverlayName: string;
   wtEvent: Record<string, unknown>;
   drawInterrupted: boolean;

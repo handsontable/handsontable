@@ -185,7 +185,9 @@ class DataMap {
       }
 
       for (i = 0; i < columnsLen; i++) {
-        const column = columnsAsFunc ? (columns as Function)(i) : (columns as Record<string, unknown>[])[i];
+        const column = columnsAsFunc
+          ? (columns as (i: number) => Record<string, unknown>)(i)
+          : (columns as Record<string, unknown>[])[i];
 
         if (isObject(column)) {
           if (typeof column.data !== 'undefined') {
@@ -385,7 +387,7 @@ class DataMap {
         }
 
       } else if (this.hot.dataType === 'function') {
-        row = (this.tableMeta.dataSchema as Function)(rowIndex + numberOfCreatedRows);
+        row = (this.tableMeta.dataSchema as (rowIndex: number) => unknown)(rowIndex + numberOfCreatedRows);
 
       } else {
         row = {};
@@ -789,7 +791,7 @@ class DataMap {
       value = out;
 
     } else if (typeof prop === 'function') {
-      value = (prop as Function)(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
+      value = (prop as (row: unknown) => unknown)(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
     const visualColumnIndex = this.propToCol(prop) as number;
@@ -888,7 +890,7 @@ class DataMap {
 
       out[sliced[i]] = newValue;
     } else if (typeof prop === 'function') {
-      (prop as Function)(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
+      (prop as (row: unknown, value: unknown) => void)(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
 
     } else {
       if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') {
