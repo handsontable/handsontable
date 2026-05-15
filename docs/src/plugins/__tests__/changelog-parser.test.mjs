@@ -119,6 +119,29 @@ test('detects framework prefix in bullets', () => {
   assert.equal(result[0].title, 'Fixed a thing in React.');
 });
 
+test('bullets under "#### Breaking changes" heading get breaking: true without a bullet prefix', () => {
+  const md = [
+    '## 7.0.0',
+    'Released on March 6, 2019',
+    '',
+    '#### Breaking changes',
+    '- Removed Bower support.',
+    '- Removed the deprecated selectCellByProp method.',
+    '',
+    '#### Changes',
+    '- Fixed a bug.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 3);
+  assert.equal(result[0].breaking, true);
+  assert.equal(result[0].category, 'changed');
+  assert.equal(result[1].breaking, true);
+  assert.equal(result[2].breaking, false);
+  assert.equal(result[2].category, 'changed');
+});
+
 test('parseAllChangelogs returns entries from every changelog-X file (v6..v17)', () => {
   const result = parseAllChangelogs();
   const majors = new Set(result.map((e) => Number(e.version.split('.')[0])));

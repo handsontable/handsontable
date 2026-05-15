@@ -182,6 +182,7 @@ const changelogItems = [
   { path: 'guides/upgrade-and-migration/changelog-9/changelog-9' },
   { path: 'guides/upgrade-and-migration/changelog-8/changelog-8' },
   { path: 'guides/upgrade-and-migration/changelog-7/changelog-7' },
+  { path: 'guides/upgrade-and-migration/changelog-6/changelog-6' },
 ];
 
 const upgradeAndMigrationItems = [

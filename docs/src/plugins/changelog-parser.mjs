@@ -43,6 +43,12 @@ function findFirstReleaseDate(lines, startIdx) {
   return null;
 }
 
+// "#### Major changes" is intentionally absent: in older changelogs it
+// introduces prose paragraphs, not bullet lists, so it produces no entries
+// in the current loop. "#### Security" maps to `fixed` because the UI exposes
+// only five filter categories (Added/Changed/Deprecated/Removed/Fixed); the
+// raw section is rare enough (2 occurrences) that a dedicated bucket is not
+// worth the type-system churn.
 const CATEGORY_HEADINGS = {
   '#### Added': { category: 'added', forceBreaking: false },
   '#### Changed': { category: 'changed', forceBreaking: false },
