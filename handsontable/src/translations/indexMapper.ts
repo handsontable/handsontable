@@ -384,7 +384,7 @@ export class IndexMapper {
    * @returns {null|number}
    */
   getVisualFromRenderableIndex(renderableIndex: number): number | null {
-    return this.getVisualFromPhysicalIndex(this.getPhysicalFromRenderableIndex(renderableIndex) as number);
+    return this.getVisualFromPhysicalIndex(this.getPhysicalFromRenderableIndex(renderableIndex)!);
   }
 
   /**
