@@ -3,6 +3,7 @@
  */
 import { toUpperCaseFirst } from '../helpers/string';
 import { throwWithCause } from '../helpers/errors';
+import type { BasePlugin } from './base/base';
 import { createPriorityMap } from '../utils/dataStructures/priorityMap';
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createUniqueSet } from '../utils/dataStructures/uniqueSet';

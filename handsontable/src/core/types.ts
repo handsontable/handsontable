@@ -62,7 +62,7 @@ export interface HotInstance {
   addHookOnce(key: string, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   removeHook(key: string, callback: HookCallback): void;
-  runHooks(name: string, ...args: unknown[]): unknown;
+  runHooks<R = unknown>(name: string, ...args: unknown[]): R;
   hasHook(name: string): boolean;
 
   // Settings
@@ -117,7 +117,7 @@ export interface HotInstance {
   populateFromArray(row: number, column: number, input: unknown[][], endRow?: number, endCol?: number, source?: string, method?: string): object | undefined;
 
   // Cell meta
-  getCellMeta(row: number, column: number, options?: object): Record<string, unknown>;
+  getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
   getCellMetaAtRow(row: number): Record<string, unknown>[];
   setCellMeta(row: number, column: number, key: string, value: unknown): void;
   setCellMetaObject(row: number, column: number, prop: Record<string, unknown>): void;

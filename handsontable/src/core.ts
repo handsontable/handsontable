@@ -18,6 +18,7 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
+import type { BasePlugin } from './plugins/base/base';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
@@ -1844,9 +1845,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {*} value The cell value.
    * @returns {Array}
    */
-  function setDataInputToArray(row: number | Array<Array<unknown>>, propOrCol: string | number, value: unknown) {
+  function setDataInputToArray(row: number | Array<Array<unknown>>, propOrCol: string | number, value: unknown): Array<[number, string | number, unknown]> {
     if (Array.isArray(row)) { // it's an array of changes
-      return row;
+      return row as Array<[number, string | number, unknown]>;
     }
 
     return [[row, propOrCol, value]];
@@ -3683,7 +3684,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       );
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
-        dataSource.setAtCell(changeRow, changeProp, newValue);
+        dataSource.setAtCell(changeRow, changeProp as number, newValue);
       }
     });
 
@@ -3854,7 +3855,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
         metaManager.createRow(this.toPhysicalRow(visualIndex));
 
-        arrayEach(cellMetaRow, (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
+        arrayEach(cellMetaRow as unknown[], (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
     }
 
@@ -3937,7 +3938,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function(row: number, column: number, options = { skipMetaExtension: false }) {
+  this.getCellMeta = function<M extends object = Record<string, unknown>>(row: number, column: number, options = { skipMetaExtension: false }): M {
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
@@ -3953,7 +3954,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       visualRow: row,
       visualColumn: column,
       ...options
-    });
+    }) as M;
   };
 
   /**
@@ -5423,8 +5424,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} pluginName The plugin name.
    * @returns {BasePlugin|undefined} The plugin instance or undefined if there is no plugin.
    */
-  this.getPlugin = function(pluginName: string) {
-    return pluginsRegistry.getItem(toUpperCaseFirst(pluginName));
+  this.getPlugin = function<T extends BasePlugin = BasePlugin>(pluginName: string): T | undefined {
+    return pluginsRegistry.getItem(toUpperCaseFirst(pluginName)) as T | undefined;
   };
 
   /**
@@ -5558,8 +5559,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * hot.runHooks('customAction', 10, 'foo');
    * ```
    */
-  this.runHooks = function(key: string, p1: unknown, p2: unknown, p3: unknown, p4: unknown, p5: unknown, p6: unknown) {
-    return Hooks.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6);
+  this.runHooks = function<R = unknown>(key: string, p1: unknown, p2: unknown, p3: unknown, p4: unknown, p5: unknown, p6: unknown): R {
+    return Hooks.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6) as R;
   };
 
   /**

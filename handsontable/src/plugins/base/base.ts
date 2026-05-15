@@ -246,18 +246,18 @@ export class BasePlugin {
    *
    * @param {string} [settingName] The setting name. If the setting name is not provided, it returns
    * the whole plugin's settings object.
-   * @returns {*}
+   * @returns {T}
    */
-  getSetting(settingName?: string) {
+  getSetting<T = unknown>(settingName?: string): T {
     const defaultSettings = (this.constructor as typeof BasePlugin).DEFAULT_SETTINGS as Record<string, unknown>;
     const settingsValidators = (this.constructor as typeof BasePlugin).SETTINGS_VALIDATORS;
 
     if (settingName === undefined) {
       if (isObject(this.#pluginSettings)) {
-        return assignObjectDefaults(this.#pluginSettings as Record<string, unknown>, defaultSettings);
+        return assignObjectDefaults(this.#pluginSettings as Record<string, unknown>, defaultSettings) as T;
       }
 
-      return this.#pluginSettings;
+      return this.#pluginSettings as T;
     }
 
     let settingValue;
@@ -290,7 +290,7 @@ export class BasePlugin {
       const validator = (settingsValidators as Record<string, Function>)[settingName];
 
       if (validator && typeof validator === 'function') {
-        return (...args: unknown[]) => {
+        return ((...args: unknown[]) => {
           const result = settingValue(...args);
           const isValid = validator(result);
 
@@ -305,11 +305,11 @@ export class BasePlugin {
           }
 
           return result;
-        };
+        }) as T;
       }
     }
 
-    return settingValue;
+    return settingValue as T;
   }
 
   /**
