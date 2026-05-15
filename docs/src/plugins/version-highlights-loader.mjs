@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { createRequire } from 'node:module';
 import { parseAllChangelogs } from './changelog-parser.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -10,8 +9,15 @@ const HOT_PACKAGE = resolve(__dirname, '../../../handsontable/package.json');
 
 export function mergeEntriesWithHighlights(autoEntries, highlightFiles) {
   const byPr = new Map();
+  const sources = new Map();
   for (const file of highlightFiles) {
     for (const h of file.data.highlighted) {
+      if (sources.has(h.prNumber)) {
+        throw new Error(
+          `Duplicate highlight for PR #${h.prNumber} in ${sources.get(h.prNumber)} and ${file.filename}`,
+        );
+      }
+      sources.set(h.prNumber, file.filename);
       byPr.set(h.prNumber, h);
     }
   }
@@ -73,8 +79,7 @@ function loadHighlightFiles() {
 
 function readCurrentVersion() {
   try {
-    const require = createRequire(import.meta.url);
-    return require(HOT_PACKAGE).version;
+    return JSON.parse(readFileSync(HOT_PACKAGE, 'utf8')).version;
   } catch {
     return null;
   }

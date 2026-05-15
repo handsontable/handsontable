@@ -39,6 +39,52 @@ test('matching prNumber augments the auto entry and flags it as highlighted', ()
   assert.equal(fixEntry.tagline, undefined);
 });
 
+test('mergeEntriesWithHighlights with no highlight files marks every entry as not highlighted', () => {
+  const auto = [
+    { version: '17.0.0', releaseDate: '2026-03-09', prNumber: 11950, title: 't' },
+    { version: '17.0.0', releaseDate: '2026-03-09', prNumber: null, title: 't2' },
+  ];
+  const result = mergeEntriesWithHighlights(auto, []);
+  assert.equal(result.length, 2);
+  for (const e of result) assert.equal(e.highlighted, false);
+});
+
+test('mergeEntriesWithHighlights leaves entries with null prNumber as not highlighted', () => {
+  const auto = [
+    { version: '17.0.0', prNumber: null, title: 't' },
+    { version: '17.0.0', prNumber: 11950, title: 'u' },
+  ];
+  const highlightFiles = [
+    {
+      filename: '17.0.json',
+      data: { version: '17.0', highlighted: [{ prNumber: 11950, tagline: 'x', whyItMatters: 'y' }] },
+    },
+  ];
+  const result = mergeEntriesWithHighlights(auto, highlightFiles);
+  assert.equal(result[0].highlighted, false);
+  assert.equal(result[1].highlighted, true);
+});
+
+test('mergeEntriesWithHighlights throws when the same PR appears in two highlight files', () => {
+  const highlightFiles = [
+    { filename: '17.0.json', data: { version: '17.0', highlighted: [{ prNumber: 11950, tagline: 'a', whyItMatters: 'b' }] } },
+    { filename: '16.2.json', data: { version: '16.2', highlighted: [{ prNumber: 11950, tagline: 'c', whyItMatters: 'd' }] } },
+  ];
+  assert.throws(
+    () => mergeEntriesWithHighlights([], highlightFiles),
+    /Duplicate highlight for PR #11950 in 17\.0\.json and 16\.2\.json/,
+  );
+});
+
+test('buildReleaseSummaries with null currentVersion leaves every release isCurrent: false', () => {
+  const releases = buildReleaseSummaries(
+    [{ version: '17.0.0', releaseDate: '2026-03-09' }],
+    null,
+  );
+  assert.equal(releases.length, 1);
+  assert.equal(releases[0].isCurrent, false);
+});
+
 test('buildReleaseSummaries returns only X.Y.0 releases, sorted descending', () => {
   const auto = [
     { version: '17.0.1', releaseDate: '2026-03-25' },
