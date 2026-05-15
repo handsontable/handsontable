@@ -506,7 +506,7 @@ class DataManager {
       this.plugin.disableCoreAPIModifiers();
 
       this.hot.setSourceDataAtCell(
-        this.getRowIndexWithinParent(parent),
+        parentIndex,
         '__children',
         parent.__children,
         'NestedRows.addChildAtIndex'
