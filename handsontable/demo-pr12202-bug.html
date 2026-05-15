@@ -71,15 +71,13 @@
   <div class="hint">
     <strong>How to observe the bug:</strong>
     <ol>
-      <li>Click <strong>"Select Column A"</strong> — both the header and column cells align correctly (column A is fine).</li>
       <li>Click <strong>"Select Column B"</strong> — the header content shifts 1px to the right relative to the cell content.</li>
-      <li>Look at the <strong>Left-edge offset difference</strong> metric below — it shows a non-zero value for column B.</li>
-      <li>Compare with the <a href="demo-pr12202-fix.html">PR Fix page</a> where both columns align perfectly.</li>
+      <li>Look at the <strong>Left-edge offset difference</strong> metric — it shows <strong>+1px</strong>.</li>
+      <li>Compare with the <a href="demo-pr12202-fix.html">PR Fix page</a> where the difference is <strong>0px</strong>.</li>
     </ol>
   </div>
 
   <div class="controls">
-    <button class="btn btn-col-a" id="btn-a">Select Column A (col 0)</button>
     <button class="btn btn-col-b" id="btn-b">Select Column B (col 1) — shows bug</button>
     <button class="btn" id="btn-clear">Clear selection</button>
   </div>
@@ -148,11 +146,6 @@
       diffEl.textContent = (diff > 0 ? '+' : '') + diff + 'px';
       diffEl.className   = 'metric-value ' + (diff !== 0 ? 'bad' : 'ok');
     }
-
-    document.getElementById('btn-a').addEventListener('click', async () => {
-      await hotInstance.selectColumns(0);
-      setTimeout(() => measureAlignment(0), 50);
-    });
 
     document.getElementById('btn-b').addEventListener('click', async () => {
       await hotInstance.selectColumns(1);
