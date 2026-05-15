@@ -93,16 +93,17 @@ export function normalizeSelectionFactory(type: number, {
   keepDirection = false,
   propToCol,
 }: NormalizeOptions = {} as NormalizeOptions) {
-  if (!SELECTION_TYPES.includes(type as number)) {
+  if (!SELECTION_TYPES.includes(type)) {
     throwWithCause('Unsupported selection ranges schema type was provided.');
   }
 
   return function(selection: unknown): CellRange {
     const isObjectType = type === SELECTION_TYPE_OBJECT;
-    let rowStart = isObjectType ? (selection as CellRange).from.row : (selection as unknown[])[0] as number;
-    let columnStart = isObjectType ? (selection as CellRange).from.col : (selection as unknown[])[1] as number | string;
-    let rowEnd = isObjectType ? (selection as CellRange).to.row : (selection as unknown[])[2] as number;
-    let columnEnd = isObjectType ? (selection as CellRange).to.col : (selection as unknown[])[3] as number | string;
+    const selArr = selection as [number, number | string, number, number | string];
+    let rowStart = isObjectType ? (selection as CellRange).from.row : selArr[0];
+    let columnStart = isObjectType ? (selection as CellRange).from.col : selArr[1];
+    let rowEnd = isObjectType ? (selection as CellRange).to.row : selArr[2];
+    let columnEnd = isObjectType ? (selection as CellRange).to.col : selArr[3];
 
     if (typeof propToCol === 'function') {
       if (typeof columnStart === 'string') {
@@ -172,20 +173,20 @@ export function transformSelectionToColumnDistance(hotInstance: HotInstance) {
     const amount = to.col - columnNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => columnNonHeaderStart + i), (index) => {
-      if (!unorderedIndexes.has(index as number)) {
-        unorderedIndexes.add(index as number);
+      if (!unorderedIndexes.has(index)) {
+        unorderedIndexes.add(index);
       }
     });
   });
 
   // Sort indexes in ascending order to easily detecting non-consecutive columns.
   const orderedIndexes = Array.from(unorderedIndexes).sort((a, b) => a - b);
-  const normalizedColumnRanges = arrayReduce(orderedIndexes, (acc: number[][], visualColumnIndex: unknown, index: number, array: unknown[]) => {
-    if (index !== 0 && (visualColumnIndex as number) === (array[index - 1] as number) + 1) {
+  const normalizedColumnRanges = arrayReduce(orderedIndexes, (acc: number[][], visualColumnIndex, index, array) => {
+    if (index !== 0 && visualColumnIndex === array[index - 1] + 1) {
       acc[acc.length - 1][1] += 1;
 
     } else {
-      acc.push([visualColumnIndex as number, 1]);
+      acc.push([visualColumnIndex, 1]);
     }
 
     return acc;
@@ -226,20 +227,20 @@ export function transformSelectionToRowDistance(hotInstance: HotInstance) {
     const amount = to.row - rowNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => rowNonHeaderStart + i), (index) => {
-      if (!unorderedIndexes.has(index as number)) {
-        unorderedIndexes.add(index as number);
+      if (!unorderedIndexes.has(index)) {
+        unorderedIndexes.add(index);
       }
     });
   });
 
   // Sort indexes in ascending order to easily detecting non-consecutive columns.
   const orderedIndexes = Array.from(unorderedIndexes).sort((a, b) => a - b);
-  const normalizedRowRanges = arrayReduce(orderedIndexes, (acc: number[][], rowIndex: unknown, index: number, array: unknown[]) => {
-    if (index !== 0 && (rowIndex as number) === (array[index - 1] as number) + 1) {
+  const normalizedRowRanges = arrayReduce(orderedIndexes, (acc: number[][], rowIndex, index, array) => {
+    if (index !== 0 && rowIndex === array[index - 1] + 1) {
       acc[acc.length - 1][1] += 1;
 
     } else {
-      acc.push([rowIndex as number, 1]);
+      acc.push([rowIndex, 1]);
     }
 
     return acc;
