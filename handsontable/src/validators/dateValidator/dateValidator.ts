@@ -32,7 +32,7 @@ export function dateValidator(this: DateValidatorContext, value: unknown, callba
     valueToValidate = '';
   }
 
-  let isValidFormat = moment(valueToValidate as string, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
+  let isValidFormat = moment(valueToValidate as string | number | Date, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
   let isValidDate = moment(new Date(valueToValidate as string | number)).isValid() || isValidFormat;
 
   if (this.allowEmpty && valueToValidate === '') {
@@ -48,7 +48,7 @@ export function dateValidator(this: DateValidatorContext, value: unknown, callba
 
   if (isValidDate && !isValidFormat) {
     if (this.correctFormat === true) { // if format correction is enabled
-      const correctedValue = correctFormat(valueToValidate as string, this.dateFormat as string);
+      const correctedValue = correctFormat(String(valueToValidate), this.dateFormat as string);
       const isCorrectedValueValid = moment(correctedValue, this.dateFormat, true).isValid();
 
       if (isCorrectedValueValid) {
@@ -73,9 +73,9 @@ dateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
  * @returns {string}
  */
 export function correctFormat(value: string, dateFormat: string) {
-  const dateFromDate = moment(getNormalizedDate(value as string));
-  const dateFromMoment = moment(value as string, dateFormat);
-  const isAlphanumeric = (value as string).search(/[A-Za-z]/g) > -1;
+  const dateFromDate = moment(getNormalizedDate(value));
+  const dateFromMoment = moment(value, dateFormat);
+  const isAlphanumeric = value.search(/[A-Za-z]/g) > -1;
   let date;
 
   if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||

@@ -139,7 +139,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.minHeight === 'inherit') {
         defaults.minHeight = observedElement.clientHeight;
       } else {
-        const minHeight = Number.parseInt(config.minHeight as string, 10);
+        const minHeight = Number.parseInt(String(config.minHeight), 10);
 
         if (!isNaN(minHeight)) {
           defaults.minHeight = minHeight;
@@ -151,7 +151,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.maxHeight === 'inherit') {
         defaults.maxHeight = observedElement.clientHeight;
       } else {
-        const maxHeight = Number.parseInt(config.maxHeight as string, 10);
+        const maxHeight = Number.parseInt(String(config.maxHeight), 10);
 
         if (!isNaN(maxHeight)) {
           defaults.maxHeight = maxHeight;
@@ -163,7 +163,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.minWidth === 'inherit') {
         defaults.minWidth = observedElement.clientWidth;
       } else {
-        const minWidth = Number.parseInt(config.minWidth as string, 10);
+        const minWidth = Number.parseInt(String(config.minWidth), 10);
 
         if (!isNaN(minWidth)) {
           defaults.minWidth = minWidth;
@@ -175,7 +175,7 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
       if (config.maxWidth === 'inherit') {
         defaults.maxWidth = observedElement.clientWidth;
       } else {
-        const maxWidth = Number.parseInt(config.maxWidth as string, 10);
+        const maxWidth = Number.parseInt(String(config.maxWidth), 10);
 
         if (!isNaN(maxWidth)) {
           defaults.maxWidth = maxWidth;

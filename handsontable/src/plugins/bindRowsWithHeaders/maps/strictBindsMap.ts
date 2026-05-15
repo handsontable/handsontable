@@ -18,7 +18,7 @@ class StrictBindsMap extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex: number, insertedIndexes: number[]) {
-    this.indexedValues = getListWithInsertedItems(this.indexedValues as any, insertionIndex, insertedIndexes,
+    this.indexedValues = getListWithInsertedItems(this.indexedValues, insertionIndex, insertedIndexes,
       (_: number, ordinalNumber: number) => this.getNextValue(ordinalNumber));
 
     super.insert(insertionIndex, insertedIndexes);
@@ -31,7 +31,7 @@ class StrictBindsMap extends IndexMap {
    * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes: number[]) {
-    this.indexedValues = getListWithRemovedItems(this.indexedValues as any, removedIndexes as number[]);
+    this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
     super.remove(removedIndexes as number[]);
   }

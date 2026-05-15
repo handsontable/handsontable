@@ -126,7 +126,7 @@ export function _dataToHTML(input: unknown[][]): string {
       const cellData = rowData[column];
       const parsedCellData = isEmpty(cellData) ?
         '' :
-        (cellData as any).toString()
+        (cellData as { toString(): string }).toString()
           .replaceAll('&', '&amp;')
           .replaceAll('<', '&lt;')
           .replaceAll('>', '&gt;')
@@ -275,13 +275,13 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
 
   fragment.appendChild(tempElem);
 
-  let checkElement = element;
+  let checkElement: HTMLTableElement | string | null = element;
 
   if (typeof checkElement === 'string') {
     // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched correctly
     const normalizedHTML = replaceTdCellsWithTextContent(checkElement);
     tempElem.insertAdjacentHTML('afterbegin', normalizedHTML);
-    checkElement = tempElem.querySelector('table') as any;
+    checkElement = tempElem.querySelector<HTMLTableElement>('table');
   }
 
   if (!checkElement || !isHTMLTable(checkElement as HTMLElement)) {

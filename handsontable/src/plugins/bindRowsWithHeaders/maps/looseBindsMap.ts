@@ -20,7 +20,7 @@ class LooseBindsMap extends IndexMap {
   insert(insertionIndex: number, insertedIndexes: number[]) {
     const listAfterUpdate = getIncreasedIndexes(this.indexedValues as number[], insertedIndexes);
 
-    this.indexedValues = getListWithInsertedItems(listAfterUpdate as any, insertionIndex, insertedIndexes, this.initValueOrFn);
+    this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes, this.initValueOrFn);
 
     super.insert(insertionIndex, insertedIndexes);
   }
@@ -32,7 +32,7 @@ class LooseBindsMap extends IndexMap {
    * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes: number[]) {
-    const listAfterUpdate = getListWithRemovedItems(this.indexedValues as any, removedIndexes as number[]);
+    const listAfterUpdate = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
     this.indexedValues = getDecreasedIndexes(listAfterUpdate as number[], removedIndexes);
 
