@@ -58,7 +58,7 @@ jobs:
             if (isReleaseBranch) {
               console.log(`Release branch detected: ${ref}`);
               console.log(`Target version: ${targetVersion}`);
-              console.log('Will build docs in production mode to mimic the final release.');
+              console.log('Will build docs in production mode (GTM/HotJar, no dev badge).');
             }
 
       - name: Find PR
@@ -155,23 +155,6 @@ jobs:
           pnpm install
           npm run all build -- --e examples visual-tests
 
-      # RC release branches: patch handsontable/package.json to the clean target
-      # version (e.g., 17.1.0-rc1 -> 17.1.0) so the docs build uses the correct
-      # version in CodeSandbox URLs, the version dropdown, and common.json.
-      - name: Patch version for RC release branch
-        if: ${{ steps.release-info.outputs.is_release == 'true' }}
-        working-directory: .
-        run: |
-          TARGET_VERSION="${{ steps.release-info.outputs.target_version }}"
-          echo "Patching handsontable/package.json version to ${TARGET_VERSION}"
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('handsontable/package.json', 'utf-8'));
-            pkg.version = '${TARGET_VERSION}';
-            fs.writeFileSync('handsontable/package.json', JSON.stringify(pkg, null, 2) + '\n');
-          "
-          echo "Version patched: $(node -p "require('./handsontable/package.json').version")"
-
       # RC release branches: measure module sizes (same as production workflow).
       - name: Update module size measurements
         if: ${{ steps.release-info.outputs.is_release == 'true' }}
@@ -184,8 +167,7 @@ jobs:
           npm run build
         env:
           # RC release branches build in production mode to mimic the final
-          # production deployment (GTM/HotJar injected, dev badge hidden,
-          # correct version in the version dropdown).
+          # production deployment (GTM/HotJar injected, dev badge hidden).
           BUILD_MODE: ${{ steps.release-info.outputs.is_release == 'true' && 'production' || '' }}
 
       - name: Build and deploy the preview to Netlify
@@ -233,5 +215,6 @@ jobs:
           echo "**Build mode:** production" >> $GITHUB_STEP_SUMMARY
           echo "**Preview URL:** ${{ env.NETLIFY_SITE_URL }}/docs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This staging build mimics the production docs deployment for version ${{ steps.release-info.outputs.target_version }}." >> $GITHUB_STEP_SUMMARY
+          echo "This staging build uses production docs settings (BUILD_MODE=production) for release branch \`${{ steps.release-info.outputs.target_version }}\`." >> $GITHUB_STEP_SUMMARY
+          echo "The published \`handsontable\` version from package.json (including any RC tag) is used in examples and CodeSandbox links." >> $GITHUB_STEP_SUMMARY
           echo "Use it to verify the docs before the final release." >> $GITHUB_STEP_SUMMARY
