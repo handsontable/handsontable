@@ -1,3 +1,4 @@
+import './VersionComparison.css';
 import { useEffect, useMemo, useState } from 'react';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
