@@ -3,6 +3,7 @@ import { error as logError } from '../../helpers/console';
 import { throwWithCause } from '../../helpers/errors';
 import * as I18nC from '../../i18n/constants';
 import { BasePlugin } from '../base';
+import type { HotInstance } from '../../core/types';
 import {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
@@ -145,6 +146,9 @@ export interface RowsCreatePayload {
   index?: number;
   amount?: number;
   data?: unknown[];
+  position?: string;
+  referenceRowId?: unknown;
+  rowsAmount?: number;
 }
 
 export interface RowUpdatePayload {
@@ -221,7 +225,7 @@ export class DataProvider extends BasePlugin {
    *
    * @type {DataProviderQueryParameters}
    */
-  #queryParameters: { page: number; pageSize: number; sort: any; filters: any } = { ...INITIAL_QUERY_PARAMETERS };
+  #queryParameters: DataProviderQueryParameters = { ...INITIAL_QUERY_PARAMETERS };
   /**
    * Aborts in-flight fetch when superseded or on disable/destroy.
    *
@@ -238,7 +242,7 @@ export class DataProvider extends BasePlugin {
   /**
    * @param {object} hotInstance Handsontable instance.
    */
-  constructor(hotInstance: any) {
+  constructor(hotInstance: HotInstance) {
     super(hotInstance);
 
     // Before `enablePlugin()` runs (`afterPluginsInitialized`), core may call `runHooks('hasExternalDataSource')`
@@ -267,15 +271,15 @@ export class DataProvider extends BasePlugin {
     this.#applyQueryParametersFromPlugins();
 
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
-    this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('modifyRowHeader', (a: any) => this.#onModifyRowHeader(a));
-    this.addHook('beforeColumnSort', (a: any, b: any, c: any) => this.#onBeforeColumnSort(a, b, c));
-    this.addHook('beforeUndoStackChange', (a: any, b: any) => this.#onBeforeUndoStackChange(a, b));
-    this.addHook('afterChange', (a: any, b: any) => this.#onAfterChangeForServerUpdate(a, b));
-    this.addHook('beforeAlter', (a: any, b: any, c: any) => this.#onBeforeAlter(a, b, c));
-    this.addHook('afterPageChange', (a: any, b: any) => this.#onAfterPageChangeExternalPagination(a, b));
-    this.addHook('afterPageSizeChange', (a: any, b: any) => this.#onAfterPageSizeChangeExternalPagination(a, b));
-    this.addHook('beforeFilter', (a: any) => this.#onBeforeFilter(a));
+    this.addHook('afterInit', this.#onAfterInit);
+    this.addHook('modifyRowHeader', this.#onModifyRowHeader);
+    this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
+    this.addHook('beforeUndoStackChange', this.#onBeforeUndoStackChange);
+    this.addHook('afterChange', this.#onAfterChangeForServerUpdate);
+    this.addHook('beforeAlter', this.#onBeforeAlter);
+    this.addHook('afterPageChange', this.#onAfterPageChangeExternalPagination);
+    this.addHook('afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination);
+    this.addHook('beforeFilter', this.#onBeforeFilter);
 
     super.enablePlugin();
   }
@@ -310,7 +314,7 @@ export class DataProvider extends BasePlugin {
   /**
    * @returns {DataProviderQueryParameters} Copy of current query parameters (`sort` and `filters` are cloned when non-null).
    */
-  getQueryParameters(): { page: number; pageSize: number; sort: any; filters: any } {
+  getQueryParameters(): DataProviderQueryParameters {
     return this.#snapshotQueryParameters(this.#queryParameters);
   }
 
@@ -318,7 +322,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} visualRow Visual row index.
    * @returns {*} Row id from `rowId` option, or undefined.
    */
-  getRowId(visualRow: number): any {
+  getRowId(visualRow: number): unknown {
     return getRowIdByVisualRow(this.hot, this.#getRowIdOption(), visualRow);
   }
 
@@ -335,7 +339,7 @@ export class DataProvider extends BasePlugin {
    * @fires Hooks#afterDataProviderFetchError when `fetchRows` throws a non-abort error.
    * @fires Hooks#afterDataProviderFetchAbort when the request is superseded, aborted, or ends with `AbortError`.
    */
-  async fetchData(overrides: Record<string, any> = {}): Promise<{ rows: any[]; totalRows: number } | null> {
+  async fetchData(overrides: DataProviderFetchDataOverrides = {}): Promise<{ rows: unknown[]; totalRows: number } | null> {
     const fetchFn = this.#getFetchFn();
 
     if (!isFunction(fetchFn)) {
@@ -431,7 +435,7 @@ export class DataProvider extends BasePlugin {
    * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
    * @returns {Promise<void>}
    */
-  async createRows(options: { position?: string; referenceRowId?: any; rowsAmount?: number } = {}): Promise<void> {
+  async createRows(options: { position?: string; referenceRowId?: unknown; rowsAmount?: number } = {}): Promise<void> {
     const onRowsCreate = this.#getOnRowsCreate();
 
     if (!isFunction(onRowsCreate)) {
@@ -465,7 +469,7 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    * @throws {Error} When any id is `null` or `undefined`.
    */
-  async removeRows(rowIds: any[] | any): Promise<void> {
+  async removeRows(rowIds: unknown[] | unknown): Promise<void> {
     const onRowsRemove = this.#getOnRowsRemove();
 
     if (!isFunction(onRowsRemove)) {
@@ -507,7 +511,7 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    * @throws {Error} When any payload omits `id` or `id` is `null`.
    */
-  async updateRows(rows: Array<{ id?: any; changes?: any; rowData?: any }>): Promise<void> {
+  async updateRows(rows: Array<{ id?: unknown; changes?: Record<string, unknown>; rowData?: Record<string, unknown> }>): Promise<void> {
     if (!isFunction(this.#getOnRowsUpdate()) || !Array.isArray(rows) || rows.length === 0) {
       return;
     }
@@ -531,10 +535,10 @@ export class DataProvider extends BasePlugin {
    *
    * @returns {object|undefined}
    */
-  #getConfig(): Record<string, any> | undefined {
+  #getConfig(): DataProviderConfig | undefined {
     const c = this.hot.getSettings()[PLUGIN_KEY];
 
-    return c && typeof c === 'object' ? c : undefined;
+    return c && typeof c === 'object' ? c as DataProviderConfig : undefined;
   }
 
   /**
@@ -542,7 +546,7 @@ export class DataProvider extends BasePlugin {
    *
    * @returns {string|Function|undefined|null}
    */
-  #getRowIdOption(): string | ((...args: any[]) => any) | undefined | null {
+  #getRowIdOption(): DataProviderConfig['rowId'] | undefined {
     const c = this.#getConfig();
 
     return c ? c.rowId : undefined;
@@ -551,44 +555,44 @@ export class DataProvider extends BasePlugin {
   /**
    * @returns {Function|undefined}
    */
-  #getFetchFn(): ((...args: any[]) => any) | undefined {
+  #getFetchFn(): DataProviderConfig['fetchRows'] | undefined {
     const c = this.#getConfig();
 
-    return c && isFunction(c.fetchRows) ? c.fetchRows : undefined;
+    return c && isFunction(c.fetchRows) ? c.fetchRows as DataProviderConfig['fetchRows'] : undefined;
   }
 
   /**
    * @returns {Function|undefined}
    */
-  #getOnRowsCreate(): ((...args: any[]) => any) | undefined {
+  #getOnRowsCreate(): DataProviderConfig['onRowsCreate'] {
     const c = this.#getConfig();
 
-    return c && isFunction(c.onRowsCreate) ? c.onRowsCreate : undefined;
+    return c && isFunction(c.onRowsCreate) ? c.onRowsCreate as DataProviderConfig['onRowsCreate'] : undefined;
   }
 
   /**
    * @returns {Function|undefined}
    */
-  #getOnRowsUpdate(): ((...args: any[]) => any) | undefined {
+  #getOnRowsUpdate(): DataProviderConfig['onRowsUpdate'] {
     const c = this.#getConfig();
 
-    return c && isFunction(c.onRowsUpdate) ? c.onRowsUpdate : undefined;
+    return c && isFunction(c.onRowsUpdate) ? c.onRowsUpdate as DataProviderConfig['onRowsUpdate'] : undefined;
   }
 
   /**
    * @returns {Function|undefined}
    */
-  #getOnRowsRemove(): ((...args: any[]) => any) | undefined {
+  #getOnRowsRemove(): DataProviderConfig['onRowsRemove'] {
     const c = this.#getConfig();
 
-    return c && isFunction(c.onRowsRemove) ? c.onRowsRemove : undefined;
+    return c && isFunction(c.onRowsRemove) ? c.onRowsRemove as DataProviderConfig['onRowsRemove'] : undefined;
   }
 
   /**
    * @param {DataProviderQueryParameters} p Query parameters object.
    * @returns {DataProviderQueryParameters} Snapshot safe for comparisons and external use (`sort` and `filters` cloned when non-null).
    */
-  #snapshotQueryParameters(p: { page: number; pageSize: number; sort: any; filters: any }): { page: number; pageSize: number; sort: any; filters: any } {
+  #snapshotQueryParameters(p: DataProviderQueryParameters): DataProviderQueryParameters {
     return {
       page: p.page,
       pageSize: p.pageSize,
@@ -635,7 +639,7 @@ export class DataProvider extends BasePlugin {
    * @param {object} overrides Partial query overrides (subset of [[DataProviderQueryParameters]] keys).
    * @returns {DataProviderQueryParameters} Query parameters object for `fetchRows`.
    */
-  #mergeAndNormalizeFetchParams(overrides: Record<string, any>): { page: number; pageSize: number; sort: any; filters: any; [key: string]: any } {
+  #mergeAndNormalizeFetchParams(overrides: DataProviderFetchDataOverrides): DataProviderBeforeFetchParameters {
     const params = { ...this.#queryParameters, ...overrides };
 
     normalizeSortInFetchParams(params, this.hot);
@@ -667,7 +671,7 @@ export class DataProvider extends BasePlugin {
    * @param {Error|undefined} reason `AbortError` (or subclass) when `fetchRows` rejected; omit the argument when the promise settled after superseding.
    * @returns {void}
    */
-  #runAfterDataProviderFetchAbort(params: { page: number; pageSize: number; sort: any; filters: any; [key: string]: any }, reason: Error | undefined): void {
+  #runAfterDataProviderFetchAbort(params: DataProviderBeforeFetchParameters, reason: Error | undefined): void {
     const queryParameters = this.#snapshotQueryParameters(params);
 
     this.hot.runHooks('afterDataProviderFetchAbort', queryParameters, reason);
@@ -701,7 +705,7 @@ export class DataProvider extends BasePlugin {
    * @param {Error|*} err Rejection reason from the user callback or `fetchRows`.
    * @returns {void}
    */
-  #showDataProviderRequestErrorNotification(kind: 'fetch' | 'create' | 'update' | 'remove', err: any): void {
+  #showDataProviderRequestErrorNotification(kind: 'fetch' | 'create' | 'update' | 'remove', err: unknown): void {
     const notificationPlugin = this.hot.getPlugin('notification');
 
     if (!notificationPlugin?.enabled) {
@@ -819,7 +823,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} newPage New 1-based page.
    * @returns {void}
    */
-  readonly #onAfterPageChangeExternalPagination = (oldPage: any, newPage: any) => {
+  readonly #onAfterPageChangeExternalPagination = (oldPage: number, newPage: number) => {
     handleAfterPageChangeExternalPagination(
       {
         hot: this.hot,
@@ -839,7 +843,7 @@ export class DataProvider extends BasePlugin {
    * @param {number | 'auto'} newPageSize New page size.
    * @returns {void}
    */
-  readonly #onAfterPageSizeChangeExternalPagination = (oldPageSize: any, newPageSize: any) => {
+  readonly #onAfterPageSizeChangeExternalPagination = (oldPageSize: number | 'auto', newPageSize: number | 'auto') => {
     handleAfterPageSizeChangeExternalPagination(
       {
         hot: this.hot,
@@ -859,7 +863,7 @@ export class DataProvider extends BasePlugin {
    * @param {Array} conditionsStack Exported filter conditions (column = physical index).
    * @returns {boolean|void} False when filtering is handled server-side.
    */
-  readonly #onBeforeFilter = (conditionsStack: any) => handleBeforeFilterForServer(
+  readonly #onBeforeFilter = (conditionsStack: unknown[]) => handleBeforeFilterForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -878,7 +882,7 @@ export class DataProvider extends BasePlugin {
    * @param {boolean} sortPossible Whether sort is allowed.
    * @returns {boolean|undefined}
    */
-  readonly #onBeforeColumnSort = (currentSortConfig: any, destinationSortConfigs: any, sortPossible: any) => handleBeforeColumnSortForServer(
+  readonly #onBeforeColumnSort = (currentSortConfig: unknown[], destinationSortConfigs: unknown[], sortPossible: boolean) => handleBeforeColumnSortForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -894,7 +898,7 @@ export class DataProvider extends BasePlugin {
    * @param {number} visualRowIndex Visual row index.
    * @returns {number} Global row index for headers.
    */
-  readonly #onModifyRowHeader = (visualRowIndex: any) => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
+  readonly #onModifyRowHeader = (visualRowIndex: number) => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
 
   /**
    * Skips the local undo stack for edits that batch to `onRowsUpdate` (same sources as `shouldIgnoreAfterChangeForServerUpdate`).
@@ -903,7 +907,7 @@ export class DataProvider extends BasePlugin {
    * @param {string} [source] Change source for the action being pushed onto the stack.
    * @returns {boolean|void} Return `false` to block stacking (see [[Hooks#beforeUndoStackChange]]).
    */
-  readonly #onBeforeUndoStackChange = (doneActionsCopy: any, source: any) => {
+  readonly #onBeforeUndoStackChange = (doneActionsCopy: unknown[], source: string | undefined) => {
     if (!isFunction(this.#getOnRowsUpdate())) {
       return;
     }
@@ -922,7 +926,7 @@ export class DataProvider extends BasePlugin {
    * @param {string} [source] Change source.
    * @returns {void}
    */
-  readonly #onAfterChangeForServerUpdate = (changes: any, source: any) => {
+  readonly #onAfterChangeForServerUpdate = (changes: unknown[] | null, source: string | undefined) => {
     if (shouldIgnoreAfterChangeForServerUpdate(isFunction(this.#getOnRowsUpdate()), changes, source)) {
       return;
     }
@@ -945,15 +949,15 @@ export class DataProvider extends BasePlugin {
    * @param {number} amount Row count.
    * @returns {boolean|undefined}
    */
-  readonly #onBeforeAlter = (action: any, index: any, amount: any) => handleBeforeAlterForCrud(
+  readonly #onBeforeAlter = (action: string, index: number | number[][], amount: number) => handleBeforeAlterForCrud(
     {
       hot: this.hot,
       getOnRowsCreate: () => this.#getOnRowsCreate(),
       getOnRowsRemove: () => this.#getOnRowsRemove(),
       getRowIdOption: () => this.#getRowIdOption(),
-      getRowId: (vr: any) => this.getRowId(vr),
-      createRows: (opts: any) => this.createRows(opts),
-      removeRows: (ids: any) => this.removeRows(ids),
+      getRowId: (vr: number) => this.getRowId(vr),
+      createRows: (opts: { position?: string; referenceRowId?: unknown; rowsAmount?: number }) => this.createRows(opts),
+      removeRows: (ids: unknown[]) => this.removeRows(ids),
     },
     action,
     index,
