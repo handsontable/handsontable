@@ -1,3 +1,10 @@
+// TODO PRO-1201: wire build-time data injection. The version-comparison page
+// is currently a plain .md file (the content loader at
+// src/plugins/framework-loader.mjs only scans .md, not .mdx), so the
+// <script type="application/json" id="version-comparison-data"> tag is
+// emitted empty. The VersionComparison React component reads textContent
+// from that tag and will throw a clear error until a remark/rehype plugin
+// (or migration to .mdx + an imported VersionComparisonData.astro) fills it.
 const ROOT_ID = 'version-comparison-root';
 
 async function mount() {

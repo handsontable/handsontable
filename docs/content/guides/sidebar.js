@@ -186,6 +186,7 @@ const changelogItems = [
 ];
 
 const upgradeAndMigrationItems = [
+  { path: 'guides/upgrade-and-migration/version-comparison/version-comparison' },
   ...changelogItems,
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
