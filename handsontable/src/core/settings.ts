@@ -53,12 +53,12 @@ export interface GridSettings {
 
   // Data
   data?: unknown[][] | object[];
-  dataSchema?: object | Function;
+  dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
   columns?: Record<string, any>[] | ((column: number) => Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
-  source?: unknown[] | ((query: string, callback: Function) => void);
+  source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
   type?: string;
 
   // Editing
@@ -71,7 +71,7 @@ export interface GridSettings {
   allowRemoveRow?: boolean;
   copyable?: boolean;
   copyPaste?: boolean | object;
-  editor?: string | Function | boolean;
+  editor?: string | (new (...args: unknown[]) => unknown) | boolean;
   enterBeginsEditing?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
@@ -82,14 +82,18 @@ export interface GridSettings {
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean;
-  validator?: string | RegExp | Function;
+  validator?: string | RegExp | ((value: unknown, callback: (valid: boolean) => void) => void);
   wordWrap?: boolean;
 
   // Rendering
-  renderer?: string | Function;
-  valueFormatter?: Function;
-  valueGetter?: Function;
-  valueSetter?: Function;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  renderer?: string | ((hotInstance: any, td: HTMLTableCellElement, row: number, col: number, prop: string | number, value: any, cellProperties: any) => HTMLTableCellElement | void);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueFormatter?: (value: any, cellProperties: any) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueGetter?: (value: any, visualRow: number, visualCol: number, cellMeta: any) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueSetter?: (value: any, visualRow: number, visualCol: number, cellMeta: any) => any;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;
