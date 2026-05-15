@@ -283,7 +283,8 @@ class Border {
       topHitArea: rootDocument.createElement('DIV') as HTMLDivElement,
       bottom: rootDocument.createElement('DIV') as HTMLDivElement,
       bottomHitArea: rootDocument.createElement('DIV') as HTMLDivElement,
-    } as any;
+      styles: {} as SelectionHandles['styles'],
+    };
     const hitAreaWidth = 40;
 
     this.selectionHandles.top.className = 'topSelectionHandle topLeftSelectionHandle';

@@ -240,7 +240,7 @@ class Event {
    */
   onMouseDown(event: MouseEvent | TouchEvent) {
     const activeElement = this.#domBindings.rootDocument.activeElement;
-    const getParentNode = partial(getParent, event.target as any);
+    const getParentNode = partial(getParent, event.target as HTMLElement);
     const realTarget = eventTargetEl(event);
 
     // ignore non-TD focusable elements from mouse down processing

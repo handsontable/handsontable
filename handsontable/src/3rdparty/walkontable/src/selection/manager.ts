@@ -173,7 +173,7 @@ export class SelectionManager {
       this.#resetCells();
     }
 
-    const selections: any[] = Array.from(this.#selections as any);
+    const selections: any[] = Array.from(this.#selections);
     const classNamesMap = new Map();
     const headerAttributesMap = new Map();
 

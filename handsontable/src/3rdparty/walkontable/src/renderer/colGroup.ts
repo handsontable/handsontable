@@ -45,7 +45,7 @@ export class ColGroupRenderer extends BaseRenderer {
 
     if (!performanceWarningAppeared && columnsToRender > 1000) {
       performanceWarningAppeared = true;
-      warn((toSingleLine as any)`Performance tip: Handsontable rendered more than 1000 visible columns.\x20
+      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible columns.\x20
         Consider limiting the number of rendered columns by specifying the table width and/or\x20
         turning off the "renderAllColumns" option.`);
     }

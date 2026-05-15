@@ -1,5 +1,5 @@
 import type { PositionCache } from '../utils/positionCache';
-import { calculateAxis } from './axisCalculation';
+import { calculateAxis, AxisCalculatorContext } from './axisCalculation';
 import { ViewportBaseCalculator, CalculationTypeLike, RowsCalculationType } from './viewportBase';
 
 /**
@@ -70,7 +70,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate(): void {
-    calculateAxis(this as any, {
+    calculateAxis(this as unknown as AxisCalculatorContext, {
       totalCount: this.totalRows,
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.innerViewportHeight,

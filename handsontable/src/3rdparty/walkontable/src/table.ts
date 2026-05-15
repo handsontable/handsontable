@@ -494,7 +494,7 @@ class Table {
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
-    const columnHeaderHeightSetting = this.wtSettings.getSetting('columnHeaderHeight') || [];
+    const columnHeaderHeightSetting: number | number[] = this.wtSettings.getSetting<number | number[]>('columnHeaderHeight') || [];
 
     while (level) {
       level -= 1;
@@ -522,9 +522,12 @@ class Table {
         this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting as number;
       }
 
-      if (this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] < ((columnHeaderHeightSetting as any[])[level] ||
-          columnHeaderHeightSetting)) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = ((columnHeaderHeightSetting as any[])[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
+      const headerHeightAtLevel: number = Array.isArray(columnHeaderHeightSetting) // eslint-disable-line max-len
+        ? (columnHeaderHeightSetting[level] ?? 0)
+        : columnHeaderHeightSetting;
+
+      if (this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] < headerHeightAtLevel) {
+        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = headerHeightAtLevel;
       }
     }
   }

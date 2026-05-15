@@ -68,7 +68,7 @@ export class RowsRenderer extends BaseRenderer {
 
     if (!performanceWarningAppeared && rowsToRender > 1000) {
       performanceWarningAppeared = true;
-      warn((toSingleLine as any)`Performance tip: Handsontable rendered more than 1000 visible rows.\x20
+      warn(toSingleLine`Performance tip: Handsontable rendered more than 1000 visible rows.\x20
         Consider limiting the number of rendered rows by specifying the table height and/or\x20
         turning off the "renderAllRows" option.`);
     }
