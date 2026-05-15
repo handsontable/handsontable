@@ -515,12 +515,12 @@ export class ManualColumnResize extends BasePlugin {
 
       if (selectedColsLength > 1) {
         arrayEach(this.#selectedCols, (selectedCol) => {
-          resize(selectedCol as number);
+          resize(selectedCol);
         });
         render();
       } else {
         arrayEach(this.#selectedCols, (selectedCol) => {
-          resize(selectedCol as number, true);
+          resize(selectedCol, true);
         });
       }
     }
@@ -566,7 +566,7 @@ export class ManualColumnResize extends BasePlugin {
       this.#currentWidth = this.#startWidth + change;
 
       arrayEach(this.#selectedCols, (selectedCol) => {
-        this.#newSize = this.setManualSize(selectedCol as number, this.#currentWidth);
+        this.#newSize = this.setManualSize(selectedCol, this.#currentWidth);
       });
 
       this.refreshHandlePosition();
@@ -614,12 +614,12 @@ export class ManualColumnResize extends BasePlugin {
 
         if (selectedColsLength > 1) {
           arrayEach(this.#selectedCols, (selectedCol) => {
-            resize(selectedCol as number);
+            resize(selectedCol);
           });
           render();
         } else {
           arrayEach(this.#selectedCols, (selectedCol) => {
-            resize(selectedCol as number, true);
+            resize(selectedCol, true);
           });
         }
       }
@@ -673,10 +673,10 @@ export class ManualColumnResize extends BasePlugin {
 
     if (this.enabled) {
       const physicalColumn = this.hot.toPhysicalColumn(column);
-      const columnWidth = this.#columnWidthsMap.getValueAtIndex(physicalColumn);
+      const columnWidth = this.#columnWidthsMap.getValueAtIndex<number>(physicalColumn);
 
       if (this.hot.getSettings()[PLUGIN_KEY] && columnWidth) {
-        newWidth = columnWidth as number;
+        newWidth = columnWidth;
       }
     }
 

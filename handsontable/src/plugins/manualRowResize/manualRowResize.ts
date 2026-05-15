@@ -486,8 +486,8 @@ export class ManualRowResize extends BasePlugin {
       this.hot.view.adjustElementsSize();
       this.hot.render();
     };
-    const resize = (row: unknown, forceRender?: unknown) => {
-      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row as number), row, true);
+    const resize = (row: number, forceRender?: unknown) => {
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
 
       if (hookNewSize === false) {
         return;
@@ -497,9 +497,9 @@ export class ManualRowResize extends BasePlugin {
         this.#newSize = hookNewSize;
       }
 
-      this.setManualSize(row as number, this.#newSize); // double click sets auto row size
+      this.setManualSize(row, this.#newSize); // double click sets auto row size
 
-      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row as number), row, true);
+      this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, true);
 
       if (forceRender) {
         render();
@@ -562,7 +562,7 @@ export class ManualRowResize extends BasePlugin {
       this.#currentHeight = this.#startHeight + change;
 
       arrayEach(this.#selectedRows, (selectedRow) => {
-        this.#newSize = this.setManualSize(selectedRow as number, this.#currentHeight as number);
+        this.#newSize = this.setManualSize(selectedRow, this.#currentHeight as number);
       });
 
       this.refreshHandlePosition();
@@ -581,15 +581,15 @@ export class ManualRowResize extends BasePlugin {
       this.hot.view.adjustElementsSize();
       this.hot.render();
     };
-    const runHooks = (row: unknown, forceRender?: unknown) => {
-      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row as number), row, false);
+    const runHooks = (row: number, forceRender?: unknown) => {
+      const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);
 
       if (hookNewSize === false) {
-        this.setManualSize(row as number, this.#startHeight);
+        this.setManualSize(row, this.#startHeight);
         this.#newSize = this.#startHeight;
       } else if (typeof hookNewSize === 'number') {
         this.#newSize = hookNewSize;
-        this.setManualSize(row as number, this.#newSize);
+        this.setManualSize(row, this.#newSize);
       }
 
       if (forceRender) {
@@ -599,7 +599,7 @@ export class ManualRowResize extends BasePlugin {
       this.saveManualRowHeights();
 
       if (hookNewSize !== false) {
-        this.hot.runHooks('afterRowResize', this.getActualRowHeight(row as number), row, false);
+        this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);
       }
     };
 
@@ -671,14 +671,14 @@ export class ManualRowResize extends BasePlugin {
 
     if (this.enabled) {
       const physicalRow = this.hot.toPhysicalRow(row);
-      const rowHeight = this.#rowHeightsMap.getValueAtIndex(physicalRow);
+      const rowHeight = this.#rowHeightsMap.getValueAtIndex<number>(physicalRow);
 
       if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
         if (this.hot.getPlugin('autoRowSize')?.isEnabled()) {
-          newHeight = Math.max(rowHeight as number, newHeight ?? 0);
+          newHeight = Math.max(rowHeight, newHeight ?? 0);
 
         } else {
-          newHeight = rowHeight as number;
+          newHeight = rowHeight;
         }
       }
     }
