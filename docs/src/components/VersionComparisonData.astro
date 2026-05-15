@@ -1,0 +1,7 @@
+---
+import { loadVersionHighlights } from '../plugins/version-highlights-loader.mjs';
+const data = loadVersionHighlights();
+const json = JSON.stringify(data);
+---
+<script type="application/json" id="version-comparison-data" set:html={json}></script>
+<div id="version-comparison-root"></div>
