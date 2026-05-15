@@ -1170,7 +1170,7 @@ class Selection {
    * position horizontally.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn: number | string, endColumn: number | string = startColumn, focusPosition = 0) {
+  selectColumns(startColumn: number | string, endColumn: number | string = startColumn, focusPosition: number | { row?: number; col?: number } = 0) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
     const countRows = this.tableProps.countRows();
@@ -1192,11 +1192,13 @@ class Selection {
       let highlightRow = 0;
       let highlightColumn = 0;
 
-      if (Number.isInteger((focusPosition as { row?: number; col?: number })?.row) && Number.isInteger((focusPosition as { row?: number; col?: number })?.col)) {
-        highlightRow = clamp((focusPosition as { row?: number; col?: number }).row, columnHeaderLastIndex, countRows - 1);
-        highlightColumn = clamp((focusPosition as { row?: number; col?: number }).col, Math.min(start, end), Math.max(start, end));
+      const focusPosObj = focusPosition as { row?: number; col?: number };
+
+      if (Number.isInteger(focusPosObj?.row) && Number.isInteger(focusPosObj?.col)) {
+        highlightRow = clamp(focusPosObj.row!, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = clamp(focusPosObj.col!, Math.min(start, end), Math.max(start, end));
       } else {
-        highlightRow = clamp(focusPosition, columnHeaderLastIndex, countRows - 1);
+        highlightRow = clamp(focusPosition as number, columnHeaderLastIndex, countRows - 1);
         highlightColumn = start;
       }
 
@@ -1229,7 +1231,7 @@ class Selection {
    * position horizontally.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectRows(startRow: number, endRow: number = startRow, focusPosition = 0) {
+  selectRows(startRow: number, endRow: number = startRow, focusPosition: number | { row?: number; col?: number } = 0) {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
@@ -1249,12 +1251,14 @@ class Selection {
       let highlightRow = 0;
       let highlightColumn = 0;
 
-      if (Number.isInteger((focusPosition as { row?: number; col?: number })?.row) && Number.isInteger((focusPosition as { row?: number; col?: number })?.col)) {
-        highlightRow = clamp((focusPosition as { row?: number; col?: number }).row, Math.min(startRow, endRow), Math.max(startRow, endRow));
-        highlightColumn = clamp((focusPosition as { row?: number; col?: number }).col, rowHeaderLastIndex, countCols - 1);
+      const focusPosObj = focusPosition as { row?: number; col?: number };
+
+      if (Number.isInteger(focusPosObj?.row) && Number.isInteger(focusPosObj?.col)) {
+        highlightRow = clamp(focusPosObj.row!, Math.min(startRow, endRow), Math.max(startRow, endRow));
+        highlightColumn = clamp(focusPosObj.col!, rowHeaderLastIndex, countCols - 1);
       } else {
         highlightRow = startRow;
-        highlightColumn = clamp(focusPosition, rowHeaderLastIndex, countCols - 1);
+        highlightColumn = clamp(focusPosition as number, rowHeaderLastIndex, countCols - 1);
       }
 
       const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);

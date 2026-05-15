@@ -1940,7 +1940,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     if (!changeSource && typeof row === 'object') {
-      changeSource = column as string;
+      changeSource = String(column);
     }
 
     const processedChanges = processChanges(changes, changeSource);
@@ -1985,7 +1985,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
     // We should remove it with the next major release.
     if (!changeSource && typeof row === 'object') {
-      changeSource = prop as string;
+      changeSource = String(prop);
     }
 
     const processedChanges = processChanges(changes, changeSource);
@@ -4892,7 +4892,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectColumns = function(startColumn: number, endColumn = startColumn, focusPosition: number | {row?: number, col?: number}) {
-    return selection.selectColumns(startColumn, endColumn, focusPosition as number);
+    return selection.selectColumns(startColumn, endColumn, focusPosition);
   };
 
   /**
@@ -4925,7 +4925,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
   this.selectRows = function(startRow: number, endRow = startRow, focusPosition: number | {row?: number, col?: number}) {
-    return selection.selectRows(startRow, endRow, focusPosition as number);
+    return selection.selectRows(startRow, endRow, focusPosition);
   };
 
   /**

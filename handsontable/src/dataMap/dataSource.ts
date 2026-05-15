@@ -145,8 +145,8 @@ class DataSource {
 
       } else {
         // Only the columns from the provided range
-        rangeEach(startColumn as number, endColumn as number, (column: number) => {
-          newDataRow![column - (startColumn as number)] = this.getAtPhysicalCell(row, column, dataRow);
+        rangeEach(startColumn!, endColumn!, (column: number) => {
+          newDataRow![column - startColumn!] = this.getAtPhysicalCell(row, column, dataRow);
         });
       }
 
