@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mergeEntriesWithHighlights, buildReleaseSummaries } from '../version-highlights-loader.mjs';
+import { mergeEntriesWithHighlights, buildReleaseSummaries, loadVersionHighlights } from '../version-highlights-loader.mjs';
 
 test('matching prNumber augments the auto entry and flags it as highlighted', () => {
   const auto = [
@@ -57,4 +57,16 @@ test('buildReleaseSummaries returns only X.Y.0 releases, sorted descending', () 
   assert.equal(releases[0].isCurrent, true);
   assert.equal(releases[1].isCurrent, false);
   assert.equal(releases[0].releaseDate, '2026-03-09');
+});
+
+test('loadVersionHighlights returns entries + releases for current data', () => {
+  const result = loadVersionHighlights();
+
+  assert.ok(Array.isArray(result.entries));
+  assert.ok(Array.isArray(result.releases));
+  assert.ok(result.entries.length > 100, 'should aggregate many entries');
+  assert.ok(result.releases.some((r) => r.version === '17.0'));
+  for (const r of result.releases) {
+    assert.match(r.version, /^\d+\.\d+$/);
+  }
 });
