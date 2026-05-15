@@ -295,7 +295,9 @@ class DataMap {
 
     const visualColumn = this.hot!.toVisualColumn(prop);
 
-    return visualColumn;
+    // Fall back to the physical index when toVisualColumn returns null
+    // (e.g. column is trimmed/hidden and has no visual equivalent).
+    return visualColumn !== null ? visualColumn : prop;
   }
 
   /**

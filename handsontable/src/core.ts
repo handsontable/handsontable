@@ -3688,7 +3688,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
       if (runSourceDataValidator(newValue, cellMeta, source ?? 'setSourceDataAtCell')) {
         // changeProp is a physical column index for array-based data sources.
-        dataSource.setAtCell(changeRow, Number(changeProp), newValue);
+        dataSource.setAtCell(changeRow, changeProp as string | number, newValue);
       }
     });
 

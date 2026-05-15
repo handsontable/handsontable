@@ -202,8 +202,8 @@ class DataSource {
    * @param {number|string} column Property name / physical column index.
    * @param {*} value The value to be set at the provided coordinates.
    */
-  setAtCell(row: number, column: number, value: unknown) {
-    if (row >= this.countRows() || column >= this.countFirstRowKeys()) {
+  setAtCell(row: number, column: string | number, value: unknown) {
+    if (row >= this.countRows() || (typeof column === 'number' && column >= this.countFirstRowKeys())) {
       // Not enough rows and/or columns.
       return;
     }
@@ -229,7 +229,7 @@ class DataSource {
       // column argument is the prop name
       setProperty(dataRow as Record<string, unknown>, String(column), value);
     } else {
-      (dataRow as unknown[])[column] = value;
+      (dataRow as unknown[])[column as number] = value;
     }
   }
 
