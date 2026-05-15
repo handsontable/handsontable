@@ -144,7 +144,7 @@ class DataManager {
       level
     });
 
-    if (this.hasChildren(node as unknown as number)) {
+    if (this.hasChildren(node)) {
       arrayEach(node.__children, (elem: RowObject) => {
         this.cacheNode(elem, level + 1, node);
       });
@@ -175,7 +175,7 @@ class DataManager {
     let rootLevel = false;
     let readNodesCount = readCount as number | { result: unknown; end: boolean };
 
-    if (isNaN(readNodesCount as number) && (readNodesCount as { end: boolean }).end) {
+    if (typeof readNodesCount !== 'number' && readNodesCount.end) {
       return readNodesCount;
     }
 
@@ -206,7 +206,7 @@ class DataManager {
 
         readNodesCount = this.readTreeNodes(val, readNodesCount as number, neededIndex, neededObject) as number | { result: unknown; end: boolean };
 
-        if (isNaN(readNodesCount as number) && (readNodesCount as { end: boolean }).end) {
+        if (typeof readNodesCount !== 'number' && readNodesCount.end) {
           return false;
         }
       });
@@ -261,10 +261,10 @@ class DataManager {
    * @param {number|object} row Row index / row object.
    * @returns {number}
    */
-  getRowIndexWithinParent(row: number): number {
-    let rowObj = null;
+  getRowIndexWithinParent(row: number | RowObject): number {
+    let rowObj: RowObject | null = null;
 
-    if (isNaN(row)) {
+    if (typeof row !== 'number') {
       rowObj = row;
     } else {
       rowObj = this.getDataObject(row);
@@ -300,17 +300,13 @@ class DataManager {
    */
   countChildren(parent: RowObject | number): number {
     let rowCount = 0;
-    let parentNode: RowObject | number = parent;
+    const parentNode: RowObject = typeof parent === 'number' ? this.getDataObject(parent) : parent;
 
-    if (!isNaN(parentNode as number)) {
-      parentNode = this.getDataObject(parentNode as number);
-    }
-
-    if (!parentNode || !(parentNode as RowObject).__children) {
+    if (!parentNode || !parentNode.__children) {
       return 0;
     }
 
-    arrayEach((parentNode as RowObject).__children, (elem: RowObject) => {
+    arrayEach(parentNode.__children, (elem: RowObject) => {
       rowCount += 1;
 
       if (elem.__children) {
@@ -330,10 +326,10 @@ class DataManager {
   getRowParent(row: number | RowObject): RowObject | null {
     let rowObject;
 
-    if (isNaN(row as number)) {
+    if (typeof row !== 'number') {
       rowObject = row;
     } else {
-      rowObject = this.getDataObject(row as number);
+      rowObject = this.getDataObject(row);
     }
 
     return this.getRowObjectParent(rowObject);
@@ -360,10 +356,10 @@ class DataManager {
    * @param {number} row Row index.
    * @returns {number|null} Row level or null, when row doesn't exist.
    */
-  getRowLevel(row: number): number | null {
-    let rowObject = null;
+  getRowLevel(row: number | RowObject): number | null {
+    let rowObject: RowObject | null = null;
 
-    if (isNaN(row)) {
+    if (typeof row !== 'number') {
       rowObject = row;
     } else {
       rowObject = this.getDataObject(row);
@@ -390,13 +386,9 @@ class DataManager {
    * @returns {boolean}
    */
   hasChildren(row: number | RowObject): boolean {
-    let rowObj: RowObject | number = row;
+    let rowObj: RowObject = typeof row === 'number' ? this.getDataObject(row) : row;
 
-    if (!isNaN(rowObj as number)) {
-      rowObj = this.getDataObject(rowObj as number);
-    }
-
-    return !!((rowObj as RowObject).__children && (rowObj as RowObject).__children!.length);
+    return !!(rowObj.__children && rowObj.__children.length);
   }
 
   /**
@@ -437,13 +429,9 @@ class DataManager {
    * @returns {boolean} `true` if the row is a parent, `false` otherwise.
    */
   isParent(row: number | RowObject): boolean {
-    let rowObj: RowObject | number = row;
+    const rowObj: RowObject = typeof row === 'number' ? this.getDataObject(row) : row;
 
-    if (!isNaN(rowObj as number)) {
-      rowObj = this.getDataObject(rowObj as number);
-    }
-
-    return !!(rowObj && ((rowObj as RowObject).__children && (rowObj as RowObject).__children?.length !== 0));
+    return !!(rowObj && (rowObj.__children && rowObj.__children.length !== 0));
   }
 
   /**
@@ -519,7 +507,7 @@ class DataManager {
       this.plugin.disableCoreAPIModifiers();
 
       this.hot.setSourceDataAtCell(
-        this.getRowIndexWithinParent(parent as unknown as number),
+        this.getRowIndexWithinParent(parent),
         '__children',
         parent.__children,
         'NestedRows.addChildAtIndex'
@@ -598,9 +586,9 @@ class DataManager {
 
     const childRowIndex = this.getRowIndex(element);
     const childCount = this.countChildren(element);
-    const indexWithinParent = this.getRowIndexWithinParent(element as unknown as number);
-    const parent = this.getRowParent(element as unknown as number);
-    const grandparent = this.getRowParent(parent as unknown as number);
+    const indexWithinParent = this.getRowIndexWithinParent(element);
+    const parent = this.getRowParent(element);
+    const grandparent = this.getRowParent(parent!);
     const grandparentRowIndex = this.getRowIndex(grandparent);
     let movedElementRowIndex: number | null = null;
 
@@ -678,8 +666,8 @@ class DataManager {
     });
 
     arrayEach(elementsToRemove, (elem: RowObject) => {
-      const indexWithinParent = this.getRowIndexWithinParent(elem as unknown as number);
-      const tempParent = this.getRowParent(elem as unknown as number);
+      const indexWithinParent = this.getRowIndexWithinParent(elem);
+      const tempParent = this.getRowParent(elem);
 
       if (tempParent === null) {
         this.data!.splice(indexWithinParent, 1);
@@ -743,7 +731,7 @@ class DataManager {
     let tempParent: RowObject | null = upmostParent;
 
     do {
-      tempParent = this.getRowParent(tempParent as unknown as number);
+      tempParent = this.getRowParent(tempParent);
 
       if (tempParent !== null) {
         upmostParent = tempParent;
@@ -753,7 +741,7 @@ class DataManager {
 
     this.plugin.disableCoreAPIModifiers();
     this.hot.setSourceDataAtCell(
-      this.getRowIndexWithinParent(upmostParent as unknown as number),
+      this.getRowIndexWithinParent(upmostParent),
       '__children',
       upmostParent.__children,
       'NestedRows.syncRowWithRawSource',
