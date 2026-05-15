@@ -110,15 +110,15 @@ export function deepExtend(target: Record<string, unknown>, extension: Record<st
  * Clones plain objects, arrays, and primitives recursively, preserving undefined-valued properties.
  * Non-plain objects (Date, RegExp, Map, Set, class instances) are returned by reference.
  *
- * @param {object} obj An object that will be cloned.
- * @returns {object}
+ * @param {T} obj An object that will be cloned.
+ * @returns {T}
  */
-export function deepClone(obj: unknown): unknown {
+export function deepClone<T>(obj: T): T {
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item));
+    return obj.map(item => deepClone(item)) as T;
   }
   if (obj instanceof Date) {
-    return new Date(obj);
+    return new Date(obj) as T;
   }
   if (typeof obj === 'object' && obj !== null) {
     const result: Record<string, unknown> = {};
@@ -127,7 +127,7 @@ export function deepClone(obj: unknown): unknown {
       result[key] = deepClone((obj as Record<string, unknown>)[key]);
     }
 
-    return result;
+    return result as T;
   }
 
   return obj;
@@ -293,9 +293,9 @@ export function objectEach(object: Record<string, unknown>, iteratee: (value: un
  *
  * @param {object} object Object which value will be exported.
  * @param {string} name Object property name.
- * @returns {*}
+ * @returns {T | undefined}
  */
-export function getProperty(object: Record<string, unknown>, name: string): unknown {
+export function getProperty<T = unknown>(object: Record<string, unknown>, name: string): T | undefined {
   const names = name.split('.');
   let result: unknown = object;
 
@@ -309,7 +309,7 @@ export function getProperty(object: Record<string, unknown>, name: string): unkn
     }
   });
 
-  return result;
+  return result as T | undefined;
 }
 
 /**

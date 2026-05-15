@@ -60,22 +60,22 @@ export function pivot(arr: unknown[][]): unknown[] {
  *
  * @param {Array} array The array to iterate over.
  * @param {Function} iteratee The function invoked per iteration.
- * @param {*} [accumulator] The initial value.
+ * @param {A} [accumulator] The initial value.
  * @param {boolean} [initFromArray] Specify using the first element of `array` as the initial value.
- * @returns {*} Returns the accumulated value.
+ * @returns {A} Returns the accumulated value.
  */
-export function arrayReduce(array: unknown[], iteratee: (...args: unknown[]) => unknown, accumulator: unknown, initFromArray?: boolean): unknown {
+export function arrayReduce<T, A>(array: T[], iteratee: (acc: A, value: T, index: number, array: T[]) => A, accumulator: A, initFromArray?: boolean): A {
   let index = -1;
-  let iterable = array as unknown[];
+  let iterable: T[] = array;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<unknown>);
+    iterable = Array.from(array as Iterable<T>);
   }
   const length = iterable.length;
 
   if (initFromArray && length) {
     index += 1;
-    accumulator = iterable[index];
+    accumulator = iterable[index] as unknown as A;
   }
 
   let result = accumulator;
@@ -100,16 +100,16 @@ export function arrayReduce(array: unknown[], iteratee: (...args: unknown[]) => 
  * @param {Function} predicate The function invoked per iteration.
  * @returns {Array} Returns the new filtered array.
  */
-export function arrayFilter(array: unknown[], predicate: (value: unknown, index: number, array: unknown[]) => unknown): unknown[] {
+export function arrayFilter<T>(array: T[], predicate: (value: T, index: number, array: T[]) => unknown): T[] {
   let index = 0;
-  let iterable = array as unknown[];
+  let iterable: T[] = array;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<unknown>);
+    iterable = Array.from(array as Iterable<T>);
   }
 
   const length = iterable.length;
-  const result = [];
+  const result: T[] = [];
   let resIndex = -1;
 
   while (index < length) {
@@ -134,16 +134,16 @@ export function arrayFilter(array: unknown[], predicate: (value: unknown, index:
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns the new filtered array.
  */
-export function arrayMap(array: unknown[], iteratee: (value: unknown, index: number, array: unknown[]) => unknown): unknown[] {
+export function arrayMap<T, U>(array: T[], iteratee: (value: T, index: number, array: T[]) => U): U[] {
   let index = 0;
-  let iterable = array as unknown[];
+  let iterable: T[] = array;
 
   if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<unknown>);
+    iterable = Array.from(array as Iterable<T>);
   }
 
   const length = iterable.length;
-  const result = [];
+  const result: U[] = [];
   let resIndex = -1;
 
   while (index < length) {
@@ -167,12 +167,14 @@ export function arrayMap(array: unknown[], iteratee: (value: unknown, index: num
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns `array`.
  */
-export function arrayEach(array: unknown, iteratee: (value: unknown, index: number, array: unknown[]) => unknown): unknown[] {
+export function arrayEach<T>(array: T[] | Iterable<T>, iteratee: (value: T, index: number, array: T[]) => unknown): T[] {
   let index = 0;
-  let iterable = array as unknown[];
+  let iterable: T[];
 
-  if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<unknown>);
+  if (Array.isArray(array)) {
+    iterable = array;
+  } else {
+    iterable = Array.from(array);
   }
 
   const length = iterable.length;
@@ -185,7 +187,7 @@ export function arrayEach(array: unknown, iteratee: (value: unknown, index: numb
     index += 1;
   }
 
-  return array as unknown[];
+  return iterable;
 }
 
 /**
@@ -195,7 +197,7 @@ export function arrayEach(array: unknown, iteratee: (value: unknown, index: numb
  * @returns {number} Returns calculated sum value.
  */
 export function arraySum(array: number[]): number {
-  return arrayReduce(array, (a, b) => (a as number) + (b as number), 0) as number;
+  return arrayReduce<number, number>(array, (a, b) => a + b, 0);
 }
 
 /**
@@ -206,7 +208,7 @@ export function arraySum(array: number[]): number {
  * @returns {number} Returns the highest value from an array.
  */
 export function arrayMax(array: number[]): number {
-  return arrayReduce(array, (a, b) => ((a as number) > (b as number) ? a : b), Array.isArray(array) ? array[0] : undefined) as number;
+  return arrayReduce<number, number | undefined>(array, (a, b) => (a !== undefined && a > b ? a : b), array[0]) as number;
 }
 
 /**
@@ -217,7 +219,7 @@ export function arrayMax(array: number[]): number {
  * @returns {number} Returns the lowest value from an array.
  */
 export function arrayMin(array: number[]): number {
-  return arrayReduce(array, (a, b) => ((a as number) < (b as number) ? a : b), Array.isArray(array) ? array[0] : undefined) as number;
+  return arrayReduce<number, number | undefined>(array, (a, b) => (a !== undefined && a < b ? a : b), array[0]) as number;
 }
 
 /**
@@ -241,7 +243,7 @@ export function arrayAvg(array: number[]): number {
  * @returns {Array}
  */
 export function arrayFlatten(array: unknown[][]): unknown[] {
-  return arrayReduce(array, (initial, value) => (initial as unknown[]).concat(Array.isArray(value) ? arrayFlatten(value) : value), []) as unknown[];
+  return arrayReduce<unknown[], unknown[]>(array, (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value as unknown[][]) : value), []);
 }
 
 /**
@@ -273,7 +275,7 @@ export function getDifferenceOfArrays<T extends string | number>(...arrays: Arra
   let filteredFirstArray = first;
 
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => !(array as T[]).includes(value));
+    filteredFirstArray = filteredFirstArray.filter(value => !array.includes(value));
   });
 
   return filteredFirstArray;
@@ -303,8 +305,8 @@ export function getIntersectionOfArrays(
   const [first, ...rest] = arrays;
   let filteredFirstArray = first;
 
-  arrayEach(rest, (array: unknown) => {
-    filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array as Array<string | number>));
+  arrayEach(rest, (array) => {
+    filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array));
   });
 
   return filteredFirstArray;
@@ -322,8 +324,8 @@ export function getUnionOfArrays(...arrays: Array<Array<string | number>>): (str
 
   arrayEach(rest, (array) => {
     arrayEach(array, (value) => {
-      if (!set.has(value as string | number)) {
-        set.add(value as string | number);
+      if (!set.has(value)) {
+        set.add(value);
       }
     });
   });

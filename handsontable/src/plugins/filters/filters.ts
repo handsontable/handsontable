@@ -1467,7 +1467,7 @@ export class Filters extends BasePlugin {
     const menu = this.dropdownMenuPlugin.menu;
 
     arrayEach(components, (component) => {
-      const comp = component as { getMenuItemDescriptor(): { key: string } };
+      const comp = (component as unknown) as { getMenuItemDescriptor(): { key: string } };
 
       arrayEach(menu.menuItems, (item, index) => {
         if ((item as { key: string }).key === comp.getMenuItemDescriptor().key) {

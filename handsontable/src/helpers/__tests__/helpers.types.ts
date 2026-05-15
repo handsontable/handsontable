@@ -22,7 +22,7 @@ arrayFlatten([[1, 'foo', true]]);
 arrayMap([1, 'foo', true], (value: unknown, index: number, array: unknown[]) => {});
 arrayMax([1, 2, 3]);
 arrayMin([1, 2, 3]);
-arrayReduce([1, 'foo', true], (value: unknown, index: unknown, array: unknown) => {}, 'foo', false);
+arrayReduce([1, 'foo', true], (acc, value) => String(acc) + String(value), 'foo', false);
 arraySum([1, 2, 3]);
 arrayUnique([1, 'foo', true]);
 cancelAnimationFrame(1);
@@ -101,3 +101,22 @@ throttleAfterHits(() => {}, 0, 1);
 to2dArray([1, 'foo', true]);
 toUpperCaseFirst('foo');
 valueAccordingPercent(1, 90);
+
+// Wave 1 — generic inference tests (no caller-side cast needed)
+const clonedArr: string[] = deepClone(['a', 'b', 'c']);
+const clonedObj: { x: number } = deepClone({ x: 1 });
+const propVal: number = getProperty<number>({ count: 42 }, 'count')!;
+const mappedLengths: number[] = arrayMap(['a', 'bb', 'ccc'], s => s.length);
+const filteredNums: number[] = arrayFilter([1, 2, 3, 4], n => n > 2);
+const sumResult: number = arrayReduce<number, number>([1, 2, 3], (acc, n) => acc + n, 0);
+
+// Wave 3 — getCellMeta<M> and runHooks<R> generic inference via HotInstance
+// Default fallback: Record<string, unknown> (backward-compatible)
+const defaultMeta: Record<string, unknown> = hot.getCellMeta(0, 0);
+// Explicit type arg: narrowed to caller-specified shape
+interface TestMeta { rowId: number }
+const narrowedMeta: TestMeta = hot.getCellMeta<TestMeta>(0, 0);
+// runHooks: default is unknown
+const hookDefault: unknown = hot.runHooks('afterInit');
+// runHooks: explicit R eliminates caller cast
+const hookBool: boolean = hot.runHooks<boolean>('beforeChange', [], 'edit');

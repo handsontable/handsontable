@@ -211,7 +211,7 @@ export class Autofill extends BasePlugin {
     const copyableColumns: number[] = [];
     const data: unknown[][] = [];
 
-    arrayEach(copyableRanges, (range: Record<string, number>) => {
+    arrayEach(copyableRanges as Record<string, number>[], (range) => {
       for (let visualRow = range.startRow; visualRow <= range.endRow; visualRow += 1) {
         if (copyableRows.indexOf(visualRow) === -1) {
           copyableRows.push(visualRow);

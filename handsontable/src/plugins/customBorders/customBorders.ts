@@ -344,7 +344,7 @@ export class CustomBorders extends BasePlugin {
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
 
-      arrayEach(this.hot.selection.highlight.customSelections, (customSelection: Record<string, unknown>) => {
+      arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
         if (border.id === (customSelection.settings as Record<string, unknown>).id) {
           Object.assign(customSelection.settings as Record<string, unknown>, borderDescriptor);
 
@@ -593,7 +593,7 @@ export class CustomBorders extends BasePlugin {
    */
   clearBordersFromSelectionSettings(borderId: string) {
     const index = arrayMap(
-      this.hot.selection.highlight.customSelections,
+      this.hot.selection.highlight.customSelections as unknown[],
       (customSelection: Record<string, unknown>) => (customSelection.settings as Record<string, unknown>).id
     ).indexOf(borderId);
 
@@ -608,7 +608,7 @@ export class CustomBorders extends BasePlugin {
    * @private
    */
   clearNullCellRange() {
-    arrayEach(this.hot.selection.highlight.customSelections, (customSelection: Record<string, unknown>, index: number) => {
+    arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>, index: number) => {
       if (customSelection.cellRange === null) {
         (customSelection as { destroy(): void }).destroy();
         this.hot.selection.highlight.customSelections.splice(index, 1);
@@ -690,7 +690,7 @@ export class CustomBorders extends BasePlugin {
   checkCustomSelectionsFromContextMenu(border: Record<string, unknown>, place: string, remove: boolean) {
     let check = false;
 
-    arrayEach(this.hot.selection.highlight.customSelections, (customSelection: Record<string, unknown>) => {
+    arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
       if (border.id === (customSelection.settings as Record<string, unknown>).id) {
         const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
 
@@ -726,7 +726,7 @@ export class CustomBorders extends BasePlugin {
       check = true;
 
     } else {
-      arrayEach(this.hot.selection.highlight.customSelections, (customSelection: Record<string, unknown>) => {
+      arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
         if (border.id === (customSelection.settings as Record<string, unknown>).id) {
           customSelection.visualCellRange = cellRange;
           (customSelection as { commit(): void }).commit();

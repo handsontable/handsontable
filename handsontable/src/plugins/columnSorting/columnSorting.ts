@@ -446,7 +446,7 @@ export class ColumnSorting extends BasePlugin {
    */
   saveAllSortSettings(sortConfigs: SortConfig[]) {
     const allSortSettings = this.columnStatesManager!.getAllColumnsProperties() as Record<string, unknown>;
-    const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }: { column: number, [key: string]: unknown }) =>
+    const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }: SortConfig) =>
       ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
 
     allSortSettings.initialConfig = arrayMap(sortConfigs, translateColumnToPhysical);
@@ -468,7 +468,7 @@ export class ColumnSorting extends BasePlugin {
     this.hot.runHooks('persistentStateLoad', 'columnSorting', storedAllSortSettings);
 
     const allSortSettings = storedAllSortSettings.value as Record<string, unknown> | undefined;
-    const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }: { column: number, [key: string]: unknown }) =>
+    const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }: SortConfig) =>
       ({ column: this.hot.toVisualColumn(physicalColumn), ...restOfProperties });
 
     if (isDefined(allSortSettings) && Array.isArray((allSortSettings as Record<string, unknown>).initialConfig)) {

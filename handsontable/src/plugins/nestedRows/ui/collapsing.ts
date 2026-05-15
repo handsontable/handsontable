@@ -112,7 +112,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (this.dataManager.hasChildren(rowObject)) {
-      arrayEach(rowObject.__children, (elem: unknown) => {
+      arrayEach(rowObject.__children as unknown[], (elem) => {
         rowsToCollapse.push(this.dataManager.getRowIndex(elem));
       });
     }
@@ -306,7 +306,7 @@ class CollapsingUI extends BaseUI {
     this.collapsedRows.splice(this.collapsedRows.indexOf(rowIndex!), 1);
 
     if (this.dataManager.hasChildren(rowObject)) {
-      arrayEach(rowObject.__children, (elem: unknown) => {
+      arrayEach(rowObject.__children as unknown[], (elem) => {
         const childIndex = this.dataManager.getRowIndex(elem);
 
         rowsToExpand.push(childIndex);
@@ -431,7 +431,7 @@ class CollapsingUI extends BaseUI {
     }
 
     if (this.dataManager.hasChildren(rowObj)) {
-      arrayEach(rowObj.__children, (elem: unknown) => {
+      arrayEach(rowObj.__children as unknown[], (elem) => {
         const rowIndex = this.dataManager.getRowIndex(elem);
 
         if (!this.plugin.collapsedRowsMap!.getValueAtIndex(rowIndex)) {
