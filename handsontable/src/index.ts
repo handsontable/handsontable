@@ -118,8 +118,8 @@ HOT.dom = {};
 // Fill general helpers.
 arrayHelpers.arrayEach(HELPERS, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
-    if ((key as string).charAt(0) !== '_') {
-      HOT.helper[key as string] = (helper as Record<string, unknown>)[key as string];
+    if (key.charAt(0) !== '_') {
+      HOT.helper[key] = (helper as Record<string, unknown>)[key];
     }
   });
 });
@@ -127,8 +127,8 @@ arrayHelpers.arrayEach(HELPERS, (helper) => {
 // Fill DOM helpers.
 arrayHelpers.arrayEach(DOM, (helper) => {
   arrayHelpers.arrayEach(Object.getOwnPropertyNames(helper), (key) => {
-    if ((key as string).charAt(0) !== '_') {
-      HOT.dom[key as string] = (helper as Record<string, unknown>)[key as string];
+    if (key.charAt(0) !== '_') {
+      HOT.dom[key] = (helper as Record<string, unknown>)[key];
     }
   });
 });
