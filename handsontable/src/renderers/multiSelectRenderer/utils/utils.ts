@@ -1,6 +1,6 @@
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
-import { addClass, hasClass } from '../../../helpers/dom/element';
+import { addClass, eventTargetEl, hasClass } from '../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import EventManager from '../../../eventManager';
 
@@ -108,14 +108,14 @@ export function registerChipRemovingEvents(
   const eventManager = chipsEventManagers.get(hotInstance)!;
 
   eventManager.addEventListener(hotInstance.rootElement, 'click', (event: Event) => {
-    if (!hasClass((event as MouseEvent).target as HTMLElement, CHIP_REMOVE_CLASS)) {
+    if (!hasClass(eventTargetEl(event)!, CHIP_REMOVE_CLASS)) {
       return;
     }
 
     event.preventDefault();
     event.stopPropagation();
 
-    const chip = (event.target as HTMLElement).closest(`.${CHIP_CLASS}`) as HTMLElement | null;
+    const chip = eventTargetEl(event)!.closest(`.${CHIP_CLASS}`) as HTMLElement | null;
 
     if (!chip) {
       return;
@@ -135,7 +135,7 @@ export function registerChipRemovingEvents(
   });
 
   hotInstance.addHook('beforeOnCellMouseDown', (event: Event) => {
-    if (hasClass((event as MouseEvent).target as HTMLElement, CHIP_REMOVE_CLASS)) {
+    if (hasClass(eventTargetEl(event)!, CHIP_REMOVE_CLASS)) {
       stopImmediatePropagation(event as MouseEvent);
     }
   });

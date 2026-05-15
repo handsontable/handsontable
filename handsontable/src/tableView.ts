@@ -5,6 +5,7 @@ import {
   removeClass,
   clearTextSelection,
   empty,
+  eventTargetEl,
   fastInnerHTML,
   fastInnerText,
   getScrollbarWidth,
@@ -337,7 +338,7 @@ class TableView {
 
       this.#selectionMouseDown = true;
 
-      if (!this.isTextSelectionAllowed(event.target as HTMLElement)) {
+      if (!this.isTextSelectionAllowed(eventTargetEl(event)!)) {
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -353,7 +354,7 @@ class TableView {
       this.#selectionMouseDown = false;
     });
     this.eventManager.addEventListener(rootElement, 'mousemove', (event) => {
-      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(event.target as HTMLElement)) {
+      if (this.#selectionMouseDown && !this.isTextSelectionAllowed(eventTargetEl(event)!)) {
         // Clear selection only when fragmentSelection is enabled, otherwise clearing selection breaks the IME editor.
         if (this.settings.fragmentSelection) {
           clearTextSelection(rootWindow);
@@ -493,7 +494,7 @@ class TableView {
     }
 
     this.eventManager.addEventListener(this.#table, 'selectstart', (event) => {
-      if (this.settings.fragmentSelection || isInput(event.target as HTMLElement)) {
+      if (this.settings.fragmentSelection || isInput(eventTargetEl(event)!)) {
         return;
       }
       // https://github.com/handsontable/handsontable/issues/160

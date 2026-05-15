@@ -2,7 +2,7 @@ import type { HotInstance } from '../../core/types';
 import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';
-import { addClass, hasClass } from '../../helpers/dom/element';
+import { addClass, eventTargetEl, hasClass } from '../../helpers/dom/element';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 
 export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
@@ -50,7 +50,7 @@ export function autocompleteRenderer(hotInstance: HotInstance, TD: HTMLTableCell
 
     // not very elegant but easy and fast
     hotInstance.acArrowListener = function(event: Event) {
-      if (hasClass(event.target as HTMLElement, 'htAutocompleteArrow')) {
+      if (hasClass(eventTargetEl(event)!, 'htAutocompleteArrow')) {
         hotInstance.view._wt.getSetting('onCellDblClick', null, hotInstance._createCellCoords(row, col), TD);
       }
     };

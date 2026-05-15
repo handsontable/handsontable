@@ -1,6 +1,7 @@
 import {
   addClass,
   closest,
+  eventTargetEl,
   getScrollbarWidth,
   hasClass,
   hasVerticalScrollbar,
@@ -450,7 +451,7 @@ export class Comments extends BasePlugin {
    * @returns {boolean}
    */
   targetIsCellWithComment(event: Event) {
-    const closestCell = closest(event.target as HTMLElement, ['TD']);
+    const closestCell = closest(eventTargetEl(event)!, ['TD']);
 
     return !!(closestCell && hasClass(closestCell as HTMLElement, 'htCommentCell') && closest(closestCell as HTMLElement, [this.hot.rootElement]));
   }
@@ -770,7 +771,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#preventEditorAutoSwitch && !this.targetIsCommentTextArea(event)) {
-      const eventCell = closest(event.target as HTMLElement, ['TD']);
+      const eventCell = closest(eventTargetEl(event)!, ['TD']);
       let coordinates = null;
 
       if (eventCell) {
@@ -801,7 +802,7 @@ export class Comments extends BasePlugin {
   #onMouseOver(event: MouseEvent) {
     const { rootDocument } = this.hot;
 
-    const target = event.target as HTMLElement;
+    const target = eventTargetEl(event)!;
 
     if (this.#preventEditorAutoSwitch || this.#editor.isFocused() || hasClass(target, 'wtBorder')
         || this.#cellBelowCursor === target || !this.#editor) {

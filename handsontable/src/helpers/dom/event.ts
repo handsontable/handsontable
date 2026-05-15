@@ -1,4 +1,4 @@
-import { isHTMLElement } from './element';
+import { eventTargetEl, isHTMLElement } from './element';
 
 /**
  * Prevent other listeners of the same event from being called.
@@ -62,7 +62,7 @@ export function offsetRelativeTo(event: Event, untilElement: HTMLElement | undef
     x: (event as MouseEvent).offsetX,
     y: (event as MouseEvent).offsetY,
   };
-  let element = event.target as HTMLElement;
+  let element = eventTargetEl(event)!;
 
   if (!isHTMLElement(untilElement) ||
       element !== untilElement && element.contains(untilElement)) {

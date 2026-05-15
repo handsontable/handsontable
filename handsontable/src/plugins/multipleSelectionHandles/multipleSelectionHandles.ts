@@ -1,4 +1,4 @@
-import { hasClass } from '../../helpers/dom/element';
+import { eventTargetEl, hasClass } from '../../helpers/dom/element';
 import { isMobileBrowser } from '../../helpers/browser';
 import { BasePlugin } from '../base';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
@@ -91,7 +91,7 @@ export class MultipleSelectionHandles extends BasePlugin {
 
     this.eventManager.addEventListener(rootElement, 'touchstart', (event) => {
       let selectedRange;
-      const target = event.target as HTMLElement;
+      const target = eventTargetEl(event)!;
 
       if (hasClass(target, 'topSelectionHandle-HitArea')) {
         selectedRange = _this.hot.getSelectedRangeActive();
@@ -126,7 +126,7 @@ export class MultipleSelectionHandles extends BasePlugin {
     });
 
     this.eventManager.addEventListener(rootElement, 'touchend', (event) => {
-      const target = event.target as HTMLElement;
+      const target = eventTargetEl(event)!;
 
       if (hasClass(target, 'topSelectionHandle-HitArea')) {
         removeFromDragged.call(_this, 'top');

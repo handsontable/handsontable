@@ -17,6 +17,7 @@ import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
 import { isWindowsOS, isMobileBrowser, isIpadOS } from '../../../helpers/browser';
 import {
   addClass,
+  eventTargetEl,
   isChildOf,
   getParentWindow,
   hasClass,
@@ -757,11 +758,11 @@ export class Menu {
     }
 
     // Close menu when clicked element is not belongs to menu itself
-    if (this.options.standalone && this.hotMenu && !isChildOf(event.target as HTMLElement, this.hotMenu.rootElement)) {
+    if (this.options.standalone && this.hotMenu && !isChildOf(eventTargetEl(event)!, this.hotMenu.rootElement)) {
       this.close(true);
 
       // Automatically close menu when clicked element is not belongs to menu or submenu (not necessarily to itself)
-    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(event.target as HTMLElement, '.htMenu')) {
+    } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(eventTargetEl(event)!, '.htMenu')) {
       this.close(true);
     }
   }
@@ -777,7 +778,7 @@ export class Menu {
       return;
     }
 
-    if (hasClass(event.target as HTMLElement, 'htCore') && isChildOf(event.target as HTMLElement, this.hotMenu!.rootElement)) {
+    if (hasClass(eventTargetEl(event)!, 'htCore') && isChildOf(eventTargetEl(event)!, this.hotMenu!.rootElement)) {
       event.preventDefault();
     }
   }

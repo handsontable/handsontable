@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass, getScrollbarWidth } from '../../../helpers/dom/element';
+import { addClass, eventTargetEl, getScrollbarWidth } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
 import { isKey } from '../../../helpers/unicode';
 import { partial } from '../../../helpers/function';
@@ -310,7 +310,7 @@ export class MultipleSelectUI extends BaseUI {
    * @param {Event} event DOM event.
    */
   #onInput(event: Event) {
-    const trimmed = (event.target as HTMLInputElement).value.trim();
+    const trimmed = eventTargetEl<HTMLInputElement>(event)!.value.trim();
     const value = trimmed.toLocaleLowerCase(this.getLocale());
 
     if ((this.options as Record<string, unknown>).searchMode === 'apply') {

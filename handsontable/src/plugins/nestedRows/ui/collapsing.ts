@@ -4,7 +4,7 @@ import type { NestedRows } from '../nestedRows';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach } from '../../../helpers/array';
 import { rangeEach } from '../../../helpers/number';
-import { hasClass } from '../../../helpers/dom/element';
+import { eventTargetEl, hasClass } from '../../../helpers/dom/element';
 import BaseUI from './_base';
 import HeadersUI from './headers';
 import type DataManager from '../data/dataManager';
@@ -481,7 +481,7 @@ class CollapsingUI extends BaseUI {
 
     const row = this.translateTrimmedRow((coords as { row: number }).row);
 
-    if (hasClass(event.target as HTMLElement, HeadersUI.CSS_CLASSES.button)) {
+    if (hasClass(eventTargetEl(event)!, HeadersUI.CSS_CLASSES.button)) {
       if (this.areChildrenCollapsed(row)) {
         this.expandChildren(row);
       } else {

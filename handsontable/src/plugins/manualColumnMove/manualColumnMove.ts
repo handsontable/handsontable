@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
-import { addClass, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
+import { addClass, eventTargetEl, removeClass, offset, hasClass, outerWidth } from '../../helpers/dom/element';
 import { offsetRelativeTo } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
@@ -528,7 +528,7 @@ export class ManualColumnMove extends BasePlugin {
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeActive();
     // This block action shouldn't be handled below.
-    const isSortingElement = hasClass(event.target as HTMLElement, 'sortAction');
+    const isSortingElement = hasClass(eventTargetEl(event)!, 'sortAction');
 
     if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0 || isSortingElement) {
       this.#pressed = false;

@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, eventTargetEl } from '../../../helpers/dom/element';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
@@ -165,6 +165,6 @@ export class OperatorsComponent extends BaseComponent {
    * @param {Event} event The DOM event object.
    */
   #onRadioInputChange(event: Event) {
-    this.setState((event.target as HTMLInputElement).value);
+    this.setState(eventTargetEl<HTMLInputElement>(event)!.value);
   }
 }

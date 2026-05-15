@@ -1,3 +1,5 @@
+import { eventTargetEl } from '../../../helpers/dom/element';
+
 interface CursorSourceLiteral {
   top: string | number;
   left: string | number;
@@ -83,8 +85,8 @@ export class Cursor {
 
       top = parseInt(String(evt.pageY), 10);
       left = parseInt(String(evt.pageX), 10);
-      cellHeight = (evt.target as HTMLElement).clientHeight;
-      cellWidth = (evt.target as HTMLElement).clientWidth;
+      cellHeight = eventTargetEl(evt)!.clientHeight;
+      cellWidth = eventTargetEl(evt)!.clientWidth;
       topRelative = top - windowScrollTop;
       leftRelative = left - windowScrollLeft;
     }

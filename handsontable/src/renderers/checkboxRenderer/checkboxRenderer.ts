@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import EventManager from '../../eventManager';
-import { empty, addClass, setAttribute, isHTMLElement } from '../../helpers/dom/element';
+import { empty, addClass, eventTargetEl, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { Hooks } from '../../core/hooks';
@@ -460,7 +460,7 @@ function createLabel(rootDocument: Document, text: string, fullWidth: boolean) {
  * @param {Core} instance The Handsontable instance.
  */
 function onMouseUp(event: Event, instance: HotInstance) {
-  const target = (event as MouseEvent).target as HTMLElement;
+  const target = eventTargetEl(event)!;
 
   if (!isCheckboxInput(target)) {
     return;
@@ -481,7 +481,7 @@ function onMouseUp(event: Event, instance: HotInstance) {
  * @param {Core} instance The Handsontable instance.
  */
 function onClick(event: Event, instance: HotInstance) {
-  const target = (event as MouseEvent).target as HTMLElement;
+  const target = eventTargetEl(event)!;
 
   if (!isCheckboxInput(target)) {
     return;
@@ -507,7 +507,7 @@ function onClick(event: Event, instance: HotInstance) {
  * @param {Core} instance The Handsontable instance.
  */
 function onChange(event: Event, instance: HotInstance) {
-  const target = event.target as HTMLInputElement;
+  const target = eventTargetEl<HTMLInputElement>(event)!;
 
   if (!isCheckboxInput(target)) {
     return;

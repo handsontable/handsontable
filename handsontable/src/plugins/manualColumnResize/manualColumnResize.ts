@@ -4,6 +4,7 @@ import { BasePlugin } from '../base';
 import {
   addClass,
   closest,
+  eventTargetEl,
   hasClass,
   removeClass,
   outerHeight,
@@ -451,7 +452,7 @@ export class ManualColumnResize extends BasePlugin {
   #onMouseOver(event: MouseEvent) {
     // Workaround for #6926 - if the `event.target` is temporarily detached, we can skip this callback and wait for
     // the next `onmouseover`.
-    if (isDetached(event.target as HTMLElement)) {
+    if (isDetached(eventTargetEl(event)!)) {
       return;
     }
 
@@ -460,8 +461,8 @@ export class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    if (this.checkIfColumnHeader(event.target as HTMLElement)) {
-      const th = this.getClosestTHParent(event.target as HTMLElement);
+    if (this.checkIfColumnHeader(eventTargetEl(event)!)) {
+      const th = this.getClosestTHParent(eventTargetEl(event)!);
 
       if (!th) {
         return;
@@ -533,11 +534,11 @@ export class ManualColumnResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   #onMouseDown(event: MouseEvent) {
-    if ((event.target as HTMLElement).parentNode !== this.hot.rootElement) {
+    if (eventTargetEl(event)!.parentNode !== this.hot.rootElement) {
       return;
     }
 
-    if (hasClass(event.target as HTMLElement, 'manualColumnResizer')) {
+    if (hasClass(eventTargetEl(event)!, 'manualColumnResizer')) {
       this.setupHandlePosition(this.#currentTH);
       this.setupGuidePosition();
       this.#pressed = true;

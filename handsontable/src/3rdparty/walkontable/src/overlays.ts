@@ -3,6 +3,7 @@ import type Settings from './settings';
 import type Table from './table';
 import type { Overlay } from './overlay/_base';
 import {
+  eventTargetEl,
   getScrollableElement,
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
@@ -560,8 +561,8 @@ class Overlays {
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     if (this.keyPressed) {
-      if ((masterVertical !== rootWindow && target !== rootWindow && !(event.target as HTMLElement).contains(masterVertical as HTMLElement)) ||
-          (masterHorizontal !== rootWindow && target !== rootWindow && !(event.target as HTMLElement).contains(masterHorizontal as HTMLElement))) {
+      if ((masterVertical !== rootWindow && target !== rootWindow && !eventTargetEl(event)!.contains(masterVertical as HTMLElement)) ||
+          (masterHorizontal !== rootWindow && target !== rootWindow && !eventTargetEl(event)!.contains(masterHorizontal as HTMLElement))) {
         return;
       }
     }

@@ -1,5 +1,5 @@
 import { BaseEditor } from '../baseEditor';
-import { hasClass } from '../../helpers/dom/element';
+import { eventTargetEl, hasClass } from '../../helpers/dom/element';
 
 export const EDITOR_TYPE = 'checkbox';
 
@@ -18,7 +18,7 @@ export class CheckboxEditor extends BaseEditor {
     // `if` statement was created by the author for the purpose of handling only the `doubleclick` event on the TD
     // element with a checkbox.
 
-    if (event && (event as MouseEvent).type === 'mouseup' && (event.target as HTMLElement).nodeName === 'TD') {
+    if (event && (event as MouseEvent).type === 'mouseup' && eventTargetEl(event)!.nodeName === 'TD') {
       const checkbox = this.TD.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       if (!hasClass(checkbox, 'htBadValue')) {

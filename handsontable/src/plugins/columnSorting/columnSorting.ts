@@ -1,5 +1,6 @@
 import {
   addClass,
+  eventTargetEl,
   hasClass,
   isBottomMostColumnHeader,
   removeClass,
@@ -840,7 +841,7 @@ export class ColumnSorting extends BasePlugin {
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
     return (
-      headerActionEnabled && hasClass(event.target as HTMLElement, HEADER_SPAN_CLASS)
+      headerActionEnabled && hasClass(eventTargetEl(event)!, HEADER_SPAN_CLASS)
     );
   }
 

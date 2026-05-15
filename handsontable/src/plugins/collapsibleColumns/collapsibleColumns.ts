@@ -5,6 +5,7 @@ import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import {
   addClass,
+  eventTargetEl,
   hasClass,
   removeClass,
   fastInnerText,
@@ -649,7 +650,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} coords Event coordinates.
    */
   #onBeforeOnCellMouseDown(event: MouseEvent, coords: { row: number, col: number }) {
-    const target = event.target as HTMLElement;
+    const target = eventTargetEl(event)!;
 
     if (hasClass(target, COLLAPSIBLE_ELEMENT_CLASS)) {
       if (hasClass(target, 'expanded')) {

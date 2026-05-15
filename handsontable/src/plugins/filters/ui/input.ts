@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, eventTargetEl } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
 import { BaseUI, BaseUIOptions } from './_base';
 
@@ -81,6 +81,6 @@ export class InputUI extends BaseUI {
    * @param {Event} event The mouse event object.
    */
   #onKeyup(event: Event) {
-    this.options.value = (event.target as HTMLInputElement).value;
+    this.options.value = eventTargetEl<HTMLInputElement>(event)!.value;
   }
 }

@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
-import { isBottomMostColumnHeader } from '../../helpers/dom/element';
+import { eventTargetEl, isBottomMostColumnHeader } from '../../helpers/dom/element';
 import { isEmpty } from '../../helpers/mixed';
 import { parseToLocalDate, parseToLocalTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
@@ -107,7 +107,7 @@ export function wasHeaderClickedProperly(row: number, column: number, clickEvent
     return true;
   }
 
-  const targetHeader = typeof (clickEvent.target as HTMLElement).closest === 'function' ? (clickEvent.target as HTMLElement).closest('th') : null;
+  const targetHeader = typeof eventTargetEl(clickEvent)?.closest === 'function' ? eventTargetEl(clickEvent)!.closest('th') : null;
 
   return isBottomMostColumnHeader(targetHeader);
 }

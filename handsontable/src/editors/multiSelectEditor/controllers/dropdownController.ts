@@ -1,3 +1,4 @@
+import { eventTargetEl } from '../../../helpers/dom/element';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { getCheckboxElement, includesValue } from '../utils/utils';
@@ -431,7 +432,7 @@ export class DropdownController {
     };
 
     const itemClickListener = (event: Event): void => {
-      const target = event.target as HTMLElement;
+      const target = eventTargetEl(event)!;
       if (
         target === checkbox ||
         checkbox.dataset.disabled === 'true' ||

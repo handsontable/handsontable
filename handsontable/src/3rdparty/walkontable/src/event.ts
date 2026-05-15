@@ -6,6 +6,7 @@ import type Table from './table';
 import type { SelectionManager } from './selection/manager';
 import {
   closestDown,
+  eventTargetEl,
   hasClass,
   isChildOf,
   getParent,
@@ -239,7 +240,7 @@ class Event {
   onMouseDown(event: MouseEvent | TouchEvent) {
     const activeElement = this.#domBindings.rootDocument.activeElement;
     const getParentNode = partial(getParent, event.target as any);
-    const realTarget = event.target as Element;
+    const realTarget = eventTargetEl(event);
 
     // ignore non-TD focusable elements from mouse down processing
     // (https://github.com/handsontable/handsontable/issues/3555)
@@ -290,7 +291,7 @@ class Event {
 
 
     if (this.#wtSettings.has('onCellContextMenu')) {
-      const cell = this.parentCell(event.target as Element);
+      const cell = this.parentCell(eventTargetEl(event));
 
       if (cell.TD) {
         this.callListener('onCellContextMenu', event, cell.coords!, cell.TD);
@@ -310,7 +311,7 @@ class Event {
     }
 
     const table = this.#wtTable.TABLE;
-    const td = closestDown(event.target as HTMLElement, ['TD', 'TH'], table);
+    const td = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
     if (td && td !== parent.lastMouseOver && isChildOf(td as HTMLElement, table)) {
@@ -512,7 +513,7 @@ class Event {
     }
 
     const table = this.#wtTable.TABLE;
-    const lastTD = closestDown(event.target as HTMLElement, ['TD', 'TH'], table);
+    const lastTD = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget as HTMLElement, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
@@ -535,7 +536,7 @@ class Event {
     this.#mouseDown = false;
     this.#mouseOverOutsideLastCoords = null;
 
-    const cell = this.parentCell(event.target as Element);
+    const cell = this.parentCell(eventTargetEl(event));
 
     if (cell.TD && this.#wtSettings.has('onCellMouseUp')) {
       this.callListener('onCellMouseUp', event, cell.coords!, cell.TD);
@@ -547,7 +548,7 @@ class Event {
     }
 
     if (cell.TD && cell.TD === this.#dblClickOrigin[0] && cell.TD === this.#dblClickOrigin[1]) {
-      if (hasClass(event.target as HTMLElement, 'corner')) {
+      if (hasClass(eventTargetEl(event)!, 'corner')) {
         this.callListener('onCellCornerDblClick', event, cell.coords!, cell.TD);
       } else {
         this.callListener('onCellDblClick', event, cell.coords!, cell.TD);
@@ -605,7 +606,7 @@ class Event {
       this.onMouseDown(deferredTouchStartEvent);
     }
 
-    const target = event.target as Element;
+    const target = eventTargetEl(event);
     const parentCellCoords = this.parentCell(target)?.coords;
     const isCellsRange = isDefined(parentCellCoords) && (parentCellCoords.row >= 0 && parentCellCoords.col >= 0);
     const isEventCancelable = event.cancelable && isCellsRange && this.#wtSettings.getSetting('isDataViewInstance');

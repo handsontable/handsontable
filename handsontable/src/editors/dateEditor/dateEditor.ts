@@ -2,7 +2,7 @@ import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 import { EDITOR_STATE } from '../baseEditor';
 import { TextEditor } from '../textEditor';
-import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { addClass, eventTargetEl, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 import { isMobileBrowser } from '../../helpers/browser';
@@ -98,7 +98,7 @@ export class DateEditor extends TextEditor {
      * Prevent recognizing clicking on datepicker as clicking outside of table.
      */
     this.eventManager.addEventListener(this.datePicker, 'mousedown', (event) => {
-      if (hasClass((event as MouseEvent).target as HTMLElement, 'pika-day')) {
+      if (hasClass(eventTargetEl(event)!, 'pika-day')) {
         this.hideDatepicker();
       }
 

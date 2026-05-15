@@ -4,7 +4,7 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
-import { hasClass, isBottomMostColumnHeader, setAttribute } from '../../helpers/dom/element';
+import { eventTargetEl, hasClass, isBottomMostColumnHeader, setAttribute } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
 import { Hooks } from '../../core/hooks';
@@ -565,7 +565,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {Event} event The mouse event object.
    */
   #onTableClick(event: Event) {
-    const target = event.target as HTMLElement;
+    const target = eventTargetEl(event)!;
     if (hasClass(target, BUTTON_CLASS_NAME)) {
       const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
       const buttonRect = this.#getButtonRect(target);
@@ -744,7 +744,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {MouseEvent} event The mouse event object.
    */
   #onBeforeOnCellMouseDown(event: MouseEvent) {
-    if (hasClass(event.target as HTMLElement, BUTTON_CLASS_NAME)) {
+    if (hasClass(eventTargetEl(event)!, BUTTON_CLASS_NAME)) {
       this.#isButtonClicked = true;
     }
   }
