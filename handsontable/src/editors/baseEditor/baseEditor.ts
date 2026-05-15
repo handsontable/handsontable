@@ -521,13 +521,13 @@ export class BaseEditor {
       cellTopOffset += firstRowOffset - verticalScrollPosition;
     }
 
-    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName)) {
+    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay.clone) {
       const {
         wtViewport: bottomWtViewport,
         wtTable: bottomWtTable,
       } = wtOverlays.bottomOverlay.clone;
 
-      cellTopOffset += (bottomWtViewport as any).getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
+      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
     }
 
     let cellStartOffset = TD.offsetLeft;

@@ -11,6 +11,13 @@ export const EDITOR_TYPE = 'password';
  */
 export class PasswordEditor extends TextEditor {
   /**
+   * The password input element replacing the `<textarea>` from `TextEditor`.
+   *
+   * @type {HTMLInputElement}
+   */
+  declare TEXTAREA: HTMLInputElement;
+
+  /**
    * Autoresize instance for resizing the editor to the size of the entered text. Its overwrites the default
    * resizer of the TextEditor.
    *
@@ -65,7 +72,7 @@ export class PasswordEditor extends TextEditor {
   createElements(): void {
     super.createElements();
 
-    this.TEXTAREA = this.hot.rootDocument.createElement('input') as unknown as HTMLTextAreaElement;
+    this.TEXTAREA = this.hot.rootDocument.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
     this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.className = 'handsontableInput';
