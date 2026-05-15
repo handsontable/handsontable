@@ -64,7 +64,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    if (!this.needFullRender || !this.shouldBeRendered() || !(this.wot.wtTable.holder.parentNode as HTMLElement)) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode) {
       // removed from DOM
       return false;
     }

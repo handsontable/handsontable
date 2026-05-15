@@ -468,7 +468,7 @@ class TableView {
             // click inside container or portal
             return;
           }
-          next = (next as HTMLElement).parentNode;
+          next = (next as Node).parentNode;
         }
       }
 

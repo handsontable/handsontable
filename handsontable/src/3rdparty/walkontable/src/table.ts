@@ -786,10 +786,10 @@ class Table {
    *   provided element is not applicable.
    */
   getCoords(TD: HTMLTableCellElement | HTMLElement) {
-    let cellElement = TD;
+    let cellElement: HTMLElement | null = TD;
 
     if (cellElement.nodeName !== 'TD' && cellElement.nodeName !== 'TH') {
-      cellElement = closest(cellElement, ['TD', 'TH']) as HTMLElement;
+      cellElement = closest(cellElement, ['TD', 'TH']);
     }
 
     if (cellElement === null) {
@@ -803,7 +803,7 @@ class Table {
     }
 
     const CONTAINER = TR.parentNode;
-    let row = index(TR as HTMLElement);
+    let row = index(TR as Element);
     let col = (cellElement as HTMLTableCellElement).cellIndex;
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)

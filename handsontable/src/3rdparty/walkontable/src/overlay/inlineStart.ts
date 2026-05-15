@@ -61,7 +61,7 @@ export class InlineStartOverlay extends Overlay {
   resetFixedPosition() {
     const { wtTable } = this.wot;
 
-    if (!this.needFullRender || !this.shouldBeRendered() || !(wtTable.holder.parentNode as HTMLElement)) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !wtTable.holder.parentNode) {
       // removed from DOM
       return false;
     }

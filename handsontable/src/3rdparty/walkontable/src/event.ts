@@ -217,7 +217,7 @@ class Event {
     const elemEl = elem as HTMLElement;
 
     if (TD) {
-      cell.coords = this.#wtTable.getCoords(TD as HTMLElement);
+      cell.coords = this.#wtTable.getCoords(TD);
       cell.TD = TD as HTMLTableCellElement;
 
     } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'current')) {
@@ -242,7 +242,7 @@ class Event {
    */
   onMouseDown(event: MouseEvent | TouchEvent) {
     const activeElement = this.#domBindings.rootDocument.activeElement;
-    const getParentNode = partial(getParent, event.target as HTMLElement);
+    const getParentNode = partial(getParent, eventTargetEl(event)!);
     const realTarget = eventTargetEl(event);
 
     // ignore non-TD focusable elements from mouse down processing
@@ -259,7 +259,7 @@ class Event {
 
     const cell = this.parentCell(realTarget);
 
-    if (hasClass(realTarget as HTMLElement, 'corner')) {
+    if (hasClass(realTarget!, 'corner')) {
       this.#wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
 
     } else if (cell.TD) {
@@ -317,12 +317,10 @@ class Event {
     const td = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
-    const tdEl = td as HTMLElement;
+    if (td && td !== parent.lastMouseOver && isChildOf(td, table)) {
+      parent.lastMouseOver = td;
 
-    if (td && td !== parent.lastMouseOver && isChildOf(tdEl, table)) {
-      parent.lastMouseOver = tdEl;
-
-      this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(tdEl), tdEl);
+      this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(td), td);
     }
   }
 
@@ -519,13 +517,11 @@ class Event {
 
     const table = this.#wtTable.TABLE;
     const lastTD = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
-    const nextTD = closestDown(event.relatedTarget as HTMLElement, ['TD', 'TH'], table);
+    const nextTD = closestDown(event.relatedTarget as HTMLElement | null, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
-    const lastTDEl = lastTD as HTMLElement;
-
-    if (lastTD && lastTD !== nextTD && isChildOf(lastTDEl, table)) {
-      this.callListener('onCellMouseOut', event, this.#wtTable.getCoords(lastTDEl), lastTDEl);
+    if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
+      this.callListener('onCellMouseOut', event, this.#wtTable.getCoords(lastTD), lastTD);
 
       if (nextTD === null) {
         parent.lastMouseOver = null;
@@ -633,7 +629,7 @@ class Event {
       if (isIOS() &&
           (isChromeWebKit() || isFirefoxWebKit()) &&
           this.selectedCellWasTouched(target) &&
-          !interactiveElements.includes((target as HTMLElement).tagName)) {
+          !interactiveElements.includes(target!.tagName)) {
         event.preventDefault();
 
       } else if (!this.selectedCellWasTouched(target)) {

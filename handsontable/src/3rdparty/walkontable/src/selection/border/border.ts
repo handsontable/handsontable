@@ -616,7 +616,7 @@ class Border {
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
-      let trimmingContainer = getTrimmingContainer(wtTable.TABLE) as HTMLElement | Window;
+      let trimmingContainer: HTMLElement | Window = getTrimmingContainer(wtTable.TABLE);
       const trimToWindow = (trimmingContainer as unknown) === rootWindow;
 
       if (trimToWindow) {

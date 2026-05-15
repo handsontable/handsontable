@@ -603,9 +603,9 @@ class Overlays {
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     const shouldNotWheelVertically = masterVertical !== rootWindow &&
-      target !== rootWindow && !(target as HTMLElement).contains(masterVertical as HTMLElement);
+      target !== rootWindow && !(target as Node).contains(masterVertical as HTMLElement);
     const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
-      target !== rootWindow && !(target as HTMLElement).contains(masterHorizontal as HTMLElement);
+      target !== rootWindow && !(target as Node).contains(masterHorizontal as HTMLElement);
 
     if (
       (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
