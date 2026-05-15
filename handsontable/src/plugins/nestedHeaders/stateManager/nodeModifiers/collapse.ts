@@ -6,6 +6,7 @@ import {
   traverseHiddenNodeColumnIndexes,
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
+import type { HeaderNodeData } from '../headersTree';
 
 /**
  * Collapsing a node is a process where the processing node is collapsed
@@ -14,10 +15,10 @@ import type TreeNode from '../../../../utils/dataStructures/tree';
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @returns {object} Returns an object with properties.
  */
-export function collapseNode(nodeToProcess: { data: Record<string, unknown>, childs: TreeNode[] }): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+export function collapseNode(nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-  if (nodeData.isCollapsed || nodeData.isHidden || (nodeData.origColspan as number) <= 1) {
+  if (nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
     return {
       rollbackModification: () => {},
       affectedColumns: [],
@@ -28,7 +29,7 @@ export function collapseNode(nodeToProcess: { data: Record<string, unknown>, chi
   const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] });
 
   if (isNodeReflected) {
-    return collapseNode(nodeChilds[0] as { data: Record<string, unknown>, childs: TreeNode[] });
+    return collapseNode(nodeChilds[0] as { data: HeaderNodeData, childs: TreeNode[] });
   }
 
   nodeData.isCollapsed = true;
@@ -60,22 +61,22 @@ export function collapseNode(nodeToProcess: { data: Record<string, unknown>, chi
     } = nodeData;
 
     // Add column to "affected" started from 1.
-    for (let i = 1; i < (origColspan as number); i++) {
-      const gridColumnIndex = (columnIndex as number) + i;
+    for (let i = 1; i < origColspan; i++) {
+      const gridColumnIndex = columnIndex + i;
 
       affectedColumns.add(gridColumnIndex);
     }
   }
 
   // Calculate by how many colspan it needs to reduce the headings.
-  const colspanCompensation = (nodeData.colspan as number) - ((getFirstChildProperty(nodeToProcess as { childs: { data: Record<string, unknown> }[] }, 'colspan') as number | undefined) ?? 1);
+  const colspanCompensation = nodeData.colspan - ((getFirstChildProperty(nodeToProcess as { childs: { data: Record<string, unknown> }[] }, 'colspan') as number | undefined) ?? 1);
 
   (nodeToProcess as TreeNode).walkUp((node: TreeNode) => {
     const { data } = node;
 
-    (data.colspan as number) -= colspanCompensation;
+    data.colspan -= colspanCompensation;
 
-    if ((data.colspan as number) <= 1) {
+    if (data.colspan <= 1) {
       data.colspan = 1;
       data.isCollapsed = true;
 

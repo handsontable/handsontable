@@ -291,7 +291,7 @@ class TableView {
 
     addClass(rootElement, 'handsontable');
 
-    this.#table = rootDocument.createElement('TABLE') as unknown as HTMLTableElement;
+    this.#table = rootDocument.createElement('TABLE') as HTMLTableElement;
     addClass(this.#table, 'htCore');
 
     if (this.hot.getSettings().tableClassName) {
@@ -311,10 +311,10 @@ class TableView {
       ]);
     }
 
-    this.THEAD = rootDocument.createElement('THEAD') as unknown as HTMLTableSectionElement;
+    this.THEAD = rootDocument.createElement('THEAD') as HTMLTableSectionElement;
     this.#table.appendChild(this.THEAD);
 
-    this.TBODY = rootDocument.createElement('TBODY') as unknown as HTMLTableSectionElement;
+    this.TBODY = rootDocument.createElement('TBODY') as HTMLTableSectionElement;
     this.#table.appendChild(this.TBODY);
 
     this.hot.table = this.#table;

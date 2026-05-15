@@ -569,16 +569,16 @@ export class CopyPaste extends BasePlugin {
     // don't know whether populated data is bigger than selection on start as there are some cells for which values
     // should be not inserted (it's known right after getting cell meta).
     while (newRows.length < populatedRowsLength || visualRowForPopulatedData <= endRowFromSelection) {
-      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta(visualRowForPopulatedData, startColumn);
+      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta<{ skipRowOnPaste: boolean, visualRow: number }>(visualRowForPopulatedData, startColumn);
 
-      visualRowForPopulatedData = (visualRow as number) + 1;
+      visualRowForPopulatedData = visualRow + 1;
 
       if (skipRowOnPaste === true) {
         /* eslint-disable no-continue */
         continue;
       }
 
-      lastVisualRow = visualRow as number;
+      lastVisualRow = visualRow;
       visualColumnForPopulatedData = startColumn;
 
       const newRow = [];
@@ -589,18 +589,18 @@ export class CopyPaste extends BasePlugin {
           skipColumnOnPaste,
           visualCol,
           parsePastedValue,
-        } = this.hot.getCellMeta(visualRow as number, visualColumnForPopulatedData);
-        const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow as number, visualColumnForPopulatedData);
+        } = this.hot.getCellMeta<{ skipColumnOnPaste: boolean, visualCol: number, parsePastedValue: unknown }>(visualRow, visualColumnForPopulatedData);
+        const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow, visualColumnForPopulatedData);
         const insertedColumn = newRow.length % populatedColumnsLength;
 
-        visualColumnForPopulatedData = (visualCol as number) + 1;
+        visualColumnForPopulatedData = visualCol + 1;
 
         if (skipColumnOnPaste === true) {
           /* eslint-disable no-continue */
           continue;
         }
 
-        lastVisualColumn = visualCol as number;
+        lastVisualColumn = visualCol;
 
         const sourceCellValue = sourceData?.[insertedRow]?.[insertedColumn];
         const originalCellValue = originalPlainData?.[insertedRow]?.[insertedColumn];

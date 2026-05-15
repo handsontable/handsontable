@@ -498,8 +498,10 @@ class Border {
     }
 
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
-    const fromOffset = offset(fromTD as HTMLElement);
-    const toOffset = isMultiple ? offset(toTD as HTMLElement) : fromOffset;
+    const fromTDEl = fromTD as HTMLElement;
+    const toTDEl = toTD as HTMLElement;
+    const fromOffset = offset(fromTDEl);
+    const toOffset = isMultiple ? offset(toTDEl) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
@@ -510,14 +512,14 @@ class Border {
 
     if (isRtl) {
       const containerWidth = outerWidth(wtTable.TABLE);
-      const fromWidth = outerWidth(fromTD as HTMLElement);
+      const fromWidth = outerWidth(fromTDEl);
       const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
 
       width = minLeft + fromWidth - toOffset.left;
       inlineStartPos = rootWindow.innerWidth - minLeft - fromWidth - gridRightPos - 1;
 
     } else {
-      width = toOffset.left + outerWidth(toTD as HTMLElement) - minLeft;
+      width = toOffset.left + outerWidth(toTDEl) - minLeft;
       inlineStartPos = minLeft - containerOffset.left - 1;
     }
 
@@ -536,7 +538,7 @@ class Border {
     }
 
     let top = minTop - containerOffset.top - 1;
-    let height = toOffset.top + outerHeight(toTD as HTMLElement) - minTop;
+    let height = toOffset.top + outerHeight(toTDEl) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
       const columnHeader = fromColumn;
@@ -552,7 +554,7 @@ class Border {
       }
     }
 
-    const style = rootWindow.getComputedStyle(fromTD as HTMLElement);
+    const style = rootWindow.getComputedStyle(fromTDEl);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -628,7 +630,7 @@ class Border {
       const cornerHalfHeight = Math.ceil(parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
 
       if (toColumn === (this.wot.getSetting('totalColumns') as number) - 1) {
-        const toTdOffsetLeft = trimToWindow ? (toTD as HTMLElement).getBoundingClientRect().left : (toTD as HTMLElement).offsetLeft;
+        const toTdOffsetLeft = trimToWindow ? toTDEl.getBoundingClientRect().left : toTDEl.offsetLeft;
         let cornerOverlappingContainer = false;
         let cornerEdge = 0;
 
@@ -637,7 +639,7 @@ class Border {
           cornerOverlappingContainer = cornerEdge < 0;
 
         } else {
-          cornerEdge = toTdOffsetLeft + outerWidth(toTD as HTMLElement) + (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
+          cornerEdge = toTdOffsetLeft + outerWidth(toTDEl) + (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
           cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
         }
 
@@ -655,8 +657,8 @@ class Border {
       }
 
       if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
-        const toTdOffsetTop = trimToWindow ? (toTD as HTMLElement).getBoundingClientRect().top : (toTD as HTMLElement).offsetTop;
-        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD as HTMLElement) + (parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
+        const toTdOffsetTop = trimToWindow ? toTDEl.getBoundingClientRect().top : toTDEl.offsetTop;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTDEl) + (parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {

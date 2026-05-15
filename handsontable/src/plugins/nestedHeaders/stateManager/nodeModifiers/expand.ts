@@ -6,6 +6,7 @@ import {
   traverseHiddenNodeColumnIndexes,
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
+import type { HeaderNodeData } from '../headersTree';
 
 /**
  * Expanding a node is a process where the processing node is expanded to
@@ -14,10 +15,10 @@ import type TreeNode from '../../../../utils/dataStructures/tree';
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @returns {object} Returns an object with properties.
  */
-export function expandNode(nodeToProcess: { data: Record<string, unknown>, childs: TreeNode[] }): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+export function expandNode(nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
-  if (!nodeData.isCollapsed || nodeData.isHidden || (nodeData.origColspan as number) <= 1) {
+  if (!nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
     return {
       rollbackModification: () => {},
       affectedColumns: [],
@@ -28,7 +29,7 @@ export function expandNode(nodeToProcess: { data: Record<string, unknown>, child
   const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] });
 
   if (isNodeReflected) {
-    return expandNode(nodeChilds[0] as { data: Record<string, unknown>, childs: TreeNode[] });
+    return expandNode(nodeChilds[0] as { data: HeaderNodeData, childs: TreeNode[] });
   }
 
   nodeData.isCollapsed = false;
@@ -63,20 +64,20 @@ export function expandNode(nodeToProcess: { data: Record<string, unknown>, child
     } = nodeData;
 
     // In a case when the node doesn't have any children restore the colspan width.
-    colspanCompensation = (origColspan as number) - (colspan as number);
+    colspanCompensation = origColspan - colspan;
 
     // Add column to "affected" started from 1.
-    for (let i = 1; i < (origColspan as number); i++) {
-      affectedColumns.add((columnIndex as number) + i);
+    for (let i = 1; i < origColspan; i++) {
+      affectedColumns.add(columnIndex + i);
     }
   }
 
   (nodeToProcess as TreeNode).walkUp((node: TreeNode) => {
     const { data } = node;
 
-    (data.colspan as number) += colspanCompensation;
+    data.colspan += colspanCompensation;
 
-    if ((data.colspan as number) >= (data.origColspan as number)) {
+    if (data.colspan >= data.origColspan) {
       data.colspan = data.origColspan;
       data.isCollapsed = false;
 

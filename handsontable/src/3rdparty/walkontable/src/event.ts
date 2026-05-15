@@ -214,15 +214,17 @@ class Event {
     const TABLE = this.#wtTable.TABLE;
     const TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
+    const elemEl = elem as HTMLElement;
+
     if (TD) {
       cell.coords = this.#wtTable.getCoords(TD as HTMLElement);
       cell.TD = TD as HTMLTableCellElement;
 
-    } else if (hasClass(elem as HTMLElement, 'wtBorder') && hasClass(elem as HTMLElement, 'current')) {
+    } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'current')) {
       cell.coords = this.#selectionManager.getFocusSelection().cellRange.highlight;
       cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
 
-    } else if (hasClass(elem as HTMLElement, 'wtBorder') && hasClass(elem as HTMLElement, 'area')) {
+    } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'area')) {
       if (this.#selectionManager.getAreaSelection().cellRange) {
         cell.coords = this.#selectionManager.getAreaSelection().cellRange.to;
         cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
@@ -315,10 +317,12 @@ class Event {
     const td = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
-    if (td && td !== parent.lastMouseOver && isChildOf(td as HTMLElement, table)) {
-      parent.lastMouseOver = td as HTMLElement;
+    const tdEl = td as HTMLElement;
 
-      this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(td as HTMLElement), td as HTMLElement);
+    if (td && td !== parent.lastMouseOver && isChildOf(tdEl, table)) {
+      parent.lastMouseOver = tdEl;
+
+      this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(tdEl), tdEl);
     }
   }
 
@@ -518,8 +522,10 @@ class Event {
     const nextTD = closestDown(event.relatedTarget as HTMLElement, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
-    if (lastTD && lastTD !== nextTD && isChildOf(lastTD as HTMLElement, table)) {
-      this.callListener('onCellMouseOut', event, this.#wtTable.getCoords(lastTD as HTMLElement), lastTD as HTMLElement);
+    const lastTDEl = lastTD as HTMLElement;
+
+    if (lastTD && lastTD !== nextTD && isChildOf(lastTDEl, table)) {
+      this.callListener('onCellMouseOut', event, this.#wtTable.getCoords(lastTDEl), lastTDEl);
 
       if (nextTD === null) {
         parent.lastMouseOver = null;

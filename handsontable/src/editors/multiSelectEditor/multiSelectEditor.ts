@@ -84,7 +84,7 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.dropdownController!.reset();
 
-    if (valuesIntersection.length >= (this.#getEditorSetting('maxSelections') as number)) {
+    if (valuesIntersection.length >= this.#getEditorSetting<number>('maxSelections')) {
       this.#blockNewSelections();
     }
 
@@ -92,11 +92,11 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.dropdownController!.setSourceSortFunction(this.cellProperties.sourceSortFunction as ((entries: unknown[]) => unknown[]) | undefined);
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
-    this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting('visibleRows') as number);
+    this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
     this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting('searchInput') as boolean);
 
     if (cellProperties.maxSelections !== undefined) {
-      this.#selectedItems.setMaxSelectionCount(cellProperties.maxSelections as number);
+      this.#selectedItems.setMaxSelectionCount(this.#getEditorSetting<number>('maxSelections'));
     }
   }
 
@@ -109,7 +109,7 @@ export class MultiSelectEditor extends BaseEditor {
       (selectedKey: string, selectedValue: string) => {
         this.#addSelectedValue(selectedKey, selectedValue);
 
-        if (this.#selectedItems.getSize() >= (this.cellProperties.maxSelections as number)) {
+        if (this.#selectedItems.getSize() >= (this.#getEditorSetting<number>('maxSelections'))) {
           this.#blockNewSelections();
         }
       }
@@ -118,7 +118,7 @@ export class MultiSelectEditor extends BaseEditor {
       (deselectedKey: string, deselectedValue: string) => {
         this.#removeSelectedValue(deselectedKey, deselectedValue);
 
-        if (this.#selectedItems.getSize() < (this.cellProperties.maxSelections as number)) {
+        if (this.#selectedItems.getSize() < (this.#getEditorSetting<number>('maxSelections'))) {
           this.#unblockNewSelections();
         }
       }
@@ -375,8 +375,8 @@ export class MultiSelectEditor extends BaseEditor {
     }
   }
 
-  #getEditorSetting(settingKey: string): unknown {
-    return this.cellProperties[settingKey];
+  #getEditorSetting<T>(settingKey: string): T {
+    return this.cellProperties[settingKey] as T;
   }
 
   #onAfterSetSourceDataAtCell(changes: unknown[][], source: string): void {
@@ -390,7 +390,7 @@ export class MultiSelectEditor extends BaseEditor {
       this.dropdownController!.fillDropdown(this.#getSource(), this.#selectedItems.getItemsArray());
       this.dropdownController!.focusItem(0);
 
-      if (this.#selectedItems.getSize() >= (this.cellProperties.maxSelections as number)) {
+      if (this.#selectedItems.getSize() >= (this.#getEditorSetting<number>('maxSelections'))) {
         this.#blockNewSelections();
       } else {
         this.#unblockNewSelections();

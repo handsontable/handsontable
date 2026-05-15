@@ -232,7 +232,7 @@ export class ColumnSorting extends BasePlugin {
 
     this.hot.batchExecution(() => {
       if (this.indexesSequenceCache !== null) {
-        this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues() as unknown as number[]);
+        this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues());
         this.hot.rowIndexMapper.unregisterMap(this.pluginKey);
 
         this.indexesSequenceCache = null;
@@ -323,7 +323,7 @@ export class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache = this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence()) as unknown as IndexesSequence;
+      this.indexesSequenceCache = this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence()) as IndexesSequence;
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
@@ -652,7 +652,7 @@ export class ColumnSorting extends BasePlugin {
    * @private
    */
   sortByPresetSortStates(sortConfigs: SortConfig[]) {
-    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues() as unknown as number[]);
+    this.hot.rowIndexMapper.setIndexesSequence(this.indexesSequenceCache!.getValues());
 
     if (sortConfigs.length === 0) {
       return;
