@@ -168,7 +168,7 @@ export class SelectEditor extends BaseEditor {
       objectEach(options, (optionValue, key) => {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
-        optionElement.value = key as string;
+        optionElement.value = key;
         fastInnerHTML(optionElement, optionValue as string, sanitizer);
         this.select.appendChild(optionElement);
       });

@@ -174,11 +174,9 @@ export class BaseUI {
       // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
       element.setAttribute('data-hot-input', true as unknown as string);
 
-      objectEach(this.options as Record<string, unknown>, (value: unknown, key: unknown) => {
-        const k = key as string;
-
-        if (element[k] !== undefined && k !== 'className' && k !== 'tagName' && k !== 'children') {
-          element[k] = this.translateIfPossible(value);
+      objectEach(this.options as Record<string, unknown>, (value: unknown, key: string) => {
+        if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
+          element[key] = this.translateIfPossible(value);
         }
       });
 

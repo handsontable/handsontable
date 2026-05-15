@@ -78,6 +78,15 @@ isTouchSupported();
 isUndefined(null);
 mixin(class {}, {key: 'foo'}, {key2: 'bar'});
 objectEach({key: 'foo'}, (value: unknown, key: unknown, object: object) => {});
+
+// Wave 8: objectEach key is now string — no cast needed in callbacks
+objectEach({ a: 1, b: 2 }, (value: unknown, key: string) => {
+  const _k: string = key; // must be string without cast
+});
+// Wave 8: objectEach accepts any object — no as Record<> cast needed
+const plainObj: { x: number } = { x: 1 };
+
+objectEach(plainObj, (value: unknown, key: string) => {});
 partial(() => {}, 1, 'foo', true);
 pipe(() => {}, () => {});
 pivot([[1, 'foo', true]]);

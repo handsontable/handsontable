@@ -203,8 +203,8 @@ class ConditionUpdateObserver {
   destroy() {
     this.clearLocalHooks();
 
-    objectEach(this as unknown as Record<string, unknown>, (_value: unknown, property: unknown) => {
-      (this as unknown as Record<string, unknown>)[property as string] = null;
+    objectEach(this, (_value: unknown, property: string) => {
+      (this as Record<string, unknown>)[property] = null;
     });
   }
 }

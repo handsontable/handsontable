@@ -282,9 +282,9 @@ export class ColumnSummary extends BasePlugin {
   calculateSum(endpoint: SummaryEndpoint): number {
     let sum = 0;
 
-    objectEach(endpoint.ranges as unknown as Record<string, unknown>, (range: number[]) => {
+    for (const range of endpoint.ranges) {
       sum += this.getPartialSum(range, endpoint.sourceColumn!);
-    });
+    }
 
     return sum;
   }
@@ -334,7 +334,7 @@ export class ColumnSummary extends BasePlugin {
   calculateMinMax(endpoint: SummaryEndpoint, type: 'min' | 'max'): number | string {
     let result: number | null = null;
 
-    objectEach(endpoint.ranges as unknown as Record<string, unknown>, (range: number[]) => {
+    for (const range of endpoint.ranges) {
       const partialResult = this.getPartialMinMax(range, endpoint.sourceColumn!, type);
 
       if (result === null && partialResult !== null) {
@@ -353,7 +353,7 @@ export class ColumnSummary extends BasePlugin {
             break;
         }
       }
-    });
+    }
 
     return result === null ? 'Not enough data' : result;
   }
@@ -436,13 +436,13 @@ export class ColumnSummary extends BasePlugin {
     let result = 0;
     const ranges = endpoint.ranges;
 
-    objectEach(ranges as unknown as Record<string, unknown>, (range: number[]) => {
+    for (const range of ranges) {
       const partial = range[1] === undefined ? 1 : range[1] - range[0] + 1;
       const emptyCount = this.countEmpty(range, endpoint.sourceColumn!);
 
       result += partial;
       result -= emptyCount;
-    });
+    }
 
     return result;
   }

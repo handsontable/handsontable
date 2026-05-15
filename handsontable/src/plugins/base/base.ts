@@ -533,7 +533,7 @@ export class BasePlugin {
     this.eventManager?.destroy();
     this.clearHooks();
 
-    objectEach(this as unknown as Record<string, unknown>, (value: unknown, property: string) => {
+    objectEach(this, (value: unknown, property: string) => {
       if (property !== 'hot') {
         this[property as keyof this] = null;
       }

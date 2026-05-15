@@ -14,8 +14,8 @@ import { toSingleLine } from './../helpers/templateLiteralTag';
  */
 export function extendNotExistingKeys(target: Record<string, unknown>, extension: Record<string, unknown>) {
   objectEach(extension, (value, key) => {
-    if (isUndefined((target as Record<string, unknown>)[key as string])) {
-      (target as Record<string, unknown>)[key as string] = value;
+    if (isUndefined(target[key])) {
+      target[key] = value;
     }
   });
 

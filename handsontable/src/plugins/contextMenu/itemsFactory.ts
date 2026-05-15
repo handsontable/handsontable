@@ -42,7 +42,7 @@ export class ItemsFactory {
 
     this.defaultOrderPattern.length = 0;
 
-    objectEach(predefinedItemsCollection as Record<string, unknown>, (val: unknown, key: unknown) => {
+    objectEach(predefinedItemsCollection, (val: unknown, key: string) => {
       const value = val as Record<string, unknown>;
       let menuItemKey = '';
 
@@ -51,9 +51,9 @@ export class ItemsFactory {
         menuItemKey = SEPARATOR;
 
         // Menu item added as a property to array
-      } else if (isNaN(parseInt(key as string, 10))) {
+      } else if (isNaN(parseInt(key, 10))) {
         value.key = value.key === undefined ? key : value.key;
-        items[key as string] = value;
+        items[key] = value;
         menuItemKey = value.key as string;
 
       } else {
@@ -94,7 +94,7 @@ function getItems(itemsPattern: any = null, defaultPattern: string[] = [], items
     pattern = defaultPattern;
   }
   if (isObject(pattern)) {
-    objectEach(pattern as Record<string, unknown>, (value: unknown, key: string) => {
+    objectEach(pattern, (value: unknown, key: string) => {
       let item: Record<string, unknown> = items[typeof value === 'string' ? value : key];
 
       if (!item) {

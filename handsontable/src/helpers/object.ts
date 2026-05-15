@@ -16,23 +16,23 @@ export function duckSchema(object: unknown[] | object): unknown {
   } else {
     const schemaObj: Record<string, unknown> = {};
 
-    objectEach(object as Record<string, unknown>, (value, key) => {
+    objectEach(object, (value, key) => {
       if (key === '__children') {
         return;
       }
 
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        schemaObj[key as string] = duckSchema(value as object);
+        schemaObj[key] = duckSchema(value as object);
 
       } else if (Array.isArray(value)) {
         if (value.length && typeof value[0] === 'object' && !Array.isArray(value[0])) {
-          schemaObj[key as string] = [duckSchema(value[0])];
+          schemaObj[key] = [duckSchema(value[0])];
         } else {
-          schemaObj[key as string] = [];
+          schemaObj[key] = [];
         }
 
       } else {
-        schemaObj[key as string] = null;
+        schemaObj[key] = null;
       }
     });
 
@@ -71,8 +71,8 @@ export function extend(target: Record<string, unknown>, extension: Record<string
   const hasWritableKeys = Array.isArray(writableKeys);
 
   objectEach(extension, (value, key) => {
-    if (hasWritableKeys === false || writableKeys.includes(key as string)) {
-      target[key as string] = value;
+    if (hasWritableKeys === false || writableKeys.includes(key)) {
+      target[key] = value;
     }
   });
 
@@ -87,20 +87,20 @@ export function extend(target: Record<string, unknown>, extension: Record<string
  */
 export function deepExtend(target: Record<string, unknown>, extension: Record<string, unknown>): void {
   objectEach(extension, (value, key) => {
-    if (extension[key as string] && typeof extension[key as string] === 'object') {
-      if (!target[key as string]) {
-        if (Array.isArray(extension[key as string])) {
-          target[key as string] = [];
-        } else if (Object.prototype.toString.call(extension[key as string]) === '[object Date]') {
-          target[key as string] = extension[key as string];
+    if (extension[key] && typeof extension[key] === 'object') {
+      if (!target[key]) {
+        if (Array.isArray(extension[key])) {
+          target[key] = [];
+        } else if (Object.prototype.toString.call(extension[key]) === '[object Date]') {
+          target[key] = extension[key];
         } else {
-          target[key as string] = {};
+          target[key] = {};
         }
       }
-      deepExtend(target[key as string] as Record<string, unknown>, extension[key as string] as Record<string, unknown>);
+      deepExtend(target[key] as Record<string, unknown>, extension[key] as Record<string, unknown>);
 
     } else {
-      target[key as string] = extension[key as string];
+      target[key] = extension[key];
     }
   });
 }
@@ -142,8 +142,8 @@ export function deepClone<T>(obj: T): T {
 export function clone(object: object): object {
   const result: Record<string, unknown> = {};
 
-  objectEach(object as Record<string, unknown>, (value, key) => {
-    result[key as string] = value;
+  objectEach(object, (value, key) => {
+    result[key] = value;
   });
 
   return result;
@@ -163,12 +163,12 @@ export function mixin(Base: Function, ...mixins: object[]): object {
   arrayEach(mixins, (mixinItem) => {
     (Base as unknown as Record<string, unknown[]>).MIXINS.push((mixinItem as Record<string, unknown>).MIXIN_NAME);
 
-    objectEach(mixinItem as Record<string, unknown>, (value, key) => {
-      if (Base.prototype[key as string] !== undefined) {
+    objectEach(mixinItem, (value, key) => {
+      if (Base.prototype[key] !== undefined) {
         throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
       if (typeof value === 'function') {
-        Base.prototype[key as string] = value;
+        Base.prototype[key] = value;
 
       } else {
         const getter = function _getter(property: string, initialValue: unknown) {
@@ -200,9 +200,9 @@ export function mixin(Base: Function, ...mixins: object[]): object {
           };
         };
 
-        Object.defineProperty(Base.prototype, key as string, {
-          get: getter(key as string, value),
-          set: setter(key as string),
+        Object.defineProperty(Base.prototype, key, {
+          get: getter(key, value),
+          set: setter(key),
           configurable: true,
         });
       }
@@ -275,11 +275,13 @@ export function defineGetter(object: object, property: string, value: unknown, o
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {object} Returns `object`.
  */
-export function objectEach(object: Record<string, unknown>, iteratee: (value: unknown, key: unknown, object: object) => unknown): object {
+export function objectEach(object: object, iteratee: (value: unknown, key: string, object: object) => unknown): object {
+  const rec = object as Record<string, unknown>;
+
   // eslint-disable-next-line no-restricted-syntax
-  for (const key in object) {
-    if (!object.hasOwnProperty || (object.hasOwnProperty && Object.prototype.hasOwnProperty.call(object, key))) {
-      if (iteratee(object[key], key, object) === false) {
+  for (const key in rec) {
+    if (!rec.hasOwnProperty || (rec.hasOwnProperty && Object.prototype.hasOwnProperty.call(rec, key))) {
+      if (iteratee(rec[key], key, object) === false) {
         break;
       }
     }
@@ -299,15 +301,13 @@ export function getProperty<T = unknown>(object: Record<string, unknown>, name: 
   const names = name.split('.');
   let result: unknown = object;
 
-  objectEach(names as unknown as Record<string, unknown>, (nameItem) => {
-    result = (result as Record<string, unknown>)[nameItem as string];
+  for (const nameItem of names) {
+    result = (result as Record<string, unknown>)[nameItem];
 
     if (result === undefined) {
-      result = undefined;
-
-      return false;
+      return undefined;
     }
-  });
+  }
 
   return result as T | undefined;
 }
@@ -361,7 +361,7 @@ export function deepObjectSize(object: unknown): number {
     let result = 0;
 
     if (isObject(obj)) {
-      objectEach(obj as Record<string, unknown>, (value, key) => {
+      objectEach(obj as object, (value, key) => {
         if (key === '__children') {
           return;
         }

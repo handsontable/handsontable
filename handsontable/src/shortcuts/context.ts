@@ -170,9 +170,9 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    */
   const addShortcuts = (shortcuts: Shortcut[], options: Partial<Shortcut> = {}): void => {
     shortcuts.forEach((shortcut) => {
-      objectEach(options as Record<string, unknown>, (value, key) => {
+      objectEach(options, (value, key) => {
         if (Object.prototype.hasOwnProperty.call(shortcut, key) === false) {
-          (shortcut as unknown as Record<string, unknown>)[key as string] = (options as unknown as Record<string, unknown>)[key as string];
+          (shortcut as unknown as Record<string, unknown>)[key] = (options as unknown as Record<string, unknown>)[key];
         }
       });
 
