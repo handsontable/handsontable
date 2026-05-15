@@ -184,7 +184,7 @@ class VisualSelection extends Selection {
       cellCoordsVisual = this.getNearestNotHiddenCoords(coordsFrom, rowDirection, columnDirection);
     }
 
-    if (cellCoordsVisual !== null && (broaderCellRange as any).overlaps(cellCoordsVisual)) {
+    if (cellCoordsVisual !== null && broaderCellRange.includes(cellCoordsVisual)) {
       const currentHighlight = broaderCellRange.highlight.clone();
 
       if (currentHighlight.row >= 0) {
@@ -198,7 +198,7 @@ class VisualSelection extends Selection {
       if (this.cellRange === null) {
         const cellCoordsRenderable = this.settings.visualToRenderableCoords(currentHighlight);
 
-        this.cellRange = this.settings.createCellRange(cellCoordsRenderable as unknown as CellCoords);
+        this.cellRange = this.settings.createCellRange(cellCoordsRenderable as CellCoords);
       }
 
       // TODO
@@ -274,9 +274,9 @@ class VisualSelection extends Selection {
     }
 
     return this.settings.createCellRange(
-      renderableFromCoords as unknown as CellCoords,
-      renderableFromCoords as unknown as CellCoords,
-      renderableToCoords as unknown as CellCoords
+      renderableFromCoords as CellCoords,
+      renderableFromCoords as CellCoords,
+      renderableToCoords as CellCoords
     );
   }
 }

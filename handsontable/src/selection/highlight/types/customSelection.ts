@@ -1,3 +1,4 @@
+import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
 import { HIGHLIGHT_CUSTOM_SELECTION_TYPE } from '../../../3rdparty/walkontable/src';
 import VisualSelection from '../visualSelection';
 
@@ -15,5 +16,5 @@ export function createHighlight({ border, visualCellRange, ...restOptions }: Rec
     ...(border as Record<string, unknown>),
     ...restOptions,
     selectionType: HIGHLIGHT_CUSTOM_SELECTION_TYPE,
-  }, visualCellRange as any);
+  }, visualCellRange as CellRange | null);
 }
