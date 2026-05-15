@@ -87,7 +87,7 @@ export default class CellMeta {
    */
   createColumn(physicalColumn: number, amount: number) {
     for (let i = 0; i < this.metas.size(); i++) {
-      (this.metas.obtain(i) as unknown as LazyFactoryMap).insert(physicalColumn, amount);
+      this.metas.obtain(i).insert(physicalColumn, amount);
     }
   }
 
@@ -109,7 +109,7 @@ export default class CellMeta {
    */
   removeColumn(physicalColumn: number, amount: number) {
     for (let i = 0; i < this.metas.size(); i++) {
-      (this.metas.obtain(i) as unknown as LazyFactoryMap).remove(physicalColumn, amount);
+      this.metas.obtain(i).remove(physicalColumn, amount);
     }
   }
 
@@ -124,7 +124,7 @@ export default class CellMeta {
   getMeta(physicalRow: number, physicalColumn: number): Record<string, unknown>;
   getMeta(physicalRow: number, physicalColumn: number, key: string): unknown;
   getMeta(physicalRow: number, physicalColumn: number, key?: string): Record<string, unknown> | unknown {
-    const cellMeta = (this.metas.obtain(physicalRow) as unknown as LazyFactoryMap).obtain(physicalColumn);
+    const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     if (key === undefined) {
       return cellMeta;
@@ -142,7 +142,7 @@ export default class CellMeta {
    * @param {*} value Value to save.
    */
   setMeta(physicalRow: number, physicalColumn: number, key: string, value: unknown) {
-    const cellMeta = (this.metas.obtain(physicalRow) as unknown as LazyFactoryMap).obtain(physicalColumn);
+    const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
@@ -156,7 +156,7 @@ export default class CellMeta {
    * @param {string} key The property name to remove.
    */
   removeMeta(physicalRow: number, physicalColumn: number, key: string) {
-    const cellMeta = (this.metas.obtain(physicalRow) as unknown as LazyFactoryMap).obtain(physicalColumn);
+    const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     delete cellMeta[key];
   }
@@ -176,7 +176,7 @@ export default class CellMeta {
       // Getting a meta for already added row (new row already exist - it has been added using `createRow` method).
       // However, is not ready until the first `getMeta` call (lazy loading).
       if (isDefined(rows[row])) {
-        metas.push(...Array.from((rows[row] as LazyFactoryMap).values()) as Record<string, unknown>[]);
+        metas.push(...Array.from(rows[row].values()));
       }
     }
 

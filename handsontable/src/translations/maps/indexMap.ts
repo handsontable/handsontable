@@ -47,13 +47,13 @@ export class IndexMap {
    * Get value for the particular index.
    *
    * @param {number} index Index for which value is got.
-   * @returns {*}
+   * @returns {T | undefined}
    */
-  getValueAtIndex(index: number) {
+  getValueAtIndex<T = unknown>(index: number): T | undefined {
     const values = this.indexedValues;
 
     if (index < values.length) {
-      return values[index];
+      return values[index] as T;
     }
   }
 

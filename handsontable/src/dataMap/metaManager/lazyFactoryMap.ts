@@ -14,19 +14,19 @@ import { isUnsignedNumber } from '../../helpers/number';
  * is volatile. After altering the grid, the "key" index can change.
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
-export default class LazyFactoryMap {
+export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**
    * The data factory function.
    *
    * @type {Function}
    */
-  declare valueFactory: Function;
+  declare valueFactory: (key: number) => V;
   /**
    * An array which contains data.
    *
    * @type {Array}
    */
-  data: unknown[] = [];
+  data: (V | undefined)[] = [];
   /**
    * An array of indexes where the key of the array is mapped to the value which points to the
    * specific position of the data array.
@@ -42,7 +42,7 @@ export default class LazyFactoryMap {
    */
   holes = new Set<number>();
 
-  constructor(valueFactory: Function) {
+  constructor(valueFactory: (key: number) => V) {
     this.valueFactory = valueFactory;
   }
 
@@ -52,11 +52,11 @@ export default class LazyFactoryMap {
    * @param {number} key The item key as zero-based index.
    * @returns {*}
    */
-  obtain(key: number): Record<string, unknown> {
+  obtain(key: number): V {
     assert(() => isUnsignedNumber(key), 'Expecting an unsigned number.');
 
     const dataIndex = this._getStorageIndexByKey(key);
-    let result;
+    let result: V | undefined;
 
     if (dataIndex >= 0) {
       result = this.data[dataIndex];
@@ -81,7 +81,7 @@ export default class LazyFactoryMap {
       }
     }
 
-    return result;
+    return result!;
   }
 
   /**
@@ -141,10 +141,8 @@ export default class LazyFactoryMap {
    *
    * @returns {Iterator}
    */
-  values() {
-    return this.data.filter((meta, index) => {
-      return meta !== undefined && !this.holes.has(index);
-    })[Symbol.iterator]();
+  values(): IterableIterator<V> {
+    return (this.data.filter((meta, index): meta is V => meta !== undefined && !this.holes.has(index)))[Symbol.iterator]();
   }
 
   /**
@@ -153,20 +151,21 @@ export default class LazyFactoryMap {
    * @returns {Iterator}
    */
   entries() {
-    const validEntries: unknown[] = [];
+    const validEntries: [number, V][] = [];
 
     for (let i = 0; i < this.data.length; i++) {
       const keyIndex = this._getKeyByStorageIndex(i);
+      const item = this.data[i];
 
-      if (keyIndex !== -1 && this.data[i] !== undefined) {
-        validEntries.push([keyIndex, this.data[i]]);
+      if (keyIndex !== -1 && item !== undefined) {
+        validEntries.push([keyIndex, item]);
       }
     }
 
     let dataIndex = 0;
 
     return {
-      next: () => {
+      next: (): { value: [number, V]; done: false } | { value: undefined; done: true } => {
         if (dataIndex < validEntries.length) {
           const value = validEntries[dataIndex];
 
