@@ -110,7 +110,7 @@
 
   <div id="log"><strong>Event log (latest first):</strong><div id="entries">(collapse or expand to see events)</div></div>
 
-  <div id="hot"></div>
+  <div id="hot-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
   <script>
@@ -131,6 +131,7 @@
 
     const COL_HEADERS = ['ID', 'Name', 'Dept', 'Hire', 'Email', 'Phone', 'Status'];
 
+    let hotInstance = null;
     let snapshot = null;
 
     function addLog(msg, cls) {
@@ -144,8 +145,8 @@
     }
 
     function getWidths() {
-      if (!window.hot) return [];
-      return COL_HEADERS.map((_, i) => hot.getColWidth(i));
+      if (!hotInstance) return [];
+      return COL_HEADERS.map((_, i) => hotInstance.getColWidth(i));
     }
 
     function updateWidthTable() {
@@ -170,12 +171,12 @@
     }
 
     function initHot() {
-      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
       snapshot = null;
       document.getElementById('w-tbody').innerHTML =
         '<tr><td colspan="4" style="color:#888;text-align:center">Click "Snapshot initial widths" first</td></tr>';
 
-      window.hot = new Handsontable(document.getElementById('hot'), {
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
         data: DATA,
         colHeaders: COL_HEADERS,
         nestedHeaders: HEADERS,
@@ -206,22 +207,20 @@
     });
 
     document.getElementById('btn-collapse').addEventListener('click', () => {
-      const cc = hot.getPlugin('collapsibleColumns');
+      const cc = hotInstance.getPlugin('collapsibleColumns');
       cc.collapseSection({ r: 0, c: 1 });
-      hot.render();
+      hotInstance.render();
       setTimeout(updateWidthTable, 50);
     });
 
     document.getElementById('btn-expand').addEventListener('click', () => {
-      const cc = hot.getPlugin('collapsibleColumns');
+      const cc = hotInstance.getPlugin('collapsibleColumns');
       cc.expandSection({ r: 0, c: 1 });
-      hot.render();
+      hotInstance.render();
       setTimeout(updateWidthTable, 50);
     });
 
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      initHot();
-    });
+    document.getElementById('btn-reset').addEventListener('click', initHot);
 
     initHot();
   </script>

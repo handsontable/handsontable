@@ -127,7 +127,7 @@
 
   <div id="log"><strong>Event log (latest first):</strong><div id="entries">(collapse or expand to see events)</div></div>
 
-  <div id="hot"></div>
+  <div id="hot-container"></div>
 
   <script src="dist/handsontable.full.min.js"></script>
   <script>
@@ -154,6 +154,7 @@
 
     const COL_HEADERS = ['ID', 'Name', 'Dept', 'Hire', 'Email', 'Phone', 'Status'];
 
+    let hotInstance = null;
     let snapshot = null;
     let cycles = 0;
     let collapseCount = 0;
@@ -170,8 +171,8 @@
     }
 
     function getWidths() {
-      if (!window.hot) return [];
-      return COL_HEADERS.map((_, i) => hot.getColWidth(i));
+      if (!hotInstance) return [];
+      return COL_HEADERS.map((_, i) => hotInstance.getColWidth(i));
     }
 
     function updateWidthTable() {
@@ -207,7 +208,7 @@
     }
 
     function initHot() {
-      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
       snapshot = null;
       cycles = 0;
       collapseCount = 0;
@@ -218,7 +219,7 @@
       document.getElementById('r1-status').textContent = '✓ Stable — no drift detected';
       document.getElementById('r1-status').style.color = '#2e7d32';
 
-      window.hot = new Handsontable(document.getElementById('hot'), {
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
         data: DATA,
         colHeaders: COL_HEADERS,
         nestedHeaders: HEADERS,
@@ -252,16 +253,16 @@
     });
 
     document.getElementById('btn-collapse').addEventListener('click', () => {
-      const cc = hot.getPlugin('collapsibleColumns');
+      const cc = hotInstance.getPlugin('collapsibleColumns');
       cc.collapseSection({ r: 0, c: 1 });
-      hot.render();
+      hotInstance.render();
       setTimeout(updateWidthTable, 50);
     });
 
     document.getElementById('btn-expand').addEventListener('click', () => {
-      const cc = hot.getPlugin('collapsibleColumns');
+      const cc = hotInstance.getPlugin('collapsibleColumns');
       cc.expandSection({ r: 0, c: 1 });
-      hot.render();
+      hotInstance.render();
       setTimeout(updateWidthTable, 50);
     });
 
