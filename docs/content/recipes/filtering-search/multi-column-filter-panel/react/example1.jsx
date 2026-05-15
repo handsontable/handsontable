@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import './example1.css';
@@ -27,7 +27,7 @@ const ExampleComponent = () => {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
-  function applyFilters(name, category, min, max) {
+  useEffect(() => {
     const hot = hotRef.current?.hotInstance;
 
     if (!hot) {
@@ -38,29 +38,29 @@ const ExampleComponent = () => {
 
     filtersPlugin.clearConditions();
 
-    if (category) {
-      filtersPlugin.addCondition(1, 'eq', [category]);
+    if (categoryFilter) {
+      filtersPlugin.addCondition(1, 'eq', [categoryFilter]);
     }
 
-    if (name.trim()) {
-      filtersPlugin.addCondition(0, 'contains', [name.trim()]);
+    if (nameFilter.trim()) {
+      filtersPlugin.addCondition(0, 'contains', [nameFilter.trim()]);
     }
 
-    if (min && max) {
-      const lowerBound = Number(min);
-      const upperBound = Number(max);
+    if (minPrice && maxPrice) {
+      const lowerBound = Number(minPrice);
+      const upperBound = Number(maxPrice);
 
       if (Number.isFinite(lowerBound) && Number.isFinite(upperBound)) {
         filtersPlugin.addCondition(2, 'between', [lowerBound, upperBound]);
       }
-    } else if (min) {
-      const lowerBound = Number(min);
+    } else if (minPrice) {
+      const lowerBound = Number(minPrice);
 
       if (Number.isFinite(lowerBound)) {
         filtersPlugin.addCondition(2, 'gte', [lowerBound]);
       }
-    } else if (max) {
-      const upperBound = Number(max);
+    } else if (maxPrice) {
+      const upperBound = Number(maxPrice);
 
       if (Number.isFinite(upperBound)) {
         filtersPlugin.addCondition(2, 'lte', [upperBound]);
@@ -68,54 +68,13 @@ const ExampleComponent = () => {
     }
 
     filtersPlugin.filter();
-    hot.render();
-  }
-
-  function handleNameChange(e) {
-    const value = e.target.value;
-
-    setNameFilter(value);
-    applyFilters(value, categoryFilter, minPrice, maxPrice);
-  }
-
-  function handleCategoryChange(e) {
-    const value = e.target.value;
-
-    setCategoryFilter(value);
-    applyFilters(nameFilter, value, minPrice, maxPrice);
-  }
-
-  function handleMinPriceChange(e) {
-    const value = e.target.value;
-
-    setMinPrice(value);
-    applyFilters(nameFilter, categoryFilter, value, maxPrice);
-  }
-
-  function handleMaxPriceChange(e) {
-    const value = e.target.value;
-
-    setMaxPrice(value);
-    applyFilters(nameFilter, categoryFilter, minPrice, value);
-  }
+  }, [nameFilter, categoryFilter, minPrice, maxPrice]);
 
   function clearFilters() {
     setNameFilter('');
     setCategoryFilter('');
     setMinPrice('');
     setMaxPrice('');
-
-    const hot = hotRef.current?.hotInstance;
-
-    if (!hot) {
-      return;
-    }
-
-    const filtersPlugin = hot.getPlugin('filters');
-
-    filtersPlugin.clearConditions();
-    filtersPlugin.filter();
-    hot.render();
   }
 
   return (
@@ -128,12 +87,12 @@ const ExampleComponent = () => {
               type="text"
               placeholder="Contains..."
               value={nameFilter}
-              onChange={handleNameChange}
+              onChange={(e) => setNameFilter(e.target.value)}
             />
           </label>
           <label className="filter-label filter-label--wide">
             Category
-            <select value={categoryFilter} onChange={handleCategoryChange}>
+            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
               <option value="">All categories</option>
               <option value="Bikes">Bikes</option>
               <option value="Safety">Safety</option>
@@ -149,7 +108,7 @@ const ExampleComponent = () => {
               min="0"
               placeholder="0"
               value={minPrice}
-              onChange={handleMinPriceChange}
+              onChange={(e) => setMinPrice(e.target.value)}
             />
           </label>
           <label className="filter-label">
@@ -159,7 +118,7 @@ const ExampleComponent = () => {
               min="0"
               placeholder="2500"
               value={maxPrice}
-              onChange={handleMaxPriceChange}
+              onChange={(e) => setMaxPrice(e.target.value)}
             />
           </label>
           <button type="button" onClick={clearFilters}>
