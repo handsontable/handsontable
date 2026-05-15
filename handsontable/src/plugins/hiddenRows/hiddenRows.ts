@@ -378,7 +378,7 @@ export class HiddenRows extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(row: number): boolean {
-    return (this.#hiddenRowsMap.getValueAtIndex(this.hot.toPhysicalRow(row)) as boolean) || false;
+    return this.#hiddenRowsMap.getValueAtIndex<boolean>(this.hot.toPhysicalRow(row)) || false;
   }
 
   /**

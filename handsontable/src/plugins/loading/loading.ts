@@ -277,9 +277,9 @@ export class Loading extends BasePlugin {
     this.updatePluginSettings(options);
 
     const id = this.hot.guid;
-    const icon = this.getSetting('icon') as string;
-    const title = (this.getSetting('title') as string | undefined) ?? this.hot.getTranslatedPhrase(C.LOADING_TITLE);
-    const description = this.getSetting('description') as string;
+    const icon = this.getSetting<string>('icon');
+    const title = this.getSetting<string | undefined>('title') ?? this.hot.getTranslatedPhrase(C.LOADING_TITLE);
+    const description = this.getSetting<string>('description');
 
     const content = loadingContent({
       id,

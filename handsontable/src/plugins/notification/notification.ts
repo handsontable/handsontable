@@ -294,7 +294,7 @@ export class Notification extends BasePlugin {
       return '';
     }
 
-    const limit = this.getSetting('stackLimit') as number;
+    const limit = this.getSetting<number>('stackLimit');
     const visibleAtPosition = this.#countVisibleAt(normalized.position);
 
     if (visibleAtPosition >= limit) {
@@ -410,8 +410,8 @@ export class Notification extends BasePlugin {
    */
   #captureEffectiveNotificationOptions(): { stackLimit: number; animation: boolean } {
     return {
-      stackLimit: this.getSetting('stackLimit') as number,
-      animation: this.getSetting('animation') as boolean,
+      stackLimit: this.getSetting<number>('stackLimit'),
+      animation: this.getSetting<boolean>('animation'),
     };
   }
 
@@ -507,7 +507,7 @@ export class Notification extends BasePlugin {
    */
   #mountToast(normalized: any): void {
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
-    const animation = this.getSetting('animation') as boolean;
+    const animation = this.getSetting<boolean>('animation');
     const { element } = this.#ui.createToastElement(normalized, closeLabel, animation);
     const stack = this.#ui.getStack(normalized.position);
 
@@ -1180,7 +1180,7 @@ export class Notification extends BasePlugin {
    * @param {string} position Stack key.
    */
   #drainQueueForPosition(position: string): void {
-    const limit = this.getSetting('stackLimit') as number;
+    const limit = this.getSetting<number>('stackLimit');
     const pos = position as NotificationPosition;
 
     while (this.#queues[pos].length > 0 && this.#countVisibleAt(position) < limit) {

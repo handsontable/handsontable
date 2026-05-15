@@ -287,7 +287,7 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#displaySwitch) {
-      this.#displaySwitch = new DisplaySwitch(this.getSetting('displayDelay') as number);
+      this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
     }
 
     this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => this.addToContextMenu(options));
@@ -313,7 +313,7 @@ export class Comments extends BasePlugin {
    *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin(): void {
-    this.#displaySwitch.updateDelay(this.getSetting('displayDelay') as number);
+    this.#displaySwitch.updateDelay(this.getSetting<number>('displayDelay'));
     super.updatePlugin();
   }
 

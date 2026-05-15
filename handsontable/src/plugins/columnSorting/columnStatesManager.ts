@@ -108,7 +108,7 @@ export class ColumnStatesManager {
    * @returns {string|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
   getSortOrderOfColumn(searchedColumn: number) {
-    return (this.sortingStates.getValueAtIndex(this.hot.toPhysicalColumn(searchedColumn)) as { sortOrder?: string } | null)?.sortOrder;
+    return this.sortingStates.getValueAtIndex<{ sortOrder?: string } | null>(this.hot.toPhysicalColumn(searchedColumn))?.sortOrder;
   }
 
   /**

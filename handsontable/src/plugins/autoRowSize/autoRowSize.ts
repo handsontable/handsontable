@@ -296,7 +296,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.samplesGenerator.setAllowDuplicates(this.getSetting('allowSampleDuplicates') as boolean);
+    this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
 
     const samplingRatio = this.getSetting('samplingRatio');
 

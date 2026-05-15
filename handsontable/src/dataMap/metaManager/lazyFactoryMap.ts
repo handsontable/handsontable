@@ -102,7 +102,7 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
       this.data.push(undefined);
     }
 
-    const insertionIndex = isNullish(key) ? this.index.length : key as number;
+    const insertionIndex = isNullish(key) ? this.index.length : key;
 
     this.index = [...this.index.slice(0, insertionIndex), ...newIndexes, ...this.index.slice(insertionIndex)];
   }
@@ -116,7 +116,7 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   remove(key: number | null | undefined, amount = 1) {
     assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
 
-    const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key as number, amount);
+    const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key, amount);
 
     for (let i = 0; i < removed.length; i++) {
       const removedIndex = removed[i];

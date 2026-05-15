@@ -340,7 +340,7 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogShow');
     this.update(options);
 
-    this.#ui.showDialog(this.getSetting('animation') as boolean);
+    this.#ui.showDialog(this.getSetting<boolean>('animation'));
 
     this.#isVisible = true;
 
@@ -363,7 +363,7 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('beforeDialogHide');
 
-    this.#ui.hideDialog(this.getSetting('animation') as boolean);
+    this.#ui.hideDialog(this.getSetting<boolean>('animation'));
     this.#isVisible = false;
 
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);

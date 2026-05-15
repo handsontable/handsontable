@@ -133,8 +133,8 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.#autoScroller.configure({
-      intervalRange: this.getSetting('interval') as { min: number; max: number },
-      rampDistance: this.getSetting('rampDistance') as number,
+      intervalRange: this.getSetting<{ min: number; max: number }>('interval'),
+      rampDistance: this.getSetting<number>('rampDistance'),
     });
 
     this.addHook('beforeOnCellMouseDown',

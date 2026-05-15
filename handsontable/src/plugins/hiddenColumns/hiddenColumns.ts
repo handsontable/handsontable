@@ -382,7 +382,7 @@ export class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(column: number): boolean {
-    return (this.#hiddenColumnsMap.getValueAtIndex(this.hot.toPhysicalColumn(column)) as boolean) || false;
+    return this.#hiddenColumnsMap.getValueAtIndex<boolean>(this.hot.toPhysicalColumn(column)) || false;
   }
 
   /**

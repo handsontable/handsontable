@@ -304,7 +304,7 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     this.ghostTable.setSetting('useHeaders', this.getSetting('useHeaders'));
-    this.samplesGenerator.setAllowDuplicates(this.getSetting('allowSampleDuplicates') as boolean);
+    this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
 
     const samplingRatio = this.getSetting('samplingRatio');
 
@@ -567,7 +567,7 @@ export class AutoColumnSize extends BasePlugin {
     let width = defaultWidth;
 
     if (width === undefined) {
-      width = this.columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column)) as number;
+      width = this.columnWidthsMap.getValueAtIndex<number>(this.hot.toPhysicalColumn(column));
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, DEFAULT_COLUMN_WIDTH);

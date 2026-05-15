@@ -344,7 +344,7 @@ export class TrimRows extends BasePlugin {
    * @returns {boolean}
    */
   isTrimmed(physicalRow: number): boolean {
-    return (this.trimmedRowsMap!.getValueAtIndex(physicalRow) as boolean) || false;
+    return this.trimmedRowsMap!.getValueAtIndex<boolean>(physicalRow) || false;
   }
 
   /**

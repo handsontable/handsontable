@@ -148,12 +148,12 @@ export class Autofill extends BasePlugin {
     this.updatePluginSettings(pluginSettings);
 
     if (this.getSetting('direction')) {
-      this.directions = [this.getSetting('direction') as string];
+      this.directions = [this.getSetting<string>('direction')];
     } else {
       this.directions = Object.values(DIRECTIONS);
     }
 
-    this.autoInsertRow = this.getSetting('autoInsertRow') as boolean;
+    this.autoInsertRow = this.getSetting<boolean>('autoInsertRow');
 
     if (this.directions.length === 1 && this.directions.includes('horizontal')) {
       this.autoInsertRow = false;

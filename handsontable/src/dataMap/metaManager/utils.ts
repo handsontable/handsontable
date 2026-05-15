@@ -106,6 +106,6 @@ export function assert(condition: () => boolean, errorMessage: string) {
  * @param {*} variable Variable to check.
  * @returns {boolean}
  */
-export function isNullish(variable: unknown) {
+export function isNullish(variable: unknown): variable is null | undefined {
   return variable === null || variable === undefined;
 }

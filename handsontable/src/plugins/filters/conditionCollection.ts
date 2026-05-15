@@ -77,7 +77,7 @@ class ConditionCollection {
    * @returns {boolean}
    */
   isMatch(value: Record<string, unknown>, column: number) {
-    const stateForColumn = this.filteringStates.getValueAtIndex(column) as Record<string, unknown> | null;
+    const stateForColumn = this.filteringStates.getValueAtIndex<Record<string, unknown> | null>(column);
     const conditions = (stateForColumn?.conditions ?? []) as unknown[];
     const operation = stateForColumn?.operation as string;
 
@@ -168,7 +168,7 @@ class ConditionCollection {
    * @returns {Array} Returns conditions collection as an array.
    */
   getConditions(column: number): ConditionId[] {
-    return (this.filteringStates.getValueAtIndex(column) as StoredColumnState | undefined)?.conditions ?? [];
+    return this.filteringStates.getValueAtIndex<StoredColumnState | undefined>(column)?.conditions ?? [];
   }
 
   /**
@@ -178,7 +178,7 @@ class ConditionCollection {
    * @returns {string|undefined}
    */
   getOperation(column: number): OperationType | undefined {
-    return (this.filteringStates.getValueAtIndex(column) as StoredColumnState | undefined)?.operation;
+    return this.filteringStates.getValueAtIndex<StoredColumnState | undefined>(column)?.operation;
   }
 
   /**
