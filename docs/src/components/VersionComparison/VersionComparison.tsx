@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
+import type { FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
 function readData(): VersionComparisonData {
   const el = document.getElementById('version-comparison-data');
@@ -51,13 +51,60 @@ function entriesInRange(entries: VersionEntry[], from: string, to: string): Vers
   });
 }
 
+const FILTER_LABELS: Record<FilterKind, string> = {
+  all: 'All',
+  breaking: 'Breaking',
+  deprecated: 'Deprecated',
+  new: 'New',
+  fixed: 'Fixed',
+};
+
+function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
+  switch (filter) {
+    case 'all': return true;
+    case 'breaking': return entry.breaking;
+    case 'deprecated': return entry.category === 'deprecated';
+    case 'new': return entry.category === 'added' && !entry.breaking;
+    case 'fixed': return entry.category === 'fixed';
+  }
+}
+
+interface FilterTabsProps {
+  value: FilterKind;
+  onChange: (v: FilterKind) => void;
+}
+
+function FilterTabs({ value, onChange }: FilterTabsProps) {
+  return (
+    <div className="vc-filter-tabs" role="tablist">
+      {(Object.keys(FILTER_LABELS) as FilterKind[]).map((k) => (
+        <button
+          key={k}
+          role="tab"
+          aria-selected={value === k}
+          className={value === k ? 'is-active' : ''}
+          onClick={() => onChange(k)}
+        >
+          {FILTER_LABELS[k]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function VersionComparison() {
   const data = useMemo(() => readData(), []);
   const [{ from, to }, setRange] = useState(() => defaultRange(data.releases));
+  const [filter, setFilter] = useState<FilterKind>('all');
 
   const filtered = useMemo(
     () => entriesInRange(data.entries, from, to),
     [data.entries, from, to],
+  );
+
+  const visible = useMemo(
+    () => filtered.filter((e) => matchesFilter(e, filter)),
+    [filtered, filter],
   );
 
   return (
@@ -66,7 +113,8 @@ export function VersionComparison() {
         <VersionSelector label="From" value={from} releases={data.releases} onChange={(v) => setRange((s) => ({ ...s, from: v }))} />
         <VersionSelector label="To" value={to} releases={data.releases} onChange={(v) => setRange((s) => ({ ...s, to: v }))} />
       </div>
-      <p data-testid="entry-count">{filtered.length} changes between {from} and {to}</p>
+      <FilterTabs value={filter} onChange={setFilter} />
+      <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
     </div>
   );
 }
