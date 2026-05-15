@@ -213,7 +213,8 @@ class GhostTable {
    * @param {boolean} hasCollapsedGroups Whether any collapsed groups exist.
    */
   #buildGhostTable(container: HTMLElement, hasCollapsedGroups: boolean) {
-    const settings = this.hot.getSettings() as GridSettings & { sanitizer?: (value: unknown, context: string) => string };
+    type GridSettingsWithSanitizer = GridSettings & { sanitizer?: (value: unknown, context: string) => string };
+    const settings = this.hot.getSettings() as GridSettingsWithSanitizer;
     const isDropdownEnabled = !!settings.dropdownMenu;
     const isCollapsibleEnabled = !!settings.collapsibleColumns;
     const maxColumnsCount = this.hot.countCols();
@@ -242,7 +243,9 @@ class GhostTable {
    * @param {Function|undefined} sanitizer The sanitizer function.
    * @returns {string} HTML string for the full table.
    */
-  #buildFullColumnsTableHTML(maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined) {
+  #buildFullColumnsTableHTML(
+    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+  ) {
     let rowsHTML = '';
 
     for (let row = 0; row < this.layersCount; row++) {
@@ -273,7 +276,9 @@ class GhostTable {
    * @param {Function|undefined} sanitizer The sanitizer function.
    * @returns {string} HTML string for the rendered table.
    */
-  #buildRenderedTableHTML(maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined) {
+  #buildRenderedTableHTML(
+    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+  ) {
     let rowsHTML = '';
 
     for (let row = 0; row < this.layersCount; row++) {
@@ -312,7 +317,9 @@ class GhostTable {
    * @param {Function|undefined} sanitizer The sanitizer function.
    * @returns {string} HTML string for the header label.
    */
-  #buildHeaderLabelHTML(headerSettings: any, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined) {
+  #buildHeaderLabelHTML(
+    headerSettings: any, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+  ) {
     const label = typeof sanitizer === 'function'
       ? sanitizer(headerSettings.label, 'innerHTML')
       : headerSettings.label;

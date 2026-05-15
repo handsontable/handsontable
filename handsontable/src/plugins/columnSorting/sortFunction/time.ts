@@ -8,7 +8,9 @@ import { createDateTimeCompareFunction } from '../utils';
  * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export function compareFunctionFactory(sortOrder: string, columnMeta: Record<string, unknown>, columnPluginSettings: Record<string, unknown>) {
+export function compareFunctionFactory(
+  sortOrder: string, columnMeta: Record<string, unknown>, columnPluginSettings: Record<string, unknown>
+) {
   return createDateTimeCompareFunction(sortOrder, columnMeta.timeFormat as string, columnPluginSettings);
 }
 

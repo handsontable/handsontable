@@ -4,13 +4,18 @@ import { registerCondition } from '../conditionRegisterer';
 
 export const CONDITION_NAME = 'contains';
 
+type DataRow = {
+  value: unknown;
+  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+};
+
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
  * @param {*} inputValues."0" A value to check if it occurs in the row's data.
  * @returns {boolean}
  */
-export function condition(dataRow: { value: unknown; meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown } }, [value]: unknown[]) {
+export function condition(dataRow: DataRow, [value]: unknown[]) {
   return stringify(dataRow.value).toLocaleLowerCase(dataRow.meta.locale).indexOf(stringify(value)) >= 0;
 }
 

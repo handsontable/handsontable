@@ -18,7 +18,10 @@ class DataFilter {
    */
   columnDataFactory;
 
-  constructor(conditionCollection: { getFilteredColumns: () => unknown[]; isMatch: (value: unknown, column: number) => boolean }, columnDataFactory: (column: number) => unknown[] = () => []) {
+  constructor(
+    conditionCollection: { getFilteredColumns: () => unknown[]; isMatch: (value: unknown, column: number) => boolean },
+    columnDataFactory: (column: number) => unknown[] = () => []
+  ) {
     this.conditionCollection = conditionCollection;
     this.columnDataFactory = columnDataFactory;
   }

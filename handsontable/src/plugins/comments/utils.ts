@@ -11,7 +11,9 @@ import { outerWidth } from '../../helpers/dom/element';
  * @param {number} renderableColumnWidth Width of the renderable column.
  * @returns {number}
  */
-export function getEditorAnchorWidth(metaColspan: number, TD: HTMLTableCellElement, renderableColumnWidth: number): number {
+export function getEditorAnchorWidth(
+  metaColspan: number, TD: HTMLTableCellElement, renderableColumnWidth: number
+): number {
   if (metaColspan > 1) {
     return outerWidth(TD);
   }

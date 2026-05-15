@@ -27,7 +27,9 @@ export class AutoPageSizeStrategy {
    * @param {function(): number[]} options.itemsSizeProvider A function that returns an array of item sizes.
    * @param {function(): number} options.viewportSizeProvider A function that returns the size of the viewport in pixels.
    */
-  calculate({ itemsSizeProvider, viewportSizeProvider }: { itemsSizeProvider: Function, viewportSizeProvider: Function }) {
+  calculate({ itemsSizeProvider, viewportSizeProvider }: {
+    itemsSizeProvider: Function, viewportSizeProvider: Function
+  }) {
     const itemSizes = itemsSizeProvider();
     const viewportSize = viewportSizeProvider();
     const pages = [];

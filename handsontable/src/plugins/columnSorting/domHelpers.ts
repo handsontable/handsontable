@@ -21,7 +21,9 @@ const orderToCssClass = new Map([
  * @param {boolean} headerAction Indicates if header click to sort should be possible.
  * @returns {Array} Array of CSS classes.
  */
-export function getClassesToAdd(columnStatesManager: Record<string, unknown>, column: number, showSortIndicator: boolean, headerAction: boolean) {
+export function getClassesToAdd(
+  columnStatesManager: Record<string, unknown>, column: number, showSortIndicator: boolean, headerAction: boolean
+) {
   const cssClasses = [HEADER_SORT_CLASS];
 
   if (headerAction) {
@@ -34,7 +36,8 @@ export function getClassesToAdd(columnStatesManager: Record<string, unknown>, co
     return cssClasses;
   }
 
-  const columnOrder = (columnStatesManager as { getSortOrderOfColumn: (col: number) => string | undefined }).getSortOrderOfColumn(column);
+  const columnOrder = (columnStatesManager as { getSortOrderOfColumn: (col: number) => string | undefined })
+    .getSortOrderOfColumn(column);
 
   if (isDefined(columnOrder)) {
     cssClasses.push(orderToCssClass.get(columnOrder));

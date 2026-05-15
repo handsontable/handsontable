@@ -80,7 +80,9 @@ class DisplaySwitch {
   updateDelay(displayDelay = DEFAULT_DISPLAY_DELAY) {
     this.showDebounced = debounce((range) => {
       if (this.wasLastActionShow) {
-        this.runLocalHooks('show', (range as { from: { row: number; col: number } }).from.row, (range as { from: { row: number; col: number } }).from.col);
+        const r = range as { from: { row: number; col: number } };
+
+        this.runLocalHooks('show', r.from.row, r.from.col);
       }
     }, displayDelay);
   }

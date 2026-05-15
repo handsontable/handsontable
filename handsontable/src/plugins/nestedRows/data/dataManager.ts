@@ -179,7 +179,9 @@ class DataManager {
    * @param {object} neededObject The row object we search for.
    * @returns {number|object}
    */
-  readTreeNodes(parent: RowObject | null, readCount: ReadTreeResult, neededIndex: number, neededObject: Record<string, unknown>): ReadTreeResult {
+  readTreeNodes(
+    parent: RowObject | null, readCount: ReadTreeResult, neededIndex: number, neededObject: Record<string, unknown>
+  ): ReadTreeResult {
     let rootLevel = false;
     let readNodesCount: ReadTreeResult = readCount;
 
@@ -384,7 +386,9 @@ class DataManager {
    * @returns {number} Row level.
    */
   getRowObjectLevel(rowObject: unknown): number | null {
-    return rowObject === null || rowObject === undefined ? null : this.cache.nodeInfo.get(rowObject as RowObject)!.level;
+    return rowObject === null || rowObject === undefined
+      ? null
+      : this.cache.nodeInfo.get(rowObject as RowObject)!.level;
   }
 
   /**

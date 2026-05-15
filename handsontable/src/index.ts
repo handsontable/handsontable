@@ -212,7 +212,10 @@ export { IndexMapper } from './translations';
 
 // Named type exports for user-facing API — direct from canonical sources
 export type { GridSettings, Events } from './core/settings';
-export type { CellValue, CellChange, RowObject, ChangeSource, NumericFormatOptions, CellMeta, CellProperties, ColumnSettings, SourceRowData } from './settings';
+export type {
+  CellValue, CellChange, RowObject, ChangeSource, NumericFormatOptions,
+  CellMeta, CellProperties, ColumnSettings, SourceRowData
+} from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';

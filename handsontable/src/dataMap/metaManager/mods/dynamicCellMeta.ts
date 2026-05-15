@@ -18,20 +18,29 @@ import { isFunction } from '../../../helpers/function';
  * To boost the method's execution time,
  * the logic is triggered only once per one Handsontable slow render cycle.
  */
+type MetaManagerWithHot = MetaManagerInstance & {
+  hot: { colToProp: Function; runHooks: Function; [key: string]: unknown };
+  addLocalHook: Function;
+  updateCellMeta: Function;
+  [key: string]: unknown;
+};
+
 export class DynamicCellMetaMod {
   /**
    * @type {MetaManager}
    */
-  declare metaManager: MetaManagerInstance & { hot: { colToProp: Function; runHooks: Function; [key: string]: unknown }; addLocalHook: Function; updateCellMeta: Function; [key: string]: unknown };
+  declare metaManager: MetaManagerWithHot;
   /**
    * @type {Map}
    */
   metaSyncMemo = new Map();
 
-  constructor(metaManager: MetaManagerInstance & { hot: { colToProp: Function; runHooks: Function; [key: string]: unknown }; addLocalHook: Function; updateCellMeta: Function; [key: string]: unknown }) {
+  constructor(metaManager: MetaManagerWithHot) {
     this.metaManager = metaManager;
 
-    metaManager.addLocalHook('afterGetCellMeta', (...args: unknown[]) => this.extendCellMeta(args[0] as Record<string, unknown>));
+    metaManager.addLocalHook('afterGetCellMeta', (...args: unknown[]) => {
+      this.extendCellMeta(args[0] as Record<string, unknown>);
+    });
 
     Hooks.getSingleton().add('beforeRender', (forceFullRender: unknown) => {
       if (forceFullRender) {
@@ -70,7 +79,9 @@ export class DynamicCellMetaMod {
 
     // extend a `type` value, added or changed in the `beforeGetCellMeta` hook
     const cellType = hasOwnProperty(cellMeta, 'type') ? cellMeta.type : null;
-    let cellSettings = isFunction(cellMeta.cells) ? cellMeta.cells(physicalRow, physicalColumn, prop) as Record<string, unknown> | null : null;
+    let cellSettings = isFunction(cellMeta.cells)
+      ? cellMeta.cells(physicalRow, physicalColumn, prop) as Record<string, unknown> | null
+      : null;
 
     if (cellType) {
       if (cellSettings) {

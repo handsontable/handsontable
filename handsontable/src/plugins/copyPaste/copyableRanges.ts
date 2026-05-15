@@ -45,7 +45,10 @@ export class CopyableRangesFactory {
    *   countColumnHeaders: function(): number
    * }} dependencies The utils class dependencies.
    */
-  constructor({ countRows, countColumns, rowsLimit, columnsLimit, countColumnHeaders }: { countRows: () => number, countColumns: () => number, rowsLimit: () => number, columnsLimit: () => number, countColumnHeaders: () => number }) {
+  constructor({ countRows, countColumns, rowsLimit, columnsLimit, countColumnHeaders }: {
+    countRows: () => number, countColumns: () => number, rowsLimit: () => number,
+    columnsLimit: () => number, countColumnHeaders: () => number
+  }) {
     this.#countRows = countRows;
     this.#countColumns = countColumns;
     this.#rowsLimit = rowsLimit;

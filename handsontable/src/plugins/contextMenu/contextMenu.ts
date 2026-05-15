@@ -39,7 +39,9 @@ export interface MenuItemConfig {
   hidden?: boolean | (() => boolean);
   disabled?: boolean | (() => boolean);
   callback?: (key: string, selection: unknown[], clickEvent: MouseEvent) => void;
-  renderer?: (hot: unknown, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: string) => HTMLElement;
+  renderer?: (
+    hot: unknown, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: string
+  ) => HTMLElement;
   submenu?: { items: MenuItemConfig[] };
   [key: string]: unknown;
 }
@@ -172,7 +174,9 @@ export class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
     this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
     this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
-    this.menu.addLocalHook('executeCommand', (...params: unknown[]) => this.executeCommand.call(this, ...params as [string, ...unknown[]]));
+    this.menu.addLocalHook('executeCommand', (...params: unknown[]) => {
+      this.executeCommand.call(this, ...params as [string, ...unknown[]]);
+    });
 
     this.addHook('afterOnCellContextMenu', (event: Event) => this.#onAfterOnCellContextMenu(event));
     this.addHook('beforeDialogShow', () => this.close());
@@ -276,7 +280,12 @@ export class ContextMenu extends BasePlugin {
    * menu.open({ top: 50, left: 50 });
    * ```
    */
-  open(position: Record<string, number> | Event, offset: { above?: number; below?: number; left?: number; right?: number } = { above: 0, below: 0, left: 0, right: 0 }): void {
+  open(
+    position: Record<string, number> | Event,
+    offset: { above?: number; below?: number; left?: number; right?: number } = {
+      above: 0, below: 0, left: 0, right: 0
+    }
+  ): void {
     if (this.menu?.isOpened()) {
       return;
     }
@@ -362,7 +371,11 @@ export class ContextMenu extends BasePlugin {
     this.menu!.setMenuItems(menuItems);
 
     // Register all commands. Predefined and added by user or by plugins
-    arrayEach(menuItems, command => this.commandExecutor.registerCommand(String((command as Record<string, unknown>).key ?? ''), command as Record<string, unknown>));
+    arrayEach(menuItems, (command) => {
+      this.commandExecutor.registerCommand(
+        String((command as Record<string, unknown>).key ?? ''), command as Record<string, unknown>
+      );
+    });
   }
 
   /**

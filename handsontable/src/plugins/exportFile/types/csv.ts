@@ -118,7 +118,12 @@ class Csv extends BaseType {
    * @param {boolean|RegExp|Function} [options.sanitizeValue=false] Controls the sanitization of cell value.
    * @returns {string}
    */
-  _escapeCell(value: unknown, { force = false, sanitizeValue = false }: { force?: boolean, sanitizeValue?: boolean | RegExp | ((value: string) => string) } = {}) {
+  _escapeCell(
+    value: unknown,
+    { force = false, sanitizeValue = false }: {
+      force?: boolean, sanitizeValue?: boolean | RegExp | ((value: string) => string)
+    } = {}
+  ) {
     let returnValue = stringify(value);
 
     if (returnValue === '') {

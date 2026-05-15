@@ -18,7 +18,9 @@ const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
  * @param {Array<{ shortcuts: KeyboardShortcut, contextName: string }>} [customKeyboardShortcuts] The list of the custom keyboard shortcuts.
  * @returns {KeyboardShortcutsMenuController}
  */
-export function createKeyboardShortcutsCtrl(menu: Menu, customKeyboardShortcuts: { shortcuts: Shortcut[]; contextName: string }[] = []) {
+export function createKeyboardShortcutsCtrl(
+  menu: Menu, customKeyboardShortcuts: { shortcuts: Shortcut[]; contextName: string }[] = []
+) {
   const customShortcuts: { shortcuts: Shortcut[]; contextName: string }[] = [];
 
   _addShortcuts(createDefaultShortcutsList(menu));

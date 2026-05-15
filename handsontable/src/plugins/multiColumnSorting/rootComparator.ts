@@ -21,8 +21,12 @@ export function rootComparator(sortingOrders: string[], columnMetas: Record<stri
       const value = values[column];
       const nextValue = nextValues[column];
       const pluginSettings = columnMeta.multiColumnSorting as Record<string, unknown>;
-      const compareFunctionFactory = (pluginSettings.compareFunctionFactory ?
-        pluginSettings.compareFunctionFactory : getCompareFunctionFactory(columnMeta.type as string)) as (...args: unknown[]) => (...args2: unknown[]) => number;
+
+      type CompareFnFactory = (...args: unknown[]) => (...args2: unknown[]) => number;
+      const compareFunctionFactory = (pluginSettings.compareFunctionFactory
+        ? pluginSettings.compareFunctionFactory
+        : getCompareFunctionFactory(columnMeta.type as string)
+      ) as CompareFnFactory;
       const compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue);
 
       if (compareResult === DO_NOT_SWAP) {

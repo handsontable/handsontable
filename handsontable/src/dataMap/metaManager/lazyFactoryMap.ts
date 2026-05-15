@@ -142,7 +142,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    * @returns {Iterator}
    */
   values(): IterableIterator<V> {
-    return (this.data.filter((meta, index): meta is V => meta !== undefined && !this.holes.has(index)))[Symbol.iterator]();
+    return (this.data.filter(
+      (meta, index): meta is V => meta !== undefined && !this.holes.has(index)
+    ))[Symbol.iterator]();
   }
 
   /**

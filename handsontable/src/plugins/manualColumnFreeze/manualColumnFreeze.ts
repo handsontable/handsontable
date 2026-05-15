@@ -61,8 +61,12 @@ export class ManualColumnFreeze extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options: unknown) => this.#addContextMenuEntry(options as Record<string, unknown>));
-    this.addHook('beforeColumnMove', (columns: unknown, finalIndex: unknown) => this.#onBeforeColumnMove(columns as unknown[], finalIndex as number));
+    this.addHook('afterContextMenuDefaultOptions', (options: unknown) => {
+      this.#addContextMenuEntry(options as Record<string, unknown>);
+    });
+    this.addHook('beforeColumnMove', (columns: unknown, finalIndex: unknown) => {
+      this.#onBeforeColumnMove(columns as unknown[], finalIndex as number);
+    });
 
     super.enablePlugin();
   }

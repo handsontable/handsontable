@@ -247,7 +247,9 @@ export class CollapsibleColumns extends BasePlugin {
       this.#onAfterLoadData(args[0] as unknown[][][], args[1] as boolean));
     this.addHook('afterGetColHeader', (column: number, TH: HTMLTableCellElement, headerLevel: number) =>
       this.#onAfterGetColHeader(column, TH, headerLevel));
-    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number, col: number }) => this.#onBeforeOnCellMouseDown(event, coords));
+    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number, col: number }) => {
+      this.#onBeforeOnCellMouseDown(event, coords);
+    });
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -391,7 +393,8 @@ export class CollapsibleColumns extends BasePlugin {
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
-          button = (topLeftCornerLevel.childNodes[j] as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+          button = (topLeftCornerLevel.childNodes[j] as Element)
+            .querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
           removeButton(button);
         }
@@ -481,7 +484,8 @@ export class CollapsibleColumns extends BasePlugin {
     let isActionPossible = filteredCoords.length > 0;
 
     arrayEach(filteredCoords, ({ row, col: column }) => {
-      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column) ?? {} as Record<string, unknown>;
+      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column)
+        ?? {} as Record<string, unknown>;
 
       if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
         isActionPossible = false;
@@ -593,7 +597,9 @@ export class CollapsibleColumns extends BasePlugin {
   #onAfterGetColHeader(column: number, TH: HTMLTableCellElement, headerLevel: number) {
     const headerSettings = this.headerStateManager.getHeaderSettings(headerLevel, column);
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
-    const isNodeCollapsible = collapsible === true && (origColspan ?? 0) > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+    const isNodeCollapsible = collapsible === true &&
+      (origColspan ?? 0) > 1 &&
+      column >= this.hot.getSettings().fixedColumnsStart;
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 

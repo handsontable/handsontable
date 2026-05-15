@@ -95,7 +95,11 @@ export default class SourceSettings {
         const propsToExtend = callback({ ...(headerSettings as Record<string, unknown>) });
 
         if (isObject(propsToExtend)) {
-          extend(headerSettings as Record<string, unknown>, propsToExtend as Record<string, unknown>, HEADER_CONFIGURABLE_PROPS);
+          extend(
+            headerSettings as Record<string, unknown>,
+            propsToExtend as Record<string, unknown>,
+            HEADER_CONFIGURABLE_PROPS
+          );
         }
       });
     });

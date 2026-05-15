@@ -113,7 +113,9 @@ class ConditionCollection {
    * @fires ConditionCollection#beforeAdd
    * @fires ConditionCollection#afterAdd
    */
-  addCondition(column: number, conditionDefinition: Record<string, unknown>, operation = OPERATION_AND, position?: number) {
+  addCondition(
+    column: number, conditionDefinition: Record<string, unknown>, operation = OPERATION_AND, position?: number
+  ) {
     const localeForColumn = this.hot.getCellMeta(0, column).locale;
     const args = (conditionDefinition.args as unknown[])
       .map((v: unknown) => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn as string) : v));
@@ -229,7 +231,9 @@ class ConditionCollection {
     this.clean();
 
     conditions.forEach((stack) => {
-      stack.conditions.forEach(condition => this.addCondition(stack.column, condition as unknown as Record<string, unknown>, stack.operation));
+      stack.conditions.forEach((condition) => {
+        this.addCondition(stack.column, condition as unknown as Record<string, unknown>, stack.operation);
+      });
     });
   }
 

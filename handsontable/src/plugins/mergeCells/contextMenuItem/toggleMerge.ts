@@ -12,7 +12,8 @@ export default function toggleMergeItem(plugin: Record<string, unknown>) {
       const selection = this.getSelectedActive();
 
       if (selection) {
-        const info = (plugin as { mergedCellsCollection: { get: (...args: unknown[]) => Record<string, number> } }).mergedCellsCollection.get(selection[0], selection[1]);
+        const p = plugin as { mergedCellsCollection: { get: (...args: unknown[]) => Record<string, number> } };
+        const info = p.mergedCellsCollection.get(selection[0], selection[1]);
 
         if (info.row === selection[0] && info.col === selection[1] &&
             info.row + info.rowspan - 1 === selection[2] && info.col + info.colspan - 1 === selection[3]) {

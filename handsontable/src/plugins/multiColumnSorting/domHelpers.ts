@@ -8,7 +8,9 @@ const COLUMN_ORDER_PREFIX = 'sort';
  * @param {boolean} showSortIndicator Indicates if indicator should be shown for the particular column.
  * @returns {Array} Array of CSS classes.
  */
-export function getClassesToAdd(columnStatesManager: Record<string, Function>, column: number, showSortIndicator: boolean) {
+export function getClassesToAdd(
+  columnStatesManager: Record<string, Function>, column: number, showSortIndicator: boolean
+) {
   const cssClasses: string[] = [];
 
   if (showSortIndicator === false) {

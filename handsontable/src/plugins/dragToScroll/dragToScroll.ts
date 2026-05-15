@@ -74,7 +74,9 @@ export class DragToScroll extends BasePlugin {
    *
    * @type {AutoScroller}
    */
-  #autoScroller = new AutoScroller((fn: () => void, delay: number) => this.hot._registerTimeout(fn, delay) as unknown as number)
+  #autoScroller = new AutoScroller(
+    (fn: () => void, delay: number) => this.hot._registerTimeout(fn, delay) as unknown as number
+  )
     .addLocalHook('scrollHorizontal', (distance: any) => this.#scrollHorizontal(distance))
     .addLocalHook('scrollVertical', (distance: any) => this.#scrollVertical(distance));
   /**
@@ -137,10 +139,13 @@ export class DragToScroll extends BasePlugin {
       rampDistance: this.getSetting<number>('rampDistance'),
     });
 
-    this.addHook('beforeOnCellMouseDown',
-      (event: Event, coords: unknown, TD: unknown, controller: unknown) => this.#setupListening('cell', event as MouseEvent, controller));
+    this.addHook('beforeOnCellMouseDown', (event: Event, coords: unknown, TD: unknown, controller: unknown) => {
+      this.#setupListening('cell', event as MouseEvent, controller);
+    });
     this.addHook('afterOnCellCornerMouseDown', (event: Event) => this.#setupListening('corner', event as MouseEvent));
-    this.addHook('afterSelection', (row: unknown, column: unknown, endRow: unknown, endColumn: unknown, preventScrolling: unknown) => this.#onAfterSelection(row, column, endRow, endColumn, preventScrolling));
+    this.addHook('afterSelection', (
+      row: unknown, column: unknown, endRow: unknown, endColumn: unknown, preventScrolling: unknown
+    ) => this.#onAfterSelection(row, column, endRow, endColumn, preventScrolling));
     this.addHook('afterScroll', () => this.#onAfterScroll());
 
     this.registerEvents();
@@ -281,7 +286,9 @@ export class DragToScroll extends BasePlugin {
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
       this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
-      this.eventManager.addEventListener(frame.document, 'mousemove', (event: Event) => this.#onMouseMove(event as MouseEvent));
+      this.eventManager.addEventListener(frame.document, 'mousemove', (event: Event) => {
+        this.#onMouseMove(event as MouseEvent);
+      });
 
       frame = getParentWindow(frame) as Window | null;
     }
@@ -304,7 +311,9 @@ export class DragToScroll extends BasePlugin {
    * @param {MouseEvent} event The mouse event object.
    * @param {object} [controller] The controller object from `beforeOnCellMouseDown`.
    */
-  #setupListening(kind: 'cell' | 'corner', event: MouseEvent, controller: { row?: boolean; column?: boolean } | null = null) {
+  #setupListening(
+    kind: 'cell' | 'corner', event: MouseEvent, controller: { row?: boolean; column?: boolean } | null = null
+  ) {
     if (isRightClick(event)) {
       return;
     }

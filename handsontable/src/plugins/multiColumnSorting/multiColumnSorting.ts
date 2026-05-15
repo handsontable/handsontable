@@ -132,7 +132,9 @@ export class MultiColumnSorting extends ColumnSorting {
           const { highlight } = this.hot.getSelectedRangeActive();
 
           if (highlight.row === -1 && highlight.col >= 0) {
-            this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY) as Record<string, unknown>[]);
+            const sortConfig = this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY);
+
+            this.sort(sortConfig as Record<string, unknown>[]);
           }
 
           // prevent default Enter behavior (move to the next row within a selection range)

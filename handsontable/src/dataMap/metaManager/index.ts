@@ -153,7 +153,10 @@ export default class MetaManager {
    * @param {boolean} [options.skipMetaExtension=false] If `true`, omits the `afterGetCellMeta` hook which calls the `extendCellMeta` method.
    * @returns {object}
    */
-  getCellMeta(physicalRow: number, physicalColumn: number, options: { visualRow: number; visualColumn: number; skipMetaExtension?: boolean }) {
+  getCellMeta(
+    physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number; skipMetaExtension?: boolean }
+  ) {
     const cellMeta = this.cellMeta.getMeta(physicalRow, physicalColumn);
 
     cellMeta.visualRow = options.visualRow;

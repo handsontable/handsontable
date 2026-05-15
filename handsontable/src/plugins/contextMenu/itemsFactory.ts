@@ -101,7 +101,9 @@ export class ItemsFactory {
  * @param {object} items Additional options.
  * @returns {object[]} Returns parsed and merged menu items collection ready to render.
  */
-function getItems(itemsPattern: any = null, defaultPattern: string[] = [], items: Record<string, Record<string, unknown>> = {}) {
+function getItems(
+  itemsPattern: any = null, defaultPattern: string[] = [], items: Record<string, Record<string, unknown>> = {}
+) {
   const result: Record<string, unknown>[] = [];
   let pattern = itemsPattern;
 

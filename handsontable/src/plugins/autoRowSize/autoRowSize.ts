@@ -273,7 +273,9 @@ export class AutoRowSize extends BasePlugin {
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => this.#onBeforeRowResize(size, row, isDblClick));
+    this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => {
+      this.#onBeforeRowResize(size, row, isDblClick);
+    });
   }
 
   /**
@@ -304,10 +306,14 @@ export class AutoRowSize extends BasePlugin {
       this.samplesGenerator.setSampleCount(samplingRatio);
     }
 
-    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => this.#onAfterLoadData(sourceData, isFirstLoad));
+    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => {
+      this.#onAfterLoadData(sourceData, isFirstLoad);
+    });
     this.addHook('beforeChangeRender', (changes: unknown[][][]) => this.#onBeforeChange(changes));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => this.#onAfterFormulasValuesUpdate(changes));
+    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => {
+      this.#onAfterFormulasValuesUpdate(changes);
+    });
     this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height: number, row: number) => this.getRowHeight(row, height));
@@ -344,7 +350,9 @@ export class AutoRowSize extends BasePlugin {
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => this.#onBeforeRowResize(size, row, isDblClick));
+    this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => {
+      this.#onBeforeRowResize(size, row, isDblClick);
+    });
   }
 
   /**
@@ -428,7 +436,10 @@ export class AutoRowSize extends BasePlugin {
    * @param {object|number} colRange Row index or an object with `from` and `to` properties which define row range.
    * @param {boolean} [overwriteCache] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateAllRowsHeight(colRange: number | { from: number, to: number } = { from: 0, to: this.hot.countCols() - 1 }, overwriteCache: boolean = false): void {
+  calculateAllRowsHeight(
+    colRange: number | { from: number, to: number } = { from: 0, to: this.hot.countCols() - 1 },
+    overwriteCache: boolean = false
+  ): void {
     let current = 0;
     const length = this.hot.countRows() - 1;
     let timer: number | null = null;

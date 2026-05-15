@@ -19,7 +19,9 @@ export function createFocusNavigator(elements: unknown[]) {
         return directItemChange;
       }
 
-      if ((element as Record<string, unknown>).element && !isVisible((element as Record<string, unknown>).element as HTMLElement)) {
+      const elementRecord = element as Record<string, unknown>;
+
+      if (elementRecord.element && !isVisible(elementRecord.element as HTMLElement)) {
         return false;
       }
 

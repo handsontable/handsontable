@@ -365,7 +365,9 @@ export class EmptyDataState extends BasePlugin {
    * Registers the DOM listeners.
    */
   #registerEvents() {
-    this.eventManager.addEventListener(this.#ui!.getElement(), 'wheel', event => this.#onMouseWheel(event as WheelEvent));
+    this.eventManager.addEventListener(this.#ui!.getElement(), 'wheel', (event) => {
+      this.#onMouseWheel(event as WheelEvent);
+    });
   }
 
   /**
@@ -606,7 +608,8 @@ export class EmptyDataState extends BasePlugin {
    * @param {WheelEvent} event - The wheel event.
    */
   #onMouseWheel(event: WheelEvent) {
-    const deltaX = Number.isNaN(event.deltaX) ? (-1) * ((event as WheelEvent & { wheelDeltaX?: number }).wheelDeltaX ?? 0) : event.deltaX;
+    const wheelDeltaX = (event as WheelEvent & { wheelDeltaX?: number }).wheelDeltaX ?? 0;
+    const deltaX = Number.isNaN(event.deltaX) ? (-1) * wheelDeltaX : event.deltaX;
 
     if (deltaX !== 0 && this.hot.view.hasHorizontalScroll() && !this.hot.view.isHorizontallyScrollableByWindow()) {
       this.hot.view.setTableScrollPosition({ left: this.hot.view.getTableScrollPosition().left + deltaX });

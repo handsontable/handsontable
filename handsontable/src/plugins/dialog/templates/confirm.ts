@@ -16,7 +16,10 @@ import { html } from '../../../helpers/templateLiteralTag';
  *   - `callback`: The callback to trigger when the button is clicked.
  * @returns {string} HTML string with the confirm template.
  */
-export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: { id?: string, title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }> }) {
+export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }: {
+  id?: string, title?: string, description?: string,
+  buttons?: Array<{ type: string, text: string, callback?: Function }>
+}) {
   /**
    * Returns the HTML string for the template.
    *

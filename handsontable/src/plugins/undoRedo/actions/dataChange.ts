@@ -35,7 +35,9 @@ export class DataChangeAction extends BaseAction {
    */
   declare countRows: number;
 
-  constructor({ changes, selected, countCols, countRows }: { changes: unknown[][], selected: unknown[], countCols: number, countRows: number }) {
+  constructor({ changes, selected, countCols, countRows }: {
+    changes: unknown[][], selected: unknown[], countCols: number, countRows: number
+  }) {
     super('change');
     this.changes = changes;
     this.selected = selected;

@@ -20,7 +20,9 @@ const PAGINATION_PLUGIN_KEY = 'pagination';
  * @param {{ page: number, pageSize: number }} queryParameters Target object (mutated).
  * @returns {void}
  */
-export function applyPaginationToQueryParameters(paginationPlugin: any, queryParameters: { page: number; pageSize: number }): void {
+export function applyPaginationToQueryParameters(
+  paginationPlugin: any, queryParameters: { page: number; pageSize: number }
+): void {
   if (!paginationPlugin?.enabled) {
     return;
   }
@@ -72,7 +74,9 @@ export function normalizeExternalPaginationPageSize(newPageSize: number | 'auto'
  * @param {{ page: number, pageSize: number }} queryParameters Target object (mutated).
  * @returns {void}
  */
-export function applyPaginationToQueryFromPlugin(hot: any, queryParameters: { page: number; pageSize: number }): void {
+export function applyPaginationToQueryFromPlugin(
+  hot: any, queryParameters: { page: number; pageSize: number }
+): void {
   applyPaginationToQueryParameters(
     hot.getPlugin(PAGINATION_PLUGIN_KEY),
     queryParameters
@@ -87,7 +91,11 @@ export function applyPaginationToQueryFromPlugin(hot: any, queryParameters: { pa
  * @param {number} [fallbackPageSize] Used when `pageSize` is not a positive number.
  * @returns {number} Global row index for headers.
  */
-export function getPagedRowHeaderIndex(queryParameters: { page: number; pageSize: number }, visualRowIndex: number, fallbackPageSize: number = DEFAULT_PAGE_SIZE): number {
+export function getPagedRowHeaderIndex(
+  queryParameters: { page: number; pageSize: number },
+  visualRowIndex: number,
+  fallbackPageSize: number = DEFAULT_PAGE_SIZE
+): number {
   const { page, pageSize } = queryParameters;
   const ps = typeof pageSize === 'number' && pageSize >= 1 ? pageSize : fallbackPageSize;
 
@@ -145,7 +153,9 @@ export function handleAfterPageChangeExternalPagination(
  * @returns {void}
  */
 export function handleAfterPageSizeChangeExternalPagination(
-  ctx: { hot: any; getQueryPage: () => number; getQueryPageSize: () => number; setPageSize: (ps: number) => Promise<void> },
+  ctx: {
+    hot: any; getQueryPage: () => number; getQueryPageSize: () => number; setPageSize: (ps: number) => Promise<void>;
+  },
   oldPageSize: number | 'auto',
   newPageSize: number | 'auto'
 ): void {

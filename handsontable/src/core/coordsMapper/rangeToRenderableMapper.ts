@@ -84,7 +84,9 @@ export class CellRangeToRenderableMapper {
    * @param {1|-1} columnSearchDirection The same as above but for rows.
    * @returns {CellCoords|null} Visual cell coordinates.
    */
-  #getNearestNotHiddenCoords(coords: CellCoords, rowSearchDirection: 1 | -1, columnSearchDirection: 1 | -1 = rowSearchDirection) {
+  #getNearestNotHiddenCoords(
+    coords: CellCoords, rowSearchDirection: 1 | -1, columnSearchDirection: 1 | -1 = rowSearchDirection
+  ) {
     const nextVisibleRow = this.#getNearestNotHiddenIndex(
       this.#rowIndexMapper, coords.row, rowSearchDirection);
 

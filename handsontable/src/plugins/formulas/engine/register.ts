@@ -112,7 +112,9 @@ export function setupEngine(hotInstance: HotInstance) {
  * @param {Handsontable} hotInstance Handsontable instance.
  * @returns {object} Returns the engine instance.
  */
-export function registerEngine(engineClass: HyperFormulaClass, hotSettings: Record<string, unknown>, hotInstance: HotInstance) {
+export function registerEngine(
+  engineClass: HyperFormulaClass, hotSettings: Record<string, unknown>, hotInstance: HotInstance
+) {
   const pluginSettings = hotSettings[PLUGIN_KEY] as Record<string, unknown>;
   const engineSettings = getEngineSettingsWithDefaultsAndOverrides(hotSettings);
   const engineRegistry = getEngineRelationshipRegistry();

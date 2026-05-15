@@ -75,7 +75,10 @@ export class Hooks {
    * Handsontable.hooks.add('beforeInit', [myCallback, anotherCallback]);
    * ```
    */
-  add(key: string, callback: HookCallback | HookCallback[], context: Record<string, unknown> | null = null, orderIndex?: number) {
+  add(
+    key: string, callback: HookCallback | HookCallback[],
+    context: Record<string, unknown> | null = null, orderIndex?: number
+  ) {
     if (Array.isArray(callback)) {
       arrayEach(callback, (c: unknown) => this.add(key, c as HookCallback, context));
     } else {
@@ -110,7 +113,10 @@ export class Hooks {
    * Handsontable.hooks.once('beforeInit', myCallback, hotInstance);
    * ```
    */
-  once(key: string, callback: HookCallback | HookCallback[], context: Record<string, unknown> | null = null, orderIndex?: number) {
+  once(
+    key: string, callback: HookCallback | HookCallback[],
+    context: Record<string, unknown> | null = null, orderIndex?: number
+  ) {
     if (Array.isArray(callback)) {
       arrayEach(callback, (c: unknown) => this.once(key, c as HookCallback, context));
     } else {
@@ -192,7 +198,10 @@ export class Hooks {
    * Handsontable.hooks.run(hot, 'beforeInit');
    * ```
    */
-  run(context: Record<string, unknown>, key: string, p1?: unknown, p2?: unknown, p3?: unknown, p4?: unknown, p5?: unknown, p6?: unknown) {
+  run(
+    context: Record<string, unknown>, key: string,
+    p1?: unknown, p2?: unknown, p3?: unknown, p4?: unknown, p5?: unknown, p6?: unknown
+  ) {
     {
       const globalHandlers = this.getBucket().getHooks(key);
       const length = globalHandlers ? globalHandlers.length : 0;

@@ -369,7 +369,9 @@ export class Menu {
           this.close(true);
         }
       },
-      afterSelection: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }) => {
+      afterSelection: (
+        row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }
+      ) => {
         // do not scroll the viewport when mouse clicks on partially visible menu item
         if (this.hotMenu!.view.isMouseDown()) {
           preventScrolling.value = true;
@@ -411,7 +413,9 @@ export class Menu {
 
     this.origOutsideClickDeselects = this.hot.getSettings().outsideClickDeselects;
     this.hot.getSettings().outsideClickDeselects = false;
-    this.hotMenu = new (this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance)(this.container, settings);
+    this.hotMenu = new (
+      this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
+    )(this.container, settings);
     this.hotMenu.addHook('afterInit', () => this.onAfterInit());
     this.hotMenu.init();
 

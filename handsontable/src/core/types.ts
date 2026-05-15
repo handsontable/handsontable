@@ -34,7 +34,10 @@ export interface RangeType {
  */
 export interface GridHelperInstance {
   alter(action: string, index?: number | number[][], amount?: number, source?: string, keepEmptyRows?: boolean): void;
-  populateFromArray(start: CellCoords, input: unknown[][], end?: CellCoords, source?: string, method?: string, direction?: string, deltas?: unknown[]): object | false | undefined;
+  populateFromArray(
+    start: CellCoords, input: unknown[][], end?: CellCoords, source?: string,
+    method?: string, direction?: string, deltas?: unknown[]
+  ): object | false | undefined;
   adjustRowsAndCols(): void;
   [key: string]: unknown;
 }
@@ -78,7 +81,9 @@ export interface HotInstance {
   getSelectedActive(): number[] | undefined;
   getSelectedLast(): number[] | undefined;
   getActiveSelectionLayerIndex(): number;
-  selectCell(row: number, column: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean): boolean;
+  selectCell(
+    row: number, column: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean
+  ): boolean;
   selectCells(selectionRanges: unknown[], scrollToCell?: boolean, changeListener?: boolean): boolean;
   selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
   selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
@@ -114,7 +119,9 @@ export interface HotInstance {
   loadData(data: unknown[], source?: string): void;
   updateData(data: unknown[][] | object[], source?: string): void;
   emptySelectedCells(source?: string): void;
-  populateFromArray(row: number, column: number, input: unknown[][], endRow?: number, endCol?: number, source?: string, method?: string): object | undefined;
+  populateFromArray(
+    row: number, column: number, input: unknown[][], endRow?: number, endCol?: number, source?: string, method?: string
+  ): object | undefined;
 
   // Cell meta
   getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
@@ -168,7 +175,12 @@ export interface HotInstance {
   validateCells(callback?: (valid: boolean) => void): void;
   validateRows(rows: number[], callback?: (valid: boolean) => void): void;
   validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
-  scrollViewportTo(options: { row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string; considerHiddenIndexes?: boolean } | number, ...args: unknown[]): boolean;
+  scrollViewportTo(
+    options: {
+      row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string; considerHiddenIndexes?: boolean;
+    } | number,
+    ...args: unknown[]
+  ): boolean;
   scrollToFocusedCell(callback?: Function): void;
 
   // View

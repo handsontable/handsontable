@@ -49,7 +49,11 @@ export class RemoveRowAction extends BaseAction {
     rowIndexesSequence,
     removedCellMetas,
     removedMergedCells,
-  }: { index: number, indexes?: number[], data: unknown[][], fixedRowsBottom: number, fixedRowsTop: number, rowIndexesSequence: number[], removedCellMetas: unknown[], removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }> }) {
+  }: {
+    index: number, indexes?: number[], data: unknown[][], fixedRowsBottom: number, fixedRowsTop: number,
+    rowIndexesSequence: number[], removedCellMetas: unknown[],
+    removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>
+  }) {
     super('remove_row');
     this.index = index;
     this.data = data;
@@ -82,7 +86,9 @@ export class RemoveRowAction extends BaseAction {
         });
       };
 
-      (undoRedoPlugin as { done: (wrappedAction: () => RemoveRowAction, source: string) => void }).done(wrappedAction, source);
+      type UndoRedoPlugin = { done: (wrappedAction: () => RemoveRowAction, source: string) => void };
+
+      (undoRedoPlugin as UndoRedoPlugin).done(wrappedAction, source);
     });
   }
 
@@ -160,7 +166,9 @@ function collectAffectedMergedCells(hot: any, visualRow: number, amount: number)
   const lastVisualRow = visualRow + amount - 1;
   const affected: Array<{ row: number; col: number; rowspan: number; colspan: number }> = [];
 
-  mergeCellsPlugin.mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }: { row: number; col: number; rowspan: number; colspan: number }) => {
+  type MergedCell = { row: number; col: number; rowspan: number; colspan: number };
+
+  mergeCellsPlugin.mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }: MergedCell) => {
     const mergeStart = row;
     const mergeEnd = row + rowspan - 1;
 
@@ -179,7 +187,8 @@ function collectAffectedMergedCells(hot: any, visualRow: number, amount: number)
  * @param {Core} hot The Handsontable instance.
  * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
  */
-function restoreMergedCells(hot: any, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>) {
+function restoreMergedCells(hot: any, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>
+) {
   if (!mergedCells || mergedCells.length === 0) {
     return;
   }
@@ -190,7 +199,9 @@ function restoreMergedCells(hot: any, mergedCells: Array<{ row: number; col: num
     return;
   }
 
-  mergedCells.forEach(({ row, col, rowspan, colspan }: { row: number; col: number; rowspan: number; colspan: number }) => {
+  type MergedCell = { row: number; col: number; rowspan: number; colspan: number };
+
+  mergedCells.forEach(({ row, col, rowspan, colspan }: MergedCell) => {
     const endRow = row + rowspan - 1;
     const endCol = col + colspan - 1;
     const start = hot._createCellCoords(row, col);

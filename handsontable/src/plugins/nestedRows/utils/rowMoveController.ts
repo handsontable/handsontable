@@ -21,7 +21,9 @@ interface DataManager {
   getRowParent(index: number): Record<string, unknown> | null;
   getRowIndex(object: Record<string, unknown> | null): number;
   countChildren(object: Record<string, unknown> | null): number;
-  moveRow(fromPhysicalIndex: number, toPhysicalIndex: number, movedToCollapsed: boolean, moveToLastChild: boolean): void;
+  moveRow(
+    fromPhysicalIndex: number, toPhysicalIndex: number, movedToCollapsed: boolean, moveToLastChild: boolean
+  ): void;
   rewriteCache(): void;
   untranslateTrimmedRow(index: number): number;
 }

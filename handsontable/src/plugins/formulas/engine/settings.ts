@@ -122,7 +122,9 @@ export function getEngineSettingsWithOverrides(hotSettings: Record<string, unkno
  * @param {object} newEngineSettings New engine settings.
  * @returns {boolean}
  */
-export function haveEngineSettingsChanged(currentEngineSettings: Record<string, unknown>, newEngineSettings: Record<string, unknown>) {
+export function haveEngineSettingsChanged(
+  currentEngineSettings: Record<string, unknown>, newEngineSettings: Record<string, unknown>
+) {
   return Object.keys(newEngineSettings).some((settingOption) => {
     return newEngineSettings[settingOption] !== undefined &&
       newEngineSettings[settingOption] !== currentEngineSettings[settingOption];

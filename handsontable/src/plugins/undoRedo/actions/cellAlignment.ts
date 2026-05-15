@@ -28,7 +28,9 @@ export class CellAlignmentAction extends BaseAction {
    */
   alignment;
 
-  constructor({ stateBefore, range, type, alignment }: { stateBefore: unknown[], range: CellRange[], type: string, alignment: string }) {
+  constructor({ stateBefore, range, type, alignment }: {
+    stateBefore: unknown[], range: CellRange[], type: string, alignment: string
+  }) {
     super('cell_alignment');
     this.stateBefore = stateBefore;
     this.range = range;

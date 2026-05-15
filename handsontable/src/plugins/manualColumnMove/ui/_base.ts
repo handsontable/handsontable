@@ -164,7 +164,9 @@ class BaseUI {
       this._element.style.marginTop = top + UNIT;
     }
     if (isNumeric(inlineOffset)) {
-      this._element.style[`margin${toUpperCaseFirst(this.inlineProperty)}` as 'marginLeft' | 'marginRight'] = inlineOffset + UNIT;
+      const marginProp = `margin${toUpperCaseFirst(this.inlineProperty)}` as 'marginLeft' | 'marginRight';
+
+      this._element.style[marginProp] = inlineOffset + UNIT;
     }
   }
 

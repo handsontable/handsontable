@@ -19,9 +19,14 @@ export const EXPORT_TYPES = {
  * @param {object} options Constructor options for exporter class.
  * @returns {BaseType|null}
  */
-export default function typeFactory(type: string, dataProvider: DataProvider, options: Record<string, unknown>): BaseType | null {
+export default function typeFactory(
+  type: string, dataProvider: DataProvider, options: Record<string, unknown>
+): BaseType | null {
   if (typeof (EXPORT_TYPES as Record<string, Function>)[type] === 'function') {
-    return new ((EXPORT_TYPES as Record<string, Function>)[type] as unknown as new (...args: unknown[]) => BaseType)(dataProvider, options);
+    type ExportTypeConstructor = new (...args: unknown[]) => BaseType;
+    const ExportType = (EXPORT_TYPES as Record<string, Function>)[type] as unknown as ExportTypeConstructor;
+
+    return new ExportType(dataProvider, options);
   }
 
   return null;

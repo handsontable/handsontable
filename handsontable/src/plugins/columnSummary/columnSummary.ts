@@ -188,29 +188,45 @@ export class ColumnSummary extends BasePlugin {
     }
 
     this.settings = this.hot.getSettings()[PLUGIN_KEY] as unknown as Record<string, unknown>;
-    this.endpoints = new Endpoints(this, this.settings as unknown as EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[]));
+    this.endpoints = new Endpoints(
+      this, this.settings as unknown as EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])
+    );
 
     this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('afterChange', (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
+    this.addHook('afterChange', (changes: unknown[][], source: string) => {
+      this.#onAfterChange(changes, source);
+    });
     this.addHook('afterUpdateSettings', (settings: Record<string, unknown>) => this.#onAfterUpdateSettings(settings));
     this.addHook('afterLoadData', (data: unknown[], firstRun: boolean) => this.#onAfterLoadData(data, firstRun));
     this.addHook('afterUpdateData', (data: unknown[], firstRun: boolean) => this.#onAfterUpdateData(data, firstRun));
 
-    this.addHook('beforeCreateRow', (index: number, amount: number, source: string) => this.endpoints!.resetSetupBeforeStructureAlteration('insert_row', index, amount)); // eslint-disable-line max-len
-    this.addHook('beforeCreateCol', (index: number, amount: number, source: string) => this.endpoints!.resetSetupBeforeStructureAlteration('insert_col', index, amount)); // eslint-disable-line max-len
-    this.addHook('beforeRemoveRow',
-      (index: number, amount: number) => this.endpoints!.resetSetupBeforeStructureAlteration('remove_row', index, amount));
-    this.addHook('beforeRemoveCol',
-      (index: number, amount: number) => this.endpoints!.resetSetupBeforeStructureAlteration('remove_col', index, amount));
+    this.addHook('beforeCreateRow', (index: number, amount: number) => {
+      this.endpoints!.resetSetupBeforeStructureAlteration('insert_row', index, amount);
+    });
+    this.addHook('beforeCreateCol', (index: number, amount: number) => {
+      this.endpoints!.resetSetupBeforeStructureAlteration('insert_col', index, amount);
+    });
+    this.addHook('beforeRemoveRow', (index: number, amount: number) => {
+      this.endpoints!.resetSetupBeforeStructureAlteration('remove_row', index, amount);
+    });
+    this.addHook('beforeRemoveCol', (index: number, amount: number) => {
+      this.endpoints!.resetSetupBeforeStructureAlteration('remove_col', index, amount);
+    });
 
-    this.addHook('afterCreateRow', (index: number, amount: number, source: string) => this.endpoints!.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
-    this.addHook('afterCreateCol', (index: number, amount: number, source: string) => this.endpoints!.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
+    this.addHook('afterCreateRow', (index: number, amount: number, source: string) => {
+      this.endpoints!.resetSetupAfterStructureAlteration('insert_row', index, amount, null, source);
+    });
+    this.addHook('afterCreateCol', (index: number, amount: number, source: string) => {
+      this.endpoints!.resetSetupAfterStructureAlteration('insert_col', index, amount, null, source);
+    });
     this.addHook('afterRemoveRow',
       (index: number, amount: number, physicalRows: number[], source: string) => this.endpoints!.resetSetupAfterStructureAlteration('remove_row', index, amount, physicalRows, source)); // eslint-disable-line max-len
     this.addHook('afterRemoveCol',
       (index: number, amount: number, physicalColumns: number[], source: string) => this.endpoints!.resetSetupAfterStructureAlteration('remove_col', index, amount, physicalColumns, source)); // eslint-disable-line max-len
     this.addHook('afterRowMove', (rows: number[], finalIndex: number) => this.#onAfterRowMove(rows, finalIndex));
-    this.addHook('afterFormulasValuesUpdate', (changes: Array<{ address?: { sheet: number; col: number } }>) => this.#onAfterFormulasValuesUpdate(changes));
+    this.addHook('afterFormulasValuesUpdate', (changes: Array<{ address?: { sheet: number; col: number } }>) => {
+      this.#onAfterFormulasValuesUpdate(changes);
+    });
 
     super.enablePlugin();
   }

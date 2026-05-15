@@ -32,11 +32,17 @@ function canBeOverwritten(propertyName: string, metaObject: Record<string, unkno
  * @param {object} settings The settings object with the "type" setting.
  * @param {object} settingsToCompareWith The object to compare which properties need to be updated.
  */
-export function extendByMetaType(metaObject: Record<string, unknown>, settings: Record<string, unknown>, settingsToCompareWith: Record<string, unknown> = metaObject) {
+export function extendByMetaType(
+  metaObject: Record<string, unknown>,
+  settings: Record<string, unknown>,
+  settingsToCompareWith: Record<string, unknown> = metaObject
+) {
   const validType = typeof settings.type === 'string' ? getCellType(settings.type) : settings.type;
 
   if (metaObject._automaticallyAssignedMetaProps) {
-    objectEach(settings, (_value: unknown, key: string) => void (metaObject._automaticallyAssignedMetaProps as Set<string>).delete(key));
+    objectEach(settings, (_value: unknown, key: string) => {
+      void (metaObject._automaticallyAssignedMetaProps as Set<string>).delete(key);
+    });
   }
 
   if (!isObject(validType)) {

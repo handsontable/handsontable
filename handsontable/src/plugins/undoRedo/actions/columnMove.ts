@@ -31,7 +31,9 @@ export class ColumnMoveAction extends BaseAction {
         return;
       }
 
-      (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(() => new ColumnMoveAction({ columns: columns as number[], finalIndex: finalIndex as number }));
+      const done = (undoRedoPlugin as { done: (...args: unknown[]) => void }).done;
+
+      done(() => new ColumnMoveAction({ columns: columns as number[], finalIndex: finalIndex as number }));
     });
   }
 

@@ -128,7 +128,9 @@ export class BasePlugin {
     initializedPlugins = null;
 
     this.hot.addHook('afterPluginsInitialized', () => this.onAfterPluginsInitialized());
-    this.hot.addHook('afterUpdateSettings', (newSettings: Record<string, unknown>) => this.onUpdateSettings(newSettings));
+    this.hot.addHook('afterUpdateSettings', (newSettings: Record<string, unknown>) => {
+      this.onUpdateSettings(newSettings);
+    });
     this.hot.addHook('beforeInit', () => this.init());
   }
 
@@ -277,12 +279,16 @@ export class BasePlugin {
       const defaultValue = getProperty(defaultSettings, settingName);
 
       if (isObject(pluginValue)) {
-        settingValue = assignObjectDefaults(pluginValue as Record<string, unknown>, defaultValue as Record<string, unknown>);
+        settingValue = assignObjectDefaults(
+          pluginValue as Record<string, unknown>, defaultValue as Record<string, unknown>
+        );
       } else {
         settingValue = pluginValue !== undefined ? pluginValue : defaultValue;
       }
     } else if (isObject(this.#pluginSettings)) {
-      settingValue = assignObjectDefaults(this.#pluginSettings as Record<string, unknown>, defaultSettings)[settingName];
+      settingValue = assignObjectDefaults(
+        this.#pluginSettings as Record<string, unknown>, defaultSettings
+      )[settingName];
     } else {
       settingValue = defaultSettings[settingName];
     }

@@ -43,7 +43,10 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
    * @param {string} value The cell value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  return (menuHot: Record<string, Function>, TD: HTMLTableCellElement, row: number, col: number, prop: string, value: unknown, cellProperties: Record<string, unknown>) => {
+  return (
+    menuHot: Record<string, Function>, TD: HTMLTableCellElement, row: number, col: number,
+    prop: string, value: unknown, cellProperties: Record<string, unknown>
+  ) => {
     const item = menuHot.getSourceDataAtRow(row);
     const wrapper = (hot.rootDocument as unknown as Document).createElement('div');
     const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
@@ -84,13 +87,15 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
     } else if (typeof item.renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
       TD.appendChild(
-        ((item as { renderer: (a: unknown, b: HTMLElement, c: number, d: number, e: string, f: unknown) => HTMLElement }).renderer)(
+        ((item as { renderer: (...args: unknown[]) => HTMLElement }).renderer)(
           menuHot, wrapper, row, col, prop, itemValue
         )
       );
 
     } else {
-      fastInnerHTML(wrapper, String(itemValue), (hot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer);
+      fastInnerHTML(
+        wrapper, String(itemValue), (hot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer
+      );
     }
 
     if (isItemDisabled(item, mainTableHot)) {

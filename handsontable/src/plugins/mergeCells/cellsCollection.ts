@@ -122,7 +122,8 @@ class MergedCellsCollection {
       }
     });
 
-    const filteredMergeCells = mergedCellsInfo.filter((mergedCell: { row: number, col: number, rowspan: number, colspan: number }) => {
+    type MergeCellInfo = { row: number, col: number, rowspan: number, colspan: number };
+    const filteredMergeCells = mergedCellsInfo.filter((mergedCell: MergeCellInfo) => {
       const { row, col, colspan, rowspan } = mergedCell;
       const localOccupiedCells = new Set();
       let isOverlapping = false;

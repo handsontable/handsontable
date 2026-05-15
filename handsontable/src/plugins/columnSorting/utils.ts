@@ -107,7 +107,9 @@ export function wasHeaderClickedProperly(row: number, column: number, clickEvent
     return true;
   }
 
-  const targetHeader = typeof eventTargetEl(clickEvent)?.closest === 'function' ? eventTargetEl(clickEvent)!.closest('th') : null;
+  const targetHeader = typeof eventTargetEl(clickEvent)?.closest === 'function'
+    ? eventTargetEl(clickEvent)!.closest('th')
+    : null;
 
   return isBottomMostColumnHeader(targetHeader);
 }
@@ -120,7 +122,9 @@ export function wasHeaderClickedProperly(row: number, column: number, clickEvent
  * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export function createDateTimeCompareFunction(sortOrder: string, format: string, columnPluginSettings: Record<string, unknown>) {
+export function createDateTimeCompareFunction(
+  sortOrder: string, format: string, columnPluginSettings: Record<string, unknown>
+) {
   return function(value: unknown, nextValue: unknown) {
     const { sortEmptyCells } = columnPluginSettings;
 

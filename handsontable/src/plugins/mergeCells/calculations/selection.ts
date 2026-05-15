@@ -42,7 +42,9 @@ class SelectionCalculations {
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined} A `String`, which will act as an additional `className` to be added to the currently processed cell.
    */
-  getSelectedMergedCellClassName(currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined) {
+  getSelectedMergedCellClassName(
+    currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined
+  ) {
     const startRow = Math.min(cornersOfSelection[0], cornersOfSelection[2]);
     const startColumn = Math.min(cornersOfSelection[1], cornersOfSelection[3]);
     const endRow = Math.max(cornersOfSelection[0], cornersOfSelection[2]);
@@ -52,7 +54,13 @@ class SelectionCalculations {
       return;
     }
 
-    const mergedCellsCollection = (this.plugin as { mergedCellsCollection: { isFirstRenderableMergedCell(row: number, column: number): boolean; get(row: number, column: number): MergedCellCoords | null } }).mergedCellsCollection;
+    type PluginWithCollection = {
+      mergedCellsCollection: {
+        isFirstRenderableMergedCell(row: number, column: number): boolean;
+        get(row: number, column: number): MergedCellCoords | null;
+      };
+    };
+    const mergedCellsCollection = (this.plugin as PluginWithCollection).mergedCellsCollection;
     const isFirstRenderableMergedCell =
       mergedCellsCollection.isFirstRenderableMergedCell(currentRow, currentColumn);
 
@@ -97,7 +105,9 @@ class SelectionCalculations {
 
     for (let r = 0; r < mergedCell.rowspan; r += 1) {
       for (let c = 0; c < mergedCell.colspan; c += 1) {
-        mergedCellIndividualCoords.push((this.hot as Record<string, Function>)._createCellCoords(mergedCell.row + r, mergedCell.col + c));
+        mergedCellIndividualCoords.push(
+          (this.hot as Record<string, Function>)._createCellCoords(mergedCell.row + r, mergedCell.col + c)
+        );
       }
     }
 

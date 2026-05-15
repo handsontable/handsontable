@@ -54,7 +54,9 @@ export class FocusOrder {
    */
   #columnIndexMapper: IndexMapper | null = null;
 
-  constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }: { mergedCellsGetter: Function, rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper }) {
+  constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }: {
+    mergedCellsGetter: Function, rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper
+  }) {
     this.#mergedCellsGetter = mergedCellsGetter;
     this.#rowIndexMapper = rowIndexMapper;
     this.#columnIndexMapper = columnIndexMapper;
@@ -249,7 +251,10 @@ export class FocusOrder {
    * @param {number} options.column The visual column index.
    * @returns {NodeStructure | null}
    */
-  #pushOrderNode({ selectedRange, selectionLayer, listOrder, mergeCellsVisitor, row, column }: { selectedRange: CellRange, selectionLayer: number, listOrder: LinkedList, mergeCellsVisitor: WeakSet<object>, row: number, column: number }) {
+  #pushOrderNode({ selectedRange, selectionLayer, listOrder, mergeCellsVisitor, row, column }: {
+    selectedRange: CellRange, selectionLayer: number, listOrder: LinkedList,
+    mergeCellsVisitor: WeakSet<object>, row: number, column: number
+  }) {
     const topStart = selectedRange.getTopStartCorner();
     const bottomEnd = selectedRange.getBottomEndCorner();
     const highlight = selectedRange.highlight.clone().normalize();

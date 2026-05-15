@@ -53,7 +53,9 @@ export class StretchCalculator {
    * @param {'all' | 'last' | 'none'} strategyName The stretch strategy to use.
    */
   useStrategy(strategyName: unknown) {
-    this.#activeStrategy = typeof strategyName === 'string' && this.#stretchStrategies.has(strategyName) ? strategyName : 'none';
+    this.#activeStrategy = typeof strategyName === 'string' && this.#stretchStrategies.has(strategyName)
+      ? strategyName
+      : 'none';
   }
 
   /**

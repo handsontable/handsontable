@@ -111,7 +111,9 @@ export function filtersPayloadToConditionsStack(hot: any, filtersPayload: any[] 
  * @param {function(): Function|undefined} getFetchFn Returns `fetchRows` or a falsy value when not configured.
  * @returns {void}
  */
-export function applyFiltersFromFiltersPluginToQueryParameters(hot: any, queryParameters: { filters: any }, getFetchFn: () => any): void {
+export function applyFiltersFromFiltersPluginToQueryParameters(
+  hot: any, queryParameters: { filters: any }, getFetchFn: () => any
+): void {
   if (!isFunction(getFetchFn())) {
     return;
   }
@@ -140,7 +142,10 @@ export function applyFiltersFromFiltersPluginToQueryParameters(hot: any, queryPa
  * @param {Array} conditionsStack Exported filter conditions (column = physical index).
  * @returns {boolean|void} False when the server path handled the filter.
  */
-export function handleBeforeFilterForServer(ctx: { hot: any; hasFetchFn: () => boolean; applyFiltersAndRefetch: (payload: any[] | null) => void }, conditionsStack: any[]): boolean | void {
+export function handleBeforeFilterForServer(
+  ctx: { hot: any; hasFetchFn: () => boolean; applyFiltersAndRefetch: (payload: any[] | null) => void },
+  conditionsStack: any[]
+): boolean | void {
   const { hot, hasFetchFn, applyFiltersAndRefetch } = ctx;
 
   if (!hasFetchFn()) {

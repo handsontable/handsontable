@@ -418,7 +418,9 @@ class CollapsingUI extends BaseUI {
    * @returns {boolean}
    */
   areChildrenCollapsed(row: number): boolean {
-    let rowObj: Record<string, unknown> = isNaN(row) ? row as unknown as Record<string, unknown> : this.dataManager.getDataObject(row);
+    let rowObj: Record<string, unknown> = isNaN(row)
+      ? row as unknown as Record<string, unknown>
+      : this.dataManager.getDataObject(row);
     let allCollapsed = true;
 
     // Checking the children of the top-level "parent"

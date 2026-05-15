@@ -170,7 +170,9 @@ export class DropdownMenu extends BasePlugin {
     super(hotInstance);
 
     // One listener for enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col: number, TH: HTMLTableCellElement) => this.#onAfterGetColHeader(col, TH));
+    this.hot.addHook('afterGetColHeader', (col: number, TH: HTMLTableCellElement) => {
+      this.#onAfterGetColHeader(col, TH);
+    });
   }
 
   /**
@@ -197,7 +199,9 @@ export class DropdownMenu extends BasePlugin {
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
     this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => this.#onBeforeOnCellMouseDown(event));
-    this.addHook('beforeViewportScrollHorizontally', (visualColumn: number) => this.#onBeforeViewportScrollHorizontally(visualColumn));
+    this.addHook('beforeViewportScrollHorizontally', (visualColumn: number) => {
+      this.#onBeforeViewportScrollHorizontally(visualColumn);
+    });
     this.addHook('beforeDialogShow', () => this.close());
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
@@ -444,7 +448,10 @@ export class DropdownMenu extends BasePlugin {
    * menu.open({ top: 50, left: 50 });
    * ```
    */
-  open(position: Record<string, number> | Event, offset: Record<string, number> = { above: 0, below: 0, left: 0, right: 0 }): void {
+  open(
+    position: Record<string, number> | Event,
+    offset: Record<string, number> = { above: 0, below: 0, left: 0, right: 0 }
+  ): void {
     if (this.menu?.isOpened()) {
       return;
     }

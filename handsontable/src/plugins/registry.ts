@@ -123,7 +123,9 @@ interface PluginClassWithMeta extends Function {
 /**
  *
  */
-function unifyPluginArguments(pluginName: string | Function, pluginClass?: Function, priority?: number): [string, Function | undefined, number | undefined] {
+function unifyPluginArguments(
+  pluginName: string | Function, pluginClass?: Function, priority?: number
+): [string, Function | undefined, number | undefined] {
   if (typeof pluginName === 'function') {
     pluginClass = pluginName;
     pluginName = (pluginClass as PluginClassWithMeta).PLUGIN_KEY;

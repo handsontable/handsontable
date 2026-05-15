@@ -43,7 +43,9 @@ autocomplete.isInFullEditMode();
 autocomplete.isOpened();
 autocomplete.isWaiting();
 autocomplete.open();
-autocomplete.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
+autocomplete.prepare(
+  1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0)
+);
 autocomplete.saveValue('test', true);
 autocomplete.saveValue(undefined);
 autocomplete.setValue('test');
@@ -163,7 +165,9 @@ hansontable.isInFullEditMode();
 hansontable.isOpened();
 hansontable.isWaiting();
 hansontable.open();
-hansontable.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
+hansontable.prepare(
+  1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0)
+);
 hansontable.saveValue('test', true);
 hansontable.saveValue(undefined);
 hansontable.setValue('test');

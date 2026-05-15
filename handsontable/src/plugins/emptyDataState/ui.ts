@@ -13,7 +13,9 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
   </div>
 </div>`;
 
-const templateContent = ({ title, description, buttons }: { title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }> }, isLoading = false) => {
+const templateContent = ({ title, description, buttons }: {
+  title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
+}, isLoading = false) => {
   const spinnerBlock = isLoading ?
     `<div class="${EMPTY_DATA_STATE_CLASS_NAME}__spinner" aria-hidden="true"></div>` :
     '';
@@ -45,7 +47,10 @@ const templateContent = ({ title, description, buttons }: { title?: string, desc
  * @param {{ element: HTMLElement | null }} placeholderState - In/out placeholder element reference.
  * @returns {void}
  */
-function syncEmptyDataStatePlaceholder(rootDocument: Document, view: any, rows: number, classNamePrefix: string, placeholderState: { element: HTMLElement | null }) {
+function syncEmptyDataStatePlaceholder(
+  rootDocument: Document, view: any, rows: number,
+  classNamePrefix: string, placeholderState: { element: HTMLElement | null }
+) {
   if (rows !== 0) {
     placeholderState.element?.remove();
     placeholderState.element = null;
@@ -240,7 +245,9 @@ export class EmptyDataStateUI {
   updateContent(message: string | Record<string, unknown>, isLoading = false) {
     const { emptyDataStateElement, emptyDataStateInner } = this.#refs;
 
-    let content: { title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }> };
+    let content: {
+      title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
+    };
 
     if (typeof message === 'string') {
       content = {
@@ -315,7 +322,9 @@ export class EmptyDataStateUI {
   updateSize(view: ViewInstance, isLoading = false) {
     const { emptyDataStateElement } = this.#refs;
 
-    const scrollbarSize = view.hasHorizontalScroll() ? getScrollbarWidth((view as ViewInstance & { hot: { rootDocument: Document } }).hot.rootDocument) : 0;
+    const scrollbarSize = view.hasHorizontalScroll()
+      ? getScrollbarWidth((view as ViewInstance & { hot: { rootDocument: Document } }).hot.rootDocument)
+      : 0;
     const rows = view.countRenderableRows();
     const cols = view.countRenderableColumns();
     const headerCols = view.getColumnHeadersCount();

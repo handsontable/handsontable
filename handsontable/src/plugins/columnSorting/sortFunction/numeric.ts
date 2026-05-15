@@ -9,7 +9,9 @@ import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortSer
  * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
-export function compareFunctionFactory(sortOrder: string, columnMeta: Record<string, unknown>, columnPluginSettings: Record<string, unknown>) {
+export function compareFunctionFactory(
+  sortOrder: string, columnMeta: Record<string, unknown>, columnPluginSettings: Record<string, unknown>
+) {
   return function(value: unknown, nextValue: unknown) {
     const parsedFirstValue = parseFloat(value as string);
     const parsedSecondValue = parseFloat(nextValue as string);

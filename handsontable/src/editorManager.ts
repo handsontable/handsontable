@@ -70,7 +70,10 @@ class EditorManager {
 
     this.hot.addHook('afterDocumentKeyDown', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
-    this.hot.view._wt.update('onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) => this.#onCellDblClick(event, coords));
+    this.hot.view._wt.update(
+      'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
+        this.#onCellDblClick(event, coords)
+    );
   }
 
   /**
@@ -358,7 +361,9 @@ const instances = new WeakMap();
  * @param {Selection} selection The selection instance.
  * @returns {EditorManager}
  */
-(EditorManager as unknown as Record<string, Function>).getInstance = function(hotInstance: HotInstance, tableMeta: GridSettings, selection: SelectionManager) {
+(EditorManager as unknown as Record<string, Function>).getInstance = function(
+  hotInstance: HotInstance, tableMeta: GridSettings, selection: SelectionManager
+) {
   let editorManager = instances.get(hotInstance);
 
   if (!editorManager) {

@@ -45,7 +45,9 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
             return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX);
           },
           callback() {
-            exportFilePlugin.downloadFileAsync('xlsx', getExportOptions(this) as Record<string, unknown>).catch((err) => {
+            exportFilePlugin.downloadFileAsync(
+              'xlsx', getExportOptions(this) as Record<string, unknown>
+            ).catch((err) => {
               error('ExportFile: XLSX export failed.', err);
             });
           },

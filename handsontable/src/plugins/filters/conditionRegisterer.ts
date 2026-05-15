@@ -18,10 +18,17 @@ export function getCondition(name: string, args: unknown[]) {
   let conditionArguments = args;
 
   if (descriptor.inputValuesDecorator) {
-    conditionArguments = (descriptor.inputValuesDecorator as (args: unknown) => typeof conditionArguments)(conditionArguments);
+    const decorator = descriptor.inputValuesDecorator as (args: unknown) => typeof conditionArguments;
+
+    conditionArguments = decorator(conditionArguments);
   }
 
-  return function(dataRow: { value: unknown; meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown } }) {
+  type DataRow = {
+    value: unknown;
+    meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+  };
+
+  return function(dataRow: DataRow) {
     return condition.apply(dataRow.meta.instance, [].concat([dataRow], [conditionArguments]));
   };
 }

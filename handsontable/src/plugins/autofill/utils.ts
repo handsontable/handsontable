@@ -6,7 +6,10 @@
  * @param {Function} cellCoordsFactory The function factory for CellCoords objects.
  * @returns {{direction: string, start: CellCoords, end: CellCoords}}
  */
-export function getDragDirectionAndRange(startSelection: number[], endSelection: number[], cellCoordsFactory: (row: number, col: number) => { row: number; col: number; normalize: () => void }) {
+export function getDragDirectionAndRange(
+  startSelection: number[], endSelection: number[],
+  cellCoordsFactory: (row: number, col: number) => { row: number; col: number; normalize: () => void }
+) {
   let startOfDragCoords;
   let endOfDragCoords;
   let directionOfDrag;

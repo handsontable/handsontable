@@ -45,7 +45,9 @@ export class MultipleSelectUI extends BaseUI {
   #clearAllUI;
 
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
-    super(hotInstance, extend(MultipleSelectUI.DEFAULTS as Record<string, unknown>, options) as Record<string, unknown>);
+    super(hotInstance, extend(
+      MultipleSelectUI.DEFAULTS as Record<string, unknown>, options
+    ) as Record<string, unknown>);
 
     this.#searchInput = new InputUI(this.hot, {
       placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
@@ -185,7 +187,9 @@ export class MultipleSelectUI extends BaseUI {
     addClass(itemsBoxWrapper, 'htUIMultipleSelectHot');
 
     // Constructs and initializes a new Handsontable instance
-    this.#itemsBox = new (this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance)(itemsBoxWrapper, {
+    this.#itemsBox = new (
+      this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
+    )(itemsBoxWrapper, {
       data: [[]],
       columns: [{
         data: 'checked',
@@ -195,7 +199,10 @@ export class MultipleSelectUI extends BaseUI {
           position: 'after'
         },
       }],
-      beforeRenderer: (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => {
+      beforeRenderer: (
+        TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
+        value: unknown, cellProperties: Record<string, unknown>
+      ) => {
         const cp = cellProperties as { instance: HotInstance; label: { property: string } };
 
         TD.title = cp.instance.getDataAtRowProp(row, cp.label.property) as string;

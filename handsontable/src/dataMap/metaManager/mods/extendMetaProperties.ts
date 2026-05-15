@@ -12,7 +12,11 @@ export class ExtendMetaPropertiesMod {
   /**
    * @type {MetaManager}
    */
-  metaManager: MetaManagerInstance & { hot: { isRtl: () => boolean; [key: string]: unknown }; globalMeta: { meta: Record<string, unknown>; [key: string]: unknown }; [key: string]: unknown };
+  metaManager: MetaManagerInstance & {
+    hot: { isRtl: () => boolean; [key: string]: unknown };
+    globalMeta: { meta: Record<string, unknown>; [key: string]: unknown };
+    [key: string]: unknown;
+  };
   /**
    * @type {Set}
    */
@@ -74,7 +78,11 @@ export class ExtendMetaPropertiesMod {
     }],
   ]);
 
-  constructor(metaManager: MetaManagerInstance & { hot: { isRtl: () => boolean; [key: string]: unknown }; globalMeta: { meta: Record<string, unknown>; [key: string]: unknown }; [key: string]: unknown }) {
+  constructor(metaManager: MetaManagerInstance & {
+    hot: { isRtl: () => boolean; [key: string]: unknown };
+    globalMeta: { meta: Record<string, unknown>; [key: string]: unknown };
+    [key: string]: unknown;
+  }) {
     this.metaManager = metaManager;
 
     this.extendMetaProps();

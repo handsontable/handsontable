@@ -95,8 +95,9 @@ describe('i18n', () => {
 
         it('should provide export names corresponding to dictionaries file names', () => {
           // two lowercase letters, two uppercase letters, for example: `esPY`.
-          expect(indexFileExportNames).toBeListFulfillingCondition(exportName =>
-            languagePacks.map(languagePack => languagePack.replace(/\.(js|ts)$/, '').replace('-', '')).includes(exportName));
+          expect(indexFileExportNames).toBeListFulfillingCondition((exportName) => {
+            return languagePacks.map(lp => lp.replace(/\.(js|ts)$/, '').replace('-', '')).includes(exportName);
+          });
         });
       });
 
@@ -110,7 +111,9 @@ describe('i18n', () => {
         it('should have file name corresponding to its language code', () => {
           // two lowercase letters, hyphen, two uppercase letters and JavaScript file extension, for example: `es-PY.js`.
           expect(languagePacks)
-            .toBeListFulfillingCondition(languagePack => languageCodes.includes(languagePack.replace(/\.(js|ts)$/, '')));
+            .toBeListFulfillingCondition(
+              languagePack => languageCodes.includes(languagePack.replace(/\.(js|ts)$/, ''))
+            );
         });
 
         it('should contain only predefined keys (checking for typo)', () => {

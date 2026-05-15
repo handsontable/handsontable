@@ -169,7 +169,9 @@ export class BaseUI {
       arrayEach(this.options.children, element => this._element.appendChild((element as BaseUI).element));
 
     } else if (this.options.wrapIt) {
-      const element = this.hot.rootDocument.createElement(this.options.tagName) as HTMLElement & Record<string, unknown>;
+      const element = this.hot.rootDocument.createElement(
+        this.options.tagName
+      ) as HTMLElement & Record<string, unknown>;
 
       // prevents "hot.unlisten()" call when clicked
       // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)

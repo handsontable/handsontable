@@ -233,8 +233,12 @@ export class HiddenRows extends BasePlugin {
     this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => this.#onAfterGetCellMeta(row, col, cellProperties));
+    this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => {
+      this.#onAfterContextMenuDefaultOptions(options);
+    });
+    this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => {
+      this.#onAfterGetCellMeta(row, col, cellProperties);
+    });
     this.addHook('modifyRowHeight', (height: number, row: number) => this.#onModifyRowHeight(height, row));
     this.addHook('afterGetRowHeader', (row: number, TH: HTMLTableCellElement) => this.#onAfterGetRowHeader(row, TH));
     this.addHook('modifyCopyableRange', (ranges: Record<string, number>[]) => this.#onModifyCopyableRange(ranges));

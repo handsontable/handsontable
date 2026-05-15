@@ -28,7 +28,9 @@ export function traverseHiddenNodeColumnIndexes(node: TreeNode, callback: Functi
  * @param {string} propertyName A name of the property whose value you want to get.
  * @returns {*}
  */
-export function getFirstChildProperty({ childs }: { childs: { data: Record<string, unknown> }[] }, propertyName: string) {
+export function getFirstChildProperty(
+  { childs }: { childs: { data: Record<string, unknown> }[] }, propertyName: string
+) {
   if (childs.length === 0) {
     return;
   }
@@ -43,6 +45,8 @@ export function getFirstChildProperty({ childs }: { childs: { data: Record<strin
  * @param {TreeNode} node A tree node to check.
  * @returns {boolean}
  */
-export function isNodeReflectsFirstChildColspan(node: { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] }) {
+export function isNodeReflectsFirstChildColspan(
+  node: { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] }
+) {
   return getFirstChildProperty(node, 'origColspan') === node.data.origColspan;
 }

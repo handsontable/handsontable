@@ -24,7 +24,10 @@ registerRenderer(numericRenderer);
 registerRenderer(passwordRenderer);
 registerRenderer(textRenderer);
 registerRenderer(timeRenderer);
-registerRenderer('custom', (hot: unknown, TD: HTMLTableCellElement, row: number, column: number, prop: unknown, value: unknown, cellProperties: unknown) => { });
+registerRenderer('custom', (
+  hot: unknown, TD: HTMLTableCellElement, row: number, column: number,
+  prop: unknown, value: unknown, cellProperties: unknown
+) => { });
 rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
   const _instance: object = instance;
   const _td: HTMLTableCellElement = td;

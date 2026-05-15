@@ -58,7 +58,10 @@ class MergedCellCoords {
    */
   #cellRange: CellRange | null = null;
 
-  constructor(row: number, column: number, rowspan: number, colspan: number, cellCoordsFactory: Function, cellRangeFactory: Function) {
+  constructor(
+    row: number, column: number, rowspan: number, colspan: number,
+    cellCoordsFactory: Function, cellRangeFactory: Function
+  ) {
     this.row = row;
     this.col = column;
     this.rowspan = rowspan;
@@ -74,7 +77,9 @@ class MergedCellCoords {
    * about the merged cells that was about to be added.
    * @returns {string}
    */
-  static NEGATIVE_VALUES_WARNING({ row, col, rowspan, colspan }: { row: number, col: number, rowspan: number, colspan: number }) {
+  static NEGATIVE_VALUES_WARNING(
+    { row, col, rowspan, colspan }: { row: number, col: number, rowspan: number, colspan: number }
+  ) {
     return toSingleLine`The merged cell declared with {row: ${row}, col: ${col},\x20
       rowspan: ${rowspan}, colspan: ${colspan}} contains negative values, which is\x20
       not supported. It will not be added to the collection.`;
@@ -123,7 +128,9 @@ class MergedCellCoords {
    * about the merged cells that was about to be added.
    * @returns {boolean}
    */
-  static containsNegativeValues({ row, col, rowspan, colspan }: { row: number, col: number, rowspan: number, colspan: number }) {
+  static containsNegativeValues(
+    { row, col, rowspan, colspan }: { row: number, col: number, rowspan: number, colspan: number }
+  ) {
     return row < 0 || col < 0 || rowspan < 0 || colspan < 0;
   }
 
@@ -159,7 +166,9 @@ class MergedCellCoords {
    * @param {number} columnCount Number of rows in the table.
    * @returns {boolean}
    */
-  static isOutOfBounds(mergeCell: { row: number, col: number, rowspan: number, colspan: number }, rowCount: number, columnCount: number) {
+  static isOutOfBounds(
+    mergeCell: { row: number, col: number, rowspan: number, colspan: number }, rowCount: number, columnCount: number
+  ) {
     return mergeCell.row < 0 ||
       mergeCell.col < 0 ||
       mergeCell.row >= rowCount ||

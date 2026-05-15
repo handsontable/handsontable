@@ -161,7 +161,8 @@ export class MultipleSelectionHandles extends BasePlugin {
         return;
       }
 
-      const endTarget = rootDocument.elementFromPoint((event as TouchEvent).touches[0].clientX, (event as TouchEvent).touches[0].clientY);
+      const te = (event as TouchEvent).touches[0];
+      const endTarget = rootDocument.elementFromPoint(te.clientX, te.clientY);
 
       if (!endTarget || endTarget === _this.lastSetCell) {
         return;
@@ -205,7 +206,10 @@ export class MultipleSelectionHandles extends BasePlugin {
     });
   }
 
-  getCurrentRangeCoords(selectedRange: CellRange, currentTouch: CellCoords, touchStartDirection: string, currentDirection: string, draggedHandle: string) {
+  getCurrentRangeCoords(
+    selectedRange: CellRange, currentTouch: CellCoords, touchStartDirection: string,
+    currentDirection: string, draggedHandle: string
+  ) {
     const topStartCorner = selectedRange.getTopStartCorner();
     const bottomEndCorner = selectedRange.getBottomEndCorner();
     const bottomStartCorner = selectedRange.getBottomStartCorner();

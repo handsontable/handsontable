@@ -134,7 +134,8 @@ class DataProvider {
   _getDataRange() {
     const cols = this.hot.countCols() - 1;
     const rows = this.hot.countRows() - 1;
-    let [startRow = 0, startCol = 0, endRow = rows, endCol = cols] = (this.options as Record<string, unknown>).range as number[];
+    let [startRow = 0, startCol = 0, endRow = rows, endCol = cols] =
+      (this.options as Record<string, unknown>).range as number[];
 
     startRow = Math.max(startRow, 0);
     startCol = Math.max(startCol, 0);
@@ -672,7 +673,9 @@ class DataProvider {
    * @param {Set<number>} allDestRows Data-array row indices of all summary destinations.
    * @returns {object|null}
    */
-  _transformEndpointToSummary(endpoint: any, startRow: number, endRow: number, startCol: number, endCol: number, allDestRows: any) {
+  _transformEndpointToSummary(
+    endpoint: any, startRow: number, endRow: number, startCol: number, endCol: number, allDestRows: any
+  ) {
     const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
     const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
 

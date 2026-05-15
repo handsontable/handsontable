@@ -593,7 +593,9 @@ export class ExportFile extends BasePlugin {
     }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const engines = isObject(pluginSettings) && isObject((pluginSettings as Record<string, unknown>).engines) ? (pluginSettings as Record<string, unknown>).engines : undefined;
+    const engines = isObject(pluginSettings) && isObject((pluginSettings as Record<string, unknown>).engines)
+      ? (pluginSettings as Record<string, unknown>).engines
+      : undefined;
     const engineFromSettings = (engines as Record<string, unknown>)?.[format];
     const mergedOptions = engineFromSettings !== undefined
       ? { engine: engineFromSettings, ...options }

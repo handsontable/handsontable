@@ -4,12 +4,17 @@ import { CONDITION_NAME as CONDITION_EQUAL } from './equal';
 
 export const CONDITION_NAME = 'neq';
 
+type DataRow = {
+  value: unknown;
+  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+};
+
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @param {Array} inputValues An array of values to compare with.
  * @returns {boolean}
  */
-export function condition(dataRow: { value: unknown; meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown } }, inputValues: unknown[]) {
+export function condition(dataRow: DataRow, inputValues: unknown[]) {
   return !getCondition(CONDITION_EQUAL, inputValues)(dataRow);
 }
 

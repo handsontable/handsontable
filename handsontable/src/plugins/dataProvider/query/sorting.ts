@@ -8,7 +8,9 @@ const COLUMN_SORTING_PLUGIN_KEY = 'columnSorting';
  * @param {function(number): string} colToProp Maps visual column index to column data key.
  * @returns {{ prop: string, order: 'asc'|'desc' }|null} Query-format sort or null.
  */
-export function normalizeSortToQueryFormat(sort: any, colToProp: (col: number) => string): { prop: string; order: 'asc' | 'desc' } | null {
+export function normalizeSortToQueryFormat(
+  sort: any, colToProp: (col: number) => string
+): { prop: string; order: 'asc' | 'desc' } | null {
   if (sort === null || sort === undefined || typeof sort !== 'object') {
     return null;
   }
@@ -39,7 +41,9 @@ export function normalizeSortToQueryFormat(sort: any, colToProp: (col: number) =
  * @param {function(string): number} propToCol Maps column data key to visual column index.
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|null} Plugin-format sort or null.
  */
-export function querySortToPluginSort(sort: any, propToCol: (prop: string) => number): { column: number; sortOrder: 'asc' | 'desc' } | null {
+export function querySortToPluginSort(
+  sort: any, propToCol: (prop: string) => number
+): { column: number; sortOrder: 'asc' | 'desc' } | null {
   if ((sort === null || sort === undefined) || typeof sort !== 'object' || typeof sort.prop !== 'string') {
     return null;
   }
@@ -74,7 +78,9 @@ export function querySortToPluginSort(sort: any, propToCol: (prop: string) => nu
  * @param {function(number): string} colToProp Maps visual column index to column data key.
  * @returns {void}
  */
-export function applyColumnSortingToQueryParameters(columnSortingPlugin: any, queryParameters: { sort: any }, colToProp: (col: number) => string): void {
+export function applyColumnSortingToQueryParameters(
+  columnSortingPlugin: any, queryParameters: { sort: any }, colToProp: (col: number) => string
+): void {
   if (!columnSortingPlugin?.enabled || typeof colToProp !== 'function') {
     return;
   }
@@ -143,7 +149,9 @@ export function normalizeSortInFetchParams(params: { sort: any }, hot: any): voi
  * @param {{ prop: string, order: 'asc'|'desc' }|null|undefined} sortingPayload Sort from [[DataProviderQueryParameters]], or null when unsorted.
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|Array} Empty array when there is no valid sort; otherwise a single-column config object.
  */
-export function sortingPayloadToSort(hot: any, sortingPayload: any): { column: number; sortOrder: 'asc' | 'desc' } | any[] {
+export function sortingPayloadToSort(
+  hot: any, sortingPayload: any
+): { column: number; sortOrder: 'asc' | 'desc' } | any[] {
   const pluginSort = querySortToPluginSort(sortingPayload, prop => hot.propToCol(prop));
 
   return pluginSort && typeof pluginSort === 'object' && 'column' in pluginSort ? pluginSort : [];
@@ -164,7 +172,12 @@ export function sortingPayloadToSort(hot: any, sortingPayload: any): { column: n
  * @returns {boolean|void} False when server path handled the sort.
  */
 export function handleBeforeColumnSortForServer(
-  ctx: { hot: any; hasFetchFn: () => boolean; applyQueryParametersFromPlugins: () => void; fetchData: (overrides?: object) => Promise<any> },
+  ctx: {
+    hot: any;
+    hasFetchFn: () => boolean;
+    applyQueryParametersFromPlugins: () => void;
+    fetchData: (overrides?: object) => Promise<any>;
+  },
   _currentSortConfig: any[],
   destinationSortConfigs: any[],
   sortPossible: boolean

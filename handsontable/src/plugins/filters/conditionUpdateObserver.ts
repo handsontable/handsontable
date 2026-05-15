@@ -62,7 +62,11 @@ class ConditionUpdateObserver {
    */
   latestOrderStack: number[] = [];
 
-  constructor(hot: HotInstance, conditionCollection: ConditionCollection, columnDataFactory: (...args: unknown[]) => unknown[] = () => []) {
+  constructor(
+    hot: HotInstance,
+    conditionCollection: ConditionCollection,
+    columnDataFactory: (...args: unknown[]) => unknown[] = () => []
+  ) {
     this.hot = hot;
     this.conditionCollection = conditionCollection;
     this.columnDataFactory = columnDataFactory;
@@ -164,7 +168,9 @@ class ConditionUpdateObserver {
 
       splitConditionCollection.destroy();
 
-      return arrayFilter(allRows, rowData => visibleRowsAssertion((rowData as { meta: { visualRow: number } }).meta.visualRow));
+      return arrayFilter(allRows, (rowData) => {
+        return visibleRowsAssertion((rowData as { meta: { visualRow: number } }).meta.visualRow);
+      });
     })(conditionsBefore);
 
     const editedConditions = [].concat(this.conditionCollection.getConditions(column));

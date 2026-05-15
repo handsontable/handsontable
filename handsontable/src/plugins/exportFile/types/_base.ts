@@ -69,7 +69,8 @@ class BaseType {
    * @returns {object} Returns new options object.
    */
   _mergeOptions(options: Record<string, unknown>) {
-    let _options: Record<string, unknown> = clone((this.constructor as unknown as { DEFAULT_OPTIONS: Record<string, unknown> }).DEFAULT_OPTIONS) as Record<string, unknown>;
+    const ctorDefaults = (this.constructor as unknown as { DEFAULT_OPTIONS: Record<string, unknown> }).DEFAULT_OPTIONS;
+    let _options: Record<string, unknown> = clone(ctorDefaults) as Record<string, unknown>;
     const date = new Date();
 
     _options = extend(clone(BaseType.DEFAULT_OPTIONS) as Record<string, unknown>, _options) as Record<string, unknown>;

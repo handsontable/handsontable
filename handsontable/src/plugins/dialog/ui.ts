@@ -97,7 +97,9 @@ export class DialogUI {
    */
   #sanitizer?: (html: string) => string;
 
-  constructor({ rootElement, isRtl, sanitizer }: { rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string }) {
+  constructor({ rootElement, isRtl, sanitizer }: {
+    rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string;
+  }) {
     this.#rootElement = rootElement;
     this.#isRtl = isRtl;
     this.#sanitizer = sanitizer;
@@ -122,7 +124,8 @@ export class DialogUI {
     }
 
     this.#template = TEMPLATES.get(templateName)(templateVars);
-    this.#templateButtonCallbacks = ((templateVars.buttons ?? []) as Array<Record<string, unknown>>).map(button => button.callback as EventListener);
+    this.#templateButtonCallbacks = ((templateVars.buttons ?? []) as Array<Record<string, unknown>>)
+      .map(button => button.callback as EventListener);
   }
 
   /**
@@ -192,7 +195,9 @@ export class DialogUI {
    *
    * @returns {DialogUI} The instance of the DialogUI.
    */
-  updateDialog({ isVisible, content, customClassName, background, contentBackground, animation, a11y }: Record<string, unknown>) {
+  updateDialog({
+    isVisible, content, customClassName, background, contentBackground, animation, a11y
+  }: Record<string, unknown>) {
     const elements = this.#template.compile();
     const { dialogElement, dialogWrapperElement } = this.#refs;
     const typedA11y = a11y as DialogA11ySettings;

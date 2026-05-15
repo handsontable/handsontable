@@ -38,7 +38,9 @@ export class MergeCellsAction extends BaseAction {
         bottomEndCorner.col
       );
 
-      (undoRedoPlugin as { done: (callback: () => MergeCellsAction) => void }).done(() => new MergeCellsAction({ data, cellRange: typedCellRange }));
+      const done = (undoRedoPlugin as { done: (callback: () => MergeCellsAction) => void }).done;
+
+      done(() => new MergeCellsAction({ data, cellRange: typedCellRange }));
     });
   }
 

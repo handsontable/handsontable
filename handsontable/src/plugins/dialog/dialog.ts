@@ -194,12 +194,13 @@ export class Dialog extends BasePlugin {
         (typeof ['alert', 'confirm'].includes(String(value.type))) &&
         (typeof value.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
-        (typeof value?.buttons === 'undefined' || Array.isArray(value?.buttons) && value.buttons.every((item: Record<string, unknown>) =>
-          typeof item === 'object' &&
+        (typeof value?.buttons === 'undefined' ||
+          Array.isArray(value?.buttons) && value.buttons.every((item: Record<string, unknown>) =>
+            typeof item === 'object' &&
           typeof item.text === 'string' &&
           ['primary', 'secondary'].includes(String(item.type)) &&
           (typeof item.callback === 'undefined' || typeof item.callback === 'function')
-        )),
+          )),
       content: (value: unknown) => typeof value === 'string' ||
         (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
         (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
@@ -209,7 +210,8 @@ export class Dialog extends BasePlugin {
       animation: (value: unknown) => typeof value === 'boolean',
       closable: (value: unknown) => typeof value === 'boolean',
       a11y: (value: Record<string, unknown>) => isObject(value) &&
-        (typeof value?.role === 'undefined' || typeof value?.role === 'string' && ['dialog', 'alertdialog'].includes(value.role)) &&
+        (typeof value?.role === 'undefined' ||
+          typeof value?.role === 'string' && ['dialog', 'alertdialog'].includes(value.role)) &&
         (typeof value?.ariaLabel === 'undefined' || typeof value?.ariaLabel === 'string') &&
         (typeof value?.ariaLabelledby === 'undefined' || typeof value?.ariaLabelledby === 'string') &&
         (typeof value?.ariaDescribedby === 'undefined' || typeof value?.ariaDescribedby === 'string'),
@@ -235,7 +237,10 @@ export class Dialog extends BasePlugin {
    *
    * @type {SelectionState | null}
    */
-  #selectionState: { ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number; selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean } | null = null;
+  #selectionState: {
+    ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
+    selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
+  } | null = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -484,7 +489,10 @@ export class Dialog extends BasePlugin {
    * @param {function(MouseEvent): void} [onOk] The callback to trigger when the OK button is clicked.
    * @param {function(MouseEvent): void} [onCancel] The callback to trigger when the Cancel button is clicked.
    */
-  showConfirm(message?: string | Record<string, unknown>, onOk?: (...args: unknown[]) => void, onCancel?: (...args: unknown[]) => void): void {
+  showConfirm(
+    message?: string | Record<string, unknown>,
+    onOk?: (...args: unknown[]) => void, onCancel?: (...args: unknown[]) => void
+  ): void {
     const {
       title = 'Confirm',
       description,

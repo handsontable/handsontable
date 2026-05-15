@@ -37,7 +37,11 @@ export class NotificationUI {
    * @param {function(string, string): string | undefined} params.sanitizer Sanitizer for HTML strings.
    * @param {boolean} params.isRtl Whether the grid uses RTL layout.
    */
-  constructor({ rootElement, sanitizer, isRtl }: { rootElement: HTMLElement; sanitizer: ((html: string, context: string) => string | undefined) | null | undefined; isRtl: boolean }) {
+  constructor({ rootElement, sanitizer, isRtl }: {
+    rootElement: HTMLElement;
+    sanitizer: ((html: string, context: string) => string | undefined) | null | undefined;
+    isRtl: boolean;
+  }) {
     this.#rootElement = rootElement;
     this.#sanitizer = sanitizer;
     this.#isRtl = isRtl;

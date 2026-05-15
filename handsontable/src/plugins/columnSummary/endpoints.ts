@@ -258,7 +258,10 @@ class Endpoints {
    * @param {string} [source] Source of change.
    * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
    */
-  resetSetupAfterStructureAlteration(action: string, index: number, number: number, logicRows: number[] | null | undefined, source: string, forceRefresh = true) {
+  resetSetupAfterStructureAlteration(
+    action: string, index: number, number: number,
+    logicRows: number[] | null | undefined, source: string, forceRefresh = true
+  ) {
     // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
     if (source === 'auto') {
       return;
@@ -505,7 +508,8 @@ class Endpoints {
       }
 
       arrayEach(this.getAllEndpoints(), (endpoint: EndpointConfig, j: number) => {
-        if (this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number) === endpoint.sourceColumn && needToRefresh.indexOf(j) === -1) {
+        if (this.hot.propToCol((changesObj[key] as unknown[])[1] as string | number) === endpoint.sourceColumn &&
+          needToRefresh.indexOf(j) === -1) {
           needToRefresh.push(j);
         }
       });

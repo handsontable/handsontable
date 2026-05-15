@@ -527,7 +527,9 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
  *   `getCssStyleFromElement`, or `null` for non-rendered cells.
  * @returns {object|null}
  */
-export function getFillFromMeta(meta: CellMeta | undefined, cssStyle: { backgroundColor: string | null } | null = null): object | null {
+export function getFillFromMeta(
+  meta: CellMeta | undefined, cssStyle: { backgroundColor: string | null } | null = null
+): object | null {
   let bgColor = null;
 
   if (cssStyle?.backgroundColor) {

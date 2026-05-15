@@ -64,7 +64,11 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
         continue;
       }
 
-      const dataSource = (hotInstance._getDataSource as () => { getAtCell: (r: number, c: number, v: null) => unknown; setAtCell: (r: number, c: number, v: null) => void })();
+      type DataSource = {
+        getAtCell: (r: number, c: number, v: null) => unknown;
+        setAtCell: (r: number, c: number, v: null) => void;
+      };
+      const dataSource = (hotInstance._getDataSource as () => DataSource)();
       const value = dataSource.getAtCell(row, col, null);
       const isValid = sourceDataValidator(value, cellMeta, source);
 

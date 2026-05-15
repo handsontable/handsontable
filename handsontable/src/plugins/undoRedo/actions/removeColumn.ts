@@ -59,7 +59,10 @@ export class RemoveColumnAction extends BaseAction {
     rowPositions,
     fixedColumnsStart,
     removedCellMetas
-  }: { index: number, indexes: number[], data: unknown[][], amount: number, headers: unknown[], columnPositions: number[], rowPositions: number[], fixedColumnsStart: number, removedCellMetas: unknown[] }) {
+  }: {
+    index: number, indexes: number[], data: unknown[][], amount: number, headers: unknown[],
+    columnPositions: number[], rowPositions: number[], fixedColumnsStart: number, removedCellMetas: unknown[]
+  }) {
     super('remove_col');
     this.index = index;
     this.indexes = indexes;

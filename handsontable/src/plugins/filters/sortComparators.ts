@@ -90,7 +90,9 @@ export function createISODateSortComparator(): (a: string, b: string) => number 
  * @param {object|null|undefined} meta The cell meta object for the column.
  * @returns {Function|undefined}
  */
-export function getSortComparatorForMeta(meta: Record<string, unknown> | null | undefined): ((a: string, b: string) => number) | undefined {
+export function getSortComparatorForMeta(
+  meta: Record<string, unknown> | null | undefined
+): ((a: string, b: string) => number) | undefined {
   if (!meta) {
     return undefined;
   }

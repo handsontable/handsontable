@@ -312,9 +312,13 @@ export class AutoColumnSize extends BasePlugin {
       this.samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
     }
 
-    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => this.#onAfterLoadData(sourceData, isFirstLoad));
+    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => {
+      this.#onAfterLoadData(sourceData, isFirstLoad);
+    });
     this.addHook('beforeChangeRender', (changes: unknown[][][]) => this.#onBeforeChange(changes));
-    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => this.#onAfterFormulasValuesUpdate(changes));
+    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => {
+      this.#onAfterFormulasValuesUpdate(changes);
+    });
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width));
     this.addHook('init', () => this.#onInit());
@@ -415,7 +419,10 @@ export class AutoColumnSize extends BasePlugin {
    * @param {object|number} rowRange Row index or an object with `from` and `to` properties which define row range.
    * @param {boolean} [overwriteCache] If `true` the calculation will be processed regardless of whether the width exists in the cache.
    */
-  calculateAllColumnsWidth(rowRange: number | { from: number, to: number } = { from: 0, to: this.hot.countRows() - 1 }, overwriteCache: boolean = false): void {
+  calculateAllColumnsWidth(
+    rowRange: number | { from: number, to: number } = { from: 0, to: this.hot.countRows() - 1 },
+    overwriteCache: boolean = false
+  ): void {
     let current = 0;
     const length = this.hot.countCols() - 1;
     let timer: number | null = null;
@@ -604,24 +611,25 @@ export class AutoColumnSize extends BasePlugin {
   findColumnsWhereHeaderWasChanged(): number[] {
     const columnHeaders = this.hot.getColHeader();
 
-    const changedColumns = (columnHeaders as unknown[]).reduce<number[]>((acc, columnTitle: unknown, physicalColumn: number) => {
-      const cachedColumnsLength = this.#cachedColumnHeaders.length;
+    const changedColumns = (columnHeaders as unknown[]).reduce<number[]>(
+      (acc, columnTitle: unknown, physicalColumn: number) => {
+        const cachedColumnsLength = this.#cachedColumnHeaders.length;
 
-      if (cachedColumnsLength - 1 < physicalColumn || this.#cachedColumnHeaders[physicalColumn] !== columnTitle) {
-        const visualColumn = this.hot.toVisualColumn(physicalColumn);
+        if (cachedColumnsLength - 1 < physicalColumn || this.#cachedColumnHeaders[physicalColumn] !== columnTitle) {
+          const visualColumn = this.hot.toVisualColumn(physicalColumn);
 
-        if (visualColumn !== null) {
-          acc.push(visualColumn);
+          if (visualColumn !== null) {
+            acc.push(visualColumn);
+          }
         }
-      }
-      if (cachedColumnsLength - 1 < physicalColumn) {
-        this.#cachedColumnHeaders.push(columnTitle);
-      } else {
-        this.#cachedColumnHeaders[physicalColumn] = columnTitle;
-      }
+        if (cachedColumnsLength - 1 < physicalColumn) {
+          this.#cachedColumnHeaders.push(columnTitle);
+        } else {
+          this.#cachedColumnHeaders[physicalColumn] = columnTitle;
+        }
 
-      return acc;
-    }, []);
+        return acc;
+      }, []);
 
     return changedColumns;
   }

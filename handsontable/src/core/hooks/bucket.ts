@@ -55,7 +55,11 @@ export class HooksBucket {
    * @param {Function} callback The callback function to add.
    * @param {{ orderIndex?: number, runOnce?: boolean, initialHook?: boolean }} options The options object.
    */
-  add(hookName: string, callback: HookCallback, options: { orderIndex?: number; runOnce?: boolean; initialHook?: boolean } = {}) {
+  add(
+    hookName: string,
+    callback: HookCallback,
+    options: { orderIndex?: number; runOnce?: boolean; initialHook?: boolean } = {}
+  ) {
     if (!this.#hooks.has(hookName)) {
       this.#createHooksCollection(hookName);
       REGISTERED_HOOKS.push(hookName);

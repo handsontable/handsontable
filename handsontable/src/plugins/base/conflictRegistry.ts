@@ -42,7 +42,9 @@ function isIncompatibleSettingActive(settings: Record<string, unknown>, incompat
  * @param {string|string[]} incompatibleSettingKeys One top-level setting key, or an array of keys, that trigger the
  *   conflict when truthy in `settings`.
  */
-export function registerConflict(blockedTargetKeyOrKeys: string | string[], incompatibleSettingKeys: string | string[]): void {
+export function registerConflict(
+  blockedTargetKeyOrKeys: string | string[], incompatibleSettingKeys: string | string[]
+): void {
   if (Array.isArray(blockedTargetKeyOrKeys)) {
     if (typeof incompatibleSettingKeys !== 'string') {
       throwWithCause(
@@ -106,7 +108,9 @@ export function registerConflict(blockedTargetKeyOrKeys: string | string[], inco
  * @param {string} blockedKey Key being enabled (usually a plugin `PLUGIN_KEY`).
  * @returns {HardConflictRegistration|null}
  */
-export function getHardConflict(settings: Record<string, unknown>, blockedKey: string): HardConflictRegistration | null {
+export function getHardConflict(
+  settings: Record<string, unknown>, blockedKey: string
+): HardConflictRegistration | null {
   for (let i = 0; i < hardConflicts.length; i += 1) {
     const entry = hardConflicts[i];
 

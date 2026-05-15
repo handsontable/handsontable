@@ -87,7 +87,10 @@ export class PersistentState extends BasePlugin {
     }
 
     if (!this.storage) {
-      this.storage = new Storage((this.hot as unknown as { rootContainer: HTMLElement }).rootContainer?.id || this.hot.rootElement.id, this.hot.rootWindow) as unknown as Record<string, Function>;
+      const hotWithContainer = this.hot as unknown as { rootContainer: HTMLElement };
+      const rootId = hotWithContainer.rootContainer?.id || this.hot.rootElement.id;
+
+      this.storage = new Storage(rootId, this.hot.rootWindow) as unknown as Record<string, Function>;
     }
 
     this.addHook('persistentStateSave', (key: string, value: unknown) => this.saveValue(key, value));

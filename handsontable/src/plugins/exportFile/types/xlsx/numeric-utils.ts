@@ -69,7 +69,10 @@ function getCurrencyInfo(currency: string, locale: string | undefined): { symbol
  * @returns {string|null}
  */
 export function intlNumFormatToExcelNumFmt(
-  numericFormat: { pattern?: string; style?: string; currency?: string; minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean } | null | undefined,
+  numericFormat: {
+    pattern?: string; style?: string; currency?: string;
+    minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
+  } | null | undefined,
   locale: string | undefined
 ): string | null {
   if (!numericFormat) {

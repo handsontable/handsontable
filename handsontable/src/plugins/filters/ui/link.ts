@@ -44,7 +44,9 @@ export class LinkUI extends BaseUI {
       return;
     }
 
-    this.#link.textContent = String(this.translateIfPossible((this.options as Record<string, unknown>).textContent as string));
+    const text = (this.options as Record<string, unknown>).textContent as string;
+
+    this.#link.textContent = String(this.translateIfPossible(text));
   }
 
   /**

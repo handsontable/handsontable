@@ -108,7 +108,8 @@ export class ColumnStatesManager {
    * @returns {string|undefined} Sort order (`asc` for ascending, `desc` for descending and undefined for not sorted).
    */
   getSortOrderOfColumn(searchedColumn: number) {
-    return this.sortingStates.getValueAtIndex<{ sortOrder?: string } | null>(this.hot.toPhysicalColumn(searchedColumn))?.sortOrder;
+    return this.sortingStates
+      .getValueAtIndex<{ sortOrder?: string } | null>(this.hot.toPhysicalColumn(searchedColumn))?.sortOrder;
   }
 
   /**
@@ -166,7 +167,9 @@ export class ColumnStatesManager {
     const sortingStatesQueue = this.sortingStates.getEntries();
 
     return sortingStatesQueue.map(
-      ([physicalColumn, value]) => ({ column: this.hot.toVisualColumn(physicalColumn as number), ...(value as Record<string, unknown>) }));
+      ([physicalColumn, value]) => ({
+        column: this.hot.toVisualColumn(physicalColumn as number), ...(value as Record<string, unknown>)
+      }));
   }
 
   /**

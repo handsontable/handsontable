@@ -15,7 +15,9 @@ import type { HeaderNodeData } from '../headersTree';
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @returns {object} Returns an object with properties.
  */
-export function expandNode(nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+export function expandNode(
+  nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }
+): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
   if (!nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
@@ -26,7 +28,8 @@ export function expandNode(nodeToProcess: { data: HeaderNodeData, childs: TreeNo
     };
   }
 
-  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] });
+  type NodeWithData = { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] };
+  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
 
   if (isNodeReflected) {
     return expandNode(nodeChilds[0] as { data: HeaderNodeData, childs: TreeNode[] });
@@ -81,8 +84,9 @@ export function expandNode(nodeToProcess: { data: HeaderNodeData, childs: TreeNo
       data.colspan = data.origColspan;
       data.isCollapsed = false;
 
-    } else if (isNodeReflectsFirstChildColspan(node as { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] })) {
-      data.isCollapsed = getFirstChildProperty(node as { childs: { data: Record<string, unknown> }[] }, 'isCollapsed');
+    } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
+      type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
+      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed');
     }
   });
 

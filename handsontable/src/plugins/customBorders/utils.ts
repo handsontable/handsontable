@@ -201,7 +201,9 @@ export function checkSelectionBorders(hot: HotInstance, direction?: string) {
 
       if (metaBorders) {
         if (direction) {
-          if (!hasOwnProperty((metaBorders as Record<string, Record<string, unknown>>)[direction], 'hide') || (metaBorders as Record<string, Record<string, unknown>>)[direction].hide === false) {
+          const mb = metaBorders as Record<string, Record<string, unknown>>;
+
+          if (!hasOwnProperty(mb[direction], 'hide') || mb[direction].hide === false) {
             atLeastOneHasBorder = true;
 
             return false; // breaks forAll

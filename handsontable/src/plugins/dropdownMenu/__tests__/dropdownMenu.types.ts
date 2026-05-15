@@ -53,7 +53,10 @@ new Handsontable(document.createElement('div'), {
           (selection as any)[0].start.row;
           clickEvent.preventDefault();
         },
-        renderer(hot: ReturnType<typeof Handsontable>, wrapper: HTMLElement, row: number, col: number, prop: string | number, itemValue: unknown) {
+        renderer(
+          hot: ReturnType<typeof Handsontable>, wrapper: HTMLElement, row: number, col: number,
+          prop: string | number, itemValue: unknown
+        ) {
           this.key;
           hot.getSelected();
 

@@ -58,8 +58,10 @@ timeRenderer(hot, TD, 0, 0, 'prop', 1.235, cellProperties);
 
 // Verify top-level renderers API
 getRenderer('foo')(hot, TD, 0, 0, 'prop', 1.235, cellProperties);
-registerRenderer('foo', (hot: HotInstance, TD: HTMLTableCellElement,
-                         row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => TD);
+registerRenderer('foo', (
+  hot: HotInstance, TD: HTMLTableCellElement,
+  row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>
+) => TD);
 rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
   const _instance: object = instance;
   const _td: HTMLTableCellElement = td;

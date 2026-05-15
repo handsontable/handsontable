@@ -420,7 +420,9 @@ export class Notification extends BasePlugin {
    * @param {{ stackLimit: number, animation: boolean }} b Second snapshot.
    * @returns {boolean}
    */
-  #effectiveNotificationOptionsEqual(a: { stackLimit: number; animation: boolean }, b: { stackLimit: number; animation: boolean }): boolean {
+  #effectiveNotificationOptionsEqual(
+    a: { stackLimit: number; animation: boolean }, b: { stackLimit: number; animation: boolean }
+  ): boolean {
     return a.stackLimit === b.stackLimit && a.animation === b.animation;
   }
 
@@ -565,7 +567,9 @@ export class Notification extends BasePlugin {
    */
   #bindToastEvents(state: any): void {
     state.toastEventDisposers = [
-      this.eventManager.addEventListener(state.element, 'click', event => this.#onToastClick(event as MouseEvent, state)),
+      this.eventManager.addEventListener(state.element, 'click', (event) => {
+        this.#onToastClick(event as MouseEvent, state);
+      }),
       this.eventManager.addEventListener(state.element, 'mouseenter', () => {
         state.paused = true;
       }),

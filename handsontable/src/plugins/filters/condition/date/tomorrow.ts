@@ -4,11 +4,16 @@ import { registerCondition } from '../../conditionRegisterer';
 
 export const CONDITION_NAME = 'date_tomorrow';
 
+type DataRow = {
+  value: unknown;
+  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+};
+
 /**
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @returns {boolean}
  */
-export function condition(dataRow: { value: unknown; meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown } }) {
+export function condition(dataRow: DataRow) {
   const date = moment(dataRow.value as string, dataRow.meta.dateFormat as string);
 
   if (!date.isValid()) {

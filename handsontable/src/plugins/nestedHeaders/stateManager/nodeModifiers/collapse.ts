@@ -15,7 +15,9 @@ import type { HeaderNodeData } from '../headersTree';
  * @param {TreeNode} nodeToProcess A tree node to process.
  * @returns {object} Returns an object with properties.
  */
-export function collapseNode(nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+export function collapseNode(
+  nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }
+): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
   if (nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
@@ -26,7 +28,8 @@ export function collapseNode(nodeToProcess: { data: HeaderNodeData, childs: Tree
     };
   }
 
-  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] });
+  type NodeWithData = { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] };
+  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
 
   if (isNodeReflected) {
     return collapseNode(nodeChilds[0] as { data: HeaderNodeData, childs: TreeNode[] });
@@ -69,7 +72,11 @@ export function collapseNode(nodeToProcess: { data: HeaderNodeData, childs: Tree
   }
 
   // Calculate by how many colspan it needs to reduce the headings.
-  const colspanCompensation = nodeData.colspan - ((getFirstChildProperty(nodeToProcess as { childs: { data: Record<string, unknown> }[] }, 'colspan') as number | undefined) ?? 1);
+  type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
+  const firstChildColspan = getFirstChildProperty(
+    nodeToProcess as NodeWithChilds, 'colspan'
+  ) as number | undefined;
+  const colspanCompensation = nodeData.colspan - (firstChildColspan ?? 1);
 
   (nodeToProcess as TreeNode).walkUp((node: TreeNode) => {
     const { data } = node;
@@ -80,8 +87,8 @@ export function collapseNode(nodeToProcess: { data: HeaderNodeData, childs: Tree
       data.colspan = 1;
       data.isCollapsed = true;
 
-    } else if (isNodeReflectsFirstChildColspan(node as { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] })) {
-      data.isCollapsed = getFirstChildProperty(node as { childs: { data: Record<string, unknown> }[] }, 'isCollapsed');
+    } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
+      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed');
     }
   });
 

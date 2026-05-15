@@ -351,7 +351,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   valueFormatter: (value: any, cellMeta: CellProperties) => value,
   valueParser: (value: any, cellMeta: CellProperties) => value,
   valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
-  valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
+  valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) =>
+    `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
@@ -623,7 +624,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeEmptyDataStateHide: () => {},
   beforeNotificationHide: (_id) => {},
   beforeNotificationShow: (_options) => {},
-  beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
+  beforeFilter: (conditionsStack, previousConditionStack) => {
+    conditionsStack[0].conditions[0].name === 'begins_with';
+  },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {
     const _height: number | string = height;

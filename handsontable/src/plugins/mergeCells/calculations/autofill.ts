@@ -235,7 +235,9 @@ class AutofillCalculations {
    * @param {Array} mergedCellArray Array of the merged cells found in the base area.
    * @returns {MergedCellCoords|null}
    */
-  getFarthestCollection(baseArea: number[], fullArea: number[], direction: string, mergedCellArray: MergedCellCoords[]): MergedCellCoords | null {
+  getFarthestCollection(
+    baseArea: number[], fullArea: number[], direction: string, mergedCellArray: MergedCellCoords[]
+  ): MergedCellCoords | null {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
     const verticalDirection = ['up', 'down'].indexOf(direction) > -1;
     const baseEnd = verticalDirection ? baseAreaEndRow : baseAreaEndColumn;

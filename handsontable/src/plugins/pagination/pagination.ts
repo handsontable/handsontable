@@ -124,7 +124,11 @@ export class Pagination extends BasePlugin {
    *
    * @type {HiddenMap | null}
    */
-  #pagedRowsMap: { setValueAtIndex(index: number, value: boolean): boolean; getValues(): unknown[]; clear(): void } | null = null;
+  #pagedRowsMap: {
+    setValueAtIndex(index: number, value: boolean): boolean;
+    getValues(): unknown[];
+    clear(): void;
+  } | null = null;
   /**
    * Current page number.
    *
@@ -241,11 +245,17 @@ export class Pagination extends BasePlugin {
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
     this.addHook('init', () => this.#onInit(), -1);
-    this.addHook('beforeSelectAll', (from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) => this.#onBeforeSelectAllRows(from, to));
-    this.addHook('beforeSelectColumns', (from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) => this.#onBeforeSelectAllRows(from, to));
+    this.addHook('beforeSelectAll', (
+      from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }
+    ) => this.#onBeforeSelectAllRows(from, to));
+    this.addHook('beforeSelectColumns', (
+      from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }
+    ) => this.#onBeforeSelectAllRows(from, to));
     this.addHook('beforeSetRangeEnd', (coords: { row: number }) => this.#onBeforeSetRangeEnd(coords));
     this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
-    this.addHook('beforePaste', (data: unknown[][][], ranges: { startRow: number; endRow: number }[]) => this.#onBeforePaste(data, ranges));
+    this.addHook('beforePaste', (data: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
+      this.#onBeforePaste(data, ranges);
+    });
     this.addHook('afterViewRender', () => this.#onAfterViewRender());
     this.addHook('afterRender', () => this.#onAfterRender());
     this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
@@ -267,7 +277,10 @@ export class Pagination extends BasePlugin {
    * @param {number} result.totalRows Total row count from the provider response.
    * @returns {void}
    */
-  #onAfterDataProviderFetch = ({ queryParameters, totalRows }: { queryParameters: { page?: number; pageSize?: number | 'auto'; [key: string]: unknown }; totalRows?: number }) => {
+  #onAfterDataProviderFetch = ({ queryParameters, totalRows }: {
+    queryParameters: { page?: number; pageSize?: number | 'auto'; [key: string]: unknown };
+    totalRows?: number;
+  }) => {
     if (!this.#isDataProviderActive) {
       return;
     }

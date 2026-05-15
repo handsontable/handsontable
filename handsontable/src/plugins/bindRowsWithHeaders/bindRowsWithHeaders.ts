@@ -92,9 +92,13 @@ export class BindRowsWithHeaders extends BasePlugin {
       return;
     }
 
-    const MapStrategy = bindTypeToMapStrategy.get((this as unknown as { getSetting: () => string }).getSetting()) ?? bindTypeToMapStrategy.get(DEFAULT_BIND);
+    const selfWithGetSetting = this as unknown as { getSetting: () => string };
+    const MapStrategy =
+      bindTypeToMapStrategy.get(selfWithGetSetting.getSetting()) ?? bindTypeToMapStrategy.get(DEFAULT_BIND);
 
-    this.headerIndexes = this.hot.rowIndexMapper.registerMap('bindRowsWithHeaders', new MapStrategy()) as unknown as Record<string, unknown>;
+    this.headerIndexes = this.hot.rowIndexMapper.registerMap(
+      'bindRowsWithHeaders', new MapStrategy()
+    ) as unknown as Record<string, unknown>;
 
     this.addHook('modifyRowHeader', (row: number) => this.#onModifyRowHeader(row));
 
@@ -117,7 +121,8 @@ export class BindRowsWithHeaders extends BasePlugin {
    * @returns {number}
    */
   #onModifyRowHeader(row: number) {
-    return (this.headerIndexes as { getValueAtIndex: (index: number) => number }).getValueAtIndex(this.hot.toPhysicalRow(row));
+    return (this.headerIndexes as { getValueAtIndex: (index: number) => number })
+      .getValueAtIndex(this.hot.toPhysicalRow(row));
   }
 
   /**

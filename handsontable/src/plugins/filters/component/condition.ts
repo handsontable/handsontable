@@ -35,7 +35,9 @@ export class ConditionComponent extends BaseComponent {
    */
   addSeparator = false;
 
-  constructor(hotInstance: HotInstance, options: { id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement }) {
+  constructor(hotInstance: HotInstance, options: {
+    id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement
+  }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
@@ -183,7 +185,9 @@ export class ConditionComponent extends BaseComponent {
       isCommand: false,
       disableSelection: true,
       hidden: () => this.isHidden(),
-      renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string) => {
+      renderer: (
+        hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string
+      ) => {
         addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuCondition');
 
         if (this.addSeparator) {

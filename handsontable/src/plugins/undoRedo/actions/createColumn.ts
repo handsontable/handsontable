@@ -26,7 +26,9 @@ export class CreateColumnAction extends BaseAction {
 
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterCreateCol', (index: number, amount: number, source: string) => {
-      (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(() => new CreateColumnAction({ index, amount }), source);
+      const done = (undoRedoPlugin as { done: (...args: unknown[]) => void }).done;
+
+      done(() => new CreateColumnAction({ index, amount }), source);
     });
   }
 

@@ -122,7 +122,9 @@ export class NestedRows extends BasePlugin {
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
-    this.rowMoveController = new RowMoveController(this as unknown as ConstructorParameters<typeof RowMoveController>[0]);
+    this.rowMoveController = new RowMoveController(
+      this as unknown as ConstructorParameters<typeof RowMoveController>[0]
+    );
 
     this.addHook('afterInit', this.#onAfterInit.bind(this));
     this.addHook('afterRender', this.#onAfterRender.bind(this));
@@ -346,7 +348,9 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   #onAfterContextMenuDefaultOptions(defaultOptions: { items: unknown[]; [key: string]: unknown }) {
-    return this.contextMenuUI!.appendOptions(defaultOptions as { items: { key: string; [k: string]: unknown }[]; [key: string]: unknown });
+    type DefaultOptions = { items: { key: string; [k: string]: unknown }[]; [key: string]: unknown };
+
+    return this.contextMenuUI!.appendOptions(defaultOptions as DefaultOptions);
   }
 
   /**
