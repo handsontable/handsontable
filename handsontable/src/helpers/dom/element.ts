@@ -1336,7 +1336,7 @@ export function runWithSelectedContendEditableElement(element: HTMLElement, call
  * @param {*} element Element to check.
  * @returns {boolean} `true` if the element is HTMLElement.
  */
-export function isHTMLElement(element: unknown): boolean {
+export function isHTMLElement(element: unknown): element is HTMLElement {
   const OwnElement = (element as HTMLElement)?.ownerDocument?.defaultView.Element;
 
   return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);

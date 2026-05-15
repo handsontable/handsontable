@@ -433,8 +433,8 @@ export class NestedHeaders extends BasePlugin {
         const innerHeaderDiv = TH.querySelector('div.relative') as HTMLElement;
 
         if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
-          removeClass(innerHeaderDiv as HTMLElement, (this.hot.getColumnMeta(visualColumnIndex).headerClassName as string | string[] | undefined) ?? []);
-          addClass(innerHeaderDiv as HTMLElement, headerClassNames);
+          removeClass(innerHeaderDiv, (this.hot.getColumnMeta(visualColumnIndex).headerClassName as string | string[] | undefined) ?? []);
+          addClass(innerHeaderDiv, headerClassNames);
         }
       }
     };
