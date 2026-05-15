@@ -1,6 +1,7 @@
 import type { DataAccessObject, DomBindings, WalkontableInstance } from './types';
 import type Settings from './settings';
 import type Table from './table';
+import type EventManager from '../../../eventManager';
 import type { ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
 import {
   getScrollbarWidth,
@@ -44,7 +45,7 @@ class Viewport {
   declare columnsVisibleCalculator: ColumnsCalculationType | null;
   declare rowsCalculatorTypes: Map<string, Function>;
   declare columnsCalculatorTypes: Map<string, Function>;
-  declare eventManager: Record<string, Function>;
+  declare eventManager: EventManager;
   declare rowsRenderCalculator: RowsCalculationType | null;
   declare columnsRenderCalculator: ColumnsCalculationType | null;
   declare rowsPartiallyVisibleCalculator: RowsCalculationType | null;
@@ -59,7 +60,7 @@ class Viewport {
    * @param {EventManager} eventManager The instance event manager.
    * @param {Table} wtTable The table.
    */
-  constructor(dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings, eventManager: Record<string, Function>, wtTable: Table) {
+  constructor(dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: Table) {
     this.dataAccessObject = dataAccessObject;
     // legacy support
     this.wot = dataAccessObject.wot;

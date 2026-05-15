@@ -61,8 +61,8 @@ export default class CoreAbstract {
    */
   declare wtSettings: Settings;
 
-  get eventManager() {
-    return new (EventManager as any)(this);
+  get eventManager(): EventManager {
+    return new EventManager(this);
   }
 
   /**
@@ -106,7 +106,7 @@ export default class CoreAbstract {
    * @returns {CellCoords}
    */
   createCellCoords(row: number, column: number) {
-    return new (CellCoords as any)(row, column, this.wtSettings.getSetting('rtlMode'));
+    return new CellCoords(row, column, this.wtSettings.getSetting<boolean>('rtlMode'));
   }
 
   /**
@@ -118,7 +118,7 @@ export default class CoreAbstract {
    * @returns {CellRange}
    */
   createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords) {
-    return new (CellRange as any)(highlight, from, to, this.wtSettings.getSetting('rtlMode'));
+    return new CellRange(highlight, from, to, this.wtSettings.getSetting<boolean>('rtlMode'));
   }
 
   /**

@@ -4,6 +4,7 @@ import type { DomBindings } from './types';
 import type Settings from './settings';
 import type Table from './table';
 import type { SelectionManager } from './selection/manager';
+import type EventManager from '../../../eventManager';
 import {
   closestDown,
   eventTargetEl,
@@ -118,7 +119,7 @@ class Event {
    * @param {SelectionManager} selectionManager Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: Record<string, Function>, wtTable: Table, selectionManager: SelectionManager, parent: Event | null = null) {
+  constructor(facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: Table, selectionManager: SelectionManager, parent: Event | null = null) {
     this.#wtSettings = wtSettings;
     this.#domBindings = domBindings;
     this.#wtTable = wtTable;

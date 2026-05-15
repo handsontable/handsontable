@@ -52,7 +52,7 @@ export default class Walkontable extends CoreAbstract {
     const newClassNames: string[] = [];
 
     objectEach(toExport, (className: string, key: string) => {
-      if ((this.wtSettings.getSetting(key) as any[]).length) {
+      if (this.wtSettings.getSetting<unknown[]>(key).length) {
         newClassNames.push(className);
       }
       allClassNames.push(className);

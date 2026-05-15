@@ -2,6 +2,7 @@ import type { WalkontableInstance, DomBindings } from './types';
 import type Settings from './settings';
 import type Table from './table';
 import type { Overlay } from './overlay/_base';
+import type EventManager from '../../../eventManager';
 import {
   eventTargetEl,
   getScrollableElement,
@@ -63,7 +64,7 @@ class Overlays {
    * @protected
    * @type {EventManager}
    */
-  eventManager: Record<string, Function> = null;
+  eventManager: EventManager = null;
 
   /**
    * The width of the scrollbar.
@@ -310,7 +311,7 @@ class Overlays {
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {MasterTable} wtTable The master table.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: Record<string, Function>, wtTable: Table) {
+  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: Table) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
