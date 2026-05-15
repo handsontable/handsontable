@@ -1,5 +1,6 @@
 import type { HotInstance } from './core/types';
 import type { WalkontableInstance, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
+import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
 import {
   addClass,
   removeClass,
@@ -225,7 +226,7 @@ class TableView {
   getCellAtCoords(coords: {row: number, col: number}, topmost: boolean) {
     const td = this._wt.getCell(coords, topmost);
 
-    if ((td as number) < 0) { // there was an exit code (cell is out of bounds)
+    if (typeof td === 'number' && td < 0) { // there was an exit code (cell is out of bounds)
       return null;
     }
 
@@ -1127,7 +1128,7 @@ class TableView {
           }
         }
 
-        visualRow = this.hot.runHooks('beforeViewportScrollVertically', visualRow, snapping) as number;
+        visualRow = this.hot.runHooks<number>('beforeViewportScrollVertically', visualRow, snapping);
         this.hot.runHooks('beforeViewportScroll');
 
         if (!areColumnHeadersSelected) {
@@ -1150,7 +1151,7 @@ class TableView {
           }
         }
 
-        visualColumn = this.hot.runHooks('beforeViewportScrollHorizontally', visualColumn, snapping) as number;
+        visualColumn = this.hot.runHooks<number>('beforeViewportScrollHorizontally', visualColumn, snapping);
         this.hot.runHooks('beforeViewportScroll');
 
         if (!areRowHeadersSelected) {
@@ -1178,10 +1179,10 @@ class TableView {
         }
 
         const newVisualRow = this.hot
-          .runHooks('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
+          .runHooks<number>('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
 
         if (!areColumnHeadersSelected) {
-          return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow as number, 1));
+          return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
         }
 
         return newVisualRow;
@@ -1196,10 +1197,10 @@ class TableView {
         }
 
         const newVisualColumn = this.hot
-          .runHooks('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
+          .runHooks<number>('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
         if (!areRowHeadersSelected) {
-          return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn as number, 1));
+          return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
         }
 
         return newVisualColumn;
@@ -1287,30 +1288,30 @@ class TableView {
           ];
         }
       },
-      viewportRowCalculatorOverride: (calc: Record<string, unknown>) => {
+      viewportRowCalculatorOverride: (calc: RowsCalculationType) => {
         let viewportOffset: number | undefined = this.settings.viewportRowRenderingOffset === 'auto'
           ? 1
           : this.settings.viewportRowRenderingOffset;
 
         if ((viewportOffset ?? 0) > 0) {
           const renderableRows = this.countRenderableRows();
-          const firstRenderedRow = calc.startRow as number;
-          const lastRenderedRow = calc.endRow as number;
+          const firstRenderedRow = calc.startRow!;
+          const lastRenderedRow = calc.endRow!;
 
           calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
           calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
         }
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
-      viewportColumnCalculatorOverride: (calc: Record<string, unknown>) => {
+      viewportColumnCalculatorOverride: (calc: ColumnsCalculationType) => {
         let viewportOffset: number | undefined = this.settings.viewportColumnRenderingOffset === 'auto'
           ? 1
           : this.settings.viewportColumnRenderingOffset;
 
         if ((viewportOffset ?? 0) > 0) {
           const renderableColumns = this.countRenderableColumns();
-          const firstRenderedColumn = calc.startColumn as number;
-          const lastRenderedColumn = calc.endColumn as number;
+          const firstRenderedColumn = calc.startColumn!;
+          const lastRenderedColumn = calc.endColumn!;
 
           calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
           calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
