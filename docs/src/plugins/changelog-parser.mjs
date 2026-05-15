@@ -21,17 +21,50 @@ function findFirstReleaseDate(lines, startIdx) {
   return null;
 }
 
+const CATEGORY_HEADINGS = {
+  '#### Added': 'added',
+  '#### Changed': 'changed',
+  '#### Deprecated': 'deprecated',
+  '#### Removed': 'removed',
+  '#### Fixed': 'fixed',
+};
+
+function stripBullet(line) {
+  return line.replace(/^- /, '').trim();
+}
+
 export function parseChangelogContent(markdown) {
   const lines = markdown.split('\n');
   const entries = [];
+  let currentVersion = null;
+  let currentDate = null;
+  let currentCategory = null;
 
   for (let i = 0; i < lines.length; i += 1) {
-    const versionMatch = lines[i].match(/^## (\d+\.\d+\.\d+)\s*$/);
-    if (!versionMatch) continue;
+    const line = lines[i];
 
-    const version = versionMatch[1];
-    const releaseDate = findFirstReleaseDate(lines, i + 1);
-    entries.push({ version, releaseDate });
+    const versionMatch = line.match(/^## (\d+\.\d+\.\d+)\s*$/);
+    if (versionMatch) {
+      currentVersion = versionMatch[1];
+      currentDate = findFirstReleaseDate(lines, i + 1);
+      currentCategory = null;
+      continue;
+    }
+
+    if (CATEGORY_HEADINGS[line.trim()]) {
+      currentCategory = CATEGORY_HEADINGS[line.trim()];
+      continue;
+    }
+
+    if (!currentVersion || !currentCategory) continue;
+    if (!line.startsWith('- ')) continue;
+
+    entries.push({
+      version: currentVersion,
+      releaseDate: currentDate,
+      category: currentCategory,
+      title: stripBullet(line),
+    });
   }
 
   return entries;

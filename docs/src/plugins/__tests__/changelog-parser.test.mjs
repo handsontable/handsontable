@@ -18,3 +18,47 @@ test('extracts version and ISO release date from a single release block', () => 
   assert.equal(result[0].version, '17.0.0');
   assert.equal(result[0].releaseDate, '2026-03-09');
 });
+
+test('extracts entries grouped by Added/Changed/Deprecated/Removed/Fixed', () => {
+  const md = [
+    '## 17.0.0',
+    'Released on March 9th, 2026',
+    '',
+    '#### Added',
+    '- Added the Theme API.',
+    '',
+    '#### Changed',
+    '- Improved differentiation between errors.',
+    '',
+    '#### Deprecated',
+    '- Deprecated numbro.js.',
+    '',
+    '#### Removed',
+    '- Removed core-js.',
+    '',
+    '#### Fixed',
+    '- Fixed errors triggered by keyboard shortcuts.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 5);
+  assert.deepEqual(
+    result.map((e) => e.category),
+    ['added', 'changed', 'deprecated', 'removed', 'fixed'],
+  );
+  assert.deepEqual(
+    result.map((e) => e.title),
+    [
+      'Added the Theme API.',
+      'Improved differentiation between errors.',
+      'Deprecated numbro.js.',
+      'Removed core-js.',
+      'Fixed errors triggered by keyboard shortcuts.',
+    ],
+  );
+  for (const entry of result) {
+    assert.equal(entry.version, '17.0.0');
+    assert.equal(entry.releaseDate, '2026-03-09');
+  }
+});
