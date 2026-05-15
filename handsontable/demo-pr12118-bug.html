@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12118 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .scale-note { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 13px; color: #1565c0; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 160px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; text-align: center; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 120px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; }
+    .entry-ok { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+    .scale-wrapper { transform: scale(0.5); transform-origin: top left; width: 200%; margin-bottom: -50%; }
+    .scale-outer { overflow: visible; margin-bottom: 8px; }
+    .scale-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12118 - manualColumnResize / manualRowResize broken in CSS-scaled container</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12118-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When the Handsontable container has <code>transform: scale(0.5)</code>, drag deltas for
+    <code>manualColumnResize</code> and <code>manualRowResize</code> are not divided by the scale factor.
+    Moving the mouse 25 visual pixels makes the column grow by only 25 layout pixels instead of 50.
+    The resize handle is also misaligned relative to the column header boundary.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>The grid below is rendered at <strong>50% scale</strong> via <code>transform: scale(0.5)</code>.</li>
+      <li>Hover over the right edge of any column header — the resize handle appears.</li>
+      <li>Notice the handle is <strong>mispositioned</strong> (not at the header edge).</li>
+      <li>Drag the handle right to resize a column. Watch the <strong>width delta</strong> counter — it shows the change the plugin applied vs. what your mouse actually moved.</li>
+      <li>Expected: mouse moved 40px → column grew 80px. Actual: column grew only 40px (wrong).</li>
+      <li>Compare with the <a href="demo-pr12118-fix.html">PR Fix page</a> where the scale is accounted for.</li>
+    </ol>
+  </div>
+
+  <div class="scale-note">
+    Grid is displayed at <strong>scale(0.5)</strong>. Each visual pixel = 2 layout pixels. Drag deltas should be divided by 0.5 (doubled) but the bug ignores the scale factor.
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Last resize — mouse delta (px)</div>
+      <div class="metric-value neutral" id="m-mouse">—</div>
+      <div class="metric-sub">Visual pixels moved during drag</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Last resize — width change (px)</div>
+      <div class="metric-value bad" id="m-width">—</div>
+      <div class="metric-sub">Should be 2× mouse delta with scale 0.5</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Col B width (px)</div>
+      <div class="metric-value neutral" id="m-col">—</div>
+      <div class="metric-sub">Layout width via getColWidth(1)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Row 2 height (px)</div>
+      <div class="metric-value neutral" id="m-row">—</div>
+      <div class="metric-sub">Layout height via getRowHeight(1)</div>
+    </div>
+  </div>
+
+  <div id="log"><strong>Resize event log (latest first):</strong><div id="entries">(resize a column or row to see events)</div></div>
+
+  <div class="scale-label">↓ Grid at 50% scale (container has <code>transform: scale(0.5); width: 200%</code>)</div>
+  <div class="scale-outer">
+    <div class="scale-wrapper">
+      <div id="hot"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = Array.from({ length: 12 }, (_, r) =>
+      Array.from({ length: 8 }, (__, c) => `R${r + 1}C${c + 1}`)
+    );
+
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+    let prevColWidth = null;
+    let prevRowHeight = null;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+      while (el.children.length > 40) el.removeChild(el.lastChild);
+    }
+
+    function updateMetrics() {
+      if (!window.hot) return;
+      document.getElementById('m-col').textContent = hot.getColWidth(1) ?? '—';
+      document.getElementById('m-row').textContent = hot.getRowHeight(1) ?? '—';
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: DATA,
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 380,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      manualColumnResize: true,
+      manualRowResize: true,
+
+      beforeColumnResize(newWidth, col) {
+        prevColWidth = hot.getColWidth(col);
+        const handle = document.querySelector('.manualColumnResizer');
+        if (handle) mouseDownX = parseFloat(handle.style.left || 0);
+      },
+
+      afterColumnResize(newWidth, col) {
+        const delta = newWidth - (prevColWidth ?? newWidth);
+        document.getElementById('m-width').textContent = delta >= 0 ? '+' + delta : delta;
+        document.getElementById('m-col').textContent = newWidth;
+        addLog(
+          `Col resize: col=${col}, oldWidth=${prevColWidth}px → newWidth=${newWidth}px (Δ${delta >= 0 ? '+' : ''}${delta}px)`,
+          Math.abs(delta) < 5 ? 'entry-info' : 'entry-bug'
+        );
+      },
+
+      beforeRowResize(newHeight, row) {
+        prevRowHeight = hot.getRowHeight(row);
+      },
+
+      afterRowResize(newHeight, row) {
+        const delta = newHeight - (prevRowHeight ?? newHeight);
+        document.getElementById('m-row').textContent = newHeight;
+        addLog(
+          `Row resize: row=${row}, oldHeight=${prevRowHeight}px → newHeight=${newHeight}px (Δ${delta >= 0 ? '+' : ''}${delta}px)`,
+          'entry-info'
+        );
+      },
+    });
+
+    document.addEventListener('mousedown', e => {
+      if (e.target.classList.contains('manualColumnResizer')) {
+        mouseDownX = e.clientX;
+        document.getElementById('m-mouse').textContent = '…';
+      }
+      if (e.target.classList.contains('manualRowResizer')) {
+        mouseDownY = e.clientY;
+      }
+    });
+
+    document.addEventListener('mouseup', e => {
+      if (mouseDownX) {
+        const delta = Math.round(e.clientX - mouseDownX);
+        document.getElementById('m-mouse').textContent = (delta >= 0 ? '+' : '') + delta;
+        mouseDownX = 0;
+      }
+    });
+
+    updateMetrics();
+  </script>
+</body>
+</html>
