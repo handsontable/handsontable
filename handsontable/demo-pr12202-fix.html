@@ -133,7 +133,7 @@
       const thIndex = colIndex + 1;
       const th = cornerClone.querySelector(`thead tr:first-child th:nth-child(${thIndex + 1})`);
       const relative = th ? th.querySelector('.relative') : null;
-      const td = inlineClone.querySelector(`tbody tr:first-child td:nth-child(${colIndex + 1})`);
+      const td = inlineClone.querySelector(`tbody tr:first-child td:nth-child(${colIndex + 2})`);
 
       if (!relative || !td) {
         document.getElementById('m-header').textContent = '—';
