@@ -186,7 +186,7 @@ export class ManualColumnFreeze extends BasePlugin {
       const freezeLine = this.hot.getSettings().fixedColumnsStart ?? 0;
 
       // Moving any column before the "freeze line" isn't possible.
-      if ((finalIndex as number) < freezeLine) {
+      if (finalIndex < freezeLine) {
         return false;
       }
 

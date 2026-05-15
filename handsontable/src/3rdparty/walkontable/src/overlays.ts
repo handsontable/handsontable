@@ -936,8 +936,8 @@ class Overlays {
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
     const isWindowScrolled = this.scrollableElement === rootWindow;
-    const totalColumns = this.wtSettings.getSetting('totalColumns') as number;
-    const totalRows = this.wtSettings.getSetting('totalRows') as number;
+    const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
+    const totalRows = this.wtSettings.getSetting<number>('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
     // The internal row height calculator contains a known issue that results in a 1px miscalculation.

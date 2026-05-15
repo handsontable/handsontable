@@ -500,7 +500,7 @@ export class BaseEditor {
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - this.hot.view._wt.getSetting<number>('fixedRowsBottom');
+    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);
 
     if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       topPos += 1;

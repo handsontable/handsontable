@@ -176,10 +176,10 @@ export abstract class Overlay {
       return;
     }
     const windowScroll = this.mainTableScrollableElement === this.domBindings.rootWindow;
-    const fixedColumnStart = columnIndex < (this.wtSettings.getSetting('fixedColumnsStart') as number);
-    const fixedRowTop = rowIndex < (this.wtSettings.getSetting('fixedRowsTop') as number);
+    const fixedColumnStart = columnIndex < this.wtSettings.getSetting<number>('fixedColumnsStart');
+    const fixedRowTop = rowIndex < this.wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowBottom =
-      rowIndex >= (this.wtSettings.getSetting('totalRows') as number) - (this.wtSettings.getSetting('fixedRowsBottom') as number);
+      rowIndex >= this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
     const spreader = this.clone.wtTable.spreader;
 
     const spreaderOffset = {

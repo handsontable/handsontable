@@ -75,7 +75,7 @@ class Scroll {
     const snappingObject = createObjectPropListener(snapping);
 
     column = this.dataAccessObject.wtSettings
-      .getSetting('onBeforeViewportScrollHorizontally', column, snappingObject) as number;
+      .getSetting<number>('onBeforeViewportScrollHorizontally', column, snappingObject);
 
     if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
       return false;
@@ -131,7 +131,7 @@ class Scroll {
     const snappingObject = createObjectPropListener(snapping);
 
     row = this.dataAccessObject.wtSettings
-      .getSetting('onBeforeViewportScrollVertically', row, snappingObject) as number;
+      .getSetting<number>('onBeforeViewportScrollVertically', row, snappingObject);
 
     if (!Number.isInteger(row) || row < 0 || row > totalRows) {
       return false;

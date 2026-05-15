@@ -35,7 +35,7 @@ export class BottomOverlay extends Overlay {
    */
   constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_BOTTOM, wtSettings, domBindings);
-    this.cachedFixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom') as number;
+    this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
   }
 
   /**
@@ -304,7 +304,7 @@ export class BottomOverlay extends Overlay {
       newY += 1;
 
     } else {
-      newY += this.sumCellSizes(this.wtSettings.getSetting('fixedRowsBottom') as number, sourceRow);
+      newY += this.sumCellSizes(this.wtSettings.getSetting<number>('fixedRowsBottom'), sourceRow);
     }
     newY += scrollbarCompensation;
 
@@ -367,7 +367,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number) {
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom') as number;
+    const fixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
     const columnHeaders = this.wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
     let positionChanged = false;
@@ -376,7 +376,7 @@ export class BottomOverlay extends Overlay {
       const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
       const previousState = hasClass(masterParent, 'innerBorderBottom');
 
-      this.cachedFixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom') as number;
+      this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
 
       if (position || this.wtSettings.getSetting('totalRows') === 0) {
         addClass(masterParent, 'innerBorderBottom');

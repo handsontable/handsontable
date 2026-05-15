@@ -366,9 +366,9 @@ class Event {
     const isRtl = this.#wtSettings.getSetting('rtlMode');
     const wot = this.#facadeGetter();
 
-    const numberOfFixedColumnsStart = this.#wtSettings.getSetting('fixedColumnsStart') as number;
-    const numberOfFixedRowsTop = this.#wtSettings.getSetting('fixedRowsTop') as number;
-    const numberOfFixedRowsBottom = this.#wtSettings.getSetting('fixedRowsBottom') as number;
+    const numberOfFixedColumnsStart = this.#wtSettings.getSetting<number>('fixedColumnsStart');
+    const numberOfFixedRowsTop = this.#wtSettings.getSetting<number>('fixedRowsTop');
+    const numberOfFixedRowsBottom = this.#wtSettings.getSetting<number>('fixedRowsBottom');
 
     const firstPartiallyVisibleRow = wot.wtScroll.getFirstPartiallyVisibleRow();
     const lastPartiallyVisibleRow = wot.wtScroll.getLastPartiallyVisibleRow();
@@ -453,7 +453,7 @@ class Event {
     }
 
     if (foundRow === null && numberOfFixedRowsBottom > 0) {
-      const totalRows = this.#wtSettings.getSetting('totalRows') as number;
+      const totalRows = this.#wtSettings.getSetting<number>('totalRows');
       const bottomStartRow = totalRows - numberOfFixedRowsBottom;
       const bottomEndRow = totalRows - 1;
       const fixedBottomCell = wot.getCell({ row: bottomStartRow, col: firstPartiallyVisibleColumn }, true);

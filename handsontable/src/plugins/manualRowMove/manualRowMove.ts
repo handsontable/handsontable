@@ -281,12 +281,12 @@ export class ManualRowMove extends BasePlugin {
    */
   countFinalIndex(movedRows: number[], dropIndex: number) {
     const numberOfRowsLowerThanDropIndex = arrayReduce(movedRows, (acc, currentRowIndex) => {
-      if ((currentRowIndex as number) < dropIndex) {
-        return (acc as number) + 1;
+      if (currentRowIndex < dropIndex) {
+        return acc + 1;
       }
 
       return acc;
-    }, 0) as number;
+    }, 0);
 
     return dropIndex - numberOfRowsLowerThanDropIndex;
   }

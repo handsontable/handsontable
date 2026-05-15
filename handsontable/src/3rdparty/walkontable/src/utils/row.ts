@@ -31,7 +31,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeight(sourceIndex: number) {
-    let height = this.wtSettings.getSetting('rowHeight', sourceIndex) as number | undefined;
+    let height = this.wtSettings.getSetting<number | undefined>('rowHeight', sourceIndex);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {
@@ -49,7 +49,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeightByOverlayName(sourceIndex: number, overlayName: string) {
-    let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName) as number | undefined;
+    let height = this.wtSettings.getSetting<number | undefined>('rowHeightByOverlayName', sourceIndex, overlayName);
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {

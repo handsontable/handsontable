@@ -354,7 +354,7 @@ export class NestedHeaders extends BasePlugin {
   }
 
   headerRendererFactory(headerLevel: number) {
-    const fixedColumnsStart = this.hot.view._wt.getSetting<number>('fixedColumnsStart');
+    const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart') as number;
 
     return (renderedColumnIndex: number, TH: HTMLTableCellElement) => {
       const { columnIndexMapper, view } = this.hot;

@@ -291,12 +291,12 @@ export class ManualColumnMove extends BasePlugin {
    */
   countFinalIndex(movedColumns: number[], dropIndex: number) {
     const numberOfColumnsLowerThanDropIndex = arrayReduce(movedColumns, (numberOfColumns, currentColumnIndex) => {
-      if ((currentColumnIndex as number) < dropIndex) {
-        return (numberOfColumns as number) + 1;
+      if (currentColumnIndex < dropIndex) {
+        return numberOfColumns + 1;
       }
 
       return numberOfColumns;
-    }, 0) as number;
+    }, 0);
 
     return dropIndex - numberOfColumnsLowerThanDropIndex;
   }

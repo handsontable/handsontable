@@ -183,7 +183,7 @@ class ConditionUpdateObserver {
    * @private
    */
   #onConditionBeforeClean() {
-    this.latestOrderStack = this.conditionCollection.getFilteredColumns();
+    this.latestOrderStack = this.conditionCollection.getFilteredColumns() as number[];
   }
 
   /**
