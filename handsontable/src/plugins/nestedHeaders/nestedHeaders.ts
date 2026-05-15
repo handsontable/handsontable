@@ -13,6 +13,7 @@ import {
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import type { HeaderNodeData } from './stateManager/headersTree';
+import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
 
@@ -372,6 +373,7 @@ export class NestedHeaders extends BasePlugin {
       removeClass(TH, 'htRowspanHeader');
       removeClass(TH, 'htRowspanBottomLevel');
 
+      const rendererHeaderSettings = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex);
       const {
         colspan,
         rowspan,
@@ -379,7 +381,7 @@ export class NestedHeaders extends BasePlugin {
         isPlaceholder,
         isRowspanPlaceholder,
         headerClassNames,
-      } = (this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? { label: '' }) as any;
+      } = rendererHeaderSettings ?? ({} as HeaderNodeData);
 
       if (isRowspanPlaceholder) {
         addClass(TH, 'hiddenHeader');
@@ -403,7 +405,7 @@ export class NestedHeaders extends BasePlugin {
             Math.min(colspan, fixedColumnsStart - renderedColumnIndex) : colspan;
 
           if (correctedColspan > 1) {
-            TH.setAttribute('colspan', correctedColspan);
+            TH.setAttribute('colspan', String(correctedColspan));
           }
         }
 
@@ -416,11 +418,11 @@ export class NestedHeaders extends BasePlugin {
             addClass(TH, 'htRowspanBottomLevel');
           }
 
-          TH.setAttribute('rowspan', rowspan);
+          TH.setAttribute('rowspan', String(rowspan));
         }
       }
 
-      (this.hot.view as any).appendColHeader(
+      this.hot.view.appendColHeader(
         visualColumnIndex,
         TH,
         (colIndex: number, level: number) => this.getColumnHeaderValue(colIndex, level),
@@ -431,8 +433,8 @@ export class NestedHeaders extends BasePlugin {
         const innerHeaderDiv = TH.querySelector('div.relative') as HTMLElement;
 
         if (innerHeaderDiv && headerClassNames && headerClassNames.length > 0) {
-          removeClass(innerHeaderDiv as HTMLElement, this.hot.getColumnMeta(visualColumnIndex).headerClassName as any);
-          addClass(innerHeaderDiv as HTMLElement, headerClassNames as any);
+          removeClass(innerHeaderDiv as HTMLElement, (this.hot.getColumnMeta(visualColumnIndex).headerClassName as string | string[] | undefined) ?? []);
+          addClass(innerHeaderDiv as HTMLElement, headerClassNames);
         }
       }
     };
@@ -443,7 +445,7 @@ export class NestedHeaders extends BasePlugin {
       isHidden,
       isPlaceholder,
       isRowspanPlaceholder,
-    } = (this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {}) as any;
+    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? ({} as HeaderNodeData);
 
     if (isPlaceholder || isHidden || isRowspanPlaceholder) {
       return '';
@@ -524,7 +526,7 @@ export class NestedHeaders extends BasePlugin {
     const rootColumnIndex = this.#stateManager.findLeftMostColumnIndex(headerRow, visualColumnIndex);
     const {
       rowspan = 1,
-    } = (this.#stateManager.getHeaderSettings(headerRow, rootColumnIndex) ?? {}) as any;
+    } = this.#stateManager.getHeaderSettings(headerRow, rootColumnIndex) ?? ({} as HeaderNodeData);
 
     return rowspan;
   }
@@ -547,7 +549,7 @@ export class NestedHeaders extends BasePlugin {
       isPlaceholder,
       isRowspanPlaceholder,
       isHidden,
-    } = headerSettings as any;
+    } = headerSettings;
 
     if (isRowspanPlaceholder) {
       return headerRow < -1;
@@ -604,7 +606,7 @@ export class NestedHeaders extends BasePlugin {
     const { highlight } = selection;
     const { navigableHeaders } = this.hot.getSettings();
     const isSelectedByColumnHeader = this.hot.selection.isSelectedByColumnHeader();
-    const highlightRow = navigableHeaders ? highlight.row : (this.#recentlyHighlightCoords as any)?.row;
+    const highlightRow = navigableHeaders ? highlight.row : this.#recentlyHighlightCoords?.row;
     const highlightColumn = isSelectedByColumnHeader ? visualColumn : highlight.col;
     const isNestedHeadersRange = highlightRow < 0 && highlightColumn >= 0;
 
@@ -668,7 +670,7 @@ export class NestedHeaders extends BasePlugin {
     const {
       isRoot,
       colspan,
-    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) as any;
+    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) ?? ({} as HeaderNodeData);
 
     if (selectionType === HEADER_TYPE) {
       if (!isRoot) {
@@ -756,7 +758,7 @@ export class NestedHeaders extends BasePlugin {
       origColspan,
     } = headerNodeData;
 
-    const allowRightClickSelection = !selection.inInSelection(coords as any);
+    const allowRightClickSelection = !selection.inInSelection(coords as unknown as CellCoords);
 
     if (event.shiftKey && currentSelection) {
       if (coords.col < currentSelection.from.col) {
@@ -835,7 +837,7 @@ export class NestedHeaders extends BasePlugin {
       origColspan,
     } = this.#stateManager.getHeaderTreeNodeData(this.#focusInitialCoords!.row, this.#focusInitialCoords!.col);
 
-    selectedRange.setHighlight(this.#focusInitialCoords as any);
+    selectedRange.setHighlight(this.#focusInitialCoords as unknown as CellCoords);
 
     if (origColspan > selectedRange.getWidth() ||
         columnIndex < columnStart ||
@@ -935,7 +937,11 @@ export class NestedHeaders extends BasePlugin {
           highlight.row,
           targetColumn,
           -this.getLayersCount(),
-          (headerRow: number, visualColumn: number) => this.#stateManager.getHeaderSettings(headerRow, visualColumn) as any,
+          (headerRow: number, visualColumn: number) => {
+            const settings = this.#stateManager.getHeaderSettings(headerRow, visualColumn);
+
+            return settings ? { ...settings, isRowspanPlaceholder: settings.isRowspanPlaceholder ?? false } : null;
+          },
         );
       }
 
