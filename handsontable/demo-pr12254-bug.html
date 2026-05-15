@@ -60,46 +60,46 @@
   <div class="info info-bug">
     <strong>BUG present (v17.0.1).</strong>
     <code>isEmptyRow</code> only treats <code>null</code>, <code>''</code>, and <code>undefined</code>
-    as empty. With <code>dataSchema: { name: '', active: false }</code>, newly-added spare rows have
+    as empty. With <code>dataSchema: { name: '', active: false }</code>, spare rows have
     <code>active: false</code> — which is the schema default but fails the empty check.
-    <code>minSpareRows</code> always sees 0 spare rows and keeps appending rows on every render.
-    The demo stops automatically at 12 rows to prevent a browser hang.
+    <code>minSpareRows</code> always sees 0 spare rows and keeps adding more on every render.
+    The demo stops at 12 rows to prevent a browser hang.
   </div>
 
   <div class="hint">
     <strong>How to observe the bug:</strong>
     <ol>
-      <li>Click <strong>"Enable minSpareRows: 1 and trigger"</strong>.</li>
-      <li>Watch the row count shoot up to 12 (stopped by a safeguard). In a real app this would grow until the tab crashes.</li>
-      <li>The <code>afterCreateRow</code> log shows multiple events fired in a single render cycle.</li>
-      <li>Compare with the <a href="demo-pr12254-fix.html">PR #12254 Fix</a> page where the count stabilizes at 3.</li>
+      <li>The grid initializes normally (no <code>dataSchema</code> or <code>minSpareRows</code> yet).</li>
+      <li>Click <strong>"Apply dataSchema + minSpareRows: 1 (trigger bug)"</strong>.</li>
+      <li>Watch the row count shoot up past 3 — stopped by a safeguard at 12. In a real app the tab would crash.</li>
+      <li>Compare with the <a href="demo-pr12254-fix.html">PR #12254 Fix</a> page where the count stays at 3.</li>
     </ol>
   </div>
 
   <div class="controls">
-    <button class="btn btn-run" id="btn-trigger">Enable minSpareRows: 1 and trigger change</button>
+    <button class="btn btn-run" id="btn-trigger">Apply dataSchema + minSpareRows: 1 (trigger bug)</button>
     <button class="btn btn-reset" id="btn-reset">Reset</button>
   </div>
 
   <div class="metrics">
     <div class="metric">
       <div class="metric-label">Total rows</div>
-      <div class="metric-value bad" id="m-rows">—</div>
-      <div class="metric-sub">Expected: 3 (2 data + 1 spare) — BUG: grows to 12+</div>
+      <div class="metric-value neutral" id="m-rows">—</div>
+      <div class="metric-sub">Expected: 3 (2 data + 1 spare) — BUG: cascades to 12+</div>
     </div>
     <div class="metric">
       <div class="metric-label">afterCreateRow fires</div>
-      <div class="metric-value bad" id="m-created">0</div>
-      <div class="metric-sub">Expected: 1 — BUG: fires many times</div>
+      <div class="metric-value neutral" id="m-created">0</div>
+      <div class="metric-sub">Expected: 1 — BUG: fires many times per render</div>
     </div>
     <div class="metric">
-      <div class="metric-label">minSpareRows setting</div>
-      <div class="metric-value neutral">1</div>
-      <div class="metric-sub">One spare row is all that should be added</div>
+      <div class="metric-label">minSpareRows</div>
+      <div class="metric-value neutral" id="m-setting">0</div>
+      <div class="metric-sub">Applied via button</div>
     </div>
   </div>
 
-  <div id="log"><strong>afterCreateRow events:</strong><div id="entries">(click the button to start)</div></div>
+  <div id="log"><strong>afterCreateRow events:</strong><div id="entries">(click the button to trigger)</div></div>
 
   <div id="hot-container"></div>
 
@@ -107,7 +107,7 @@
   <script>
     let hotInstance = null;
     let createCount = 0;
-    let safeguardActive = false;
+    let safeguardTripped = false;
 
     function addLog(msg, cls) {
       const el = document.getElementById('entries');
@@ -122,17 +122,20 @@
     function initHot() {
       if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
       createCount = 0;
-      safeguardActive = false;
+      safeguardTripped = false;
       document.getElementById('m-created').textContent = '0';
-      document.getElementById('entries').textContent = '(click the button to start)';
+      document.getElementById('m-setting').textContent = '0';
+      document.getElementById('m-rows').textContent = '—';
+      document.getElementById('m-rows').className = 'metric-value neutral';
+      document.getElementById('m-created').className = 'metric-value neutral';
+      document.getElementById('entries').textContent = '(click the button to trigger)';
 
-      // Initialize WITHOUT minSpareRows to avoid the cascade at page load
+      // Initialize cleanly — no dataSchema, no minSpareRows
       hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
         data: [
           { name: 'Alice', active: true },
           { name: 'Bob', active: false },
         ],
-        dataSchema: { name: '', active: false },
         colHeaders: ['Name', 'Active'],
         columns: [
           { data: 'name' },
@@ -146,21 +149,25 @@
 
         afterCreateRow(index, amount) {
           createCount += amount;
+          const rows = hotInstance ? hotInstance.countRows() : '?';
           document.getElementById('m-created').textContent = createCount;
-          document.getElementById('m-rows').textContent = hotInstance.countRows();
-
-          const rows = hotInstance.countRows();
+          document.getElementById('m-created').className = 'metric-value bad';
+          document.getElementById('m-rows').textContent = rows;
+          document.getElementById('m-rows').className = 'metric-value bad';
           addLog('afterCreateRow index=' + index + ' amount=' + amount + ' → totalRows=' + rows + ' ⚠', 'entry-bug');
 
-          // Safeguard: stop cascade above 12 rows to prevent browser hang
-          if (rows > 12 && !safeguardActive) {
-            safeguardActive = true;
+          // Safeguard: prevent browser hang
+          if (!safeguardTripped && hotInstance && hotInstance.countRows() > 12) {
+            safeguardTripped = true;
             hotInstance.updateSettings({ minSpareRows: 0 });
-            addLog('SAFEGUARD: stopped at ' + rows + ' rows — bug demonstrated. In a real app rows would grow until tab crashes.', 'entry-bug');
+            addLog('SAFEGUARD at ' + rows + ' rows — bug confirmed. Real app would keep growing until crash.', 'entry-bug');
           }
         },
+
         afterRender() {
-          if (hotInstance) document.getElementById('m-rows').textContent = hotInstance.countRows();
+          if (hotInstance) {
+            document.getElementById('m-rows').textContent = hotInstance.countRows();
+          }
         },
       });
 
@@ -168,11 +175,14 @@
     }
 
     document.getElementById('btn-trigger').addEventListener('click', () => {
-      safeguardActive = false;
-      addLog('--- enabling minSpareRows: 1 and triggering a cell change ---', 'entry-info');
-      // Enable minSpareRows — this triggers the bug because existing spare rows have active: false
-      hotInstance.updateSettings({ minSpareRows: 1 });
-      hotInstance.setDataAtCell(0, 0, 'Alice (changed)');
+      safeguardTripped = false;
+      addLog('--- applying dataSchema: {name:"",active:false} + minSpareRows:1 ---', 'entry-info');
+      document.getElementById('m-setting').textContent = '1';
+      // Apply both settings at once — this triggers the cascade
+      hotInstance.updateSettings({
+        dataSchema: { name: '', active: false },
+        minSpareRows: 1,
+      });
     });
 
     document.getElementById('btn-reset').addEventListener('click', initHot);
