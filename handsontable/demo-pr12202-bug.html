@@ -111,7 +111,6 @@
     hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
       data: Handsontable.helper.createSpreadsheetData(8, 7),
       colHeaders: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
-      rowHeaders: true,
       width: '100%',
       height: 300,
       themeName: 'ht-theme-main',
@@ -127,10 +126,9 @@
       if (!cornerClone || !inlineClone) return;
 
       // +1 for row header TH
-      const thIndex = colIndex + 1;
-      const th = cornerClone.querySelector(`thead tr:first-child th:nth-child(${thIndex + 1})`);
+      const th = cornerClone.querySelector(`thead tr:first-child th:nth-child(${colIndex + 1})`);
       const relative = th ? th.querySelector('.relative') : null;
-      const td = inlineClone.querySelector(`tbody tr:first-child td:nth-child(${colIndex + 2})`);
+      const td = inlineClone.querySelector(`tbody tr:first-child td:nth-child(${colIndex + 1})`);
 
       if (!relative || !td) {
         document.getElementById('m-header').textContent = '—';
