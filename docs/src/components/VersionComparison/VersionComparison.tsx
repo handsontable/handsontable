@@ -54,10 +54,10 @@ function entriesInRange(entries: VersionEntry[], from: string, to: string): Vers
 
 const FILTER_LABELS: Record<FilterKind, string> = {
   all: 'All',
-  breaking: 'Breaking',
-  deprecated: 'Deprecated',
   new: 'New',
   fixed: 'Fixed',
+  deprecated: 'Deprecated',
+  breaking: 'Breaking',
 };
 
 function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
@@ -111,10 +111,10 @@ function StatCards({ entries, activeFilter, onSelect }: StatCardsProps) {
   }
 
   const cards: { kind: Exclude<FilterKind, 'all'>; label: string }[] = [
-    { kind: 'breaking', label: 'Breaking changes' },
-    { kind: 'deprecated', label: 'Deprecations' },
     { kind: 'new', label: 'New APIs' },
     { kind: 'fixed', label: 'Fixes' },
+    { kind: 'deprecated', label: 'Deprecations' },
+    { kind: 'breaking', label: 'Breaking changes' },
   ];
 
   return (
