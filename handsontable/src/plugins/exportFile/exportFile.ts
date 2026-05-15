@@ -8,6 +8,7 @@ import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
 import { buildExportDialogContent } from './utils';
 import type { HotInstance } from '../../core/types';
+import type BaseType from './types/_base';
 
 export const PLUGIN_KEY = 'exportFile';
 
@@ -338,11 +339,11 @@ export class ExportFile extends BasePlugin {
   exportAsString(format: string, options: Record<string, unknown> = {}): string {
     const formatter = this._createTypeFormatter(format, options);
 
-    if ((formatter as any).binary) {
+    if (formatter.binary) {
       throwWithCause(`Export format type "${format}" cannot be exported as a string (binary format).`);
     }
 
-    return formatter.export();
+    return formatter.export() as string;
   }
 
   /**
@@ -372,7 +373,7 @@ export class ExportFile extends BasePlugin {
   exportAsBlob(format: string, options: Record<string, unknown> = {}): Blob {
     const formatter = this._createTypeFormatter(format, options);
 
-    if ((formatter as any).binary) {
+    if (formatter.binary) {
       throwWithCause(
         `exportAsBlob() does not support binary formats such as "${format}". ` +
         'Use exportAsBlobAsync() instead.'
@@ -586,7 +587,7 @@ export class ExportFile extends BasePlugin {
    * @param {object} options Export options.
    * @returns {BaseType}
    */
-  _createTypeFormatter(format: string, options: Record<string, unknown> = {}): { export: () => string; options: { filename: string; fileExtension: string; [key: string]: unknown }; binary?: boolean } {
+  _createTypeFormatter(format: string, options: Record<string, unknown> = {}): BaseType {
     if (!(EXPORT_TYPES as Record<string, Function>)[format]) {
       throw new Error(`Export format type "${format}" is not supported.`);
     }
@@ -598,7 +599,7 @@ export class ExportFile extends BasePlugin {
       ? { engine: engineFromSettings, ...options }
       : options;
 
-    return typeFactory(format, new DataProvider(this.hot) as unknown as Record<string, Function>, mergedOptions) as unknown as { export: () => string; options: { filename: string; fileExtension: string; [key: string]: unknown } };
+    return typeFactory(format, new DataProvider(this.hot), mergedOptions)!;
   }
 
   /**
@@ -611,14 +612,14 @@ export class ExportFile extends BasePlugin {
    * @param {BaseType} typeFormatter The instance of the specific formatter/exporter.
    * @returns {Blob|Promise<Blob>}
    */
-  _createBlob(typeFormatter: { export: () => string; options: Record<string, unknown> }) {
+  _createBlob(typeFormatter: BaseType) {
     if (typeof Blob === 'undefined') {
       throwWithCause('Blob is not available in this environment.');
     }
 
-    const exported = (typeFormatter as any).export();
+    const exported = typeFormatter.export();
 
-    if (typeof exported?.then === 'function') {
+    if (exported instanceof Promise) {
       return exported.then((buffer: unknown) => new Blob([buffer as BlobPart], {
         type: typeFormatter.options.mimeType as string,
       }));

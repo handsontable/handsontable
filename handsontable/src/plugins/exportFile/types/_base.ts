@@ -1,5 +1,6 @@
 import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
+import type DataProvider from '../dataProvider';
 
 /**
  * @private
@@ -35,6 +36,15 @@ class BaseType {
   }
 
   /**
+   * Performs the actual export and returns the data as a string or a Promise.
+   *
+   * @returns {string|Promise<unknown>}
+   */
+  export(): string | Promise<unknown> {
+    throw new Error('export() must be implemented by subclass');
+  }
+
+  /**
    * Data provider.
    *
    * @type {DataProvider}
@@ -47,7 +57,7 @@ class BaseType {
    */
   declare options: Record<string, unknown>;
 
-  constructor(dataProvider: Record<string, Function>, options: Record<string, unknown>) {
+  constructor(dataProvider: DataProvider, options: Record<string, unknown>) {
     this.dataProvider = dataProvider;
     this.options = this._mergeOptions(options);
     this.dataProvider.setOptions(this.options);

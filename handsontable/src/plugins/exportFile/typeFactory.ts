@@ -1,5 +1,7 @@
 import Csv from './types/csv';
 import Xlsx from './types/xlsx';
+import type BaseType from './types/_base';
+import type DataProvider from './dataProvider';
 
 export const TYPE_CSV = 'csv';
 export const TYPE_XLSX = 'xlsx';
@@ -17,9 +19,9 @@ export const EXPORT_TYPES = {
  * @param {object} options Constructor options for exporter class.
  * @returns {BaseType|null}
  */
-export default function typeFactory(type: string, dataProvider: Record<string, Function>, options: Record<string, unknown>) {
+export default function typeFactory(type: string, dataProvider: DataProvider, options: Record<string, unknown>): BaseType | null {
   if (typeof (EXPORT_TYPES as Record<string, Function>)[type] === 'function') {
-    return new ((EXPORT_TYPES as Record<string, Function>)[type] as unknown as new (...args: unknown[]) => Record<string, unknown>)(dataProvider, options);
+    return new ((EXPORT_TYPES as Record<string, Function>)[type] as unknown as new (...args: unknown[]) => BaseType)(dataProvider, options);
   }
 
   return null;

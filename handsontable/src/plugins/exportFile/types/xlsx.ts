@@ -118,7 +118,7 @@ class Xlsx extends BaseType {
     const sheets = this.options.sheets as any;
     const docsToClear = sheets && sheets.length > 0
       ? new Set(sheets.map((s: any) => s.instance.rootDocument))
-      : new Set([(this.dataProvider.hot as any).rootDocument]);
+      : new Set([this.dataProvider.hot.rootDocument]);
 
     docsToClear.forEach((doc: any) => clearStyleCaches(doc));
 
@@ -263,7 +263,7 @@ class Xlsx extends BaseType {
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
     const hasReadOnlyCells = !hasColumnSummary &&
-      cellsMeta.some((row: any) => (row as any[]).some((meta: any) => meta.readOnly === true));
+      cellsMeta.some((row: unknown[]) => row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
 
     const context = {
       exportFormulas,
