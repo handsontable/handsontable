@@ -27,6 +27,25 @@ import {
   getTimeNumFmt,
 } from './xlsx/date-utils';
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
+import type { HotInstance } from '../../../core/types';
+
+interface ExcelJsWorkbook {
+  addWorksheet(name: string): Record<string, unknown>;
+  worksheets: Array<{ name: string }>;
+  xlsx: {
+    writeBuffer(options?: object): Promise<Uint8Array>;
+  };
+}
+
+interface XlsxEngine {
+  Workbook: new () => ExcelJsWorkbook;
+}
+
+interface XlsxSheetConfig {
+  instance: HotInstance;
+  name?: string;
+  [key: string]: unknown;
+}
 
 // Approximate number of pixels occupied by one Excel column-width unit (character width
 // of the "Normal" style font at the default font size). Used to convert pixel widths
@@ -68,7 +87,7 @@ class Xlsx extends BaseType {
     mimeType: string;
     fileExtension: string;
     bom: boolean;
-    engine: any;
+    engine: XlsxEngine | null;
     compression: boolean | number | null;
     conditionalFormatting: any[];
     exportFormulas: boolean;
@@ -103,7 +122,7 @@ class Xlsx extends BaseType {
    * @returns {Promise<Uint8Array>}
    */
   async export(): Promise<Uint8Array> {
-    const engine = this.options.engine as any;
+    const engine = this.options.engine as unknown as XlsxEngine | null;
 
     if (!engine || typeof engine.Workbook !== 'function') {
       throwWithCause(
@@ -115,12 +134,12 @@ class Xlsx extends BaseType {
     // Clear style caches for all documents involved in this export. In multi-sheet
     // mode each sheet may come from a different Handsontable instance living in a
     // different document (e.g. an iframe), so every distinct document must be cleared.
-    const sheets = this.options.sheets as any;
+    const sheets = this.options.sheets as unknown as XlsxSheetConfig[] | null | undefined;
     const docsToClear = sheets && sheets.length > 0
-      ? new Set(sheets.map((s: any) => s.instance.rootDocument))
+      ? new Set(sheets.map(s => s.instance.rootDocument))
       : new Set([this.dataProvider.hot.rootDocument]);
 
-    docsToClear.forEach((doc: any) => clearStyleCaches(doc));
+    docsToClear.forEach((doc) => clearStyleCaches(doc as Document));
 
     const workbook = new engine.Workbook();
 
@@ -128,7 +147,7 @@ class Xlsx extends BaseType {
       // multi-sheet mode
       const usedSheetNames = new Set();
 
-      sheets.forEach((sheetConfig: any) => {
+      sheets.forEach((sheetConfig) => {
         const dp = new DataProvider(sheetConfig.instance);
         // Apply the same legacy-alias promotion that _mergeOptions does for top-level
         // options: if the caller passed the deprecated `columnHeaders` on a per-sheet

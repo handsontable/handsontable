@@ -453,7 +453,7 @@ export class Pagination extends BasePlugin {
     return {
       currentPage: this.#currentPage,
       totalPages,
-      pageSize: (stateForReturn as any)?.pageSize ?? this.#pageSize,
+      pageSize: stateForReturn?.pageSize ?? this.#pageSize,
       pageSizeList: [...(this.getSetting<unknown[]>('pageSizeList') ?? [])],
       autoPageSize: this.#pageSize === 'auto',
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),

@@ -26,6 +26,7 @@ import {
 } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 import { isDefined } from '../../helpers/mixed';
+import type Selection from '../../3rdparty/walkontable/src/selection/selection';
 
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
@@ -692,7 +693,7 @@ export class CustomBorders extends BasePlugin {
 
     arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
       if (border.id === (customSelection.settings as Record<string, unknown>).id) {
-        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
+        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as unknown as Selection);
 
         arrayEach(borders, (borderObject: Record<string, unknown>) => {
           (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove); // TODO this also bad?
@@ -732,7 +733,7 @@ export class CustomBorders extends BasePlugin {
           (customSelection as { commit(): void }).commit();
 
           if (place) {
-            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
+            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as unknown as Selection);
 
             arrayEach(borders, (borderObject: Record<string, unknown>) => {
               (borderObject.changeBorderStyle as (place: string, border: Record<string, unknown>) => void)(place, border);

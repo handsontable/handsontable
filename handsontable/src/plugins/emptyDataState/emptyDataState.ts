@@ -310,7 +310,7 @@ export class EmptyDataState extends BasePlugin {
     });
     this.addHook('beforeFilter', (conditions: unknown[]) => this.#onBeforeFilter(conditions));
     this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
-      if (!(queryParameters as any).skipLoading) {
+      if (!queryParameters.skipLoading) {
         this.#setLoadingActive();
       }
     });

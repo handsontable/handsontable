@@ -304,7 +304,7 @@ class MergedCellsCollection {
       rowspan,
       colspan,
     } = mergeParent;
-    const overlayName = (this.hot.view as any).getActiveOverlayName() as string;
+    const overlayName = this.hot.view.getActiveOverlayName() as string;
     const firstRenderedRow = ['top', 'top_inline_start_corner']
       .includes(overlayName) ? 0 : this.hot.getFirstRenderedVisibleRow();
     const firstRenderedColumn = ['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner']

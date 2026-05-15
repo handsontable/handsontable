@@ -193,7 +193,9 @@ export default class CellMeta {
   getMetasAtRow(physicalRow: number) {
     assert(() => isUnsignedNumber(physicalRow), 'Expecting an unsigned number.');
 
-    const rowsMeta = new Map(this.metas as any);
+    const rowsMeta = new Map(
+      this.metas as unknown as Iterable<readonly [number, LazyFactoryMap<Record<string, unknown>>]>
+    );
 
     if (!rowsMeta.has(physicalRow)) {
       return [];

@@ -311,7 +311,7 @@ export class DropdownMenu extends BasePlugin {
         let target = this.hot.getCell(headerRow, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
 
         if (!target) {
-          for (let row = -(this.hot.view as any).getColumnHeadersCount(); row <= -1; row++) {
+          for (let row = -this.hot.view.getColumnHeadersCount(); row <= -1; row++) {
             const candidate = this.hot.getCell(row, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
 
             if (candidate) {
