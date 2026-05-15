@@ -102,7 +102,7 @@ class SamplesGenerator {
    * @returns {object}
    */
   generateRowSamples(rowRange: unknown, colRange: unknown) {
-    return this.generateSamples('row', colRange, rowRange);
+    return this.generateSamples('row', colRange as { from: number; to: number }, rowRange);
   }
 
   /**
@@ -113,7 +113,7 @@ class SamplesGenerator {
    * @returns {object}
    */
   generateColumnSamples(colRange: unknown, rowRange: unknown) {
-    return this.generateSamples('col', rowRange, colRange);
+    return this.generateSamples('col', rowRange as { from: number; to: number }, colRange);
   }
 
   /**
@@ -124,7 +124,7 @@ class SamplesGenerator {
    * @param {object|number} specifierRange The range to generate the samples.
    * @returns {Map}
    */
-  generateSamples(type: string, range: unknown, specifierRange: unknown) {
+  generateSamples(type: string, range: { from: number; to: number }, specifierRange: unknown) {
     const samples = new Map();
     const { from, to } = typeof specifierRange === 'number' ?
       { from: specifierRange, to: specifierRange } : specifierRange as { from: number; to: number };
@@ -146,7 +146,7 @@ class SamplesGenerator {
    * @param {number} specifierValue The range to generate the samples.
    * @returns {Map}
    */
-  generateSample(type: string, range: unknown, specifierValue: number) {
+  generateSample(type: string, range: { from: number; to: number }, specifierValue: number) {
     if (type !== 'row' && type !== 'col') {
       throwWithCause('Unsupported sample type');
     }
@@ -155,7 +155,7 @@ class SamplesGenerator {
     const computedKey = type === 'row' ? 'col' : 'row';
     const sampledValues: unknown[] = [];
 
-    rangeEach((range as any).from, (range as any).to, (index) => {
+    rangeEach(range.from, range.to, (index) => {
       const data = type === 'row' ?
         this.dataFactory(specifierValue, index, this) : this.dataFactory(index, specifierValue, this);
 

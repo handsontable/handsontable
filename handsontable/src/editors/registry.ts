@@ -100,7 +100,7 @@ function _register(name: string | typeof BaseEditor | Function, editorClass?: ty
     name = (editorClass as unknown as { EDITOR_TYPE: string }).EDITOR_TYPE;
   }
 
-  const editorWrapper = new (RegisteredEditor as any)(editorClass);
+  const editorWrapper = new (RegisteredEditor as unknown as new (editorClass: typeof BaseEditor | Function) => unknown)(editorClass);
 
   if (typeof name === 'string') {
     register(name, editorWrapper);

@@ -4,7 +4,7 @@ import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import type { NestedRows } from '../nestedRows';
 
-interface RowObject {
+export interface RowObject {
   __children?: RowObject[];
   [key: string]: unknown;
 }

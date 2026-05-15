@@ -1,6 +1,6 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
-import DataManager from './data/dataManager';
+import DataManager, { type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
@@ -315,7 +315,7 @@ export class NestedRows extends BasePlugin {
       return true;
     }
 
-    this.dataManager!.spliceData(index, amount, element as any);
+    this.dataManager!.spliceData(index, amount, [element]);
 
     return false;
   }
@@ -520,7 +520,7 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.dataManager!.setData(data as any);
+    this.dataManager!.setData(data as RowObject[]);
     this.dataManager!.rewriteCache();
   }
 

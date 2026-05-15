@@ -225,7 +225,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (rootInstanceAriaTagsEnabled) {
       // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
       const a11yPres = A11Y_PRESENTATION();
-      setAttribute((this.htEditor.view._wt.wtOverlays as any).wtTable.TABLE, a11yPres[0] as string, a11yPres[1]);
+      setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, a11yPres[0] as string, a11yPres[1]);
 
       setAttribute(this.htEditor.rootElement, [
         A11Y_LISTBOX(),

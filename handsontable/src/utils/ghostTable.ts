@@ -404,7 +404,7 @@ class GhostTable {
    */
   clean() {
     this.rows.length = 0;
-    this.rows[-1] = undefined as any;
+    (this.rows as Record<number, Record<string, unknown> | undefined>)[-1] = undefined;
     this.columns.length = 0;
 
     if (this.samples) {
