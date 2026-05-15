@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
+import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
 function readData(): VersionComparisonData {
   const el = document.getElementById('version-comparison-data');
@@ -169,6 +169,106 @@ function VersionBreadcrumb({ releases, from, to, onJumpTo }: VersionBreadcrumbPr
   );
 }
 
+function pillClass(category: ChangeCategory, breaking: boolean) {
+  if (breaking) return 'vc-pill vc-pill-breaking';
+  return `vc-pill vc-pill-${category}`;
+}
+
+function pillLabel(category: ChangeCategory, breaking: boolean) {
+  if (breaking) return 'breaking';
+  return category;
+}
+
+function PrLink({ prNumber }: { prNumber: number | null }) {
+  if (prNumber === null) return null;
+  const href = `https://github.com/handsontable/handsontable/pull/${prNumber}`;
+  return <a href={href} target="_blank" rel="noreferrer">#{prNumber}</a>;
+}
+
+function FeaturedEntry({ entry }: { entry: VersionEntry }) {
+  const accent = entry.breaking ? 'vc-entry-accent-breaking' : `vc-entry-accent-${entry.category}`;
+  return (
+    <article className={`vc-entry vc-entry-featured ${accent}`}>
+      <header>
+        <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
+        <h3>{entry.tagline ?? entry.title}</h3>
+        <span className="vc-entry-version">{entry.version}</span>
+      </header>
+      {entry.whyItMatters && <p className="vc-entry-why">{entry.whyItMatters}</p>}
+      {entry.codeBefore && entry.codeAfter && (
+        <pre className="vc-entry-diff">{`// Before\n${entry.codeBefore}\n\n// After\n${entry.codeAfter}`}</pre>
+      )}
+      <footer>
+        <PrLink prNumber={entry.prNumber} />
+        {entry.migrationAnchor && (
+          <a href={entry.migrationAnchor}>Migration guide</a>
+        )}
+      </footer>
+    </article>
+  );
+}
+
+function CompactEntry({ entry }: { entry: VersionEntry }) {
+  return (
+    <li className="vc-entry vc-entry-compact">
+      <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
+      <span className="vc-entry-title">{entry.title}</span>
+      <PrLink prNumber={entry.prNumber} />
+    </li>
+  );
+}
+
+const COMPACT_THRESHOLD = 10;
+
+function ReleaseGroup({ version, entries }: { version: string; entries: VersionEntry[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const featured = entries.filter((e) => e.highlighted);
+  const compact = entries.filter((e) => !e.highlighted);
+  const shown = expanded || compact.length <= COMPACT_THRESHOLD
+    ? compact
+    : compact.slice(0, COMPACT_THRESHOLD);
+  const hiddenCount = compact.length - shown.length;
+
+  return (
+    <section className="vc-release-group">
+      <h2 className="vc-release-heading">{version}</h2>
+      {featured.map((e) => <FeaturedEntry key={`${e.version}-${e.prNumber}-${e.title}`} entry={e} />)}
+      {compact.length > 0 && (
+        <ul className="vc-entry-list">
+          {shown.map((e) => <CompactEntry key={`${e.version}-${e.prNumber}-${e.title}`} entry={e} />)}
+        </ul>
+      )}
+      {hiddenCount > 0 && (
+        <button type="button" className="vc-show-all" onClick={() => setExpanded(true)}>
+          Show all {compact.length} changes
+        </button>
+      )}
+    </section>
+  );
+}
+
+function patchOrder(version: string) {
+  return Number(version.split('.')[2] ?? 0);
+}
+
+function groupByRelease(entries: VersionEntry[]): { version: string; entries: VersionEntry[] }[] {
+  const map = new Map<string, VersionEntry[]>();
+  for (const e of entries) {
+    const list = map.get(e.version) ?? [];
+    list.push(e);
+    map.set(e.version, list);
+  }
+  return Array.from(map.entries())
+    .sort((a, b) => {
+      const aMinor = a[0].split('.').slice(0, 2).join('.');
+      const bMinor = b[0].split('.').slice(0, 2).join('.');
+      const minorCmp = compareVersions(bMinor, aMinor);
+      if (minorCmp !== 0) return minorCmp;
+      return patchOrder(b[0]) - patchOrder(a[0]);
+    })
+    .map(([version, entries]) => ({ version, entries }));
+}
+
 export function VersionComparison() {
   const data = useMemo(() => readData(), []);
   const [{ from, to }, setRange] = useState(() => defaultRange(data.releases));
@@ -183,6 +283,8 @@ export function VersionComparison() {
     () => filtered.filter((e) => matchesFilter(e, filter)),
     [filtered, filter],
   );
+
+  const groups = useMemo(() => groupByRelease(visible), [visible]);
 
   return (
     <div className="version-comparison">
@@ -199,6 +301,7 @@ export function VersionComparison() {
       <StatCards entries={filtered} activeFilter={filter} onSelect={setFilter} />
       <FilterTabs value={filter} onChange={setFilter} />
       <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
+      {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} />)}
     </div>
   );
 }
