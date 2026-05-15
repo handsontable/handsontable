@@ -207,7 +207,7 @@ export class NestedRows extends BasePlugin {
           const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
           return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            (this.hot.selection as any).isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
+            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
         },
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,

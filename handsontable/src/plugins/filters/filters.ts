@@ -8,6 +8,7 @@ import { addClass, isBottomMostColumnHeader, removeClass } from '../../helpers/d
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { createObjectPropListener, deepClone } from '../../helpers/object';
+import type { ObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
@@ -1092,12 +1093,12 @@ export class Filters extends BasePlugin {
       );
 
       if (this.hot.hasHook('modifyData')) {
-        const valueHolder = createObjectPropListener(value);
+        const valueHolder: ObjectPropListener = createObjectPropListener(value);
 
         this.hot.runHooks('modifyData', physicalRow, physicalColumn, valueHolder, 'get');
 
-        if ((valueHolder as any).isTouched()) {
-          value = (valueHolder as any).value;
+        if (valueHolder.isTouched()) {
+          value = valueHolder.value as typeof value;
         }
       }
 

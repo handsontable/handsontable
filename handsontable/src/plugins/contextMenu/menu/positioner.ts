@@ -93,7 +93,7 @@ export class Positioner {
    * @param {object|MouseEvent} coords The literal object with `top`, `left`, `width` and `height` props or a
    * mouse event object.
    */
-  updatePosition(coords: Event | Record<string, unknown>) {
+  updatePosition(coords: Event | DOMRect | Record<string, unknown>) {
     this.#cursor = new Cursor(coords as Event, this.#container!.ownerDocument.defaultView as Window);
 
     if (this.#keepInViewport) {

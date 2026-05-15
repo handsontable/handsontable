@@ -495,7 +495,7 @@ export class Menu {
 
     subMenu.setMenuItems((dataItem.submenu as Record<string, unknown>).items as Record<string, unknown>[]);
     subMenu.open();
-    subMenu.setPosition(cell.getBoundingClientRect() as unknown as Record<string, unknown>);
+    subMenu.setPosition(cell.getBoundingClientRect());
     this.hotSubMenus[dataItem.key as string] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.
@@ -648,7 +648,7 @@ export class Menu {
    *
    * @param {Event|object} coords Event or literal Object with coordinates.
    */
-  setPosition(coords: Event | Record<string, unknown>) {
+  setPosition(coords: Event | DOMRect | Record<string, unknown>) {
     if (this.isSubMenu()) {
       this.positioner.setParentElement(this.parentMenu!.container);
     }
