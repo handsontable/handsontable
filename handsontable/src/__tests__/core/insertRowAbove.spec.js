@@ -591,5 +591,29 @@ describe('Core.alter', () => {
         alter('insert_row_above', 0, 100000);
       }).not.toThrowError();
     });
+
+    it('should not scroll the window when inserting a row above the last row (no fixed height, window scroll)', async() => {
+      handsontable({
+        data: createSpreadsheetData(200, 5),
+      });
+
+      await selectCell(199, 0);
+
+      window.scrollTo(0, document.body.scrollHeight);
+
+      await waitForNextAnimationFrames(2);
+
+      const scrollYBefore = window.scrollY;
+
+      expect(scrollYBefore).toBeGreaterThan(0);
+
+      await alter('insert_row_above', 199);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(window.scrollY).toBe(scrollYBefore);
+
+      window.scrollTo(0, 0);
+    });
   });
 });
