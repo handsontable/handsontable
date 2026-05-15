@@ -80,3 +80,41 @@ test('marks bullets starting with **Breaking change**: as breaking', () => {
   assert.equal(result[0].title, 'Removed core-js from dependencies.');
   assert.equal(result[1].breaking, false);
 });
+
+test('extracts PR number from a trailing GitHub PR link', () => {
+  const md = [
+    '## 17.0.0',
+    'Released on March 9th, 2026',
+    '',
+    '#### Added',
+    '- Added the Theme API. [#11950](https://github.com/handsontable/handsontable/pull/11950)',
+    '- A bullet without a link.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result[0].prNumber, 11950);
+  assert.equal(result[0].title, 'Added the Theme API.');
+  assert.equal(result[1].prNumber, null);
+});
+
+test('detects framework prefix in bullets', () => {
+  const md = [
+    '## 17.0.0',
+    'Released on March 9th, 2026',
+    '',
+    '#### Fixed',
+    '- React: Fixed a thing in React. [#1](https://github.com/handsontable/handsontable/pull/1)',
+    '- Angular: Fixed a thing in Angular.',
+    '- Vue: Fixed a thing in Vue.',
+    '- Fixed a thing in core.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.deepEqual(
+    result.map((e) => e.framework),
+    ['react', 'angular', 'vue', 'core'],
+  );
+  assert.equal(result[0].title, 'Fixed a thing in React.');
+});

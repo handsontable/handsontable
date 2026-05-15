@@ -29,13 +29,40 @@ const CATEGORY_HEADINGS = {
   '#### Fixed': 'fixed',
 };
 
+const FRAMEWORK_PREFIXES = {
+  'React:': 'react',
+  'Angular:': 'angular',
+  'Vue:': 'vue',
+};
+
+function extractPrNumber(text) {
+  const match = text.match(/\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/pull\/\d+\)\s*$/);
+  if (!match) return { prNumber: null, body: text };
+  return { prNumber: Number(match[1]), body: text.slice(0, match.index).trim() };
+}
+
 function parseBullet(line) {
-  const raw = line.replace(/^- /, '').trim();
+  let raw = line.replace(/^- /, '').trim();
+  let breaking = false;
+
   const breakingMatch = raw.match(/^\*\*Breaking change\*\*:\s*(.*)$/);
   if (breakingMatch) {
-    return { breaking: true, body: breakingMatch[1].trim() };
+    breaking = true;
+    raw = breakingMatch[1].trim();
   }
-  return { breaking: false, body: raw };
+
+  let framework = 'core';
+  for (const [prefix, name] of Object.entries(FRAMEWORK_PREFIXES)) {
+    if (raw.startsWith(`${prefix} `)) {
+      framework = name;
+      raw = raw.slice(prefix.length + 1).trim();
+      break;
+    }
+  }
+
+  const { prNumber, body } = extractPrNumber(raw);
+
+  return { breaking, framework, prNumber, body };
 }
 
 export function parseChangelogContent(markdown) {
@@ -64,12 +91,14 @@ export function parseChangelogContent(markdown) {
     if (!currentVersion || !currentCategory) continue;
     if (!line.startsWith('- ')) continue;
 
-    const { breaking, body } = parseBullet(line);
+    const { breaking, framework, prNumber, body } = parseBullet(line);
     entries.push({
       version: currentVersion,
       releaseDate: currentDate,
       category: currentCategory,
       breaking,
+      framework,
+      prNumber,
       title: body,
     });
   }
