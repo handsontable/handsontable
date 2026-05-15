@@ -34,7 +34,7 @@ export interface RangeType {
  */
 export interface GridHelperInstance {
   alter(action: string, index?: number | number[][], amount?: number, source?: string, keepEmptyRows?: boolean): void;
-  populateFromArray(start: CellCoords, input: unknown[][], end?: CellCoords, source?: string, method?: string, direction?: string, deltas?: unknown[]): object | undefined;
+  populateFromArray(start: CellCoords, input: unknown[][], end?: CellCoords, source?: string, method?: string, direction?: string, deltas?: unknown[]): object | false | undefined;
   adjustRowsAndCols(): void;
   [key: string]: unknown;
 }

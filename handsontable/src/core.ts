@@ -193,7 +193,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
   let dataSource: DataSourceInstance;
   let grid: GridHelperInstance;
   let editorManager: EditorManagerInstance;
-  let focusGridManager: Record<string, Function | unknown>;
+  let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
 
@@ -1075,7 +1075,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
      * @param {string} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
      * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
      */
-    populateFromArray(start: CellCoords, input: Array<Array<unknown>>, end?: CellCoords, source?: string, method?: string): object | undefined {
+    populateFromArray(start: CellCoords, input: Array<Array<unknown>>, end?: CellCoords, source?: string, method?: string): object | false | undefined {
       let r;
       let rlen;
       let c;
@@ -1089,7 +1089,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       rlen = input.length;
 
       if (rlen === 0) {
-        return false as unknown as object;
+        return false;
       }
 
       let columnsPopulationEnd = 0;
@@ -1420,10 +1420,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     this.view = new TableView(this);
 
-    editorManager = (EditorManager as unknown as { getInstance: (...args: unknown[]) => EditorManagerInstance }).getInstance(instance, tableMeta, selection);
+    editorManager = (EditorManager as unknown as Record<string, (...args: unknown[]) => EditorManagerInstance>).getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
 
-    ((focusGridManager as Record<string, Function>).init as () => void)();
+    focusGridManager.init();
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
@@ -1537,7 +1537,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     const activeEditor = instance.getActiveEditor();
-    const waitingForValidator = (ValidatorsQueue as Function)();
+    const waitingForValidator = ValidatorsQueue();
     let shouldBeCanceled = true;
 
     // Track value corrections applied by validators via setDataAtCell during the validation window.
@@ -1903,7 +1903,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} [value] New value.
    * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    */
-  this.setDataAtCell = function(row: number | Array<Array<unknown>>, column: number, value: string, source?: string) {
+  this.setDataAtCell = function(row: number | Array<Array<unknown>>, column: number | string, value: string, source?: string) {
     const input = setDataInputToArray(row, column, value);
     const changes = [];
     let changeSource = source;
@@ -1938,7 +1938,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     }
 
     if (!changeSource && typeof row === 'object') {
-      changeSource = column as unknown as string;
+      changeSource = column as string;
     }
 
     const processedChanges = processChanges(changes, changeSource);
@@ -2132,7 +2132,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.getSelected = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
-      return arrayMap(selection.getSelectedRange() as unknown as unknown[], ({ from, to }: any) => [from.row, from.col, to.row, to.col]);
+      return arrayMap(selection.getSelectedRange().ranges, ({ from, to }) => [from.row, from.col, to.row, to.col]);
     }
   };
 
@@ -3131,7 +3131,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     if (typeof settings.height !== 'undefined') {
       if (isFunction(height)) {
-        height = (height as Function)();
+        height = height();
       }
 
       height = instance.runHooks('beforeHeightChange', height);
@@ -3157,7 +3157,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       let width = settings.width;
 
       if (isFunction(width)) {
-        width = (width as Function)();
+        width = width();
       }
 
       width = instance.runHooks('beforeWidthChange', width);
@@ -4170,8 +4170,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {Array} [rows] An array of validation target visual row indexes.
    * @param {Array} [columns] An array of validation target visual column indexes.
    */
-  this._validateCells = function(callback: Function, rows: number[], columns: number[]) {
-    const waitingForValidator = (ValidatorsQueue as Function)();
+  this._validateCells = function(callback: () => void, rows: number[], columns: number[]) {
+    const waitingForValidator = ValidatorsQueue();
 
     if (callback) {
       waitingForValidator.onQueueEmpty = callback;
@@ -4239,7 +4239,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       rowHeader = rowHeader[physicalRow];
 
     } else if (isFunction(rowHeader)) {
-      rowHeader = (rowHeader as Function)(physicalRow);
+      rowHeader = rowHeader(physicalRow);
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = physicalRow + 1;
@@ -4367,7 +4367,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       result = tableMeta.colHeaders[physicalColumn];
 
     } else if (isFunction(tableMeta.colHeaders)) {
-      result = (tableMeta.colHeaders as Function)(physicalColumn);
+      result = tableMeta.colHeaders(physicalColumn);
 
     } else if (tableMeta.colHeaders && typeof tableMeta.colHeaders !== 'string' &&
                typeof tableMeta.colHeaders !== 'number') {
@@ -4835,7 +4835,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       viewportScroller.suspend();
     }
     if (changeListener === false) {
-      (focusGridManager.suspend as Function)();
+      focusGridManager.suspend();
     }
 
     let wasSelected;
@@ -4846,7 +4846,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       // Always release the suspended state even if `selection.selectCells` throws on malformed
       // coordinates. Otherwise the flags would leak across subsequent calls.
       viewportScroller.resume();
-      (focusGridManager.resume as Function)();
+      focusGridManager.resume();
     }
 
     if (wasSelected && changeListener) {
@@ -5799,7 +5799,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     return shortcutManager;
   };
 
-  focusGridManager = new FocusGridManager(instance) as unknown as Record<string, Function | unknown>;
+  focusGridManager = new FocusGridManager(instance);
 
   const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
