@@ -916,8 +916,8 @@ class TableView {
         if (typeof cellProperties.valueFormatter === 'function') {
           formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
 
-        } else if (typeof (renderer as Function & { valueFormatter?: Function }).valueFormatter === 'function') {
-          formattedValue = (renderer as Function & { valueFormatter: Function }).valueFormatter.call(cellProperties, formattedValue, cellProperties);
+        } else if (typeof renderer === 'function' && 'valueFormatter' in renderer && typeof (renderer as unknown as { valueFormatter: unknown }).valueFormatter === 'function') {
+          formattedValue = (renderer as unknown as { valueFormatter: (value: unknown, props: unknown) => unknown }).valueFormatter.call(cellProperties, formattedValue, cellProperties);
         }
 
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
@@ -1421,7 +1421,7 @@ class TableView {
    * @returns {boolean}
    */
   #isSyntheticMouseEvent(event: Event) {
-    const mouseEvent = event as any;
+    const mouseEvent = event as Event & { sourceCapabilities?: { firesTouchEvents: boolean } };
 
     if (mouseEvent.sourceCapabilities) {
       return mouseEvent.sourceCapabilities.firesTouchEvents === true;
@@ -1488,7 +1488,7 @@ class TableView {
         return;
       }
 
-      this.updateCellHeader(container.querySelector('.rowHeader') as HTMLElement, visualRowIndex, this.hot.getRowHeader as Function);
+      this.updateCellHeader(container.querySelector('.rowHeader') as HTMLElement, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -1497,7 +1497,7 @@ class TableView {
 
       div.className = 'relative';
       span.className = 'rowHeader';
-      this.updateCellHeader(span, visualRowIndex, getRowHeader as Function);
+      this.updateCellHeader(span, visualRowIndex, getRowHeader);
 
       div.appendChild(span);
       TH.appendChild(div);
@@ -1535,7 +1535,7 @@ class TableView {
       const container = TH.firstChild as HTMLElement;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader') as HTMLElement, visualColumnIndex, label as Function, headerLevel);
+        this.updateCellHeader(container.querySelector('.colHeader') as HTMLElement, visualColumnIndex, label, headerLevel);
 
         container.className = '';
         addClass(container, ['relative', ...getColumnHeaderClassNames()]);
@@ -1559,7 +1559,7 @@ class TableView {
         setAttribute(span, [A11Y_PRESENTATION()]);
       }
 
-      this.updateCellHeader(span, visualColumnIndex, label as Function, headerLevel);
+      this.updateCellHeader(span, visualColumnIndex, label, headerLevel);
 
       div.appendChild(span);
       TH.appendChild(div);
@@ -1578,7 +1578,7 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  updateCellHeader(element: HTMLElement, index: number, content: Function, headerLevel = 0) {
+  updateCellHeader(element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0) {
     let renderedIndex = index;
     const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
 
@@ -1593,7 +1593,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index, headerLevel), this.hot.getSettings().sanitizer);
+      fastInnerHTML(element, content(index, headerLevel) as string, this.hot.getSettings().sanitizer);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
