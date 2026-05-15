@@ -1,4 +1,5 @@
 ---
+type: reference
 id: p9q3r6s1
 title: Server-side CRUD
 metaTitle: Server-side CRUD - JavaScript Data Grid | Handsontable

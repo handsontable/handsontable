@@ -1,4 +1,5 @@
 ---
+type: reference
 id: rck7asx7
 title: Third-party licenses
 metaTitle: Third-party licenses - JavaScript Data Grid | Handsontable
