@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12290 — FIX (patched)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .info ol { margin: 8px 0 0 20px; }
+    .info li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    kbd { display: inline-block; background: #fff; border: 1px solid #aaa; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-family: monospace; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+    .scenarios { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .scenario { flex: 1; min-width: 220px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 10px 14px; font-size: 13px; line-height: 1.5; }
+    .scenario strong { display: block; margin-bottom: 4px; color: #1b5e20; }
+    .scenario .result-ok { color: #2e7d32; font-weight: 600; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12290 - Space key in filter search clears the list</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12290-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12290 patch).</strong>
+    The search input value is now trimmed with <code>.trim()</code> before being passed to the filter logic.
+    Leading/trailing spaces are stripped, so pressing Space has no effect on results.
+    Whitespace-only input shows the full unfiltered list.<br><br>
+    <strong>Steps to verify:</strong>
+    <ol>
+      <li>Click the dropdown arrow <strong>▼</strong> on the <em>City</em> column header.</li>
+      <li>Click inside the <em>Search</em> input field.</li>
+      <li>Press <kbd>Space</kbd> — all cities remain visible (whitespace = empty query).</li>
+      <li>Type <code>New</code> then press <kbd>Space</kbd> — "New York" and "New Orleans" stay in the list.</li>
+      <li>Continue typing <code>New York</code> — only "New York" remains.</li>
+    </ol>
+  </div>
+
+  <div id="patch-info">
+    Patch applied at runtime via a capture-phase <code>input</code> listener that temporarily sets
+    the trimmed value on the input element before the plugin's bubble-phase handler reads it —
+    equivalent to the one-liner <code>.trim()</code> fix in <code>multipleSelect.js</code> (PR #12290).
+  </div>
+
+  <div class="scenarios">
+    <div class="scenario">
+      <strong>Scenario A — type a single space</strong>
+      Input: <code>" "</code><br>
+      Expected: all cities shown (empty query = no filter)<br>
+      <span class="result-ok">FIXED: all cities visible</span>
+    </div>
+    <div class="scenario">
+      <strong>Scenario B — type "New " (with trailing space)</strong>
+      Input: <code>"New "</code><br>
+      Expected: "New York", "New Orleans" shown<br>
+      <span class="result-ok">FIXED: matches still shown</span>
+    </div>
+    <div class="scenario">
+      <strong>Scenario C — type "New York" (full multi-word)</strong>
+      Input: <code>"New York"</code><br>
+      Expected: only "New York" shown<br>
+      <span class="result-ok">FIXED: multi-word works</span>
+    </div>
+  </div>
+
+  <p style="font-size:13px;color:#555;margin-bottom:8px;">
+    Click the <strong>▼</strong> dropdown button on the <em>City</em> column to open the filter.
+  </p>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // --- Apply PR #12290 fix as a runtime patch ---
+    // Bug: MultipleSelectUI.#onInput() uses raw event.target.value (with spaces) for filtering.
+    // Fix: Use event.target.value.trim() instead.
+    //
+    // Patch strategy: capture-phase document listener finds search inputs inside
+    // the filter dropdown and temporarily sets the trimmed value so the plugin's
+    // bubble-phase #onInput handler reads the trimmed string. A microtask restores
+    // the original value so the user sees their typed content (including spaces).
+    document.addEventListener('input', function pr12290Patch(e) {
+      const searchContainer = e.target.closest('.htUIMultipleSelectSearch');
+      if (!searchContainer) return;
+
+      const raw = e.target.value;
+      const trimmed = raw.trim();
+
+      if (raw === trimmed) return; // nothing to do
+
+      // Temporarily set trimmed value for the plugin's synchronous bubble handler
+      e.target.value = trimmed;
+
+      // Restore original after all synchronous handlers complete so the input
+      // still displays the typed text (including spaces the user typed)
+      Promise.resolve().then(() => {
+        e.target.value = raw;
+      });
+    }, true /* capture phase - runs before the plugin's bubble handler */);
+    // --- End patch ---
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: [
+        ['Alice',   'New York'],
+        ['Bob',     'Los Angeles'],
+        ['Carol',   'New Orleans'],
+        ['Dave',    'Chicago'],
+        ['Eve',     'San Francisco'],
+        ['Frank',   'Miami'],
+        ['Grace',   'New York'],
+        ['Hank',    'Boston'],
+        ['Ivy',     'Seattle'],
+        ['Jack',    'New Orleans'],
+      ],
+      colHeaders: ['Name', 'City'],
+      rowHeaders: true,
+      width: '100%',
+      height: 320,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      filters: true,
+      dropdownMenu: true,
+    });
+  </script>
+</body>
+</html>
