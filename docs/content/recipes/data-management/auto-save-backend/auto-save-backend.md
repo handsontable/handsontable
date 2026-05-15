@@ -20,7 +20,7 @@ angular:
   metaTitle: Auto-save changes to a backend - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build an auto-save flow that sends grid edits to a backend after a debounce delay. You will learn how to use `afterChange`, dirty row tracking, and save status feedback to give users real-time confirmation of their changes.

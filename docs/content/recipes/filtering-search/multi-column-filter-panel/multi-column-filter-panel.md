@@ -20,7 +20,7 @@ angular:
   metaTitle: Multi-column Filter Panel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build an external filter panel with a category dropdown and a price range slider that controls Handsontable filtering. You will learn how to apply multiple conditions at once through the `Filters` plugin API and clear them all with a single button.

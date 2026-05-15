@@ -6,7 +6,7 @@ canonicalUrl: /recipes/cell-types
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: fe57c058
 description: Practical recipes for creating custom cell types in Handsontable.
 react:

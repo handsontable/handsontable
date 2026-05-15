@@ -19,7 +19,7 @@ angular:
   metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will let users drop or pick a CSV or Excel (`.xlsx`) file, parse it in the browser, and preview column headers before loading rows into Handsontable. You will learn how to use PapaParse and SheetJS to handle both formats, and how to update `colHeaders` and `columns` from the detected header row.

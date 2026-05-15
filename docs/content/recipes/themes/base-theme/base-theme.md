@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: q7n4k2p9
 title: Handsontable with Base Web
 metaTitle: Handsontable with Base Web - React Data Grid | Handsontable

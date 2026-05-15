@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: e107bb0d
 title: Feedback
 metaTitle:  Feedback Cell Type - React Data Grid | Handsontable

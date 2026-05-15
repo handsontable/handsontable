@@ -19,7 +19,7 @@ angular:
   metaTitle: ARIA-Friendly Grid with Row Descriptions - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will configure Handsontable for screen reader compatibility. You will learn how to use `ariaTags`, `tabMoves`, aria-label on cells, and aria-sort on headers to target WCAG 2.1 AA compliance.

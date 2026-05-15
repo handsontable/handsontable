@@ -19,7 +19,7 @@ angular:
   metaTitle: Custom keyboard shortcuts - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will register custom keyboard shortcuts in Handsontable using the ShortcutManager API. You will learn how to add shortcuts like Ctrl+D to duplicate rows and Ctrl+Enter to submit grid data without conflicting with existing browser or grid shortcuts.
