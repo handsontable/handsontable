@@ -1,6 +1,6 @@
 import { getComparisonFunction } from '../../helpers/feature';
 
-const sortCompare = (getComparisonFunction as Function)();
+const sortCompare = getComparisonFunction();
 
 /**
  * Comparison function for sorting purposes.
@@ -14,7 +14,7 @@ export function sortComparison(a: unknown, b: unknown) {
     return a - b;
   }
 
-  return sortCompare(a, b);
+  return sortCompare(a as string, b as string);
 }
 
 /**

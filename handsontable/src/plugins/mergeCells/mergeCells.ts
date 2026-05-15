@@ -314,7 +314,7 @@ export class MergeCells extends BasePlugin {
       ((this.hot.view._wt.wtOverlays as unknown as Record<string, Function>).getOverlays(true) as Record<string, unknown>[]).map(
         (overlay: Record<string, unknown>) => (overlay?.name === 'master' ? overlay : (overlay.clone as Record<string, unknown>).wtTable)
       ).forEach((wtTableRef: Record<string, unknown>) => {
-        const rowToRefresh = (wtTableRef.getRow as Function)(renderableRowIndex) as HTMLElement | null;
+        const rowToRefresh = (wtTableRef.getRow as (index: number) => HTMLElement | null)(renderableRowIndex);
 
         if (rowToRefresh) {
           // Modify the TR's `background` property to later modify it asynchronously.
@@ -1002,7 +1002,7 @@ export class MergeCells extends BasePlugin {
     const horizontalDir = selectedRange.getHorizontalDirection();
     const focusCoords = this.#lastSelectedFocus.clone().normalize();
 
-    (this.#focusOrder.setActiveNode as Function)(focusCoords.row, focusCoords.col);
+    this.#focusOrder.setActiveNode(focusCoords.row, focusCoords.col);
 
     if (this.#lastFocusDelta.row > 0 || this.#lastFocusDelta.col > 0) {
       this.#focusOrder.setPrevNodeAsActive();

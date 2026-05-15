@@ -726,7 +726,7 @@ export class Pagination extends BasePlugin {
           const bodyStyle = getComputedStyle(this.hot.rootDocument.body);
           const margin = Number.parseInt(bodyStyle.marginTop, 10) + Number.parseInt(bodyStyle.marginBottom, 10);
           const columnHeaderHeight = this.hot.hasColHeaders()
-            ? (view._wt.wtTable.getColumnHeaderHeight as Function)() as number : 0;
+            ? view._wt.wtViewport.getColumnHeaderHeight() : 0;
           const paginationContainerHeight = this.#ui.getHeight();
           const workspaceHeight = view.getWorkspaceHeight();
 

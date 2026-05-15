@@ -82,7 +82,7 @@ export function columnFactory(TableMeta: Function, conflictList: string[] = []) 
 
   // Clear conflict settings
   for (let i = 0; i < conflictList.length; i++) {
-    (ColumnMeta as Function & { prototype: Record<string, unknown> }).prototype[conflictList[i]] = undefined;
+    (ColumnMeta as { prototype: Record<string, unknown> }).prototype[conflictList[i]] = undefined;
   }
 
   return ColumnMeta;

@@ -106,10 +106,10 @@ export class ExtendMetaPropertiesMod {
       this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[targetProp];
 
       if (onChange) {
-        this.installPropWatcher(alias, origProp, onChange as Function);
+        this.installPropWatcher(alias, origProp, onChange as (this: unknown, ...args: unknown[]) => void);
 
         if (hasTarget) {
-          this.installPropWatcher(target, origProp, onChange as Function);
+          this.installPropWatcher(target, origProp, onChange as (this: unknown, ...args: unknown[]) => void);
         }
 
       } else if (initOnly) {
@@ -132,7 +132,7 @@ export class ExtendMetaPropertiesMod {
    * @param {string} origProp The property from/to the value is forwarded.
    * @param {Function} onChange The callback.
    */
-  installPropWatcher(propName: string, origProp: string, onChange: Function) {
+  installPropWatcher(propName: string, origProp: string, onChange: (this: unknown, ...args: unknown[]) => void) {
     const self = this;
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
@@ -144,7 +144,7 @@ export class ExtendMetaPropertiesMod {
 
         self.usageTracker.add(propName);
 
-        (onChange as Function).call(self, propName, value, isInitialChange);
+        onChange.call(self, propName, value, isInitialChange);
 
         this[origProp as string] = value;
       },

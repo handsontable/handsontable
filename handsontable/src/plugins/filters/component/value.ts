@@ -339,7 +339,7 @@ export class ValueComponent extends BaseComponent {
    */
   #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>) {
     if (meta.valueFormatter) {
-      return (meta.valueFormatter as Function)(value, meta);
+      return (meta.valueFormatter as (value: unknown, meta: Record<string, unknown>) => unknown)(value, meta);
     }
 
     return value;

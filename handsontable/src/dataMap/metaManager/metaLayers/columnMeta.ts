@@ -124,6 +124,6 @@ export default class ColumnMeta {
    * @returns {object}
    */
   _createMeta() {
-    return (columnFactory(this.globalMeta.getMetaConstructor(), COLUMNS_PROPS_CONFLICTS) as Function & { prototype: Record<string, unknown> }).prototype;
+    return (columnFactory(this.globalMeta.getMetaConstructor(), COLUMNS_PROPS_CONFLICTS) as { prototype: Record<string, unknown> }).prototype;
   }
 }

@@ -196,8 +196,8 @@ export class DropdownMenu extends BasePlugin {
 
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
-    this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
-    this.addHook('beforeViewportScrollHorizontally', (...args: unknown[]) => (this.#onBeforeViewportScrollHorizontally as Function)(...args));
+    this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
+    this.addHook('beforeViewportScrollHorizontally', this.#onBeforeViewportScrollHorizontally);
     this.addHook('beforeDialogShow', () => this.close());
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];

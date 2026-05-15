@@ -304,10 +304,10 @@ export class AutoRowSize extends BasePlugin {
       this.samplesGenerator.setSampleCount(parseInt(samplingRatio as string, 10));
     }
 
-    this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
-    this.addHook('beforeChangeRender', (...args: unknown[]) => (this.#onBeforeChange as Function)(...args));
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('afterFormulasValuesUpdate', (...args: unknown[]) => (this.#onAfterFormulasValuesUpdate as Function)(...args));
+    this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height: number, row: number) => this.getRowHeight(row, height));

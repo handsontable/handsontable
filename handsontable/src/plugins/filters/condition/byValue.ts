@@ -10,7 +10,7 @@ export const CONDITION_NAME = 'by_value';
  * @returns {boolean}
  */
 export function condition(dataRow: { value: unknown; meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown } }, [value]: unknown[]) {
-  return (value as Function)(dataRow.value);
+  return (value as (v: unknown) => boolean)(dataRow.value);
 }
 
 registerCondition(CONDITION_NAME, condition, {

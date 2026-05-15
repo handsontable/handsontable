@@ -695,7 +695,7 @@ export class CustomBorders extends BasePlugin {
         const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
 
         arrayEach(borders, (borderObject: Record<string, unknown>) => {
-          (borderObject.toggleHiddenClass as Function)(place, remove); // TODO this also bad?
+          (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove); // TODO this also bad?
         });
 
         check = true;
@@ -735,7 +735,7 @@ export class CustomBorders extends BasePlugin {
             const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as any);
 
             arrayEach(borders, (borderObject: Record<string, unknown>) => {
-              (borderObject.changeBorderStyle as Function)(place, border);
+              (borderObject.changeBorderStyle as (place: string, border: Record<string, unknown>) => void)(place, border);
             });
           }
 

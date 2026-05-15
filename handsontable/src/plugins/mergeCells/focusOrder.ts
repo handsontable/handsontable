@@ -307,7 +307,7 @@ export class FocusOrder {
    * @param {number} selectionLayerIndex The index of the selection layer to which the focus should be marked as active.
    * @returns {FocusOrder}
    */
-  setActiveNode(row: number, column: number, selectionLayerIndex: number) {
+  setActiveNode(row: number, column: number, selectionLayerIndex?: number) {
     this.#cellsHorizontalOrder.inorder((node: NodeStructure) => {
       const {
         selectionLayer,

@@ -18,7 +18,7 @@ export function getCondition(name: string, args: unknown[]) {
   let conditionArguments = args;
 
   if (descriptor.inputValuesDecorator) {
-    conditionArguments = (descriptor.inputValuesDecorator as Function)(conditionArguments);
+    conditionArguments = (descriptor.inputValuesDecorator as (args: unknown) => typeof conditionArguments)(conditionArguments);
   }
 
   return function(dataRow: { value: unknown; meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown } }) {
