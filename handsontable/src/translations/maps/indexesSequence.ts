@@ -16,6 +16,15 @@ export class IndexesSequence extends IndexMap {
   }
 
   /**
+   * Get sequence of physical indexes.
+   *
+   * @returns {number[]} Physical indexes.
+   */
+  getValues(): number[] {
+    return this.indexedValues as number[];
+  }
+
+  /**
    * Add values to list and reorganize.
    *
    * @private
@@ -23,7 +32,7 @@ export class IndexesSequence extends IndexMap {
    * @param {Array} insertedIndexes List of inserted indexes.
    */
   insert(insertionIndex: number, insertedIndexes: number[]) {
-    const listAfterUpdate = getIncreasedIndexes(this.indexedValues as number[], insertedIndexes) as number[];
+    const listAfterUpdate = getIncreasedIndexes(this.getValues(), insertedIndexes);
 
     this.indexedValues = getListWithInsertedItems(listAfterUpdate, insertionIndex, insertedIndexes);
 
@@ -37,7 +46,7 @@ export class IndexesSequence extends IndexMap {
    * @param {Array} removedIndexes List of removed indexes.
    */
   remove(removedIndexes: number[]) {
-    const listAfterUpdate = getListWithRemovedItems(this.indexedValues as number[], removedIndexes) as number[];
+    const listAfterUpdate = getListWithRemovedItems(this.getValues(), removedIndexes);
 
     this.indexedValues = getDecreasedIndexes(listAfterUpdate, removedIndexes);
 

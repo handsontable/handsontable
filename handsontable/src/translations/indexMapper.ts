@@ -500,7 +500,7 @@ export class IndexMapper {
    * @returns {Array} Physical indexes.
    */
   getIndexesSequence(): number[] {
-    return this.indexesSequence.getValues() as number[];
+    return this.indexesSequence.getValues();
   }
 
   /**
@@ -625,12 +625,13 @@ export class IndexMapper {
       movedIndexes = [movedIndexes];
     }
 
-    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex));
+    const physicalMovedIndexes = arrayMap(movedIndexes, visualIndex => this.getPhysicalFromVisualIndex(visualIndex))
+      .filter((index): index is number => index !== null);
     const notTrimmedIndexesLength = this.getNotTrimmedIndexesLength();
     const movedIndexesLength = movedIndexes.length;
 
     // Removing moved indexes without re-indexing.
-    const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes as number[]);
+    const notMovedIndexes = getListWithRemovedItems(this.getIndexesSequence(), physicalMovedIndexes);
     const notTrimmedNotMovedItems = notMovedIndexes.filter(index => this.isTrimmed(index) === false);
 
     // When item(s) are moved after the last visible item we assign the last possible index.
@@ -647,7 +648,7 @@ export class IndexMapper {
     this.indexesChangeSource = 'move';
 
     // Adding indexes without re-indexing.
-    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes as number[]));
+    this.setIndexesSequence(getListWithInsertedItems(notMovedIndexes, destinationPosition, physicalMovedIndexes));
 
     this.indexesChangeSource = undefined;
   }
@@ -687,16 +688,16 @@ export class IndexMapper {
       : this.getNumberOfIndexes();
     const visualInsertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
       this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
-      (nextIndex, stepsFromStart) => (nextIndex as number) + (stepsFromStart as number));
+    const insertedIndexes = arrayMap(new Array<number>(amountOfIndexes).fill(firstInsertedPhysicalIndex),
+      (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
 
-    this.indexesSequence.insert(visualInsertionIndex, insertedIndexes as number[]);
+    this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
 
-    const modInsertedIndexes = mode === 'end' ? (insertedIndexes as number[]).map(index => index + 1) : insertedIndexes as number[];
+    const modInsertedIndexes = mode === 'end' ? insertedIndexes.map(index => index + 1) : insertedIndexes;
 
     this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
     this.hidingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
