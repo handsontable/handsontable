@@ -84,15 +84,27 @@ class CellCoords {
       return false;
     }
 
-    if ((this.row as number) < -countColHeaders || (this.col as number) < -countRowHeaders) {
+    const row = this.row!;
+    const col = this.col!;
+
+    if (row < -countColHeaders || col < -countRowHeaders) {
       return false;
     }
 
-    if ((this.row as number) >= countRows || (this.col as number) >= countCols) {
+    if (row >= countRows || col >= countCols) {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * Checks whether both row and col coordinates are set (not null).
+   *
+   * @returns {boolean}
+   */
+  isSet(): this is CellCoords & { row: number; col: number } {
+    return this.row !== null && this.col !== null;
   }
 
   /**
@@ -127,7 +139,7 @@ class CellCoords {
    * @returns {boolean}
    */
   isCell(): boolean {
-    return (this.row as number) >= 0 && (this.col as number) >= 0;
+    return this.row !== null && this.col !== null && this.row >= 0 && this.col >= 0;
   }
 
   /**
@@ -147,8 +159,16 @@ class CellCoords {
    * @returns {boolean}
    */
   isSouthEastOf(testedCoords: CellCoords): boolean {
-    return (this.row as number) >= (testedCoords.row as number) &&
-      (this.#isRtl ? (this.col as number) <= (testedCoords.col as number) : (this.col as number) >= (testedCoords.col as number));
+    if (this.row === null || this.col === null || testedCoords.row === null || testedCoords.col === null) {
+      return false;
+    }
+    const row = this.row;
+    const col = this.col;
+    const testedRow = testedCoords.row;
+    const testedCol = testedCoords.col;
+
+    return row >= testedRow &&
+      (this.#isRtl ? col <= testedCol : col >= testedCol);
   }
 
   /**
@@ -159,8 +179,16 @@ class CellCoords {
    * @returns {boolean}
    */
   isNorthWestOf(testedCoords: CellCoords): boolean {
-    return (this.row as number) <= (testedCoords.row as number) &&
-      (this.#isRtl ? (this.col as number) >= (testedCoords.col as number) : (this.col as number) <= (testedCoords.col as number));
+    if (this.row === null || this.col === null || testedCoords.row === null || testedCoords.col === null) {
+      return false;
+    }
+    const row = this.row;
+    const col = this.col;
+    const testedRow = testedCoords.row;
+    const testedCol = testedCoords.col;
+
+    return row <= testedRow &&
+      (this.#isRtl ? col >= testedCol : col <= testedCol);
   }
 
   /**
@@ -171,8 +199,16 @@ class CellCoords {
    * @returns {boolean}
    */
   isSouthWestOf(testedCoords: CellCoords): boolean {
-    return (this.row as number) >= (testedCoords.row as number) &&
-      (this.#isRtl ? (this.col as number) >= (testedCoords.col as number) : (this.col as number) <= (testedCoords.col as number));
+    if (this.row === null || this.col === null || testedCoords.row === null || testedCoords.col === null) {
+      return false;
+    }
+    const row = this.row;
+    const col = this.col;
+    const testedRow = testedCoords.row;
+    const testedCol = testedCoords.col;
+
+    return row >= testedRow &&
+      (this.#isRtl ? col >= testedCol : col <= testedCol);
   }
 
   /**
@@ -183,8 +219,16 @@ class CellCoords {
    * @returns {boolean}
    */
   isNorthEastOf(testedCoords: CellCoords): boolean {
-    return (this.row as number) <= (testedCoords.row as number) &&
-      (this.#isRtl ? (this.col as number) <= (testedCoords.col as number) : (this.col as number) >= (testedCoords.col as number));
+    if (this.row === null || this.col === null || testedCoords.row === null || testedCoords.col === null) {
+      return false;
+    }
+    const row = this.row;
+    const col = this.col;
+    const testedRow = testedCoords.row;
+    const testedCol = testedCoords.col;
+
+    return row <= testedRow &&
+      (this.#isRtl ? col <= testedCol : col >= testedCol);
   }
 
   /**
@@ -230,7 +274,7 @@ class CellCoords {
    * @returns {CellCoords}
    */
   clone(): CellCoords {
-    return new CellCoords(this.row as number, this.col as number, this.#isRtl);
+    return new CellCoords(this.row ?? undefined, this.col ?? undefined, this.#isRtl);
   }
 
   /**
