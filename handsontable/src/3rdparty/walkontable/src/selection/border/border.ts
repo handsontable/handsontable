@@ -78,7 +78,7 @@ class Border {
 
     this.cornerDefaultStyle = getCornerStyle(this.instance);
     // Offset to moving the corner to be centered relative to the grid.
-    this.cornerCenterPointOffset = -Math.ceil((parseInt(this.cornerDefaultStyle.width as string, 10) / 2));
+    this.cornerCenterPointOffset = -Math.ceil((parseInt(String(this.cornerDefaultStyle.width), 10) / 2));
     this.corner = null;
     this.cornerStyle = null;
 
@@ -215,10 +215,10 @@ class Border {
         }
 
         style.setProperty('--ht-custom-border-size', `${getSettingsProperty('width')}px`);
-        style.setProperty('--ht-custom-border-color', getSettingsProperty('color') as string);
+        style.setProperty('--ht-custom-border-color', String(getSettingsProperty('color') ?? ''));
 
       } else {
-        style.backgroundColor = getSettingsProperty('color') as string;
+        style.backgroundColor = String(getSettingsProperty('color') ?? '');
       }
 
       style.height = `${getSettingsProperty('width')}px`;
@@ -608,7 +608,7 @@ class Border {
       this.cornerStyle.borderRightWidth = `${this.cornerDefaultStyle.borderWidth}px`;
       this.cornerStyle.borderLeftWidth = `${this.cornerDefaultStyle.borderWidth}px`;
       this.cornerStyle.borderBottomWidth = `${this.cornerDefaultStyle.borderWidth}px`;
-      this.cornerStyle.width = this.cornerDefaultStyle.width as string;
+      this.cornerStyle.width = String(this.cornerDefaultStyle.width);
 
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
@@ -622,9 +622,9 @@ class Border {
 
       // -1 was initially removed from the base position to compensate for the table border. We need to exclude it from
       // the corner width.
-      const cornerBorderCompensation = parseInt(this.cornerDefaultStyle.borderWidth as string, 10) - 1;
-      const cornerHalfWidth = Math.ceil(parseInt(this.cornerDefaultStyle.width as string, 10) / 2);
-      const cornerHalfHeight = Math.ceil(parseInt(this.cornerDefaultStyle.height as string, 10) / 2);
+      const cornerBorderCompensation = parseInt(String(this.cornerDefaultStyle.borderWidth), 10) - 1;
+      const cornerHalfWidth = Math.ceil(parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
+      const cornerHalfHeight = Math.ceil(parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
 
       if (toColumn === (this.wot.getSetting('totalColumns') as number) - 1) {
         const toTdOffsetLeft = trimToWindow ? (toTD as HTMLElement).getBoundingClientRect().left : (toTD as HTMLElement).offsetLeft;
@@ -632,11 +632,11 @@ class Border {
         let cornerEdge = 0;
 
         if (isRtl) {
-          cornerEdge = toTdOffsetLeft - (parseInt(this.cornerDefaultStyle.width as string, 10) / 2);
+          cornerEdge = toTdOffsetLeft - (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
           cornerOverlappingContainer = cornerEdge < 0;
 
         } else {
-          cornerEdge = toTdOffsetLeft + outerWidth(toTD as HTMLElement) + (parseInt(this.cornerDefaultStyle.width as string, 10) / 2);
+          cornerEdge = toTdOffsetLeft + outerWidth(toTD as HTMLElement) + (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
           cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
         }
 
@@ -655,7 +655,7 @@ class Border {
 
       if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
         const toTdOffsetTop = trimToWindow ? (toTD as HTMLElement).getBoundingClientRect().top : (toTD as HTMLElement).offsetTop;
-        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD as HTMLElement) + (parseInt(this.cornerDefaultStyle.height as string, 10) / 2);
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD as HTMLElement) + (parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
@@ -790,7 +790,7 @@ class Border {
         removeClass(self[borderElement], 'hidden');
       }
 
-      style.backgroundColor = borderStyle.color as string;
+      style.backgroundColor = String(borderStyle.color ?? '');
 
       if (borderElement === 'top' || borderElement === 'bottom') {
         style.height = `${borderStyle.width}px`;

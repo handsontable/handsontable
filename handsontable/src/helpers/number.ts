@@ -20,17 +20,15 @@
  * @returns {boolean}
  */
 export function isNumeric(value: unknown, additionalDelimiters: string[] = []): boolean {
-  const type = typeof value;
+  if (typeof value === 'number') {
+    return !isNaN(value) && isFinite(value);
 
-  if (type === 'number') {
-    return !isNaN(value as number) && isFinite(value as number);
-
-  } else if (type === 'string') {
-    if ((value as string).length === 0) {
+  } else if (typeof value === 'string') {
+    if (value.length === 0) {
       return false;
 
-    } else if ((value as string).length === 1) {
-      return /\d/.test(value as string);
+    } else if (value.length === 1) {
+      return /\d/.test(value);
     }
 
     const delimiter = Array.from(new Set(['.', ...additionalDelimiters]))
@@ -38,9 +36,9 @@ export function isNumeric(value: unknown, additionalDelimiters: string[] = []): 
       .join('|');
 
     return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
-      .test((value as string).trim());
+      .test(value.trim());
 
-  } else if (type === 'object') {
+  } else if (typeof value === 'object') {
     return !!value && typeof (value as { valueOf(): unknown }).valueOf() === 'number' && !(value instanceof Date);
   }
 

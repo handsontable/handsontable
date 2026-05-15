@@ -158,7 +158,7 @@ export class StylesHandler {
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName: string | undefined | boolean) {
-    if (!/ht-theme-.*/.test(themeName as string)) {
+    if (typeof themeName !== 'string' || !/ht-theme-.*/.test(themeName)) {
       warn(`${themeName} isn't a valid theme name. Please ensure it follows the format ht-theme-<theme-name>.`);
 
       return;
@@ -166,8 +166,8 @@ export class StylesHandler {
 
     this.#clearCachedValues();
 
-    if (themeName && themeName !== this.#themeName) {
-      this.#themeName = themeName as string;
+    if (themeName !== this.#themeName) {
+      this.#themeName = themeName;
     }
 
     this.#onThemeChange(this.#themeName);
@@ -212,7 +212,7 @@ export class StylesHandler {
     // Math.round (not Math.ceil) so that fractional computed values from sub-100% browser zoom
     // (e.g. "1.111px" at 90%) round to the correct 1px rather than overshooting to 2px, which
     // would make the hider taller than the actual table content and leave a visible gap.
-    const bottomBorderWidth = Math.round(Number.parseFloat(this.getStyleForTD('border-bottom-width') as string));
+    const bottomBorderWidth = Math.round(Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? ''));
 
     if (
       lineHeightVarValue === null ||
@@ -239,8 +239,8 @@ export class StylesHandler {
     this.#computedStyles.td = {
       ...this.#computedStyles.td,
       ...{
-        'box-sizing': stylesForTD['box-sizing'] as string,
-        'border-bottom-width': stylesForTD['border-bottom-width'] as string,
+        'box-sizing': stylesForTD['box-sizing'],
+        'border-bottom-width': stylesForTD['border-bottom-width'],
       },
     };
   }
@@ -274,7 +274,7 @@ export class StylesHandler {
     rootElement.appendChild(table);
 
     const computedStyle = getComputedStyle(td);
-    const returnObject: Record<string, unknown> = {};
+    const returnObject: Record<string, string> = {};
 
     cssProps.forEach((prop: string) => {
       returnObject[prop] = computedStyle.getPropertyValue(prop);
@@ -292,7 +292,7 @@ export class StylesHandler {
    * @returns {number|null} The parsed value of the CSS property or `null` if non-existent.
    */
   #getParsedNumericCSSValue(property: string) {
-    const parsedValue = Math.ceil(Number.parseFloat(this.#getCSSValue(property) as string));
+    const parsedValue = Math.ceil(Number.parseFloat(this.#getCSSValue(property) ?? ''));
 
     return Number.isNaN(parsedValue) ? null : parsedValue;
   }
@@ -303,8 +303,8 @@ export class StylesHandler {
    * @param {string} property - The CSS property to retrieve.
    * @returns {string|null} The value of the specified CSS property or `null` if non-existent.
    */
-  #getCSSValue(property: string) {
-    const acquiredValue = this.#rootComputedStyle?.getPropertyValue(property);
+  #getCSSValue(property: string): string | null {
+    const acquiredValue = this.#rootComputedStyle?.getPropertyValue(property) ?? null;
 
     return acquiredValue === '' ? null : acquiredValue;
   }
