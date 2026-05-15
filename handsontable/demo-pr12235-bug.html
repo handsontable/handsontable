@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12235 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 3px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 170px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; text-align: center; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 24px; font-weight: 700; font-family: monospace; line-height: 1.2; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .sticky-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 2px solid #ccc; border-radius: 8px; padding: 10px 20px; margin-bottom: 14px; font-size: 16px; font-weight: 600; }
+    .dot { width: 14px; height: 14px; border-radius: 50%; }
+    .dot-off { background: #9e9e9e; }
+    .dot-on  { background: #43a047; animation: pulse 0.8s infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 140px; overflow-y: auto; margin-bottom: 10px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug  { color: #b71c1c; }
+    .entry-ok   { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12235 - Fast scrollbar drag rendering (StickyScrollStrategy)</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12235-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>No sticky-scroll strategy (v17.0.1).</strong>
+    During fast native scrollbar drag, the spreader element stays at
+    <code>position: relative</code> — JavaScript must reposition it on every scroll event.
+    At high scroll speed the browser paints frames before JS finishes, causing blank/white
+    flicker or a visible position "jump" on mouseup.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the issue:</strong>
+    <ol>
+      <li>Click and hold the <strong>vertical scrollbar</strong> thumb on the right side of the grid below.</li>
+      <li>Drag it <strong>rapidly up and down</strong> several times.</li>
+      <li>Release the mouse.</li>
+      <li>Look for: white/blank rows during drag, or a visible position jump on release.</li>
+      <li>Watch the <strong>Sticky Mode</strong> indicator — it will <em>never</em> turn green (no sticky strategy).</li>
+      <li>Compare with the <a href="demo-pr12235-fix.html">PR Fix page</a> where sticky mode activates during drag.</li>
+    </ol>
+  </div>
+
+  <div class="sticky-indicator" id="sticky-bar">
+    <div class="dot dot-off" id="sticky-dot"></div>
+    <span id="sticky-label">Sticky Mode: <strong>INACTIVE</strong> — spreader.style.position = <code id="pos-val">relative</code></span>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Sticky activations</div>
+      <div class="metric-value bad" id="m-activations">0</div>
+      <div class="metric-sub">Expected with fix: &gt; 0 per drag</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Scroll events (total)</div>
+      <div class="metric-value neutral" id="m-scrolls">0</div>
+      <div class="metric-sub">Since page load</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Blank frames detected</div>
+      <div class="metric-value bad" id="m-blanks">0</div>
+      <div class="metric-sub">Rows with empty offsetHeight</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Spreader position now</div>
+      <div class="metric-value neutral" id="m-pos">relative</div>
+      <div class="metric-sub">During drag: "sticky" with fix</div>
+    </div>
+  </div>
+
+  <div id="log"><strong>Event log:</strong><div id="entries">(scroll the grid to see events)</div></div>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // ── Generate dataset: 800 rows ──────────────────────────────────────────
+    const FIRST = ['Alice','Bob','Carol','Dave','Eve','Frank','Grace','Hank',
+      'Ivy','Jack','Karen','Leo','Mia','Noah','Olivia','Paul','Quinn','Rose'];
+    const LAST  = ['Smith','Jones','Brown','Wilson','Moore','Taylor','Anderson',
+      'Thomas','Jackson','White','Harris','Martin','Garcia','Martinez','Robinson'];
+    const DEPT  = ['Engineering','Marketing','Sales','Finance','HR','Operations',
+      'Legal','Support','Design','Research'];
+
+    const DATA = Array.from({ length: 800 }, (_, i) => [
+      i + 1,
+      FIRST[i % FIRST.length] + ' ' + LAST[i % LAST.length],
+      DEPT[i % DEPT.length],
+      `${2015 + (i % 9)}-${String((i % 12) + 1).padStart(2,'0')}-${String((i % 28) + 1).padStart(2,'0')}`,
+      Math.round(40000 + (i * 137) % 80000),
+    ]);
+
+    let scrollCount = 0;
+    let stickyActivations = 0;
+    let blankFrames = 0;
+    let prevStickyState = false;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+      while (el.children.length > 50) el.removeChild(el.lastChild);
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: DATA,
+      colHeaders: ['#', 'Name', 'Department', 'Start date', 'Salary'],
+      rowHeaders: true,
+      width: '100%',
+      height: 380,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      fixedRowsTop: 0,
+      fixedColumnsStart: 0,
+    });
+
+    // ── Instrument spreader positioning ───────────────────────────────────
+    function getSpreader() {
+      return hot.view._wt?.wtTable?.spreader || null;
+    }
+
+    function checkSpreader() {
+      const spreader = getSpreader();
+      if (!spreader) return;
+      const pos = spreader.style.position || 'relative';
+      const isSticky = pos === 'sticky';
+
+      document.getElementById('pos-val').textContent = pos;
+      document.getElementById('m-pos').textContent = pos;
+
+      if (isSticky !== prevStickyState) {
+        if (isSticky) {
+          stickyActivations++;
+          document.getElementById('m-activations').textContent = stickyActivations;
+          document.getElementById('sticky-dot').className = 'dot dot-on';
+          document.getElementById('sticky-label').innerHTML =
+            'Sticky Mode: <strong style="color:#2e7d32">ACTIVE</strong> — spreader.style.position = <code>sticky</code>';
+          document.getElementById('sticky-bar').style.borderColor = '#43a047';
+          addLog(`Sticky mode ACTIVATED (drag #${stickyActivations})`, 'entry-ok');
+        } else {
+          document.getElementById('sticky-dot').className = 'dot dot-off';
+          document.getElementById('sticky-label').innerHTML =
+            'Sticky Mode: <strong>INACTIVE</strong> — spreader.style.position = <code>relative</code>';
+          document.getElementById('sticky-bar').style.borderColor = '#ccc';
+          addLog('Sticky mode deactivated (mouseup)', 'entry-info');
+        }
+        prevStickyState = isSticky;
+      }
+    }
+
+    // Poll the spreader position at 60fps
+    setInterval(checkSpreader, 16);
+
+    // Count scroll events and check for blank rows
+    const holder = hot.view._wt?.wtTable?.holder;
+    if (holder) {
+      holder.addEventListener('scroll', () => {
+        scrollCount++;
+        document.getElementById('m-scrolls').textContent = scrollCount;
+
+        // Count any zero-height rendered rows (blank frame indicator)
+        const rows = hot.rootElement.querySelectorAll('.htCore tbody tr');
+        let blanks = 0;
+        rows.forEach(tr => { if (tr.offsetHeight === 0) blanks++; });
+        if (blanks > 0) {
+          blankFrames += blanks;
+          document.getElementById('m-blanks').textContent = blankFrames;
+          addLog(`${blanks} zero-height rows detected during scroll (blank frame)`, 'entry-bug');
+        }
+
+        if (scrollCount % 20 === 0) {
+          addLog(`Scroll event #${scrollCount}`, 'entry-info');
+        }
+      });
+    }
+  </script>
+</body>
+</html>
