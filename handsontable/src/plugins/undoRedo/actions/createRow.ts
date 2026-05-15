@@ -26,9 +26,9 @@ export class CreateRowAction extends BaseAction {
 
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterCreateRow', (index: number, amount: number, source: string) => {
-      const done = (undoRedoPlugin as { done: (...args: unknown[]) => void }).done;
-
-      done(() => new CreateRowAction({ index, amount }), source);
+      (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(
+        () => new CreateRowAction({ index, amount }), source
+      );
     });
   }
 

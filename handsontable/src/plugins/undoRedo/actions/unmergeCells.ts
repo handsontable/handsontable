@@ -26,9 +26,9 @@ export class UnmergeCellsAction extends BaseAction {
         return;
       }
 
-      const done = (undoRedoPlugin as { done: (...args: unknown[]) => void }).done;
-
-      done(() => new UnmergeCellsAction({ cellRange: cellRange as CellRange }));
+      (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(
+        () => new UnmergeCellsAction({ cellRange: cellRange as CellRange })
+      );
     });
   }
 

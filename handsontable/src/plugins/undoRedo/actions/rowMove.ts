@@ -31,9 +31,9 @@ export class RowMoveAction extends BaseAction {
         return;
       }
 
-      const done = (undoRedoPlugin as { done: (...args: unknown[]) => void }).done;
-
-      done(() => new RowMoveAction({ rows: rows as number[], finalIndex: finalIndex as number }));
+      (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(
+        () => new RowMoveAction({ rows: rows as number[], finalIndex: finalIndex as number })
+      );
     });
   }
 
