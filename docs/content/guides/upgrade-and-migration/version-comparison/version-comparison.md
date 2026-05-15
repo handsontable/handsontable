@@ -15,9 +15,5 @@ category: Upgrade and migration
 
 Compare two Handsontable versions. Pick a **From** and **To** release to see the breaking changes, deprecations, new APIs, and fixes between them.
 
-<!-- TODO PRO-1201: build-time data injection is not yet wired. The content
-  collection loader (src/plugins/framework-loader.mjs) only scans .md files,
-  so VersionComparisonData.astro cannot be imported here. The script tag
-  below is intentionally empty until a remark/rehype plugin fills it. -->
 <script type="application/json" id="version-comparison-data"></script>
 <div id="version-comparison-root"></div>

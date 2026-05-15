@@ -6,6 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
+import { versionComparisonDataInjector } from './src/plugins/version-comparison-data-injector.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { buildAllSidebars } from './src/sidebar.mjs';
@@ -877,6 +878,11 @@ export default defineConfig({
       // collection entries (handled by framework-loader), but is kept for any
       // markdown files processed outside the content layer.
       vuepressPreprocessor({ framework: 'javascript' }),
+
+      // Inlines parser+highlights data into the empty <script> tag on the
+      // version-comparison page so the React widget can hydrate without a
+      // separate runtime fetch.
+      versionComparisonDataInjector(),
 
       // Resolves handsontable, @handsontable/react-wrapper, react, and react-dom
       // to local monorepo builds. Required because docs/ does not install these
