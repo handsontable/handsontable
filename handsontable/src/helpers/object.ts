@@ -71,6 +71,9 @@ export function extend(target: Record<string, unknown>, extension: Record<string
   const hasWritableKeys = Array.isArray(writableKeys);
 
   objectEach(extension, (value, key) => {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return;
+    }
     if (hasWritableKeys === false || writableKeys.includes(key)) {
       target[key] = value;
     }
