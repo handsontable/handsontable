@@ -273,7 +273,7 @@ export class Menu {
     this.container.style.display = 'block';
 
     const delayedOpenSubMenu = debounce((row: number) => this.openSubMenu(row), 300);
-    const minWidthOfMenu = (this.options.minWidth as number) || MIN_WIDTH;
+    const minWidthOfMenu = (Number(this.options.minWidth) || MIN_WIDTH);
     let noItemsDefined = false;
     const rootStyles = this.hot.rootWindow.getComputedStyle(this.hot.rootElement);
 
@@ -671,13 +671,13 @@ export class Menu {
     const holderStyle = wtTable.holder.style;
     const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    const realHeight = arrayReduce(data,
-      (accumulator: unknown, value: unknown, index: unknown) => {
-        const itemCell = this.hotMenu!.getCell(index as number, 0);
-        const currentRowHeight = itemCell ? outerHeight(this.hotMenu!.getCell(index as number, 0)) : 0;
+    const realHeight = arrayReduce<unknown, number>(data,
+      (accumulator, value, index) => {
+        const itemCell = this.hotMenu!.getCell(index, 0);
+        const currentRowHeight = itemCell ? outerHeight(this.hotMenu!.getCell(index, 0)) : 0;
 
-        return (accumulator as number) + ((value as Record<string, unknown>).name === SEPARATOR ? 1 : currentRowHeight);
-      }, 0) as number;
+        return accumulator + ((value as Record<string, unknown>).name === SEPARATOR ? 1 : currentRowHeight);
+      }, 0);
 
     holderStyle.width = `${currentHiderWidth}px`;
     holderStyle.height = `${realHeight}px`;

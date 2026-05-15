@@ -299,12 +299,13 @@ export class ColumnSummary extends BasePlugin {
   getPartialSum(rowRange: number[], col: number): number {
     let sum = 0;
     let i = rowRange[1] || rowRange[0];
-    let cellValue = null;
+    let cellValue: number | null = null;
     let biggestDecimalPlacesCount = 0;
 
     do {
-      cellValue = this.getCellValue(i, col);
-      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
+      const rawValue = this.getCellValue(i, col);
+
+      cellValue = isNullishOrNaN(rawValue) ? null : Number(rawValue);
 
       if (cellValue !== null) {
         const decimalPlaces = (((`${cellValue}`).split('.')[1] || []).length) || 1;
@@ -314,7 +315,7 @@ export class ColumnSummary extends BasePlugin {
         }
       }
 
-      sum += (cellValue as number) || 0;
+      sum += cellValue ?? 0;
       i -= 1;
     } while (i >= rowRange[0]);
 
@@ -369,21 +370,22 @@ export class ColumnSummary extends BasePlugin {
   getPartialMinMax(rowRange: number[], col: number, type: 'min' | 'max'): number | null {
     let result: number | null = null;
     let i = rowRange[1] || rowRange[0];
-    let cellValue;
+    let cellValue: number | null;
 
     do {
-      cellValue = this.getCellValue(i, col);
-      cellValue = isNullishOrNaN(cellValue) ? null : cellValue;
+      const rawValue = this.getCellValue(i, col);
+
+      cellValue = isNullishOrNaN(rawValue) ? null : Number(rawValue);
 
       if (result === null) {
-        result = cellValue as number | null;
+        result = cellValue;
       } else if (cellValue !== null) {
         switch (type) {
           case 'min':
-            result = Math.min(result, cellValue as number);
+            result = Math.min(result, cellValue);
             break;
           case 'max':
-            result = Math.max(result, cellValue as number);
+            result = Math.max(result, cellValue);
             break;
           default:
             break;
@@ -468,12 +470,12 @@ export class ColumnSummary extends BasePlugin {
    * @param {number} col Column index.
    * @returns {string} The cell value.
    */
-  getCellValue(row: number, col: number): unknown {
+  getCellValue(row: number, col: number): number | string | null {
     const visualRowIndex = this.hot.toVisualRow(row);
 
-    let cellValue: unknown = visualRowIndex !== null
+    let cellValue: number | string | null = (visualRowIndex !== null
       ? this.hot.getDataAtCell(visualRowIndex, col)
-      : this.hot.getSourceDataAtCell(row, col);
+      : this.hot.getSourceDataAtCell(row, col)) as number | string | null;
     let cellClassName = '';
 
     if (visualRowIndex !== null) {
@@ -492,7 +494,7 @@ export class ColumnSummary extends BasePlugin {
       cellValue = parseFloat(cellValue as string);
     }
 
-    if (isNaN(cellValue as number)) {
+    if (isNaN(Number(cellValue))) {
       if (!this.endpoints!.currentEndpoint!.suppressDataTypeErrors) {
         throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
           numeric format. Cannot do the calculation.`);

@@ -245,8 +245,8 @@ export class CollapsibleColumns extends BasePlugin {
     this.addHook('init', () => this.#onInit());
     this.addHook('afterLoadData', (...args: unknown[]) =>
       this.#onAfterLoadData(args[0] as unknown[][][], args[1] as boolean));
-    this.addHook('afterGetColHeader', (...args: unknown[]) =>
-      this.#onAfterGetColHeader(args[0] as number, args[1] as HTMLTableCellElement, args[2] as number));
+    this.addHook('afterGetColHeader', (column: number, TH: HTMLTableCellElement, headerLevel: number) =>
+      this.#onAfterGetColHeader(column, TH, headerLevel));
     this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number, col: number }) => this.#onBeforeOnCellMouseDown(event, coords));
 
     this.registerShortcuts();
@@ -274,7 +274,7 @@ export class CollapsibleColumns extends BasePlugin {
       if (typeof collapsibleColumns === 'boolean') {
         // Add `collapsible: true` attribute to all headers with colspan higher than 1.
         this.headerStateManager.mapState((headerSettings: Record<string, unknown>) => {
-          return { collapsible: (headerSettings.origColspan as number) > 1 };
+          return { collapsible: Number(headerSettings.origColspan) > 1 };
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
@@ -432,7 +432,7 @@ export class CollapsibleColumns extends BasePlugin {
         isCollapsed,
       } = headerSettings;
 
-      if (collapsible === true && (origColspan as number) > 1
+      if (collapsible === true && Number(origColspan) > 1
           && (isCollapsed && action === 'expand' || !isCollapsed && action === 'collapse')) {
         return {
           row: this.headerStateManager.levelToRowCoords(headerLevel),
@@ -512,7 +512,7 @@ export class CollapsibleColumns extends BasePlugin {
     let destinationCollapsedColumns: number[] = [];
 
     if (action === 'collapse') {
-      destinationCollapsedColumns = arrayUnique([...currentCollapsedColumns, ...affectedColumnsIndexes]) as number[];
+      destinationCollapsedColumns = arrayUnique([...currentCollapsedColumns, ...affectedColumnsIndexes]);
 
     } else if (action === 'expand') {
       destinationCollapsedColumns = arrayFilter(currentCollapsedColumns,
@@ -592,8 +592,8 @@ export class CollapsibleColumns extends BasePlugin {
    */
   #onAfterGetColHeader(column: number, TH: HTMLTableCellElement, headerLevel: number) {
     const headerSettings = this.headerStateManager.getHeaderSettings(headerLevel, column);
-    const { collapsible, origColspan, isCollapsed } = headerSettings ?? {} as Record<string, unknown>;
-    const isNodeCollapsible = collapsible && (origColspan as number) > 1 && column >= this.hot.getSettings().fixedColumnsStart;
+    const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
+    const isNodeCollapsible = collapsible === true && (origColspan ?? 0) > 1 && column >= this.hot.getSettings().fixedColumnsStart;
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 

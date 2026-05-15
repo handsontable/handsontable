@@ -161,10 +161,10 @@ export class AutoRowSize extends BasePlugin {
     return true;
   }
 
-  static get DEFAULT_SETTINGS() {
+  static get DEFAULT_SETTINGS(): { useHeaders: boolean; samplingRatio: number | null; allowSampleDuplicates: boolean } {
     return {
       useHeaders: true,
-      samplingRatio: null as number | null,
+      samplingRatio: null,
       allowSampleDuplicates: false,
     };
   }
@@ -532,7 +532,7 @@ export class AutoRowSize extends BasePlugin {
     const rowsLimit = this.hot.countRows() - 1;
 
     if (isObject(settings)) {
-      limit = (settings as Record<string, unknown>).syncLimit as number;
+      limit = this.getSetting<number>('syncLimit');
 
       if (isPercentValue(limit as unknown as string)) {
         limit = valueAccordingPercent(rowsLimit, limit as unknown as string);
@@ -737,8 +737,10 @@ export class AutoRowSize extends BasePlugin {
    */
   #onBeforeChange(changes: unknown[][][]) {
     const changedRows = changes.reduce((acc: number[], [row]: unknown[]) => {
-      if (acc.indexOf(row as number) === -1) {
-        acc.push(row as number);
+      const rowIndex = Number(row);
+
+      if (acc.indexOf(rowIndex) === -1) {
+        acc.push(rowIndex);
       }
 
       return acc;
@@ -773,7 +775,7 @@ export class AutoRowSize extends BasePlugin {
         return acc;
       }
 
-      const physicalRow = (change.address as Record<string, unknown>)?.row as number;
+      const physicalRow = Number((change.address as Record<string, unknown>)?.row);
 
       if (Number.isInteger(physicalRow)) {
         const visualRow = this.hot.toVisualRow(physicalRow);

@@ -252,10 +252,10 @@ export function arrayFlatten(array: unknown[][]): unknown[] {
  * @param {Array} array The array to process.
  * @returns {Array}
  */
-export function arrayUnique(array: unknown[]): unknown[] {
-  const unique: unknown[] = [];
+export function arrayUnique<T = unknown>(array: T[]): T[] {
+  const unique: T[] = [];
 
-  arrayEach(array, (value) => {
+  arrayEach(array, (value: T) => {
     if (unique.indexOf(value) === -1) {
       unique.push(value);
     }

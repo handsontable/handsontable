@@ -173,10 +173,10 @@ export class AutoColumnSize extends BasePlugin {
     return true;
   }
 
-  static get DEFAULT_SETTINGS() {
+  static get DEFAULT_SETTINGS(): { useHeaders: boolean; samplingRatio: number | null; allowSampleDuplicates: boolean } {
     return {
       useHeaders: true,
-      samplingRatio: null as number | null,
+      samplingRatio: null,
       allowSampleDuplicates: false,
     };
   }
@@ -306,9 +306,9 @@ export class AutoColumnSize extends BasePlugin {
     this.ghostTable.setSetting('useHeaders', this.getSetting('useHeaders'));
     this.samplesGenerator.setAllowDuplicates(this.getSetting<boolean>('allowSampleDuplicates'));
 
-    const samplingRatio = this.getSetting('samplingRatio');
+    const samplingRatio = this.getSetting<number | null>('samplingRatio');
 
-    if (samplingRatio && !isNaN(samplingRatio as number)) {
+    if (samplingRatio && !isNaN(samplingRatio)) {
       this.samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
     }
 
@@ -686,7 +686,7 @@ export class AutoColumnSize extends BasePlugin {
    */
   #onBeforeChange(changes: unknown[][][]) {
     const changedColumns = changes.reduce((acc: number[], [, columnProperty]: unknown[]) => {
-      const visualColumn = this.hot.propToCol(columnProperty as number);
+      const visualColumn = this.hot.propToCol(columnProperty as string | number);
 
       if (Number.isInteger(visualColumn) && acc.indexOf(visualColumn) === -1) {
         acc.push(visualColumn);
@@ -745,7 +745,7 @@ export class AutoColumnSize extends BasePlugin {
         return acc;
       }
 
-      const physicalColumn = (change.address as Record<string, unknown>)?.col as number;
+      const physicalColumn = Number((change.address as Record<string, unknown>)?.col);
 
       if (Number.isInteger(physicalColumn)) {
         const visualColumn = this.hot.toVisualColumn(physicalColumn);
