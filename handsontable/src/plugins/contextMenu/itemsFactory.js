@@ -55,6 +55,21 @@ export class ItemsFactory {
         menuItemKey = value.key;
 
       } else {
+        // Object-form `contextMenu.items` keys that name a plugin-provided
+        // entry (e.g. `add_child` from nestedRows) are unknown to the registry
+        // on the first `getItems` pass, so a bare placeholder is emitted. The
+        // nestedRows plugin then splices its rich entry at the start of the
+        // array via `afterContextMenuDefaultOptions`, placing the bare
+        // placeholder later in iteration order. Without this guard, the
+        // placeholder would overwrite the rich entry's callback, submenu, or
+        // renderer. See issue #9894.
+        const existing = items[value.key];
+        const isRich = item => Boolean(item && (item.callback || item.submenu || item.renderer));
+
+        if (existing && isRich(existing) && !isRich(value)) {
+          return;
+        }
+
         items[value.key] = value;
         menuItemKey = value.key;
       }
