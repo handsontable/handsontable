@@ -1,4 +1,4 @@
-import type { HookCallback } from "../../../core/hooks/bucket";
+import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
 import { deepClone } from '../../../helpers/object';
@@ -7,6 +7,7 @@ import { deepClone } from '../../../helpers/object';
  * Minimal interface for the UndoRedo plugin used by action classes.
  */
 interface UndoRedoPluginLike {
+  // eslint-disable-next-line no-use-before-define
   done(wrappedAction: () => DataChangeAction, source: string): void;
 }
 

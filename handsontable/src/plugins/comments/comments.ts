@@ -23,6 +23,13 @@ import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
+export const PLUGIN_KEY = 'comments';
+export const PLUGIN_PRIORITY = 60;
+export const META_COMMENT = 'comment';
+export const META_COMMENT_VALUE = 'value';
+export const META_STYLE = 'style';
+export const META_READONLY = 'readOnly';
+
 /**
  * Represents a comment's metadata stored in cell meta.
  */
@@ -41,13 +48,6 @@ interface CommentRange {
   from?: CellCoords;
   to?: CellCoords;
 }
-
-export const PLUGIN_KEY = 'comments';
-export const PLUGIN_PRIORITY = 60;
-export const META_COMMENT = 'comment';
-export const META_COMMENT_VALUE = 'value';
-export const META_STYLE = 'style';
-export const META_READONLY = 'readOnly';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
@@ -582,6 +582,7 @@ export class Comments extends BasePlugin {
 
     this.#displaySwitch.cancelHiding();
     const commentMeta = meta[META_COMMENT] as CommentMeta | undefined;
+
     this.#editor.setValue((commentMeta ? commentMeta[META_COMMENT_VALUE] : null) ?? '');
     this.#editor.show();
     this.refreshEditor(true);

@@ -32,19 +32,6 @@ import { TrimmingMap } from '../../translations';
 import { BaseComponent } from './component/_base';
 
 /**
- * Interface for the DropdownMenu plugin.
- */
-interface DropdownMenuPluginInterface {
-  menu: DropdownMenuInterface;
-  enabled: boolean;
-  disablePlugin(): void;
-  enablePlugin(): void;
-  close(): void;
-  setListening(): void;
-  [key: string]: unknown;
-}
-
-/**
  * Interface for a DropdownMenu's Menu instance.
  */
 interface DropdownMenuInterface {
@@ -67,6 +54,19 @@ interface DropdownMenuInterface {
     clear(): void;
   };
   focus(): void;
+  [key: string]: unknown;
+}
+
+/**
+ * Interface for the DropdownMenu plugin.
+ */
+interface DropdownMenuPluginInterface {
+  menu: DropdownMenuInterface;
+  enabled: boolean;
+  disablePlugin(): void;
+  enablePlugin(): void;
+  close(): void;
+  setListening(): void;
   [key: string]: unknown;
 }
 
@@ -897,7 +897,6 @@ export class Filters extends BasePlugin {
       return;
     }
 
-
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
@@ -1000,7 +999,7 @@ export class Filters extends BasePlugin {
     if (allowFiltering !== false && needToFilter) {
       const trimmedRows: number[] = [];
       const dataFilter = this._createDataFilter();
-      const rowIndexesToShow = arrayMap(dataFilter.filter(), (rowData) => (rowData as { meta: { row: number } }).meta.row);
+      const rowIndexesToShow = arrayMap(dataFilter.filter(), rowData => (rowData as { meta: { row: number } }).meta.row);
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
 
       this.hot.batchExecution(() => {

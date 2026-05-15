@@ -171,7 +171,7 @@ export class BaseEditor {
    * Required method to focus editor.
    */
   focus(): void {
-    throw Error('Editor focus() method unimplemented');
+    throwWithCause('Editor focus() method unimplemented');
   }
 
   /**

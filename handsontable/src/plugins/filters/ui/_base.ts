@@ -14,6 +14,7 @@ export interface BaseUIOptions {
   className?: string;
   value?: unknown;
   tagName?: string;
+  // eslint-disable-next-line no-use-before-define
   children?: BaseUI[];
   wrapIt?: boolean;
   tabIndex?: number;
@@ -165,7 +166,7 @@ export class BaseUI {
     }
 
     if (this.options.children.length) {
-      arrayEach(this.options.children, (element) => this._element.appendChild((element as BaseUI).element));
+      arrayEach(this.options.children, element => this._element.appendChild((element as BaseUI).element));
 
     } else if (this.options.wrapIt) {
       const element = this.hot.rootDocument.createElement(this.options.tagName) as HTMLElement & Record<string, unknown>;
@@ -182,10 +183,10 @@ export class BaseUI {
 
       this._element.appendChild(element);
 
-      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(element, eventName));
+      arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(element, eventName));
 
     } else {
-      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(this._element, eventName));
+      arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(this._element, eventName));
     }
   }
 

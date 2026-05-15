@@ -17,6 +17,12 @@ interface NodeInfo {
   level: number;
 }
 
+// Forward-declare CollapsingUI to avoid circular dependency issues
+type CollapsingUI = {
+  translateTrimmedRow(row: number): number;
+  untranslateTrimmedRow(row: number): number;
+};
+
 /**
  * Class responsible for making data operations.
  *
@@ -388,7 +394,7 @@ class DataManager {
    * @returns {boolean}
    */
   hasChildren(row: number | RowObject): boolean {
-    let rowObj: RowObject = typeof row === 'number' ? this.getDataObject(row) : row;
+    const rowObj: RowObject = typeof row === 'number' ? this.getDataObject(row) : row;
 
     return !!(rowObj.__children && rowObj.__children.length);
   }
@@ -831,11 +837,5 @@ class DataManager {
     return row;
   }
 }
-
-// Forward-declare CollapsingUI to avoid circular dependency issues
-type CollapsingUI = {
-  translateTrimmedRow(row: number): number;
-  untranslateTrimmedRow(row: number): number;
-};
 
 export default DataManager;

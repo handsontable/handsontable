@@ -6,6 +6,7 @@ interface EventListenerEntry {
   callback: Function;
   callbackProxy: (event: Event) => void;
   options: boolean | AddEventListenerOptions;
+  // eslint-disable-next-line no-use-before-define
   eventManager: EventManager;
 }
 

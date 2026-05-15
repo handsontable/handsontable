@@ -10,6 +10,7 @@ interface HotInstance {
   stylesHandler: { clearCache(): void };
   render(): void;
   runHooks(hookName: string, ...args: unknown[]): void;
+  // eslint-disable-next-line no-use-before-define
   themeManager: ThemeManager | null;
   [key: string]: unknown;
 }

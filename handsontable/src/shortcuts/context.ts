@@ -18,6 +18,7 @@ export interface Shortcut {
   stopPropagation?: boolean;
   relativeToGroup?: string;
   position?: 'before' | 'after';
+  // eslint-disable-next-line no-use-before-define
   forwardToContext?: Context;
 }
 
@@ -204,7 +205,7 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([normalizedKeys, shortcutOptions]) => {
-        const leftOptions = shortcutOptions.filter((option: Partial<Shortcut>) => option.group !== group);
+      const leftOptions = shortcutOptions.filter((option: Partial<Shortcut>) => option.group !== group);
 
       if (leftOptions.length === 0) {
         removeShortcutsByKeys(getKeysList(normalizedKeys));

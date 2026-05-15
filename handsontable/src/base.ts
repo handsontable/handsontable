@@ -50,6 +50,169 @@ export interface HooksRegistry {
 }
 
 /**
+ * Interface describing the Handsontable factory function and static members.
+ * Allows both `Handsontable(elem, opts)` and `new Handsontable(elem, opts)`.
+ *
+ * Covers both access patterns:
+ *   - UMD/namespace: `Handsontable.editors.DateEditor`, `Handsontable.plugins.AutoColumnSize`
+ *   - ESM/modular:   `import { DateEditor } from 'handsontable/editors'`
+ */
+interface HandsontableFactory {
+  (rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
+  new(rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
+  Core: new (rootElement: HTMLElement, userSettings?: GridSettingsType) => HotInstance;
+  DefaultSettings: Record<string, unknown>;
+  hooks: HooksRegistry;
+  CellCoords: typeof CellCoords;
+  CellRange: typeof CellRange;
+  packageName: string;
+  buildDate: string | undefined;
+  version: string | undefined;
+  languages: {
+    dictionaryKeys: unknown;
+    getLanguageDictionary: (languageCode: string) => object;
+    getLanguagesDictionaries: () => object[];
+    registerLanguageDictionary: (languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>) => object;
+    getTranslatedPhrase: (languageCode: string, dictionaryKey: string, argumentsForFormatters?: unknown) => string | null;
+    [key: string]: unknown;
+  };
+  /** Editor constructors accessible via the UMD namespace pattern. */
+  editors: {
+    AutocompleteEditor: typeof import('./editors/autocompleteEditor').AutocompleteEditor;
+    BaseEditor: typeof BaseEditor;
+    CheckboxEditor: typeof import('./editors/checkboxEditor').CheckboxEditor;
+    DateEditor: typeof import('./editors/dateEditor').DateEditor;
+    DropdownEditor: typeof import('./editors/dropdownEditor').DropdownEditor;
+    HandsontableEditor: typeof import('./editors/handsontableEditor').HandsontableEditor;
+    IntlDateEditor: typeof import('./editors/intlDateEditor').IntlDateEditor;
+    IntlTimeEditor: typeof import('./editors/intlTimeEditor').IntlTimeEditor;
+    MultiSelectEditor: typeof import('./editors/multiSelectEditor').MultiSelectEditor;
+    NumericEditor: typeof import('./editors/numericEditor').NumericEditor;
+    PasswordEditor: typeof import('./editors/passwordEditor').PasswordEditor;
+    SelectEditor: typeof import('./editors/selectEditor').SelectEditor;
+    TextEditor: typeof TextEditor;
+    TimeEditor: typeof import('./editors/timeEditor').TimeEditor;
+    registerEditor: typeof import('./editors/registry').registerEditor;
+    getEditor: typeof import('./editors/registry').getEditor;
+    editorFactory: typeof import('./editors/factory').editorFactory;
+    [key: string]: unknown;
+  };
+  dom: {
+    empty: typeof empty;
+    [key: string]: unknown;
+  };
+  themes: {
+    hasTheme: typeof import('./themes/registry').hasTheme;
+    getTheme: typeof import('./themes/registry').getTheme;
+    getThemeNames: typeof import('./themes/registry').getThemeNames;
+    getThemes: typeof import('./themes/registry').getThemes;
+    registerTheme: typeof import('./themes/registry').registerTheme;
+    reinitTheme: typeof import('./themes/registry').reinitTheme;
+    [key: string]: unknown;
+  };
+  /** Renderer functions accessible via the UMD namespace pattern. */
+  renderers: {
+    AutocompleteRenderer: typeof import('./renderers/autocompleteRenderer').autocompleteRenderer;
+    BaseRenderer: typeof import('./renderers/baseRenderer').baseRenderer;
+    cellDecorator: typeof import('./renderers/baseRenderer').baseRenderer;
+    CheckboxRenderer: typeof import('./renderers/checkboxRenderer').checkboxRenderer;
+    DateRenderer: typeof import('./renderers/dateRenderer').dateRenderer;
+    DropdownRenderer: typeof import('./renderers/dropdownRenderer').dropdownRenderer;
+    HandsontableRenderer: typeof import('./renderers/handsontableRenderer').handsontableRenderer;
+    HtmlRenderer: typeof import('./renderers/htmlRenderer').htmlRenderer;
+    IntlDateRenderer: typeof import('./renderers/intlDateRenderer').intlDateRenderer;
+    IntlTimeRenderer: typeof import('./renderers/intlTimeRenderer').intlTimeRenderer;
+    NumericRenderer: typeof import('./renderers/numericRenderer').numericRenderer;
+    PasswordRenderer: typeof import('./renderers/passwordRenderer').passwordRenderer;
+    SelectRenderer: typeof import('./renderers/selectRenderer').selectRenderer;
+    TextRenderer: typeof import('./renderers/textRenderer').textRenderer;
+    TimeRenderer: typeof import('./renderers/timeRenderer').timeRenderer;
+    registerRenderer: typeof import('./renderers/registry').registerRenderer;
+    getRenderer: typeof import('./renderers/registry').getRenderer;
+    rendererFactory: typeof import('./renderers/factory').rendererFactory;
+    [key: string]: unknown;
+  };
+  /** Validator functions accessible via the UMD namespace pattern. */
+  validators: {
+    AutocompleteValidator: typeof import('./validators/autocompleteValidator').autocompleteValidator;
+    DateValidator: typeof import('./validators/dateValidator').dateValidator;
+    DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
+    IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
+    IntlTimeValidator: typeof import('./validators/intlTimeValidator').intlTimeValidator;
+    MultiSelectValidator: typeof import('./validators/multiSelectValidator').multiSelectValidator;
+    NumericValidator: typeof import('./validators/numericValidator').numericValidator;
+    TimeValidator: typeof import('./validators/timeValidator').timeValidator;
+    registerValidator: typeof import('./validators/registry').registerValidator;
+    getValidator: typeof import('./validators/registry').getValidator;
+    [key: string]: unknown;
+  };
+  /** Cell type objects accessible via the UMD namespace pattern. */
+  cellTypes: {
+    autocomplete: typeof import('./cellTypes/autocompleteType').AutocompleteCellType;
+    checkbox: typeof import('./cellTypes/checkboxType').CheckboxCellType;
+    date: typeof import('./cellTypes/dateType').DateCellType;
+    dropdown: typeof import('./cellTypes/dropdownType').DropdownCellType;
+    handsontable: typeof import('./cellTypes/handsontableType').HandsontableCellType;
+    intlDate: typeof import('./cellTypes/intlDateType').IntlDateCellType;
+    intlTime: typeof import('./cellTypes/intlTimeType').IntlTimeCellType;
+    numeric: typeof import('./cellTypes/numericType').NumericCellType;
+    password: typeof import('./cellTypes/passwordType').PasswordCellType;
+    select: typeof import('./cellTypes/selectType').SelectCellType;
+    text: typeof import('./cellTypes/textType').TextCellType;
+    time: typeof import('./cellTypes/timeType').TimeCellType;
+    registerCellType: typeof import('./cellTypes/registry').registerCellType;
+    getCellType: typeof import('./cellTypes/registry').getCellType;
+    [key: string]: unknown;
+  };
+  /** Plugin classes accessible via the UMD namespace pattern (keyed by PascalCase convention). */
+  plugins: {
+    AutoColumnSize: typeof import('./plugins/autoColumnSize').AutoColumnSize;
+    Autofill: typeof import('./plugins/autofill').Autofill;
+    AutoRowSize: typeof import('./plugins/autoRowSize').AutoRowSize;
+    BindRowsWithHeaders: typeof import('./plugins/bindRowsWithHeaders').BindRowsWithHeaders;
+    CollapsibleColumns: typeof import('./plugins/collapsibleColumns').CollapsibleColumns;
+    ColumnSorting: typeof import('./plugins/columnSorting').ColumnSorting;
+    ColumnSummary: typeof import('./plugins/columnSummary').ColumnSummary;
+    Comments: typeof import('./plugins/comments').Comments;
+    ContextMenu: typeof import('./plugins/contextMenu').ContextMenu;
+    CopyPaste: typeof import('./plugins/copyPaste').CopyPaste;
+    CustomBorders: typeof import('./plugins/customBorders').CustomBorders;
+    DataProvider: typeof import('./plugins/dataProvider').DataProvider;
+    Dialog: typeof import('./plugins/dialog').Dialog;
+    DragToScroll: typeof import('./plugins/dragToScroll').DragToScroll;
+    DropdownMenu: typeof import('./plugins/dropdownMenu').DropdownMenu;
+    EmptyDataState: typeof import('./plugins/emptyDataState').EmptyDataState;
+    ExportFile: typeof import('./plugins/exportFile').ExportFile;
+    Filters: typeof import('./plugins/filters').Filters;
+    Formulas: typeof import('./plugins/formulas').Formulas;
+    HiddenColumns: typeof import('./plugins/hiddenColumns').HiddenColumns;
+    HiddenRows: typeof import('./plugins/hiddenRows').HiddenRows;
+    Loading: typeof import('./plugins/loading').Loading;
+    ManualColumnFreeze: typeof import('./plugins/manualColumnFreeze').ManualColumnFreeze;
+    ManualColumnMove: typeof import('./plugins/manualColumnMove').ManualColumnMove;
+    ManualColumnResize: typeof import('./plugins/manualColumnResize').ManualColumnResize;
+    ManualRowMove: typeof import('./plugins/manualRowMove').ManualRowMove;
+    ManualRowResize: typeof import('./plugins/manualRowResize').ManualRowResize;
+    MergeCells: typeof import('./plugins/mergeCells').MergeCells;
+    MultiColumnSorting: typeof import('./plugins/multiColumnSorting').MultiColumnSorting;
+    MultipleSelectionHandles: typeof import('./plugins/multipleSelectionHandles').MultipleSelectionHandles;
+    NestedHeaders: typeof import('./plugins/nestedHeaders').NestedHeaders;
+    NestedRows: typeof import('./plugins/nestedRows').NestedRows;
+    Notification: typeof import('./plugins/notification').Notification;
+    Pagination: typeof import('./plugins/pagination').Pagination;
+    Search: typeof import('./plugins/search').Search;
+    StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
+    TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
+    TrimRows: typeof import('./plugins/trimRows').TrimRows;
+    UndoRedo: typeof import('./plugins/undoRedo').UndoRedo;
+    registerPlugin: typeof import('./plugins/registry').registerPlugin;
+    getPlugin: typeof import('./plugins/registry').getPlugin;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+/**
  * Core is a constructor function (not a class). This interface provides a
  * proper `new` signature so TypeScript allows `new Core(...)`.
  */
@@ -72,7 +235,9 @@ const Handsontable = (function Handsontable(
   userSettings: Record<string, unknown>
 ): HotInstance {
   const instance = new CoreClass(rootElement, userSettings || {}, rootInstanceSymbol);
+
   instance.init();
+
   return instance;
 }) as unknown as HandsontableFactory;
 
@@ -262,169 +427,6 @@ declare namespace Handsontable {
   }
 }
 
-/**
- * Interface describing the Handsontable factory function and static members.
- * Allows both `Handsontable(elem, opts)` and `new Handsontable(elem, opts)`.
- *
- * Covers both access patterns:
- *   - UMD/namespace: `Handsontable.editors.DateEditor`, `Handsontable.plugins.AutoColumnSize`
- *   - ESM/modular:   `import { DateEditor } from 'handsontable/editors'`
- */
-interface HandsontableFactory {
-  (rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
-  new(rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
-  Core: new (rootElement: HTMLElement, userSettings?: GridSettingsType) => HotInstance;
-  DefaultSettings: Record<string, unknown>;
-  hooks: HooksRegistry;
-  CellCoords: typeof CellCoords;
-  CellRange: typeof CellRange;
-  packageName: string;
-  buildDate: string | undefined;
-  version: string | undefined;
-  languages: {
-    dictionaryKeys: unknown;
-    getLanguageDictionary: (languageCode: string) => object;
-    getLanguagesDictionaries: () => object[];
-    registerLanguageDictionary: (languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>) => object;
-    getTranslatedPhrase: (languageCode: string, dictionaryKey: string, argumentsForFormatters?: unknown) => string | null;
-    [key: string]: unknown;
-  };
-  /** Editor constructors accessible via the UMD namespace pattern. */
-  editors: {
-    AutocompleteEditor: typeof import('./editors/autocompleteEditor').AutocompleteEditor;
-    BaseEditor: typeof BaseEditor;
-    CheckboxEditor: typeof import('./editors/checkboxEditor').CheckboxEditor;
-    DateEditor: typeof import('./editors/dateEditor').DateEditor;
-    DropdownEditor: typeof import('./editors/dropdownEditor').DropdownEditor;
-    HandsontableEditor: typeof import('./editors/handsontableEditor').HandsontableEditor;
-    IntlDateEditor: typeof import('./editors/intlDateEditor').IntlDateEditor;
-    IntlTimeEditor: typeof import('./editors/intlTimeEditor').IntlTimeEditor;
-    MultiSelectEditor: typeof import('./editors/multiSelectEditor').MultiSelectEditor;
-    NumericEditor: typeof import('./editors/numericEditor').NumericEditor;
-    PasswordEditor: typeof import('./editors/passwordEditor').PasswordEditor;
-    SelectEditor: typeof import('./editors/selectEditor').SelectEditor;
-    TextEditor: typeof TextEditor;
-    TimeEditor: typeof import('./editors/timeEditor').TimeEditor;
-    registerEditor: typeof import('./editors/registry').registerEditor;
-    getEditor: typeof import('./editors/registry').getEditor;
-    editorFactory: typeof import('./editors/factory').editorFactory;
-    [key: string]: unknown;
-  };
-  dom: {
-    empty: typeof empty;
-    [key: string]: unknown;
-  };
-  themes: {
-    hasTheme: typeof import('./themes/registry').hasTheme;
-    getTheme: typeof import('./themes/registry').getTheme;
-    getThemeNames: typeof import('./themes/registry').getThemeNames;
-    getThemes: typeof import('./themes/registry').getThemes;
-    registerTheme: typeof import('./themes/registry').registerTheme;
-    reinitTheme: typeof import('./themes/registry').reinitTheme;
-    [key: string]: unknown;
-  };
-  /** Renderer functions accessible via the UMD namespace pattern. */
-  renderers: {
-    AutocompleteRenderer: typeof import('./renderers/autocompleteRenderer').autocompleteRenderer;
-    BaseRenderer: typeof import('./renderers/baseRenderer').baseRenderer;
-    cellDecorator: typeof import('./renderers/baseRenderer').baseRenderer;
-    CheckboxRenderer: typeof import('./renderers/checkboxRenderer').checkboxRenderer;
-    DateRenderer: typeof import('./renderers/dateRenderer').dateRenderer;
-    DropdownRenderer: typeof import('./renderers/dropdownRenderer').dropdownRenderer;
-    HandsontableRenderer: typeof import('./renderers/handsontableRenderer').handsontableRenderer;
-    HtmlRenderer: typeof import('./renderers/htmlRenderer').htmlRenderer;
-    IntlDateRenderer: typeof import('./renderers/intlDateRenderer').intlDateRenderer;
-    IntlTimeRenderer: typeof import('./renderers/intlTimeRenderer').intlTimeRenderer;
-    NumericRenderer: typeof import('./renderers/numericRenderer').numericRenderer;
-    PasswordRenderer: typeof import('./renderers/passwordRenderer').passwordRenderer;
-    SelectRenderer: typeof import('./renderers/selectRenderer').selectRenderer;
-    TextRenderer: typeof import('./renderers/textRenderer').textRenderer;
-    TimeRenderer: typeof import('./renderers/timeRenderer').timeRenderer;
-    registerRenderer: typeof import('./renderers/registry').registerRenderer;
-    getRenderer: typeof import('./renderers/registry').getRenderer;
-    rendererFactory: typeof import('./renderers/factory').rendererFactory;
-    [key: string]: unknown;
-  };
-  /** Validator functions accessible via the UMD namespace pattern. */
-  validators: {
-    AutocompleteValidator: typeof import('./validators/autocompleteValidator').autocompleteValidator;
-    DateValidator: typeof import('./validators/dateValidator').dateValidator;
-    DropdownValidator: typeof import('./validators/dropdownValidator').dropdownValidator;
-    IntlDateValidator: typeof import('./validators/intlDateValidator').intlDateValidator;
-    IntlTimeValidator: typeof import('./validators/intlTimeValidator').intlTimeValidator;
-    MultiSelectValidator: typeof import('./validators/multiSelectValidator').multiSelectValidator;
-    NumericValidator: typeof import('./validators/numericValidator').numericValidator;
-    TimeValidator: typeof import('./validators/timeValidator').timeValidator;
-    registerValidator: typeof import('./validators/registry').registerValidator;
-    getValidator: typeof import('./validators/registry').getValidator;
-    [key: string]: unknown;
-  };
-  /** Cell type objects accessible via the UMD namespace pattern. */
-  cellTypes: {
-    autocomplete: typeof import('./cellTypes/autocompleteType').AutocompleteCellType;
-    checkbox: typeof import('./cellTypes/checkboxType').CheckboxCellType;
-    date: typeof import('./cellTypes/dateType').DateCellType;
-    dropdown: typeof import('./cellTypes/dropdownType').DropdownCellType;
-    handsontable: typeof import('./cellTypes/handsontableType').HandsontableCellType;
-    intlDate: typeof import('./cellTypes/intlDateType').IntlDateCellType;
-    intlTime: typeof import('./cellTypes/intlTimeType').IntlTimeCellType;
-    numeric: typeof import('./cellTypes/numericType').NumericCellType;
-    password: typeof import('./cellTypes/passwordType').PasswordCellType;
-    select: typeof import('./cellTypes/selectType').SelectCellType;
-    text: typeof import('./cellTypes/textType').TextCellType;
-    time: typeof import('./cellTypes/timeType').TimeCellType;
-    registerCellType: typeof import('./cellTypes/registry').registerCellType;
-    getCellType: typeof import('./cellTypes/registry').getCellType;
-    [key: string]: unknown;
-  };
-  /** Plugin classes accessible via the UMD namespace pattern (keyed by PascalCase convention). */
-  plugins: {
-    AutoColumnSize: typeof import('./plugins/autoColumnSize').AutoColumnSize;
-    Autofill: typeof import('./plugins/autofill').Autofill;
-    AutoRowSize: typeof import('./plugins/autoRowSize').AutoRowSize;
-    BindRowsWithHeaders: typeof import('./plugins/bindRowsWithHeaders').BindRowsWithHeaders;
-    CollapsibleColumns: typeof import('./plugins/collapsibleColumns').CollapsibleColumns;
-    ColumnSorting: typeof import('./plugins/columnSorting').ColumnSorting;
-    ColumnSummary: typeof import('./plugins/columnSummary').ColumnSummary;
-    Comments: typeof import('./plugins/comments').Comments;
-    ContextMenu: typeof import('./plugins/contextMenu').ContextMenu;
-    CopyPaste: typeof import('./plugins/copyPaste').CopyPaste;
-    CustomBorders: typeof import('./plugins/customBorders').CustomBorders;
-    DataProvider: typeof import('./plugins/dataProvider').DataProvider;
-    Dialog: typeof import('./plugins/dialog').Dialog;
-    DragToScroll: typeof import('./plugins/dragToScroll').DragToScroll;
-    DropdownMenu: typeof import('./plugins/dropdownMenu').DropdownMenu;
-    EmptyDataState: typeof import('./plugins/emptyDataState').EmptyDataState;
-    ExportFile: typeof import('./plugins/exportFile').ExportFile;
-    Filters: typeof import('./plugins/filters').Filters;
-    Formulas: typeof import('./plugins/formulas').Formulas;
-    HiddenColumns: typeof import('./plugins/hiddenColumns').HiddenColumns;
-    HiddenRows: typeof import('./plugins/hiddenRows').HiddenRows;
-    Loading: typeof import('./plugins/loading').Loading;
-    ManualColumnFreeze: typeof import('./plugins/manualColumnFreeze').ManualColumnFreeze;
-    ManualColumnMove: typeof import('./plugins/manualColumnMove').ManualColumnMove;
-    ManualColumnResize: typeof import('./plugins/manualColumnResize').ManualColumnResize;
-    ManualRowMove: typeof import('./plugins/manualRowMove').ManualRowMove;
-    ManualRowResize: typeof import('./plugins/manualRowResize').ManualRowResize;
-    MergeCells: typeof import('./plugins/mergeCells').MergeCells;
-    MultiColumnSorting: typeof import('./plugins/multiColumnSorting').MultiColumnSorting;
-    MultipleSelectionHandles: typeof import('./plugins/multipleSelectionHandles').MultipleSelectionHandles;
-    NestedHeaders: typeof import('./plugins/nestedHeaders').NestedHeaders;
-    NestedRows: typeof import('./plugins/nestedRows').NestedRows;
-    Notification: typeof import('./plugins/notification').Notification;
-    Pagination: typeof import('./plugins/pagination').Pagination;
-    Search: typeof import('./plugins/search').Search;
-    StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
-    TouchScroll: typeof import('./plugins/touchScroll').TouchScroll;
-    TrimRows: typeof import('./plugins/trimRows').TrimRows;
-    UndoRedo: typeof import('./plugins/undoRedo').UndoRedo;
-    registerPlugin: typeof import('./plugins/registry').registerPlugin;
-    getPlugin: typeof import('./plugins/registry').getPlugin;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
 export {
   CellCoords,
   CellRange,
@@ -439,10 +441,10 @@ export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';
 export type { SelectOptionsObject } from './settings';
-export type { CellType } from './cellTypes';
-export type { EditorType } from './editors';
-export type { RendererType } from './renderers';
-export type { ValidatorType } from './validators';
+export type { CellType } from './cellTypes/registry';
+export type { EditorType } from './editors/registry';
+export type { RendererType } from './renderers/registry';
+export type { ValidatorType } from './validators/registry';
 export type {
   BaseTheme,
   ThemeBuilder,

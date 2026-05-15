@@ -589,7 +589,7 @@ export class ExportFile extends BasePlugin {
    */
   _createTypeFormatter(format: string, options: Record<string, unknown> = {}): BaseType {
     if (!(EXPORT_TYPES as Record<string, Function>)[format]) {
-      throw new Error(`Export format type "${format}" is not supported.`);
+      throwWithCause(`Export format type "${format}" is not supported.`);
     }
 
     const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];

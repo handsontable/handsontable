@@ -13,7 +13,7 @@ export interface RowObject {
     [prop: string]: any;
   }
 
-  /**
+/**
  * A cell value, which can be anything to support custom cell data types, but by default is `string | number | boolean | undefined`.
  */
 export type CellValue = any;
@@ -29,6 +29,11 @@ export interface SelectOptionsObject {
  * A single row of source data, which can be represented as an array of values, or an object with key/value pairs.
  */
 export type SourceRowData = RowObject | CellValue[];
+
+export interface ColumnDataGetterSetterFunction {
+    (row: RowObject | CellValue[]): CellValue;
+    (row: RowObject | CellValue[], value: CellValue): void;
+  }
 
 /**
  * A cell change represented by `[row, column, prevValue, nextValue]`.
@@ -51,23 +56,18 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
  */
 export type NumericFormatOptions = Record<string, unknown> | Intl.NumberFormatOptions;
 
-export interface ColumnDataGetterSetterFunction {
-    (row: RowObject | CellValue[]): CellValue;
-    (row: RowObject | CellValue[], value: CellValue): void;
-  }
-
 export type { GridSettings } from './core/settings';
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */
-export interface ColumnSettings extends Omit<GridSettings, "data"> {
+export interface ColumnSettings extends Omit<GridSettings, 'data'> {
     data?: string | number | ColumnDataGetterSetterFunction;
     /**
      * Column and cell meta data is extensible, developers can add any properties they want.
      */
     [key: string]: any;
   }
-  
+
 /**
  * Additional cell-specific meta data.
  */
@@ -78,11 +78,11 @@ export interface CellMeta extends ColumnSettings {
     hidden?: boolean;
     skipRowOnPaste?: boolean;
   }
-  
-  /**
-   * A rendered cell object with computed properties.
-   */
-  export interface CellProperties extends CellMeta {
+
+/**
+ * A rendered cell object with computed properties.
+ */
+export interface CellProperties extends CellMeta {
     row: number;
     col: number;
     instance: Handsontable;

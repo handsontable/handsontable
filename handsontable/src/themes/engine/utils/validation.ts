@@ -465,7 +465,7 @@ function validateDensityStructure(density: unknown, context: string): void {
     const d = density as Record<string, unknown>;
 
     if (!d.type || !d.sizes) {
-      throw new Error(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
+      throwWithCause(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
     }
 
     validateDensityType(String(d.type));
@@ -579,7 +579,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
   // Validate required fields
   requiredFields.forEach((field) => {
     if (params[field] === undefined) {
-      throw new Error(`[ThemeBuilder] ${context}.${field} is required.`);
+      throwWithCause(`[ThemeBuilder] ${context}.${field} is required.`);
     }
   });
 

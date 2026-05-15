@@ -110,7 +110,7 @@ export class BaseComponent {
    * The custom logic for component state restoring.
    */
   setState(_value?: unknown) {
-    throw new Error('The state setting logic is not implemented');
+    throwWithCause('The state setting logic is not implemented');
   }
 
   /**

@@ -1,5 +1,6 @@
 import { extend, clone } from '../../../helpers/object';
 import { substitute } from '../../../helpers/string';
+import { throwWithCause } from '../../../helpers/errors';
 import type DataProvider from '../dataProvider';
 
 /**
@@ -41,7 +42,7 @@ class BaseType {
    * @returns {string|Promise<unknown>}
    */
   export(): string | Promise<unknown> {
-    throw new Error('export() must be implemented by subclass');
+    throwWithCause('export() must be implemented by subclass');
   }
 
   /**

@@ -1,3 +1,5 @@
+import { throwWithCause } from '../../../helpers/errors';
+
 /**
  * An abstract class that defines the structure of an undo/redo action.
  *
@@ -15,10 +17,10 @@ export class BaseAction {
   }
 
   undo(..._args: unknown[]): void {
-    throw new Error('Not implemented');
+    throwWithCause('Not implemented');
   }
 
   redo(..._args: unknown[]): void {
-    throw new Error('Not implemented');
+    throwWithCause('Not implemented');
   }
 }

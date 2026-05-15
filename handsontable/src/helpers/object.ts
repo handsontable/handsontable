@@ -1,5 +1,6 @@
 import { arrayEach } from './array';
 import { isDefined } from './mixed';
+import { throwWithCause } from './errors';
 
 /**
  * Generate schema for passed object.
@@ -168,7 +169,7 @@ export function mixin(Base: Function, ...mixins: object[]): object {
 
     objectEach(mixinItem, (value, key) => {
       if (Base.prototype[key] !== undefined) {
-        throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
+        throwWithCause(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
       }
       if (typeof value === 'function') {
         Base.prototype[key] = value;
@@ -393,6 +394,9 @@ export interface ObjectPropListener extends Record<string, unknown> {
   value: unknown;
 }
 
+/**
+ *
+ */
 export function createObjectPropListener(defaultValue?: unknown, propertyToListen: string = 'value'): ObjectPropListener {
   const privateProperty = `_${propertyToListen}`;
   const holder: Record<string, unknown> = {

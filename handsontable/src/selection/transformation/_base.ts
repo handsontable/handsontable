@@ -352,7 +352,7 @@ export class BaseTransformation {
    * the current processed selection layer.
    */
   calculateOffset(): { x: number; y: number } {
-    throw new Error('`calculateOffset` is not implemented');
+    throwWithCause('`calculateOffset` is not implemented');
   }
 
   /**
@@ -360,7 +360,7 @@ export class BaseTransformation {
    * based on their specific transformation logic.
    */
   countRenderableRows(): number {
-    throw new Error('`countRenderableRows` is not implemented');
+    throwWithCause('`countRenderableRows` is not implemented');
   }
 
   /**
@@ -368,7 +368,7 @@ export class BaseTransformation {
    * based on their specific transformation logic.
    */
   countRenderableColumns(): number {
-    throw new Error('`countRenderableColumns` is not implemented');
+    throwWithCause('`countRenderableColumns` is not implemented');
   }
 
   /**
@@ -376,7 +376,7 @@ export class BaseTransformation {
    * Child classes can override this method to control the behavior.
    */
   shouldSwitchSelectionLayer(): boolean {
-    throw new Error('`shouldSwitchSelectionLayer` is not implemented');
+    throwWithCause('`shouldSwitchSelectionLayer` is not implemented');
   }
 
   /**

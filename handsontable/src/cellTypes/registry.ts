@@ -3,6 +3,18 @@ import { throwWithCause } from '../helpers/errors';
 import { registerEditor } from '../editors/registry';
 import { registerRenderer } from '../renderers/registry';
 import { registerValidator } from '../validators/registry';
+import { CELL_TYPE as AUTOCOMPLETE_TYPE } from './autocompleteType';
+import { CELL_TYPE as CHECKBOX_TYPE } from './checkboxType';
+import { CELL_TYPE as DATE_TYPE } from './dateType';
+import { CELL_TYPE as DROPDOWN_TYPE } from './dropdownType';
+import { CELL_TYPE as HANDSONTABLE_TYPE } from './handsontableType';
+import { CELL_TYPE as INTL_DATE_TYPE } from './intlDateType';
+import { CELL_TYPE as INTL_TIME_TYPE } from './intlTimeType';
+import { CELL_TYPE as NUMERIC_TYPE } from './numericType';
+import { CELL_TYPE as PASSWORD_TYPE } from './passwordType';
+import { CELL_TYPE as SELECT_TYPE } from './selectType';
+import { CELL_TYPE as TEXT_TYPE } from './textType';
+import { CELL_TYPE as TIME_TYPE } from './timeType';
 
 export interface CellTypeObject {
   CELL_TYPE: string;
@@ -70,3 +82,10 @@ export {
   getNames as getRegisteredCellTypeNames,
   getValues as getRegisteredCellTypes,
 };
+
+/**
+ * All built-in cell type names.
+ */
+export type CellType = typeof AUTOCOMPLETE_TYPE | typeof CHECKBOX_TYPE | typeof DATE_TYPE |
+  typeof DROPDOWN_TYPE | typeof HANDSONTABLE_TYPE | typeof INTL_DATE_TYPE | typeof INTL_TIME_TYPE |
+  typeof NUMERIC_TYPE | typeof PASSWORD_TYPE | typeof SELECT_TYPE | typeof TEXT_TYPE | typeof TIME_TYPE | string;

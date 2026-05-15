@@ -3,6 +3,7 @@ import { objectEach } from '../../helpers/object';
 import Endpoints, { type EndpointConfig } from './endpoints';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNullishOrNaN } from './utils';
+import { throwWithCause } from '../../helpers/errors';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -496,7 +497,7 @@ export class ColumnSummary extends BasePlugin {
 
     if (isNaN(Number(cellValue))) {
       if (!this.endpoints!.currentEndpoint!.suppressDataTypeErrors) {
-        throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
+        throwWithCause(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
           numeric format. Cannot do the calculation.`);
       }
     }

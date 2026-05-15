@@ -13,6 +13,13 @@ import type { SelectionManager as WalkontableSelectionManager } from './selectio
 import type { Overlay as WalkontableOverlay } from './overlay/_base';
 import type EventManager from '../../../eventManager';
 
+export interface DomBindings {
+  rootDocument: Document;
+  rootWindow: Window;
+  rootElement: HTMLElement;
+  rootTable: HTMLTableElement;
+  [key: string]: unknown;
+}
 
 export interface WalkontableInstance {
   wtTable: WalkontableTable;
@@ -45,14 +52,6 @@ export interface WalkontableInstance {
   hasSetting(key: string): boolean;
   destroy(): void;
   wtScroll: WalkontableScroll;
-  [key: string]: unknown;
-}
-
-export interface DomBindings {
-  rootDocument: Document;
-  rootWindow: Window;
-  rootElement: HTMLElement;
-  rootTable: HTMLTableElement;
   [key: string]: unknown;
 }
 

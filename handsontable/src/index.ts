@@ -217,10 +217,10 @@ export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export type { SelectOptionsObject } from './settings';
-export type { CellType } from './cellTypes';
-export type { EditorType } from './editors';
-export type { RendererType } from './renderers';
-export type { ValidatorType } from './validators';
+export type { CellType } from './cellTypes/registry';
+export type { EditorType } from './editors/registry';
+export type { RendererType } from './renderers/registry';
+export type { ValidatorType } from './validators/registry';
 export type {
   BaseTheme,
   ThemeBuilder,
