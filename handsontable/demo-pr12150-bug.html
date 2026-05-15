@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12150 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 160px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; text-align: center; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 28px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.good { color: #2e7d32; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 2px; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 160px; overflow-y: auto; margin-bottom: 10px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; }
+    .entry-ok { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12150 - Filter searchMode:apply input lag (hideRow called N times per keystroke)</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12150-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (released v17.0.1).</strong>
+    With <code>filters: { searchMode: 'apply' }</code>, typing in the filter search box calls
+    <code>hiddenRows.hideRow(index)</code> individually for every non-matching row —
+    O(N) hook invocations per keystroke. With large datasets this causes noticeable input lag.<br><br>
+    Open the filter dropdown on the <strong>City</strong> column, click in the search box,
+    and type any letter. Watch the counters update — <code>beforeHideRows</code> is called
+    once per non-matching row instead of once total.
+  </div>
+
+  <div class="hint">
+    <strong>How to test:</strong>
+    1. Click <strong>▼</strong> on the <em>City</em> column header to open the filter.
+    2. Click in the <strong>Search</strong> input.
+    3. Type any letter (e.g. <code>a</code>, <code>n</code>, <code>s</code>).
+    4. Watch the hook counters — <code>beforeHideRows</code> fires N times per keystroke (N = non-matching rows).
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">beforeHideRows calls (last input)</div>
+      <div class="metric-value bad" id="m-calls">0</div>
+      <div class="metric-sub">Expected with fix: <strong>1</strong></div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total keystrokes typed</div>
+      <div class="metric-value" id="m-inputs">0</div>
+      <div class="metric-sub">In search box</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Time for last update (ms)</div>
+      <div class="metric-value bad" id="m-time">0</div>
+      <div class="metric-sub">From input to afterHideRows done</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Total rows in dataset</div>
+      <div class="metric-value" id="m-rows">0</div>
+      <div class="metric-sub">Items in filter list</div>
+    </div>
+  </div>
+
+  <div id="log"><strong>Hook invocation log (latest first):</strong><div id="entries">(open filter, then type to see events)</div></div>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // ── Generate large dataset ────────────────────────────────────────────
+    const CITIES = [
+      'New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia',
+      'San Antonio','San Diego','Dallas','San Jose','Austin','Jacksonville',
+      'Fort Worth','Columbus','Charlotte','Indianapolis','San Francisco',
+      'Seattle','Denver','Nashville','Oklahoma City','El Paso','Washington',
+      'Las Vegas','Louisville','Memphis','Portland','Baltimore','Milwaukee',
+      'Albuquerque','Tucson','Fresno','Sacramento','Mesa','Kansas City',
+      'Atlanta','Omaha','Colorado Springs','Raleigh','Long Beach','Virginia Beach',
+      'Minneapolis','Tampa','New Orleans','Arlington','Bakersfield','Honolulu',
+      'Anaheim','Aurora','Santa Ana','Corpus Christi','Riverside','St. Louis',
+      'Lexington','Pittsburgh','Stockton','Anchorage','Cincinnati','St. Paul',
+      'Greensboro','Toledo','Newark','Plano','Henderson','Orlando','Lincoln',
+      'Jersey City','Chandler','St. Petersburg','Laredo','Norfolk','Madison',
+      'Durham','Lubbock','Winston-Salem','Garland','Glendale','Hialeah',
+      'Reno','Baton Rouge','Irvine','Chesapeake','Irving','Scottsdale',
+      'North Las Vegas','Fremont','Gilbert','San Bernardino','Birmingham',
+      'Rochester','Richmond','Spokane','Des Moines','Montgomery','Modesto',
+      'Fayetteville','Tacoma','Shreveport','Fontana','Moreno Valley','Glendale',
+      'Akron','Yonkers','Huntington Beach','Little Rock','Columbus','Augusta',
+    ];
+
+    const NAMES = ['Alice','Bob','Carol','Dave','Eve','Frank','Grace','Hank',
+      'Ivy','Jack','Karen','Leo','Mia','Noah','Olivia','Paul','Quinn','Rose',
+      'Sam','Tina','Uma','Victor','Wendy','Xander','Yara','Zoe'];
+
+    const DATA = CITIES.map((city, i) => [
+      NAMES[i % NAMES.length] + ' ' + String.fromCharCode(65 + (i % 26)),
+      city,
+      2020 + (i % 5),
+    ]);
+
+    document.getElementById('m-rows').textContent = DATA.length;
+
+    // ── Metrics state ─────────────────────────────────────────────────────
+    let callsThisInput = 0;
+    let totalInputs = 0;
+    let inputStart = 0;
+    let inInput = false;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = msg;
+      el.prepend(d);
+      // Trim log to 60 entries
+      while (el.children.length > 60) el.removeChild(el.lastChild);
+    }
+
+    // ── HOT instance ──────────────────────────────────────────────────────
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: DATA,
+      colHeaders: ['Name', 'City', 'Year'],
+      rowHeaders: true,
+      width: '100%',
+      height: 300,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      filters: { searchMode: 'apply' },
+      dropdownMenu: true,
+
+      // Count beforeHideRows calls — fires once per hideRow() in the buggy code
+      beforeHideRows(currentHideConfig, destinationHideConfig, actionPossible) {
+        if (!inInput) return;
+        callsThisInput++;
+      },
+
+      afterHideRows() {
+        if (!inInput) return;
+        const elapsed = performance.now() - inputStart;
+        document.getElementById('m-calls').textContent = callsThisInput;
+        document.getElementById('m-time').textContent = elapsed.toFixed(1);
+        addLog(
+          `Input #${totalInputs}: beforeHideRows called ${callsThisInput}× | ${elapsed.toFixed(1)}ms`,
+          callsThisInput > 1 ? 'entry-bug' : 'entry-ok'
+        );
+        inInput = false;
+      },
+    });
+
+    // Track when search input is used
+    document.addEventListener('input', (e) => {
+      if (!e.target.closest('.htUIMultipleSelectSearch')) return;
+      totalInputs++;
+      callsThisInput = 0;
+      inputStart = performance.now();
+      inInput = true;
+      document.getElementById('m-inputs').textContent = totalInputs;
+    }, true);
+  </script>
+</body>
+</html>
