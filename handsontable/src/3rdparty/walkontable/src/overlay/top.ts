@@ -39,7 +39,7 @@ export class TopOverlay extends Overlay {
    */
   constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_TOP, wtSettings, domBindings);
-    this.cachedFixedRowsTop = this.wtSettings.getSetting('fixedRowsTop') as number;
+    this.cachedFixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
   }
 
   /**
@@ -286,7 +286,7 @@ export class TopOverlay extends Overlay {
     const sourceInstance = wot.cloneSource ? wot.cloneSource : wot;
     const mainHolder = sourceInstance.wtTable.holder;
     const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
-    const fixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
+    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
     const columnHeaderBorderCompensation = (
       fixedRowsTop === 0 &&
       columnHeaders.length > 0 &&
@@ -309,8 +309,8 @@ export class TopOverlay extends Overlay {
     }
 
     if (bottomEdge) {
-      const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom') as number;
-      const totalRows = wtSettings.getSetting('totalRows') as number;
+      const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
+      const totalRows = wtSettings.getSetting<number>('totalRows');
 
       newY += this.sumCellSizes(0, sourceRow + 1);
       newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
@@ -320,7 +320,7 @@ export class TopOverlay extends Overlay {
       newY += columnHeaderBorderCompensation;
 
     } else {
-      newY += this.sumCellSizes(wtSettings.getSetting('fixedRowsTop') as number, sourceRow);
+      newY += this.sumCellSizes(wtSettings.getSetting<number>('fixedRowsTop'), sourceRow);
     }
 
     newY += scrollbarCompensation;
@@ -406,14 +406,14 @@ export class TopOverlay extends Overlay {
     let positionChanged = false;
 
     if (!skipInnerBorderAdjusting && !preventHorizontalOverflow) {
-      const fixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
+      const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
       const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
       const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
 
       if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
         const previousState = hasClass(masterParent, 'innerBorderTop');
 
-        this.cachedFixedRowsTop = wtSettings.getSetting('fixedRowsTop') as number;
+        this.cachedFixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
 
         if (position || wtSettings.getSetting('totalRows') === 0) {
           addClass(masterParent, 'innerBorderTop');

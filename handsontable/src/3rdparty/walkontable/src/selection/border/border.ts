@@ -564,7 +564,7 @@ class Border {
     }
 
     const inlinePosProperty = isRtl ? 'right' : 'left';
-    const delta = Math.ceil((this.settings.border.width as number) / 2);
+    const delta = Math.ceil((this.settings.border.width ?? 0) / 2);
 
     this.topStyle.top = `${top}px`;
     this.topStyle[inlinePosProperty] = `${inlineStartPos}px`;
@@ -602,9 +602,9 @@ class Border {
       this.cornerStyle.display = 'none';
 
     } else {
-      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - (this.cornerDefaultStyle.borderWidth as number)}px`;
+      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - (Number(this.cornerDefaultStyle.borderWidth))}px`;
       this.cornerStyle[inlinePosProperty] = `${
-        inlineStartPos + width + this.cornerCenterPointOffset - (this.cornerDefaultStyle.borderWidth as number)
+        inlineStartPos + width + this.cornerCenterPointOffset - (Number(this.cornerDefaultStyle.borderWidth))
       }px`;
       this.cornerStyle.borderRightWidth = `${this.cornerDefaultStyle.borderWidth}px`;
       this.cornerStyle.borderLeftWidth = `${this.cornerDefaultStyle.borderWidth}px`;
@@ -731,7 +731,7 @@ class Border {
 
     switch (direction) {
       case 'rows':
-        getHeaderFn = (...args: unknown[]) => wtTable.getRowHeader(args[0] as number, args[1] as number);
+        getHeaderFn = (row: number, level: number) => wtTable.getRowHeader(row, level);
         dimensionFn = (el: HTMLElement) => outerHeight(el);
         entireSelectionClassname = 'ht__selection--rows';
         dimensionProperty = 'top';
@@ -739,7 +739,7 @@ class Border {
         break;
 
       case 'columns':
-        getHeaderFn = (...args: unknown[]) => wtTable.getColumnHeader(args[0] as number, args[1] as number);
+        getHeaderFn = (col: number, level: number) => wtTable.getColumnHeader(col, level);
         dimensionFn = (el: HTMLElement) => outerWidth(el);
         entireSelectionClassname = 'ht__selection--columns';
         dimensionProperty = 'left';
