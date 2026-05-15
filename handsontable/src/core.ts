@@ -778,7 +778,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           }
 
           return acc;
-        }, [sortedIndexes[0]]) as number[][];
+        }, [sortedIndexes[0]]);
 
         return normalizedIndexes;
       };

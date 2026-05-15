@@ -616,20 +616,20 @@ export class BaseEditor {
     const settings = this.hot.getSettings();
     let section = '';
 
-    if (this.row < (settings.fixedRowsTop as number ?? 0)) {
-      if (this.col < (settings.fixedColumnsStart as number ?? 0)) {
+    if (this.row < (settings.fixedRowsTop ?? 0)) {
+      if (this.col < (settings.fixedColumnsStart ?? 0)) {
         section = 'top-inline-start-corner';
       } else {
         section = 'top';
       }
-    } else if ((settings.fixedRowsBottom as number) &&
-               this.row >= totalRows - (settings.fixedRowsBottom as number)) {
-      if (this.col < (settings.fixedColumnsStart as number ?? 0)) {
+    } else if (settings.fixedRowsBottom &&
+               this.row >= totalRows - settings.fixedRowsBottom) {
+      if (this.col < (settings.fixedColumnsStart ?? 0)) {
         section = 'bottom-inline-start-corner';
       } else {
         section = 'bottom';
       }
-    } else if (this.col < (settings.fixedColumnsStart as number ?? 0)) {
+    } else if (this.col < (settings.fixedColumnsStart ?? 0)) {
       section = 'inline-start';
     }
 

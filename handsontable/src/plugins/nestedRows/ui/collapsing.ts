@@ -202,8 +202,8 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    */
   collapseChildRows(parentIndex: number, rowsToTrim: unknown[] = [], recursive?: boolean, doTrimming = false) {
-    if (this.dataManager.hasChildren(parentIndex as number)) {
-      const parentObject = this.dataManager.getDataObject(parentIndex as number);
+    if (this.dataManager.hasChildren(parentIndex)) {
+      const parentObject = this.dataManager.getDataObject(parentIndex);
 
       arrayEach(parentObject.__children, (elem: unknown) => {
         const elemIndex = this.dataManager.getRowIndex(elem);
@@ -263,8 +263,8 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=false] I determine whether collapsing should envolve trimming rows.
    */
   expandChildRows(parentIndex: number, rowsToUntrim: unknown[] = [], recursive?: boolean, doTrimming = false) {
-    if (this.dataManager.hasChildren(parentIndex as number)) {
-      const parentObject = this.dataManager.getDataObject(parentIndex as number);
+    if (this.dataManager.hasChildren(parentIndex)) {
+      const parentObject = this.dataManager.getDataObject(parentIndex);
 
       arrayEach(parentObject.__children, (elem: unknown) => {
         if (!this.isAnyParentCollapsed(elem)) {

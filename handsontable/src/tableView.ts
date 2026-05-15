@@ -589,7 +589,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableColumns() {
-    return this.countRenderableIndexes(this.hot.columnIndexMapper, this.settings.maxCols as number);
+    return this.countRenderableIndexes(this.hot.columnIndexMapper, this.settings.maxCols!);
   }
 
   /**
@@ -598,7 +598,7 @@ class TableView {
    * @returns {number}
    */
   countRenderableRows() {
-    return this.countRenderableIndexes(this.hot.rowIndexMapper, this.settings.maxRows as number);
+    return this.countRenderableIndexes(this.hot.rowIndexMapper, this.settings.maxRows!);
   }
 
   /**
@@ -808,15 +808,15 @@ class TableView {
       fixedRowsBottom: () => this.countNotHiddenFixedRowsBottom(),
       // Enable the inline start overlay when conditions are met.
       shouldRenderInlineStartOverlay: () => {
-        return (this.settings.fixedColumnsStart as number) > 0 || walkontableConfig.rowHeaders().length > 0;
+        return (this.settings.fixedColumnsStart ?? 0) > 0 || walkontableConfig.rowHeaders().length > 0;
       },
       // Enable the top overlay when conditions are met.
       shouldRenderTopOverlay: () => {
-        return (this.settings.fixedRowsTop as number) > 0 || walkontableConfig.columnHeaders().length > 0;
+        return (this.settings.fixedRowsTop ?? 0) > 0 || walkontableConfig.columnHeaders().length > 0;
       },
       // Enable the bottom overlay when conditions are met.
       shouldRenderBottomOverlay: () => {
-        return (this.settings.fixedRowsBottom as number) > 0;
+        return (this.settings.fixedRowsBottom ?? 0) > 0;
       },
       minSpareRows: () => this.settings.minSpareRows,
       renderAllRows: this.settings.renderAllRows,
@@ -1288,13 +1288,11 @@ class TableView {
         }
       },
       viewportRowCalculatorOverride: (calc: Record<string, unknown>) => {
-        let viewportOffset = this.settings.viewportRowRenderingOffset;
+        let viewportOffset: number | undefined = this.settings.viewportRowRenderingOffset === 'auto'
+          ? 1
+          : this.settings.viewportRowRenderingOffset;
 
-        if (viewportOffset === 'auto') {
-          viewportOffset = 1;
-        }
-
-        if ((viewportOffset as number) > 0) {
+        if ((viewportOffset ?? 0) > 0) {
           const renderableRows = this.countRenderableRows();
           const firstRenderedRow = calc.startRow as number;
           const lastRenderedRow = calc.endRow as number;
@@ -1305,13 +1303,11 @@ class TableView {
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
       viewportColumnCalculatorOverride: (calc: Record<string, unknown>) => {
-        let viewportOffset = this.settings.viewportColumnRenderingOffset;
+        let viewportOffset: number | undefined = this.settings.viewportColumnRenderingOffset === 'auto'
+          ? 1
+          : this.settings.viewportColumnRenderingOffset;
 
-        if (viewportOffset === 'auto') {
-          viewportOffset = 1;
-        }
-
-        if ((viewportOffset as number) > 0) {
+        if ((viewportOffset ?? 0) > 0) {
           const renderableColumns = this.countRenderableColumns();
           const firstRenderedColumn = calc.startColumn as number;
           const lastRenderedColumn = calc.endColumn as number;
