@@ -63,7 +63,7 @@ export function createFocusScope(hotInstance: HotInstance, container: HTMLElemen
    * @returns {boolean}
    */
   const contains = (target: HTMLElement) => {
-    return (mergedOptions.contains as Function)(target);
+    return (mergedOptions.contains as (target: HTMLElement) => boolean)(target);
   };
 
   /**
@@ -86,14 +86,14 @@ export function createFocusScope(hotInstance: HotInstance, container: HTMLElemen
    * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} activationSource The source of the activation.
    */
   const activate = (activationSource: string = FOCUS_SOURCES.UNKNOWN) => {
-    (mergedOptions.onActivate as Function)?.(activationSource);
+    (mergedOptions.onActivate as ((source: string) => void) | undefined)?.(activationSource);
   };
 
   /**
    * Deactivates the scope.
    */
   const deactivate = () => {
-    (mergedOptions.onDeactivate as Function)?.();
+    (mergedOptions.onDeactivate as (() => void) | undefined)?.();
   };
 
   /**
@@ -121,7 +121,7 @@ export function createFocusScope(hotInstance: HotInstance, container: HTMLElemen
     getType: () => mergedOptions.type as string,
     hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName as string,
-    runOnlyIf: () => (mergedOptions.runOnlyIf as Function)(),
+    runOnlyIf: () => (mergedOptions.runOnlyIf as () => boolean)(),
     contains,
     activate,
     deactivate,

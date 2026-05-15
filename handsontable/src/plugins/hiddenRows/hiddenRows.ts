@@ -233,10 +233,10 @@ export class HiddenRows extends BasePlugin {
     this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (...args: unknown[]) => (this.#onAfterContextMenuDefaultOptions as Function)(...args));
+    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => this.#onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('modifyRowHeight', (height: number, row: number) => this.#onModifyRowHeight(height, row));
-    this.addHook('afterGetRowHeader', (...args: unknown[]) => (this.#onAfterGetRowHeader as Function)(...args));
+    this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
     this.addHook('modifyCopyableRange', (ranges: Record<string, number>[]) => this.#onModifyCopyableRange(ranges));
 
     super.enablePlugin();

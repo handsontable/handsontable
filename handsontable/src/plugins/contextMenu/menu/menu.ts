@@ -413,7 +413,7 @@ export class Menu {
     this.hotMenu.init();
 
     this.#navigator = createMenuNavigator(this.hotMenu as unknown as Record<string, Function>);
-    this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this as unknown as Record<string, unknown>);
+    this.#shortcutsCtrl = createKeyboardShortcutsCtrl(this);
     this.#shortcutsCtrl.listen();
 
     this.focus();

@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { isObject } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
@@ -7,7 +8,7 @@ export const PLUGIN_KEY = 'search';
 export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
-const DEFAULT_CALLBACK = function(instance: Record<string, Function>, row: number, col: number, data: unknown, testResult: boolean) {
+const DEFAULT_CALLBACK = function(instance: HotInstance, row: number, col: number, data: unknown, testResult: boolean) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 
@@ -109,7 +110,7 @@ export class Search extends BasePlugin {
 
     this.updatePluginSettings(searchSettings as Record<string, unknown>);
 
-    this.addHook('beforeRenderer', (...args: unknown[]) => (this.#onBeforeRenderer as Function)(...args));
+    this.addHook('beforeRenderer', this.#onBeforeRenderer);
 
     super.enablePlugin();
   }
@@ -118,7 +119,7 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const beforeRendererCallback = (...args: unknown[]) => (this.#onBeforeRenderer as Function)(...args);
+    const beforeRendererCallback = this.#onBeforeRenderer;
 
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
     this.hot.addHookOnce('afterViewRender', () => {
@@ -160,8 +161,8 @@ export class Search extends BasePlugin {
         const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
         const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
         const cellSearch = cellProperties.search as Record<string, unknown> | undefined;
-        const cellCallback = (cellSearch?.callback || callback) as Function;
-        const cellQueryMethod = (cellSearch?.queryMethod || queryMethod) as Function;
+        const cellCallback = (cellSearch?.callback || callback) as typeof DEFAULT_CALLBACK;
+        const cellQueryMethod = (cellSearch?.queryMethod || queryMethod) as typeof DEFAULT_QUERY_METHOD;
         const testResult = cellQueryMethod(queryStr, cellData, cellProperties);
 
         if (testResult) {
@@ -188,7 +189,7 @@ export class Search extends BasePlugin {
    *
    * @returns {Function} Return the callback function.
    */
-  getCallback(): Function {
+  getCallback(): typeof DEFAULT_CALLBACK {
     return this.callback;
   }
 
@@ -197,8 +198,8 @@ export class Search extends BasePlugin {
    *
    * @param {Function} newCallback A callback function.
    */
-  setCallback(newCallback: Function): void {
-    this.callback = newCallback as typeof DEFAULT_CALLBACK;
+  setCallback(newCallback: typeof DEFAULT_CALLBACK): void {
+    this.callback = newCallback;
   }
 
   /**
@@ -206,7 +207,7 @@ export class Search extends BasePlugin {
    *
    * @returns {Function} Return the query method.
    */
-  getQueryMethod(): Function {
+  getQueryMethod(): typeof DEFAULT_QUERY_METHOD {
     return this.queryMethod;
   }
 
@@ -215,8 +216,8 @@ export class Search extends BasePlugin {
    *
    * @param {Function} newQueryMethod A function with specific match logic.
    */
-  setQueryMethod(newQueryMethod: Function): void {
-    this.queryMethod = newQueryMethod as typeof DEFAULT_QUERY_METHOD;
+  setQueryMethod(newQueryMethod: typeof DEFAULT_QUERY_METHOD): void {
+    this.queryMethod = newQueryMethod;
   }
 
   /**
@@ -250,11 +251,11 @@ export class Search extends BasePlugin {
       }
 
       if (searchSettings.queryMethod) {
-        this.setQueryMethod(searchSettings.queryMethod as Function);
+        this.setQueryMethod(searchSettings.queryMethod as typeof DEFAULT_QUERY_METHOD);
       }
 
       if (searchSettings.callback) {
-        this.setCallback(searchSettings.callback as Function);
+        this.setCallback(searchSettings.callback as typeof DEFAULT_CALLBACK);
       }
     }
   }

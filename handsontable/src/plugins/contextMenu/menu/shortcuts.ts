@@ -1,3 +1,5 @@
+import type { Shortcut } from '../../../shortcuts/context';
+import type { Menu } from './menu';
 import { createDefaultShortcutsList } from './defaultShortcutsList';
 
 const SHORTCUTS_CONTEXT = 'menu';
@@ -16,8 +18,8 @@ const SHORTCUTS_GROUP = SHORTCUTS_CONTEXT;
  * @param {Array<{ shortcuts: KeyboardShortcut, contextName: string }>} [customKeyboardShortcuts] The list of the custom keyboard shortcuts.
  * @returns {KeyboardShortcutsMenuController}
  */
-export function createKeyboardShortcutsCtrl(menu: Record<string, unknown>, customKeyboardShortcuts: { shortcuts: Record<string, unknown>[]; contextName: string }[] = []) {
-  const customShortcuts: { shortcuts: Record<string, unknown>[]; contextName: string }[] = [];
+export function createKeyboardShortcutsCtrl(menu: Menu, customKeyboardShortcuts: { shortcuts: Shortcut[]; contextName: string }[] = []) {
+  const customShortcuts: { shortcuts: Shortcut[]; contextName: string }[] = [];
 
   _addShortcuts(createDefaultShortcutsList(menu));
 
@@ -31,7 +33,7 @@ export function createKeyboardShortcutsCtrl(menu: Record<string, unknown>, custo
    * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
    * @param {string} [contextName] The context name to create or use.
    */
-  function _addShortcuts(shortcuts: Record<string, unknown>[], contextName?: string) {
+  function _addShortcuts(shortcuts: Shortcut[], contextName?: string) {
     getContext(contextName).addShortcuts(shortcuts, {
       group: SHORTCUTS_CONTEXT,
     });
@@ -43,11 +45,11 @@ export function createKeyboardShortcutsCtrl(menu: Record<string, unknown>, custo
    * @param {KeyboardShortcut[]} shortcuts Keyboard shortcuts to add.
    * @param {string} [contextName] The context name to create or use.
    */
-  function addCustomShortcuts(shortcuts: Record<string, unknown>[], contextName?: string) {
+  function addCustomShortcuts(shortcuts: Shortcut[], contextName?: string) {
     const context = getContext(contextName);
 
-    shortcuts.forEach(({ keys }: Record<string, unknown>) => {
-      (keys as string[]).forEach((k: string) => context.removeShortcutsByKeys(k));
+    shortcuts.forEach(({ keys }) => {
+      keys.forEach((k) => context.removeShortcutsByKeys(k));
     });
 
     customShortcuts.push({
@@ -83,8 +85,8 @@ export function createKeyboardShortcutsCtrl(menu: Record<string, unknown>, custo
    * @param {string} contextName The context name.
    * @returns {object}
    */
-  function getContext(contextName?: string): Record<string, Function> {
-    const manager = (menu.hotMenu as { getShortcutManager: () => Record<string, Function> }).getShortcutManager();
+  function getContext(contextName?: string) {
+    const manager = menu.hotMenu!.getShortcutManager();
     const name = _getContextName(contextName);
 
     return manager.getContext(name) ?? manager.addContext(name);
@@ -96,7 +98,7 @@ export function createKeyboardShortcutsCtrl(menu: Record<string, unknown>, custo
    * @param {string} [contextName] The context name.
    */
   function listen(contextName?: string) {
-    (menu.hotMenu as { getShortcutManager: () => Record<string, Function> }).getShortcutManager().setActiveContextName(_getContextName(contextName));
+    menu.hotMenu!.getShortcutManager().setActiveContextName(_getContextName(contextName));
   }
 
   return {

@@ -1,23 +1,25 @@
+import type { Menu } from './menu';
+
 /**
  * Creates a keyboard shortcuts list with default keyboards binds.
  *
  * @param {Menu} menu The main menu instance.
  * @returns {KeyboardShortcut[]}
  */
-export function createDefaultShortcutsList(menu: Record<string, unknown>) {
-  const hot = menu.hot as Record<string, Record<string, Function> & Function>;
-  const hotMenu = menu.hotMenu as Record<string, Record<string, Function> & Function>;
+export function createDefaultShortcutsList(menu: Menu) {
+  const hot = menu.hot;
+  const hotMenu = menu.hotMenu;
 
   return [{
     keys: [['Control/Meta', 'A']],
     forwardToContext: hot.getShortcutManager().getContext('grid'),
-    callback: () => (menu.close as Function)(true)
+    callback: () => menu.close(true)
   }, {
     keys: [['Tab'], ['Shift', 'Tab']],
     callback: (event: Event, keys: string[]) => {
       const settings = hot.getSettings();
       const tabMoves = typeof settings.tabMoves === 'function'
-        ? settings.tabMoves(event)
+        ? settings.tabMoves(event as KeyboardEvent)
         : settings.tabMoves;
 
       if (keys.includes('shift')) {
@@ -26,24 +28,24 @@ export function createDefaultShortcutsList(menu: Record<string, unknown>) {
         hot.selection.transformStart(tabMoves.row, tabMoves.col);
       }
 
-      (menu.close as Function)(true);
+      menu.close(true);
     },
   }, {
     keys: [['Escape']],
-    callback: () => (menu.close as Function)(),
+    callback: () => menu.close(),
   }, {
     keys: [['ArrowDown']],
-    callback: () => (menu.getNavigator as Function)().toNextItem(),
+    callback: () => menu.getNavigator().toNextItem(),
   }, {
     keys: [['ArrowUp']],
-    callback: () => (menu.getNavigator as Function)().toPreviousItem(),
+    callback: () => menu.getNavigator().toPreviousItem(),
   }, {
     keys: [[hot.isRtl() ? 'ArrowLeft' : 'ArrowRight']],
     callback: () => {
-      const selection = hotMenu.getSelectedActive();
+      const selection = hotMenu?.getSelectedActive();
 
       if (selection) {
-        const subMenu = (menu.openSubMenu as Function)(selection[0]);
+        const subMenu = menu.openSubMenu(selection[0]);
 
         if (subMenu) {
           subMenu.getNavigator().toFirstItem();
@@ -53,58 +55,62 @@ export function createDefaultShortcutsList(menu: Record<string, unknown>) {
   }, {
     keys: [[hot.isRtl() ? 'ArrowRight' : 'ArrowLeft']],
     callback: () => {
-      const selection = hotMenu.getSelectedActive();
+      const selection = hotMenu?.getSelectedActive();
 
-      if (selection && (menu.isSubMenu as Function)()) {
-        (menu.close as Function)();
+      if (selection && menu.isSubMenu()) {
+        menu.close();
 
-        if ((menu.isSubMenu as Function)()) {
-          (menu.parentMenu as Record<string, Record<string, Function>>).hotMenu.listen();
+        if (menu.isSubMenu()) {
+          menu.parentMenu?.hotMenu?.listen();
         }
       }
     },
   }, {
     keys: [['Control/Meta', 'ArrowUp'], ['Home']],
-    callback: () => (menu.getNavigator as Function)().toFirstItem(),
+    callback: () => menu.getNavigator().toFirstItem(),
   }, {
     keys: [['Control/Meta', 'ArrowDown'], ['End']],
-    callback: () => (menu.getNavigator as Function)().toLastItem(),
+    callback: () => menu.getNavigator().toLastItem(),
   }, {
     keys: [['Enter'], ['Space']],
     callback: (event: Event) => {
-      const selection = hotMenu.getSelectedActive();
+      const selection = hotMenu?.getSelectedActive();
 
       if (!selection) {
         return;
       }
 
-      if (hotMenu.getSourceDataAtRow(selection[0]).submenu) {
-        (menu.openSubMenu as Function)(selection[0]).getNavigator().toFirstItem();
+      if ((hotMenu?.getSourceDataAtRow(selection[0]) as Record<string, unknown>)?.submenu) {
+        const subMenu = menu.openSubMenu(selection[0]);
+
+        if (subMenu) {
+          subMenu.getNavigator().toFirstItem();
+        }
       } else {
-        (menu.executeCommand as Function)(event);
-        (menu.close as Function)(true);
+        menu.executeCommand(event);
+        menu.close(true);
       }
     }
   }, {
     keys: [['PageUp']],
     callback: () => {
-      const selection = hotMenu.getSelectedActive();
+      const selection = hotMenu?.getSelectedActive();
 
       if (selection) {
-        hotMenu.selection.transformStart(-hotMenu.countVisibleRows(), 0);
+        hotMenu?.selection.transformStart(-hotMenu.countVisibleRows(), 0);
       } else {
-        (menu.getNavigator as Function)().toFirstItem();
+        menu.getNavigator().toFirstItem();
       }
     },
   }, {
     keys: [['PageDown']],
     callback: () => {
-      const selection = hotMenu.getSelectedActive();
+      const selection = hotMenu?.getSelectedActive();
 
       if (selection) {
-        hotMenu.selection.transformStart(hotMenu.countVisibleRows(), 0);
+        hotMenu?.selection.transformStart(hotMenu.countVisibleRows(), 0);
       } else {
-        (menu.getNavigator as Function)().toLastItem();
+        menu.getNavigator().toLastItem();
       }
     },
   }];

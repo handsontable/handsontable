@@ -120,12 +120,12 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (...args: unknown[]) => (this.#onBeforeOnCellMouseDown as Function)(...args));
-    this.addHook('beforeOnCellMouseOver', (...args: unknown[]) => (this.#onBeforeOnCellMouseOver as Function)(...args));
+    this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
+    this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
     this.addHook('beforeOnCellMouseOverOutside',
       (event: MouseEvent, coords: unknown, TD: HTMLElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
-    this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
+    this.addHook('afterLoadData', this.#onAfterLoadData);
 
     this.buildPluginUI();
     this.registerEvents();

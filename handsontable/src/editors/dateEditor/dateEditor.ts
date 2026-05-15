@@ -291,8 +291,8 @@ export class DateEditor extends TextEditor {
     if (this.cellProperties && this.cellProperties.datePickerConfig) {
       deepExtend(options, this.cellProperties.datePickerConfig as Record<string, unknown>);
     }
-    const origOnSelect = options.onSelect as Function | undefined;
-    const origOnClose = options.onClose as Function | undefined;
+    const origOnSelect = options.onSelect as (() => void) | undefined;
+    const origOnClose = options.onClose as (() => void) | undefined;
 
     options.field = htInput;
     options.trigger = htInput;

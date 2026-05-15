@@ -13,7 +13,7 @@ import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { getHardConflict } from './conflictRegistry';
 
-const DEPS_TYPE_CHECKERS = new Map([
+const DEPS_TYPE_CHECKERS = new Map<string, (name: string) => boolean>([
   ['plugin', hasPlugin],
   ['cell-type', hasCellType],
   ['editor', hasEditor],
@@ -148,7 +148,7 @@ export class BasePlugin {
           throwWithCause(`Unknown plugin dependency type "${type}" was found.`);
         }
 
-        if (!(DEPS_TYPE_CHECKERS.get(type) as Function)(moduleName)) {
+        if (!DEPS_TYPE_CHECKERS.get(type)!(moduleName)) {
           missingDependencies.push(` - ${moduleName} (${type})`);
         }
       });
@@ -325,7 +325,7 @@ export class BasePlugin {
       typeof settingsValidators === 'function' &&
       typeof newSettings !== 'object'
     ) {
-      const isValid = (settingsValidators as Function)(newSettings);
+      const isValid = (settingsValidators as (settings: unknown) => boolean)(newSettings);
 
       if (isValid === false) {
         warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);

@@ -23,7 +23,7 @@ import { clamp } from '../helpers/number';
 export function createPaginator({
   initialPage = -1,
   size = () => 0,
-  onItemSelect = (() => {}) as unknown,
+  onItemSelect = (() => {}) as (index: number, commit: boolean) => boolean | void,
   onClear = () => {},
 }) {
   const visitedPages = new Set();
@@ -52,7 +52,7 @@ export function createPaginator({
 
     visitedPages.add(newIndex);
 
-    const changeProceed = (onItemSelect as Function)(newIndex, false);
+    const changeProceed = onItemSelect(newIndex, false);
 
     if (changeProceed === false) {
       newIndex = _updateState(
@@ -70,7 +70,7 @@ export function createPaginator({
    * @param {number} index The index to set.
    */
   function setCurrentPage(index: number) {
-    if (index > -1 && index < getSize() && (onItemSelect as Function)(index, true) !== false) {
+    if (index > -1 && index < getSize() && onItemSelect(index, true) !== false) {
       currentIndex = index;
     }
   }

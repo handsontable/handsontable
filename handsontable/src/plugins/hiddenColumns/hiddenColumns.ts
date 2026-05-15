@@ -233,10 +233,10 @@ export class HiddenColumns extends BasePlugin {
     this.#hiddenColumnsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName, this.#hiddenColumnsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (...args: unknown[]) => (this.#onAfterContextMenuDefaultOptions as Function)(...args));
+    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => this.#onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('modifyColWidth', (width: number, col: number) => this.#onModifyColWidth(width, col), 2);
-    this.addHook('afterGetColHeader', (...args: unknown[]) => (this.#onAfterGetColHeader as Function)(...args));
+    this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('modifyCopyableRange', (ranges: Record<string, number>[]) => this.#onModifyCopyableRange(ranges));
 
     super.enablePlugin();
