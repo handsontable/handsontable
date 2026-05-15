@@ -43,7 +43,8 @@
 }
 .vc-breadcrumb-node.is-target {
   background: var(--sl-color-accent);
-  color: var(--sl-color-accent-high);
+  color: var(--sl-color-white);
+  font-weight: 600;
 }
 .vc-breadcrumb-node.is-source {
   border-color: var(--sl-color-gray-5);
@@ -87,8 +88,9 @@
 }
 .vc-filter-tabs button.is-active {
   background: var(--sl-color-accent);
-  color: var(--sl-color-accent-high);
+  color: var(--sl-color-white);
   border-color: var(--sl-color-accent);
+  font-weight: 600;
 }
 
 .vc-release-group { margin-top: 1.5rem; }
