@@ -1,4 +1,5 @@
 import { deepObjectSize, isObject } from './object';
+import type { CellChange } from '../settings';
 
 const COLUMN_LABEL_BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const COLUMN_LABEL_BASE_LENGTH = COLUMN_LABEL_BASE.length;
@@ -161,7 +162,7 @@ export function dataRowToChangesArray(dataRow: unknown[] | object, rowOffset: nu
  * @param {string|number} prop Prop/column identifier to match.
  * @returns {boolean} `true` if at least one change matches the provided row and prop.
  */
-export function hasChangeForCell(changes: Array<Array<unknown>>, visualRow: number, prop: string | number) {
+export function hasChangeForCell(changes: CellChange[], visualRow: number, prop: string | number) {
   return changes.some(([changeRow, changeProp]) => changeRow === visualRow && changeProp === prop);
 }
 

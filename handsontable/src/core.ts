@@ -69,6 +69,7 @@ import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
+import type { CellChange } from './settings';
 import type { GridHelperInstance, ViewportScrollerInstance } from './core/types';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -1515,7 +1516,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {BaseEditor|undefined} activeEditor Current editor instance.
    * @returns {boolean} `true` when the active, opened editor points to a changed cell.
    */
-  function doesChangeAffectOpenedEditor(changes: Array<Array<unknown>>, activeEditor: Record<string, any> | undefined) {
+  function doesChangeAffectOpenedEditor(changes: CellChange[], activeEditor: Record<string, any> | undefined) {
     if (!activeEditor?.isOpened()) {
       return false;
     }
@@ -1529,7 +1530,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} source The string that identifies source of validation.
    * @param {Function} callback The callback function fot async validation.
    */
-  function validateChanges(changes: Array<Array<unknown>>, source: string, callback: Function) {
+  function validateChanges(changes: CellChange[], source: string, callback: Function) {
     if (!changes.length) {
       callback();
 
@@ -1551,14 +1552,14 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     // that end with 'Validator' ensures only corrections emitted by validators are captured, never
     // values applied by applyChanges(). Custom validators that correct values must follow this
     // convention by passing a source ending in 'Validator' to their setDataAtCell call.
-    const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]: unknown[]) => {
+    const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]: CellChange) => {
       const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
 
       if (idx !== -1) {
         changes[idx][3] = correctedValue;
       }
     };
-    const onAfterChange = (afterChanges: Array<Array<unknown>> | null | undefined, afterSource: unknown) => {
+    const onAfterChange = (afterChanges: CellChange[] | null | undefined, afterSource: unknown) => {
       if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
         return;
       }
@@ -1633,7 +1634,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
-  function applyChanges(changes: Array<Array<unknown>>, source: string) {
+  function applyChanges(changes: CellChange[], source: string) {
     for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
@@ -1650,7 +1651,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       }
 
       if (tableMeta.allowInsertRow) {
-        while ((changes[i][0] as number) > instance.countRows() - 1) {
+        while (changes[i][0] > instance.countRows() - 1) {
           const {
             delta: numberOfCreatedRows
           } = datamap.createRow(undefined, undefined, { source: 'auto' });
@@ -1681,7 +1682,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
         continue;
       }
 
-      datamap.set(changes[i][0] as number, changes[i][1] as string | number, changes[i][3]);
+      datamap.set(changes[i][0], changes[i][1] as string | number, changes[i][3]);
     }
 
     const hasChanges = changes.length > 0;
@@ -1862,10 +1863,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    * @returns {Array} List of changes finally applied to the dataset.
    */
-  function processChanges(changes: Array<Array<unknown> | null>, source: string) {
+  function processChanges(changes: Array<CellChange | null>, source: string): CellChange[] {
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
-    const filteredChanges = changes.filter((change: Array<unknown> | null) => change !== null);
+    const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
     if (beforeChangeResult === false || filteredChanges.length === 0) {
       instance.getActiveEditor()?.cancelChanges();
@@ -1905,7 +1906,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.setDataAtCell = function(row: number | Array<Array<unknown>>, column: number | string, value: string, source?: string) {
     const input = setDataInputToArray(row, column, value);
-    const changes = [];
+    const changes: CellChange[] = [];
     let changeSource = source;
     let i;
     let ilen;
@@ -1964,7 +1965,7 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.setDataAtRowProp = function(row: number | Array<Array<unknown>>, prop: string | number, value: string, source?: string) {
     const input = setDataInputToArray(row, prop, value);
-    const changes = [];
+    const changes: CellChange[] = [];
     let changeSource = source;
     let i;
     let ilen;
