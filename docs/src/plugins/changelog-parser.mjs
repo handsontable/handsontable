@@ -29,8 +29,13 @@ const CATEGORY_HEADINGS = {
   '#### Fixed': 'fixed',
 };
 
-function stripBullet(line) {
-  return line.replace(/^- /, '').trim();
+function parseBullet(line) {
+  const raw = line.replace(/^- /, '').trim();
+  const breakingMatch = raw.match(/^\*\*Breaking change\*\*:\s*(.*)$/);
+  if (breakingMatch) {
+    return { breaking: true, body: breakingMatch[1].trim() };
+  }
+  return { breaking: false, body: raw };
 }
 
 export function parseChangelogContent(markdown) {
@@ -59,11 +64,13 @@ export function parseChangelogContent(markdown) {
     if (!currentVersion || !currentCategory) continue;
     if (!line.startsWith('- ')) continue;
 
+    const { breaking, body } = parseBullet(line);
     entries.push({
       version: currentVersion,
       releaseDate: currentDate,
       category: currentCategory,
-      title: stripBullet(line),
+      breaking,
+      title: body,
     });
   }
 

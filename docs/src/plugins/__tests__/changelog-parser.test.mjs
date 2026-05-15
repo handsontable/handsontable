@@ -62,3 +62,21 @@ test('extracts entries grouped by Added/Changed/Deprecated/Removed/Fixed', () =>
     assert.equal(entry.releaseDate, '2026-03-09');
   }
 });
+
+test('marks bullets starting with **Breaking change**: as breaking', () => {
+  const md = [
+    '## 17.0.0',
+    'Released on March 9th, 2026',
+    '',
+    '#### Removed',
+    '- **Breaking change**: Removed core-js from dependencies.',
+    '- Removed the languages folder.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 2);
+  assert.equal(result[0].breaking, true);
+  assert.equal(result[0].title, 'Removed core-js from dependencies.');
+  assert.equal(result[1].breaking, false);
+});
