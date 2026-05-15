@@ -208,7 +208,7 @@ export class TextEditor extends BaseEditor {
   createElements(type: string = 'textarea'): void {
     const { rootDocument } = this.hot;
 
-    this.TEXTAREA = rootDocument.createElement(type) as unknown as HTMLTextAreaElement;
+    this.TEXTAREA = rootDocument.createElement(type) as HTMLTextAreaElement;
 
     // Makes the element recognizable by Hot as its own
     // component's element.

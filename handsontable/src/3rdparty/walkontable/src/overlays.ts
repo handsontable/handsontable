@@ -646,7 +646,7 @@ class Overlays {
    * @returns {boolean}
    */
   translateMouseWheelToScroll(event: WheelEvent) {
-    const legacyEvent = event as unknown as WheelEventWithLegacyDelta;
+    const legacyEvent = event as WheelEventWithLegacyDelta;
     let deltaY = isNaN(event.deltaY) ? (-1) * (legacyEvent.wheelDeltaY ?? 0) : event.deltaY;
     let deltaX = isNaN(event.deltaX) ? (-1) * (legacyEvent.wheelDeltaX ?? 0) : event.deltaX;
 

@@ -54,7 +54,7 @@ export class IntlDateEditor extends TextEditor {
     super.open();
 
     try {
-      (this.TEXTAREA as unknown as HTMLInputElement).showPicker();
+      (this.TEXTAREA as HTMLInputElement).showPicker();
     } catch {
       // Prevents showPicker() user-gesture errors in tests
     }
