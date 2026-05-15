@@ -102,12 +102,12 @@ export class Formulas extends BasePlugin {
    * @type {Array}
    */
   #engineListeners: [string, (...args: unknown[]) => void][] = [
-    ['valuesUpdated', (...args: unknown[]) => (this.#onEngineValuesUpdated as Function)(...args)],
-    ['namedExpressionAdded', (...args: unknown[]) => (this.#onEngineNamedExpressionsAdded as Function)(...args)],
-    ['namedExpressionRemoved', (...args: unknown[]) => (this.#onEngineNamedExpressionsRemoved as Function)(...args)],
-    ['sheetAdded', (...args: unknown[]) => (this.#onEngineSheetAdded as Function)(...args)],
-    ['sheetRenamed', (...args: unknown[]) => (this.#onEngineSheetRenamed as Function)(...args)],
-    ['sheetRemoved', (...args: unknown[]) => (this.#onEngineSheetRemoved as Function)(...args)],
+    ['valuesUpdated', this.#onEngineValuesUpdated],
+    ['namedExpressionAdded', this.#onEngineNamedExpressionsAdded],
+    ['namedExpressionRemoved', this.#onEngineNamedExpressionsRemoved],
+    ['sheetAdded', this.#onEngineSheetAdded],
+    ['sheetRenamed', this.#onEngineSheetRenamed],
+    ['sheetRemoved', this.#onEngineSheetRemoved],
   ];
 
   /**
@@ -193,32 +193,32 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    this.addHook('beforeLoadData', (...args: unknown[]) => (this.#onBeforeLoadData as Function)(...args));
-    this.addHook('afterLoadData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
-    this.addHook('beforeUpdateData', (...args: unknown[]) => (this.#onBeforeLoadData as Function)(...args));
-    this.addHook('afterUpdateData', (...args: unknown[]) => (this.#onAfterLoadData as Function)(...args));
+    this.addHook('beforeUpdateData', this.#onBeforeLoadData);
+    this.addHook('afterUpdateData', this.#onAfterLoadData);
 
-    this.addHook('modifyData', (...args: unknown[]) => (this.#onModifyData as Function)(...args));
-    this.addHook('modifySourceData', (...args: unknown[]) => (this.#onModifySourceData as Function)(...args));
-    this.addHook('beforeValidate', (...args: unknown[]) => (this.#onBeforeValidate as Function)(...args));
+    this.addHook('modifyData', this.#onModifyData);
+    this.addHook('modifySourceData', this.#onModifySourceData);
+    this.addHook('beforeValidate', this.#onBeforeValidate);
 
-    this.addHook('afterSetSourceDataAtCell', (...args: unknown[]) => (this.#onAfterSetSourceDataAtCell as Function)(...args));
-    this.addHook('afterSetDataAtCell', (...args: unknown[]) => (this.#onAfterSetDataAtCell as Function)(...args));
-    this.addHook('afterSetDataAtRowProp', (...args: unknown[]) => (this.#onAfterSetDataAtCell as Function)(...args));
+    this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
+    this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
+    this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
 
-    this.addHook('beforeCreateRow', (...args: unknown[]) => (this.#onBeforeCreateRow as Function)(...args));
-    this.addHook('beforeCreateCol', (...args: unknown[]) => (this.#onBeforeCreateCol as Function)(...args));
+    this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
+    this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
 
-    this.addHook('afterCreateRow', (...args: unknown[]) => (this.#onAfterCreateRow as Function)(...args));
-    this.addHook('afterCreateCol', (...args: unknown[]) => (this.#onAfterCreateCol as Function)(...args));
+    this.addHook('afterCreateRow', this.#onAfterCreateRow);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
 
-    this.addHook('beforeRemoveRow', (...args: unknown[]) => (this.#onBeforeRemoveRow as Function)(...args));
-    this.addHook('beforeRemoveCol', (...args: unknown[]) => (this.#onBeforeRemoveCol as Function)(...args));
+    this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
+    this.addHook('beforeRemoveCol', this.#onBeforeRemoveCol);
 
-    this.addHook('afterRemoveRow', (...args: unknown[]) => (this.#onAfterRemoveRow as Function)(...args));
-    this.addHook('afterRemoveCol', (...args: unknown[]) => (this.#onAfterRemoveCol as Function)(...args));
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
 
     this.indexSyncer = new IndexSyncer(this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
       this.hot.addHookOnce('init', () => {
@@ -275,7 +275,7 @@ export class Formulas extends BasePlugin {
     // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
     // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
     // Another hooks are triggered to late for setting HF's engine data needed for some actions.
-    this.addHook('afterCellMetaReset', (...args: unknown[]) => (this.#onAfterCellMetaReset as Function)(...args));
+    this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -299,8 +299,8 @@ export class Formulas extends BasePlugin {
       this.indexSyncer.setPerformRedo(false);
     });
 
-    this.addHook('afterDetachChild', (...args: unknown[]) => (this.#onAfterDetachChild as Function)(...args));
-    this.addHook('beforeAutofill', (...args: unknown[]) => (this.#onBeforeAutofill as Function)(...args));
+    this.addHook('afterDetachChild', this.#onAfterDetachChild);
+    this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
