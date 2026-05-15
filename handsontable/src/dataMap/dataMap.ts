@@ -170,13 +170,11 @@ class DataMap {
     if (columns) {
       let columnsLen = 0;
       let filteredIndex = 0;
-      let columnsAsFunc = false;
 
       if (typeof columns === 'function') {
         const schemaLen = deepObjectSize(schema);
 
         columnsLen = schemaLen > 0 ? schemaLen : this.countFirstRowKeys();
-        columnsAsFunc = true;
 
       } else {
         const maxCols = this.tableMeta.maxCols;
@@ -185,13 +183,13 @@ class DataMap {
       }
 
       for (i = 0; i < columnsLen; i++) {
-        const column = columnsAsFunc
-          ? (columns as (i: number) => Record<string, unknown>)(i)
+        const column = typeof columns === 'function'
+          ? columns(i)
           : (columns as Record<string, unknown>[])[i];
 
         if (isObject(column)) {
           if (typeof column.data !== 'undefined') {
-            const index = columnsAsFunc ? filteredIndex : i;
+            const index = typeof columns === 'function' ? filteredIndex : i;
 
             this.colToPropCache[index] = column.data as string | number;
             this.propToColCache.set(column.data as string | number, index);

@@ -2910,7 +2910,6 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    */
   this.updateSettings = function(settings: Record<string, unknown>, init = false) {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(this);
-    let columnsAsFunc = false;
     let i;
     let j;
 
@@ -3078,11 +3077,6 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     const clen = instance.countCols();
     const columnSetting = tableMeta.columns;
 
-    // Init columns constructors configuration
-    if (columnSetting && isFunction(columnSetting)) {
-      columnsAsFunc = true;
-    }
-
     // Clear cell meta cache
     if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
       metaManager.clearCache();
@@ -3092,7 +3086,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       for (i = 0, j = 0; i < clen; i++) {
         // Use settings provided by user
         if (columnSetting) {
-          const column = columnsAsFunc ? (columnSetting as Function)(i) : (columnSetting as Record<string, unknown>[])[j];
+          const column = isFunction(columnSetting)
+            ? (columnSetting as (i: number) => Record<string, unknown>)(i)
+            : (columnSetting as Record<string, unknown>[])[j];
 
           if (column) {
             metaManager.updateColumnMeta(j, column);
