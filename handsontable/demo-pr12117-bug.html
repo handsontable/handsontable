@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12117 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .steps { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; }
+    .steps h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #333; }
+    .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1976d2; color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .step-num.done { background: #388e3c; }
+    .step-num.current { background: #f57c00; }
+    .step-desc { font-size: 13px; color: #444; flex: 1; }
+    .btn { padding: 5px 14px; font-size: 13px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-action { background: #1976d2; color: #fff; border-color: #1565c0; }
+    .btn-action:hover { background: #1565c0; }
+    .btn-action:disabled { background: #90caf9; border-color: #90caf9; cursor: default; }
+    #status { padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #ccc; background: #fff; min-height: 42px; margin-bottom: 10px; }
+    #status.bug { background: #fdecea; border-color: #ef9a9a; color: #b71c1c; }
+    #status.ok { background: #e8f5e9; border-color: #66bb6a; color: #1b5e20; }
+    #status.info { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 140px; overflow-y: auto; margin-bottom: 10px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; }
+    .entry-ok { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+    .legend { font-size: 12px; color: #666; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12117 - Filters wrong column after manualColumnMove</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12117-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (released v17.0.1).</strong>
+    After moving a column with <code>manualColumnMove</code>, the Filters plugin loses
+    track of the filter when data changes. Root cause: <code>#onAfterChange</code> passes a
+    <em>visual</em> index to <code>hasConditions()</code> which expects a <em>physical</em> index,
+    so the condition lookup fails and the filter value list is never refreshed.
+  </div>
+
+  <div class="steps">
+    <h3>Reproduce the bug — follow these steps in order:</h3>
+    <div class="step-row"><span class="step-num" id="sn1">1</span><span class="step-desc">Start: grid has columns <strong>Sold on</strong> (col 0), <strong>Product</strong> (col 1), <strong>Model</strong> (col 2).</span></div>
+    <div class="step-row"><span class="step-num" id="sn2">2</span><span class="step-desc">Move <strong>Sold on</strong> to last position (visual 0 → visual 2). Physical index stays 0.</span><button class="btn btn-action" id="btn-move">Move column</button></div>
+    <div class="step-row"><span class="step-num" id="sn3">3</span><span class="step-desc">Apply a "by_value" filter on <strong>Sold on</strong> (now at visual col 2, physical col 0).</span><button class="btn btn-action" id="btn-filter" disabled>Apply filter</button></div>
+    <div class="step-row"><span class="step-num" id="sn4">4</span><span class="step-desc">Add a new row with a new date in <strong>Sold on</strong>.</span><button class="btn btn-action" id="btn-addrow" disabled>Add row</button></div>
+    <div class="step-row"><span class="step-num" id="sn5">5</span><span class="step-desc">Check filter conditions — should still reference the correct (physical) column.</span><button class="btn btn-action" id="btn-check" disabled>Check filter state</button></div>
+  </div>
+
+  <div id="status" class="info">Press "Move column" to start the test scenario.</div>
+
+  <div id="log"><strong>Event log:</strong><div id="entries"></div></div>
+
+  <p class="legend">You can also open the filter dropdown manually on <strong>Sold on</strong> column after each step to observe the bug visually.</p>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATES = ['Mar 27, 2023', 'Oct 15, 2023'];
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+    }
+
+    function setStatus(msg, cls) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = cls || '';
+    }
+
+    function markStep(n, state) {
+      const el = document.getElementById('sn' + n);
+      el.className = 'step-num ' + (state || '');
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: [
+        ['Mar 27, 2023', 'Product A', 'Cycling Cap'],
+        ['Oct 15, 2023', 'Product B', 'HL Mountain Shirt'],
+      ],
+      colHeaders: ['Sold on', 'Product', 'Model'],
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      filters: true,
+      dropdownMenu: true,
+      manualColumnMove: true,
+    });
+
+    markStep(1, 'done');
+
+    document.getElementById('btn-move').addEventListener('click', () => {
+      const mcm = hot.getPlugin('manualColumnMove');
+      mcm.moveColumn(0, 2);
+      hot.render();
+      markStep(2, 'done'); markStep(3, 'current');
+      document.getElementById('btn-filter').disabled = false;
+      document.getElementById('btn-move').disabled = true;
+      addLog('Moved "Sold on" → visual col 2, physical col 0 (index unchanged)', 'entry-info');
+      setStatus('Step 2 done. Now apply the filter on "Sold on" (now last column).', 'info');
+    });
+
+    document.getElementById('btn-filter').addEventListener('click', () => {
+      const filters = hot.getPlugin('filters');
+      // "Sold on" is now at visual index 2 (physical 0)
+      filters.addCondition(2, 'by_value', [DATES]);
+      filters.filter();
+      markStep(3, 'done'); markStep(4, 'current');
+      document.getElementById('btn-addrow').disabled = false;
+      document.getElementById('btn-filter').disabled = true;
+      const hasOnPhys = filters.conditionCollection.hasConditions(0);
+      const hasOnVis  = filters.conditionCollection.hasConditions(2);
+      addLog(`Filter applied. hasConditions(physical=0): ${hasOnPhys} | hasConditions(visual=2): ${hasOnVis}`, 'entry-info');
+      setStatus('Step 3 done. Filter applied on "Sold on". Now add a row to trigger the bug.', 'info');
+    });
+
+    document.getElementById('btn-addrow').addEventListener('click', () => {
+      // This triggers afterChange which has the visual/physical bug
+      hot.alter('insert_row_below', 1);
+      hot.setDataAtCell(2, 2, 'Jun 10, 2024'); // visual col 2 = "Sold on"
+      markStep(4, 'done'); markStep(5, 'current');
+      document.getElementById('btn-check').disabled = false;
+      document.getElementById('btn-addrow').disabled = true;
+      addLog('Added row with new date "Jun 10, 2024" in "Sold on" column', 'entry-info');
+      setStatus('Step 4 done. Row added. Now check the filter state.', 'info');
+    });
+
+    document.getElementById('btn-check').addEventListener('click', () => {
+      const filters = hot.getPlugin('filters');
+      const conditionsOnPhysical0 = filters.conditionCollection.getConditions(0);
+      const hasOnPhys = filters.conditionCollection.hasConditions(0);
+
+      addLog(`After addRow — hasConditions(physical=0): ${hasOnPhys}`, hasOnPhys ? 'entry-ok' : 'entry-bug');
+      addLog(`Conditions on physical col 0: ${JSON.stringify(conditionsOnPhysical0.map(c => c.name))}`, conditionsOnPhysical0.length > 0 ? 'entry-ok' : 'entry-bug');
+
+      // Check what getDataAtCol returns for wrong vs right index
+      const dataAtPhys0 = hot.getDataAtCol(0); // physical (wrong usage in bug)
+      const dataAtVis2  = hot.getDataAtCol(2); // visual (correct)
+      addLog(`getDataAtCol(0) [physical, WRONG in updateValueComponentCondition]: ${JSON.stringify(dataAtPhys0)}`, 'entry-bug');
+      addLog(`getDataAtCol(2) [visual, CORRECT]: ${JSON.stringify(dataAtVis2)}`, 'entry-ok');
+
+      if (!hasOnPhys || conditionsOnPhysical0.length === 0) {
+        setStatus('BUG: Filter conditions lost after adding data! The afterChange handler checked visual index 2 for conditions but they are stored at physical index 0 — so the filter value list was never updated.', 'bug');
+        markStep(5, '');
+      } else {
+        setStatus('Conditions still present (bug might be in getDataAtCol mismatch — check the log).', '');
+      }
+    });
+  </script>
+</body>
+</html>

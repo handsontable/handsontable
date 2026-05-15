@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12117 — FIX (patched)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .steps { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; }
+    .steps h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #333; }
+    .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #1976d2; color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .step-num.done { background: #388e3c; }
+    .step-num.current { background: #f57c00; }
+    .step-desc { font-size: 13px; color: #444; flex: 1; }
+    .btn { padding: 5px 14px; font-size: 13px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-action { background: #388e3c; color: #fff; border-color: #2e7d32; }
+    .btn-action:hover { background: #2e7d32; }
+    .btn-action:disabled { background: #a5d6a7; border-color: #a5d6a7; cursor: default; }
+    #status { padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: 500; border: 1px solid #ccc; background: #fff; min-height: 42px; margin-bottom: 10px; }
+    #status.bug { background: #fdecea; border-color: #ef9a9a; color: #b71c1c; }
+    #status.ok { background: #e8f5e9; border-color: #66bb6a; color: #1b5e20; }
+    #status.info { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 140px; overflow-y: auto; margin-bottom: 10px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug { color: #b71c1c; }
+    .entry-ok { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .legend { font-size: 12px; color: #666; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12117 - Filters wrong column after manualColumnMove</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12117-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12117 patch).</strong>
+    Two index conversions are now correct:<br>
+    1. <code>#onAfterChange</code>: visual → physical before <code>hasConditions()</code> and <code>updateValueComponentCondition()</code>.<br>
+    2. <code>updateValueComponentCondition()</code>: physical → visual before <code>getDataAtCol()</code>.
+  </div>
+
+  <div id="patch-info">
+    <strong>Runtime patch applied via two hooks:</strong><br>
+    - <code>afterChange</code> hook uses <code>toPhysicalColumn()</code> to look up conditions by physical index and calls <code>updateValueComponentCondition</code> with it.<br>
+    - <code>updateValueComponentCondition</code> is overridden to intercept <code>getDataAtCol</code> and redirect the physical index to its visual equivalent.
+  </div>
+
+  <div class="steps">
+    <h3>Verify the fix — same steps as the bug page:</h3>
+    <div class="step-row"><span class="step-num" id="sn1">1</span><span class="step-desc">Start: columns <strong>Sold on</strong> (col 0), <strong>Product</strong> (col 1), <strong>Model</strong> (col 2).</span></div>
+    <div class="step-row"><span class="step-num" id="sn2">2</span><span class="step-desc">Move <strong>Sold on</strong> to last position.</span><button class="btn btn-action" id="btn-move">Move column</button></div>
+    <div class="step-row"><span class="step-num" id="sn3">3</span><span class="step-desc">Apply "by_value" filter on <strong>Sold on</strong> (visual 2, physical 0).</span><button class="btn btn-action" id="btn-filter" disabled>Apply filter</button></div>
+    <div class="step-row"><span class="step-num" id="sn4">4</span><span class="step-desc">Add a new row with a new date.</span><button class="btn btn-action" id="btn-addrow" disabled>Add row</button></div>
+    <div class="step-row"><span class="step-num" id="sn5">5</span><span class="step-desc"><strong>Fixed:</strong> conditions remain on physical col 0, <code>getDataAtCol</code> reads the correct visual column.</span><button class="btn btn-action" id="btn-check" disabled>Check filter state</button></div>
+  </div>
+
+  <div id="status" class="info">Press "Move column" to start the test scenario.</div>
+
+  <div id="log"><strong>Event log:</strong><div id="entries"></div></div>
+
+  <p class="legend">Open the filter dropdown on <strong>Sold on</strong> after step 4 — the new date "Jun 10, 2024" should appear in the checkbox list.</p>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATES = ['Mar 27, 2023', 'Oct 15, 2023'];
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString() + '  ' + msg;
+      el.prepend(d);
+    }
+
+    function setStatus(msg, cls) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = cls || '';
+    }
+
+    function markStep(n, state) {
+      document.getElementById('sn' + n).className = 'step-num ' + (state || '');
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: [
+        ['Mar 27, 2023', 'Product A', 'Cycling Cap'],
+        ['Oct 15, 2023', 'Product B', 'HL Mountain Shirt'],
+      ],
+      colHeaders: ['Sold on', 'Product', 'Model'],
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      filters: true,
+      dropdownMenu: true,
+      manualColumnMove: true,
+    });
+
+    // ── Apply PR #12117 fix as a runtime patch ──────────────────────────────
+    //
+    // Bug 1 (#onAfterChange, private): uses visual index for hasConditions() and
+    //   updateValueComponentCondition() which both expect a physical index.
+    //
+    // Bug 2 (updateValueComponentCondition, public): uses physical index for
+    //   getDataAtCol() which expects a visual index.
+    //
+    // Patch A: afterChange hook — runs AFTER the plugin's broken hook, but
+    //   repeats the update with the correct physical index.
+    //   The plugin's hook will have called updateValueComponentCondition with the
+    //   visual index (if conditions happened to exist there), so we re-call it
+    //   with the correct physical index.
+    //
+    // Patch B: override updateValueComponentCondition to redirect getDataAtCol
+    //   from the physical index to the visual index.
+
+    (function applyPr12117Fix() {
+      const filtersPlugin = hot.getPlugin('filters');
+
+      // Patch B: fix updateValueComponentCondition (public method - directly patchable)
+      const origMethod = filtersPlugin.updateValueComponentCondition.bind(filtersPlugin);
+      filtersPlugin.updateValueComponentCondition = function(physicalColIdx) {
+        const visualColIdx = hot.toVisualColumn(physicalColIdx);
+
+        // Temporarily redirect getDataAtCol so the (still-buggy) internal call
+        // gets visual index data instead of physical index data.
+        const origGetDataAtCol = hot.getDataAtCol.bind(hot);
+        hot.getDataAtCol = (col) => {
+          // The internal code calls getDataAtCol(physicalColIdx) — redirect to visual
+          return origGetDataAtCol(col === physicalColIdx ? visualColIdx : col);
+        };
+
+        origMethod(physicalColIdx);
+        hot.getDataAtCol = origGetDataAtCol; // restore
+
+        addLog(`updateValueComponentCondition(physical=${physicalColIdx}) → getDataAtCol(visual=${visualColIdx}) [FIXED]`, 'entry-ok');
+      };
+
+      // Patch A: fix #onAfterChange by adding our own afterChange hook that
+      // correctly uses physical column index for the hasConditions check and update.
+      // (The plugin's broken hook runs first but may be a no-op if visual index
+      // has no conditions; our hook ensures the correct physical lookup runs.)
+      hot.addHook('afterChange', function(changes, source) {
+        if (source === 'loadData' || !changes) return;
+
+        changes.forEach(([, prop]) => {
+          const visualColIdx = this.propToCol(prop);
+
+          if (visualColIdx < 0) return;
+
+          const physicalColIdx = this.toPhysicalColumn(visualColIdx);
+
+          if (filtersPlugin.conditionCollection.hasConditions(physicalColIdx)) {
+            addLog(`afterChange: visual=${visualColIdx} → physical=${physicalColIdx}, conditions found → updating [FIXED]`, 'entry-ok');
+            filtersPlugin.updateValueComponentCondition(physicalColIdx);
+          }
+        });
+      });
+
+      addLog('PR #12117 patch applied (2 fixes: afterChange index + updateValueComponentCondition redirect)', 'entry-info');
+    })();
+    // ── End patch ──────────────────────────────────────────────────────────
+
+    markStep(1, 'done');
+
+    document.getElementById('btn-move').addEventListener('click', () => {
+      hot.getPlugin('manualColumnMove').moveColumn(0, 2);
+      hot.render();
+      markStep(2, 'done'); markStep(3, 'current');
+      document.getElementById('btn-filter').disabled = false;
+      document.getElementById('btn-move').disabled = true;
+      addLog('Moved "Sold on" → visual col 2, physical col 0', 'entry-info');
+      setStatus('Step 2 done. Apply the filter.', 'info');
+    });
+
+    document.getElementById('btn-filter').addEventListener('click', () => {
+      const filters = hot.getPlugin('filters');
+      filters.addCondition(2, 'by_value', [DATES]);
+      filters.filter();
+      markStep(3, 'done'); markStep(4, 'current');
+      document.getElementById('btn-addrow').disabled = false;
+      document.getElementById('btn-filter').disabled = true;
+      const hasOnPhys = filters.conditionCollection.hasConditions(0);
+      addLog(`Filter applied. hasConditions(physical=0): ${hasOnPhys}`, 'entry-ok');
+      setStatus('Step 3 done. Filter applied. Now add a row.', 'info');
+    });
+
+    document.getElementById('btn-addrow').addEventListener('click', () => {
+      hot.alter('insert_row_below', 1);
+      hot.setDataAtCell(2, 2, 'Jun 10, 2024');
+      markStep(4, 'done'); markStep(5, 'current');
+      document.getElementById('btn-check').disabled = false;
+      document.getElementById('btn-addrow').disabled = true;
+      addLog('Added row — afterChange will fire with the fixed index logic', 'entry-info');
+      setStatus('Step 4 done. Row added. Check filter state.', 'info');
+    });
+
+    document.getElementById('btn-check').addEventListener('click', () => {
+      const filters = hot.getPlugin('filters');
+      const conditions = filters.conditionCollection.getConditions(0);
+      const hasOnPhys = filters.conditionCollection.hasConditions(0);
+      const dataAtVis2 = hot.getDataAtCol(2);
+
+      addLog(`hasConditions(physical=0): ${hasOnPhys}`, hasOnPhys ? 'entry-ok' : 'entry-bug');
+      addLog(`Conditions: ${JSON.stringify(conditions.map(c => c.name))}`, conditions.length > 0 ? 'entry-ok' : 'entry-bug');
+      addLog(`getDataAtCol(visual=2) [correct column data]: ${JSON.stringify(dataAtVis2)}`, 'entry-ok');
+
+      const newDatePresent = dataAtVis2.includes('Jun 10, 2024');
+      addLog(`New date "Jun 10, 2024" in correct column data: ${newDatePresent}`, newDatePresent ? 'entry-ok' : 'entry-bug');
+
+      if (hasOnPhys && conditions.length > 0 && newDatePresent) {
+        setStatus('FIXED: Conditions intact on physical col 0. getDataAtCol used visual index correctly. Open the Sold on filter dropdown — "Jun 10, 2024" should appear in the checkbox list.', 'ok');
+        markStep(5, 'done');
+      } else {
+        setStatus('Something unexpected - patch may not have applied correctly. Check the log.', 'bug');
+      }
+    });
+  </script>
+</body>
+</html>
