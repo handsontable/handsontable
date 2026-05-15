@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../core/types';
+import type { MenuItemConfig } from '../contextMenu';
 import { Positioner } from './positioner';
 import { createMenuNavigator } from './navigator';
 import { createKeyboardShortcutsCtrl } from './shortcuts';
@@ -484,19 +485,19 @@ export class Menu {
       return false;
     }
 
-    const dataItem = this.hotMenu!.getSourceDataAtRow(row) as Record<string, unknown>;
+    const dataItem = this.hotMenu!.getSourceDataAtRow(row) as MenuItemConfig;
     const subMenu = new Menu(this.hot, {
       parent: this,
-      name: dataItem.name as string,
+      name: typeof dataItem.name === 'function' ? dataItem.name() : dataItem.name,
       className: this.options.className,
       keepInViewport: true,
       container: this.options.container,
     });
 
-    subMenu.setMenuItems((dataItem.submenu as Record<string, unknown>).items as Record<string, unknown>[]);
+    subMenu.setMenuItems(dataItem.submenu!.items as Record<string, unknown>[]);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
-    this.hotSubMenus[dataItem.key as string] = subMenu;
+    this.hotSubMenus[dataItem.key!] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.
     if (this.hot.getSettings().ariaTags) {
@@ -514,12 +515,12 @@ export class Menu {
    * @param {number} row Row index.
    */
   closeSubMenu(row: number) {
-    const dataItem = this.hotMenu!.getSourceDataAtRow(row) as Record<string, unknown>;
-    const menus = this.hotSubMenus[dataItem.key as string];
+    const dataItem = this.hotMenu!.getSourceDataAtRow(row) as MenuItemConfig;
+    const menus = this.hotSubMenus[dataItem.key!];
 
     if (menus) {
       menus.destroy();
-      delete this.hotSubMenus[dataItem.key as string];
+      delete this.hotSubMenus[dataItem.key!];
 
       const cell = this.hotMenu!.getCell(row, 0);
 

@@ -152,7 +152,7 @@ export class BaseUI {
 
     // prevents "hot.unlisten()" call when clicked
     // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
-    this._element.setAttribute('data-hot-input', true as unknown as string);
+    this._element.setAttribute('data-hot-input', 'true');
 
     if (this.options.tabIndex !== undefined) {
       this._element.setAttribute('tabindex', String(this.options.tabIndex));
@@ -172,7 +172,7 @@ export class BaseUI {
 
       // prevents "hot.unlisten()" call when clicked
       // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
-      element.setAttribute('data-hot-input', true as unknown as string);
+      element.setAttribute('data-hot-input', 'true');
 
       objectEach(this.options as Record<string, unknown>, (value: unknown, key: string) => {
         if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
@@ -182,10 +182,10 @@ export class BaseUI {
 
       this._element.appendChild(element);
 
-      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(element, eventName as string));
+      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(element, eventName));
 
     } else {
-      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(this._element, eventName as string));
+      arrayEach(EVENTS_TO_REGISTER, (eventName) => registerEvent(this._element, eventName));
     }
   }
 

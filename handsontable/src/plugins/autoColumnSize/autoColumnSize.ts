@@ -309,7 +309,7 @@ export class AutoColumnSize extends BasePlugin {
     const samplingRatio = this.getSetting('samplingRatio');
 
     if (samplingRatio && !isNaN(samplingRatio as number)) {
-      this.samplesGenerator.setSampleCount(parseInt(samplingRatio as string, 10));
+      this.samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
     }
 
     this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => this.#onAfterLoadData(sourceData, isFirstLoad));

@@ -188,7 +188,7 @@ export class Formulas extends BasePlugin {
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
       const newSheetName = this.addSheet(this.sheetName, this.#getProcessedSourceDataArray());
 
-      if (newSheetName !== false) {
+      if (typeof newSheetName === 'string') {
         this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
@@ -356,7 +356,9 @@ export class Formulas extends BasePlugin {
       } else {
         const newSheetName = this.addSheet(sheetName ?? undefined, this.#getProcessedSourceDataArray());
 
-        this.#updateSheetNameAndSheetId(newSheetName);
+        if (typeof newSheetName === 'string') {
+          this.#updateSheetNameAndSheetId(newSheetName);
+        }
       }
     }
 

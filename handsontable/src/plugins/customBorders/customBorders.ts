@@ -292,7 +292,7 @@ export class CustomBorders extends BasePlugin {
 
     } else {
       arrayEach(this.savedBorders, (border: Record<string, any>) => {
-        this.clearBordersFromSelectionSettings(border.id as string);
+        this.clearBordersFromSelectionSettings(border.id);
         this.clearNullCellRange();
         this.hot.removeCellMeta(border.row as number, border.col as number, 'borders');
       });
@@ -626,7 +626,7 @@ export class CustomBorders extends BasePlugin {
    */
   hideBorders() {
     arrayEach(this.savedBorders, (border: Record<string, any>) => {
-      this.clearBordersFromSelectionSettings(border.id as string);
+      this.clearBordersFromSelectionSettings(border.id);
       this.clearNullCellRange();
     });
   }
@@ -660,7 +660,7 @@ export class CustomBorders extends BasePlugin {
     const hideCount = this.countHide(border);
 
     if (hideCount === 4) {
-      this.spliceBorder(border.id as string);
+      this.spliceBorder(border.id);
       check = true;
 
     } else {

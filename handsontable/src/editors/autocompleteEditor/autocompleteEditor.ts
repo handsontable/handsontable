@@ -160,7 +160,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       renderer: (hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => {
         textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
-        const { filteringCaseSensitive, allowHtml, locale } = this.cellProperties;
+        const { filteringCaseSensitive, allowHtml } = this.cellProperties;
+        const locale = this.cellProperties.locale as string | undefined;
         const query = this.query;
         const cellValue = stringify(value);
 
@@ -168,7 +169,7 @@ export class AutocompleteEditor extends HandsontableEditor {
           TD.innerHTML = cellValue;
         } else if (cellValue && query && query.length > 0) {
           const indexOfMatch = filteringCaseSensitive === true ?
-            cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale as string).indexOf(query.toLocaleLowerCase(locale as string));
+            cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale).indexOf(query.toLocaleLowerCase(locale));
 
           if (indexOfMatch !== -1) {
             const match = cellValue.slice(indexOfMatch, indexOfMatch + query.length);
@@ -225,7 +226,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (rootInstanceAriaTagsEnabled) {
       // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
       const a11yPres = A11Y_PRESENTATION();
-      setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, a11yPres[0] as string, a11yPres[1]);
+      setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, a11yPres[0], a11yPres[1]);
 
       setAttribute(this.htEditor.rootElement, [
         A11Y_LISTBOX(),
@@ -314,18 +315,18 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     const filteredChoiceIndexes: number[] = [];
-    const locale = this.cellProperties.locale as string;
+    const locale = this.cellProperties.locale as string | undefined;
     const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
-    const valueToMatch = filteringCaseSensitive ? comparableValue : (comparableValue as string).toLocaleLowerCase(locale);
+    const valueToMatch = filteringCaseSensitive ? comparableValue : String(comparableValue).toLocaleLowerCase(locale);
 
     for (let i = 0; i < choices.length; i++) {
       const currentItem =
         this.#isKeyValueObject(choices[i]) ?
           stripTags(stringify((choices[i] as Record<string, unknown>).value)) :
           stripTags(stringify(choices[i]));
-      const itemToMatch = filteringCaseSensitive ? currentItem : (currentItem as string).toLocaleLowerCase(locale);
+      const itemToMatch = filteringCaseSensitive ? currentItem : currentItem.toLocaleLowerCase(locale);
 
-      if (itemToMatch.indexOf(valueToMatch as string) !== -1) {
+      if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
         filteredChoiceIndexes.push(i);
 
         if (filterSetting === false) {
@@ -335,7 +336,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     if (filterSetting === false) {
-      if ((value as string).length > 0) {
+      if (String(value).length > 0) {
         highlightIndex = filteredChoiceIndexes[0];
       }
     } else {
@@ -532,7 +533,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   stripValuesIfNeeded(values: unknown[]): unknown[] {
     const { allowHtml } = this.cellProperties;
-    const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(value as string));
+    const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(String(value)));
 
     if (values.every(value => isKeyValueObject(value))) {
       return values.map((value) => {

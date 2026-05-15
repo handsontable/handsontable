@@ -72,13 +72,13 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
   empty(TD); // TODO identify under what circumstances this line can be removed
 
   if (value === cellProperties.checkedTemplate ||
-    stringify(value).toLocaleLowerCase(cellProperties.locale as string) ===
-    stringify(cellProperties.checkedTemplate).toLocaleLowerCase(cellProperties.locale as string)) {
+    stringify(value).toLocaleLowerCase(cellProperties.locale as string | undefined) ===
+    stringify(cellProperties.checkedTemplate).toLocaleLowerCase(cellProperties.locale as string | undefined)) {
     input.checked = true;
 
   } else if (value === cellProperties.uncheckedTemplate ||
-    stringify(value).toLocaleLowerCase(cellProperties.locale as string) ===
-    stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(cellProperties.locale as string)) {
+    stringify(value).toLocaleLowerCase(cellProperties.locale as string | undefined) ===
+    stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(cellProperties.locale as string | undefined)) {
     input.checked = false;
 
   } else if (isEmpty(value)) { // default value
@@ -111,10 +111,10 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
 
     if (labelOptions.value) {
       labelText = typeof labelOptions.value === 'function' ?
-        labelOptions.value.call(this, row, col, prop, value) : labelOptions.value as string;
+        labelOptions.value.call(this, row, col, prop, value) : String(labelOptions.value);
 
     } else if (labelOptions.property) {
-      const labelValue = hotInstance.getDataAtRowProp(row, labelOptions.property as string);
+      const labelValue = hotInstance.getDataAtRowProp(row, String(labelOptions.property));
 
       labelText = labelValue !== null ? String(labelValue) : '';
     }

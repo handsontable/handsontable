@@ -20,7 +20,7 @@ export function isEscapedFormulaExpression(expression: unknown) {
  * @returns {string}
  */
 export function unescapeFormulaExpression(expression: unknown) {
-  return isEscapedFormulaExpression(expression as string) ? (expression as string).substr(1) : expression;
+  return typeof expression === 'string' && isEscapedFormulaExpression(expression) ? expression.substr(1) : expression;
 }
 
 /**
@@ -40,7 +40,7 @@ export function isFormula(value: unknown) {
  * @param {string} cellType Type of a cell.
  * @returns {boolean}
  */
-export function isDate(value: unknown, cellType: unknown) {
+export function isDate(value: unknown, cellType: unknown): value is string {
   return typeof value === 'string' && cellType === 'date';
 }
 
@@ -51,8 +51,8 @@ export function isDate(value: unknown, cellType: unknown) {
  * @param {object} dateFormat Handled format for a date.
  * @returns {boolean}
  */
-export function isDateValid(date: unknown, dateFormat: unknown) {
-  return moment(date as string, dateFormat as string, true).isValid();
+export function isDateValid(date: string, dateFormat: unknown) {
+  return moment(date, dateFormat as string, true).isValid();
 }
 
 /**
@@ -62,8 +62,8 @@ export function isDateValid(date: unknown, dateFormat: unknown) {
  * @param {string} dateFormat The format used for the date passed.
  * @returns {string}
  */
-export function getDateInHfFormat(date: unknown, dateFormat: unknown) {
-  return moment(date as string, dateFormat as string, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+export function getDateInHfFormat(date: string, dateFormat: unknown) {
+  return moment(date, dateFormat as string, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
 }
 
 /**
@@ -73,8 +73,8 @@ export function getDateInHfFormat(date: unknown, dateFormat: unknown) {
  * @param {string} dateFormat The format used for the date passed.
  * @returns {string}
  */
-export function getDateInHotFormat(date: unknown, dateFormat: unknown) {
-  return moment(date as string, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat as string);
+export function getDateInHotFormat(date: string, dateFormat: unknown) {
+  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat as string);
 }
 
 /**

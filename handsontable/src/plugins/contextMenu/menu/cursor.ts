@@ -71,8 +71,8 @@ export class Cursor {
     if (this.type === 'literal') {
       const literal = object as CursorSourceLiteral;
 
-      top = parseInt(literal.top as string, 10);
-      left = parseInt(literal.left as string, 10);
+      top = parseInt(String(literal.top), 10);
+      left = parseInt(String(literal.left), 10);
       cellHeight = literal.height || 0;
       cellWidth = literal.width || 0;
       topRelative = top;

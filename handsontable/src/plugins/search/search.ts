@@ -20,8 +20,8 @@ const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellPropert
     return false;
   }
 
-  return String(value).toLocaleLowerCase(cellProperties.locale as string)
-    .indexOf(query.toLocaleLowerCase(cellProperties.locale as string)) !== -1;
+  return String(value).toLocaleLowerCase(cellProperties.locale as string | undefined)
+    .indexOf(query.toLocaleLowerCase(cellProperties.locale as string | undefined)) !== -1;
 };
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -247,7 +247,7 @@ export class Search extends BasePlugin {
   updatePluginSettings(searchSettings: Record<string, unknown>) {
     if (isObject(searchSettings)) {
       if (searchSettings.searchResultClass) {
-        this.setSearchResultClass(searchSettings.searchResultClass as string);
+        this.setSearchResultClass(String(searchSettings.searchResultClass));
       }
 
       if (searchSettings.queryMethod) {

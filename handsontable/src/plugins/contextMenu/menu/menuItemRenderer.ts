@@ -90,7 +90,7 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
       );
 
     } else {
-      fastInnerHTML(wrapper, itemValue as string, (hot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer);
+      fastInnerHTML(wrapper, String(itemValue), (hot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

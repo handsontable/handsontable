@@ -46,7 +46,7 @@ export function isItemSubMenu(itemToTest: MenuItemLike) {
  * @returns {boolean}
  */
 export function isItemSeparator(itemToTest: MenuItemLike) {
-  return new RegExp(SEPARATOR, 'i').test(itemToTest.name as string);
+  return new RegExp(SEPARATOR, 'i').test(itemToTest.name ?? '');
 }
 
 /**
