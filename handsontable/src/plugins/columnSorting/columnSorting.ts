@@ -271,7 +271,7 @@ export class ColumnSorting extends BasePlugin {
           const highlightedHeaderElement = highlight ? this.hot.getCell(highlight.row, highlight.col, true) : null;
 
           return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            (this.hot.selection as any).isCellVisible(highlight) && highlight.row < 0 && highlight.col >= 0 &&
+            this.hot.selection.isCellVisible(highlight) && highlight.row < 0 && highlight.col >= 0 &&
             isBottomMostColumnHeader(highlightedHeaderElement);
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
@@ -638,11 +638,11 @@ export class ColumnSorting extends BasePlugin {
     const settings = this.hot.getSettings();
 
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
-    if ((settings as any).maxRows <= numberOfRows) {
-      return (settings as any).maxRows;
+    if (settings.maxRows <= numberOfRows) {
+      return settings.maxRows;
     }
 
-    return numberOfRows - (settings as any).minSpareRows;
+    return numberOfRows - settings.minSpareRows;
   }
 
   /**
@@ -665,7 +665,7 @@ export class ColumnSorting extends BasePlugin {
       arrayMap(sortConfigs, (sortConfig: SortConfig) => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));
 
     for (let visualRowIndex = 0; visualRowIndex < this.getNumberOfRowsToSort(numberOfRows); visualRowIndex += 1) {
-      indexesWithData.push(([this.hot.toPhysicalRow(visualRowIndex)] as any[]).concat(getDataForSortedColumns(visualRowIndex)));
+      indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex), ...getDataForSortedColumns(visualRowIndex)]);
     }
 
     const indexesBefore = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0] as number);
@@ -679,7 +679,7 @@ export class ColumnSorting extends BasePlugin {
 
     // Append spareRows
     for (let visualRowIndex = indexesWithData.length; visualRowIndex < numberOfRows; visualRowIndex += 1) {
-      indexesWithData.push(([visualRowIndex] as any[]).concat(getDataForSortedColumns(visualRowIndex)));
+      indexesWithData.push([visualRowIndex, ...getDataForSortedColumns(visualRowIndex)]);
     }
 
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0] as number);
@@ -886,8 +886,8 @@ export class ColumnSorting extends BasePlugin {
       const nextConfig = this.getColumnNextConfig(coords.col) as object | undefined;
 
       if (
-        (activeEditor as any)?.isOpened() &&
-        this.hot.getCellValidator((activeEditor as any).row, (activeEditor as any).col)
+        activeEditor?.isOpened() &&
+        this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
       ) {
         // Postpone sorting until the cell's value is validated and saved.
         this.hot.addHookOnce('postAfterValidate', () => {
