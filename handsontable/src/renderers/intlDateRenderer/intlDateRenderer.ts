@@ -34,7 +34,13 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties): 
 
 type HotInstance = Record<string, unknown>;
 
-export function intlDateRenderer(
+export interface IntlDateRendererFn {
+  (this: unknown, hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: CellProperties): void;
+  RENDERER_TYPE: string;
+  valueFormatter: typeof valueFormatter;
+}
+
+function _intlDateRenderer(
   this: unknown,
   hotInstance: HotInstance,
   TD: HTMLTableCellElement,
@@ -47,5 +53,7 @@ export function intlDateRenderer(
   (textRenderer as (...args: unknown[]) => void).apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
 
-(intlDateRenderer as unknown as Record<string, unknown>).valueFormatter = valueFormatter;
-(intlDateRenderer as unknown as Record<string, unknown>).RENDERER_TYPE = RENDERER_TYPE;
+(_intlDateRenderer as IntlDateRendererFn).valueFormatter = valueFormatter;
+(_intlDateRenderer as IntlDateRendererFn).RENDERER_TYPE = RENDERER_TYPE;
+
+export const intlDateRenderer = _intlDateRenderer as IntlDateRendererFn;

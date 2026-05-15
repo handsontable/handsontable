@@ -25,8 +25,8 @@ export function registerAllRenderers() {
   registerRenderer(dropdownRenderer);
   registerRenderer(handsontableRenderer);
   registerRenderer(htmlRenderer);
-  registerRenderer(intlDateRenderer as unknown as Function & { RENDERER_TYPE: string });
-  registerRenderer(intlTimeRenderer as unknown as Function & { RENDERER_TYPE: string });
+  registerRenderer(intlDateRenderer);
+  registerRenderer(intlTimeRenderer);
   registerRenderer(numericRenderer);
   registerRenderer(passwordRenderer);
   registerRenderer(selectRenderer);

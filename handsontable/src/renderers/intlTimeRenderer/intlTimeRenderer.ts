@@ -33,7 +33,12 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties): 
 
 type HotInstance = Record<string, unknown>;
 
-export function intlTimeRenderer(
+export interface IntlTimeRendererFn {
+  (this: unknown, hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: CellProperties): void;
+  RENDERER_TYPE: string;
+}
+
+function _intlTimeRenderer(
   this: unknown,
   hotInstance: HotInstance,
   TD: HTMLTableCellElement,
@@ -47,4 +52,6 @@ export function intlTimeRenderer(
   TD.dir = 'ltr';
 }
 
-(intlTimeRenderer as unknown as Record<string, unknown>).RENDERER_TYPE = RENDERER_TYPE;
+(_intlTimeRenderer as IntlTimeRendererFn).RENDERER_TYPE = RENDERER_TYPE;
+
+export const intlTimeRenderer = _intlTimeRenderer as IntlTimeRendererFn;

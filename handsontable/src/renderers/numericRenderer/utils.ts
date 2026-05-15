@@ -19,7 +19,8 @@ export function numbroFormatter(value: unknown, cellProperties: Record<string, u
 
   if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
     const shortTag = cellCulture.replace('-', '');
-    const langData = (numbro as unknown as Record<string, unknown>).allLanguages ? ((numbro as unknown as Record<string, unknown>).allLanguages as Record<string, unknown>)[cellCulture] : (numbro as unknown as Record<string, unknown>)[shortTag];
+    const numbroWithLangs = numbro as unknown as { allLanguages?: Record<string, unknown> } & Record<string, unknown>;
+    const langData = numbroWithLangs.allLanguages ? numbroWithLangs.allLanguages[cellCulture] : numbroWithLangs[shortTag];
 
     if (langData) {
       numbro.registerLanguage(langData as numbro.NumbroLanguage);
