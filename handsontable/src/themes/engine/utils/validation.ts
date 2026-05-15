@@ -585,7 +585,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
 
   // Validate name
   if (name !== undefined) {
-    validateName(String(name), context);
+    validateName(name as string, context);
   }
 
   // Validate sizing
