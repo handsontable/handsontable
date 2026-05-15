@@ -10,7 +10,11 @@ import { getParentWindow } from '../helpers/dom/element';
  * @param {function(Event)} hooks.onTabKeyDown A callback function for tab key down events.
  * @returns {{mount: function(), unmount: function()}}
  */
-export function useEventListener(ownerWindow: Window, hooks: { onFocus?: (event: Event) => void; onClick?: (event: Event) => void; onTabKeyDown?: (event: Event) => void } = {}) {
+export function useEventListener(ownerWindow: Window, hooks: {
+  onFocus?: (event: Event) => void;
+  onClick?: (event: Event) => void;
+  onTabKeyDown?: (event: Event) => void;
+} = {}) {
   let mouseDown = false;
 
   /**

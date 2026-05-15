@@ -11,14 +11,16 @@ import { arrayFilter } from '../../../helpers/array';
  * @param {*} insertedValuesMapping Mapping which may provide value or function returning value for the specific parameters.
  * @returns {Array} List with new mappings.
  */
-export function getListWithInsertedItems(indexedValues: unknown[], insertionIndex: number, insertedIndexes: number[], insertedValuesMapping: unknown) {
+export function getListWithInsertedItems(
+  indexedValues: unknown[], insertionIndex: number, insertedIndexes: number[], insertedValuesMapping: unknown) {
   const firstInsertedIndex = insertedIndexes.length ? insertedIndexes[0] : undefined;
 
   return [
     ...indexedValues.slice(0, firstInsertedIndex),
     ...insertedIndexes.map((insertedIndex: number, ordinalNumber: number) => {
       if (isFunction(insertedValuesMapping)) {
-        return (insertedValuesMapping as (insertedIndex: number, ordinalNumber: number) => unknown)(insertedIndex, ordinalNumber);
+        type MappingFn = (insertedIndex: number, ordinalNumber: number) => unknown;
+        return (insertedValuesMapping as MappingFn)(insertedIndex, ordinalNumber);
       }
 
       return insertedValuesMapping;

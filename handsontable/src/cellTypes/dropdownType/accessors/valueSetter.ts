@@ -9,6 +9,7 @@ import { valueSetter as autocompleteValueSetter } from '../../autocompleteType/a
  * @param {object} cellMeta The cell meta object.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(this: object, newValue: unknown, row: number, column: number, cellMeta?: Record<string, unknown>): unknown {
+export function valueSetter(
+  this: object, newValue: unknown, row: number, column: number, cellMeta?: Record<string, unknown>): unknown {
   return autocompleteValueSetter.call(this, newValue, row, column, cellMeta);
 }

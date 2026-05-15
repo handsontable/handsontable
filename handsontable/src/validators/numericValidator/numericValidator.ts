@@ -9,7 +9,8 @@ export const VALIDATOR_TYPE: 'numeric' = 'numeric';
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function numericValidator(this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+export function numericValidator(
+  this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
   let valueToValidate = value;
 
   if (valueToValidate === null || valueToValidate === undefined) {

@@ -68,7 +68,8 @@ export function inherit(Child: Function, Parent: Function): object {
  * @param {string[]} [writableKeys] An array of keys that are writable to target object.
  * @returns {object}
  */
-export function extend(target: Record<string, unknown>, extension: Record<string, unknown>, writableKeys?: string[]): object {
+export function extend(
+  target: Record<string, unknown>, extension: Record<string, unknown>, writableKeys?: string[]): object {
   const hasWritableKeys = Array.isArray(writableKeys);
 
   objectEach(extension, (value, key) => {
@@ -235,7 +236,8 @@ export function isObjectEqual(object1: object | unknown[], object2: object | unk
       return JSON.stringify(obj);
     }
     if (obj !== null && typeof obj === 'object') {
-      const pairs = Object.keys(obj).sort((a, b) => a.localeCompare(b)).map(key => `${JSON.stringify(key)}:${stableStringify((obj as Record<string, unknown>)[key])}`);
+      const pairs = Object.keys(obj).sort((a, b) => a.localeCompare(b))
+        .map(key => `${JSON.stringify(key)}:${stableStringify((obj as Record<string, unknown>)[key])}`);
 
       return `{${pairs.join(',')}}`;
     }
@@ -397,7 +399,8 @@ export interface ObjectPropListener extends Record<string, unknown> {
 /**
  *
  */
-export function createObjectPropListener(defaultValue?: unknown, propertyToListen: string = 'value'): ObjectPropListener {
+export function createObjectPropListener(
+  defaultValue?: unknown, propertyToListen: string = 'value'): ObjectPropListener {
   const privateProperty = `_${propertyToListen}`;
   const holder: Record<string, unknown> = {
     _touched: false,
@@ -458,7 +461,8 @@ export function assignObjectDefaults(target: Record<string, unknown>, defaults: 
       defaults[key] !== null &&
       !Array.isArray(defaults[key])
     ) {
-      result[key] = assignObjectDefaults(target[key] as Record<string, unknown>, defaults[key] as Record<string, unknown>);
+      result[key] = assignObjectDefaults(
+        target[key] as Record<string, unknown>, defaults[key] as Record<string, unknown>);
     } else {
       result[key] = hasOwnProperty(target, key) && target[key] !== undefined
         ? target[key]
@@ -517,5 +521,7 @@ export function deepMerge(target: Record<string, any> = {}, source: Record<strin
  * @returns {boolean}
  */
 export function isKeyValueObject(value: unknown): boolean {
-  return isObject(value) && isDefined((value as Record<string, unknown>).key) && isDefined((value as Record<string, unknown>).value);
+  return isObject(value) &&
+    isDefined((value as Record<string, unknown>).key) &&
+    isDefined((value as Record<string, unknown>).value);
 }

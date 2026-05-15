@@ -151,7 +151,8 @@ class Selection {
       visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row: number, column: number) => this.tableProps.createCellCoords(row, column),
-      createCellRange: (highlight: CellCoords, from: CellCoords, to: CellCoords) => this.tableProps.createCellRange(highlight, from, to),
+      createCellRange: (highlight: CellCoords, from: CellCoords, to: CellCoords) =>
+        this.tableProps.createCellRange(highlight, from, to),
     });
 
     this.#extenderTransformation = new ExtenderTransformation(this.selectedRange, {
@@ -316,7 +317,8 @@ class Selection {
    *                                   `setRangeEnd` method won't be called on every `setRangeStart` call.
    * @param {CellCoords} [highlightCoords] If set, allows changing the coordinates of the highlight/focus cell.
    */
-  setRangeStart(coords: CellCoords, multipleSelection?: boolean, fragment = false, highlightCoords: CellCoords = coords) {
+  setRangeStart(
+    coords: CellCoords, multipleSelection?: boolean, fragment = false, highlightCoords: CellCoords = coords) {
     const isMultipleMode = this.settings.selectionMode === 'multiple';
     const isMultipleSelection = isUndefined(multipleSelection) ?
       this.tableProps.getShortcutManager().isCtrlPressed() : multipleSelection;
@@ -643,7 +645,6 @@ class Selection {
       return;
     }
 
-
     const {
       visualCoords
     } = this.#extenderTransformation.transformStart(rowDelta, colDelta, createMissingRecords);
@@ -661,7 +662,6 @@ class Selection {
     if (!this.isSelected()) {
       return;
     }
-
 
     const {
       visualCoords,
@@ -681,7 +681,6 @@ class Selection {
     if (!this.isSelected()) {
       return;
     }
-
 
     const {
       selectionLayer,
@@ -1045,10 +1044,9 @@ class Selection {
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
-  selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: { focusPosition?: unknown; disableHeadersHighlight?: boolean } = {
-    focusPosition: false,
-    disableHeadersHighlight: false,
-  }) {
+  selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: {
+    focusPosition?: unknown; disableHeadersHighlight?: boolean
+  } = { focusPosition: false, disableHeadersHighlight: false }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
     const countRowHeaders = this.tableProps.countRowHeaders();
@@ -1068,11 +1066,14 @@ class Selection {
       disableHeadersHighlight
     } = options;
 
-    if (focusPosition && Number.isInteger((focusPosition as { row?: number; col?: number })?.row) && Number.isInteger((focusPosition as { row?: number; col?: number })?.col)) {
+    type FocusPos = { row?: number; col?: number };
+    if (focusPosition &&
+        Number.isInteger((focusPosition as FocusPos)?.row) &&
+        Number.isInteger((focusPosition as FocusPos)?.col)) {
       highlight = this.tableProps
         .createCellCoords(
-          clamp((focusPosition as { row?: number; col?: number }).row, rowFrom, nrOfRows - 1),
-          clamp((focusPosition as { row?: number; col?: number }).col, columnFrom, nrOfColumns - 1)
+          clamp((focusPosition as FocusPos).row, rowFrom, nrOfRows - 1),
+          clamp((focusPosition as FocusPos).col, columnFrom, nrOfColumns - 1)
         );
     }
 
@@ -1170,7 +1171,9 @@ class Selection {
    * position horizontally.
    * @returns {boolean} Returns `true` if selection was successful, `false` otherwise.
    */
-  selectColumns(startColumn: number | string, endColumn: number | string = startColumn, focusPosition: number | { row?: number; col?: number } = 0) {
+  selectColumns(
+    startColumn: number | string, endColumn: number | string = startColumn,
+    focusPosition: number | { row?: number; col?: number } = 0) {
     const start = typeof startColumn === 'string' ? this.tableProps.propToCol(startColumn) : startColumn;
     const end = typeof endColumn === 'string' ? this.tableProps.propToCol(endColumn) : endColumn;
     const countRows = this.tableProps.countRows();
@@ -1198,7 +1201,8 @@ class Selection {
         highlightRow = clamp(focusPosObj.row!, columnHeaderLastIndex, countRows - 1);
         highlightColumn = clamp(focusPosObj.col!, Math.min(start, end), Math.max(start, end));
       } else {
-        highlightRow = clamp(typeof focusPosition === 'number' ? focusPosition : 0, columnHeaderLastIndex, countRows - 1);
+        highlightRow = clamp(
+          typeof focusPosition === 'number' ? focusPosition : 0, columnHeaderLastIndex, countRows - 1);
         highlightColumn = start;
       }
 
@@ -1258,7 +1262,8 @@ class Selection {
         highlightColumn = clamp(focusPosObj.col!, rowHeaderLastIndex, countCols - 1);
       } else {
         highlightRow = startRow;
-        highlightColumn = clamp(typeof focusPosition === 'number' ? focusPosition : 0, rowHeaderLastIndex, countCols - 1);
+        highlightColumn = clamp(
+          typeof focusPosition === 'number' ? focusPosition : 0, rowHeaderLastIndex, countCols - 1);
       }
 
       const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
@@ -1293,7 +1298,10 @@ class Selection {
     selectedByRowHeader,
     selectedByColumnHeader,
     disableHeadersHighlight,
-  }: { ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number; selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean }) {
+  }: {
+    ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
+    selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
+  }) {
     if (ranges.length === 0) {
       return;
     }

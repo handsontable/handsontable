@@ -42,7 +42,8 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {function(): void} [options.onDeactivate] Callback function to be called when the scope is deactivated.
  * @returns {FocusScope} Focus scope object with methods.
  */
-export function createFocusScope(hotInstance: HotInstance, container: HTMLElement, options: Record<string, unknown> = {}) {
+export function createFocusScope(
+  hotInstance: HotInstance, container: HTMLElement, options: Record<string, unknown> = {}) {
   const mergedOptions: Record<string, unknown> = {
     shortcutsContextName: DEFAULT_SHORTCUTS_CONTEXT,
     type: SCOPE_TYPES.INLINE,

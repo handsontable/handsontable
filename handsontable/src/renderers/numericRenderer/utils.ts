@@ -20,7 +20,8 @@ export function numbroFormatter(value: unknown, cellProperties: Record<string, u
   if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
     const shortTag = cellCulture.replace('-', '');
     const numbroWithLangs = numbro as unknown as { allLanguages?: Record<string, unknown> } & Record<string, unknown>;
-    const langData = numbroWithLangs.allLanguages ? numbroWithLangs.allLanguages[cellCulture] : numbroWithLangs[shortTag];
+    const langData = numbroWithLangs.allLanguages
+      ? numbroWithLangs.allLanguages[cellCulture] : numbroWithLangs[shortTag];
 
     if (langData) {
       numbro.registerLanguage(langData as numbro.NumbroLanguage);
@@ -42,7 +43,8 @@ export function numbroFormatter(value: unknown, cellProperties: Record<string, u
 export function intlFormatter(value: unknown, cellProperties: Record<string, unknown>) {
   const { numericFormat, locale } = cellProperties;
 
-  return new Intl.NumberFormat(locale as string, (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions).format(value as number);
+  return new Intl.NumberFormat(
+    locale as string, (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions).format(value as number);
 }
 
 /**

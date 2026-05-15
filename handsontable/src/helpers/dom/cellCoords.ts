@@ -112,9 +112,11 @@ export function getCellCoordsFromMousePosition(
     rowIndexMapper,
   } = hotInstance;
   const isRtl = hotInstance.isRtl();
-  const numberOfFixedColumnsStart = (view as unknown as { countNotHiddenFixedColumnsStart(): number }).countNotHiddenFixedColumnsStart();
+  const numberOfFixedColumnsStart =
+    (view as unknown as { countNotHiddenFixedColumnsStart(): number }).countNotHiddenFixedColumnsStart();
   const numberOfFixedRowsTop = view.countNotHiddenFixedRowsTop();
-  const numberOfFixedRowsBottom = (view as unknown as { countNotHiddenFixedRowsBottom(): number }).countNotHiddenFixedRowsBottom();
+  const numberOfFixedRowsBottom =
+    (view as unknown as { countNotHiddenFixedRowsBottom(): number }).countNotHiddenFixedRowsBottom();
 
   const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow() as number | null;
   const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow() as number | null;

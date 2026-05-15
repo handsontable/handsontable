@@ -19,7 +19,9 @@ export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
-export function autocompleteRenderer(hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+export function autocompleteRenderer(
+  hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   const { rootDocument } = hotInstance;
   const rendererFunc = cellProperties.allowHtml ? htmlRenderer : textRenderer;
   const ARROW = rootDocument.createElement('DIV');

@@ -168,7 +168,9 @@ export class TableRenderer {
    */
   declare stylesHandler: any;
 
-  constructor(rootNode: HTMLTableElement, { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: any } = {}) {
+  constructor(
+    rootNode: HTMLTableElement,
+    { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: any } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;

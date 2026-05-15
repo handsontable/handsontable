@@ -90,7 +90,8 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.#syncSelectedValues(valuesIntersection);
 
-    this.dropdownController!.setSourceSortFunction(this.cellProperties.sourceSortFunction as ((entries: unknown[]) => unknown[]) | undefined);
+    type SortFn = ((entries: unknown[]) => unknown[]) | undefined;
+    this.dropdownController!.setSourceSortFunction(this.cellProperties.sourceSortFunction as SortFn);
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
     this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
     this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting('searchInput') as boolean);
@@ -125,11 +126,13 @@ export class MultiSelectEditor extends BaseEditor {
     );
 
     this.addHook('afterDestroy', () => this.destroy());
-    this.addHook('afterSetSourceDataAtCell', (changes: unknown[][], source: string) => this.#onAfterSetSourceDataAtCell(changes, source));
+    this.addHook('afterSetSourceDataAtCell',
+      (changes: unknown[][], source: string) => this.#onAfterSetSourceDataAtCell(changes, source));
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
 
-    this.dropdownController!.getInputController()!.addLocalHook('triggerFilter', (value: string) => this.#filterEntries(value));
+    this.dropdownController!.getInputController()!.addLocalHook(
+      'triggerFilter', (value: string) => this.#filterEntries(value));
   }
 
   open(event?: Event | null): void {
@@ -193,6 +196,7 @@ export class MultiSelectEditor extends BaseEditor {
   refreshDimensions(): void {
     if (!this.getEditedCell()) {
       this.close();
+
       return;
     }
 
@@ -256,6 +260,7 @@ export class MultiSelectEditor extends BaseEditor {
 
         if (activeElement.tagName === 'INPUT' && (activeElement as HTMLInputElement).type === 'checkbox') {
           const input = activeElement as HTMLInputElement;
+
           input.checked = !input.checked;
           input.dispatchEvent(new Event('change'));
         }
@@ -280,6 +285,7 @@ export class MultiSelectEditor extends BaseEditor {
   #unregisterShortcuts(): void {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
+
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
@@ -330,6 +336,7 @@ export class MultiSelectEditor extends BaseEditor {
 
     if (isVerticallyScrollableByWindow) {
       const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+
       spaceAbove = Math.max(spaceAbove + topOffset, 0);
     }
 
@@ -344,6 +351,7 @@ export class MultiSelectEditor extends BaseEditor {
 
   #saveCurrentSelection(): void {
     const value = this.#selectedItems.getItemsArray();
+
     this.saveValue([[value]]);
   }
 

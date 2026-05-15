@@ -129,7 +129,9 @@ class Table {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
    */
-  constructor(dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, name: string) {
+  constructor(
+    dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings,
+    wtSettings: Settings, name: string) {
     this.domBindings = domBindings;
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
@@ -494,7 +496,8 @@ class Table {
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
-    const columnHeaderHeightSetting: number | number[] = this.wtSettings.getSetting<number | number[]>('columnHeaderHeight') || [];
+    const columnHeaderHeightSetting: number | number[] =
+      this.wtSettings.getSetting<number | number[]>('columnHeaderHeight') || [];
 
     while (level) {
       level -= 1;

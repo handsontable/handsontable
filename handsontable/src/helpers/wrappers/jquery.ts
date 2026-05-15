@@ -11,7 +11,9 @@ export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
     return;
   }
 
-  (jQuery as ((...jqueryArgs: unknown[]) => unknown) & { fn: Record<string, unknown> }).fn.handsontable = function(action: unknown, ...args: unknown[]) {
+  type JQueryWithHOT = ((...jqueryArgs: unknown[]) => unknown) & { fn: Record<string, unknown> };
+
+  (jQuery as JQueryWithHOT).fn.handsontable = function(action: unknown, ...args: unknown[]) {
     const $this = this.first(); // Use only first element from list
     let instance = $this.data('handsontable');
 
@@ -23,7 +25,8 @@ export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
         instance.updateSettings(userSettings);
 
       } else {
-        instance = new (Handsontable.Core as unknown as new (...args: unknown[]) => Record<string, Function>)($this[0], userSettings);
+        type HotCtor = new (...args: unknown[]) => Record<string, Function>;
+        instance = new (Handsontable.Core as unknown as HotCtor)($this[0], userSettings);
         $this.data('handsontable', instance);
         instance.init();
       }

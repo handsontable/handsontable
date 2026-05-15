@@ -22,10 +22,12 @@ export function focusGridScope(hot: HotInstance) {
 
   hot.addHook('afterSelection', () => {
     if (isSavingCoordsEnabled) {
-      recentlyAddedFocusCoords = hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined;
+      recentlyAddedFocusCoords =
+        hot.getSelectedRangeActive()?.highlight as unknown as Record<string, number> | undefined;
     }
   });
-  hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
+  hot.addHook('beforeRowWrap', (
+    interruptedByAutoInsertMode: boolean, newCoords: Record<string, number>, isFlipped: boolean) => {
     rowWrapState.wrapped = true;
     rowWrapState.flipped = isFlipped;
   });
@@ -70,8 +72,10 @@ export function focusGridScope(hot: HotInstance) {
         !autoWrapRow && rowWrapState.wrapped
       ) {
         if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
-          recentlyAddedFocusCoords = (event.shiftKey
-            ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot)) as unknown as Record<string, number> | undefined;
+          const newCoords = event.shiftKey
+            ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
+
+          recentlyAddedFocusCoords = newCoords as unknown as Record<string, number> | undefined;
         }
 
         rowWrapState.wrapped = false;

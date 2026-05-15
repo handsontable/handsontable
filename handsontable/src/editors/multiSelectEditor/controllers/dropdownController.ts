@@ -175,7 +175,8 @@ export class DropdownController {
    * @param {object} availableSpace Available space object.
    * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
    */
-  updateDimensions(availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }, noFlip = false): void {
+  updateDimensions(
+    availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }, noFlip = false): void {
     const entryHeight = this.#getEntryHeight();
     const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
     const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
@@ -378,7 +379,8 @@ export class DropdownController {
   }
 
   #getSearchInputWrapperHeight(): number {
-    if (!this.#inputController?.enabled || !this.#searchInputWrapper || !this.#separatorElement || !this.#rootDocument || !this.#containerElement) {
+    if (!this.#inputController?.enabled || !this.#searchInputWrapper ||
+        !this.#separatorElement || !this.#rootDocument || !this.#containerElement) {
       return 0;
     }
     const computedStyle = this.#rootDocument.defaultView!.getComputedStyle(this.#containerElement);

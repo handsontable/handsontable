@@ -42,7 +42,10 @@ export interface WalkontableInstance {
   getSetting(key: string, ...args: unknown[]): unknown;
   update(key: string, value: unknown): WalkontableInstance;
   draw(fastDraw?: boolean): WalkontableInstance;
-  scrollViewport(coords: CellCoords | { row: number; col: number }, snapToTop?: boolean | string, snapToRight?: boolean | string, snapToBottom?: boolean, snapToLeft?: boolean): boolean;
+  scrollViewport(
+    coords: CellCoords | { row: number; col: number },
+    snapToTop?: boolean | string, snapToRight?: boolean | string,
+    snapToBottom?: boolean, snapToLeft?: boolean): boolean;
   scrollViewportHorizontally(column: number, snapping?: string): boolean;
   scrollViewportVertically(row: number, snapping?: string): boolean;
   getCell(coords: CellCoords | { row: number; col: number }, topmost?: boolean): HTMLTableCellElement | number;

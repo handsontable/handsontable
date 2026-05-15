@@ -26,8 +26,6 @@ type EditorWithExtendedProps = InstanceType<typeof BaseEditor> & {
   config: unknown;
 };
 
-
-
 type Shortcut = Parameters<Context['addShortcut']>[0];
 
 export type ExtendedEditor<T> = BaseEditor & {
@@ -61,6 +59,7 @@ const editorBaseFactory = <E>(params: EditorBaseFactoryParams<E>): typeof BaseEd
         if (!skipSuperApply.includes(fnName)) {
           superFn.apply(this, args);
         }
+
         return params[fnName](this, ...args);
       };
     }
@@ -97,7 +96,9 @@ export interface EditorFactoryOptions {
 /**
  * Factory function to create a custom Handsontable editor.
  */
-export const editorFactory = <TProperties, TMethods = Record<string, any>>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, position, ...args }:{
+export const editorFactory = <TProperties, TMethods = Record<string, any>>(
+  { init, afterOpen, afterInit, afterClose, beforeOpen,
+    getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, position, ...args }:{
     value?: TProperties extends {
         value: any;
     } ? TProperties['value'] : any;
@@ -109,7 +110,8 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
     afterOpen?: (editor: ExtendedEditor<TProperties & TMethods>, event?: Event) => void;
     afterClose?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
     afterInit?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
-    beforeOpen?: (editor: ExtendedEditor<TProperties & TMethods>, { row, col, prop, td, originalValue, cellProperties, }: {
+    beforeOpen?: (editor: ExtendedEditor<TProperties & TMethods>,
+      { row, col, prop, td, originalValue, cellProperties, }: {
       row: number;
       col: number;
       prop: string | number;
@@ -147,6 +149,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
   return editorBaseFactory<EditorWithExtendedProps>({
     init(editor) {
       const extendedEditor = editor as Extended;
+
       Object.assign(editor, { value, config, render, position, ...args });
       editor._opened = false;
       editor.container = editor.hot.rootDocument.createElement('DIV');
@@ -182,13 +185,16 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
     },
     getValue(editor) {
       const extendedEditor = editor as Extended;
+
       if (typeof getValue === 'function') {
         return getValue(extendedEditor);
       }
+
       return editor.value;
     },
     setValue(editor, _value: unknown) {
       const extendedEditor = editor as Extended;
+
       if (typeof setValue === 'function') {
         setValue(extendedEditor, _value);
       } else {
@@ -200,24 +206,30 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
     },
     refreshDimensions(editor) {
       editor.TD = editor.getEditedCell();
+
       if (!editor.TD) {
         editor.close();
+
         return;
       }
       if (!editor._opened) {
         return;
       }
       const containerStyle = editor.container!.style;
+
       containerStyle.display = 'block';
       containerStyle.position = 'absolute';
+
       if (position === 'portal') {
         const _offset = editor.TD.getBoundingClientRect();
+
         containerStyle.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
         containerStyle[editor.hot.isRtl() ? 'right' : 'left'] =
           `${editor.hot.rootWindow.pageXOffset + _offset[editor.hot.isRtl() ? 'right' : 'left']}px`;
       } else {
         const rect = editor.getEditedCellRect();
-        if (!rect) return;
+
+        if (!rect) { return; }
         containerStyle.top = `${rect.top}px`;
         containerStyle[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
         containerStyle.width = `${rect.width}px`;
@@ -226,39 +238,51 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
     },
     open(editor, event?: unknown) {
       const extendedEditor = editor as Extended;
+
       editor.container!.classList.add('ht_clone_master');
       editor._opened = true;
       editor.refreshDimensions?.();
       editor.hot.getShortcutManager().setActiveContextName('editor');
       registerShortcuts(editor);
+
       if (afterOpen) {
         afterOpen(extendedEditor, event as Event | undefined);
       }
     },
     focus(editor) {
       const extendedEditor = editor as Extended;
+
       if (typeof onFocus === 'function') {
         onFocus(extendedEditor);
       } else {
-        (editor.container?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null)?.focus();
+        const focusable = editor.container?.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null;
+
+        focusable?.focus();
       }
     },
     close(editor) {
       const extendedEditor = editor as Extended;
+
       editor._opened = false;
       editor.container!.style.display = 'none';
       editor.container!.classList.remove('ht_clone_master');
       const shortcutManager = editor.hot.getShortcutManager();
       const editorContext = shortcutManager.getContext('editor');
+
       editorContext.removeShortcutsByGroup(shortcutsGroup);
+
       if (typeof afterClose === 'function') {
         afterClose(extendedEditor);
       }
     },
-    prepare(editor, row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: unknown, cellProperties: Record<string, unknown>) {
+    prepare(editor, row: number, col: number, prop: string | number,
+            td: HTMLTableCellElement, originalValue: unknown, cellProperties: Record<string, unknown>) {
       const extendedEditor = editor as Extended;
+
       if (typeof beforeOpen === 'function') {
-        beforeOpen(extendedEditor, { row, col, prop, td, originalValue, cellProperties: cellProperties as CellProperties });
+        beforeOpen(extendedEditor,
+          { row, col, prop, td, originalValue, cellProperties: cellProperties as CellProperties });
       } else {
         editor.setValue(originalValue);
       }

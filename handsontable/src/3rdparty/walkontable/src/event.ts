@@ -119,7 +119,10 @@ class Event {
    * @param {SelectionManager} selectionManager Selections.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: Table, selectionManager: SelectionManager, parent: Event | null = null) {
+  constructor(
+    facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings,
+    eventManager: EventManager, wtTable: Table, selectionManager: SelectionManager,
+    parent: Event | null = null) {
     this.#wtSettings = wtSettings;
     this.#domBindings = domBindings;
     this.#wtTable = wtTable;
@@ -137,9 +140,12 @@ class Event {
    * @private
    */
   registerEvents() {
-    this.#eventManager.addEventListener(this.#wtTable.holder, 'contextmenu', (event: MouseEvent) => this.onContextMenu(event));
-    this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseover', (event: MouseEvent) => this.onMouseOver(event));
-    this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseout', (event: MouseEvent) => this.onMouseOut(event));
+    this.#eventManager.addEventListener(this.#wtTable.holder, 'contextmenu',
+      (event: MouseEvent) => this.onContextMenu(event));
+    this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseover',
+      (event: MouseEvent) => this.onMouseOver(event));
+    this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseout',
+      (event: MouseEvent) => this.onMouseOut(event));
 
     if (this.#wtTable.isMaster) {
       this.#eventManager.addEventListener(
@@ -158,15 +164,20 @@ class Event {
     }
 
     const initTouchEvents = () => {
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', (event: TouchEvent) => this.onTouchStart(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend', (event: TouchEvent) => this.onTouchEnd(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', (event: TouchEvent) => this.onTouchMove(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart',
+        (event: TouchEvent) => this.onTouchStart(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend',
+        (event: TouchEvent) => this.onTouchEnd(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove',
+        (event: TouchEvent) => this.onTouchMove(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => this.onHolderScroll());
     };
 
     const initMouseEvents = () => {
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'mouseup', (event: MouseEvent) => this.onMouseUp(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'mousedown', (event: MouseEvent) => this.onMouseDown(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'mouseup',
+        (event: MouseEvent) => this.onMouseUp(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'mousedown',
+        (event: MouseEvent) => this.onMouseDown(event));
     };
 
     if (isMobileBrowser()) {
@@ -291,7 +302,6 @@ class Event {
    */
   onContextMenu(event: MouseEvent) {
     this.#cancelLongPressTimer();
-
 
     if (this.#wtSettings.has('onCellContextMenu')) {
       const cell = this.parentCell(eventTargetEl(event));
@@ -788,7 +798,9 @@ class Event {
    * @param {HTMLElement} target Event target.
    */
   callListener(name: string, event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement) {
-    const listener = this.#wtSettings.getSettingPure(name) as ((event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement, facade: unknown) => void) | undefined;
+    type ListenerFn = (
+      event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement, facade: unknown) => void;
+    const listener = this.#wtSettings.getSettingPure(name) as ListenerFn | undefined;
 
     if (listener) {
       listener(event, coords, target, this.#facadeGetter());

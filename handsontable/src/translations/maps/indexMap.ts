@@ -122,7 +122,8 @@ export class IndexMap {
     this.indexedValues.length = 0;
 
     if (isFunction(this.initValueOrFn)) {
-      rangeEach(0, length - 1, index => this.indexedValues.push((this.initValueOrFn as (index: number) => unknown)(index)));
+      rangeEach(0, length - 1,
+        index => this.indexedValues.push((this.initValueOrFn as (index: number) => unknown)(index)));
 
     } else {
       rangeEach(0, length - 1, () => this.indexedValues.push(this.initValueOrFn));

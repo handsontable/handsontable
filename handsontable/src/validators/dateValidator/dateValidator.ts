@@ -32,7 +32,8 @@ export function dateValidator(this: DateValidatorContext, value: unknown, callba
     valueToValidate = '';
   }
 
-  let isValidFormat = moment(valueToValidate as string | number | Date, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
+  let isValidFormat = moment(
+    valueToValidate as string | number | Date, this.dateFormat || dateEditor.defaultDateFormat, true).isValid();
   let isValidDate = moment(new Date(valueToValidate as string | number)).isValid() || isValidFormat;
 
   if (this.allowEmpty && valueToValidate === '') {

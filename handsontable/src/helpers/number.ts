@@ -141,7 +141,8 @@ export function rangeEach(rangeFrom: number, rangeTo: number | Function, iterate
  * @param {number|Function} rangeTo The number where finish iterate or function as a iteratee.
  * @param {Function} [iteratee] The function invoked per iteration.
  */
-export function rangeEachReverse(rangeFrom: number, rangeTo: number | Function, iteratee?: (index: number) => unknown): void {
+export function rangeEachReverse(
+  rangeFrom: number, rangeTo: number | Function, iteratee?: (index: number) => unknown): void {
   let index = rangeFrom + 1;
 
   if (typeof rangeTo === 'function') {
@@ -213,7 +214,6 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
   if (isDotThousandsGroupedFloat(numericData, decimalSeparator)) {
     return Number.parseFloat(normalizedNumericData.replaceAll('.', '').replace(',', '.'));
   }
-
 
   // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
   // for example from `450,65` to `450.65`.

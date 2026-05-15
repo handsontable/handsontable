@@ -132,7 +132,8 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!this.wtTable.isVisible() || hasZeroHeight((this.wtTable.wtRootElement as HTMLElement).parentNode as HTMLElement)) {
+    if (!this.wtTable.isVisible() ||
+        hasZeroHeight((this.wtTable.wtRootElement as HTMLElement).parentNode as HTMLElement)) {
       // draw interrupted because TABLE is not visible or has the height set to 0
       this.drawInterrupted = true;
     } else {

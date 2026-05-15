@@ -12,8 +12,13 @@ const DEFAULT_INTL_FORMAT: Intl.DateTimeFormatOptions = {
   day: '2-digit',
 };
 
-type CellProperties = Record<string, unknown> & { dateFormat?: Intl.DateTimeFormatOptions; locale?: string; allowEmpty?: boolean };
+type CellProperties = Record<string, unknown> & {
+  dateFormat?: Intl.DateTimeFormatOptions; locale?: string; allowEmpty?: boolean;
+};
 
+/**
+ *
+ */
 export function valueFormatter(value: unknown, cellProperties: CellProperties): unknown {
   const { dateFormat, locale, allowEmpty } = cellProperties;
 
@@ -35,11 +40,15 @@ export function valueFormatter(value: unknown, cellProperties: CellProperties): 
 type HotInstance = Record<string, unknown>;
 
 export interface IntlDateRendererFn {
-  (this: unknown, hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: CellProperties): void;
+  (this: unknown, hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+    prop: string | number, value: unknown, cellProperties: CellProperties): void;
   RENDERER_TYPE: string;
   valueFormatter: typeof valueFormatter;
 }
 
+/**
+ *
+ */
 function _intlDateRenderer(
   this: unknown,
   hotInstance: HotInstance,

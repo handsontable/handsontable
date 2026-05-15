@@ -9,7 +9,8 @@ export const VALIDATOR_TYPE: 'dropdown' = 'dropdown';
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function dropdownValidator(this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+export function dropdownValidator(
+  this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
   autocompleteValidator.apply(this, [value, callback]);
 }
 

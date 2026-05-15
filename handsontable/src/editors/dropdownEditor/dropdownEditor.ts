@@ -20,7 +20,9 @@ export class DropdownEditor extends AutocompleteEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     cellProperties.filter = false;
     cellProperties.strict = true;
 

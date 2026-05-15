@@ -31,7 +31,8 @@ export function createKeyboardShortcutCommandsPool(hot: HotInstance) {
   const commands: Record<string, (...args: unknown[]) => unknown> = {};
 
   allCommands.forEach(({ name, callback }) => {
-    commands[name] = (...args: unknown[]) => (callback as (hot: HotInstance, ...args: unknown[]) => unknown)(hot, ...args);
+    type CbFn = (hot: HotInstance, ...args: unknown[]) => unknown;
+    commands[name] = (...args: unknown[]) => (callback as CbFn)(hot, ...args);
   });
 
   return commands;

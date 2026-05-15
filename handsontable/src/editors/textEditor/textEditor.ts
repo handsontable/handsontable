@@ -150,7 +150,9 @@ export class TextEditor extends BaseEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     const previousState = this.state;
 
     super.prepare(row, col, prop, td, value, cellProperties);

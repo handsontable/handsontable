@@ -79,7 +79,8 @@ export class HandsontableEditor extends TextEditor {
     }
 
     // Constructs and initializes a new Handsontable instance
-    this.htEditor = new (this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance)(this.htContainer, this.htOptions);
+    type HotCtor = new (element: HTMLElement, settings: object) => HotInstance;
+    this.htEditor = new (this.hot.constructor as HotCtor)(this.htContainer, this.htOptions);
     this.htEditor.rootPortalElement = this.hot.rootPortalElement;
     this.htEditor.init();
     this.htEditor.rootElement.style.display = '';
@@ -124,7 +125,9 @@ export class HandsontableEditor extends TextEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     const parent = this;

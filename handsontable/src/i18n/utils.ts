@@ -36,7 +36,9 @@ export function extendNotExistingKeys(target: Record<string, unknown>, extension
  * @param {*} toValue Value which will represent "next" cell.
  * @returns {string} Value representing range i.e. A-Z, 11-15.
  */
-export function createCellHeadersRange(firstRowIndex: number, nextRowIndex: number, fromValue: string | number = firstRowIndex, toValue: string | number = nextRowIndex) {
+export function createCellHeadersRange(
+  firstRowIndex: number, nextRowIndex: number,
+  fromValue: string | number = firstRowIndex, toValue: string | number = nextRowIndex) {
   // Will swap `fromValue` with `toValue` if it's necessary.
   let [from, to]: [string | number, string | number] = [fromValue, toValue];
 

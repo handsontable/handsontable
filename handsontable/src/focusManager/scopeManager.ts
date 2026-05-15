@@ -191,7 +191,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    * @param {object} scope The scope to activate.
    * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} focusSource The source of the focus event.
    */
-  function activateScope(scope: ReturnType<typeof createFocusScope>, focusSource: string = FOCUS_SOURCES.UNKNOWN): void {
+  function activateScope(
+    scope: ReturnType<typeof createFocusScope>, focusSource: string = FOCUS_SOURCES.UNKNOWN): void {
     if (activeScope === scope) {
       return;
     }
@@ -228,7 +229,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    */
   function updateScopesFocusVisibilityState(): void {
     const scopes = SCOPES.getValues();
-    const modalScopes = scopes.filter((scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf() && scope.getType() === 'modal');
+    const modalScopes = scopes.filter(
+      (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf() && scope.getType() === 'modal');
 
     scopes.forEach((scope: ReturnType<typeof createFocusScope>) => {
       if (
@@ -269,7 +271,8 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       return;
     }
 
-    const allEnabledScopes = SCOPES.getValues().filter((scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf());
+    const allEnabledScopes = SCOPES.getValues().filter(
+      (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf());
     let hasActiveScope = false;
 
     allEnabledScopes.forEach((scope: ReturnType<typeof createFocusScope>) => {

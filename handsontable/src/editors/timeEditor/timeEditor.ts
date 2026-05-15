@@ -21,7 +21,9 @@ export class TimeEditor extends TextEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     this.TEXTAREA.dir = 'ltr';

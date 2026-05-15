@@ -25,7 +25,8 @@ export function timeValidator(this: Record<string, unknown>, value: unknown, cal
     valueToValidate = '';
   }
 
-  valueToValidate = /^\d{3,}$/.test(valueToValidate as string) ? Number.parseInt(valueToValidate as string, 10) : valueToValidate;
+  valueToValidate = /^\d{3,}$/.test(valueToValidate as string)
+    ? Number.parseInt(valueToValidate as string, 10) : valueToValidate;
 
   const twoDigitValue = /^\d{1,2}$/.test(valueToValidate as string);
 
@@ -54,7 +55,8 @@ export function timeValidator(this: Record<string, unknown>, value: unknown, cal
     if (this.correctFormat === true) { // if format correction is enabled
       const correctedValue = date.format(timeFormat);
 
-      (this.instance as { setDataAtCell: Function }).setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'timeValidator');
+      (this.instance as { setDataAtCell: Function })
+        .setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'timeValidator');
       valid = true;
     } else {
       valid = false;

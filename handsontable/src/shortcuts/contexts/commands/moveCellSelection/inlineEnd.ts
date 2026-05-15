@@ -15,7 +15,8 @@ export const command = {
 
     if (
       (
-        selectedRanges.some((range: object) => selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
+        selectedRanges.some((range: object) =>
+          selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
         selectedRanges.length > 1
       ) &&
       !selectedRange.isHeader() &&

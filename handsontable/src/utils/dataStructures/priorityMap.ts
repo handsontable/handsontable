@@ -24,7 +24,8 @@ const DEFAULT_ERROR_PRIORITY_NAN = (priority: unknown) => `The priority '${prior
  * @param {Function} config.errorPriorityNaN The function to generate a custom error message if priority is not a number.
  * @returns {PriorityMap}
  */
-export function createPriorityMap({ errorPriorityExists, errorPriorityNaN }: { errorPriorityExists?: Function; errorPriorityNaN?: Function } = {}) {
+export function createPriorityMap(
+  { errorPriorityExists, errorPriorityNaN }: { errorPriorityExists?: Function; errorPriorityNaN?: Function } = {}) {
   const priorityMap = new Map();
 
   const errorExistsFn = isFunction(errorPriorityExists) ? errorPriorityExists : DEFAULT_ERROR_PRIORITY_EXISTS;

@@ -17,7 +17,8 @@ const SHORTCUTS_GROUP = 'checkboxRenderer';
 
 export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
-Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed: string, cellMeta: Record<string, unknown>, cellValue: unknown) {
+Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
+  function(bundleSeed: string, cellMeta: Record<string, unknown>, cellValue: unknown) {
   const { label, type, row, column, prop } = cellMeta;
 
   if (type !== RENDERER_TYPE || !label) {
@@ -52,7 +53,9 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed', function(bundleSeed: string
  * @param {*} value The rendered value.
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
-export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+export function checkboxRenderer(
+  hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   const { rootDocument } = hotInstance;
   const ariaEnabled = hotInstance.getSettings().ariaTags;
 
@@ -294,7 +297,8 @@ export function checkboxRenderer(hotInstance: HotInstance, TD: HTMLTableCellElem
 
     if (!changes.every(([, , cellValue]) => cellValue === changes[0][2])) {
       changes = changes.map(
-        ([visualRow, visualColumn, , templates]) => [visualRow, visualColumn, (templates as Record<string, unknown>).checkedTemplate]
+        ([visualRow, visualColumn, , templates]) => [
+          visualRow, visualColumn, (templates as Record<string, unknown>).checkedTemplate]
       );
     } else {
       changes = changes.map(([visualRow, visualColumn, cellValue]) => [visualRow, visualColumn, cellValue]);

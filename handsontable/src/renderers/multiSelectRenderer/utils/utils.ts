@@ -14,10 +14,16 @@ const beforeColumnResizeHookRegistered = new WeakSet<object>();
 const latestColumnWidthCache = new WeakMap<object, Record<number, { width: number }>>();
 const chipsEventManagers = new WeakMap<object, EventManager>();
 
+/**
+ *
+ */
 export function getItemProperty(item: string | Record<string, string>, property: string): string {
   return isKeyValueObject(item) ? (item as Record<string, string>)[property] : (item as string);
 }
 
+/**
+ *
+ */
 export function parseValue(value: unknown): (string | Record<string, string>)[] {
   if (value === null || value === undefined || value === '') {
     return [];
@@ -40,6 +46,9 @@ export function parseValue(value: unknown): (string | Record<string, string>)[] 
   return [value] as (string | Record<string, string>)[];
 }
 
+/**
+ *
+ */
 export function createChipElement(
   rootDocument: Document,
   item: string | Record<string, string>,
@@ -75,6 +84,9 @@ export function createChipElement(
   return chip;
 }
 
+/**
+ *
+ */
 export function createOverflowIndicator(rootDocument: Document, count: number): HTMLElement {
   const indicator = rootDocument.createElement('span');
 
@@ -95,6 +107,9 @@ interface HotInstanceWithRoot {
   addHook: (name: string, callback: (...args: unknown[]) => void) => void;
 }
 
+/**
+ *
+ */
 export function registerChipRemovingEvents(
   hotInstance: HotInstanceWithRoot,
   rendererType: string
@@ -124,7 +139,8 @@ export function registerChipRemovingEvents(
     const rowIndex = chip.dataset.row;
     const columnProp = chip.dataset.prop;
     const physicalRow = hotInstance.toPhysicalRow(rowIndex ?? '');
-    const physicalColumn = typeof columnProp === 'string' ? columnProp : hotInstance.toPhysicalColumn(Number(columnProp));
+    const physicalColumn = typeof columnProp === 'string'
+      ? columnProp : hotInstance.toPhysicalColumn(Number(columnProp));
     const visualColumn = hotInstance.propToCol(columnProp ?? '');
     const currentData = hotInstance.getSourceDataAtCell(physicalRow, visualColumn);
     const keyToRemove = chip.dataset.key;
@@ -146,6 +162,9 @@ interface HotInstanceWithColWidth {
   addHook: (name: string, callback: (...args: unknown[]) => void) => void;
 }
 
+/**
+ *
+ */
 export function cacheColumnWidthAndRegisterResizeHook(
   hotInstance: HotInstanceWithColWidth & object,
   col: number
@@ -156,6 +175,7 @@ export function cacheColumnWidthAndRegisterResizeHook(
     latestColumnWidthCache.set(hotInstance, { [col]: { width: currentWidth } });
   } else {
     const cache = latestColumnWidthCache.get(hotInstance)!;
+
     if (cache[col]?.width !== currentWidth) {
       latestColumnWidthCache.set(hotInstance, { ...cache, [col]: { width: currentWidth } });
     }
@@ -164,6 +184,7 @@ export function cacheColumnWidthAndRegisterResizeHook(
   if (!beforeColumnResizeHookRegistered.has(hotInstance)) {
     hotInstance.addHook('beforeColumnResize', (newSize: number, columnIndex: number) => {
       const cache = latestColumnWidthCache.get(hotInstance);
+
       if (cache?.[columnIndex]?.width !== newSize) {
         latestColumnWidthCache.set(
           hotInstance,
@@ -178,6 +199,9 @@ export function cacheColumnWidthAndRegisterResizeHook(
   return latestColumnWidthCache.get(hotInstance)?.[col]?.width ?? currentWidth;
 }
 
+/**
+ *
+ */
 function recalculateChipsVisibility(
   columnWidth: number | null,
   chipsContainer: HTMLElement,
@@ -240,6 +264,9 @@ function recalculateChipsVisibility(
   }
 }
 
+/**
+ *
+ */
 export function handleChipsOverflow(
   columnWidth: number,
   chipsContainer: HTMLElement,
@@ -248,9 +275,12 @@ export function handleChipsOverflow(
   recalculateChipsVisibility(columnWidth, chipsContainer, rootDocument);
 }
 
+/**
+ *
+ */
 export function removeValueByKey(
   array: (string | Record<string, string>)[],
   keyToRemove: string | undefined
 ): (string | Record<string, string>)[] {
-  return array.filter((item) => getItemProperty(item, 'key') !== keyToRemove);
+  return array.filter(item => getItemProperty(item, 'key') !== keyToRemove);
 }

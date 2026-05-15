@@ -33,7 +33,9 @@ export function valueFormatter(value: unknown, cellProperties: Record<string, un
  * @param {number|string} prop The column property (passed when datasource is an array of objects).
  * @param {*} value The rendered value.
  */
-export function passwordRenderer(hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown): void {
+export function passwordRenderer(
+  hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+  prop: string | number, value: unknown): void {
   fastInnerHTML(TD, value as string);
 }
 

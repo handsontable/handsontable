@@ -120,7 +120,8 @@ function toCssLine(prefix: string, key: string, value: unknown): string {
  * @param {string} [parentKey=''] - The parent key to add to the CSS variables.
  * @returns {string} - The flattened CSS variables.
  */
-export function flattenCssVariables(cssVariables: Record<string, unknown>, prefix: string = '', parentKey: string = ''): string {
+export function flattenCssVariables(
+  cssVariables: Record<string, unknown>, prefix: string = '', parentKey: string = ''): string {
   let cssVars = '';
 
   Object.entries(cssVariables).forEach(([key, value]) => {

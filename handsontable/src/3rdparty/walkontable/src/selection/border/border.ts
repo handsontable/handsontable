@@ -99,7 +99,8 @@ class Border {
       const element = this.main.childNodes[c];
 
       this.eventManager
-        .addEventListener(element as Element, 'mouseenter', (event: MouseEvent) => this.onMouseEnter(event, this.main.childNodes[c] as HTMLElement));
+        .addEventListener(element as Element, 'mouseenter',
+          (event: MouseEvent) => this.onMouseEnter(event, this.main.childNodes[c] as HTMLElement));
     }
   }
 
@@ -194,8 +195,12 @@ class Border {
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
-      const getSettingsProperty = (property: string) => ((this.settings[position] && (this.settings[position] as Record<string, unknown>)[property]) ?
-        (this.settings[position] as Record<string, unknown>)[property] : (settings.border as Record<string, unknown>)[property]);
+      const getSettingsProperty = (property: string) => {
+        const posRec = this.settings[position] as Record<string, unknown>;
+
+        return (this.settings[position] && posRec[property])
+          ? posRec[property] : (settings.border as Record<string, unknown>)[property];
+      };
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
@@ -361,7 +366,8 @@ class Border {
    * @param {number} width The width of the handler.
    * @param {number} height The height of the handler.
    */
-  updateMultipleSelectionHandlesPosition(row: number, col: number, top: number, left: number, width: number, height: number) {
+  updateMultipleSelectionHandlesPosition(
+    row: number, col: number, top: number, left: number, width: number, height: number) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlinePosProperty = isRtl ? 'right' : 'left';
     const {
@@ -407,7 +413,9 @@ class Border {
     bottomStyles.top = `${bottomHandlerTop}px`;
     bottomHitAreaStyles.top = `${bottomHandlerAreaTop}px`;
 
-    if (this.settings.border.cornerVisible && (this.settings.border.cornerVisible as ((...args: unknown[]) => boolean))()) {
+    type CornerVisibleFn = (...args: unknown[]) => boolean;
+
+    if (this.settings.border.cornerVisible && (this.settings.border.cornerVisible as CornerVisibleFn)()) {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
@@ -604,7 +612,9 @@ class Border {
       this.cornerStyle.display = 'none';
 
     } else {
-      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - (Number(this.cornerDefaultStyle.borderWidth))}px`;
+      const cornerBorderWidth = Number(this.cornerDefaultStyle.borderWidth); // eslint-disable-line no-lonely-if
+
+      this.cornerStyle.top = `${top + height + this.cornerCenterPointOffset - cornerBorderWidth}px`;
       this.cornerStyle[inlinePosProperty] = `${
         inlineStartPos + width + this.cornerCenterPointOffset - (Number(this.cornerDefaultStyle.borderWidth))
       }px`;
@@ -658,7 +668,8 @@ class Border {
 
       if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
         const toTdOffsetTop = trimToWindow ? toTDEl.getBoundingClientRect().top : toTDEl.offsetTop;
-        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTDEl) + (parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
+        const cornerHalfHeight = parseInt(String(this.cornerDefaultStyle.height), 10) / 2;
+        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTDEl) + cornerHalfHeight;
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
@@ -719,7 +730,9 @@ class Border {
    * @param {number} containerOffset Offset of the container.
    * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
-  getDimensionsFromHeader(direction: string, fromIndex: number, toIndex: number, headerIndex: number, containerOffset: { top: number; left: number }) {
+  getDimensionsFromHeader(
+    direction: string, fromIndex: number, toIndex: number, headerIndex: number,
+    containerOffset: { top: number; left: number }) {
     const { wtTable } = this.wot;
     const rootHotElement = wtTable.wtRootElement.parentNode as HTMLElement;
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
@@ -750,7 +763,8 @@ class Border {
     }
 
     if (rootHotElement.classList.contains(entireSelectionClassname)) {
-      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[]).length;
+      type ColHeadersFn = (...args: unknown[]) => unknown;
+      const columnHeaderLevelCount = (this.wot.getSetting('columnHeaders') as ColHeadersFn[]).length;
 
       startHeader = getHeaderFn(fromIndex, columnHeaderLevelCount - headerIndex);
       endHeader = getHeaderFn(toIndex, columnHeaderLevelCount - headerIndex);
@@ -763,8 +777,12 @@ class Border {
       const endOffset = offset(endHeader);
 
       if (startHeader && endHeader) {
-        index = (startHeaderOffset as Record<string, number>)[dimensionProperty] - (containerOffset as Record<string, number>)[dimensionProperty] - 1;
-        dimension = (endOffset as Record<string, number>)[dimensionProperty] + dimensionFn(endHeader) - (startHeaderOffset as Record<string, number>)[dimensionProperty];
+        const startOff = (startHeaderOffset as Record<string, number>)[dimensionProperty];
+        const endOff = (endOffset as Record<string, number>)[dimensionProperty];
+        const contOff = (containerOffset as Record<string, number>)[dimensionProperty];
+
+        index = startOff - contOff - 1;
+        dimension = endOff + dimensionFn(endHeader) - startOff;
       }
 
       return [startHeader, index, dimension];

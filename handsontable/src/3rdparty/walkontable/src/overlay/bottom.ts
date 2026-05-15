@@ -33,7 +33,8 @@ export class BottomOverlay extends Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
+  constructor(
+    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_BOTTOM, wtSettings, domBindings);
     this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
   }
@@ -235,6 +236,7 @@ export class BottomOverlay extends Overlay {
    */
   adjustRootChildrenSize() {
     const { holder } = this.clone.wtTable;
+
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     const holderParent = holder.parentNode as HTMLElement;
 

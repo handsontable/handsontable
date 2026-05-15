@@ -184,7 +184,9 @@ export class BaseEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     this.TD = td;
     this.row = row;
     this.col = col;
@@ -237,7 +239,9 @@ export class BaseEditor {
     }
 
     // Saving values using the modified coordinates.
-    this.hot.populateFromArray(visualRowFrom as number, visualColumnFrom as number, value as unknown[][], visualRowTo as number, visualColumnTo as number, 'edit');
+    this.hot.populateFromArray(
+      visualRowFrom as number, visualColumnFrom as number, value as unknown[][],
+      visualRowTo as number, visualColumnTo as number, 'edit');
   }
 
   /**
@@ -446,7 +450,9 @@ export class BaseEditor {
    *
    * @returns {{top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number} | undefined}
    */
-  getEditedCellRect(): { top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number } | undefined {
+  getEditedCellRect(): {
+    top: number, start: number, width: number, maxWidth: number, height: number, maxHeight: number
+  } | undefined {
     const TD = this.getEditedCell();
 
     // TD is outside of the viewport.
@@ -500,7 +506,8 @@ export class BaseEditor {
     const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
-    const firstRowIndexOfTheBottomOverlay = nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);
+    const firstRowIndexOfTheBottomOverlay =
+      nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);
 
     if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       topPos += 1;

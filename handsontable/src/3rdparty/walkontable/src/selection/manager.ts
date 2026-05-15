@@ -287,7 +287,8 @@ export class SelectionManager {
       }
 
       if (Array.isArray(this.#selections.options?.headerAttributes)) {
-        cellAttributes = [...cellAttributes, ...this.#selections.options.headerAttributes.map((el: [string, unknown]) => el[0])];
+        cellAttributes = [
+          ...cellAttributes, ...this.#selections.options.headerAttributes.map((el: [string, unknown]) => el[0])];
       }
 
       for (let i = 0, len = nodes.length; i < len; i++) {

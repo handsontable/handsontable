@@ -7,5 +7,7 @@ import { isObject } from '../../../helpers/object';
  * @returns {*} The final value of the cell.
  */
 export function valueGetter(value: unknown): unknown {
-  return isObject(value) && (value as Record<string, unknown>).value !== undefined ? (value as Record<string, unknown>).value : value;
+  const rec = value as Record<string, unknown>;
+
+  return isObject(value) && rec.value !== undefined ? rec.value : value;
 }

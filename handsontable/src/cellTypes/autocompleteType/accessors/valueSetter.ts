@@ -8,7 +8,13 @@ import { isKeyValueObject } from '../../../helpers/object';
  * @param {number} column The visual column index.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(this: { getSourceDataAtCell: (row: number, col: number) => unknown; toPhysicalRow: (row: number) => number; toPhysicalColumn: (col: number) => number }, newValue: unknown, row: number, column: number): unknown {
+type SetterContext = {
+  getSourceDataAtCell: (row: number, col: number) => unknown;
+  toPhysicalRow: (row: number) => number;
+  toPhysicalColumn: (col: number) => number;
+};
+
+export function valueSetter(this: SetterContext, newValue: unknown, row: number, column: number): unknown {
   const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), this.toPhysicalColumn(column));
 
   if (isKeyValueObject(sourceDataAtCell)) {

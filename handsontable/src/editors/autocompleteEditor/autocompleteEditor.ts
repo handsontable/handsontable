@@ -82,7 +82,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     const selectedValue = this.rawChoices.find((value) => {
       const strippedValue = this.stripValueIfNeeded(value);
 
-      return (this.#isKeyValueObject(strippedValue) ? (strippedValue as Record<string, unknown>).value : strippedValue) === this.TEXTAREA.value;
+      const resolvedValue = this.#isKeyValueObject(strippedValue)
+        ? (strippedValue as Record<string, unknown>).value : strippedValue;
+
+      return resolvedValue === this.TEXTAREA.value;
     });
 
     if (isDefined(selectedValue)) {
@@ -121,7 +124,9 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     if (this.hot.getSettings().ariaTags) {
@@ -133,7 +138,8 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htOptions = {
       ...this.htOptions,
-      valueGetter: (cellValue: unknown) => (this.#isKeyValueObject(cellValue) ? (cellValue as Record<string, unknown>).value : cellValue),
+      valueGetter: (cellValue: unknown) => (this.#isKeyValueObject(cellValue)
+        ? (cellValue as Record<string, unknown>).value : cellValue),
     };
   }
 
@@ -157,7 +163,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       autoColumnSize: true,
-      renderer: (hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => {
+      renderer: (
+        hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+        prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => {
         textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
@@ -226,6 +234,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (rootInstanceAriaTagsEnabled) {
       // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
       const a11yPres = A11Y_PRESENTATION();
+
       setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, a11yPres[0], a11yPres[1]);
 
       setAttribute(this.htEditor.rootElement, [
@@ -280,7 +289,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.query = query;
 
     if (typeof source === 'function') {
-      (source as (query: string, callback: (choices: unknown[]) => void) => void).call(this.cellProperties, query, (choices: unknown[]) => {
+      type SourceFn = (query: string, callback: (choices: unknown[]) => void) => void;
+      (source as SourceFn).call(this.cellProperties, query, (choices: unknown[]) => {
         this.rawChoices = choices;
         this.updateChoicesList(this.stripValuesIfNeeded(choices));
       });
@@ -574,7 +584,9 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {boolean}
    */
   #isKeyValueObject(value: unknown): boolean {
-    return isObject(value) && isDefined((value as Record<string, unknown>).key) && isDefined((value as Record<string, unknown>).value);
+    const rec = value as Record<string, unknown>;
+
+    return isObject(value) && isDefined(rec.key) && isDefined(rec.value);
   }
 
   /**

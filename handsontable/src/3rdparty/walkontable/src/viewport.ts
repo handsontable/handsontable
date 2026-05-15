@@ -60,7 +60,9 @@ class Viewport {
    * @param {EventManager} eventManager The instance event manager.
    * @param {Table} wtTable The table.
    */
-  constructor(dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: Table) {
+  constructor(
+    dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings,
+    eventManager: EventManager, wtTable: Table) {
     this.dataAccessObject = dataAccessObject;
     // legacy support
     this.wot = dataAccessObject.wot;
@@ -394,7 +396,8 @@ class Viewport {
     }
 
     return new ViewportRowsCalculator({
-      calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
+      calculationTypes: calculatorTypes.map(
+        type => [type, this.rowsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
       viewportHeight: height,
       scrollOffset: pos,
       totalRows,
@@ -435,7 +438,8 @@ class Viewport {
     }
 
     return new ViewportColumnsCalculator({
-      calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
+      calculationTypes: calculatorTypes.map(
+        type => [type, this.columnsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns,
@@ -515,7 +519,9 @@ class Viewport {
    * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
-  areAllProposedVisibleRowsAlreadyRendered(proposedFullyVisibleRowsCalculator: RowsCalculationType, proposedPartiallyVisibleRowsCalculator: RowsCalculationType) {
+  areAllProposedVisibleRowsAlreadyRendered(
+    proposedFullyVisibleRowsCalculator: RowsCalculationType,
+    proposedPartiallyVisibleRowsCalculator: RowsCalculationType) {
     if (!this.rowsVisibleCalculator || !this.rowsRenderCalculator) {
       return false;
     }

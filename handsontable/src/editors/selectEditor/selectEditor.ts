@@ -140,14 +140,17 @@ export class SelectEditor extends BaseEditor {
    * @param {*} value The rendered value.
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
-  prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     const selectOptions = this.cellProperties.selectOptions;
     let options;
 
     if (typeof selectOptions === 'function') {
-      options = this.prepareOptions((selectOptions as (row: number, col: number, prop: string | number) => unknown)(this.row, this.col, this.prop));
+      type OptionsFn = (row: number, col: number, prop: string | number) => unknown;
+      options = this.prepareOptions((selectOptions as OptionsFn)(this.row, this.col, this.prop));
     } else {
       options = this.prepareOptions(selectOptions);
     }

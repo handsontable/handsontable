@@ -64,7 +64,9 @@ export function pivot(arr: unknown[][]): unknown[] {
  * @param {boolean} [initFromArray] Specify using the first element of `array` as the initial value.
  * @returns {A} Returns the accumulated value.
  */
-export function arrayReduce<T, A>(array: T[], iteratee: (acc: A, value: T, index: number, array: T[]) => A, accumulator: A, initFromArray?: boolean): A {
+export function arrayReduce<T, A>(
+  array: T[], iteratee: (acc: A, value: T, index: number, array: T[]) => A,
+  accumulator: A, initFromArray?: boolean): A {
   let index = -1;
   let iterable: T[] = array;
 
@@ -167,7 +169,8 @@ export function arrayMap<T, U>(array: T[], iteratee: (value: T, index: number, a
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns `array`.
  */
-export function arrayEach<T>(array: T[] | Iterable<T>, iteratee: (value: T, index: number, array: T[]) => unknown): T[] {
+export function arrayEach<T>(
+  array: T[] | Iterable<T>, iteratee: (value: T, index: number, array: T[]) => unknown): T[] {
   let index = 0;
   let iterable: T[];
 
@@ -208,7 +211,8 @@ export function arraySum(array: number[]): number {
  * @returns {number} Returns the highest value from an array.
  */
 export function arrayMax(array: number[]): number {
-  return arrayReduce<number, number | undefined>(array, (a, b) => (a !== undefined && a > b ? a : b), array[0]) as number;
+  return arrayReduce<number, number | undefined>(
+    array, (a, b) => (a !== undefined && a > b ? a : b), array[0]) as number;
 }
 
 /**
@@ -219,7 +223,8 @@ export function arrayMax(array: number[]): number {
  * @returns {number} Returns the lowest value from an array.
  */
 export function arrayMin(array: number[]): number {
-  return arrayReduce<number, number | undefined>(array, (a, b) => (a !== undefined && a < b ? a : b), array[0]) as number;
+  return arrayReduce<number, number | undefined>(
+    array, (a, b) => (a !== undefined && a < b ? a : b), array[0]) as number;
 }
 
 /**
@@ -243,7 +248,8 @@ export function arrayAvg(array: number[]): number {
  * @returns {Array}
  */
 export function arrayFlatten(array: unknown[][]): unknown[] {
-  return arrayReduce<unknown[], unknown[]>(array, (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value as unknown[][]) : value), []);
+  return arrayReduce<unknown[], unknown[]>(array,
+    (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value as unknown[][]) : value), []);
 }
 
 /**

@@ -29,7 +29,8 @@ export class InlineStartOverlay extends Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
+  constructor(
+    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_INLINE_START, wtSettings, domBindings);
   }
 
@@ -200,6 +201,7 @@ export class InlineStartOverlay extends Overlay {
     const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
       .getFocusSelection() ? parseInt(cornerStyle.width as string, 10) / 2 : 0;
+
     this.clone.wtTable.hider.style.height = this.hider.style.height;
     const holderParent = holder.parentNode as HTMLElement;
 

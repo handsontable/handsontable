@@ -173,7 +173,8 @@ class Highlight {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
-    let disableHighlight = (this.options.disabledCellSelection as (row: number, col: number) => unknown)(coords.row, coords.col);
+    type DisabledFn = (row: number, col: number) => unknown;
+    let disableHighlight = (this.options.disabledCellSelection as DisabledFn)(coords.row, coords.col);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
@@ -436,9 +437,12 @@ class Highlight {
     }
     if ('activeHeaderClassName' in options) {
       this.options.activeHeaderClassName = options.activeHeaderClassName;
-      arrayEach(this.activeRowHeaders.values(), (h: any) => { h.settings.className = options.activeHeaderClassName; });
-      arrayEach(this.activeColumnHeaders.values(), (h: any) => { h.settings.className = options.activeHeaderClassName; });
-      arrayEach(this.activeCornerHeaders.values(), (h: any) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeRowHeaders.values(),
+        (h: any) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeColumnHeaders.values(),
+        (h: any) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeCornerHeaders.values(),
+        (h: any) => { h.settings.className = options.activeHeaderClassName; });
     }
   }
 
@@ -467,7 +471,8 @@ class Highlight {
    * @param {Function} highlightFactory The function factory.
    * @returns {VisualSelection}
    */
-  #createHighlight(cacheMap: Map<number, VisualSelection>, highlightFactory: (options: Record<string, unknown>) => VisualSelection) {
+  #createHighlight(
+    cacheMap: Map<number, VisualSelection>, highlightFactory: (options: Record<string, unknown>) => VisualSelection) {
     const layerLevel = this.layerLevel;
 
     if (cacheMap.has(layerLevel)) {

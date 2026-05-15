@@ -106,8 +106,15 @@ export type RendererType = typeof AUTOCOMPLETE_RENDERER | typeof BASE_RENDERER |
  * }];
  * ```
  */
-export const rendererFactory = (callback: (params: { instance: object; td: HTMLTableCellElement; row: number; column: number; prop: string | number; value: unknown; cellProperties: Record<string, unknown> }) => void) => {
-  return (instance: object, td: HTMLTableCellElement, row: number, column: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void => {
+type RegistryRendererParams = {
+  instance: object; td: HTMLTableCellElement; row: number; column: number;
+  prop: string | number; value: unknown; cellProperties: Record<string, unknown>;
+};
+
+export const rendererFactory = (callback: (params: RegistryRendererParams) => void) => {
+  return (
+    instance: object, td: HTMLTableCellElement, row: number, column: number,
+    prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void => {
     return callback({ instance, td, row, column, prop, value, cellProperties });
   };
 };

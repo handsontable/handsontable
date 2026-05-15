@@ -10,7 +10,8 @@ export const command = {
     let isTabOrShiftTabPressed = false;
     let preventViewportScroll = false;
 
-    hot.addHook('afterSelection', (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }) => {
+    hot.addHook('afterSelection', (
+      row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }) => {
       if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
         preventViewportScroll = false;
         preventScrolling.value = true;

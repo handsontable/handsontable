@@ -37,7 +37,8 @@ export class TopOverlay extends Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
+  constructor(
+    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
     super(wotInstance, facadeGetter, CLONE_TOP, wtSettings, domBindings);
     this.cachedFixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
   }
@@ -228,6 +229,7 @@ export class TopOverlay extends Overlay {
     const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
       .getFocusSelection() ? parseInt(cornerStyle.height as string, 10) / 2 : 0;
+
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     const holderParent = holder.parentNode as HTMLElement;
 

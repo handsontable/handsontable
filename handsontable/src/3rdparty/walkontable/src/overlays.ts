@@ -319,7 +319,9 @@ class Overlays {
    * @param {EventManager} eventManager The walkontable event manager.
    * @param {MasterTable} wtTable The master table.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings, eventManager: EventManager, wtTable: Table) {
+  constructor(
+    wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings,
+    wtSettings: Settings, eventManager: EventManager, wtTable: Table) {
     this.wot = wotInstance;
     this.wtSettings = wtSettings;
     this.domBindings = domBindings;
@@ -486,7 +488,8 @@ class Overlays {
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
     const { mainTableScrollableElement: inlineStartOverlayScrollableElement } = this.inlineStartOverlay;
 
-    this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', (event: KeyboardEvent) => this.onKeyDown(event));
+    this.eventManager.addEventListener(rootDocument.documentElement, 'keydown',
+      (event: KeyboardEvent) => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
 
@@ -570,8 +573,10 @@ class Overlays {
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     if (this.keyPressed) {
-      if ((masterVertical !== rootWindow && target !== rootWindow && !eventTargetEl(event)!.contains(masterVertical as HTMLElement)) ||
-          (masterHorizontal !== rootWindow && target !== rootWindow && !eventTargetEl(event)!.contains(masterHorizontal as HTMLElement))) {
+      if ((masterVertical !== rootWindow && target !== rootWindow &&
+           !eventTargetEl(event)!.contains(masterVertical as HTMLElement)) ||
+          (masterHorizontal !== rootWindow && target !== rootWindow &&
+           !eventTargetEl(event)!.contains(masterHorizontal as HTMLElement))) {
         return;
       }
     }
@@ -953,12 +958,14 @@ class Overlays {
     const isScrolledBeyondHiderHeight = () => {
       return isWindowScrolled ?
         false :
-        ((this.scrollableElement as HTMLElement).scrollTop > Math.max(0, proposedHiderHeight - wtTable.holder.clientHeight));
+        (this.scrollableElement as HTMLElement).scrollTop >
+        Math.max(0, proposedHiderHeight - wtTable.holder.clientHeight);
     };
     const isScrolledBeyondHiderWidth = () => {
       return isWindowScrolled ?
         false :
-        ((this.scrollableElement as HTMLElement).scrollLeft > Math.max(0, proposedHiderWidth - wtTable.holder.clientWidth));
+        (this.scrollableElement as HTMLElement).scrollLeft >
+        Math.max(0, proposedHiderWidth - wtTable.holder.clientWidth);
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
     const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;

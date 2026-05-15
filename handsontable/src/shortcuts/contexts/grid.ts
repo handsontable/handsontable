@@ -10,7 +10,8 @@ import { createKeyboardShortcutCommandsPool } from './commands';
  */
 export function shortcutsGridContext(hot: HotInstance) {
   const context = hot.getShortcutManager().addContext(GRID_SCOPE);
-  const commandsPool = createKeyboardShortcutCommandsPool(hot) as unknown as Record<string, (...args: unknown[]) => boolean | void>;
+  type CommandsPool = Record<string, (...args: unknown[]) => boolean | void>;
+  const commandsPool = createKeyboardShortcutCommandsPool(hot) as unknown as CommandsPool;
   const config = {
     runOnlyIf: () => {
       const { navigableHeaders } = hot.getSettings();
@@ -178,7 +179,8 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: () => commandsPool.scrollToFocusedCell(),
   }], config);
 
-  const tabNavigationCommand = commandsPool.tabNavigation() as unknown as { before: (event: KeyboardEvent) => void; after: (event: KeyboardEvent) => boolean | void };
+  type TabNavCommand = { before: (event: KeyboardEvent) => void; after: (event: KeyboardEvent) => boolean | void };
+  const tabNavigationCommand = commandsPool.tabNavigation() as unknown as TabNavCommand;
 
   context.addShortcuts([{
     keys: [['Tab'], ['Shift', 'Tab']],

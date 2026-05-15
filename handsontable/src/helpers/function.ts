@@ -71,7 +71,8 @@ export function throttle(func: (...args: unknown[]) => unknown, wait: number = 2
  * @param {number} hits Number of hits after throttling will be applied.
  * @returns {Function}
  */
-export function throttleAfterHits(func: (...args: unknown[]) => unknown, wait: number = 200, hits: number = 10): (...args: unknown[]) => unknown {
+export function throttleAfterHits(
+  func: (...args: unknown[]) => unknown, wait: number = 200, hits: number = 10): (...args: unknown[]) => unknown {
   const funcThrottle = throttle(func, wait);
   let remainHits = hits;
 
@@ -107,7 +108,9 @@ export function throttleAfterHits(func: (...args: unknown[]) => unknown, wait: n
  * @param {number} wait Delay in milliseconds.
  * @returns {Function} The debounced function. It has a `cancel` method that clears a pending timer.
  */
-export function debounce(func: (...args: unknown[]) => unknown, wait: number = 200): ((...args: unknown[]) => unknown) & { cancel: () => void } {
+export function debounce(
+  func: (...args: unknown[]) => unknown,
+  wait: number = 200): ((...args: unknown[]) => unknown) & { cancel: () => void } {
   let lastTimer: ReturnType<typeof setTimeout> | null = null;
   let result: unknown;
 
@@ -153,7 +156,8 @@ export function pipe(...functions: Array<(...args: unknown[]) => unknown>): (...
   const [firstFunc, ...restFunc] = functions;
 
   return function _pipe(...args) {
-    return arrayReduce(restFunc, (acc, fn) => (fn as (...args: unknown[]) => unknown)(acc), firstFunc.apply(this, args));
+    return arrayReduce(
+      restFunc, (acc, fn) => (fn as (...args: unknown[]) => unknown)(acc), firstFunc.apply(this, args));
   };
 }
 
@@ -280,7 +284,9 @@ export function curryRight(func: (...args: unknown[]) => unknown): (...args: unk
  * @param {*} [arg6] An argument passed to `func` function.
  * @returns {*}
  */
-export function fastCall(func: (...args: unknown[]) => unknown, context: unknown, arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown): unknown {
+export function fastCall(
+  func: (...args: unknown[]) => unknown, context: unknown,
+  arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown): unknown {
   if (isDefined(arg6)) {
     return func.call(context, arg1, arg2, arg3, arg4, arg5, arg6);
 

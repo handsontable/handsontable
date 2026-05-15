@@ -60,7 +60,8 @@ const localHooks = {
    * @param {*} [arg5] An additional parameter passed to the callback function.
    * @param {*} [arg6] An additional parameter passed to the callback function.
    */
-  runLocalHooks(key: string, arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown) {
+  runLocalHooks(key: string,
+    arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown) {
     if (this._localHooks[key]) {
       const length = this._localHooks[key].length;
 

@@ -57,7 +57,9 @@ export abstract class Overlay {
    * @param {Settings} wtSettings The Walkontable settings.
    * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, type: string, wtSettings: Settings, domBindings: DomBindings) {
+  constructor(
+    wotInstance: WalkontableInstance, facadeGetter: Function, type: string,
+    wtSettings: Settings, domBindings: DomBindings) {
     defineGetter(this, 'wot', wotInstance, {
       writable: false,
     });
@@ -178,8 +180,8 @@ export abstract class Overlay {
     const windowScroll = this.mainTableScrollableElement === this.domBindings.rootWindow;
     const fixedColumnStart = columnIndex < this.wtSettings.getSetting<number>('fixedColumnsStart');
     const fixedRowTop = rowIndex < this.wtSettings.getSetting<number>('fixedRowsTop');
-    const fixedRowBottom =
-      rowIndex >= this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
+    const fixedRowBottom = rowIndex >=
+      this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
     const spreader = this.clone.wtTable.spreader;
 
     const spreaderOffset = {
@@ -229,7 +231,9 @@ export abstract class Overlay {
    * @param {number} spreaderOffset Offset position of the spreader element.
    * @returns {{top: number, left: number}}
    */
-  getRelativeCellPositionWithinWindow(onFixedRowTop: boolean, onFixedColumn: boolean, elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
+  getRelativeCellPositionWithinWindow(
+    onFixedRowTop: boolean, onFixedColumn: boolean,
+    elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
     const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); // todo refactoring: DEMETER
     // `preventOverflow` can force this overlay onto the window (see `makeClone()`) while the
     // master still scrolls its holder. `wtRootElement` does not move with that scroll, so
@@ -283,7 +287,9 @@ export abstract class Overlay {
    * @param {number} spreaderOffset Offset position of the spreader element.
    * @returns {{top: number, left: number}}
    */
-  getRelativeCellPositionWithinHolder(onFixedRowTop: boolean, onFixedRowBottom: boolean, onFixedColumn: boolean, elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
+  getRelativeCellPositionWithinHolder(
+    onFixedRowTop: boolean, onFixedRowBottom: boolean, onFixedColumn: boolean,
+    elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
     const tableScrollPosition = {
       horizontal: this.wot.wtOverlays.inlineStartOverlay.getScrollPosition(),
       vertical: this.wot.wtOverlays.topOverlay.getScrollPosition()

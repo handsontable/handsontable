@@ -26,7 +26,9 @@ interface MouseDownOptions {
  *                                    operation will be performed in later selection stages.
  * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function mouseDown({ isShiftKey, isLeftClick, isRightClick, coords, selection, controller, cellCoordsFactory }: MouseDownOptions) {
+export function mouseDown({
+  isShiftKey, isLeftClick, isRightClick, coords, selection, controller, cellCoordsFactory,
+}: MouseDownOptions) {
   const sel = selection;
   const currentSelection = sel.isSelected() ? sel.getSelectedRange().current() : null;
   const selectedCorner = sel.isSelectedByCorner();
@@ -154,7 +156,7 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
   const selectionRange = sel.getSelectedRange();
   const renderableRange = selectionRange
     .clone()
-    .map((range) => cellRangeMapper.toRenderable(range));
+    .map(range => cellRangeMapper.toRenderable(range));
   const lastRenderableRange = renderableRange.current();
 
   if (

@@ -80,7 +80,10 @@ export class StylesHandler {
    * @param {function(string)} options.onThemeChange The callback function to be called when the theme changes.
    * @param {boolean} options.injectCoreCss Whether to inject the core styles into the document head.
    */
-  constructor({ hot, rootElement, rootDocument, onThemeChange = (_?: unknown) => {}, injectCoreCss = true }: { hot: unknown; rootElement: HTMLElement; rootDocument: Document; onThemeChange?: Function; injectCoreCss?: boolean }) {
+  constructor({ hot, rootElement, rootDocument, onThemeChange = (_?: unknown) => {}, injectCoreCss = true }: {
+    hot: unknown; rootElement: HTMLElement; rootDocument: Document;
+    onThemeChange?: Function; injectCoreCss?: boolean;
+  }) {
     this.#hot = hot as HotInstance;
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;

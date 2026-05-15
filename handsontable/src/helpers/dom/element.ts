@@ -101,7 +101,8 @@ export function hasAccessToParentWindow(frame: Window): boolean {
  * @param {Node} [until] The element until the traversing ends.
  * @returns {Node|null}
  */
-export function closest(element: HTMLElement, nodes: Array<string | HTMLElement> = [], until?: Node): HTMLElement | null {
+export function closest(
+  element: HTMLElement, nodes: Array<string | HTMLElement> = [], until?: Node): HTMLElement | null {
   const { ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE } = Node;
   let elementToCheck: Node | null = element;
 
@@ -133,7 +134,8 @@ export function closest(element: HTMLElement, nodes: Array<string | HTMLElement>
  * @param {HTMLElement} [until] The list of elements until the traversing ends.
  * @returns {HTMLElement|null}
  */
-export function closestDown(element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement | null {
+export function closestDown(
+  element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement | null {
   const matched: HTMLElement[] = [];
   let elementToCheck: HTMLElement | null = element as HTMLElement;
 
@@ -306,7 +308,8 @@ function filterEmptyClassNames(classNames: string[]) {
  * @param {boolean} [returnBoth] If `true`, both the array without regexes and an array of regexes will be returned.
  * @returns {string[]|{regexFree: string[], regexes: RegExp[]}}
  */
-function filterRegexes(list: (string | RegExp)[], returnBoth: boolean): string[] | { regexFree: string[]; regexes: RegExp[] } {
+function filterRegexes(
+  list: (string | RegExp)[], returnBoth: boolean): string[] | { regexFree: string[]; regexes: RegExp[] } {
   if (!list || !list.length) {
     return returnBoth ? { regexFree: [], regexes: [] } : [];
   }
@@ -408,7 +411,10 @@ export function removeClass(element: HTMLElement, className: string | string[] |
  * @param {string|number|undefined} [attributeValue] If setting a single attribute, `attributeValue` holds the attribute
  * value.
  */
-export function setAttribute(domElement: HTMLElement, attributes: [string, string | number | boolean][] | string = [], attributeValue?: string | number | boolean) {
+export function setAttribute(
+  domElement: HTMLElement,
+  attributes: [string, string | number | boolean][] | string = [],
+  attributeValue?: string | number | boolean) {
   if (!Array.isArray(attributes)) {
     attributes = [[attributes, attributeValue]];
   }
@@ -428,7 +434,8 @@ export function setAttribute(domElement: HTMLElement, attributes: [string, strin
  * holds an array of attribute names to be removed from the provided element. If removing a single attribute, it
  * holds the attribute name.
  */
-export function removeAttribute(domElement: HTMLElement, attributesToRemove: (string | RegExp)[] | string | RegExp = []) {
+export function removeAttribute(
+  domElement: HTMLElement, attributesToRemove: (string | RegExp)[] | string | RegExp = []) {
   if (typeof attributesToRemove === 'string') {
     attributesToRemove = (attributesToRemove as string).split(' ');
 
@@ -505,7 +512,10 @@ let fastInnerHTMLDeprecationWarned = false;
 /**
  *
  */
-export function fastInnerHTML(element: HTMLElement, content: string, sanitizer: boolean | ((html: string, context: string) => string) = true, context = 'innerHTML'): void {
+export function fastInnerHTML(
+  element: HTMLElement, content: string,
+  sanitizer: boolean | ((html: string, context: string) => string) = true,
+  context = 'innerHTML'): void {
   if (HTML_CHARACTERS.test(content)) {
     let sanitized: string;
 
@@ -515,7 +525,8 @@ export function fastInnerHTML(element: HTMLElement, content: string, sanitizer: 
       if (!fastInnerHTMLDeprecationWarned) {
         fastInnerHTMLDeprecationWarned = true;
         deprecatedWarn(
-          'The HTML sanitization using DOMPurify library is deprecated and will be removed in the next major release. Use the `sanitizer` option instead.\n\n' +
+          'The HTML sanitization using DOMPurify library is deprecated and will be removed in the ' +
+          'next major release. Use the `sanitizer` option instead.\n\n' +
           'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
           '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
         );
@@ -731,7 +742,8 @@ export function getScrollableElement(element: HTMLElement): HTMLElement {
   let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
 
   if (!rootDocument) {
-    rootDocument = (element as unknown as Window).document ? (element as unknown as Window).document : element as unknown as Document;
+    rootDocument = (element as unknown as Window).document
+      ? (element as unknown as Window).document : element as unknown as Document;
     rootWindow = rootDocument.defaultView;
   }
 
@@ -853,8 +865,10 @@ export function getStyle(element: HTMLElement, prop: string, rootWindow: Window 
 
   const computedStyle = rootWindow.getComputedStyle(element);
 
-  if ((computedStyle as CSSStyleDeclaration & Record<string, string>)[prop] !== '' && (computedStyle as CSSStyleDeclaration & Record<string, string>)[prop] !== undefined) {
-    return (computedStyle as CSSStyleDeclaration & Record<string, string>)[prop];
+  const computedProp = (computedStyle as CSSStyleDeclaration & Record<string, string>)[prop];
+
+  if (computedProp !== '' && computedProp !== undefined) {
+    return computedProp;
   }
 }
 
@@ -982,8 +996,13 @@ export function getSelectionText(rootWindow: Window = window): string {
   if (rootWindow.getSelection) {
     text = rootWindow.getSelection().toString();
 
-  } else if ((rootDocument as Document & { selection?: { type: string; createRange(): { text: string } } }).selection && (rootDocument as Document & { selection?: { type: string; createRange(): { text: string } } }).selection.type !== 'Control') {
-    text = (rootDocument as Document & { selection: { type: string; createRange(): { text: string } } }).selection.createRange().text;
+  } else {
+    type DocWithSelection = Document & { selection?: { type: string; createRange(): { text: string } } };
+    const docWithSel = rootDocument as DocWithSelection;
+
+    if (docWithSel.selection && docWithSel.selection.type !== 'Control') {
+      text = docWithSel.selection.createRange().text;
+    }
   }
 
   return text;
@@ -1275,7 +1294,8 @@ export function observeVisibilityChangeOnce(elementToBeObserved: HTMLElement, ca
  * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
  * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
  */
-export function makeElementContentEditableAndSelectItsContent(element: HTMLElement, invisibleSelection = true, ariaHidden = true) {
+export function makeElementContentEditableAndSelectItsContent(
+  element: HTMLElement, invisibleSelection = true, ariaHidden = true) {
   const ownerDocument = element.ownerDocument;
   const range = ownerDocument.createRange();
   const sel = ownerDocument.defaultView.getSelection();
@@ -1306,7 +1326,8 @@ export function makeElementContentEditableAndSelectItsContent(element: HTMLEleme
  * @param {HTMLElement} selectedElement The element to be deselected.
  * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
  */
-export function removeContentEditableFromElementAndDeselect(selectedElement: HTMLElement, removeInvisibleSelectionClass = true) {
+export function removeContentEditableFromElementAndDeselect(
+  selectedElement: HTMLElement, removeInvisibleSelectionClass = true) {
   const sel = selectedElement.ownerDocument.defaultView.getSelection();
 
   if (selectedElement.hasAttribute('aria-hidden')) {
@@ -1330,7 +1351,8 @@ export function removeContentEditableFromElementAndDeselect(selectedElement: HTM
  * @param {Function} callback Callback to be called.
  * @param {boolean} [invisibleSelection=true] `true` if the selection should be invisible.
  */
-export function runWithSelectedContendEditableElement(element: HTMLElement, callback: () => void, invisibleSelection = true) {
+export function runWithSelectedContendEditableElement(
+  element: HTMLElement, callback: () => void, invisibleSelection = true) {
   makeElementContentEditableAndSelectItsContent(element, invisibleSelection);
 
   callback();

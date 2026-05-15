@@ -246,6 +246,7 @@ export class ThemeManager {
  * @param {object} options.themeObject - The theme object.
  * @returns {ThemeManager} The ThemeManager instance.
  */
-export function createThemeManager({ hot, themeObject }: { hot: HotInstance; themeObject: ThemeBuilder }): ThemeManager {
+export function createThemeManager(
+  { hot, themeObject }: { hot: HotInstance; themeObject: ThemeBuilder }): ThemeManager {
   return new ThemeManager({ hot, themeObject });
 }

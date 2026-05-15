@@ -65,7 +65,8 @@ export function getThemes(): ThemeBuilder[] {
  * @param {object} [themeConfig] The theme config object (optional if first parameter has already theme config).
  * @returns {{themeName: string, themeConfigObject: object}} Parsed theme name and config object.
  */
-function parseThemeArgs(themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): { themeName: string; themeConfigObject: BaseTheme } {
+function parseThemeArgs(
+  themeNameOrConfig: string | BaseTheme, themeConfig?: BaseTheme): { themeName: string; themeConfigObject: BaseTheme } {
   let themeName = themeNameOrConfig as string;
   let themeConfigObject = deepClone(themeConfig) as BaseTheme;
 

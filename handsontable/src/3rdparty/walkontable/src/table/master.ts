@@ -23,7 +23,8 @@ class MasterTable extends Table {
    * @param {DomBindings} domBindings Bindings into DOM.
    * @param {Settings} wtSettings The Walkontable settings.
    */
-  constructor(dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings) {
+  constructor(
+    dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings) {
     super(dataAccessObject, facadeGetter, domBindings, wtSettings, 'master');
   }
 

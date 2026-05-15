@@ -10,11 +10,18 @@ export const VALIDATOR_TYPE: 'autocomplete' = 'autocomplete';
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function autocompleteValidator(this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
-  const isKeyValueObject = (obj: unknown) => isObject(obj) && isDefined((obj as Record<string, unknown>).key) && isDefined((obj as Record<string, unknown>).value);
+export function autocompleteValidator(
+  this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+  const isKeyValueObject = (obj: unknown) => {
+    const rec = obj as Record<string, unknown>;
+
+    return isObject(obj) && isDefined(rec.key) && isDefined(rec.value);
+  };
   const isNullOrUndefined = (val: unknown): boolean => {
     if (isKeyValueObject(val)) {
-      return isNullOrUndefined((val as Record<string, unknown>).key) && isNullOrUndefined((val as Record<string, unknown>).value);
+      const rec = val as Record<string, unknown>;
+
+      return isNullOrUndefined(rec.key) && isNullOrUndefined(rec.value);
     }
 
     return val === null || val === undefined;

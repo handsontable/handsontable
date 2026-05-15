@@ -416,7 +416,8 @@ export class IndexMapper {
    *
    * @returns {number|null} A visual index of a row or column, or `null`.
    */
-  getNearestNotHiddenIndex(fromVisualIndex: number, searchDirection: 1 | -1, searchAlsoOtherWayAround: boolean = false): number | null {
+  getNearestNotHiddenIndex(
+    fromVisualIndex: number, searchDirection: 1 | -1, searchAlsoOtherWayAround: boolean = false): number | null {
     const physicalIndex = this.getPhysicalFromVisualIndex(fromVisualIndex);
 
     if (physicalIndex === null) {

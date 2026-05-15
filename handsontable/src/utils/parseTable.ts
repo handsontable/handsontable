@@ -280,6 +280,7 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
   if (typeof checkElement === 'string') {
     // Use replaceTdCellsWithTextContent so nested <td> (e.g. Excel shape cells) are matched correctly
     const normalizedHTML = replaceTdCellsWithTextContent(checkElement);
+
     tempElem.insertAdjacentHTML('afterbegin', normalizedHTML);
     checkElement = tempElem.querySelector<HTMLTableElement>('table');
   }
@@ -316,21 +317,22 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
 
     if (thRowsLen > 1) {
       settingsObj.nestedHeaders = Array.from(thRows).reduce((rows: unknown[], row: HTMLTableRowElement) => {
-        const headersRow = Array.from(row.cells).reduce((headers: unknown[], header: HTMLTableCellElement, currentIndex: number) => {
-          if (hasRowHeaders && currentIndex === 0) {
+        const headersRow = Array.from(row.cells).reduce(
+          (headers: unknown[], header: HTMLTableCellElement, currentIndex: number) => {
+            if (hasRowHeaders && currentIndex === 0) {
+              return headers;
+            }
+
+            const {
+              colSpan: colspan,
+              innerHTML,
+            } = header;
+            const nextHeader = colspan > 1 ? { label: innerHTML, colspan } : innerHTML;
+
+            headers.push(nextHeader);
+
             return headers;
-          }
-
-          const {
-            colSpan: colspan,
-            innerHTML,
-          } = header;
-          const nextHeader = colspan > 1 ? { label: innerHTML, colspan } : innerHTML;
-
-          headers.push(nextHeader);
-
-          return headers;
-        }, []);
+          }, []);
 
         rows.push(headersRow);
 
@@ -338,15 +340,16 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
       }, []);
 
     } else if (hasColHeaders) {
-      settingsObj.colHeaders = Array.from(thRows[0].children).reduce((headers: unknown[], header: Element, index: number) => {
-        if (hasRowHeaders && index === 0) {
+      settingsObj.colHeaders = Array.from(thRows[0].children).reduce(
+        (headers: unknown[], header: Element, index: number) => {
+          if (hasRowHeaders && index === 0) {
+            return headers;
+          }
+
+          headers.push((header as HTMLElement).innerHTML);
+
           return headers;
-        }
-
-        headers.push((header as HTMLElement).innerHTML);
-
-        return headers;
-      }, []);
+        }, []);
     }
   }
 
@@ -359,13 +362,14 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
 
   const dataRows: HTMLTableRowElement[] = [
     ...fixedRowsTop,
-    ...(Array.from(el.tBodies) as HTMLTableSectionElement[]).reduce((sections: HTMLTableRowElement[], section: HTMLTableSectionElement) => {
-      Array.from(section.rows).forEach((row: HTMLTableRowElement) => {
-        sections.push(row);
-      });
+    ...(Array.from(el.tBodies) as HTMLTableSectionElement[]).reduce(
+      (sections: HTMLTableRowElement[], section: HTMLTableSectionElement) => {
+        Array.from(section.rows).forEach((row: HTMLTableRowElement) => {
+          sections.push(row);
+        });
 
-      return sections;
-    }, []),
+        return sections;
+      }, []),
     ...fixedRowsBottom];
 
   countRows = dataRows.length;

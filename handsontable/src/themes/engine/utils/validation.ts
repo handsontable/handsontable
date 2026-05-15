@@ -510,7 +510,9 @@ function validateColorsStructure(colors: Record<string, unknown>, context: strin
  * @param {string} [options.type='key'] The type name for warning messages.
  * @param {boolean} [options.warnMissing=false] Whether to warn about missing keys.
  */
-function validateKeys(obj: Record<string, unknown> | undefined, validKeys: Set<string>, context: string, options: { type?: string; warnMissing?: boolean } = {}): void {
+function validateKeys(
+  obj: Record<string, unknown> | undefined, validKeys: Set<string>, context: string,
+  options: { type?: string; warnMissing?: boolean } = {}): void {
   const { type = 'key', warnMissing = false } = options;
 
   if (!obj) {
@@ -556,7 +558,8 @@ function validateKeys(obj: Record<string, unknown> | undefined, validKeys: Set<s
  * @param {string[]} [options.requiredFields=[]] Array of field names that are required.
  * @throws {Error} If the parameters object structure is invalid.
  */
-export function validateParams(parameters: unknown, context: string, options: { requiredFields?: string[] } = {}): void {
+export function validateParams(
+  parameters: unknown, context: string, options: { requiredFields?: string[] } = {}): void {
   const { requiredFields = [] } = options;
 
   if (typeof parameters !== 'object' || parameters === null) {

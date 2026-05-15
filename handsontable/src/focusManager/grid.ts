@@ -90,7 +90,8 @@ export class FocusGridManager {
 
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
-    this.#hot.addHook('afterUpdateSettings', (...args: unknown[]) => this.#onUpdateSettings(args[0] as Record<string, unknown>));
+    this.#hot.addHook('afterUpdateSettings',
+      (...args: unknown[]) => this.#onUpdateSettings(args[0] as Record<string, unknown>));
     this.#hot.addHook('afterSelection', (...args: unknown[]) => this.#onAfterSelectionChange());
     this.#hot.addHook('afterSelectionFocusSet', (...args: unknown[]) => this.#onAfterSelectionChange());
     this.#hot.addHook('afterSelectionEnd', (...args: unknown[]) => this.#focusEditorElement());

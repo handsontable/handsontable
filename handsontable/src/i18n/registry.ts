@@ -27,7 +27,8 @@ registerLanguageDictionary(DEFAULT_DICTIONARY);
  * @param {object} dictionary Dictionary for specific language (optional if first parameter has already dictionary).
  * @returns {object}
  */
-export function registerLanguageDictionary(languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>): object {
+export function registerLanguageDictionary(
+  languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>): object {
   let languageCode: string = languageCodeOrDictionary as string;
   let dictionaryObject = dictionary;
 

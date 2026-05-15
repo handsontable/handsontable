@@ -37,7 +37,9 @@ export class TopInlineStartCornerOverlay extends Overlay {
    * @param {TopOverlay} topOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings, topOverlay: Overlay, inlineStartOverlay: Overlay) {
+  constructor(
+    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings,
+    domBindings: DomBindings, topOverlay: Overlay, inlineStartOverlay: Overlay) {
     super(wotInstance, facadeGetter, CLONE_TOP_INLINE_START_CORNER, wtSettings, domBindings);
     this.topOverlay = topOverlay;
     this.inlineStartOverlay = inlineStartOverlay;

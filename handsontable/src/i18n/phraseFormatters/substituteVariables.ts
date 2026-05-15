@@ -8,7 +8,8 @@ import { substitute } from './../../helpers/string';
  *
  * @returns {string} Phrases with substituted variables if it's possible, list of unchanged phrase propositions otherwise.
  */
-export default function substituteVariables(phrasePropositions: string | string[], zippedVariablesAndValues: Record<string, unknown>): string | string[] {
+export default function substituteVariables(
+  phrasePropositions: string | string[], zippedVariablesAndValues: Record<string, unknown>): string | string[] {
   if (Array.isArray(phrasePropositions)) {
     return phrasePropositions
       .map(phraseProposition => substituteVariables(phraseProposition, zippedVariablesAndValues) as string);

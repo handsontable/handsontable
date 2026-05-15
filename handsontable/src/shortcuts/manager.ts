@@ -141,7 +141,8 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @param {object | string} context The context object or name.
    * @returns {boolean}
    */
-  const recorderCallback = (event: KeyboardEvent, keys: string[], context: string | Context = getActiveContextName()): boolean => {
+  const recorderCallback = (
+    event: KeyboardEvent, keys: string[], context: string | Context = getActiveContextName()): boolean => {
     const activeContext = isContextObject(context) ? context : getContext(context);
     let isExecutionCancelled = false;
 

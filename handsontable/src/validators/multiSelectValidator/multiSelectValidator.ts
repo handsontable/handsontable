@@ -2,8 +2,14 @@ import { isObjectEqual, isKeyValueObject } from '../../helpers/object';
 
 export const VALIDATOR_TYPE = 'multiselect';
 
-type CellMeta = Record<string, unknown> & { allowEmpty?: boolean; source?: unknown[] | ((value: unknown[], fn: (source: unknown[]) => void) => void) };
+type CellMeta = Record<string, unknown> & {
+  allowEmpty?: boolean;
+  source?: unknown[] | ((value: unknown[], fn: (source: unknown[]) => void) => void);
+};
 
+/**
+ *
+ */
 export function multiSelectValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
   let valueToValidate = value;
 
@@ -13,26 +19,31 @@ export function multiSelectValidator(this: CellMeta, value: unknown, callback: (
 
   if (this.allowEmpty && valueToValidate === '') {
     callback(true);
+
     return;
   }
   if (!this.allowEmpty && valueToValidate === '') {
     callback(false);
+
     return;
   }
 
   if (!Array.isArray(valueToValidate)) {
     callback(false);
+
     return;
   }
 
   if (valueToValidate.length === 0) {
     callback(true);
+
     return;
   }
 
   if (this.source) {
     if (typeof this.source === 'function') {
-      (this.source as (value: unknown[], fn: (source: unknown[]) => void) => void)(valueToValidate, process(valueToValidate, callback));
+      type SourceFn = (value: unknown[], fn: (source: unknown[]) => void) => void;
+      (this.source as SourceFn)(valueToValidate, process(valueToValidate, callback));
     } else {
       process(valueToValidate, callback)(this.source as unknown[]);
     }
@@ -43,6 +54,9 @@ export function multiSelectValidator(this: CellMeta, value: unknown, callback: (
 
 multiSelectValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;
 
+/**
+ *
+ */
 function process(value: unknown[], callback: (valid: boolean) => void): (source: unknown[]) => void {
   const originalVal = value;
 
