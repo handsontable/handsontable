@@ -3,7 +3,7 @@ import EventManager from '../eventManager';
 import { throwWithCause } from '../helpers/errors';
 import { CellProperties } from '../settings';
 import { Context } from '../shortcuts/context';
-type EditorBaseFactoryParams = Record<string, (...args: unknown[]) => unknown>;
+type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: unknown[]) => unknown>;
 
 /**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
@@ -21,6 +21,9 @@ type EditorWithExtendedProps = InstanceType<typeof BaseEditor> & {
   preventCloseElement?: HTMLElement | null;
   eventManager?: InstanceType<typeof EventManager>;
   refreshDimensions?: () => void;
+  _opened: boolean;
+  value: unknown;
+  config: unknown;
 };
 
 
@@ -38,8 +41,8 @@ export type ExtendedEditor<T> = BaseEditor & {
   container: HTMLDivElement;
 } & T;
 
-const editorBaseFactory = (params: EditorBaseFactoryParams): typeof BaseEditor => {
-  const CustomBaseEditor = BaseEditor.prototype.extend() as unknown as typeof BaseEditor;
+const editorBaseFactory = <E>(params: EditorBaseFactoryParams<E>): typeof BaseEditor => {
+  const CustomBaseEditor = BaseEditor.prototype.extend() as typeof BaseEditor;
   const skipSuperApply = [
     'close',
     'focus',
@@ -48,12 +51,13 @@ const editorBaseFactory = (params: EditorBaseFactoryParams): typeof BaseEditor =
     'setValue',
   ];
   const prototypeFns = Object.getOwnPropertyNames(BaseEditor.prototype);
+  const proto = CustomBaseEditor.prototype as unknown as Record<string, unknown>;
 
   prototypeFns.forEach((fnName) => {
     if (params[fnName]) {
       const superFn = CustomBaseEditor.prototype[fnName as keyof BaseEditor] as (...args: unknown[]) => unknown;
 
-      (CustomBaseEditor.prototype as unknown as Record<string, unknown>)[fnName] = function(this: unknown, ...args: unknown[]) {
+      proto[fnName] = function(this: E, ...args: unknown[]) {
         if (!skipSuperApply.includes(fnName)) {
           (superFn as Function).apply(this, args);
         }
@@ -63,7 +67,7 @@ const editorBaseFactory = (params: EditorBaseFactoryParams): typeof BaseEditor =
   });
   Object.keys(params).forEach((fnName) => {
     if (!prototypeFns.includes(fnName)) {
-      (CustomBaseEditor.prototype as unknown as Record<string, unknown>)[fnName] = function(this: unknown, ...args: unknown[]) {
+      proto[fnName] = function(this: E, ...args: unknown[]) {
         return params[fnName](this, ...args);
       };
     }
@@ -140,72 +144,70 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
     }
   };
 
-  return editorBaseFactory({
-    init(editor: InstanceType<typeof BaseEditor>) {
-      const editorExt = editor as EditorWithExtendedProps;
-      const extendedEditor = editor as unknown as Extended;
+  return editorBaseFactory<EditorWithExtendedProps>({
+    init(editor) {
+      const extendedEditor = editor as Extended;
       Object.assign(editor, { value, config, render, position, ...args });
-      (editor as unknown as Record<string, unknown>)._opened = false;
-      editorExt.container = editor.hot.rootDocument.createElement('DIV');
-      editorExt.container.style.display = 'none';
+      editor._opened = false;
+      editor.container = editor.hot.rootDocument.createElement('DIV');
+      editor.container.style.display = 'none';
 
       if (position === 'portal') {
-        editor.hot.rootPortalElement.appendChild(editorExt.container);
+        editor.hot.rootPortalElement.appendChild(editor.container);
       } else {
-        editor.hot.rootElement.appendChild(editorExt.container);
+        editor.hot.rootElement.appendChild(editor.container);
       }
 
       init(extendedEditor);
 
-      if (!editorExt.input) {
+      if (!editor.input) {
         throwWithCause('Input is not assigned. Assign it in the init callback.');
       }
 
-      editorExt.container.appendChild(editorExt.input);
+      editor.container.appendChild(editor.input);
 
       if (typeof afterInit === 'function') {
         afterInit(extendedEditor);
       }
 
-      if (editorExt.preventCloseElement && editorExt.preventCloseElement instanceof HTMLElement) {
-        editorExt.eventManager = new EventManager(editor.hot);
-        editorExt.eventManager.addEventListener(editorExt.preventCloseElement, 'mousedown', (event: Event) => {
+      if (editor.preventCloseElement && editor.preventCloseElement instanceof HTMLElement) {
+        editor.eventManager = new EventManager(editor.hot);
+        editor.eventManager.addEventListener(editor.preventCloseElement, 'mousedown', (event: Event) => {
           (event as MouseEvent).stopPropagation();
         });
       }
 
-      editor.addHook('afterScrollHorizontally', () => editorExt.refreshDimensions?.());
-      editor.addHook('afterScrollVertically', () => editorExt.refreshDimensions?.());
+      editor.addHook('afterScrollHorizontally', () => editor.refreshDimensions?.());
+      editor.addHook('afterScrollVertically', () => editor.refreshDimensions?.());
     },
-    getValue(editor: InstanceType<typeof BaseEditor>) {
-      const extendedEditor = editor as unknown as Extended;
+    getValue(editor) {
+      const extendedEditor = editor as Extended;
       if (typeof getValue === 'function') {
         return getValue(extendedEditor);
       }
-      return (editor as unknown as Record<string, unknown>).value;
+      return editor.value;
     },
-    setValue(editor: InstanceType<typeof BaseEditor>, _value: unknown) {
-      const extendedEditor = editor as unknown as Extended;
+    setValue(editor, _value: unknown) {
+      const extendedEditor = editor as Extended;
       if (typeof setValue === 'function') {
         setValue(extendedEditor, _value);
       } else {
-        (editor as unknown as Record<string, unknown>).value = _value;
+        editor.value = _value;
       }
       if (typeof render === 'function') {
         render(extendedEditor);
       }
     },
-    refreshDimensions(editor: InstanceType<typeof BaseEditor>) {
-      const editorExt = editor as EditorWithExtendedProps;
+    refreshDimensions(editor) {
       editor.TD = editor.getEditedCell();
       if (!editor.TD) {
         editor.close();
         return;
       }
-      if (!(editor as unknown as Record<string, unknown>)._opened) {
+      if (!editor._opened) {
         return;
       }
-      const containerStyle = editorExt.container!.style;
+      const containerStyle = editor.container!.style;
       containerStyle.display = 'block';
       containerStyle.position = 'absolute';
       if (position === 'portal') {
@@ -222,33 +224,30 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
         containerStyle.height = `${rect.height}px`;
       }
     },
-    open(editor: InstanceType<typeof BaseEditor>, event?: Event) {
-      const editorExt = editor as EditorWithExtendedProps;
-      const extendedEditor = editor as unknown as Extended;
-      editorExt.container!.classList.add('ht_clone_master');
-      (editor as unknown as Record<string, unknown>)._opened = true;
-      editorExt.refreshDimensions?.();
+    open(editor, event?: unknown) {
+      const extendedEditor = editor as Extended;
+      editor.container!.classList.add('ht_clone_master');
+      editor._opened = true;
+      editor.refreshDimensions?.();
       editor.hot.getShortcutManager().setActiveContextName('editor');
       registerShortcuts(editor);
       if (afterOpen) {
-        afterOpen(extendedEditor, event);
+        afterOpen(extendedEditor, event as Event | undefined);
       }
     },
-    focus(editor: InstanceType<typeof BaseEditor>) {
-      const editorExt = editor as EditorWithExtendedProps;
-      const extendedEditor = editor as unknown as Extended;
+    focus(editor) {
+      const extendedEditor = editor as Extended;
       if (typeof onFocus === 'function') {
         onFocus(extendedEditor);
       } else {
-        (editorExt.container?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null)?.focus();
+        (editor.container?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') as HTMLElement | null)?.focus();
       }
     },
-    close(editor: InstanceType<typeof BaseEditor>) {
-      const editorExt = editor as EditorWithExtendedProps;
-      const extendedEditor = editor as unknown as Extended;
-      (editor as unknown as Record<string, unknown>)._opened = false;
-      editorExt.container!.style.display = 'none';
-      editorExt.container!.classList.remove('ht_clone_master');
+    close(editor) {
+      const extendedEditor = editor as Extended;
+      editor._opened = false;
+      editor.container!.style.display = 'none';
+      editor.container!.classList.remove('ht_clone_master');
       const shortcutManager = editor.hot.getShortcutManager();
       const editorContext = shortcutManager.getContext('editor');
       editorContext.removeShortcutsByGroup(shortcutsGroup);
@@ -256,8 +255,8 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>({ ini
         afterClose(extendedEditor);
       }
     },
-    prepare(editor: InstanceType<typeof BaseEditor>, row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: unknown, cellProperties: Record<string, unknown>) {
-      const extendedEditor = editor as unknown as Extended;
+    prepare(editor, row: number, col: number, prop: string | number, td: HTMLTableCellElement, originalValue: unknown, cellProperties: Record<string, unknown>) {
+      const extendedEditor = editor as Extended;
       if (typeof beforeOpen === 'function') {
         beforeOpen(extendedEditor, { row, col, prop, td, originalValue, cellProperties: cellProperties as CellProperties });
       } else {
