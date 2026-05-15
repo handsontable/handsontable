@@ -200,7 +200,7 @@ export class DropdownMenu extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => this.#onBeforeOnCellMouseDown(event));
     this.addHook('beforeViewportScrollHorizontally', (visualColumn: number) => {
-      this.#onBeforeViewportScrollHorizontally(visualColumn);
+      return this.#onBeforeViewportScrollHorizontally(visualColumn);
     });
     this.addHook('beforeDialogShow', () => this.close());
 

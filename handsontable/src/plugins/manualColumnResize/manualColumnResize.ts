@@ -169,7 +169,7 @@ export class ManualColumnResize extends BasePlugin {
 
     this.addHook('modifyColWidth', (width: number, column: number) => this.#onModifyColWidth(width, column), 1);
     this.addHook('beforeStretchingColumnWidth', (stretchedWidth: number, column: number) => {
-      this.#onBeforeStretchingColumnWidth(stretchedWidth, column);
+      return this.#onBeforeStretchingColumnWidth(stretchedWidth, column);
     }, 1);
     this.addHook('beforeColumnResize', () => this.#onBeforeColumnResize());
 

@@ -140,6 +140,9 @@ class DataManager {
    * @param {object} parent Parent of the node.
    */
   cacheNode(node: RowObject, level: number, parent: RowObject | null) {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
     if (!this.cache.levels[level]) {
       this.cache.levels[level] = [];
       this.cache.levelCount += 1;

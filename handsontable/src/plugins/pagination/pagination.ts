@@ -254,7 +254,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSetRangeEnd', (coords: { row: number }) => this.#onBeforeSetRangeEnd(coords));
     this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
     this.addHook('beforePaste', (data: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
-      this.#onBeforePaste(data, ranges);
+      return this.#onBeforePaste(data, ranges);
     });
     this.addHook('afterViewRender', () => this.#onAfterViewRender());
     this.addHook('afterRender', () => this.#onAfterRender());

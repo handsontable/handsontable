@@ -274,7 +274,7 @@ export class AutoRowSize extends BasePlugin {
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
     this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => {
-      this.#onBeforeRowResize(size, row, isDblClick);
+      return this.#onBeforeRowResize(size, row, isDblClick);
     });
   }
 
@@ -351,7 +351,7 @@ export class AutoRowSize extends BasePlugin {
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
     this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => {
-      this.#onBeforeRowResize(size, row, isDblClick);
+      return this.#onBeforeRowResize(size, row, isDblClick);
     });
   }
 

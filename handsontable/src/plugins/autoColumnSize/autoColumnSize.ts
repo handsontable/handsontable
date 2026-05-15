@@ -213,19 +213,24 @@ export class AutoColumnSize extends BasePlugin {
 
     const cellMeta = this.hot.getCellMeta(row, column);
     let cellValue = '';
+    let seedValue: unknown = '';
 
     if (!cellMeta.spanned) {
-      cellValue = String(this.hot.getDataAtCell(row, column) ?? '');
+      seedValue = this.hot.getDataAtCell(row, column);
+      cellValue = String(seedValue ?? '');
 
       if (typeof cellMeta.valueFormatter === 'function') {
         cellValue = (cellMeta.valueFormatter as (value: unknown, meta: typeof cellMeta) => string)(cellValue, cellMeta);
+        seedValue = cellValue;
       }
     }
 
     let bundleSeed = '';
 
     if (this.hot.hasHook('modifyAutoColumnSizeSeed')) {
-      bundleSeed = String(this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, cellValue) ?? bundleSeed);
+      bundleSeed = String(
+        this.hot.runHooks('modifyAutoColumnSizeSeed', bundleSeed, cellMeta, seedValue) ?? bundleSeed
+      );
     }
 
     return { value: cellValue, bundleSeed };

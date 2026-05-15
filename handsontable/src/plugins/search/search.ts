@@ -122,7 +122,10 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    const beforeRendererCallback = this.#onBeforeRenderer;
+    const beforeRendererCallback = (
+      td: HTMLTableCellElement, row: number, col: number, prop: string | number,
+      value: string, cellProperties: Record<string, unknown>
+    ) => this.#onBeforeRenderer(td, row, col, prop, value, cellProperties);
 
     this.hot.addHook('beforeRenderer', beforeRendererCallback);
     this.hot.addHookOnce('afterViewRender', () => {

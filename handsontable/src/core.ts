@@ -402,7 +402,7 @@ export default function Core(
    */
   this.themeManager = null;
 
-  mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language ?? '');
+  mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language as string);
 
   const settingsWithoutHooks = Object.fromEntries(
     Object.entries(mergedUserSettings).filter(([key]) => {
@@ -1980,7 +1980,7 @@ export default function Core(
     }
 
     if (!changeSource && typeof row === 'object') {
-      changeSource = String(column);
+      changeSource = column as string;
     }
 
     const processedChanges = processChanges(changes, changeSource);
@@ -2027,7 +2027,7 @@ export default function Core(
     // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
     // We should remove it with the next major release.
     if (!changeSource && typeof row === 'object') {
-      changeSource = String(prop);
+      changeSource = prop as string;
     }
 
     const processedChanges = processChanges(changes, changeSource);

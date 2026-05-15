@@ -203,7 +203,24 @@ class DataSource {
    * @param {*} value The value to be set at the provided coordinates.
    */
   setAtCell(row: number, column: string | number, value: unknown) {
-    if (row >= this.countRows() || (typeof column === 'number' && column >= this.countFirstRowKeys())) {
+    // Normalize row: accept string numeric indices (e.g. '0', '1') passed by setSourceDataAtCell,
+    // but reject prototype-pollution keys like '__proto__', 'constructor', 'prototype'.
+    let normalizedRow: number;
+
+    if (typeof row === 'string') {
+      const parsed = Number(row);
+
+      if (Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+        return;
+      }
+      normalizedRow = parsed;
+    } else if (typeof row !== 'number' || !Number.isInteger(row) || row < 0) {
+      return;
+    } else {
+      normalizedRow = row;
+    }
+
+    if (normalizedRow >= this.countRows() || (typeof column === 'number' && column >= this.countFirstRowKeys())) {
       // Not enough rows and/or columns.
       return;
     }
@@ -211,19 +228,14 @@ class DataSource {
     if (this.hot!.hasHook('modifySourceData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot!.runHooks('modifySourceData', row, column, valueHolder, 'set');
+      this.hot!.runHooks('modifySourceData', normalizedRow, column, valueHolder, 'set');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
       }
     }
 
-    if (typeof row !== 'number' || !Number.isInteger(row) || row < 0) {
-      // Invalid row index. Prevent using special object keys (e.g. "__proto__") as row accessors.
-      return;
-    }
-
-    const dataRow = this.modifyRowData(row);
+    const dataRow = this.modifyRowData(normalizedRow);
 
     if (!Number.isInteger(column)) {
       // column argument is the prop name
