@@ -43,7 +43,9 @@ interface ReplaceDataConfig {
  * @fires Hooks#afterUpdateData
  * @fires Hooks#afterChange
  */
-function replaceData(data: unknown[], setDataMapFunction: Function, callbackFunction: Function, config: ReplaceDataConfig) {
+function replaceData(
+  data: unknown[], setDataMapFunction: Function, callbackFunction: Function, config: ReplaceDataConfig
+) {
   const {
     hotInstance,
     dataMap,

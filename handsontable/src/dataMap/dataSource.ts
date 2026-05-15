@@ -249,7 +249,9 @@ class DataSource {
       if (typeof column === 'string') {
         const { dataDotNotation } = this.hot!.getSettings();
 
-        result = dataDotNotation ? getProperty(dataRow as Record<string, unknown>, column) : (dataRow as Record<string, unknown>)[column];
+        result = dataDotNotation
+          ? getProperty(dataRow as Record<string, unknown>, column)
+          : (dataRow as Record<string, unknown>)[column];
 
       } else if (typeof column === 'function') {
         result = column(dataRow);
@@ -294,7 +296,9 @@ class DataSource {
    *                                  in another format.
    * @returns {Array}
    */
-  getByRange(start: {row?: number, col?: number} | null = null, end: {row?: number, col?: number} | null = null, toArray = false) {
+  getByRange(
+    start: {row?: number, col?: number} | null = null, end: {row?: number, col?: number} | null = null, toArray = false
+  ) {
     let getAllProps = false;
     let startRow = null;
     let startCol = null;

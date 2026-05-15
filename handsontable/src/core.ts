@@ -187,7 +187,11 @@ const deprecationWarns = new Set();
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
-export default function Core(rootContainer: HTMLElement, userSettings: Record<string, unknown> & { initialState?: Record<string, unknown> }, rootInstanceSymbol: symbol | boolean = false) {
+export default function Core(
+  rootContainer: HTMLElement,
+  userSettings: Record<string, unknown> & { initialState?: Record<string, unknown> },
+  rootInstanceSymbol: symbol | boolean = false
+) {
   let instance = this;
 
   const eventManager = new EventManager(instance);
@@ -552,7 +556,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     countRenderableColumnsInRange: (...args: unknown[]) => this.view.countRenderableColumnsInRange(...args),
     getShortcutManager: () => instance.getShortcutManager(),
     createCellCoords: (row: number, column: number) => instance._createCellCoords(row, column),
-    createCellRange: (highlight: {row: number, col: number}, from: {row: number, col: number}, to: {row: number, col: number}) => instance._createCellRange(highlight, from, to),
+    createCellRange: (
+      highlight: {row: number, col: number}, from: {row: number, col: number}, to: {row: number, col: number}
+    ) => instance._createCellRange(highlight, from, to),
     visualToRenderableCoords,
     renderableToVisualCoords,
     findFirstNonHiddenRenderableRow,
@@ -588,7 +594,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
   });
 
-  this.selection.addLocalHook('afterSetRangeEnd', (cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean) => {
+  this.selection.addLocalHook('afterSetRangeEnd', (
+    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean
+  ) => {
     const preventScrolling = createObjectPropListener(false);
     const selectionRange = this.selection.getSelectedRange();
     const { from, to } = selectionRange.current();
@@ -671,20 +679,21 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     editorManager.prepareEditor();
   });
 
-  this.selection.addLocalHook('afterSelectionFinished', (cellRanges: Array<{from: {row: number, col: number}, to: {row: number, col: number}}>) => {
-    const selectionLayerLevel = cellRanges.length - 1;
-    const { from, to } = cellRanges[selectionLayerLevel];
+  this.selection.addLocalHook('afterSelectionFinished',
+    (cellRanges: Array<{from: {row: number, col: number}, to: {row: number, col: number}}>) => {
+      const selectionLayerLevel = cellRanges.length - 1;
+      const { from, to } = cellRanges[selectionLayerLevel];
 
-    this.runHooks('afterSelectionEnd',
-      from.row, from.col, to.row, to.col, selectionLayerLevel);
-    this.runHooks('afterSelectionEndByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+      this.runHooks('afterSelectionEnd',
+        from.row, from.col, to.row, to.col, selectionLayerLevel);
+      this.runHooks('afterSelectionEndByProp',
+        from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
 
-    if (['refresh', 'deselect'].includes(selection.getSelectionSource())) {
-      instance.view.render();
-      editorManager.prepareEditor();
-    }
-  });
+      if (['refresh', 'deselect'].includes(selection.getSelectionSource())) {
+        instance.view.render();
+        editorManager.prepareEditor();
+      }
+    });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple: Record<string, boolean>) => {
     const changedIsMultiple = this.runHooks('afterIsMultipleSelection', isMultiple.value);
@@ -715,9 +724,12 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
     .addLocalHook('beforeSelectAll', (...args: unknown[]) => this.runHooks('beforeSelectAll', ...args))
     .addLocalHook('afterSelectAll', (...args: unknown[]) => this.runHooks('afterSelectAll', ...args))
     .addLocalHook('beforeModifyTransformStart', (...args: unknown[]) => this.runHooks('modifyTransformStart', ...args))
-    .addLocalHook('afterModifyTransformStart', (...args: unknown[]) => this.runHooks('afterModifyTransformStart', ...args))
-    .addLocalHook('beforeModifyTransformFocus', (...args: unknown[]) => this.runHooks('modifyTransformFocus', ...args))
-    .addLocalHook('afterModifyTransformFocus', (...args: unknown[]) => this.runHooks('afterModifyTransformFocus', ...args))
+    .addLocalHook('afterModifyTransformStart',
+      (...args: unknown[]) => this.runHooks('afterModifyTransformStart', ...args))
+    .addLocalHook('beforeModifyTransformFocus',
+      (...args: unknown[]) => this.runHooks('modifyTransformFocus', ...args))
+    .addLocalHook('afterModifyTransformFocus',
+      (...args: unknown[]) => this.runHooks('afterModifyTransformFocus', ...args))
     .addLocalHook('beforeModifyTransformEnd', (...args: unknown[]) => this.runHooks('modifyTransformEnd', ...args))
     .addLocalHook('afterModifyTransformEnd', (...args: unknown[]) => this.runHooks('afterModifyTransformEnd', ...args))
     .addLocalHook('beforeRowWrap', (...args: unknown[]) => this.runHooks('beforeRowWrap', ...args))
@@ -1081,7 +1093,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
      * @param {string} [method="overwrite"] Populate method. Possible options: `shift_down`, `shift_right`, `overwrite`.
      * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
      */
-    populateFromArray(start: CellCoords, input: Array<Array<unknown>>, end?: CellCoords, source?: string, method?: string): object | false | undefined {
+    populateFromArray(
+      start: CellCoords, input: Array<Array<unknown>>, end?: CellCoords, source?: string, method?: string
+    ): object | false | undefined {
       let r;
       let rlen;
       let c;
@@ -1151,7 +1165,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
           const numberOfDataRows = input.length;
           // method's argument can extend the range of data population (data would be repeated)
           const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
-          const pushedRightDataByRows = instance.getData().slice(startRow).map((rowData: Array<unknown>) => rowData.slice(startColumn));
+          const pushedRightDataByRows = instance.getData().slice(startRow)
+            .map((rowData: Array<unknown>) => rowData.slice(startColumn));
 
           for (r = 0; r < numberOfRowsToPopulate; r += 1) {
             if (r < numberOfDataRows) {
@@ -1300,8 +1315,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
                   }
 
                 } else if (orgValue !== null) {
-                  const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : ((orgValue as Record<string, unknown>)[0] || orgValue));
-                  const valueSchema = duckSchema(Array.isArray(value) ? value : (((value as Record<string, unknown>)[0] || value) as object));
+                  const orgValueSchema = duckSchema(
+                    Array.isArray(orgValue) ? orgValue : ((orgValue as Record<string, unknown>)[0] || orgValue));
+                  const valueSchema = duckSchema(
+                    Array.isArray(value) ? value : (((value as Record<string, unknown>)[0] || value) as object));
 
                   // Allow overwriting values with the same object-based schema or any array-based schema.
                   if (
@@ -1428,7 +1445,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
 
     this.view = new TableView(this);
 
-    editorManager = (EditorManager as unknown as Record<string, (...args: unknown[]) => EditorManagerInstance>).getInstance(instance, tableMeta, selection);
+    editorManager = (EditorManager as unknown as Record<string, (...args: unknown[]) => EditorManagerInstance>)
+      .getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
 
     focusGridManager.init();
@@ -1756,7 +1774,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {CellCoords} to Final coordinates.
    * @returns {CellRange}
    */
-  this._createCellRange = function(highlight: {row: number, col: number}, from: {row: number, col: number}, to: {row: number, col: number}) {
+  this._createCellRange = function(
+    highlight: {row: number, col: number}, from: {row: number, col: number}, to: {row: number, col: number}
+  ) {
     return instance.view._wt.createCellRange(highlight, from, to);
   };
 
@@ -1770,7 +1790,14 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {Function} callback The callback function.
    * @param {string} source The string that identifies source of the validation.
    */
-  this.validateCell = function(value: unknown, cellProperties: Record<string, unknown> & {hidden?: boolean, visualCol?: number, visualRow?: number, prop?: string, valid?: boolean, allowInvalid?: boolean}, callback: Function, source: string) {
+  this.validateCell = function(
+    value: unknown,
+    cellProperties: Record<string, unknown> & {
+      hidden?: boolean, visualCol?: number, visualRow?: number, prop?: string, valid?: boolean, allowInvalid?: boolean
+    },
+    callback: Function,
+    source: string
+  ) {
     let validator = instance.getCellValidator(cellProperties);
 
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
@@ -1853,7 +1880,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {*} value The cell value.
    * @returns {Array}
    */
-  function setDataInputToArray(row: number | Array<Array<unknown>>, propOrCol: string | number, value: unknown): Array<[number, string | number, unknown]> {
+  function setDataInputToArray(
+    row: number | Array<Array<unknown>>, propOrCol: string | number, value: unknown
+  ): Array<[number, string | number, unknown]> {
     if (Array.isArray(row)) { // it's an array of changes
       return row as Array<[number, string | number, unknown]>;
     }
@@ -1911,7 +1940,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} [value] New value.
    * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    */
-  this.setDataAtCell = function(row: number | Array<Array<unknown>>, column: number | string, value: string, source?: string) {
+  this.setDataAtCell = function(
+    row: number | Array<Array<unknown>>, column: number | string, value: string, source?: string
+  ) {
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
     let changeSource = source;
@@ -1973,7 +2004,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} value Value to be set.
    * @param {string} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
    */
-  this.setDataAtRowProp = function(row: number | Array<Array<unknown>>, prop: string | number, value: string, source?: string) {
+  this.setDataAtRowProp = function(
+    row: number | Array<Array<unknown>>, prop: string | number, value: string, source?: string
+  ) {
     const input = setDataInputToArray(row, prop, value);
     const changes: CellChange[] = [];
     let changeSource = source;
@@ -2088,7 +2121,10 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} [method=overwrite] Populate method, possible values: `'shift_down'`, `'shift_right'`, `'overwrite'`.
    * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
-  this.populateFromArray = function(row: number, column: number, input: Array<Array<unknown>>, endRow: number, endCol: number, source: string, method: string) {
+  this.populateFromArray = function(
+    row: number, column: number, input: Array<Array<unknown>>, endRow: number, endCol: number,
+    source: string, method: string
+  ) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throwWithCause('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
     }
@@ -3316,7 +3352,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * hot.alter('remove_row', [[1, 3], [5, 2]]);
    * ```
    */
-  this.alter = function(action: string, index: number | number[][] | undefined, amount: number, source: string, keepEmptyRows: boolean) {
+  this.alter = function(
+    action: string, index: number | number[][] | undefined, amount: number, source: string, keepEmptyRows: boolean
+  ) {
     grid.alter(action, index, amount, source, keepEmptyRows);
   };
 
@@ -3651,7 +3689,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {string} [source] Source of the change as a string.
    */
   /* eslint-enable jsdoc/require-param */
-  this.setSourceDataAtCell = function(row: number | Array<Array<unknown>>, column: number | string, value: unknown, source: string) {
+  this.setSourceDataAtCell = function(
+    row: number | Array<Array<unknown>>, column: number | string, value: unknown, source: string
+  ) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
@@ -3863,7 +3903,8 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
       arrayEach(cellMetaRows.reverse(), (cellMetaRow) => {
         metaManager.createRow(this.toPhysicalRow(visualIndex));
 
-        arrayEach(cellMetaRow as unknown[], (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
+        arrayEach(cellMetaRow as unknown[],
+          (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
       });
     }
 
@@ -3946,7 +3987,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function<M extends object = Record<string, unknown>>(row: number, column: number, options = { skipMetaExtension: false }): M {
+  this.getCellMeta = function<M extends object = Record<string, unknown>>(
+    row: number, column: number, options = { skipMetaExtension: false }
+  ): M {
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
@@ -4763,13 +4806,16 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
-  this.selectCell = function(row: number, column: number, endRow: number, endColumn: number, scrollToCell = true, changeListener = true) {
+  this.selectCell = function(
+    row: number, column: number, endRow: number, endColumn: number, scrollToCell = true, changeListener = true
+  ) {
     if (isUndefined(row) || isUndefined(column)) {
       return false;
     }
 
     const rowNum = (row === null || row === undefined) || Number.isNaN(Number(row)) ? 0 : Number(row);
-    const col = (column === null || column === undefined) || (typeof column === 'number' && Number.isNaN(column)) ? 0 : column;
+    const col = (column === null || column === undefined) ||
+      (typeof column === 'number' && Number.isNaN(column)) ? 0 : column;
 
     const coords = [
       [
@@ -4901,7 +4947,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * position horizontally.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectColumns = function(startColumn: number, endColumn = startColumn, focusPosition: number | {row?: number, col?: number}) {
+  this.selectColumns = function(
+    startColumn: number, endColumn = startColumn, focusPosition: number | {row?: number, col?: number}
+  ) {
     return selection.selectColumns(startColumn, endColumn, focusPosition);
   };
 
@@ -4934,7 +4982,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * position vertically.
    * @returns {boolean} `true` if selection was successful, `false` otherwise.
    */
-  this.selectRows = function(startRow: number, endRow = startRow, focusPosition: number | {row?: number, col?: number}) {
+  this.selectRows = function(
+    startRow: number, endRow = startRow, focusPosition: number | {row?: number, col?: number}
+  ) {
     return selection.selectRows(startRow, endRow, focusPosition);
   };
 
@@ -4994,7 +5044,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
    * the logical coordinates points on them.
    */
-  this.selectAll = function(includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, options: Record<string, unknown>) {
+  this.selectAll = function(
+    includeRowHeaders = true, includeColumnHeaders = includeRowHeaders, options: Record<string, unknown>
+  ) {
     viewportScroller.skipNextScrollCycle();
     selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
   };
@@ -5045,7 +5097,11 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(options: {row?: number, col?: number, horizontalSnap?: string, verticalSnap?: string, considerHiddenIndexes?: boolean}, callback: Function) {
+  this.scrollViewportTo = function(
+    options: {row?: number, col?: number, horizontalSnap?: string, verticalSnap?: string,
+      considerHiddenIndexes?: boolean},
+    callback: Function
+  ) {
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params */
@@ -5570,7 +5626,9 @@ export default function Core(rootContainer: HTMLElement, userSettings: Record<st
    * hot.runHooks('customAction', 10, 'foo');
    * ```
    */
-  this.runHooks = function<R = unknown>(key: string, p1: unknown, p2: unknown, p3: unknown, p4: unknown, p5: unknown, p6: unknown): R {
+  this.runHooks = function<R = unknown>(
+    key: string, p1: unknown, p2: unknown, p3: unknown, p4: unknown, p5: unknown, p6: unknown
+  ): R {
     return Hooks.getSingleton().run(instance, key, p1, p2, p3, p4, p5, p6) as R;
   };
 

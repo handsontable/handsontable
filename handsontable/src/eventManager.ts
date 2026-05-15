@@ -49,7 +49,10 @@ class EventManager {
    * @param {AddEventListenerOptions|boolean} [options] Listener options if object or useCapture if boolean.
    * @returns {Function} Returns function which you can easily call to remove that event.
    */
-  addEventListener(element: Element | Document | Window, eventName: string, callback: (event: Event) => void, options: boolean | AddEventListenerOptions = false): () => void {
+  addEventListener(
+    element: Element | Document | Window, eventName: string,
+    callback: (event: Event) => void, options: boolean | AddEventListenerOptions = false
+  ): () => void {
     /**
      * @private
      * @param {Event} event The event object.
@@ -83,7 +86,9 @@ class EventManager {
    * @param {Function} callback Function to remove from the event target. It must be the same as during registration listener.
    * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager.
    */
-  removeEventListener(element: Element | Document | Window, eventName: string, callback: Function, onlyOwnEvents: boolean = false): void {
+  removeEventListener(
+    element: Element | Document | Window, eventName: string, callback: Function, onlyOwnEvents = false
+  ): void {
     let len = this.context.eventListeners.length;
     let tmpEvent;
 

@@ -72,8 +72,12 @@ interface HandsontableFactory {
     dictionaryKeys: unknown;
     getLanguageDictionary: (languageCode: string) => object;
     getLanguagesDictionaries: () => object[];
-    registerLanguageDictionary: (languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>) => object;
-    getTranslatedPhrase: (languageCode: string, dictionaryKey: string, argumentsForFormatters?: unknown) => string | null;
+    registerLanguageDictionary: (
+      languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>
+    ) => object;
+    getTranslatedPhrase: (
+      languageCode: string, dictionaryKey: string, argumentsForFormatters?: unknown
+    ) => string | null;
     [key: string]: unknown;
   };
   /** Editor constructors accessible via the UMD namespace pattern. */
@@ -217,7 +221,9 @@ interface HandsontableFactory {
  * proper `new` signature so TypeScript allows `new Core(...)`.
  */
 interface CoreConstructor {
-  new(rootElement: HTMLElement, userSettings: Record<string, unknown>, rootInstanceSymbol?: symbol | boolean): HotInstance;
+  new(
+    rootElement: HTMLElement, userSettings: Record<string, unknown>, rootInstanceSymbol?: symbol | boolean
+  ): HotInstance;
 }
 
 const CoreClass = Core as unknown as CoreConstructor;
@@ -435,7 +441,10 @@ export {
 // Named type exports for user-facing API (mirrors src/index.ts)
 // Note: CellCoords and CellRange are already exported as runtime values above.
 export type { GridSettings, Events } from './core/settings';
-export type { CellValue, CellChange, RowObject, SourceRowData, ChangeSource, NumericFormatOptions, CellMeta, CellProperties, ColumnSettings } from './settings';
+export type {
+  CellValue, CellChange, RowObject, SourceRowData, ChangeSource, NumericFormatOptions, CellMeta, CellProperties,
+  ColumnSettings
+} from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';

@@ -894,7 +894,8 @@ class DataMap {
 
       out[sliced[i]] = newValue;
     } else if (typeof prop === 'function') {
-      (prop as (row: unknown, value: unknown) => void)(this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
+      (prop as (row: unknown, value: unknown) => void)(
+        this.dataSource.slice(physicalRow, physicalRow + 1)[0], newValue);
 
     } else {
       if (prop === '__proto__' || prop === 'constructor' || prop === 'prototype') {

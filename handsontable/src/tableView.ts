@@ -638,7 +638,10 @@ class TableView {
    * @param {number} renderableIndexesCount Total count of renderable indexes for specific axis.
    * @returns {number}
    */
-  countNotHiddenIndexes(visualIndex: number, incrementBy: number, indexMapper: import('./translations').IndexMapper, renderableIndexesCount: number) {
+  countNotHiddenIndexes(
+    visualIndex: number, incrementBy: number,
+    indexMapper: import('./translations').IndexMapper, renderableIndexesCount: number
+  ) {
     if (isNaN(visualIndex) || visualIndex < 0) {
       return 0;
     }
@@ -796,8 +799,9 @@ class TableView {
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
       data: (renderableRow: number, renderableColumn: number) => {
-        return this.hot
-          .getDataAtCell(...this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn) as [number, number]);
+        const [visualRow, visualCol] = this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn);
+
+        return this.hot.getDataAtCell(visualRow as number, visualCol as number);
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
@@ -917,8 +921,11 @@ class TableView {
         if (typeof cellProperties.valueFormatter === 'function') {
           formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
 
-        } else if (typeof renderer === 'function' && 'valueFormatter' in renderer && typeof (renderer as unknown as { valueFormatter: unknown }).valueFormatter === 'function') {
-          formattedValue = (renderer as unknown as { valueFormatter: (value: unknown, props: unknown) => unknown }).valueFormatter.call(cellProperties, formattedValue, cellProperties);
+        } else if (typeof renderer === 'function' && 'valueFormatter' in renderer &&
+          typeof (renderer as unknown as { valueFormatter: unknown }).valueFormatter === 'function') {
+          type RendererWithFormatter = { valueFormatter: (value: unknown, props: unknown) => unknown };
+          formattedValue = (renderer as unknown as RendererWithFormatter)
+            .valueFormatter.call(cellProperties, formattedValue, cellProperties);
         }
 
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
@@ -954,7 +961,9 @@ class TableView {
           this.hot.refreshDimensions();
         }
       },
-      onCellMouseDown: (event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance) => {
+      onCellMouseDown: (
+        event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance
+      ) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         const controller = {
           row: false,
@@ -984,7 +993,9 @@ class TableView {
         this.hot.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
-      onCellContextMenu: (event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance) => {
+      onCellContextMenu: (
+        event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance
+      ) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
@@ -1004,7 +1015,9 @@ class TableView {
 
         this.activeWt = this._wt;
       },
-      onCellMouseOut: (event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance) => {
+      onCellMouseOut: (
+        event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance
+      ) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
@@ -1017,7 +1030,9 @@ class TableView {
         this.hot.runHooks('afterOnCellMouseOut', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
-      onCellMouseOver: (event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance) => {
+      onCellMouseOver: (
+        event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance
+      ) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         const controller = {
           row: false,
@@ -1055,7 +1070,9 @@ class TableView {
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },
-      onCellMouseOverOutside: (event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance) => {
+      onCellMouseOverOutside: (
+        event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance
+      ) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
         const controller = {
           row: false,
@@ -1081,7 +1098,9 @@ class TableView {
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },
-      onCellMouseUp: (event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance) => {
+      onCellMouseUp: (
+        event: MouseEvent, coords: {row: number, col: number}, TD: HTMLTableCellElement, wt: WalkontableInstance
+      ) => {
         const visualCoords = this.translateFromRenderableToVisualCoords(coords);
 
         this.activeWt = wt;
@@ -1169,7 +1188,9 @@ class TableView {
         this.hot.runHooks('afterScroll');
       },
       onBeforeRemoveCellClassNames: () => this.hot.runHooks('beforeRemoveCellClassNames'),
-      onBeforeHighlightingRowHeader: (renderableRow: number, headerLevel: number, highlightMeta: Record<string, unknown>) => {
+      onBeforeHighlightingRowHeader: (
+        renderableRow: number, headerLevel: number, highlightMeta: Record<string, unknown>
+      ) => {
         const rowMapper = this.hot.rowIndexMapper;
         const areColumnHeadersSelected = renderableRow < 0;
         let visualRow = renderableRow;
@@ -1187,7 +1208,9 @@ class TableView {
 
         return newVisualRow;
       },
-      onBeforeHighlightingColumnHeader: (renderableColumn: number, headerLevel: number, highlightMeta: Record<string, unknown>) => {
+      onBeforeHighlightingColumnHeader: (
+        renderableColumn: number, headerLevel: number, highlightMeta: Record<string, unknown>
+      ) => {
         const columnMapper = this.hot.columnIndexMapper;
         const areRowHeadersSelected = renderableColumn < 0;
         let visualColumn = renderableColumn;
@@ -1237,7 +1260,9 @@ class TableView {
       onBeforeTouchScroll: () => this.hot.runHooks('beforeTouchScroll'),
       onAfterMomentumScroll: () => this.hot.runHooks('afterMomentumScroll'),
       onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
-      onModifyGetCellCoords: (renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string) => {
+      onModifyGetCellCoords: (
+        renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string
+      ) => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1485,7 +1510,8 @@ class TableView {
         return;
       }
 
-      this.updateCellHeader(container.querySelector('.rowHeader') as HTMLElement, visualRowIndex, this.hot.getRowHeader);
+      this.updateCellHeader(
+        container.querySelector('.rowHeader') as HTMLElement, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -1529,7 +1555,9 @@ class TableView {
         return [];
       }
 
-      const classes = Array.isArray(metaHeaderClassNames) ? metaHeaderClassNames : (metaHeaderClassNames as string).split(' ');
+      const classes = Array.isArray(metaHeaderClassNames)
+        ? metaHeaderClassNames
+        : (metaHeaderClassNames as string).split(' ');
 
       return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);
     };
@@ -1538,7 +1566,8 @@ class TableView {
       const container = TH.firstChild as HTMLElement;
 
       if (hasClass(container, 'relative')) {
-        this.updateCellHeader(container.querySelector('.colHeader') as HTMLElement, visualColumnIndex, label, headerLevel);
+        this.updateCellHeader(
+          container.querySelector('.colHeader') as HTMLElement, visualColumnIndex, label, headerLevel);
 
         container.className = '';
         addClass(container, ['relative', ...getColumnHeaderClassNames()]);
@@ -1581,7 +1610,9 @@ class TableView {
    * @param {number} [headerLevel=0] The index of header level counting from the top (positive
    *                                 values counting from 0 to N).
    */
-  updateCellHeader(element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0) {
+  updateCellHeader(
+    element: HTMLElement, index: number, content: (index: number, headerLevel?: number) => unknown, headerLevel = 0
+  ) {
     let renderedIndex = index;
     const parentOverlay = this._wt.wtOverlays.getParentOverlay(element) || this._wt;
 
