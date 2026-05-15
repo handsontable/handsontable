@@ -782,7 +782,12 @@ export class CopyPaste extends BasePlugin {
       const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
 
       if (sourceDataHTML) {
-        const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
+        const sanitizedSourceDataHTML = sanitize(sourceDataHTML, {
+          ADD_TAGS: ['meta', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'colgroup', 'col'],
+          ADD_ATTR: ['colspan', 'rowspan', 'content'],
+          FORCE_BODY: true,
+        });
+        const parsedSourceConfig = htmlToGridSettings(sanitizedSourceDataHTML, this.hot.rootDocument);
 
         pastedSourceData = parsedSourceConfig.data;
       }
