@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 export function validateHighlightFile(filename, data, knownPrNumbers) {
   const errors = [];
   const filenameVersion = filename.replace(/\.json$/, '');
@@ -46,4 +49,42 @@ export function validateHighlightFile(filename, data, knownPrNumbers) {
   });
 
   return errors;
+}
+
+export function validateAllHighlightFiles(directory, knownPrNumbers) {
+  const errors = [];
+  let files;
+  try {
+    files = readdirSync(directory).filter((name) => name.endsWith('.json'));
+  } catch (e) {
+    if (e.code === 'ENOENT') return errors;
+    throw e;
+  }
+
+  for (const filename of files) {
+    let data;
+    try {
+      data = JSON.parse(readFileSync(resolve(directory, filename), 'utf8'));
+    } catch (e) {
+      errors.push(`${filename}: invalid JSON (${e.message})`);
+      continue;
+    }
+    errors.push(...validateHighlightFile(filename, data, knownPrNumbers));
+  }
+
+  return errors;
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const { parseAllChangelogs } = await import('../src/plugins/changelog-parser.mjs');
+  const knownPrs = new Set(
+    parseAllChangelogs().map((e) => e.prNumber).filter((n) => n !== null),
+  );
+  const dir = resolve(process.cwd(), 'content/data/version-highlights');
+  const errors = validateAllHighlightFiles(dir, knownPrs);
+  if (errors.length > 0) {
+    for (const err of errors) console.error(err);
+    process.exit(1);
+  }
+  console.log('All highlight files are valid.');
 }

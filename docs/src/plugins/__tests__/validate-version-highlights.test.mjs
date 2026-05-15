@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateHighlightFile } from '../../../scripts/validate-version-highlights.mjs';
+import { validateAllHighlightFiles } from '../../../scripts/validate-version-highlights.mjs';
+import { writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const valid = {
   version: '17.0',
@@ -68,4 +72,27 @@ test('rejects migrationAnchor that does not start with /migration-from-', () => 
   };
   const errors = validateHighlightFile('17.0.json', bad, new Set([11950]));
   assert.match(errors.join('\n'), /migrationAnchor must start with \/migration-from-/);
+});
+
+test('validateAllHighlightFiles aggregates errors across files', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'vh-'));
+  try {
+    writeFileSync(
+      join(dir, '17.0.json'),
+      JSON.stringify({
+        version: '17.0',
+        highlighted: [{ prNumber: 1, tagline: 't', whyItMatters: 'y' }],
+      }),
+    );
+    writeFileSync(
+      join(dir, '16.0.json'),
+      JSON.stringify({ version: '15.0', highlighted: [] }),
+    );
+
+    const errors = validateAllHighlightFiles(dir, new Set([1]));
+    assert.match(errors.join('\n'), /16\.0\.json/);
+    assert.equal(errors.filter((e) => e.startsWith('17.0.json')).length, 0);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
