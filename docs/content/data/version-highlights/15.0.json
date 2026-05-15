@@ -1,0 +1,35 @@
+{
+  "version": "15.0",
+  "highlighted": [
+    {
+      "prNumber": 11144,
+      "tagline": "New themes: main and horizon",
+      "whyItMatters": "Two new built-in themes (main and horizon) ship alongside the classic theme. Opt in by importing the theme CSS and setting themeName - the classic theme stays the default in 15.x.",
+      "codeBefore": "import 'handsontable/dist/handsontable.full.min.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
+      "codeAfter": "import 'handsontable/styles/handsontable.css';\nimport 'handsontable/styles/ht-theme-main.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  themeName: 'ht-theme-main',\n  licenseKey: 'non-commercial-and-evaluation'\n});"
+    },
+    {
+      "prNumber": 11212,
+      "tagline": "New functional React wrapper",
+      "whyItMatters": "@handsontable/react-wrapper provides a functional, type-safe React API with direct prop passing and a useHotEditor hook. The class-based @handsontable/react package is still supported, but new React code should target the new wrapper.",
+      "codeBefore": "<HotTable settings={{ data, rowHeaders: true }} />",
+      "codeAfter": "<HotTable data={data} rowHeaders={true} />",
+      "migrationAnchor": "/migration-from-14.6-to-15.0#1-removal-of-settings-property"
+    },
+    {
+      "prNumber": 10929,
+      "tagline": "Production dependencies updated",
+      "whyItMatters": "pikaday is replaced by @handsontable/pikaday, and numbro and dompurify are bumped to new majors. Audit any direct imports of these libraries from Handsontable's bundle - install the maintained forks or pin versions in your own dependency tree."
+    },
+    {
+      "prNumber": 11278,
+      "tagline": "No more check marks in alignment submenu",
+      "whyItMatters": "The Context Menu's alignment submenu no longer renders check marks next to the active option. Update screenshot tests and any custom alignment menu styling that targeted those icons."
+    },
+    {
+      "prNumber": 11162,
+      "tagline": "Merged cells now virtualize",
+      "whyItMatters": "Row and column virtualization now extends to merged cells, which removes layout glitches on large grids with many merges. No API change is needed, but verify rendering performance assumptions if your app stress-tests very wide merges."
+    }
+  ]
+}

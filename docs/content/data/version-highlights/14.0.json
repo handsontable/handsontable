@@ -1,0 +1,37 @@
+{
+  "version": "14.0",
+  "highlighted": [
+    {
+      "prNumber": 10342,
+      "tagline": "Focus now goes to cell elements, not textarea",
+      "whyItMatters": "Browser focus moves to the cell and header DOM elements so screen readers can read the grid. This breaks IME fast-edit - opt back in with the new imeFastEdit option if your users rely on it.",
+      "codeBefore": "const hot = new Handsontable(container, {\n  data,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
+      "codeAfter": "const hot = new Handsontable(container, {\n  data,\n  imeFastEdit: true,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
+      "migrationAnchor": "/migration-from-13.1-to-14.0#changes-to-ime"
+    },
+    {
+      "prNumber": 10461,
+      "tagline": "Ctrl/Cmd + A no longer selects headers",
+      "whyItMatters": "Select-all keyboard shortcuts and methods now select cells without headers, and the focused cell stays put. Update tests that asserted the previous selection range or the cursor jump to the top-left cell.",
+      "migrationAnchor": "/migration-from-13.1-to-14.0#adjust-your-application-to-the-modified-keyboard-shortcuts"
+    },
+    {
+      "prNumber": 10520,
+      "tagline": "Updated colors for invalid cells",
+      "whyItMatters": "Invalid cell backgrounds and autocomplete arrow colors changed for better contrast and accessibility. Re-check screenshots and any custom CSS that relied on the previous color values.",
+      "migrationAnchor": "/migration-from-13.1-to-14.0#check-if-your-template-looks-fine-with-the-updated-colors"
+    },
+    {
+      "prNumber": 10585,
+      "tagline": "Tab navigation across the grid",
+      "whyItMatters": "A new tabNavigation option lets users move through the grid as part of the surrounding page's tab order. Pair it with navigableHeaders for full keyboard navigation - both are required for accessible single-page apps."
+    },
+    {
+      "prNumber": 10529,
+      "tagline": "New select cell type",
+      "whyItMatters": "A built-in select cell type and renderer replace ad-hoc dropdown setups for short option lists. Use it when you need a native HTML select element instead of the autocomplete or dropdown editors.",
+      "codeBefore": "{\n  type: 'dropdown',\n  source: ['In progress', 'Blocked', 'Done']\n}",
+      "codeAfter": "{\n  type: 'select',\n  selectOptions: ['In progress', 'Blocked', 'Done']\n}"
+    }
+  ]
+}
