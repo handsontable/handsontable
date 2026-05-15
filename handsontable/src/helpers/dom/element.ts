@@ -1341,3 +1341,16 @@ export function isHTMLElement(element: unknown): boolean {
 
   return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
 }
+
+/**
+ * Gets a child node at the specified index cast to the specified HTML element type.
+ *
+ * @param {ParentNode} parent The parent node.
+ * @param {number} index The child index.
+ * @returns {T|null} The child element or null.
+ */
+export function getChildEl<T extends HTMLElement = HTMLElement>(parent: ParentNode, index: number): T | null {
+  const node = parent.childNodes[index];
+
+  return node ? (node as T) : null;
+}

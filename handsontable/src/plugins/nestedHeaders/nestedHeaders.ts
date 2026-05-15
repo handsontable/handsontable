@@ -324,23 +324,29 @@ export class NestedHeaders extends BasePlugin {
       const topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
 
       for (let j = 0, masterNodes = masterLevel.childNodes.length; j < masterNodes; j++) {
-        (masterLevel.childNodes[j] as HTMLElement).removeAttribute('colspan');
-        (masterLevel.childNodes[j] as HTMLElement).removeAttribute('rowspan');
-        (masterLevel.childNodes[j] as HTMLElement).style.display = '';
-        removeClass(masterLevel.childNodes[j] as HTMLElement, 'hiddenHeader');
+        const masterChild = masterLevel.childNodes[j] as HTMLElement;
+
+        masterChild.removeAttribute('colspan');
+        masterChild.removeAttribute('rowspan');
+        masterChild.style.display = '';
+        removeClass(masterChild, 'hiddenHeader');
 
         if (topLevel && topLevel.childNodes[j]) {
-          (topLevel.childNodes[j] as HTMLElement).removeAttribute('colspan');
-          (topLevel.childNodes[j] as HTMLElement).removeAttribute('rowspan');
-          (topLevel.childNodes[j] as HTMLElement).style.display = '';
-          removeClass(topLevel.childNodes[j] as HTMLElement, 'hiddenHeader');
+          const topChild = topLevel.childNodes[j] as HTMLElement;
+
+          topChild.removeAttribute('colspan');
+          topChild.removeAttribute('rowspan');
+          topChild.style.display = '';
+          removeClass(topChild, 'hiddenHeader');
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
-          (topLeftCornerLevel.childNodes[j] as HTMLElement).removeAttribute('colspan');
-          (topLeftCornerLevel.childNodes[j] as HTMLElement).removeAttribute('rowspan');
-          (topLeftCornerLevel.childNodes[j] as HTMLElement).style.display = '';
-          removeClass(topLeftCornerLevel.childNodes[j] as HTMLElement, 'hiddenHeader');
+          const cornerChild = topLeftCornerLevel.childNodes[j] as HTMLElement;
+
+          cornerChild.removeAttribute('colspan');
+          cornerChild.removeAttribute('rowspan');
+          cornerChild.style.display = '';
+          removeClass(cornerChild, 'hiddenHeader');
         }
       }
     }
