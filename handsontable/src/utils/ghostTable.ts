@@ -291,7 +291,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        fragment.appendChild(this.createColElement(string.col as number, row as number));
+        fragment.appendChild(this.createColElement(string.col!, row!));
       });
     });
 
@@ -317,7 +317,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col as number;
+        const column = string.col!;
         const cellProperties = this.hot!.getCellMeta(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
@@ -350,7 +350,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col as number;
+        const column = string.col!;
         const th = rootDocument.createElement('th');
 
         columnHeaders.push([column, th]);
@@ -381,7 +381,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const row = string.row as number;
+        const row = string.row!;
         const cellProperties = this.hot!.getCellMeta(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
@@ -449,7 +449,7 @@ class GhostTable {
     let colspan = 0;
 
     if (row >= 0 && column >= 0) {
-      colspan = this.hot!.getCellMeta(row, column).colspan as number;
+      colspan = Number(this.hot!.getCellMeta(row, column).colspan);
     }
 
     let width = this.hot!.getColWidth(column);

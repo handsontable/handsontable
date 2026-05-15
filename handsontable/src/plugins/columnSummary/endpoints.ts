@@ -461,7 +461,7 @@ class Endpoints {
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
     }
 
     this.cellsToSetCache = [];
@@ -481,7 +481,7 @@ class Endpoints {
     this.currentEndpoint = null;
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
     }
 
     this.cellsToSetCache = [];
@@ -516,7 +516,7 @@ class Endpoints {
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
     }
 
     this.cellsToSetCache = [];
@@ -543,7 +543,7 @@ class Endpoints {
     });
 
     if (this.cellsToSetCache.length) {
-      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], 'ColumnSummary.reset' as unknown as number);
+      this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
     }
 
     this.cellsToSetCache = [];
@@ -628,7 +628,7 @@ class Endpoints {
       }
     }
 
-    endpoint.result = roundFloat(endpoint.result as number, endpoint.roundFloat) as string | number;
+    endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat) as string | number;
 
     if (render) {
       this.hot.setDataAtCell(visualEndpointRowIndex, endpoint.destinationColumn!, endpoint.result, 'ColumnSummary.set');

@@ -15,7 +15,7 @@ export function isNullishOrNaN(value: unknown) {
  * @param {number|boolean|string|undefined} [option] Either a number of decimal places to round to, a boolean or "auto".
  * @returns {string|number} The (possibly) rounded number as a string (for displaying the correct precision).
  */
-export function roundFloat(value: number, option: unknown) {
+export function roundFloat(value: number | string | undefined, option: unknown) {
   if (typeof value !== 'number') {
     return value;
   }

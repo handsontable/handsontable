@@ -254,7 +254,7 @@ export class Formulas extends BasePlugin {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
       this.columnAxisSyncer.storeMovesInformation(
-        [column], fixedColumnsStart as number, freezePerformed);
+        [column], fixedColumnsStart!, freezePerformed);
     });
 
     this.hot.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
@@ -265,7 +265,7 @@ export class Formulas extends BasePlugin {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
       this.columnAxisSyncer.storeMovesInformation(
-        [column], (fixedColumnsStart as number) - 1, unfreezePerformed);
+        [column], fixedColumnsStart! - 1, unfreezePerformed);
     });
 
     this.hot.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
@@ -382,8 +382,8 @@ export class Formulas extends BasePlugin {
    *
    * @param {string} [sheetName] The new sheet name.
    */
-  #updateSheetNameAndSheetId(sheetName: string | boolean) {
-    this.sheetName = sheetName as string;
+  #updateSheetNameAndSheetId(sheetName: string) {
+    this.sheetName = sheetName;
     this.sheetId = this.engine.getSheetId(this.sheetName);
   }
 
@@ -752,9 +752,9 @@ export class Formulas extends BasePlugin {
         const sourceCellMeta = this.hot.getCellMeta(sourceRow, sourceColumn);
 
         if (isDate(populatedValue, sourceCellMeta.type)) {
-          if ((populatedValue as string).startsWith('\'')) {
+          if (populatedValue.startsWith('\'')) {
             // Populating values on HOT side without apostrophe.
-            fillRangeData[populatedRowIndex][populatedColumnIndex] = (populatedValue as string).slice(1);
+            fillRangeData[populatedRowIndex][populatedColumnIndex] = populatedValue.slice(1);
 
           } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
             // Populating date in proper format, coming from the source cell.
@@ -806,7 +806,7 @@ export class Formulas extends BasePlugin {
           if (isDateValid(cellValue, dateFormat)) {
             // Rewriting date in HOT format to HF format.
             sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
-          } else if (!(cellValue as string).startsWith('=')) {
+          } else if (!cellValue.startsWith('=')) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
           }
@@ -835,7 +835,7 @@ export class Formulas extends BasePlugin {
     }
 
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY] as { sheetName?: string; engine: unknown };
-    const sheetName = setupSheet(this.engine, formulasSettings.sheetName) as string | boolean;
+    const sheetName = setupSheet(this.engine, formulasSettings.sheetName!);
 
     this.#updateSheetNameAndSheetId(sheetName);
 
@@ -980,16 +980,16 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const outOfBoundsChanges: unknown[][] = [];
+    const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
 
     const dependentCells = this.engine.batch(() => {
-      (changes as unknown[][]).forEach(([visualRow, prop, , newValue]: unknown[]) => {
-        const visualColumn = this.hot.propToCol(prop as string | number);
-        const physicalRow = this.hot.toPhysicalRow(visualRow as number);
+      (changes as [number, string | number, unknown, unknown][]).forEach(([visualRow, prop, , newValue]) => {
+        const visualColumn = this.hot.propToCol(prop);
+        const physicalRow = this.hot.toPhysicalRow(visualRow);
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
         const address = {
-          row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow as number),
+          row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
           col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
@@ -997,10 +997,10 @@ export class Formulas extends BasePlugin {
         newValue = this.#getValueGetterValue(physicalRow, physicalColumn, newValue);
 
         if (physicalRow !== null && physicalColumn !== null) {
-          this.syncChangeWithEngine(visualRow as number, visualColumn, newValue);
+          this.syncChangeWithEngine(visualRow, visualColumn, newValue);
 
         } else {
-          outOfBoundsChanges.push([visualRow as number, visualColumn, newValue]);
+          outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
         }
 
         changedCells.push({ address });
@@ -1013,7 +1013,7 @@ export class Formulas extends BasePlugin {
       this.hot.addHookOnce('afterChange', () => {
         const outOfBoundsDependentCells = this.engine.batch(() => {
           outOfBoundsChanges.forEach(([row, column, newValue]) => {
-            this.syncChangeWithEngine(row as number, column as number, newValue);
+            this.syncChangeWithEngine(row, column, newValue);
           });
         });
 
@@ -1040,15 +1040,15 @@ export class Formulas extends BasePlugin {
     const dependentCells: unknown[] = [];
     const changedCells: unknown[] = [];
 
-    (changes as unknown[][]).forEach(([visualRow, prop, , newValue]: unknown[]) => {
-      const visualColumn = this.hot.propToCol(prop as string | number);
+    (changes as unknown as [number, string | number, unknown, unknown][]).forEach(([visualRow, prop, , newValue]) => {
+      const visualColumn = this.hot.propToCol(prop);
 
       if (!isNumeric(visualColumn)) {
         return;
       }
 
       const address = {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow as number),
+        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
         col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };

@@ -121,21 +121,25 @@ export function normalizeSelectionFactory(type: number, {
       columnEnd = columnStart;
     }
 
+    // At this point columnStart/columnEnd are guaranteed numbers (strings were converted by propToCol above).
+    let colStart = columnStart as number;
+    let colEnd = columnEnd as number;
+
     if (!keepDirection) {
       const origRowStart = rowStart;
-      const origColumnStart = columnStart as number;
       const origRowEnd = rowEnd;
-      const origColumnEnd = columnEnd as number;
+      const origColStart = colStart;
+      const origColEnd = colEnd;
 
       rowStart = Math.min(origRowStart, origRowEnd);
-      columnStart = Math.min(origColumnStart, origColumnEnd);
+      colStart = Math.min(origColStart, origColEnd);
       rowEnd = Math.max(origRowStart, origRowEnd);
-      columnEnd = Math.max(origColumnStart, origColumnEnd);
+      colEnd = Math.max(origColStart, origColEnd);
     }
 
-    const highlight = isObjectType ? (selection as CellRange).highlight.clone() : createCellCoords(rowStart, columnStart as number);
-    const from = createCellCoords(rowStart, columnStart as number);
-    const to = createCellCoords(rowEnd, columnEnd as number);
+    const highlight = isObjectType ? (selection as CellRange).highlight.clone() : createCellCoords(rowStart, colStart);
+    const from = createCellCoords(rowStart, colStart);
+    const to = createCellCoords(rowEnd, colEnd);
 
     return createCellRange(highlight, from, to);
   };
