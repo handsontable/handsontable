@@ -1,6 +1,14 @@
 import type { WalkontableInstance, DomBindings } from './types';
 import type Settings from './settings';
 import type Table from './table';
+
+/**
+ * Extends WheelEvent with legacy (non-standard) delta properties used by older browsers.
+ */
+interface WheelEventWithLegacyDelta extends WheelEvent {
+  wheelDeltaY?: number;
+  wheelDeltaX?: number;
+}
 import type { Overlay } from './overlay/_base';
 import type EventManager from '../../../eventManager';
 import {
@@ -263,7 +271,7 @@ class Overlays {
    *
    * @type {StickyScrollStrategy}
    */
-  #stickyScroll = new StickyScrollStrategy(this as any);
+  #stickyScroll = new StickyScrollStrategy(this as unknown as ConstructorParameters<typeof StickyScrollStrategy>[0]);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -359,10 +367,10 @@ class Overlays {
    * @returns {(TopOverlay|TopInlineStartCornerOverlay|InlineStartOverlay|BottomOverlay|BottomInlineStartCornerOverlay)[]}
    */
   getOverlays(includeMaster = false) {
-    const overlays = [...this.#overlays];
+    const overlays: Array<Overlay | Table> = [...this.#overlays];
 
     if (includeMaster) {
-      overlays.push(this.wtTable as any);
+      overlays.push(this.wtTable);
     }
 
     return overlays;
@@ -638,8 +646,9 @@ class Overlays {
    * @returns {boolean}
    */
   translateMouseWheelToScroll(event: WheelEvent) {
-    let deltaY = isNaN(event.deltaY) ? (-1) * (event as any).wheelDeltaY : event.deltaY;
-    let deltaX = isNaN(event.deltaX) ? (-1) * (event as any).wheelDeltaX : event.deltaX;
+    const legacyEvent = event as unknown as WheelEventWithLegacyDelta;
+    let deltaY = isNaN(event.deltaY) ? (-1) * (legacyEvent.wheelDeltaY ?? 0) : event.deltaY;
+    let deltaX = isNaN(event.deltaX) ? (-1) * (legacyEvent.wheelDeltaX ?? 0) : event.deltaX;
 
     if (event.deltaMode === 1) {
       deltaX += deltaX * this.browserLineHeight;
@@ -1028,8 +1037,8 @@ class Overlays {
         return;
       }
 
-      if ((overlay as any).clone && (overlay as any).clone.wtTable.TABLE.contains(element)) { // todo demeter
-        result = (overlay as any).clone;
+      if (overlay.clone && overlay.clone.wtTable.TABLE.contains(element)) { // todo demeter
+        result = overlay.clone;
       }
     });
 
@@ -1055,7 +1064,7 @@ class Overlays {
         return;
       }
 
-      (elem as any).clone.wtTable.TABLE.className = masterTable.className; // todo demeter
+      elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
   }
 
