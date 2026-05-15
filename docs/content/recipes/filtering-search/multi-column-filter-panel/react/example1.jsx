@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import './example1.css';
@@ -20,30 +20,41 @@ const sourceData = [
 ];
 /* end:skip-in-preview */
 
+const FilterLabel = ({ label, children }) => (
+  <label className="filter-label">
+    {label}
+    {children}
+  </label>
+);
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  const [nameFilter, setNameFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const nameRef = useRef(null);
+  const categoryRef = useRef(null);
+  const minPriceRef = useRef(null);
+  const maxPriceRef = useRef(null);
 
-  useEffect(() => {
+  const applyFilters = () => {
     const hot = hotRef.current?.hotInstance;
 
     if (!hot) {
       return;
     }
 
+    const name = nameRef.current?.value ?? '';
+    const category = categoryRef.current?.value ?? '';
+    const minPrice = minPriceRef.current?.value ?? '';
+    const maxPrice = maxPriceRef.current?.value ?? '';
     const filtersPlugin = hot.getPlugin('filters');
 
     filtersPlugin.clearConditions();
 
-    if (categoryFilter) {
-      filtersPlugin.addCondition(1, 'eq', [categoryFilter]);
+    if (category) {
+      filtersPlugin.addCondition(1, 'eq', [category]);
     }
 
-    if (nameFilter.trim()) {
-      filtersPlugin.addCondition(0, 'contains', [nameFilter.trim()]);
+    if (name.trim()) {
+      filtersPlugin.addCondition(0, 'contains', [name.trim()]);
     }
 
     if (minPrice && maxPrice) {
@@ -68,31 +79,31 @@ const ExampleComponent = () => {
     }
 
     filtersPlugin.filter();
-  }, [nameFilter, categoryFilter, minPrice, maxPrice]);
+  };
 
-  function clearFilters() {
-    setNameFilter('');
-    setCategoryFilter('');
-    setMinPrice('');
-    setMaxPrice('');
-  }
+  const clearFilters = () => {
+    if (nameRef.current) nameRef.current.value = '';
+    if (categoryRef.current) categoryRef.current.value = '';
+    if (minPriceRef.current) minPriceRef.current.value = '';
+    if (maxPriceRef.current) maxPriceRef.current.value = '';
+
+    applyFilters();
+  };
 
   return (
     <div>
       <div className="example-controls-container">
         <div className="filter-panel">
-          <label className="filter-label filter-label--wide">
-            Product name
+          <FilterLabel label="Product name">
             <input
+              ref={nameRef}
               type="text"
               placeholder="Contains..."
-              value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
+              onChange={applyFilters}
             />
-          </label>
-          <label className="filter-label filter-label--wide">
-            Category
-            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+          </FilterLabel>
+          <FilterLabel label="Category">
+            <select ref={categoryRef} onChange={applyFilters}>
               <option value="">All categories</option>
               <option value="Bikes">Bikes</option>
               <option value="Safety">Safety</option>
@@ -100,27 +111,25 @@ const ExampleComponent = () => {
               <option value="Accessories">Accessories</option>
               <option value="Maintenance">Maintenance</option>
             </select>
-          </label>
-          <label className="filter-label">
-            Min price
+          </FilterLabel>
+          <FilterLabel label="Min price">
             <input
+              ref={minPriceRef}
               type="number"
               min="0"
               placeholder="0"
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
+              onChange={applyFilters}
             />
-          </label>
-          <label className="filter-label">
-            Max price
+          </FilterLabel>
+          <FilterLabel label="Max price">
             <input
+              ref={maxPriceRef}
               type="number"
               min="0"
               placeholder="2500"
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
+              onChange={applyFilters}
             />
-          </label>
+          </FilterLabel>
           <button type="button" onClick={clearFilters}>
             Clear all filters
           </button>
