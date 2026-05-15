@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed formulas not being evaluated for array-of-arrays datasets when the `columns` option skips physical column indexes.",
+  "type": "fixed",
+  "issueOrPR": 12569,
+  "breaking": false,
+  "framework": "none"
+}

@@ -438,4 +438,143 @@ describe('NestedRows', () => {
 
     expect(spy).not.toHaveBeenCalled();
   });
+
+  describe('context menu items defined as object', () => {
+    it('should resolve `add_child` to the plugin-provided full entry (translated name + callback)', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: {
+          items: {
+            add_child: {},
+          }
+        }
+      });
+
+      const initialRowCount = countRows();
+
+      await selectCell(0, 0);
+      await contextMenu();
+
+      const $menuItem = $('.htContextMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .filter(function() {
+          return $(this).text() === 'Insert child row';
+        });
+
+      expect($menuItem.length).toBe(1);
+
+      await selectContextMenuOption('Insert child row');
+
+      expect(countRows()).toBe(initialRowCount + 1);
+    });
+
+    it('should resolve `detach_from_parent` to the plugin-provided full entry', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: {
+          items: {
+            add_child: {},
+            detach_from_parent: {},
+          }
+        }
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextMenuOption('Insert child row');
+
+      const rowCountAfterAdd = countRows();
+
+      await selectCell(6, 0);
+      await contextMenu();
+
+      const $detachItem = $('.htContextMenu .ht_master .htCore tbody td')
+        .not('.htSeparator')
+        .filter(function() {
+          return $(this).text() === 'Detach from parent';
+        });
+
+      expect($detachItem.length).toBe(1);
+
+      await selectContextMenuOption('Detach from parent');
+
+      expect(countRows()).toBe(rowCountAfterAdd);
+      expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy();
+    });
+
+    it('should preserve the plugin callback when overriding only the label of `add_child`', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: {
+          items: {
+            add_child: { name: 'Custom add child label' },
+          }
+        }
+      });
+
+      const initialRowCount = countRows();
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextMenuOption('Custom add child label');
+
+      expect(countRows()).toBe(initialRowCount + 1);
+    });
+
+    it('should let a user-supplied callback override the plugin callback for `add_child`', async() => {
+      const userCallback = jasmine.createSpy('userCallback');
+
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: {
+          items: {
+            add_child: {
+              name: 'Custom add child',
+              callback: userCallback,
+            },
+          }
+        }
+      });
+
+      const initialRowCount = countRows();
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextMenuOption('Custom add child');
+
+      expect(userCallback).toHaveBeenCalledTimes(1);
+      expect(countRows()).toBe(initialRowCount);
+    });
+
+    it('should resolve a mixed object containing built-in and plugin keys', async() => {
+      handsontable({
+        data: getSimplerNestedData(),
+        nestedRows: true,
+        contextMenu: {
+          items: {
+            row_above: {},
+            add_child: {},
+          }
+        }
+      });
+
+      const initialRowCount = countRows();
+
+      await selectCell(1, 0);
+      await contextMenu();
+      await selectContextMenuOption('Insert row above');
+
+      expect(countRows()).toBe(initialRowCount + 1);
+
+      await selectCell(0, 0);
+      await contextMenu();
+      await selectContextMenuOption('Insert child row');
+
+      expect(countRows()).toBe(initialRowCount + 2);
+    });
+  });
 });

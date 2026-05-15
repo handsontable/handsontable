@@ -57,8 +57,26 @@ export class ItemsFactory {
         menuItemKey = String(value.key ?? '');
 
       } else {
-        items[String(value.key ?? '')] = value;
-        menuItemKey = String(value.key ?? '');
+        // Object-form `contextMenu.items` keys that name a plugin-provided
+        // entry (e.g. `add_child` from nestedRows) are unknown to the registry
+        // on the first `getItems` pass, so a bare placeholder is emitted.
+        // Plugins later splice their rich entries into the same array via
+        // `afterContextMenuDefaultOptions`. Merging preserves both contributions
+        // regardless of iteration order: rich properties (callback, submenu,
+        // disabled, renderer, name function, etc.) survive when the other side
+        // does not define them, and user overrides still take effect via the
+        // final `getItems` pass that extends the user pattern onto the predefined
+        // entry. See issue #9894.
+        const itemKey = String(value.key ?? '');
+
+        if (items[itemKey]) {
+          extend(items[itemKey], value);
+
+          return;
+        }
+
+        items[itemKey] = value;
+        menuItemKey = itemKey;
       }
       this.defaultOrderPattern.push(menuItemKey);
     });

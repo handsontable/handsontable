@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed page scroll jump when inserting or removing a row/column near the bottom of the page on a grid with no fixed height.",
+  "type": "fixed",
+  "issueOrPR": 12587,
+  "breaking": false,
+  "framework": "none"
+}
