@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
 function readData(): VersionComparisonData {
@@ -269,10 +269,42 @@ function groupByRelease(entries: VersionEntry[]): { version: string; entries: Ve
     .map(([version, entries]) => ({ version, entries }));
 }
 
+function useUrlSync(state: { from: string; to: string; filter: FilterKind }) {
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('from', state.from);
+    params.set('to', state.to);
+    if (state.filter !== 'all') params.set('category', state.filter);
+    const next = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, '', next);
+  }, [state.from, state.to, state.filter]);
+}
+
+function readUrlState(
+  releases: ReleaseSummary[],
+  fallback: { from: string; to: string },
+): { from: string; to: string; filter: FilterKind } {
+  const params = new URLSearchParams(window.location.search);
+  const versions = new Set(releases.map((r) => r.version));
+  const fromParam = params.get('from');
+  const toParam = params.get('to');
+  const from = fromParam && versions.has(fromParam) ? fromParam : fallback.from;
+  const to = toParam && versions.has(toParam) ? toParam : fallback.to;
+  const cat = params.get('category');
+  const filter: FilterKind = (['breaking', 'deprecated', 'new', 'fixed'] as const).includes(cat as never)
+    ? (cat as FilterKind)
+    : 'all';
+  return { from, to, filter };
+}
+
 export function VersionComparison() {
   const data = useMemo(() => readData(), []);
-  const [{ from, to }, setRange] = useState(() => defaultRange(data.releases));
-  const [filter, setFilter] = useState<FilterKind>('all');
+  const [state, setState] = useState(() => {
+    const fb = defaultRange(data.releases);
+    return readUrlState(data.releases, fb);
+  });
+  const { from, to, filter } = state;
+  useUrlSync(state);
 
   const filtered = useMemo(
     () => entriesInRange(data.entries, from, to),
@@ -289,17 +321,17 @@ export function VersionComparison() {
   return (
     <div className="version-comparison">
       <div className="vc-controls">
-        <VersionSelector label="From" value={from} releases={data.releases} onChange={(v) => setRange((s) => ({ ...s, from: v }))} />
-        <VersionSelector label="To" value={to} releases={data.releases} onChange={(v) => setRange((s) => ({ ...s, to: v }))} />
+        <VersionSelector label="From" value={from} releases={data.releases} onChange={(v) => setState((s) => ({ ...s, from: v }))} />
+        <VersionSelector label="To" value={to} releases={data.releases} onChange={(v) => setState((s) => ({ ...s, to: v }))} />
       </div>
       <VersionBreadcrumb
         releases={data.releases}
         from={from}
         to={to}
-        onJumpTo={(v) => setRange((s) => ({ ...s, to: v }))}
+        onJumpTo={(v) => setState((s) => ({ ...s, to: v }))}
       />
-      <StatCards entries={filtered} activeFilter={filter} onSelect={setFilter} />
-      <FilterTabs value={filter} onChange={setFilter} />
+      <StatCards entries={filtered} activeFilter={filter} onSelect={(f) => setState((s) => ({ ...s, filter: f }))} />
+      <FilterTabs value={filter} onChange={(f) => setState((s) => ({ ...s, filter: f }))} />
       <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
       {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} />)}
     </div>
