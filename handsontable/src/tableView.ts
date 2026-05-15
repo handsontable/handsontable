@@ -295,7 +295,7 @@ class TableView {
     addClass(this.#table, 'htCore');
 
     if (this.hot.getSettings().tableClassName) {
-      addClass(this.#table, this.hot.getSettings().tableClassName as string);
+      addClass(this.#table, this.hot.getSettings().tableClassName!);
     }
 
     if (this.settings.ariaTags) {
@@ -1525,7 +1525,7 @@ class TableView {
           this.hot.getColumnMeta(visualColumnIndex).headerClassName :
           null;
 
-      return metaHeaderClassNames ? (metaHeaderClassNames as string).split(' ') : [];
+      return metaHeaderClassNames ? [(metaHeaderClassNames as string | string[])].flat() : [];
     };
 
     if (TH.firstChild) {
@@ -1590,7 +1590,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, content(index, headerLevel) as string, this.hot.getSettings().sanitizer);
+      fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

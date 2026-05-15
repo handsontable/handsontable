@@ -157,9 +157,9 @@ class Selection {
     this.#extenderTransformation = new ExtenderTransformation(this.selectedRange, {
       ...this.tableProps,
       navigableHeaders: () => settings.navigableHeaders as boolean,
-      fixedRowsBottom: () => settings.fixedRowsBottom as number,
-      minSpareRows: () => settings.minSpareRows as number,
-      minSpareCols: () => settings.minSpareCols as number,
+      fixedRowsBottom: () => Number(settings.fixedRowsBottom),
+      minSpareRows: () => Number(settings.minSpareRows),
+      minSpareCols: () => Number(settings.minSpareCols),
       autoWrapRow: () => settings.autoWrapRow as boolean,
       autoWrapCol: () => settings.autoWrapCol as boolean,
     });
@@ -1198,7 +1198,7 @@ class Selection {
         highlightRow = clamp(focusPosObj.row!, columnHeaderLastIndex, countRows - 1);
         highlightColumn = clamp(focusPosObj.col!, Math.min(start, end), Math.max(start, end));
       } else {
-        highlightRow = clamp(focusPosition as number, columnHeaderLastIndex, countRows - 1);
+        highlightRow = clamp(typeof focusPosition === 'number' ? focusPosition : 0, columnHeaderLastIndex, countRows - 1);
         highlightColumn = start;
       }
 
@@ -1258,7 +1258,7 @@ class Selection {
         highlightColumn = clamp(focusPosObj.col!, rowHeaderLastIndex, countCols - 1);
       } else {
         highlightRow = startRow;
-        highlightColumn = clamp(focusPosition as number, rowHeaderLastIndex, countCols - 1);
+        highlightColumn = clamp(typeof focusPosition === 'number' ? focusPosition : 0, rowHeaderLastIndex, countCols - 1);
       }
 
       const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);

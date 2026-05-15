@@ -52,7 +52,7 @@ export function isDate(value: unknown, cellType: unknown): value is string {
  * @returns {boolean}
  */
 export function isDateValid(date: string, dateFormat: unknown) {
-  return moment(date, dateFormat as string, true).isValid();
+  return moment(date, String(dateFormat), true).isValid();
 }
 
 /**
@@ -63,7 +63,7 @@ export function isDateValid(date: string, dateFormat: unknown) {
  * @returns {string}
  */
 export function getDateInHfFormat(date: string, dateFormat: unknown) {
-  return moment(date, dateFormat as string, true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+  return moment(date, String(dateFormat), true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
 }
 
 /**
@@ -74,7 +74,7 @@ export function getDateInHfFormat(date: string, dateFormat: unknown) {
  * @returns {string}
  */
 export function getDateInHotFormat(date: string, dateFormat: unknown) {
-  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(dateFormat as string);
+  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(String(dateFormat));
 }
 
 /**
@@ -91,7 +91,7 @@ export function getDateFromExcelDate(numericDate: unknown, dateFormat: unknown) 
   // Based on solution from: https://stackoverflow.com/a/67130235.
   const dateForFormatting = new Date(Date.UTC(0, 0, (numericDate as number) + dateOffset));
 
-  return moment(dateForFormatting).format(dateFormat as string);
+  return moment(dateForFormatting).format(String(dateFormat));
 }
 
 /**
