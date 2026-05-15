@@ -88,7 +88,7 @@ export default class CoreAbstract {
       for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
         originalHeaders.push((this.wtTable.THEAD.childNodes[0].childNodes[c] as HTMLElement).innerHTML);
       }
-      if (!(this.wtSettings.getSetting('columnHeaders') as Function[]).length) {
+      if (!this.wtSettings.getSetting<Function[]>('columnHeaders').length) {
         this.wtSettings.update('columnHeaders', [
           function(column: number, TH: HTMLTableCellElement) {
             fastInnerText(TH, originalHeaders[column]);
@@ -391,10 +391,10 @@ export default class CoreAbstract {
         return wot.wtViewport.rowsVisibleCalculator.count;
       },
       get columnHeaders() {
-        return wot.wtSettings.getSetting('columnHeaders') as Function[];
+        return wot.wtSettings.getSetting<Function[]>('columnHeaders');
       },
       get rowHeaders() {
-        return wot.wtSettings.getSetting('rowHeaders') as Function[];
+        return wot.wtSettings.getSetting<Function[]>('rowHeaders');
       },
     };
   }

@@ -78,7 +78,7 @@ export default class ColumnUtils {
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
     if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
-      const rowHeadersCount = (wtSettings.getSetting('rowHeaders') as Function[]).length;
+      const rowHeadersCount = wtSettings.getSetting<Function[]>('rowHeaders').length;
       const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {

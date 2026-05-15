@@ -179,7 +179,7 @@ class Table {
       TBODY: this.TBODY,
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
-      cellRenderer: this.wtSettings.getSettingPure('cellRenderer') as Function,
+      cellRenderer: this.wtSettings.getSettingPure<Function>('cellRenderer'),
       stylesHandler: this.wtSettings.getSetting('stylesHandler'),
     });
   }
@@ -337,9 +337,9 @@ class Table {
     const { wtOverlays, wtViewport } = this.dataAccessObject;
     const totalRows = wtSettings.getSetting('totalRows');
     const totalColumns = wtSettings.getSetting('totalColumns');
-    const rowHeaders = wtSettings.getSetting('rowHeaders') as Function[];
+    const rowHeaders = wtSettings.getSetting<Function[]>('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
-    const columnHeaders = wtSettings.getSetting('columnHeaders') as Function[];
+    const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
     let runFastDraw = fastDraw;
 
@@ -487,7 +487,7 @@ class Table {
    */
   markIfOversizedColumnHeader(col: number) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
-    let level = (this.wtSettings.getSetting('columnHeaders') as Function[]).length;
+    let level = this.wtSettings.getSetting<Function[]>('columnHeaders').length;
     const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     let previousColHeaderHeight;
     let currentHeader;
@@ -534,7 +534,7 @@ class Table {
     const { wtSettings } = this;
     const children = this.THEAD.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
-    const columnHeaders = wtSettings.getSetting('columnHeaders') as Function[];
+    const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
       if (oversizedColumnHeaders[i]) {
@@ -735,7 +735,7 @@ class Table {
    *   row headers`.
    */
   getRowHeader(row: number, level = 0) {
-    const rowHeadersCount = (this.wtSettings.getSetting('rowHeaders') as Function[]).length;
+    const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
       return;
@@ -757,7 +757,7 @@ class Table {
    */
   getRowHeaders(row: number) {
     const THs = [];
-    const rowHeadersCount = (this.wtSettings.getSetting('rowHeaders') as Function[]).length;
+    const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
 
     for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
       const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
@@ -924,7 +924,7 @@ class Table {
       return false;
     }
 
-    const rowHeaders = this.wtSettings.getSetting('rowHeaders') as Function[];
+    const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
     const rowHeadersCount = rowHeaders.length;
 
     return Math.abs(column) <= rowHeadersCount;
@@ -941,7 +941,7 @@ class Table {
       return false;
     }
 
-    const columnHeaders = this.wtSettings.getSetting('columnHeaders') as Function[];
+    const columnHeaders = this.wtSettings.getSetting<Function[]>('columnHeaders');
     const columnHeadersCount = columnHeaders.length;
 
     return Math.abs(row) <= columnHeadersCount;

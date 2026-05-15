@@ -295,7 +295,7 @@ class Viewport {
    * @returns {number}
    */
   getColumnHeaderHeight() {
-    const columnHeaders = this.wtSettings.getSetting('columnHeaders') as Function[];
+    const columnHeaders = this.wtSettings.getSetting<Function[]>('columnHeaders');
 
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
@@ -311,7 +311,7 @@ class Viewport {
    */
   getRowHeaderWidth() {
     const rowHeadersWidthSetting = this.wtSettings.getSetting('rowHeaderWidth');
-    const rowHeaders = this.wtSettings.getSetting('rowHeaders') as Function[];
+    const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
 
     if (rowHeadersWidthSetting) {
       this.rowHeaderWidth = 0;

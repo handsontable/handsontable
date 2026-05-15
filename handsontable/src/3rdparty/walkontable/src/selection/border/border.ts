@@ -405,7 +405,7 @@ class Border {
     bottomStyles.top = `${bottomHandlerTop}px`;
     bottomHitAreaStyles.top = `${bottomHandlerAreaTop}px`;
 
-    if (this.settings.border.cornerVisible && (this.settings.border.cornerVisible as Function)()) {
+    if (this.settings.border.cornerVisible && (this.settings.border.cornerVisible as ((...args: unknown[]) => boolean))()) {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 

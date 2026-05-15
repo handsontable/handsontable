@@ -22,7 +22,7 @@ export default class Clone extends CoreAbstract {
   constructor(table: HTMLTableElement, settings: any, clone: any) {
     super(table, settings);
 
-    const facadeGetter = this.wtSettings.getSetting('facade', this) as Function;
+    const facadeGetter = this.wtSettings.getSetting<Function>('facade', this);
 
     this.cloneSource = clone.source;
     this.cloneOverlay = clone.overlay;

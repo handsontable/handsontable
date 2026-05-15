@@ -279,7 +279,7 @@ export default class Settings {
    * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
-  getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): any;
+  getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown) {
     if (typeof this.settings[key] === 'function') {
       return this.settings[key](param1, param2, param3, param4);
@@ -298,6 +298,7 @@ export default class Settings {
    * @param {string} key The settings key to retrieve.
    * @returns {*}
    */
+  getSettingPure<T = any>(key: string): T;
   getSettingPure(key: string) {
     return (this.settings as any)[key];
   }
