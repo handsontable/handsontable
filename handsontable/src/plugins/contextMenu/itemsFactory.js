@@ -57,16 +57,17 @@ export class ItemsFactory {
       } else {
         // Object-form `contextMenu.items` keys that name a plugin-provided
         // entry (e.g. `add_child` from nestedRows) are unknown to the registry
-        // on the first `getItems` pass, so a bare placeholder is emitted. The
-        // nestedRows plugin then splices its rich entry at the start of the
-        // array via `afterContextMenuDefaultOptions`, placing the bare
-        // placeholder later in iteration order. Without this guard, the
-        // placeholder would overwrite the rich entry's callback, submenu, or
-        // renderer. See issue #9894.
-        const existing = items[value.key];
-        const isRich = item => Boolean(item && (item.callback || item.submenu || item.renderer));
+        // on the first `getItems` pass, so a bare placeholder is emitted.
+        // Plugins later splice their rich entries into the same array via
+        // `afterContextMenuDefaultOptions`. Merging preserves both contributions
+        // regardless of iteration order: rich properties (callback, submenu,
+        // disabled, renderer, name function, etc.) survive when the other side
+        // does not define them, and user overrides still take effect via the
+        // final `getItems` pass that extends the user pattern onto the predefined
+        // entry. See issue #9894.
+        if (items[value.key]) {
+          extend(items[value.key], value);
 
-        if (existing && isRich(existing) && !isRich(value)) {
           return;
         }
 
