@@ -136,8 +136,8 @@ export class StretchColumns extends BasePlugin {
     this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
     this.#resizeObserver.observe(this.hot.rootElement);
 
-    this.addHook('beforeRender', this.#onBeforeRender);
-    this.addHook('modifyColWidth', this.#onModifyColWidth, 10);
+    this.addHook('beforeRender', (fullRender: boolean) => this.#onBeforeRender(fullRender));
+    this.addHook('modifyColWidth', (width: number, column: number, source: string) => this.#onModifyColWidth(width, column, source), 10);
 
     super.enablePlugin();
   }

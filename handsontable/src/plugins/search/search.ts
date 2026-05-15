@@ -110,7 +110,7 @@ export class Search extends BasePlugin {
 
     this.updatePluginSettings(searchSettings as Record<string, unknown>);
 
-    this.addHook('beforeRenderer', this.#onBeforeRenderer);
+    this.addHook('beforeRenderer', (td: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string, cellProperties: Record<string, unknown>) => this.#onBeforeRenderer(td, row, col, prop, value, cellProperties));
 
     super.enablePlugin();
   }
