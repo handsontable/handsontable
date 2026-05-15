@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12121 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 12px 16px; font-size: 12px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad  { color: #f48771; }
+    pre .good { color: #b5cea8; }
+    pre .comment { color: #6a9955; }
+    .test-panel { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 16px; margin-bottom: 14px; }
+    .test-panel h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+    .test-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-run { background: #1976d2; color: #fff; border-color: #1565c0; font-weight: 600; }
+    .btn-run:hover { background: #1565c0; }
+    .btn-run:disabled { background: #90caf9; border-color: #90caf9; cursor: default; }
+    .result-box { flex: 1; min-width: 300px; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-family: monospace; line-height: 1.5; border: 1px solid transparent; }
+    .result-idle    { background: #f5f5f5; border-color: #ddd; color: #666; }
+    .result-running { background: #e3f2fd; border-color: #90caf9; color: #1565c0; }
+    .result-error   { background: #fdecea; border-color: #ef9a9a; color: #b71c1c; font-weight: 600; }
+    .result-ok      { background: #e8f5e9; border-color: #66bb6a; color: #1b5e20; }
+    .row-count-slider { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 13px; }
+    .row-count-slider input { flex: 1; max-width: 300px; }
+    #threshold-note { font-size: 12px; color: #888; margin-top: 4px; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12121 - Stack overflow when pasting 50k+ rows</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12121-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    <code>htmlToGridSettings()</code> in <code>parseTable.js</code> uses the spread operator
+    to push all <code>tbody</code> rows at once: <code>sections.push(...Array.from(section.rows))</code>.
+    When the table has 50,000+ rows, JavaScript exceeds the maximum call stack size
+    (each element becomes a function argument), throwing <code>RangeError: Maximum call stack size exceeded</code>
+    and crashing the paste operation.
+  </div>
+
+  <pre><span class="comment">// parseTable.js — BEFORE (buggy):</span>
+...Array.from(checkElement.tBodies).reduce((sections, section) =&gt; {
+  <span class="bad">sections.push(...Array.from(section.rows));</span>  <span class="comment">// ← crashes with 50k+ rows</span>
+  return sections;
+}, []),</pre>
+
+  <div class="hint">
+    Drag the slider to set row count, then click <strong>Run test</strong>.
+    The crash threshold varies by browser — typically between 100,000–500,000 arguments.
+    At 50,000 rows it reliably crashes in Chrome/Firefox.
+  </div>
+
+  <div class="test-panel">
+    <h3>Direct test: call <code>Handsontable.helper.htmlToGridSettings()</code></h3>
+    <div class="row-count-slider">
+      <label for="row-slider">Rows to parse:</label>
+      <input type="range" id="row-slider" min="1000" max="200000" step="1000" value="50000">
+      <strong id="row-count-label">50,000</strong>
+      <span id="threshold-note"></span>
+    </div>
+    <div class="test-row">
+      <button class="btn btn-run" id="btn-run">Run test</button>
+      <div class="result-box result-idle" id="result-box">
+        Click "Run test" to call htmlToGridSettings() with the selected number of rows.
+      </div>
+    </div>
+  </div>
+
+  <div class="test-panel">
+    <h3>Manual paste test (Ctrl+V)</h3>
+    <p style="font-size:13px;color:#555;margin-bottom:10px;">
+      Click "Copy large table to clipboard", then click inside the grid below and press <strong>Ctrl+V</strong>.
+      With 50,000 rows the paste will crash instead of populating the grid.
+    </p>
+    <div class="test-row">
+      <button class="btn" id="btn-copy">Copy large table to clipboard (50k rows)</button>
+      <div class="result-box result-idle" id="copy-result">—</div>
+    </div>
+    <div id="hot" style="margin-top:10px;"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // ── Row count slider ──────────────────────────────────────────────────
+    const slider = document.getElementById('row-slider');
+    const label  = document.getElementById('row-count-label');
+    slider.addEventListener('input', () => {
+      const v = parseInt(slider.value, 10);
+      label.textContent = v.toLocaleString();
+      document.getElementById('threshold-note').textContent =
+        v >= 100000 ? '⚠ Very large — may take several seconds to generate' : '';
+    });
+
+    function buildHtmlTable(rows, cols = 3) {
+      const parts = ['<table><tbody>'];
+      for (let i = 0; i < rows; i++) {
+        parts.push('<tr>');
+        for (let c = 0; c < cols; c++) {
+          parts.push(`<td>Row${i}Col${c}</td>`);
+        }
+        parts.push('</tr>');
+      }
+      parts.push('</tbody></table>');
+      return parts.join('');
+    }
+
+    // ── Direct API test ───────────────────────────────────────────────────
+    document.getElementById('btn-run').addEventListener('click', () => {
+      const rows  = parseInt(slider.value, 10);
+      const box   = document.getElementById('result-box');
+      const btn   = document.getElementById('btn-run');
+
+      box.className = 'result-box result-running';
+      box.textContent = `Generating ${rows.toLocaleString()} row HTML table...`;
+      btn.disabled = true;
+
+      // Yield to browser so the UI updates, then run the test
+      setTimeout(() => {
+        const html = buildHtmlTable(rows);
+        box.textContent = `HTML generated (${(html.length / 1024 / 1024).toFixed(1)} MB). Calling htmlToGridSettings()...`;
+
+        setTimeout(() => {
+          const t0 = performance.now();
+          try {
+            const result = Handsontable.helper.htmlToGridSettings(html);
+            const elapsed = (performance.now() - t0).toFixed(0);
+            box.className = 'result-box result-ok';
+            box.textContent =
+              `✓ SUCCESS — parsed ${result.data.length.toLocaleString()} rows in ${elapsed}ms\n` +
+              `First row: [${result.data[0].join(', ')}]\n` +
+              `Last row:  [${result.data[result.data.length - 1].join(', ')}]`;
+          } catch (e) {
+            const elapsed = (performance.now() - t0).toFixed(0);
+            box.className = 'result-box result-error';
+            box.textContent = `✗ ERROR after ${elapsed}ms:\n${e.name}: ${e.message}`;
+          }
+          btn.disabled = false;
+        }, 50);
+      }, 50);
+    });
+
+    // ── Clipboard copy test ───────────────────────────────────────────────
+    document.getElementById('btn-copy').addEventListener('click', async () => {
+      const resultEl = document.getElementById('copy-result');
+      resultEl.className = 'result-box result-running';
+      resultEl.textContent = 'Generating 50,000-row table...';
+
+      await new Promise(r => setTimeout(r, 50));
+
+      const html = buildHtmlTable(50000);
+
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'text/html': new Blob([html], { type: 'text/html' }) })
+        ]);
+        resultEl.className = 'result-box result-ok';
+        resultEl.textContent = '✓ Copied! Now click in the grid below and press Ctrl+V';
+      } catch (e) {
+        // Fallback: copy plain text version
+        const plain = Array.from({ length: 50000 }, (_, i) =>
+          `Row${i}Col0\tRow${i}Col1\tRow${i}Col2`).join('\n');
+        try {
+          await navigator.clipboard.writeText(plain);
+          resultEl.className = 'result-box result-ok';
+          resultEl.textContent = '✓ Copied as plain text (50,000 rows)! Click grid and Ctrl+V';
+        } catch (e2) {
+          resultEl.className = 'result-box result-error';
+          resultEl.textContent = 'Clipboard not available — use the "Run test" button instead';
+        }
+      }
+    });
+
+    // ── Grid ──────────────────────────────────────────────────────────────
+    window.hot = new Handsontable(document.getElementById('hot'), {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      copyPaste: true,
+    });
+  </script>
+</body>
+</html>
