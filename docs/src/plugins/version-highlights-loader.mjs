@@ -39,17 +39,24 @@ export function mergeEntriesWithHighlights(autoEntries, highlightFiles) {
 }
 
 export function buildReleaseSummaries(autoEntries, currentVersion) {
-  const seen = new Map();
+  // Group by major.minor, prefer the X.Y.0 patch, otherwise the lowest patch
+  // present in the changelog. This keeps the date accurate to when the minor
+  // was first released, and lets minors with no .0 entry (like v6.2 where
+  // only 6.2.2 is tracked) still appear in the version list.
+  const byMinor = new Map();
   for (const entry of autoEntries) {
-    if (!entry.version.endsWith('.0')) continue;
-    const [major, minor] = entry.version.split('.').map(Number);
+    const parts = entry.version.split('.').map(Number);
+    if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) continue;
+    const [major, minor, patch] = parts;
     const key = `${major}.${minor}`;
-    if (!seen.has(key)) {
-      seen.set(key, {
+    const existing = byMinor.get(key);
+    if (!existing || patch < existing.patch) {
+      byMinor.set(key, {
         version: key,
         releaseDate: entry.releaseDate,
         major,
         minor,
+        patch,
       });
     }
   }
@@ -58,9 +65,9 @@ export function buildReleaseSummaries(autoEntries, currentVersion) {
     ? currentVersion.split('.').slice(0, 2).join('.')
     : null;
 
-  return Array.from(seen.values())
+  return Array.from(byMinor.values())
     .sort((a, b) => (b.major - a.major) || (b.minor - a.minor))
-    .map((r) => ({ ...r, isCurrent: r.version === currentMinor }));
+    .map(({ patch, ...rest }) => ({ ...rest, isCurrent: rest.version === currentMinor }));
 }
 
 function loadHighlightFiles() {

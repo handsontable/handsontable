@@ -17,8 +17,18 @@ function compareVersions(a: string, b: string): number {
 function defaultRange(releases: ReleaseSummary[]) {
   if (releases.length === 0) return { from: '', to: '' };
   const to = releases[0].version;
-  const fromIdx = Math.min(releases.length - 1, 2);
-  return { from: releases[fromIdx].version, to };
+  const targetMajor = releases[0].major - 3;
+  // Pick the oldest minor of the target major (3 majors back), e.g. 14.0 when current is 17.x.
+  // Releases are sorted descending, so iterate from the end to find the smallest minor.
+  let fromCandidate: ReleaseSummary | undefined;
+  for (let i = releases.length - 1; i >= 0; i -= 1) {
+    if (releases[i].major === targetMajor) {
+      fromCandidate = releases[i];
+      break;
+    }
+  }
+  if (!fromCandidate) fromCandidate = releases[releases.length - 1];
+  return { from: fromCandidate.version, to };
 }
 
 interface VersionSelectorProps {
@@ -26,19 +36,25 @@ interface VersionSelectorProps {
   value: string;
   releases: ReleaseSummary[];
   onChange: (v: string) => void;
+  disableNewerThan?: string;
+  disableOlderThan?: string;
 }
 
-function VersionSelector({ label, value, releases, onChange }: VersionSelectorProps) {
+function VersionSelector({ label, value, releases, onChange, disableNewerThan, disableOlderThan }: VersionSelectorProps) {
   return (
     <label className="vc-selector">
       <span>{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)}>
-        {releases.map((r) => (
-          <option key={r.version} value={r.version}>
-            {r.version}
-            {r.isCurrent ? ' (current)' : ''}
-          </option>
-        ))}
+        {releases.map((r) => {
+          const tooNew = disableNewerThan ? compareVersions(r.version, disableNewerThan) > 0 : false;
+          const tooOld = disableOlderThan ? compareVersions(r.version, disableOlderThan) < 0 : false;
+          return (
+            <option key={r.version} value={r.version} disabled={tooNew || tooOld}>
+              {r.version}
+              {r.isCurrent ? ' (current)' : ''}
+            </option>
+          );
+        })}
       </select>
     </label>
   );
@@ -73,9 +89,23 @@ function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
 interface FilterTabsProps {
   value: FilterKind;
   onChange: (v: FilterKind) => void;
+  entries: VersionEntry[];
 }
 
-function FilterTabs({ value, onChange }: FilterTabsProps) {
+function FilterTabs({ value, onChange, entries }: FilterTabsProps) {
+  const counts: Record<FilterKind, number> = {
+    all: entries.length,
+    new: 0,
+    fixed: 0,
+    deprecated: 0,
+    breaking: 0,
+  };
+  for (const e of entries) {
+    if (matchesFilter(e, 'new')) counts.new += 1;
+    if (matchesFilter(e, 'fixed')) counts.fixed += 1;
+    if (matchesFilter(e, 'deprecated')) counts.deprecated += 1;
+    if (matchesFilter(e, 'breaking')) counts.breaking += 1;
+  }
   return (
     <div className="vc-filter-tabs" role="tablist">
       {(Object.keys(FILTER_LABELS) as FilterKind[]).map((k) => (
@@ -83,50 +113,11 @@ function FilterTabs({ value, onChange }: FilterTabsProps) {
           key={k}
           role="tab"
           aria-selected={value === k}
-          className={value === k ? 'is-active' : ''}
+          className={`vc-filter-tab vc-filter-tab-${k} ${value === k ? 'is-active' : ''}`}
           onClick={() => onChange(k)}
         >
-          {FILTER_LABELS[k]}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-interface StatCardsProps {
-  entries: VersionEntry[];
-  activeFilter: FilterKind;
-  onSelect: (filter: FilterKind) => void;
-}
-
-function StatCards({ entries, activeFilter, onSelect }: StatCardsProps) {
-  const counts: Record<Exclude<FilterKind, 'all'>, number> = {
-    breaking: 0, deprecated: 0, new: 0, fixed: 0,
-  };
-  for (const e of entries) {
-    if (matchesFilter(e, 'breaking')) counts.breaking += 1;
-    if (matchesFilter(e, 'deprecated')) counts.deprecated += 1;
-    if (matchesFilter(e, 'new')) counts.new += 1;
-    if (matchesFilter(e, 'fixed')) counts.fixed += 1;
-  }
-
-  const cards: { kind: Exclude<FilterKind, 'all'>; label: string }[] = [
-    { kind: 'new', label: 'New APIs' },
-    { kind: 'fixed', label: 'Fixes' },
-    { kind: 'deprecated', label: 'Deprecations' },
-    { kind: 'breaking', label: 'Breaking changes' },
-  ];
-
-  return (
-    <div className="vc-stat-cards">
-      {cards.map((c) => (
-        <button
-          key={c.kind}
-          className={`vc-stat-card vc-stat-${c.kind} ${activeFilter === c.kind ? 'is-active' : ''}`}
-          onClick={() => onSelect(c.kind)}
-        >
-          <span className="vc-stat-count">{counts[c.kind]}</span>
-          <span className="vc-stat-label">{c.label}</span>
+          <span className="vc-filter-tab-label">{FILTER_LABELS[k]}</span>
+          <span className="vc-filter-tab-count">{counts[k]}</span>
         </button>
       ))}
     </div>
@@ -187,24 +178,23 @@ function PrLink({ prNumber }: { prNumber: number | null }) {
 }
 
 function FeaturedEntry({ entry }: { entry: VersionEntry }) {
-  const accent = entry.breaking ? 'vc-entry-accent-breaking' : `vc-entry-accent-${entry.category}`;
   return (
-    <article className={`vc-entry vc-entry-featured ${accent}`}>
-      <header>
+    <article className="vc-featured-card">
+      <header className="vc-featured-card-header">
         <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
-        <h3>{entry.tagline ?? entry.title}</h3>
-        <span className="vc-entry-version">{entry.version}</span>
-      </header>
-      {entry.whyItMatters && <p className="vc-entry-why">{entry.whyItMatters}</p>}
-      {entry.codeBefore && entry.codeAfter && (
-        <pre className="vc-entry-diff">{`// Before\n${entry.codeBefore}\n\n// After\n${entry.codeAfter}`}</pre>
-      )}
-      <footer>
-        <PrLink prNumber={entry.prNumber} />
-        {entry.migrationAnchor && (
-          <a href={entry.migrationAnchor}>Migration guide</a>
+        {entry.prNumber !== null && (
+          <a
+            className="vc-featured-card-pr"
+            href={`https://github.com/handsontable/handsontable/pull/${entry.prNumber}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            #{entry.prNumber}
+          </a>
         )}
-      </footer>
+      </header>
+      <p className="vc-featured-card-title">{entry.tagline ?? entry.title}</p>
+      {entry.whyItMatters && <p className="vc-featured-card-why">{entry.whyItMatters}</p>}
     </article>
   );
 }
@@ -233,7 +223,11 @@ function ReleaseGroup({ version, entries }: { version: string; entries: VersionE
   return (
     <section className="vc-release-group">
       <h2 className="vc-release-heading">{version}</h2>
-      {featured.map((e) => <FeaturedEntry key={`${e.version}-${e.prNumber}-${e.title}`} entry={e} />)}
+      {featured.length > 0 && (
+        <div className="vc-featured-grid">
+          {featured.map((e) => <FeaturedEntry key={`${e.version}-${e.prNumber}-${e.title}`} entry={e} />)}
+        </div>
+      )}
       {compact.length > 0 && (
         <ul className="vc-entry-list">
           {shown.map((e) => <CompactEntry key={`${e.version}-${e.prNumber}-${e.title}`} entry={e} />)}
@@ -275,7 +269,7 @@ function useUrlSync(state: { from: string; to: string; filter: FilterKind }) {
     const params = new URLSearchParams();
     params.set('from', state.from);
     params.set('to', state.to);
-    if (state.filter !== 'all') params.set('category', state.filter);
+    if (state.filter !== 'new') params.set('category', state.filter);
     const next = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState(null, '', next);
   }, [state.from, state.to, state.filter]);
@@ -292,9 +286,9 @@ function readUrlState(
   const from = fromParam && versions.has(fromParam) ? fromParam : fallback.from;
   const to = toParam && versions.has(toParam) ? toParam : fallback.to;
   const cat = params.get('category');
-  const filter: FilterKind = (['breaking', 'deprecated', 'new', 'fixed'] as const).includes(cat as never)
+  const filter: FilterKind = (['all', 'breaking', 'deprecated', 'new', 'fixed'] as const).includes(cat as never)
     ? (cat as FilterKind)
-    : 'all';
+    : 'new';
   return { from, to, filter };
 }
 
@@ -322,8 +316,20 @@ export function VersionComparison() {
   return (
     <div className="version-comparison">
       <div className="vc-controls">
-        <VersionSelector label="From" value={from} releases={data.releases} onChange={(v) => setState((s) => ({ ...s, from: v }))} />
-        <VersionSelector label="To" value={to} releases={data.releases} onChange={(v) => setState((s) => ({ ...s, to: v }))} />
+        <VersionSelector
+          label="From"
+          value={from}
+          releases={data.releases}
+          disableNewerThan={to}
+          onChange={(v) => setState((s) => ({ ...s, from: v }))}
+        />
+        <VersionSelector
+          label="To"
+          value={to}
+          releases={data.releases}
+          disableOlderThan={from}
+          onChange={(v) => setState((s) => ({ ...s, to: v }))}
+        />
       </div>
       <VersionBreadcrumb
         releases={data.releases}
@@ -331,8 +337,7 @@ export function VersionComparison() {
         to={to}
         onJumpTo={(v) => setState((s) => ({ ...s, to: v }))}
       />
-      <StatCards entries={filtered} activeFilter={filter} onSelect={(f) => setState((s) => ({ ...s, filter: f }))} />
-      <FilterTabs value={filter} onChange={(f) => setState((s) => ({ ...s, filter: f }))} />
+      <FilterTabs value={filter} entries={filtered} onChange={(f) => setState((s) => ({ ...s, filter: f }))} />
       <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
       {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} />)}
     </div>
