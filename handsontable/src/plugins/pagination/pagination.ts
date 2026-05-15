@@ -225,7 +225,7 @@ export class Pagination extends BasePlugin {
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
-        a11yAnnouncer: (message: unknown) => announce(message as string),
+        a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
       });
 
       this.#updateSectionsVisibilityState();
@@ -786,7 +786,7 @@ export class Pagination extends BasePlugin {
       const pageSize = this.#calcStrategy.getState(this.#currentPage)?.pageSize ?? this.#pageSize;
 
       uiState.counterStartRow = ((this.#currentPage - 1) * (pageSize as number)) + 1;
-      uiState.counterEndRow = Math.min((this.#currentPage * (pageSize as number)), totalRows as number);
+      uiState.counterEndRow = Math.min((this.#currentPage * (pageSize as number)), totalRows);
     }
 
     this.#ui.updateState(uiState);
@@ -1027,7 +1027,7 @@ export class Pagination extends BasePlugin {
    * @param {string | undefined} themeName The name of the theme to use.
    */
   #onAfterSetTheme(themeName: unknown) {
-    this.#ui.updateTheme(themeName as string);
+    this.#ui.updateTheme(themeName as string | undefined);
   }
 
   /**

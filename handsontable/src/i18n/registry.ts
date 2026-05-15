@@ -34,7 +34,7 @@ export function registerLanguageDictionary(languageCodeOrDictionary: string | Re
   // Dictionary passed as first argument.
   if (isObject(languageCodeOrDictionary)) {
     dictionaryObject = languageCodeOrDictionary as Record<string, unknown>;
-    languageCode = dictionaryObject.languageCode as string;
+    languageCode = String(dictionaryObject.languageCode);
   }
 
   extendLanguageDictionary(languageCode, dictionaryObject as Record<string, unknown>);

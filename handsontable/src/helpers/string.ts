@@ -74,7 +74,7 @@ export function isJSON(string: string) {
  * @returns {boolean}
  */
 export function isPercentValue(value: string): boolean {
-  return /^(?:\d\d?%|100%)$/.test(value as string);
+  return /^(?:\d\d?%|100%)$/.test(value);
 }
 
 /**
@@ -91,7 +91,7 @@ export function substitute(template: string, variables: Record<string, unknown> 
       return match.substr(1, match.length - 1);
     }
 
-    return variables[name] === undefined ? '' : variables[name] as string;
+    return variables[name] === undefined ? '' : String(variables[name]);
   });
 }
 

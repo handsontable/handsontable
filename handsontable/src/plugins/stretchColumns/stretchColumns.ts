@@ -166,7 +166,7 @@ export class StretchColumns extends BasePlugin {
    * @returns {number | null}
    */
   getColumnWidth(columnVisualIndex: number): number | null {
-    return this.#stretchCalculator.getStretchedWidth(columnVisualIndex) as number | null;
+    return this.#stretchCalculator.getStretchedWidth(columnVisualIndex);
   }
 
   /**

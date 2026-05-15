@@ -362,7 +362,7 @@ export class ContextMenu extends BasePlugin {
     this.menu!.setMenuItems(menuItems);
 
     // Register all commands. Predefined and added by user or by plugins
-    arrayEach(menuItems, command => this.commandExecutor.registerCommand((command as Record<string, unknown>).key as string, command as Record<string, unknown>));
+    arrayEach(menuItems, command => this.commandExecutor.registerCommand(String((command as Record<string, unknown>).key ?? ''), command as Record<string, unknown>));
   }
 
   /**

@@ -468,7 +468,7 @@ function validateDensityStructure(density: unknown, context: string): void {
       throw new Error(`[ThemeBuilder] ${context} must be a string or an object with a 'type' and 'sizes' property.`);
     }
 
-    validateDensityType(d.type as string);
+    validateDensityType(String(d.type));
     validateDensitySizes(d.sizes, `${context}.sizes`);
 
   } else if (typeof density === 'string') {
@@ -585,7 +585,7 @@ export function validateParams(parameters: unknown, context: string, options: { 
 
   // Validate name
   if (name !== undefined) {
-    validateName(name as string, context);
+    validateName(String(name), context);
   }
 
   // Validate sizing
@@ -639,6 +639,6 @@ export function validateParams(parameters: unknown, context: string, options: { 
 
   // Validate color scheme
   if (colorScheme !== undefined) {
-    validateColorScheme(colorScheme as string);
+    validateColorScheme(String(colorScheme));
   }
 }

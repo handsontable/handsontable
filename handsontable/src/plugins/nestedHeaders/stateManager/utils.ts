@@ -41,7 +41,7 @@ export function createDefaultHeaderSettings({
   isRoot = false,
   isPlaceholder = false,
   isRowspanPlaceholder = false,
-  headerClassNames = [] as string[]
+  headerClassNames = []
 }: {
   label?: string;
   colspan?: number;

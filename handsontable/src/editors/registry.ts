@@ -37,7 +37,7 @@ export function RegisteredEditor(this: Record<string, unknown>, editorClass: typ
   };
 
   Hooks.getSingleton().add('afterDestroy', function(this: Record<string, unknown>) {
-    instances[this.guid as string] = null;
+    instances[String(this.guid)] = null;
   });
 }
 

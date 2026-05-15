@@ -61,9 +61,9 @@ export class InputUI extends BaseUI {
       return;
     }
 
-    this.#input.type = this.options.type as string;
-    this.#input.placeholder = this.translateIfPossible(this.options.placeholder) as string;
-    this.#input.value = this.translateIfPossible(this.options.value) as string;
+    this.#input.type = String(this.options.type ?? 'text');
+    this.#input.placeholder = String(this.translateIfPossible(this.options.placeholder) ?? '');
+    this.#input.value = String(this.translateIfPossible(this.options.value) ?? '');
   }
 
   /**

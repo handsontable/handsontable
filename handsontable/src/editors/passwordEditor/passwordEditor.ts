@@ -83,7 +83,7 @@ export class PasswordEditor extends TextEditor {
     empty(this.TEXTAREA_PARENT);
     const tabIndexAttr = A11Y_TABINDEX(-1);
 
-    this.TEXTAREA.setAttribute(tabIndexAttr[0] as string, String(tabIndexAttr[1]));
+    this.TEXTAREA.setAttribute(tabIndexAttr[0], String(tabIndexAttr[1]));
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 
@@ -97,7 +97,7 @@ export class PasswordEditor extends TextEditor {
 
     const hashRevealDelay = this.cellProperties.hashRevealDelay as number;
     // || fallback catches empty string ('') in addition to undefined/null.
-    const hashSymbol = (this.cellProperties.hashSymbol || '*') as string;
+    const hashSymbol = String(this.cellProperties.hashSymbol || '*');
 
     if (hashRevealDelay > 0) {
       this.#inRevealMode = true;
@@ -170,7 +170,7 @@ export class PasswordEditor extends TextEditor {
   setValue(value?: string) {
     if (this.#inRevealMode) {
       this.#realValue = value ?? '';
-      const maskChar = ((this.cellProperties.hashSymbol || '*') as string)[0];
+      const maskChar = String(this.cellProperties.hashSymbol || '*')[0];
 
       this.TEXTAREA.value = maskChar.repeat(this.#realValue.length);
     } else if ((this.cellProperties?.hashRevealDelay as number) > 0) {

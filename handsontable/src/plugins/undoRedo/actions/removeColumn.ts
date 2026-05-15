@@ -165,9 +165,9 @@ export class RemoveColumnAction extends BaseAction {
       const rowArr = rowData as unknown[];
 
       arrayEach(ascendingIndexes, (changedIndex, contiquesIndex) => {
-        rowArr[changedIndex as number] = (sortedData[rowIndex] as unknown[])[contiquesIndex];
+        rowArr[changedIndex] = (sortedData[rowIndex] as unknown[])[contiquesIndex];
 
-        changes.push([rowIndex, changedIndex, rowArr[changedIndex as number]]);
+        changes.push([rowIndex, changedIndex, rowArr[changedIndex]]);
       });
     });
 

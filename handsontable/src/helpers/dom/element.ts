@@ -314,15 +314,15 @@ function filterRegexes(list: (string | RegExp)[], returnBoth: boolean): string[]
   const regexes: RegExp[] = [];
   const regexFree: string[] = [];
 
-  regexFree.push(...list.filter((entry: string | RegExp) => {
+  regexFree.push(...list.filter((entry: string | RegExp): entry is string => {
     const isRegex = entry instanceof RegExp;
 
     if (isRegex && returnBoth) {
-      regexes.push(entry as RegExp);
+      regexes.push(entry);
     }
 
     return !isRegex;
-  }) as string[]);
+  }));
 
   return returnBoth ? {
     regexFree,

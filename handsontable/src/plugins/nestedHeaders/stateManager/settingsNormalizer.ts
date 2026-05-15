@@ -197,7 +197,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
     }
   });
 
-  const columnsLength = Math.max(...arrayMap(normalizedSettings, (headersSettings => (headersSettings as unknown[]).length)) as number[]);
+  const columnsLength = Math.max(...arrayMap(normalizedSettings, (headersSettings => (headersSettings as unknown[]).length)));
 
   // Normalize the length of each header layer to the same columns length.
   arrayEach(normalizedSettings, (headersSettings) => {

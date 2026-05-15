@@ -229,8 +229,8 @@ export class Autofill extends BasePlugin {
       const rowSet: unknown[] = [];
 
       arrayEach(copyableColumns, (column) => {
-        const r = row as number;
-        const c = column as number;
+        const r = row;
+        const c = column;
         const sourceDataAtSource = useSource ? this.hot.getSourceDataAtCell(r, c) : null;
 
         if (useSource && (isObject(sourceDataAtSource) || Array.isArray(sourceDataAtSource))) {

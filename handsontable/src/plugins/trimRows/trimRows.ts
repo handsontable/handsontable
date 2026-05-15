@@ -265,7 +265,7 @@ export class TrimRows extends BasePlugin {
     if (isValidConfig) {
       this.hot.batchExecution(() => {
         arrayEach(rows, (physicalRow) => {
-          this.trimmedRowsMap!.setValueAtIndex(physicalRow as number, true);
+          this.trimmedRowsMap!.setValueAtIndex(physicalRow, true);
         });
       }, true);
     }

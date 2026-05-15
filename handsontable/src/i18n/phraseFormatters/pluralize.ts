@@ -10,7 +10,7 @@ export default function pluralize(phrasePropositions: string | string[], pluralF
   const isPluralizable = Array.isArray(phrasePropositions) && Number.isInteger(pluralForm);
 
   if (isPluralizable) {
-    return phrasePropositions[pluralForm as number];
+    return phrasePropositions[pluralForm];
   }
 
   return phrasePropositions;

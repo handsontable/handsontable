@@ -42,8 +42,8 @@ export class RadioInputUI extends BaseUI {
     const label = this.hot.rootDocument.createElement('label');
     const labelOpts = this.options.label as { textContent?: string; htmlFor?: string };
 
-    label.textContent = this.translateIfPossible(labelOpts.textContent) as string;
-    label.htmlFor = this.translateIfPossible(labelOpts.htmlFor) as string;
+    label.textContent = String(this.translateIfPossible(labelOpts.textContent) ?? '');
+    label.htmlFor = String(this.translateIfPossible(labelOpts.htmlFor) ?? '');
     this.#label = label;
     this.#input = this._element.firstChild as HTMLInputElement;
     this.#input.checked = this.options.checked as boolean;
@@ -63,7 +63,7 @@ export class RadioInputUI extends BaseUI {
 
     const labelOpts = this.options.label as { textContent?: string; htmlFor?: string };
 
-    this.#label.textContent = this.translateIfPossible(labelOpts.textContent) as string;
+    this.#label.textContent = String(this.translateIfPossible(labelOpts.textContent) ?? '');
   }
 
   /**

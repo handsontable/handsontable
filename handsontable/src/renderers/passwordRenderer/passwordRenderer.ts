@@ -13,7 +13,7 @@ export const RENDERER_TYPE: 'password' = 'password';
  */
 export function valueFormatter(value: unknown, cellProperties: Record<string, unknown>) {
   const hashLength = (cellProperties.hashLength || stringify(value).length) as number;
-  const hashSymbol = (cellProperties.hashSymbol || '*') as string;
+  const hashSymbol = String(cellProperties.hashSymbol ?? '*');
 
   let hash = '';
 

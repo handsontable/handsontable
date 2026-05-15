@@ -47,7 +47,7 @@ const hooksRefRegisterer = {
    * Clear all added hooks.
    */
   clearHooks() {
-    objectEach(this._hooksStorage, (callbacks, name) => this.removeHooksByKey(name as string));
+    objectEach(this._hooksStorage, (callbacks, name) => this.removeHooksByKey(name));
 
     this._hooksStorage = {};
   },

@@ -33,7 +33,7 @@ class StrictBindsMap extends IndexMap {
   remove(removedIndexes: number[]) {
     this.indexedValues = getListWithRemovedItems(this.indexedValues, removedIndexes);
 
-    super.remove(removedIndexes as number[]);
+    super.remove(removedIndexes);
   }
 
   /**

@@ -67,8 +67,8 @@ function toCssKey(prefix: string, key: string): string {
  * @returns {string} - The CSS value.
  */
 function toCssValue(value: unknown, key?: string): string {
-  if (isVarReference(value as string)) {
-    return toVarReference(value as string);
+  if (typeof value === 'string' && isVarReference(value)) {
+    return toVarReference(value);
   }
 
   if (Array.isArray(value)) {
@@ -97,7 +97,7 @@ function toCssValue(value: unknown, key?: string): string {
     return String(value);
   }
 
-  return toHyphen(value as string);
+  return toHyphen(String(value));
 }
 
 /**

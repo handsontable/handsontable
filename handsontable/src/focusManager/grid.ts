@@ -301,13 +301,13 @@ export class FocusGridManager {
     const suspended = this.#isSuspended;
 
     this.#getSelectedCell((selectedCell) => {
-      const { activeElement } = this.#hot.rootDocument;
+      const activeElement = this.#hot.rootDocument.activeElement as HTMLElement | null;
 
       // When focus management is suspended and an external focusable element (outside Handsontable)
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
       // This preserves the focus of inputs that live next to the grid when a programmatic selection
       // is applied via `selectCells(..., changeListener = false)`. See #10038.
-      if (suspended && activeElement && isOutsideInput(activeElement as HTMLElement)) {
+      if (suspended && activeElement && isOutsideInput(activeElement)) {
         return;
       }
 
@@ -315,8 +315,8 @@ export class FocusGridManager {
       // and resets the `document.activeElement` property. The blurring should happen only when the
       // previously selected input element has not belonged to the Handsontable editor. If blurring is
       // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
-      if (activeElement && isOutsideInput(activeElement as HTMLElement)) {
-        (activeElement as HTMLElement).blur();
+      if (activeElement && isOutsideInput(activeElement)) {
+        activeElement.blur();
       }
 
       this.focusOnHighlightedCell(selectedCell);
@@ -333,9 +333,9 @@ export class FocusGridManager {
     // owns focus, fall through so the default `imeFastEdit` behavior still moves focus to the
     // editor textarea (existing per-editor IME support tests rely on this). See #10038.
     if (this.#isSuspended) {
-      const { activeElement } = this.#hot.rootDocument;
+      const activeElement = this.#hot.rootDocument.activeElement as HTMLElement | null;
 
-      if (activeElement && isOutsideInput(activeElement as HTMLElement)) {
+      if (activeElement && isOutsideInput(activeElement)) {
         return;
       }
     }

@@ -202,7 +202,7 @@ export default class CellMeta {
     }
 
     return Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap))
-      .sort(([a], [b]) => (a as number) - (b as number))
+      .sort(([a], [b]) => a - b)
       .map(([, meta]) => meta);
   }
 

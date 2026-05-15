@@ -54,11 +54,11 @@ export class ItemsFactory {
       } else if (isNaN(parseInt(key, 10))) {
         value.key = value.key === undefined ? key : value.key;
         items[key] = value;
-        menuItemKey = value.key as string;
+        menuItemKey = String(value.key ?? '');
 
       } else {
-        items[value.key as string] = value;
-        menuItemKey = value.key as string;
+        items[String(value.key ?? '')] = value;
+        menuItemKey = String(value.key ?? '');
       }
       this.defaultOrderPattern.push(menuItemKey);
     });

@@ -90,7 +90,7 @@ class ConditionUpdateObserver {
     this.grouping = false;
 
     arrayEach(this.changes, (column) => {
-      this.updateStatesAtColumn(column as number);
+      this.updateStatesAtColumn(column);
     });
     this.changes.length = 0;
   }
@@ -183,7 +183,7 @@ class ConditionUpdateObserver {
    * @private
    */
   #onConditionBeforeClean() {
-    this.latestOrderStack = this.conditionCollection.getFilteredColumns() as number[];
+    this.latestOrderStack = this.conditionCollection.getFilteredColumns();
   }
 
   /**
@@ -193,7 +193,7 @@ class ConditionUpdateObserver {
    */
   #onConditionAfterClean() {
     arrayEach(this.latestOrderStack, (column) => {
-      this.updateStatesAtColumn(column as number);
+      this.updateStatesAtColumn(column);
     });
   }
 

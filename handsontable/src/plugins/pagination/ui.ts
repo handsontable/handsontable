@@ -345,7 +345,7 @@ export class PaginationUI {
     (pageSizeList as unknown[]).forEach((pageSizeItem: unknown) => {
       const label = pageSizeItem === 'auto' ?
         this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_AUTO) : pageSizeItem;
-      const option = new Option(label as string, pageSizeItem as string);
+      const option = new Option(String(label ?? ''), String(pageSizeItem ?? ''));
 
       if (
         (autoPageSize && pageSizeItem === 'auto') ||

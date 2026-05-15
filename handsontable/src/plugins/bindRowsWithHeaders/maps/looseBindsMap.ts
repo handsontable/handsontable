@@ -36,7 +36,7 @@ class LooseBindsMap extends IndexMap {
 
     this.indexedValues = getDecreasedIndexes(listAfterUpdate as number[], removedIndexes);
 
-    super.remove(removedIndexes as number[]);
+    super.remove(removedIndexes);
   }
 }
 

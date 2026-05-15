@@ -668,7 +668,7 @@ export class ColumnSorting extends BasePlugin {
       indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex), ...getDataForSortedColumns(visualRowIndex)]);
     }
 
-    const indexesBefore = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0] as number);
+    const indexesBefore = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
     sort(
       indexesWithData,
@@ -682,7 +682,7 @@ export class ColumnSorting extends BasePlugin {
       indexesWithData.push([visualRowIndex, ...getDataForSortedColumns(visualRowIndex)]);
     }
 
-    const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0] as number);
+    const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
     const indexMapping = new Map<number, number>(
       arrayMap(indexesBefore, (indexBefore: number, indexInsideArray: number) => [indexBefore, indexesAfter[indexInsideArray]] as [number, number]) as [number, number][]

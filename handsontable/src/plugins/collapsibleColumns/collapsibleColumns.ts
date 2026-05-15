@@ -380,20 +380,20 @@ export class CollapsibleColumns extends BasePlugin {
       const topLeftCornerLevel = topLeftCornerHeaders ? topLeftCornerHeaders.childNodes[i] : null;
 
       rangeEach(0, masterLevel.childNodes.length - 1, (j) => {
-        let button = (masterLevel.childNodes[j] as Element).querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+        let button = (masterLevel.childNodes[j] as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-        removeButton(button as HTMLElement | null);
+        removeButton(button);
 
         if (topLevel && topLevel.childNodes[j]) {
-          button = (topLevel.childNodes[j] as Element).querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+          button = (topLevel.childNodes[j] as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-          removeButton(button as HTMLElement | null);
+          removeButton(button);
         }
 
         if (topLeftCornerHeaders && topLeftCornerLevel && topLeftCornerLevel.childNodes[j]) {
-          button = (topLeftCornerLevel.childNodes[j] as Element).querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+          button = (topLeftCornerLevel.childNodes[j] as Element).querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
-          removeButton(button as HTMLElement | null);
+          removeButton(button);
         }
       });
     });
@@ -595,7 +595,7 @@ export class CollapsibleColumns extends BasePlugin {
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
     const isNodeCollapsible = collapsible === true && (origColspan ?? 0) > 1 && column >= this.hot.getSettings().fixedColumnsStart;
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
-    let collapsibleElement = TH.querySelector(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
+    let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
     removeAttribute(TH, [
       A11Y_EXPANDED('')[0]
@@ -605,11 +605,11 @@ export class CollapsibleColumns extends BasePlugin {
       if (!collapsibleElement) {
         collapsibleElement = this.hot.rootDocument.createElement('div');
 
-        addClass(collapsibleElement as HTMLElement, COLLAPSIBLE_ELEMENT_CLASS);
+        addClass(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
         TH.querySelector('div:first-child').appendChild(collapsibleElement);
       }
 
-      const el = collapsibleElement as HTMLElement;
+      const el = collapsibleElement;
 
       removeClass(el, ['collapsed', 'expanded']);
 

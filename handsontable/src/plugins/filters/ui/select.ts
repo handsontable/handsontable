@@ -84,7 +84,7 @@ export class SelectUI extends BaseUI {
     arrayEach(items, (item) => {
       const menuItem = item as SelectMenuItem;
 
-      menuItem.name = this.translateIfPossible(menuItem.name) as string;
+      menuItem.name = this.translateIfPossible(menuItem.name) as string | undefined;
     });
 
     return items;

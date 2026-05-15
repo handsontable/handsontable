@@ -75,9 +75,9 @@ export class ColumnStatesManager {
       return;
     }
 
-    objectEach(allSortSettings, (newValue: unknown, propertyName: unknown) => {
-      if (inheritedColumnProperties.includes(propertyName as string)) {
-        (this as Record<string, unknown>)[propertyName as string] = newValue;
+    objectEach(allSortSettings, (newValue: unknown, propertyName: string) => {
+      if (inheritedColumnProperties.includes(propertyName)) {
+        (this as Record<string, unknown>)[propertyName] = newValue;
       }
     });
   }
@@ -209,7 +209,7 @@ export class ColumnStatesManager {
    * Destroy the state manager.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.mapName as string);
+    this.hot.columnIndexMapper.unregisterMap(this.mapName);
     this.sortingStates = null;
   }
 }
