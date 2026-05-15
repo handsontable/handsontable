@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseChangelogContent } from '../changelog-parser.mjs';
+import { parseChangelogContent, parseAllChangelogs } from '../changelog-parser.mjs';
 
 test('extracts version and ISO release date from a single release block', () => {
   const md = [
@@ -117,4 +117,20 @@ test('detects framework prefix in bullets', () => {
     ['react', 'angular', 'vue', 'core'],
   );
   assert.equal(result[0].title, 'Fixed a thing in React.');
+});
+
+test('parseAllChangelogs returns entries from every changelog-X file (v6..v17)', () => {
+  const result = parseAllChangelogs();
+  const majors = new Set(result.map((e) => Number(e.version.split('.')[0])));
+  for (let m = 6; m <= 17; m += 1) {
+    assert.ok(majors.has(m), `expected major ${m} present`);
+  }
+});
+
+test('parseAllChangelogs produces no entries with null releaseDate inside major releases', () => {
+  const result = parseAllChangelogs();
+  const mainline = result.filter((e) => /\.0\.0$/.test(e.version));
+  for (const entry of mainline) {
+    assert.ok(entry.releaseDate, `release date missing for ${entry.version} (${entry.title})`);
+  }
 });

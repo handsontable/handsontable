@@ -1,3 +1,25 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const CHANGELOG_ROOT = resolve(__dirname, '../../content/guides/upgrade-and-migration');
+
+const CHANGELOG_FILES = [
+  'changelog-6/changelog-6.md',
+  'changelog-7/changelog-7.md',
+  'changelog-8/changelog-8.md',
+  'changelog-9/changelog-9.md',
+  'changelog-10/changelog-10.md',
+  'changelog-11/changelog-11.md',
+  'changelog-12/changelog-12.md',
+  'changelog-13/changelog-13.md',
+  'changelog-14/changelog-14.md',
+  'changelog-15/changelog-15.md',
+  'changelog-16/changelog-16.md',
+  'changelog-17/changelog-17.md',
+];
+
 const MONTHS = {
   january: '01', february: '02', march: '03', april: '04',
   may: '05', june: '06', july: '07', august: '08',
@@ -22,11 +44,17 @@ function findFirstReleaseDate(lines, startIdx) {
 }
 
 const CATEGORY_HEADINGS = {
-  '#### Added': 'added',
-  '#### Changed': 'changed',
-  '#### Deprecated': 'deprecated',
-  '#### Removed': 'removed',
-  '#### Fixed': 'fixed',
+  '#### Added': { category: 'added', forceBreaking: false },
+  '#### Changed': { category: 'changed', forceBreaking: false },
+  '#### Deprecated': { category: 'deprecated', forceBreaking: false },
+  '#### Removed': { category: 'removed', forceBreaking: false },
+  '#### Fixed': { category: 'fixed', forceBreaking: false },
+  '#### New features': { category: 'added', forceBreaking: false },
+  '#### Changes': { category: 'changed', forceBreaking: false },
+  '#### Changelog': { category: 'changed', forceBreaking: false },
+  '#### Deprecations': { category: 'deprecated', forceBreaking: false },
+  '#### Security': { category: 'fixed', forceBreaking: false },
+  '#### Breaking changes': { category: 'changed', forceBreaking: true },
 };
 
 const FRAMEWORK_PREFIXES = {
@@ -36,7 +64,7 @@ const FRAMEWORK_PREFIXES = {
 };
 
 function extractPrNumber(text) {
-  const match = text.match(/\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/pull\/\d+\)\s*$/);
+  const match = text.match(/\s*\(?\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/(?:issues|pull)\/\d+\)\s*\)?\s*$/);
   if (!match) return { prNumber: null, body: text };
   return { prNumber: Number(match[1]), body: text.slice(0, match.index).trim() };
 }
@@ -71,6 +99,7 @@ export function parseChangelogContent(markdown) {
   let currentVersion = null;
   let currentDate = null;
   let currentCategory = null;
+  let currentForceBreaking = false;
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
@@ -80,11 +109,14 @@ export function parseChangelogContent(markdown) {
       currentVersion = versionMatch[1];
       currentDate = findFirstReleaseDate(lines, i + 1);
       currentCategory = null;
+      currentForceBreaking = false;
       continue;
     }
 
-    if (CATEGORY_HEADINGS[line.trim()]) {
-      currentCategory = CATEGORY_HEADINGS[line.trim()];
+    const heading = CATEGORY_HEADINGS[line.trim()];
+    if (heading) {
+      currentCategory = heading.category;
+      currentForceBreaking = heading.forceBreaking;
       continue;
     }
 
@@ -96,7 +128,7 @@ export function parseChangelogContent(markdown) {
       version: currentVersion,
       releaseDate: currentDate,
       category: currentCategory,
-      breaking,
+      breaking: breaking || currentForceBreaking,
       framework,
       prNumber,
       title: body,
@@ -104,4 +136,13 @@ export function parseChangelogContent(markdown) {
   }
 
   return entries;
+}
+
+export function parseAllChangelogs() {
+  const all = [];
+  for (const relPath of CHANGELOG_FILES) {
+    const content = readFileSync(resolve(CHANGELOG_ROOT, relPath), 'utf8');
+    all.push(...parseChangelogContent(content));
+  }
+  return all;
 }
