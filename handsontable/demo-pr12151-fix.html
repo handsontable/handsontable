@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12151 — FIX (local build)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-run { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-run:hover { background: #2e7d32; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 28px; font-weight: 700; font-family: monospace; }
+    .metric-value.good { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .test-result { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
+    .test-result strong { display: block; margin-bottom: 6px; }
+    .r-bug  { color: #b71c1c; font-weight: 700; }
+    .r-ok   { color: #2e7d32; }
+    .r-info { color: #1565c0; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 12px 16px; font-size: 12px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .good    { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 130px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug  { color: #b71c1c; }
+    .entry-ok   { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12151 - afterScrollVertically/afterScrollHorizontally fire without position change</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12151-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12151 — local build).</strong>
+    <code>Overlays</code> now caches the last scroll position for each axis in
+    <code>#lastVerticalScrollPositionForCallback</code> and <code>#lastHorizontalScrollPositionForCallback</code>.
+    Before invoking <code>onScroll()</code> (which fires the hook), <code>#didVerticalScrollPositionChange()</code>
+    compares the current position to the cached one. If unchanged, the hook is suppressed and the cache is not updated.
+  </div>
+
+  <pre><span class="comment">// overlays.js — AFTER (fixed):</span>
+if (this.verticalScrolling <span class="good">&amp;&amp; this.#didVerticalScrollPositionChange()</span>) {
+  this.inlineStartOverlay.onScroll(); <span class="comment">// fires afterScrollVertically</span>
+}
+if (this.horizontalScrolling <span class="good">&amp;&amp; this.#didHorizontalScrollPositionChange()</span>) {
+  this.topOverlay.onScroll(); <span class="comment">// fires afterScrollHorizontally</span>
+}
+
+<span class="comment">// #didVerticalScrollPositionChange() caches and compares getScrollPosition()</span>
+<span class="good">// → returns false (suppresses hook) if position is same as last time</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code> branch
+    which includes PR #12151. No runtime monkey-patching needed.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Run duplicate-scroll test (vertical)"</strong>. This calls <code>refreshAll()</code>
+          twice with <code>verticalScrolling = true</code> but the same scroll position.</li>
+      <li>The counter shows <strong>1</strong> — the hook fires on the first call (new position) and is
+          suppressed on the second call (same position).</li>
+      <li>Run <strong>"Run duplicate-scroll test (horizontal)"</strong> — same result.</li>
+      <li>Run <strong>"Real scroll then duplicate"</strong> — scrolls to a new position first
+          (hook fires) then duplicates with the same position (hook suppressed).</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-v">Run duplicate-scroll test (vertical)</button>
+    <button class="btn btn-run" id="btn-h">Run duplicate-scroll test (horizontal)</button>
+    <button class="btn btn-run" id="btn-real">Real scroll then duplicate</button>
+    <button class="btn btn-reset" id="btn-reset">Reset counters</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">afterScrollVertically fired</div>
+      <div class="metric-value good" id="m-v">0</div>
+      <div class="metric-sub">After 1 test run: should be <strong>1</strong> ✓</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">afterScrollHorizontally fired</div>
+      <div class="metric-value good" id="m-h">0</div>
+      <div class="metric-sub">After 1 test run: should be <strong>1</strong> ✓</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">afterScroll fired</div>
+      <div class="metric-value neutral" id="m-any">0</div>
+      <div class="metric-sub">Combined (vertical + horizontal)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Duplicate suppressed</div>
+      <div class="metric-value good" id="m-suppressed">0</div>
+      <div class="metric-sub">Hook calls prevented by position cache</div>
+    </div>
+  </div>
+
+  <div class="test-result" id="test-result" style="display:none">
+    <strong>Last test result:</strong>
+    <div id="result-detail"></div>
+  </div>
+
+  <div id="log"><strong>Hook invocation log (latest first):</strong><div id="entries">(run a test to see events)</div></div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+    let countV = 0;
+    let countH = 0;
+    let countAny = 0;
+    let countSuppressed = 0;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString('en', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }) + '  ' + msg;
+      el.prepend(d);
+      while (el.children.length > 60) el.removeChild(el.lastChild);
+    }
+
+    function updateMetrics() {
+      document.getElementById('m-v').textContent   = countV;
+      document.getElementById('m-h').textContent   = countH;
+      document.getElementById('m-any').textContent = countAny;
+      document.getElementById('m-suppressed').textContent = countSuppressed;
+    }
+
+    hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(100, 30),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 320,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+
+      afterScrollVertically() {
+        countV++;
+        countAny++;
+        addLog('afterScrollVertically fired  ✓ (total=' + countV + ')', 'entry-ok');
+        updateMetrics();
+      },
+      afterScrollHorizontally() {
+        countH++;
+        countAny++;
+        addLog('afterScrollHorizontally fired ✓ (total=' + countH + ')', 'entry-ok');
+        updateMetrics();
+      },
+    });
+
+    function showResult(axis, fired, expectedFires, expectedSuppressed, posStr) {
+      const isOk = fired === expectedFires;
+      const resultEl = document.getElementById('test-result');
+      resultEl.style.display = '';
+      document.getElementById('result-detail').innerHTML =
+        `<span class="${isOk ? 'r-ok' : 'r-bug'}">` +
+        `after${axis} fired <strong>${fired}×</strong> for 2 refreshAll() at position ${posStr}. ` +
+        `Expected: ${expectedFires}. ${isOk ? `✓ Correct — ${expectedSuppressed} duplicate suppressed.` : '⚠ Unexpected result.'}` +
+        `</span>`;
+    }
+
+    function runVerticalTest() {
+      const overlays = hotInstance.view._wt.wtOverlays;
+      const pos = overlays.topOverlay.getScrollPosition();
+
+      addLog('--- vertical test: 2 refreshAll() at same position (' + pos + ') ---', 'entry-info');
+
+      const before = countV;
+
+      overlays.verticalScrolling = true;
+      overlays.refreshAll();
+
+      const afterFirst = countV;
+
+      overlays.verticalScrolling = true;
+      overlays.refreshAll();
+
+      const fired = countV - before;
+      const suppressed = 2 - fired;
+      countSuppressed += suppressed;
+      updateMetrics();
+      addLog(`  result: fired ${fired}× (suppressed ${suppressed}×) — ${fired === 1 ? 'CORRECT ✓' : 'BUG ⚠'}`, fired === 1 ? 'entry-ok' : 'entry-bug');
+      showResult('ScrollVertically', fired, 1, 1, pos);
+    }
+
+    function runHorizontalTest() {
+      const overlays = hotInstance.view._wt.wtOverlays;
+      const pos = overlays.inlineStartOverlay.getScrollPosition();
+
+      addLog('--- horizontal test: 2 refreshAll() at same position (' + pos + ') ---', 'entry-info');
+
+      const before = countH;
+
+      overlays.horizontalScrolling = true;
+      overlays.refreshAll();
+
+      overlays.horizontalScrolling = true;
+      overlays.refreshAll();
+
+      const fired = countH - before;
+      const suppressed = 2 - fired;
+      countSuppressed += suppressed;
+      updateMetrics();
+      addLog(`  result: fired ${fired}× (suppressed ${suppressed}×) — ${fired === 1 ? 'CORRECT ✓' : 'BUG ⚠'}`, fired === 1 ? 'entry-ok' : 'entry-bug');
+      showResult('ScrollHorizontally', fired, 1, 1, pos);
+    }
+
+    function runRealScrollTest() {
+      addLog('--- real scroll then duplicate: scroll to row 50, then duplicate ---', 'entry-info');
+
+      const before = countV;
+
+      // Scroll to row 50 (changes position → should fire)
+      hotInstance.scrollViewportTo({ row: 50, col: 0 });
+      hotInstance.render();
+
+      const afterReal = countV;
+      addLog(`  after real scroll: fired ${afterReal - before}× (expected 1)`, afterReal - before === 1 ? 'entry-ok' : 'entry-info');
+
+      // Now duplicate at same position (should be suppressed)
+      const overlays = hotInstance.view._wt.wtOverlays;
+      overlays.verticalScrolling = true;
+      overlays.refreshAll();
+
+      const fired = countV - before;
+      const suppressed = 2 - fired;
+      countSuppressed += suppressed;
+      updateMetrics();
+      addLog(`  after duplicate: total fired ${fired}× — ${fired === 1 ? 'CORRECT (duplicate suppressed) ✓' : 'BUG (duplicate not suppressed) ⚠'}`, fired === 1 ? 'entry-ok' : 'entry-bug');
+
+      const resultEl = document.getElementById('test-result');
+      resultEl.style.display = '';
+      document.getElementById('result-detail').innerHTML =
+        `<span class="${fired === 1 ? 'r-ok' : 'r-bug'}">` +
+        `Real scroll fired 1×. Duplicate refreshAll() at same position: ${suppressed > 0 ? 'suppressed ✓' : 'NOT suppressed ⚠'}.` +
+        `</span>`;
+    }
+
+    document.getElementById('btn-v').addEventListener('click', runVerticalTest);
+    document.getElementById('btn-h').addEventListener('click', runHorizontalTest);
+    document.getElementById('btn-real').addEventListener('click', runRealScrollTest);
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      countV = countH = countAny = countSuppressed = 0;
+      updateMetrics();
+      document.getElementById('entries').textContent = '(run a test to see events)';
+      document.getElementById('test-result').style.display = 'none';
+    });
+  </script>
+</body>
+</html>

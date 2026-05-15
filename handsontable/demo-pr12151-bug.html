@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12151 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .btn-run { background: #1976d2; color: #fff; border-color: #1565c0; font-weight: 600; }
+    .btn-run:hover { background: #1565c0; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 28px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad  { color: #b71c1c; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .test-result { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; }
+    .test-result strong { display: block; margin-bottom: 6px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .col { flex: 1; min-width: 260px; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; background: #fff; font-size: 12px; font-family: monospace; }
+    .col-label { font-size: 11px; font-family: sans-serif; font-weight: 700; color: #666; margin-bottom: 6px; text-transform: uppercase; }
+    .r-bug  { color: #b71c1c; font-weight: 700; }
+    .r-ok   { color: #2e7d32; }
+    .r-info { color: #1565c0; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; max-height: 130px; overflow-y: auto; margin-bottom: 12px; font-family: monospace; }
+    #log strong { display: block; margin-bottom: 4px; color: #333; font-family: sans-serif; }
+    .entry { padding: 1px 0; }
+    .entry-bug  { color: #b71c1c; }
+    .entry-ok   { color: #2e7d32; }
+    .entry-info { color: #1565c0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12151 - afterScrollVertically/afterScrollHorizontally fire without position change</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12151-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    In <code>Overlays#refreshAll()</code>, the <code>afterScrollVertically</code> and
+    <code>afterScrollHorizontally</code> hooks fire whenever the <code>verticalScrolling</code> /
+    <code>horizontalScrolling</code> flags are <code>true</code> — regardless of whether
+    <code>getScrollPosition()</code> returned a different value. Click
+    <strong>"Run duplicate-scroll test"</strong> to trigger two back-to-back <code>refreshAll()</code>
+    calls at the same position. The hook fires <strong>twice</strong> instead of once.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"Run duplicate-scroll test"</strong>. This simulates a Walkontable scenario
+          where <code>verticalScrolling = true</code> is set twice but the scroll position does not change.</li>
+      <li>Observe the <strong>afterScrollVertically total</strong> counter: it reads <strong>2</strong>.
+          It should be <strong>1</strong> — position did not change on the second call.</li>
+      <li>Click <strong>"Run horizontal test"</strong> for the same issue on the horizontal axis.</li>
+      <li>Compare with the <a href="demo-pr12151-fix.html">PR Fix page</a> where both counters stay at <strong>1</strong>.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-v">Run duplicate-scroll test (vertical)</button>
+    <button class="btn btn-run" id="btn-h">Run duplicate-scroll test (horizontal)</button>
+    <button class="btn btn-reset" id="btn-reset">Reset counters</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">afterScrollVertically fired</div>
+      <div class="metric-value bad" id="m-v">0</div>
+      <div class="metric-sub">Expected after 1 test run: <strong>1</strong> (fires <strong>2</strong> — bug)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">afterScrollHorizontally fired</div>
+      <div class="metric-value bad" id="m-h">0</div>
+      <div class="metric-sub">Expected after 1 test run: <strong>1</strong> (fires <strong>2</strong> — bug)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">afterScroll fired</div>
+      <div class="metric-value neutral" id="m-any">0</div>
+      <div class="metric-sub">Combined (vertical + horizontal)</div>
+    </div>
+  </div>
+
+  <div class="test-result" id="test-result" style="display:none">
+    <strong>Last test result:</strong>
+    <div id="result-detail"></div>
+  </div>
+
+  <div id="log"><strong>Hook invocation log (latest first):</strong><div id="entries">(run a test to see events)</div></div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+    let countV = 0;
+    let countH = 0;
+    let countAny = 0;
+
+    function addLog(msg, cls) {
+      const el = document.getElementById('entries');
+      if (el.textContent.startsWith('(')) el.textContent = '';
+      const d = document.createElement('div');
+      d.className = 'entry ' + (cls || '');
+      d.textContent = new Date().toLocaleTimeString('en', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 }) + '  ' + msg;
+      el.prepend(d);
+      while (el.children.length > 60) el.removeChild(el.lastChild);
+    }
+
+    function updateMetrics() {
+      document.getElementById('m-v').textContent   = countV;
+      document.getElementById('m-h').textContent   = countH;
+      document.getElementById('m-any').textContent = countAny;
+    }
+
+    hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(100, 30),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 320,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+
+      afterScrollVertically() {
+        countV++;
+        countAny++;
+        addLog('afterScrollVertically fired  (total=' + countV + ')', 'entry-bug');
+        updateMetrics();
+      },
+      afterScrollHorizontally() {
+        countH++;
+        countAny++;
+        addLog('afterScrollHorizontally fired (total=' + countH + ')', 'entry-bug');
+        updateMetrics();
+      },
+    });
+
+    function runVerticalTest() {
+      const overlays = hotInstance.view._wt.wtOverlays;
+      const posBeforeFirst = overlays.topOverlay.getScrollPosition();
+
+      addLog('--- vertical test: calling refreshAll twice at same scroll position ---', 'entry-info');
+      addLog('  scroll position: ' + posBeforeFirst, 'entry-info');
+
+      const beforeCount = countV;
+
+      // First call: verticalScrolling=true, position unchanged
+      overlays.verticalScrolling = true;
+      overlays.refreshAll();
+
+      // Second call: verticalScrolling=true again, position STILL unchanged
+      overlays.verticalScrolling = true;
+      overlays.refreshAll();
+
+      const fired = countV - beforeCount;
+      const detail = document.getElementById('result-detail');
+      const resultEl = document.getElementById('test-result');
+      resultEl.style.display = '';
+      detail.innerHTML =
+        `<span class="${fired > 1 ? 'r-bug' : 'r-ok'}">` +
+        `afterScrollVertically fired <strong>${fired}×</strong> for 2 refreshAll() calls at position ${posBeforeFirst}. ` +
+        `Expected: 1. ${fired > 1 ? '⚠ BUG — hook fires without position change.' : '✓ Correct.'}</span>`;
+    }
+
+    function runHorizontalTest() {
+      const overlays = hotInstance.view._wt.wtOverlays;
+      const posBeforeFirst = overlays.inlineStartOverlay.getScrollPosition();
+
+      addLog('--- horizontal test: calling refreshAll twice at same scroll position ---', 'entry-info');
+      addLog('  scroll position: ' + posBeforeFirst, 'entry-info');
+
+      const beforeCount = countH;
+
+      overlays.horizontalScrolling = true;
+      overlays.refreshAll();
+
+      overlays.horizontalScrolling = true;
+      overlays.refreshAll();
+
+      const fired = countH - beforeCount;
+      const detail = document.getElementById('result-detail');
+      const resultEl = document.getElementById('test-result');
+      resultEl.style.display = '';
+      detail.innerHTML =
+        `<span class="${fired > 1 ? 'r-bug' : 'r-ok'}">` +
+        `afterScrollHorizontally fired <strong>${fired}×</strong> for 2 refreshAll() calls at position ${posBeforeFirst}. ` +
+        `Expected: 1. ${fired > 1 ? '⚠ BUG — hook fires without position change.' : '✓ Correct.'}</span>`;
+    }
+
+    document.getElementById('btn-v').addEventListener('click', runVerticalTest);
+    document.getElementById('btn-h').addEventListener('click', runHorizontalTest);
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      countV = countH = countAny = 0;
+      updateMetrics();
+      document.getElementById('entries').textContent = '(run a test to see events)';
+      document.getElementById('test-result').style.display = 'none';
+    });
+  </script>
+</body>
+</html>
