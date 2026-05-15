@@ -63,7 +63,9 @@ export class ValueComponent extends BaseComponent {
    */
   hiddenWhen: (() => boolean) | undefined;
 
-  constructor(hotInstance: HotInstance, options: { id: string; name: string | (() => string); searchMode: unknown; hiddenWhen?: (() => boolean) }) {
+  constructor(hotInstance: HotInstance, options: {
+    id: string; name: string | (() => string); searchMode: unknown; hiddenWhen?: (() => boolean);
+  }) {
     super(hotInstance, {
       id: options.id,
       stateless: false,
@@ -96,7 +98,8 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
     this.hot
-      .addHook('modifyFiltersMultiSelectValue', (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
+      .addHook('modifyFiltersMultiSelectValue',
+        (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
   }
 
   /**
@@ -120,7 +123,9 @@ export class ValueComponent extends BaseComponent {
    *
    * @param {object} value The component value.
    */
-  setState(value?: { command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string }) {
+  setState(value?: {
+    command: { key: string }; args: unknown[]; itemsSnapshot: Record<string, unknown>[]; locale: string;
+  }) {
     this.reset();
 
     if (value && value.command.key === CONDITION_BY_VALUE) {
@@ -156,16 +161,22 @@ export class ValueComponent extends BaseComponent {
    * `editedConditionStack`, `dependentConditionStacks`, `visibleDataFactory` and `conditionArgsChange`.
    */
   updateState(stateInfo: StateInfo) {
-    const updateColumnState = (physicalColumn: number, conditions: ConditionEntry[], conditionArgsChange: unknown, filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[], conditionsStack?: ConditionStack) => {
-      const [firstByValueCondition] = arrayFilter(conditions, (condition) => (condition as ConditionEntry).name === CONDITION_BY_VALUE) as unknown as ConditionEntry[];
+    const updateColumnState = (
+      physicalColumn: number, conditions: ConditionEntry[], conditionArgsChange: unknown,
+      filteredRowsFactory: (physicalColumn: number, conditionsStack?: ConditionStack) => FilteredRow[],
+      conditionsStack?: ConditionStack
+    ) => {
+      const [firstByValueCondition] = arrayFilter(conditions,
+        condition => (condition as ConditionEntry).name === CONDITION_BY_VALUE) as unknown as ConditionEntry[];
       const state: Record<string, unknown> = {};
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
-        const rowValues = arrayMap(filteredRows as unknown[], (row) => (row as FilteredRow).value);
+        const rowValues = arrayMap(filteredRows as unknown[], row => (row as FilteredRow).value);
         const rowMetaMap = new Map(
-          filteredRows.map((row: FilteredRow) => [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
+          filteredRows.map((row: FilteredRow) =>
+            [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
         );
         const columnMeta = filteredRows[0]?.meta;
         const comparator = getSortComparatorForMeta(columnMeta);
@@ -246,7 +257,8 @@ export class ValueComponent extends BaseComponent {
       isCommand: false,
       disableSelection: true,
       hidden: () => this.isHidden() || (typeof this.hiddenWhen === 'function' && this.hiddenWhen()),
-      renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string) => {
+      renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
+        prop: string | number, value: string) => {
         addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuValue');
 
         const label = this.hot.rootDocument.createElement('div');
@@ -259,7 +271,7 @@ export class ValueComponent extends BaseComponent {
         // The MultipleSelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
         if (!wrapper.parentElement.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, (ui) => wrapper.appendChild((ui as BaseUI).element));
+          arrayEach(this.elements, ui => wrapper.appendChild((ui as BaseUI).element));
         }
 
         return wrapper;
@@ -273,7 +285,7 @@ export class ValueComponent extends BaseComponent {
   reset() {
     const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
     const rowEntries = this._getColumnVisibleValues();
-    const rowValues = rowEntries.map((entry) => (entry as { value: unknown; meta: Record<string, unknown> }).value);
+    const rowValues = rowEntries.map(entry => (entry as { value: unknown; meta: Record<string, unknown> }).value);
     const rowMetaMap = new Map(rowEntries.map((row) => {
       const r = row as { value: unknown; meta: Record<string, unknown> };
 

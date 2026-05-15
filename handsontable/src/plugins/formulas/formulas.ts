@@ -52,7 +52,8 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 // handled by whole body of listeners and therefore won't change undo/redo stack inside engine provided by HyperFormula.
 // HyperFormula's `undo` and `redo` methods will do it instead. Please keep in mind that undo/redo stacks inside
 // instances of Handsontable and HyperFormula should be synced (number of actions should be the same).
-const isBlockedSource = (source: unknown) => source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+const isBlockedSource = (source: unknown) =>
+  source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -220,13 +221,14 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
 
-    this.indexSyncer = new IndexSyncer(this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
-      this.hot.addHookOnce('init', () => {
-        // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
-        // be postponed.
-        postponedAction();
+    this.indexSyncer = new IndexSyncer(
+      this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
+        this.hot.addHookOnce('init', () => {
+          // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
+          // be postponed.
+          postponedAction();
+        });
       });
-    });
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
@@ -234,21 +236,27 @@ export class Formulas extends BasePlugin {
     this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer.getIndexesChangeSyncMethod());
     this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer.getIndexesChangeSyncMethod());
 
-    this.hot.addHook('beforeRowMove', (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
-      this.rowAxisSyncer.storeMovesInformation(movedRows, finalIndex, movePossible);
-    });
+    this.hot.addHook('beforeRowMove',
+      (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
+        this.rowAxisSyncer.storeMovesInformation(movedRows, finalIndex, movePossible);
+      });
 
-    this.hot.addHook('beforeColumnMove', (movedColumns: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
-      this.columnAxisSyncer.storeMovesInformation(movedColumns, finalIndex, movePossible);
-    });
+    this.hot.addHook('beforeColumnMove',
+      (movedColumns: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
+        this.columnAxisSyncer.storeMovesInformation(movedColumns, finalIndex, movePossible);
+      });
 
-    this.hot.addHook('afterRowMove', (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => {
-      this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
-    });
+    this.hot.addHook('afterRowMove',
+      (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined,
+        movePossible: boolean, orderChanged: boolean) => {
+        this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+      });
 
-    this.hot.addHook('afterColumnMove', (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => {
-      this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
-    });
+    this.hot.addHook('afterColumnMove',
+      (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined,
+        movePossible: boolean, orderChanged: boolean) => {
+        this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+      });
 
     this.hot.addHook('beforeColumnFreeze', (column: number, freezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
@@ -717,7 +725,8 @@ export class Formulas extends BasePlugin {
       }
 
       // If `cellValue` is an object it is expected to be an error
-      return (typeof cellValue === 'object' && cellValue !== null) ? (cellValue as { value: unknown }).value : cellValue;
+      return (typeof cellValue === 'object' && cellValue !== null)
+        ? (cellValue as { value: unknown }).value : cellValue;
     }
 
     return value;
@@ -732,7 +741,9 @@ export class Formulas extends BasePlugin {
    * @param {CellRange} targetRange The range new values will be filled into.
    * @returns {boolean|*}
    */
-  #onBeforeAutofill(fillData: unknown[][][][], sourceRange: Record<string, Function>, targetRange: Record<string, Function>) {
+  #onBeforeAutofill(
+    fillData: unknown[][][][], sourceRange: Record<string, Function>, targetRange: Record<string, Function>
+  ) {
     const { row: sourceTopStartRow, col: sourceTopStartColumn } = sourceRange.getTopStartCorner();
     const { row: sourceBottomEndRow, col: sourceBottomEndColumn } = sourceRange.getBottomEndCorner();
     const { row: targetTopStartRow, col: targetTopStartColumn } = targetRange.getTopStartCorner();
@@ -947,7 +958,8 @@ export class Formulas extends BasePlugin {
     }
 
     // If `cellValue` is an object it is expected to be an error
-    valueHolder.value = (typeof cellValue === 'object' && cellValue !== null) ? (cellValue as { value: unknown }).value : cellValue;
+    valueHolder.value = (typeof cellValue === 'object' && cellValue !== null)
+      ? (cellValue as { value: unknown }).value : cellValue;
   }
 
   /**
@@ -959,7 +971,9 @@ export class Formulas extends BasePlugin {
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  #onModifySourceData(row: number, columnOrProp: number | string, valueHolder: Record<string, unknown>, ioMode: string) {
+  #onModifySourceData(
+    row: number, columnOrProp: number | string, valueHolder: Record<string, unknown>, ioMode: string
+  ) {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||

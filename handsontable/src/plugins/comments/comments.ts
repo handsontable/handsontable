@@ -279,7 +279,8 @@ export class Comments extends BasePlugin {
 
     if (!this.#editor) {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
-      this.#editor.addLocalHook('resize', (width: unknown, height: unknown) => this.#onEditorResize(width as number, height as number));
+      this.#editor.addLocalHook('resize',
+        (width: unknown, height: unknown) => this.#onEditorResize(width as number, height as number));
       this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
         if (!firstRun) {
           this.hide();
@@ -291,9 +292,12 @@ export class Comments extends BasePlugin {
       this.#displaySwitch = new DisplaySwitch(this.getSetting<number>('displayDelay'));
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => this.addToContextMenu(options));
+    this.addHook('afterContextMenuDefaultOptions',
+      (options: Record<string, unknown>) => this.addToContextMenu(options));
     this.addHook('afterRenderer',
-      (TD: HTMLTableCellElement, row: number, col: number, prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => this.#onAfterRenderer(TD, cellProperties));
+      (TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
+        value: unknown, cellProperties: Record<string, unknown>) =>
+          this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', (event: Event) => this.#onAfterDocumentKeyDown(event));
@@ -413,12 +417,15 @@ export class Comments extends BasePlugin {
     const { rootDocument } = this.hot;
     const editorElement = this.getEditorInputElement();
 
-    this.eventManager.addEventListener(rootDocument, 'mouseover', (event: Event) => this.#onMouseOver(event as MouseEvent));
-    this.eventManager.addEventListener(rootDocument, 'mousedown', (event: Event) => this.#onMouseDown(event as MouseEvent));
+    this.eventManager.addEventListener(rootDocument, 'mouseover',
+      (event: Event) => this.#onMouseOver(event as MouseEvent));
+    this.eventManager.addEventListener(rootDocument, 'mousedown',
+      (event: Event) => this.#onMouseDown(event as MouseEvent));
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'keydown', event => this.#onEditorKeyDown(event as KeyboardEvent));
+    this.eventManager.addEventListener(editorElement, 'keydown',
+      event => this.#onEditorKeyDown(event as KeyboardEvent));
 
     this.eventManager.addEventListener(
       this.getEditorInputElement(),
@@ -453,7 +460,8 @@ export class Comments extends BasePlugin {
   targetIsCellWithComment(event: Event) {
     const closestCell = closest(eventTargetEl(event)!, ['TD']);
 
-    return !!(closestCell && hasClass(closestCell as HTMLElement, 'htCommentCell') && closest(closestCell as HTMLElement, [this.hot.rootElement]));
+    return !!(closestCell && hasClass(closestCell as HTMLElement, 'htCommentCell') &&
+      closest(closestCell as HTMLElement, [this.hot.rootElement]));
   }
 
   /**
@@ -669,7 +677,8 @@ export class Comments extends BasePlugin {
     }
 
     const lastColWidth = isBeforeRenderedColumns ? 0 :
-      getEditorAnchorWidth(metaColspan, TD as HTMLTableCellElement, (wtTable.getColumnWidth as (col: number) => number)(renderableColumn));
+      getEditorAnchorWidth(metaColspan, TD as HTMLTableCellElement,
+        (wtTable.getColumnWidth as (col: number) => number)(renderableColumn));
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD as HTMLElement) : 0;
 
     const {

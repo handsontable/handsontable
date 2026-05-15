@@ -291,12 +291,14 @@ export class Filters extends BasePlugin {
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu') as unknown as DropdownMenuPluginInterface;
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
-    const menuContainer = (typeof dropdownSettings === 'object' ? (dropdownSettings as Record<string, unknown>).uiContainer : null) as HTMLElement ||
+    const menuContainer = (typeof dropdownSettings === 'object'
+      ? (dropdownSettings as Record<string, unknown>).uiContainer : null) as HTMLElement ||
       this.hot.rootPortalElement;
     const addConfirmationHooks = (component: BaseComponent) => {
       component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));
-      component.addLocalHook('change', (command: Record<string, unknown>) => this.#onComponentChange(component, command));
+      component.addLocalHook('change',
+        (command: Record<string, unknown>) => this.#onComponentChange(component, command));
 
       return component;
     };
@@ -365,7 +367,8 @@ export class Filters extends BasePlugin {
         this.conditionCollection,
         (physicalColumn: number) => this.getDataMapAtColumn(physicalColumn),
       );
-      this.conditionUpdateObserver.addLocalHook('update', (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
+      this.conditionUpdateObserver.addLocalHook('update',
+        (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
     }
 
     this.components.forEach(component => component.show());
@@ -408,7 +411,8 @@ export class Filters extends BasePlugin {
           .flat(),
       ];
 
-      this.#menuFocusNavigator = createMenuFocusController(this.dropdownMenuPlugin.menu, focusableItems) as MenuFocusNavigatorInterface;
+      this.#menuFocusNavigator = createMenuFocusController(
+        this.dropdownMenuPlugin.menu, focusableItems) as MenuFocusNavigatorInterface;
 
       const forwardToFocusNavigation = (event: KeyboardEvent) => {
         this.#menuFocusNavigator.listen();
@@ -999,7 +1003,8 @@ export class Filters extends BasePlugin {
     if (allowFiltering !== false && needToFilter) {
       const trimmedRows: number[] = [];
       const dataFilter = this._createDataFilter();
-      const rowIndexesToShow = arrayMap(dataFilter.filter(), rowData => (rowData as { meta: { row: number } }).meta.row);
+      const rowIndexesToShow = arrayMap(dataFilter.filter(),
+        rowData => (rowData as { meta: { row: number } }).meta.row);
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
 
       this.hot.batchExecution(() => {
@@ -1079,11 +1084,15 @@ export class Filters extends BasePlugin {
     const countSourceRows = this.hot.countSourceRows();
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data: Record<string, unknown>[] = [];
+    type HotWithMetaManager = {
+      _getMetaManager(): {
+        getCellMeta(row: number, col: number, opts: Record<string, unknown>): Record<string, unknown>;
+      };
+    };
 
     for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
-      const cellMeta = (this.hot as unknown as {
-        _getMetaManager(): { getCellMeta(row: number, col: number, opts: Record<string, unknown>): Record<string, unknown> };
-      })._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
+      const cellMeta = (this.hot as unknown as HotWithMetaManager)
+        ._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
         visualRow: physicalRow,
         visualColumn: physicalColumn,
         skipMetaExtension: true,
@@ -1238,7 +1247,12 @@ export class Filters extends BasePlugin {
    * @private
    * @returns {string}
    */
-  getOperationBasedOnArguments(suggestedOperation: string, byConditionState1: Record<string, Record<string, unknown>>, byConditionState2: Record<string, Record<string, unknown>>, byValueState: Record<string, Record<string, unknown>>) {
+  getOperationBasedOnArguments(
+    suggestedOperation: string,
+    byConditionState1: Record<string, Record<string, unknown>>,
+    byConditionState2: Record<string, Record<string, unknown>>,
+    byValueState: Record<string, Record<string, unknown>>
+  ) {
     let operation = suggestedOperation;
 
     if (operation === OPERATION_OR && byConditionState1.command.key !== CONDITION_NONE &&
@@ -1398,7 +1412,8 @@ export class Filters extends BasePlugin {
    * @returns {DataFilter}
    */
   _createDataFilter(conditionCollection = this.conditionCollection) {
-    return new DataFilter(conditionCollection, ((physicalColumn: number) => this.getDataMapAtColumn(physicalColumn)) as () => Record<string, unknown>[]);
+    return new DataFilter(conditionCollection,
+      ((physicalColumn: number) => this.getDataMapAtColumn(physicalColumn)) as () => Record<string, unknown>[]);
   }
 
   /**
@@ -1434,8 +1449,10 @@ export class Filters extends BasePlugin {
       });
     }
 
-    const conditionsByValue = conditions.filter((condition: Record<string, unknown>) => condition.name === CONDITION_BY_VALUE);
-    const conditionsWithoutByValue = conditions.filter((condition: Record<string, unknown>) => condition.name !== CONDITION_BY_VALUE);
+    const conditionsByValue = conditions.filter(
+      (condition: Record<string, unknown>) => condition.name === CONDITION_BY_VALUE);
+    const conditionsWithoutByValue = conditions.filter(
+      (condition: Record<string, unknown>) => condition.name !== CONDITION_BY_VALUE);
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20

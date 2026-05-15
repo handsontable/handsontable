@@ -92,7 +92,7 @@ class Xlsx extends BaseType {
     conditionalFormatting: any[];
     exportFormulas: boolean;
     headerStyle: { backgroundColor: string; border: { style: string } } | null;
-  } {
+    } {
     return {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       fileExtension: 'xlsx',
@@ -139,7 +139,7 @@ class Xlsx extends BaseType {
       ? new Set(sheets.map(s => s.instance.rootDocument))
       : new Set([this.dataProvider.hot.rootDocument]);
 
-    docsToClear.forEach((doc) => clearStyleCaches(doc as Document));
+    docsToClear.forEach(doc => clearStyleCaches(doc as Document));
 
     const workbook = new engine.Workbook();
 
@@ -282,7 +282,8 @@ class Xlsx extends BaseType {
     //    and breaks styling assertions in tests.
     const hasColumnSummary = summaryMap.size > 0;
     const hasReadOnlyCells = !hasColumnSummary &&
-      cellsMeta.some((row: unknown[]) => row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
+      cellsMeta.some((row: unknown[]) =>
+        row.some((meta: unknown) => (meta as Record<string, unknown>)?.readOnly === true));
 
     const context = {
       exportFormulas,
@@ -501,7 +502,9 @@ class Xlsx extends BaseType {
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    * @returns {{ value: *, numFmt: string|null }}
    */
-  #resolveCellValue(cellValue: any, meta: any, sourceValue: any, summary: any, context: any): { value: any; numFmt: string | null } {
+  #resolveCellValue(
+    cellValue: any, meta: any, sourceValue: any, summary: any, context: any
+  ): { value: any; numFmt: string | null } {
     const {
       exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
@@ -648,7 +651,9 @@ class Xlsx extends BaseType {
    * @param {object|null|undefined} headerStyle The `headerStyle` option value.
    * @returns {object|null}
    */
-  #buildHeaderBorder(headerStyle: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null | undefined): object | null {
+  #buildHeaderBorder(
+    headerStyle: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null | undefined
+  ): object | null {
     if (!headerStyle?.border) {
       return null;
     }
@@ -706,7 +711,10 @@ class Xlsx extends BaseType {
    * @param {number} dataRows Total number of exported data rows.
    * @param {number} dataCols Total number of exported data columns.
    */
-  #applyConditionalFormatting(worksheet: any, cfRules: any[], dataRowOffset: number, dataColOffset: number, dataRows: number, dataCols: number): void {
+  #applyConditionalFormatting(
+    worksheet: any, cfRules: any[], dataRowOffset: number, dataColOffset: number,
+    dataRows: number, dataCols: number
+  ): void {
     if (dataRows === 0 || dataCols === 0) {
       return;
     }
@@ -801,7 +809,10 @@ class Xlsx extends BaseType {
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    * @param {boolean} isRtl Whether the table layout direction is right-to-left.
    */
-  #applyWorksheetViews(worksheet: any, frozenRows: number, frozenColumns: number, headerRowCount: number, hasRowHeaders: boolean, isRtl: boolean): void {
+  #applyWorksheetViews(
+    worksheet: any, frozenRows: number, frozenColumns: number,
+    headerRowCount: number, hasRowHeaders: boolean, isRtl: boolean
+  ): void {
     const hasFrozenPanes = frozenRows > 0 || frozenColumns > 0;
 
     if (!hasFrozenPanes && !isRtl) {
@@ -835,7 +846,10 @@ class Xlsx extends BaseType {
    * @param {object|null} headerFill ExcelJS fill object for header cells, or `null` for no fill.
    * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
    */
-  #writeColumnHeaders(worksheet: any, columnHeaders: any[], classNames: string[], hasRowHeaders: boolean, dataColOffset: number, headerFill: object | null, headerBorder: object | null): void {
+  #writeColumnHeaders(
+    worksheet: any, columnHeaders: any[], classNames: string[], hasRowHeaders: boolean,
+    dataColOffset: number, headerFill: object | null, headerBorder: object | null
+  ): void {
     const headerRow = worksheet.getRow(1);
 
     if (hasRowHeaders) {
@@ -886,7 +900,10 @@ class Xlsx extends BaseType {
    * @param {object|null} headerFill ExcelJS fill object for header cells, or `null` for no fill.
    * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
    */
-  #writeNestedColumnHeaders(worksheet: any, nestedColumnHeaders: any[][], hasRowHeaders: boolean, dataColOffset: number, headerFill: object | null, headerBorder: object | null): void {
+  #writeNestedColumnHeaders(
+    worksheet: any, nestedColumnHeaders: any[][], hasRowHeaders: boolean,
+    dataColOffset: number, headerFill: object | null, headerBorder: object | null
+  ): void {
     for (let layerIndex = 0; layerIndex < nestedColumnHeaders.length; layerIndex++) {
       const layerHeaders = nestedColumnHeaders[layerIndex];
       const row = worksheet.getRow(layerIndex + 1);
@@ -941,7 +958,9 @@ class Xlsx extends BaseType {
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    * @param {number} dataColOffset 1-based column number where data columns begin.
    */
-  #applyNestedHeaderMerges(worksheet: any, nestedColumnHeaders: any[][], hasRowHeaders: boolean, dataColOffset: number): void {
+  #applyNestedHeaderMerges(
+    worksheet: any, nestedColumnHeaders: any[][], hasRowHeaders: boolean, dataColOffset: number
+  ): void {
     if (hasRowHeaders && nestedColumnHeaders.length > 1) {
       worksheet.mergeCells(1, 1, nestedColumnHeaders.length, 1);
     }
@@ -1022,7 +1041,7 @@ class Xlsx extends BaseType {
       }
 
       const colLetter = colIndexToLetter(colNumber);
-      const escapedName = sheetName.replaceAll("'", "''");
+      const escapedName = sheetName.replaceAll('\'', '\'\'');
       const rangeRef = `'${escapedName}'!$${colLetter}$1:$${colLetter}$${source.length}`;
 
       validationMap.set(key, rangeRef);

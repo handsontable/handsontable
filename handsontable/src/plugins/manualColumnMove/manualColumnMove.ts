@@ -120,10 +120,15 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
-    this.addHook('beforeOnCellMouseOver', (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseDown',
+      (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+        controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseOver',
+      (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+        controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
     this.addHook('beforeOnCellMouseOverOutside',
-      (event: MouseEvent, coords: unknown, TD: HTMLElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOverOutside(controller));
+      (event: MouseEvent, coords: unknown, TD: HTMLElement, controller: Record<string, boolean>) =>
+        this.#onBeforeOnCellMouseOverOutside(controller));
     this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
     this.addHook('afterLoadData', () => this.#onAfterLoadData());
 
@@ -359,7 +364,9 @@ export class ManualColumnMove extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   persistentStateSave() {
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove', this.hot.columnIndexMapper.getIndexesSequence()); // The `PersistentState` plugin should be refactored.
+    // The `PersistentState` plugin should be refactored.
+    this.hot.runHooks('persistentStateSave', 'manualColumnMove',
+      this.hot.columnIndexMapper.getIndexesSequence());
   }
 
   /**
@@ -501,7 +508,8 @@ export class ManualColumnMove extends BasePlugin {
   registerEvents() {
     const { documentElement } = this.hot.rootDocument;
 
-    this.eventManager.addEventListener(documentElement, 'mousemove', (event: Event) => this.#onMouseMove(event as MouseEvent));
+    this.eventManager.addEventListener(documentElement, 'mousemove',
+      (event: Event) => this.#onMouseMove(event as MouseEvent));
     this.eventManager.addEventListener(documentElement, 'mouseup', () => this.#onMouseUp());
   }
 
@@ -523,7 +531,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseDown(event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) {
+  #onBeforeOnCellMouseDown(
+    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
+    controller: Record<string, boolean>
+  ) {
     const wtTable = this.hot.view._wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeActive();
@@ -611,7 +622,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseOver(event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) {
+  #onBeforeOnCellMouseOver(
+    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
+    controller: Record<string, boolean>
+  ) {
     const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {

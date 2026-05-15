@@ -235,15 +235,21 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.pasteMode = this.getSetting<string>('pasteMode') ?? this.pasteMode;
-    this.rowsLimit = isNaN(this.getSetting<number>('rowsLimit')!) ? this.rowsLimit : this.getSetting<number>('rowsLimit')!;
-    this.columnsLimit = isNaN(this.getSetting<number>('columnsLimit')!) ? this.columnsLimit : this.getSetting<number>('columnsLimit')!;
+    this.rowsLimit = isNaN(this.getSetting<number>('rowsLimit')!)
+      ? this.rowsLimit : this.getSetting<number>('rowsLimit')!;
+    this.columnsLimit = isNaN(this.getSetting<number>('columnsLimit')!)
+      ? this.columnsLimit : this.getSetting<number>('columnsLimit')!;
     this.#enableCopyColumnHeaders = this.getSetting<boolean>('copyColumnHeaders')!;
     this.#enableCopyColumnGroupHeaders = this.getSetting<boolean>('copyColumnGroupHeaders')!;
     this.#enableCopyColumnHeadersOnly = this.getSetting<boolean>('copyColumnHeadersOnly')!;
     this.uiContainer = this.getSetting<HTMLElement>('uiContainer') ?? this.uiContainer;
 
-    this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterSelection', (fromRow: number, fromColumn: number, toRow: number, toColumn: number, preventScrolling: { value: boolean }) => this.#onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling));
+    this.addHook('afterContextMenuDefaultOptions',
+      (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterSelection',
+      (fromRow: number, fromColumn: number, toRow: number, toColumn: number,
+        preventScrolling: { value: boolean }) =>
+          this.#onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
     // Events are attached to the document, not the root table element - as it should,
@@ -569,7 +575,8 @@ export class CopyPaste extends BasePlugin {
     // don't know whether populated data is bigger than selection on start as there are some cells for which values
     // should be not inserted (it's known right after getting cell meta).
     while (newRows.length < populatedRowsLength || visualRowForPopulatedData <= endRowFromSelection) {
-      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta<{ skipRowOnPaste: boolean, visualRow: number }>(visualRowForPopulatedData, startColumn);
+      const { skipRowOnPaste, visualRow } = this.hot.getCellMeta<{ skipRowOnPaste: boolean, visualRow: number }>(
+        visualRowForPopulatedData, startColumn);
 
       visualRowForPopulatedData = visualRow + 1;
 
@@ -589,7 +596,8 @@ export class CopyPaste extends BasePlugin {
           skipColumnOnPaste,
           visualCol,
           parsePastedValue,
-        } = this.hot.getCellMeta<{ skipColumnOnPaste: boolean, visualCol: number, parsePastedValue: unknown }>(visualRow, visualColumnForPopulatedData);
+        } = this.hot.getCellMeta<{ skipColumnOnPaste: boolean, visualCol: number, parsePastedValue: unknown }>(
+          visualRow, visualColumnForPopulatedData);
         const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow, visualColumnForPopulatedData);
         const insertedColumn = newRow.length % populatedColumnsLength;
 
@@ -810,7 +818,8 @@ export class CopyPaste extends BasePlugin {
         pastedData = clipboardData.getData('text/plain');
       }
 
-    } else if (typeof ClipboardEvent === 'undefined' && typeof (this.hot.rootWindow as unknown as IEWindow).clipboardData !== 'undefined') {
+    } else if (typeof ClipboardEvent === 'undefined' &&
+      typeof (this.hot.rootWindow as unknown as IEWindow).clipboardData !== 'undefined') {
       pastedData = (this.hot.rootWindow as unknown as IEWindow).clipboardData.getData('Text');
     }
 
@@ -910,7 +919,10 @@ export class CopyPaste extends BasePlugin {
    * @param {number} toColumn Selection end column visual index.
    * @param {object} preventScrolling Object with `value` property. If `true`, the viewport scroll will be prevented.
    */
-  #onAfterSelection(fromRow: number, fromColumn: number, toRow: number, toColumn: number, preventScrolling: { value: boolean }) {
+  #onAfterSelection(
+    fromRow: number, fromColumn: number, toRow: number, toColumn: number,
+    preventScrolling: { value: boolean }
+  ) {
     if (this.#preventViewportScrollOnPaste) {
       preventScrolling.value = true;
     }

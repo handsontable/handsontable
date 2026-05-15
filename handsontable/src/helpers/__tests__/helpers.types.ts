@@ -1,12 +1,28 @@
-import { arrayAvg, arrayEach, arrayFilter, arrayFlatten, arrayMap, arrayMax, arrayMin, arrayReduce, arraySum, arrayUnique, extendArray, getDifferenceOfArrays, getIntersectionOfArrays, getUnionOfArrays, pivot, stringToArray, to2dArray } from 'handsontable/helpers/array';
-import { equalsIgnoreCase, isPercentValue, randomString, stripTags, substitute, toUpperCaseFirst } from 'handsontable/helpers/string';
-import { clone, createObjectPropListener, deepClone, deepExtend, deepObjectSize, defineGetter, duckSchema, extend, getProperty, inherit, isObject, isObjectEqual, mixin, objectEach, setProperty } from 'handsontable/helpers/object';
+import {
+  arrayAvg, arrayEach, arrayFilter, arrayFlatten, arrayMap, arrayMax, arrayMin, arrayReduce,
+  arraySum, arrayUnique, extendArray, getDifferenceOfArrays, getIntersectionOfArrays,
+  getUnionOfArrays, pivot, stringToArray, to2dArray
+} from 'handsontable/helpers/array';
+import {
+  equalsIgnoreCase, isPercentValue, randomString, stripTags, substitute, toUpperCaseFirst
+} from 'handsontable/helpers/string';
+import {
+  clone, createObjectPropListener, deepClone, deepExtend, deepObjectSize, defineGetter,
+  duckSchema, extend, getProperty, inherit, isObject, isObjectEqual, mixin, objectEach, setProperty
+} from 'handsontable/helpers/object';
 import { clamp, isNumeric, rangeEach, rangeEachReverse, valueAccordingPercent } from 'handsontable/helpers/number';
 import { isDefined, isEmpty, isUndefined, stringify } from 'handsontable/helpers/mixed';
-import { curry, curryRight, debounce, isFunction, partial, pipe, throttle, throttleAfterHits } from 'handsontable/helpers/function';
-import { getComparisonFunction, isTouchSupported, requestAnimationFrame, cancelAnimationFrame } from 'handsontable/helpers/feature';
+import {
+  curry, curryRight, debounce, isFunction, partial, pipe, throttle, throttleAfterHits
+} from 'handsontable/helpers/function';
+import {
+  getComparisonFunction, isTouchSupported, requestAnimationFrame, cancelAnimationFrame
+} from 'handsontable/helpers/feature';
 import { isChrome, isEdge, isMobileBrowser, isSafari } from 'handsontable/helpers/browser';
-import { countFirstRowKeys, createEmptySpreadsheetData, createSpreadsheetData, createSpreadsheetObjectData, dataRowToChangesArray, spreadsheetColumnIndex, spreadsheetColumnLabel } from 'handsontable/helpers/data';
+import {
+  countFirstRowKeys, createEmptySpreadsheetData, createSpreadsheetData, createSpreadsheetObjectData,
+  dataRowToChangesArray, spreadsheetColumnIndex, spreadsheetColumnLabel
+} from 'handsontable/helpers/data';
 import { getNormalizedDate } from 'handsontable/helpers/date';
 import { isCtrlKey, isKey, isPrintableChar } from 'handsontable/helpers/unicode';
 import { instanceToHTML, htmlToGridSettings } from 'handsontable/utils/parseTable';
@@ -27,9 +43,9 @@ arraySum([1, 2, 3]);
 arrayUnique([1, 'foo', true]);
 cancelAnimationFrame(1);
 clamp(1, 2, 3);
-clone({key: 'foo'});
+clone({ key: 'foo' });
 countFirstRowKeys([[1, 2, 3]]);
-countFirstRowKeys([{a: 1, b: 2, c: 3}]);
+countFirstRowKeys([{ a: 1, b: 2, c: 3 }]);
 createEmptySpreadsheetData(0, 0);
 createObjectPropListener('foo', 'bar');
 createSpreadsheetData(0, 0);
@@ -37,25 +53,25 @@ createSpreadsheetObjectData(0, 0);
 curry(() => {});
 curryRight(() => {});
 dataRowToChangesArray([1, 2, 'three', 'four']);
-dataRowToChangesArray({a: 1, b: 2, c: 'three', d: 'four'});
+dataRowToChangesArray({ a: 1, b: 2, c: 'three', d: 'four' });
 dataRowToChangesArray([1, 2, 'three', 'four'], 33);
-dataRowToChangesArray({a: 1, b: 2, c: 'three', d: 'four'}, 33);
+dataRowToChangesArray({ a: 1, b: 2, c: 'three', d: 'four' }, 33);
 debounce(() => {}, 1);
-deepClone({key: 'foo'});
-deepExtend({key: 'foo'}, {key2: 'foo'});
-deepObjectSize({key: 'foo'});
-defineGetter({key: 'foo'}, 'key', 'bar', {});
+deepClone({ key: 'foo' });
+deepExtend({ key: 'foo' }, { key2: 'foo' });
+deepObjectSize({ key: 'foo' });
+defineGetter({ key: 'foo' }, 'key', 'bar', {});
 duckSchema({});
 equalsIgnoreCase('foo', 'bar');
-extend({key: 'foo'}, {key2: 'foo'});
+extend({ key: 'foo' }, { key2: 'foo' });
 extendArray([1, 'foo'], [true]);
 getComparisonFunction('en', {});
 getDifferenceOfArrays([1, 2, 3], [2, 3, 4]);
 getIntersectionOfArrays([1, 2, 3], [2, 3, 4]);
 getNormalizedDate('YYYY-mm-dd');
-getProperty({key: 'foo'}, 'key');
+getProperty({ key: 'foo' }, 'key');
 getUnionOfArrays([1, 2, 3], [2, 3, 4]);
-inherit({key: 'foo'} as any, {key2: 'bar'} as any);
+inherit({ key: 'foo' } as any, { key2: 'bar' } as any);
 
 const hot: HotInstance = Handsontable(document.createElement('div'), {});
 const testInstanceToString: string = instanceToHTML(hot);
@@ -76,8 +92,8 @@ isPrintableChar(1);
 isSafari();
 isTouchSupported();
 isUndefined(null);
-mixin(class {}, {key: 'foo'}, {key2: 'bar'});
-objectEach({key: 'foo'}, (value: unknown, key: unknown, object: object) => {});
+mixin(class {}, { key: 'foo' }, { key2: 'bar' });
+objectEach({ key: 'foo' }, (value: unknown, key: unknown, object: object) => {});
 
 // Wave 8: objectEach key is now string — no cast needed in callbacks
 objectEach({ a: 1, b: 2 }, (value: unknown, key: string) => {
@@ -103,7 +119,8 @@ stripTags('<a>foo</a>');
 substitute('foo', {});
 
 const testTableToSettings: GridSettings = htmlToGridSettings('') as GridSettings;
-const testTableToSettings2: GridSettings = htmlToGridSettings(document.createElement('table') as unknown as HTMLTableElement) as GridSettings;
+const testTableToSettings2: GridSettings =
+  htmlToGridSettings(document.createElement('table') as unknown as HTMLTableElement) as GridSettings;
 
 throttle(() => {}, 1);
 throttleAfterHits(() => {}, 0, 1);
@@ -122,6 +139,7 @@ const sumResult: number = arrayReduce<number, number>([1, 2, 3], (acc, n) => acc
 // getCellMeta<M> and runHooks<R> generic inference via HotInstance
 // Default fallback: Record<string, unknown> (backward-compatible)
 const defaultMeta: Record<string, unknown> = hot.getCellMeta(0, 0);
+
 // Explicit type arg: narrowed to caller-specified shape
 interface TestMeta { rowId: number }
 const narrowedMeta: TestMeta = hot.getCellMeta<TestMeta>(0, 0);

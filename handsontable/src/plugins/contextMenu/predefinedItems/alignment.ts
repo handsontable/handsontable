@@ -42,7 +42,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'horizontal';
             const alignment = 'htLeft';
 
@@ -60,7 +61,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'horizontal';
             const alignment = 'htCenter';
 
@@ -78,7 +80,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'horizontal';
             const alignment = 'htRight';
 
@@ -96,7 +99,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'horizontal';
             const alignment = 'htJustify';
 
@@ -117,7 +121,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'vertical';
             const alignment = 'htTop';
 
@@ -135,7 +140,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'vertical';
             const alignment = 'htMiddle';
 
@@ -153,7 +159,8 @@ export default function alignmentItem() {
           },
           callback() {
             const selectedRange = this.getSelectedRange();
-            const stateBefore = getAlignmentClasses(selectedRange, (row: number, col: number) => this.getCellMeta(row, col).className);
+            const stateBefore = getAlignmentClasses(selectedRange,
+              (row: number, col: number) => this.getCellMeta(row, col).className);
             const type = 'vertical';
             const alignment = 'htBottom';
 

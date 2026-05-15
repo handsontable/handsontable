@@ -134,7 +134,8 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
+    this.addHook('afterContextMenuDefaultOptions',
+      (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
     this.addHook('init', () => this.#onAfterInit());
 
     super.enablePlugin();
@@ -315,7 +316,8 @@ export class CustomBorders extends BasePlugin {
       this.savedBorders.push(border);
     }
 
-    const visualCellRange = this.hot._createCellRange(this.hot._createCellCoords(border.row as number, border.col as number), this.hot._createCellCoords(border.row as number, border.col as number), this.hot._createCellCoords(border.row as number, border.col as number));
+    const borderCoords = this.hot._createCellCoords(border.row as number, border.col as number);
+    const visualCellRange = this.hot._createCellRange(borderCoords, borderCoords, borderCoords);
     const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
@@ -332,7 +334,9 @@ export class CustomBorders extends BasePlugin {
    * @param {object} borderDescriptor Object with `row` and `col`, `start`, `end`, `top` and `bottom` properties.
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    */
-  prepareBorderFromCustomAdded(row: number, column: number, borderDescriptor: Record<string, any> | null, place: string | undefined) {
+  prepareBorderFromCustomAdded(
+    row: number, column: number, borderDescriptor: Record<string, any> | null, place: string | undefined
+  ) {
     const nrOfRows = this.hot.countRows();
     const nrOfColumns = this.hot.countCols();
 
@@ -345,19 +349,20 @@ export class CustomBorders extends BasePlugin {
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
 
-      arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
-        if (border.id === (customSelection.settings as Record<string, unknown>).id) {
-          Object.assign(customSelection.settings as Record<string, unknown>, borderDescriptor);
+      arrayEach(this.hot.selection.highlight.customSelections as unknown[],
+        (customSelection: Record<string, unknown>) => {
+          if (border.id === (customSelection.settings as Record<string, unknown>).id) {
+            Object.assign(customSelection.settings as Record<string, unknown>, borderDescriptor);
 
-          border.id = (customSelection.settings as Record<string, unknown>).id;
-          border.top = (customSelection.settings as Record<string, unknown>).top;
-          border.bottom = (customSelection.settings as Record<string, unknown>).bottom;
-          border.start = (customSelection.settings as Record<string, unknown>).start;
-          border.end = (customSelection.settings as Record<string, unknown>).end;
+            border.id = (customSelection.settings as Record<string, unknown>).id;
+            border.top = (customSelection.settings as Record<string, unknown>).top;
+            border.bottom = (customSelection.settings as Record<string, unknown>).bottom;
+            border.start = (customSelection.settings as Record<string, unknown>).start;
+            border.end = (customSelection.settings as Record<string, unknown>).end;
 
-          return false; // breaks forAll
-        }
-      });
+            return false; // breaks forAll
+          }
+        });
     }
 
     this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(border));
@@ -495,8 +500,12 @@ export class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `left`, `right` and `noBorders`.
    * @param {boolean} remove True when remove borders, and false when add borders.
    */
-  prepareBorder(selected: { start: { row: number; col: number }; end: { row: number; col: number } }[], place: string, remove: boolean) {
-    arrayEach(selected, ({ start, end }: { start: { row: number; col: number }; end: { row: number; col: number } }) => {
+  prepareBorder(
+    selected: { start: { row: number; col: number }; end: { row: number; col: number } }[],
+    place: string, remove: boolean
+  ) {
+    type SelectedItem = { start: { row: number; col: number }; end: { row: number; col: number } };
+    arrayEach(selected, ({ start, end }: SelectedItem) => {
       if (start.row === end.row && start.col === end.col) {
         if (place === 'noBorders') {
           this.removeAllBorders(start.row, start.col);
@@ -558,7 +567,8 @@ export class CustomBorders extends BasePlugin {
         this.prepareBorderFromCustomAddedRange(customBorder.range, normCustomBorder);
 
       } else {
-        this.prepareBorderFromCustomAdded(customBorder.row as number, customBorder.col as number, normCustomBorder, undefined);
+        this.prepareBorderFromCustomAdded(
+          customBorder.row as number, customBorder.col as number, normCustomBorder, undefined);
       }
     });
   }
@@ -609,14 +619,15 @@ export class CustomBorders extends BasePlugin {
    * @private
    */
   clearNullCellRange() {
-    arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>, index: number) => {
-      if (customSelection.cellRange === null) {
-        (customSelection as { destroy(): void }).destroy();
-        this.hot.selection.highlight.customSelections.splice(index, 1);
+    arrayEach(this.hot.selection.highlight.customSelections as unknown[],
+      (customSelection: Record<string, unknown>, index: number) => {
+        if (customSelection.cellRange === null) {
+          (customSelection as { destroy(): void }).destroy();
+          this.hot.selection.highlight.customSelections.splice(index, 1);
 
-        return false; // breaks forAll
-      }
-    });
+          return false; // breaks forAll
+        }
+      });
   }
 
   /**
@@ -691,19 +702,21 @@ export class CustomBorders extends BasePlugin {
   checkCustomSelectionsFromContextMenu(border: Record<string, unknown>, place: string, remove: boolean) {
     let check = false;
 
-    arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
-      if (border.id === (customSelection.settings as Record<string, unknown>).id) {
-        const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as unknown as Selection);
+    arrayEach(this.hot.selection.highlight.customSelections as unknown[],
+      (customSelection: Record<string, unknown>) => {
+        if (border.id === (customSelection.settings as Record<string, unknown>).id) {
+          const borders = this.hot.view._wt.selectionManager
+            .getBorderInstances(customSelection as unknown as Selection);
 
-        arrayEach(borders, (borderObject: Record<string, unknown>) => {
-          (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove); // TODO this also bad?
-        });
+          arrayEach(borders, (borderObject: Record<string, unknown>) => {
+            (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove); // TODO bad?
+          });
 
-        check = true;
+          check = true;
 
-        return false; // breaks forAll
-      }
-    });
+          return false; // breaks forAll
+        }
+      });
 
     return check;
   }
@@ -727,24 +740,26 @@ export class CustomBorders extends BasePlugin {
       check = true;
 
     } else {
-      arrayEach(this.hot.selection.highlight.customSelections as unknown[], (customSelection: Record<string, unknown>) => {
-        if (border.id === (customSelection.settings as Record<string, unknown>).id) {
-          customSelection.visualCellRange = cellRange;
-          (customSelection as { commit(): void }).commit();
+      arrayEach(this.hot.selection.highlight.customSelections as unknown[],
+        (customSelection: Record<string, unknown>) => {
+          if (border.id === (customSelection.settings as Record<string, unknown>).id) {
+            customSelection.visualCellRange = cellRange;
+            (customSelection as { commit(): void }).commit();
 
-          if (place) {
-            const borders = this.hot.view._wt.selectionManager.getBorderInstances(customSelection as unknown as Selection);
+            if (place) {
+              const borders = this.hot.view._wt.selectionManager
+                .getBorderInstances(customSelection as unknown as Selection);
 
-            arrayEach(borders, (borderObject: Record<string, unknown>) => {
-              (borderObject.changeBorderStyle as (place: string, border: Record<string, unknown>) => void)(place, border);
-            });
+              arrayEach(borders, (borderObject: Record<string, unknown>) => {
+                (borderObject.changeBorderStyle as (place: string, b: Record<string, unknown>) => void)(place, border);
+              });
+            }
+
+            check = true;
+
+            return false; // breaks forAll
           }
-
-          check = true;
-
-          return false; // breaks forAll
-        }
-      });
+        });
     }
 
     return check;

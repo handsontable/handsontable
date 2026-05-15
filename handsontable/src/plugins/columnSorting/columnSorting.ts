@@ -192,12 +192,17 @@ export class ColumnSorting extends BasePlugin {
     });
     this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
 
-    this.addHook('afterGetColHeader', (column: number, TH: HTMLTableCellElement) => this.#onAfterGetColHeader(column, TH));
-    this.addHook('beforeOnCellMouseDown', (event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
-    this.addHook('afterOnCellMouseDown', (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
+    this.addHook('afterGetColHeader',
+      (column: number, TH: HTMLTableCellElement) => this.#onAfterGetColHeader(column, TH));
+    this.addHook('beforeOnCellMouseDown',
+      (event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
+        controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+    this.addHook('afterOnCellMouseDown',
+      (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
     this.addHook('afterInit', () => this.#loadOrSortBySettings());
     this.addHook('afterLoadData', (initialLoad: boolean) => this.#onAfterLoadData(initialLoad));
-    this.addHook('afterDataProviderFetch', (result: { columnSortConfig?: Record<string, unknown>[] }) => this.#onAfterDataProviderFetch(result), -1);
+    this.addHook('afterDataProviderFetch',
+      (result: { columnSortConfig?: Record<string, unknown>[] }) => this.#onAfterDataProviderFetch(result), -1);
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -323,7 +328,8 @@ export class ColumnSorting extends BasePlugin {
     }
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
-      this.indexesSequenceCache = this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence()) as IndexesSequence;
+      this.indexesSequenceCache =
+        this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence()) as IndexesSequence;
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
@@ -473,7 +479,8 @@ export class ColumnSorting extends BasePlugin {
       ({ column: this.hot.toVisualColumn(physicalColumn), ...restOfProperties });
 
     if (isDefined(allSortSettings) && Array.isArray((allSortSettings as Record<string, unknown>).initialConfig)) {
-      (allSortSettings as Record<string, unknown>).initialConfig = arrayMap((allSortSettings as Record<string, unknown>).initialConfig as SortConfig[], translateColumnToVisual);
+      (allSortSettings as Record<string, unknown>).initialConfig = arrayMap(
+        (allSortSettings as Record<string, unknown>).initialConfig as SortConfig[], translateColumnToVisual);
     }
 
     return allSortSettings;
@@ -685,7 +692,9 @@ export class ColumnSorting extends BasePlugin {
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
     const indexMapping = new Map<number, number>(
-      arrayMap(indexesBefore, (indexBefore: number, indexInsideArray: number) => [indexBefore, indexesAfter[indexInsideArray]] as [number, number]) as [number, number][]
+      arrayMap(indexesBefore,
+        (indexBefore: number, indexInsideArray: number) =>
+          [indexBefore, indexesAfter[indexInsideArray]] as [number, number]) as [number, number][]
     );
 
     const newIndexesSequence = arrayMap(this.hot.rowIndexMapper.getIndexesSequence(), (physicalIndex: number) => {
@@ -728,7 +737,7 @@ export class ColumnSorting extends BasePlugin {
       const initialConfig = (allSortSettings as Record<string, unknown>).initialConfig as object | object[];
 
       if (Array.isArray(initialConfig) || isObject(initialConfig)) {
-          this.sort(initialConfig as Record<string, unknown> | Record<string, unknown>[]);
+        this.sort(initialConfig as Record<string, unknown> | Record<string, unknown>[]);
       }
 
     } else {
@@ -854,7 +863,10 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseDown(event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: { column: boolean }) {
+  #onBeforeOnCellMouseDown(
+    event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
+    controller: { column: boolean }
+  ) {
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }

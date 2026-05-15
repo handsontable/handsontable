@@ -107,10 +107,15 @@ export class ManualRowMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
-    this.addHook('beforeOnCellMouseOver', (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseDown',
+      (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+        controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseOver',
+      (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+        controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
     this.addHook('beforeOnCellMouseOverOutside',
-      (event: unknown, coords: unknown, TD: unknown, controller: unknown) => this.#onBeforeOnCellMouseOverOutside(controller as Record<string, unknown>));
+      (event: unknown, coords: unknown, TD: unknown, controller: unknown) =>
+        this.#onBeforeOnCellMouseOverOutside(controller as Record<string, unknown>));
     this.addHook('afterScrollHorizontally', () => this.#onAfterScrollHorizontally());
     this.addHook('afterLoadData', () => this.#onAfterLoadData());
 
@@ -438,7 +443,8 @@ export class ManualRowMove extends BasePlugin {
     const rootElementOffset = offset(rootElement);
     const trimmingContainer = getTrimmingContainer(rootElement);
     const tableScroll = wtTable.holder.scrollTop;
-    const trimmingContainerScroll = this.hot.rootWindow !== (trimmingContainer as HTMLElement | Window) ? trimmingContainer.scrollTop : 0;
+    const trimmingContainerScroll = this.hot.rootWindow !== (trimmingContainer as HTMLElement | Window)
+      ? trimmingContainer.scrollTop : 0;
 
     const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
     const pixelsRelToTableStart = (this.#target.eventPageY ?? 0) - pixelsAbove + tableScroll;
@@ -520,7 +526,10 @@ export class ManualRowMove extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseDown(event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) {
+  #onBeforeOnCellMouseDown(
+    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
+    controller: Record<string, boolean>
+  ) {
     const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeActive();
@@ -595,7 +604,10 @@ export class ManualRowMove extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseOver(event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement, controller: Record<string, boolean>) {
+  #onBeforeOnCellMouseOver(
+    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
+    controller: Record<string, boolean>
+  ) {
     const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {

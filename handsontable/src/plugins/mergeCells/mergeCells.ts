@@ -212,37 +212,68 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeSetRangeStart', () => this.#onBeforeSetRangeStart());
     this.addHook('beforeSetRangeStartOnly', () => this.#onBeforeSetRangeStart());
     this.addHook('beforeSelectionFocusSet', () => this.#onBeforeSelectionFocusSet());
-    this.addHook('afterSelectionFocusSet', (row: number, column: number) => this.#onAfterSelectionFocusSet(row, column));
+    this.addHook('afterSelectionFocusSet',
+      (row: number, column: number) => this.#onAfterSelectionFocusSet(row, column));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
-    this.addHook('modifyGetCellCoords', (row: number, column: number, topmost: boolean, source: string) => this.#onModifyGetCellCoords(row, column, topmost, source));
-    this.addHook('modifyGetCoordsElement', (row: number, column: number, topmost: boolean, source: string) => this.#onModifyGetCellCoords(row, column, topmost, source));
-    this.addHook('afterIsMultipleSelection', (isMultiple: boolean) => this.#onAfterIsMultipleSelection(isMultiple));
-    this.addHook('afterRenderer', (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
-    this.addHook('afterContextMenuDefaultOptions', (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
-    this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => this.#onAfterGetCellMeta(row, col, cellProperties));
+    this.addHook('modifyGetCellCoords',
+      (row: number, column: number, topmost: boolean, source: string) =>
+        this.#onModifyGetCellCoords(row, column, topmost, source));
+    this.addHook('modifyGetCoordsElement',
+      (row: number, column: number, topmost: boolean, source: string) =>
+        this.#onModifyGetCellCoords(row, column, topmost, source));
+    this.addHook('afterIsMultipleSelection',
+      (isMultiple: boolean) => this.#onAfterIsMultipleSelection(isMultiple));
+    this.addHook('afterRenderer',
+      (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
+    this.addHook('afterContextMenuDefaultOptions',
+      (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
+    this.addHook('afterGetCellMeta',
+      (row: number, col: number, cellProperties: Record<string, unknown>) =>
+        this.#onAfterGetCellMeta(row, col, cellProperties));
     this.addHook('afterViewportRowCalculatorOverride',
       (calc: { startRow: number, endRow: number }) => this.#onAfterViewportRowCalculatorOverride(calc));
     this.addHook('afterViewportColumnCalculatorOverride',
       (calc: { startColumn: number, endColumn: number }) => this.#onAfterViewportColumnCalculatorOverride(calc));
-    this.addHook('modifyAutofillRange', (fullArea: number[], baseArea: number[]) => this.#onModifyAutofillRange(fullArea, baseArea));
+    this.addHook('modifyAutofillRange',
+      (fullArea: number[], baseArea: number[]) => this.#onModifyAutofillRange(fullArea, baseArea));
     this.addHook('afterCreateCol', (column: number, count: number) => this.#onAfterCreateCol(column, count));
     this.addHook('afterRemoveCol', (column: number, count: number) => this.#onAfterRemoveCol(column, count));
-    this.addHook('afterCreateRow', (row: number, count: number, source: string) => this.#onAfterCreateRow(row, count, source));
+    this.addHook('afterCreateRow',
+      (row: number, count: number, source: string) => this.#onAfterCreateRow(row, count, source));
     this.addHook('afterRemoveRow', (row: number, count: number) => this.#onAfterRemoveRow(row, count));
-    this.addHook('beforeColumnMove', (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean) => this.#onBeforeColumnMove(columns, finalIndex, dropIndex, movePossible));
-    this.addHook('afterColumnMove', (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) => this.#onAfterColumnMove(columns, finalIndex, dropIndex, movePossible, orderChanged));
-    this.addHook('beforeRowMove', (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean) => this.#onBeforeRowMove(rows, finalIndex, dropIndex, movePossible));
-    this.addHook('afterRowMove', (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) => this.#onAfterRowMove(rows, finalIndex, dropIndex, movePossible, orderChanged));
-    this.addHook('beforeColumnFreeze', (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
-    this.addHook('afterColumnFreeze', (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
-    this.addHook('beforeColumnUnfreeze', (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
-    this.addHook('afterColumnUnfreeze', (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
+    this.addHook('beforeColumnMove',
+      (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean) =>
+        this.#onBeforeColumnMove(columns, finalIndex, dropIndex, movePossible));
+    this.addHook('afterColumnMove',
+      (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) =>
+        this.#onAfterColumnMove(columns, finalIndex, dropIndex, movePossible, orderChanged));
+    this.addHook('beforeRowMove',
+      (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean) =>
+        this.#onBeforeRowMove(rows, finalIndex, dropIndex, movePossible));
+    this.addHook('afterRowMove',
+      (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) =>
+        this.#onAfterRowMove(rows, finalIndex, dropIndex, movePossible, orderChanged));
+    this.addHook('beforeColumnFreeze',
+      (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
+    this.addHook('afterColumnFreeze',
+      (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
+    this.addHook('beforeColumnUnfreeze',
+      (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
+    this.addHook('afterColumnUnfreeze',
+      (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
     this.addHook('afterChange', (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
-    this.addHook('beforeDrawBorders', (corners: number[], className: string) => this.#onBeforeDrawAreaBorders(corners, className));
-    this.addHook('afterDrawSelection', (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined) => this.#onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel));
+    this.addHook('beforeDrawBorders',
+      (corners: number[], className: string) => this.#onBeforeDrawAreaBorders(corners, className));
+    this.addHook('afterDrawSelection',
+      (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined) =>
+        this.#onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel));
     this.addHook('beforeRemoveCellClassNames', () => this.#onBeforeRemoveCellClassNames());
-    this.addHook('beforeBeginEditing', (row: number, column: number, initialValue: string | null, event: MouseEvent | KeyboardEvent) => this.#onBeforeBeginEditing(row, column, initialValue, event));
-    this.addHook('modifyRowHeightByOverlayName', (height: number, row: number, overlayType: string) => this.#onModifyRowHeightByOverlayName(height, row, overlayType));
+    this.addHook('beforeBeginEditing',
+      (row: number, column: number, initialValue: string | null, event: MouseEvent | KeyboardEvent) =>
+        this.#onBeforeBeginEditing(row, column, initialValue, event));
+    this.addHook('modifyRowHeightByOverlayName',
+      (height: number, row: number, overlayType: string) =>
+        this.#onModifyRowHeightByOverlayName(height, row, overlayType));
     this.addHook('beforeUndoStackChange', (action: unknown, source: unknown) => {
       if (source === 'MergeCells') {
         return false;
@@ -312,7 +343,9 @@ export class MergeCells extends BasePlugin {
       const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
 
       (this.hot.view._wt.wtOverlays.getOverlays(true) as unknown as Record<string, unknown>[]).map(
-        (overlay: Record<string, unknown>) => (overlay?.name === 'master' ? overlay : (overlay.clone as Record<string, unknown>).wtTable)
+        (overlay: Record<string, unknown>) => (overlay?.name === 'master'
+          ? overlay
+          : (overlay.clone as Record<string, unknown>).wtTable)
       ).forEach((wtTableRef: Record<string, unknown>) => {
         const rowToRefresh = (wtTableRef.getRow as (index: number) => HTMLElement | null)(renderableRowIndex);
 
@@ -380,7 +413,7 @@ export class MergeCells extends BasePlugin {
    */
   generateFromSettings() {
     const validSettings = this.getSetting<{ row: number, col: number, rowspan: number, colspan: number }[]>('cells')
-      .filter((mergeCellInfo) => this.validateSetting(mergeCellInfo));
+      .filter(mergeCellInfo => this.validateSetting(mergeCellInfo));
     const nonOverlappingSettings = this.mergedCellsCollection
       .filterOverlappingMergeCells(validSettings);
 
@@ -1397,7 +1430,9 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} movePossible Whether the move was allowed.
    * @param {boolean} orderChanged Whether the move actually changed the order.
    */
-  #onAfterColumnMove(_columns: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean) {
+  #onAfterColumnMove(
+    _columns: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean
+  ) {
     const snapshot = this.#columnMoveSnapshot;
 
     this.#columnMoveSnapshot = null;
@@ -1440,7 +1475,9 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} movePossible Whether the move was allowed.
    * @param {boolean} orderChanged Whether the move actually changed the order.
    */
-  #onAfterRowMove(_rows: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean) {
+  #onAfterRowMove(
+    _rows: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean
+  ) {
     const snapshot = this.#rowMoveSnapshot;
 
     this.#rowMoveSnapshot = null;
@@ -1536,7 +1573,9 @@ export class MergeCells extends BasePlugin {
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined}
    */
-  #onAfterDrawSelection(currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined) {
+  #onAfterDrawSelection(
+    currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined
+  ) {
     // Nothing's selected (hook might be triggered by the custom borders)
     if (!cornersOfSelection) {
       return;
@@ -1617,7 +1656,10 @@ export class MergeCells extends BasePlugin {
     } else {
       const activeOverlay = this.hot.view.getOverlayByName(overlayType);
 
-      const overlayClone = (activeOverlay as unknown as { clone: { wtTable: { getFirstRenderedColumn(): number; getLastRenderedColumn(): number } } }).clone;
+      type OverlayWithClone = {
+        clone: { wtTable: { getFirstRenderedColumn(): number; getLastRenderedColumn(): number } };
+      };
+      const overlayClone = (activeOverlay as unknown as OverlayWithClone).clone;
 
       firstColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(overlayClone.wtTable.getFirstRenderedColumn());
@@ -1635,7 +1677,8 @@ export class MergeCells extends BasePlugin {
     const to = this.hot._createCellCoords(row, lastColumn);
     const viewportRange = this.hot._createCellRange(from, from, to);
     const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(viewportRange, true);
-    const maxRowspan = mergedCellsWithinRange.reduce((acc: number, { rowspan }: { rowspan: number }) => Math.max(acc, rowspan), 1);
+    const maxRowspan = mergedCellsWithinRange.reduce(
+      (acc: number, { rowspan }: { rowspan: number }) => Math.max(acc, rowspan), 1);
     let rowspanCorrection = 0;
 
     if (mergedCellsWithinRange.length > 1 && mergedCellsWithinRange[0].rowspan < maxRowspan) {

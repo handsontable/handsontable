@@ -218,8 +218,8 @@ class DataSource {
       }
     }
 
-    if (['__proto__', 'constructor', 'prototype'].includes(String(row))) {
-      // prevent prototype pollution
+    if (typeof row !== 'number' || !Number.isInteger(row) || row < 0) {
+      // Invalid row index. Prevent using special object keys (e.g. "__proto__") as row accessors.
       return;
     }
 

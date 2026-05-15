@@ -71,7 +71,9 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
  * @param {string|Function|undefined|null} rowIdOption `rowId` from config.
  * @returns {*|undefined}
  */
-export function getRowIdFromRowData(rowData: object | any[], rowIdOption: string | ((...args: any[]) => any) | undefined | null): any {
+export function getRowIdFromRowData(
+  rowData: object | any[], rowIdOption: string | ((...args: any[]) => any) | undefined | null
+): any {
   if (rowIdOption === undefined || rowIdOption === null) {
     return undefined;
   }
@@ -93,7 +95,9 @@ export function getRowIdFromRowData(rowData: object | any[], rowIdOption: string
  * @param {number} visualRow Visual row index.
  * @returns {*|undefined}
  */
-export function getRowIdByVisualRow(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, visualRow: number): any {
+export function getRowIdByVisualRow(
+  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, visualRow: number
+): any {
   return getRowIdFromRowData(
     hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)),
     rowIdOption
@@ -118,7 +122,9 @@ export function isMissingRowId(id: any): boolean {
  * @param {*} rowId Row id.
  * @returns {number} Visual row index or -1 when not found.
  */
-export function findVisualRowById(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, rowId: any): number {
+export function findVisualRowById(
+  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, rowId: any
+): number {
   for (let row = 0; row < hot.countRows(); row += 1) {
     if (getRowIdByVisualRow(hot, rowIdOption, row) === rowId) {
       return row;
@@ -138,7 +144,10 @@ export function findVisualRowById(hot: any, rowIdOption: string | ((...args: any
  * @returns {Array<*>}
  * @throws {Error} When `rowId` resolves to null or undefined for a row in range.
  */
-export function rowIdsFromAlterRemove(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, index: number | any[] | undefined | null, amount: number): any[] {
+export function rowIdsFromAlterRemove(
+  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null,
+  index: number | any[] | undefined | null, amount: number
+): any[] {
   const ids: any[] = [];
   const n = () => hot.countRows();
   const pushRange = (start: number, amt: number) => {
@@ -294,7 +303,9 @@ export function validateRowChanges(hot: any, visualRow: number, changes: Record<
  * @param {string} [source] Change source.
  * @returns {boolean}
  */
-export function shouldIgnoreAfterChangeForServerUpdate(hasOnRowsUpdate: boolean, changes: any[], source?: string): boolean {
+export function shouldIgnoreAfterChangeForServerUpdate(
+  hasOnRowsUpdate: boolean, changes: any[], source?: string
+): boolean {
   if (!hasOnRowsUpdate || !changes?.length) {
     return true;
   }
@@ -341,7 +352,10 @@ export function filterChangesForBatchedServerUpdate(hot: any, changes: any[]): a
  * @param {object[]} rows Caller payloads `{ id, changes, rowData? }`.
  * @returns {object[]}
  */
-export function buildManualUpdateRowPayloads(hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, rows: Array<{ id?: any; changes?: any; rowData?: any }>): object[] {
+export function buildManualUpdateRowPayloads(
+  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null,
+  rows: Array<{ id?: any; changes?: any; rowData?: any }>
+): object[] {
   return rows.map((p) => {
     const visualRow = findVisualRowById(hot, rowIdOption, p.id);
 
@@ -373,7 +387,16 @@ export function buildManualUpdateRowPayloads(hot: any, rowIdOption: string | ((.
  * @param {function(): void} [options.revertOptimistic] Restores previous cell values when the request fails.
  * @returns {Promise<void>}
  */
-export async function commitRowsUpdate(hot: any, callbacks: { getOnRowsUpdate: () => any; fetchData: () => Promise<any>; logError: (...args: any[]) => void; onRequestFailed?: (kind: string, err: Error) => void }, rowPayloads: object[], options: { revertOptimistic?: () => void } = {}): Promise<void> {
+type CommitRowsUpdateCallbacks = {
+  getOnRowsUpdate: () => any;
+  fetchData: () => Promise<any>;
+  logError: (...args: any[]) => void;
+  onRequestFailed?: (kind: string, err: Error) => void;
+};
+export async function commitRowsUpdate(
+  hot: any, callbacks: CommitRowsUpdateCallbacks,
+  rowPayloads: object[], options: { revertOptimistic?: () => void } = {}
+): Promise<void> {
   const onRowsUpdate = callbacks.getOnRowsUpdate();
 
   if (!isFunction(onRowsUpdate)) {
@@ -424,7 +447,13 @@ export async function commitRowsUpdate(hot: any, callbacks: { getOnRowsUpdate: (
  * @param {object[]} rowPayloads Per-row `{ id, changes, rowData }` payloads from `buildManualUpdateRowPayloads`.
  * @returns {Promise<void>}
  */
-export async function runManualUpdateRowsMutation(hot: any, ctx: { getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null; commitRowsUpdate: (payloads: Array<{ id?: any; changes?: any; rowData?: any }>) => Promise<void> }, rowPayloads: Array<{ id?: any; changes?: any; rowData?: any }>): Promise<void> {
+type ManualUpdateCtx = {
+  getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null;
+  commitRowsUpdate: (payloads: Array<{ id?: any; changes?: any; rowData?: any }>) => Promise<void>;
+};
+export async function runManualUpdateRowsMutation(
+  hot: any, ctx: ManualUpdateCtx, rowPayloads: Array<{ id?: any; changes?: any; rowData?: any }>
+): Promise<void> {
   const { getRowIdOption, commitRowsUpdate: commitUpdate } = ctx;
   const payload = { rows: rowPayloads };
 
@@ -463,7 +492,13 @@ export async function runManualUpdateRowsMutation(hot: any, ctx: { getRowIdOptio
  * @param {Array} changes Filtered change tuples `[visualRow, prop, oldVal, newVal][]`.
  * @returns {Promise<void>}
  */
-export async function runUpdateFromChanges(hot: any, ctx: { getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null; commitRowsUpdate: (payloads: object[], opts?: object) => Promise<void> }, changes: any[]): Promise<void> {
+type UpdateFromChangesCtx = {
+  getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null;
+  commitRowsUpdate: (payloads: object[], opts?: object) => Promise<void>;
+};
+export async function runUpdateFromChanges(
+  hot: any, ctx: UpdateFromChangesCtx, changes: any[]
+): Promise<void> {
   const { getRowIdOption, commitRowsUpdate: commitFn } = ctx;
   const byRow = new Map();
 
@@ -543,7 +578,18 @@ export async function runUpdateFromChanges(hot: any, ctx: { getRowIdOption: () =
  * @param {function(): Promise<void>|void} onSuccess Runs after success (e.g. `fetchData`).
  * @returns {Promise<void>}
  */
-export function queueCrud(ctx: { enqueueMutation: (fn: () => Promise<void>) => Promise<void>; runBeforeRowsMutation: (op: string, p: object) => false | undefined; runAfterRowsMutation: (op: string, p: object) => void; runAfterRowsMutationError: (op: string, err: Error, p: object) => void; logError: (...args: any[]) => void; onRequestFailed?: (op: string, err: Error) => void }, operation: string, payload: object, userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void): Promise<void> {
+type QueueCrudCtx = {
+  enqueueMutation: (fn: () => Promise<void>) => Promise<void>;
+  runBeforeRowsMutation: (op: string, p: object) => false | undefined;
+  runAfterRowsMutation: (op: string, p: object) => void;
+  runAfterRowsMutationError: (op: string, err: Error, p: object) => void;
+  logError: (...args: any[]) => void;
+  onRequestFailed?: (op: string, err: Error) => void;
+};
+export function queueCrud(
+  ctx: QueueCrudCtx, operation: string, payload: object,
+  userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void
+): Promise<void> {
   const {
     enqueueMutation: enqueue,
     runBeforeRowsMutation: beforeMut,
@@ -588,7 +634,9 @@ export function queueCrud(ctx: { enqueueMutation: (fn: () => Promise<void>) => P
  * @param {number} amount Row count when `index` is a number.
  * @returns {boolean|undefined} `false` when the alter is handled.
  */
-function handleInsertRowAlterForCrud(ctx: any, action: string, index: number | any[] | undefined | null, amount: number): false | undefined {
+function handleInsertRowAlterForCrud(
+  ctx: any, action: string, index: number | any[] | undefined | null, amount: number
+): false | undefined {
   const { hot, getOnRowsCreate, getRowId, createRows } = ctx;
 
   if (!isFunction(getOnRowsCreate())) {
@@ -619,7 +667,9 @@ function handleInsertRowAlterForCrud(ctx: any, action: string, index: number | a
  * @param {number} amount Row count when `index` is a number.
  * @returns {boolean|undefined} `false` when the alter is handled.
  */
-function handleRemoveRowAlterForCrud(ctx: any, index: number | any[] | undefined | null, amount: number): false | undefined {
+function handleRemoveRowAlterForCrud(
+  ctx: any, index: number | any[] | undefined | null, amount: number
+): false | undefined {
   const { hot, getOnRowsRemove, getRowIdOption, removeRows } = ctx;
 
   if (!isFunction(getOnRowsRemove())) {
@@ -653,7 +703,9 @@ function handleRemoveRowAlterForCrud(ctx: any, index: number | any[] | undefined
  * @param {number} amount Row count when `index` is a number.
  * @returns {boolean|undefined} False when alter is handled here.
  */
-export function handleBeforeAlterForCrud(ctx: any, action: string, index: number | any[] | undefined | null, amount: number): false | undefined {
+export function handleBeforeAlterForCrud(
+  ctx: any, action: string, index: number | any[] | undefined | null, amount: number
+): false | undefined {
   if (action === 'insert_row_above' || action === 'insert_row_below') {
     return handleInsertRowAlterForCrud(ctx, action, index, amount);
   }

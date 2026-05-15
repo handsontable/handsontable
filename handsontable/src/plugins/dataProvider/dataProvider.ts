@@ -172,7 +172,8 @@ export type RowMutationPayload = RowMutationCreatePayload | RowMutationUpdatePay
 
 export interface DataProviderConfig {
   rowId: string;
-  fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) => Promise<DataProviderFetchResult>;
+  fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
+    Promise<DataProviderFetchResult>;
   onRowCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsUpdate?: (payload: RowUpdatePayload[]) => Promise<void>;
@@ -339,7 +340,9 @@ export class DataProvider extends BasePlugin {
    * @fires Hooks#afterDataProviderFetchError when `fetchRows` throws a non-abort error.
    * @fires Hooks#afterDataProviderFetchAbort when the request is superseded, aborted, or ends with `AbortError`.
    */
-  async fetchData(overrides: DataProviderFetchDataOverrides = {}): Promise<{ rows: unknown[]; totalRows: number } | null> {
+  async fetchData(
+    overrides: DataProviderFetchDataOverrides = {}
+  ): Promise<{ rows: unknown[]; totalRows: number } | null> {
     const fetchFn = this.#getFetchFn();
 
     if (!isFunction(fetchFn)) {
@@ -511,7 +514,9 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    * @throws {Error} When any payload omits `id` or `id` is `null`.
    */
-  async updateRows(rows: Array<{ id?: unknown; changes?: Record<string, unknown>; rowData?: Record<string, unknown> }>): Promise<void> {
+  async updateRows(
+    rows: Array<{ id?: unknown; changes?: Record<string, unknown>; rowData?: Record<string, unknown> }>
+  ): Promise<void> {
     if (!isFunction(this.#getOnRowsUpdate()) || !Array.isArray(rows) || rows.length === 0) {
       return;
     }
@@ -769,7 +774,8 @@ export class DataProvider extends BasePlugin {
       getOnRowsUpdate: () => this.#getOnRowsUpdate(),
       fetchData: () => this.fetchData({ skipLoading: true }),
       logError,
-      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind as 'fetch' | 'create' | 'update' | 'remove', err),
+      onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(
+        kind as 'fetch' | 'create' | 'update' | 'remove', err),
     }, rowPayloads, options);
   }
 
@@ -782,7 +788,9 @@ export class DataProvider extends BasePlugin {
    * @param {function(): Promise<void>|void} onSuccess Runs after success (e.g. `fetchData`).
    * @returns {Promise<void>}
    */
-  #queueCrud(operation: string, payload: object, userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void): Promise<void> {
+  #queueCrud(
+    operation: string, payload: object, userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void
+  ): Promise<void> {
     return queueCrud(
       {
         enqueueMutation: fn => this.#enqueueMutation(fn),
@@ -790,7 +798,8 @@ export class DataProvider extends BasePlugin {
         runAfterRowsMutation: (op, p) => runAfterRowsMutation(this.hot, op, p),
         runAfterRowsMutationError: (op, err, p) => runAfterRowsMutationError(this.hot, op, err, p),
         logError,
-        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(kind as 'fetch' | 'create' | 'update' | 'remove', err),
+        onRequestFailed: (kind, err) => this.#showDataProviderRequestErrorNotification(
+          kind as 'fetch' | 'create' | 'update' | 'remove', err),
       },
       operation,
       payload,
@@ -882,7 +891,9 @@ export class DataProvider extends BasePlugin {
    * @param {boolean} sortPossible Whether sort is allowed.
    * @returns {boolean|undefined}
    */
-  readonly #onBeforeColumnSort = (currentSortConfig: unknown[], destinationSortConfigs: unknown[], sortPossible: boolean) => handleBeforeColumnSortForServer(
+  readonly #onBeforeColumnSort = (
+    currentSortConfig: unknown[], destinationSortConfigs: unknown[], sortPossible: boolean
+  ) => handleBeforeColumnSortForServer(
     {
       hot: this.hot,
       hasFetchFn: () => isFunction(this.#getFetchFn()),
@@ -898,7 +909,8 @@ export class DataProvider extends BasePlugin {
    * @param {number} visualRowIndex Visual row index.
    * @returns {number} Global row index for headers.
    */
-  readonly #onModifyRowHeader = (visualRowIndex: number) => getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
+  readonly #onModifyRowHeader = (visualRowIndex: number) =>
+    getPagedRowHeaderIndex(this.#queryParameters, visualRowIndex);
 
   /**
    * Skips the local undo stack for edits that batch to `onRowsUpdate` (same sources as `shouldIgnoreAfterChangeForServerUpdate`).

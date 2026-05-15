@@ -3,14 +3,23 @@
  * Moved here from common.ts as part of the common.ts decomposition.
  */
 
-import type { CellCoords as WalkontableCellCoords, CellRange as WalkontableCellRange } from '../3rdparty/walkontable/src';
+import type {
+  CellCoords as WalkontableCellCoords,
+  CellRange as WalkontableCellRange,
+} from '../3rdparty/walkontable/src';
 import type { CellChange, ChangeSource, RowObject, CellValue } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { UndoRedoAction } from '../plugins/undoRedo';
-import type { DataProviderBeforeFetchParameters, DataProviderQueryParameters, DataProviderFetchResult, RowMutationPayload, DataProviderConfig } from '../plugins/dataProvider';
+import type {
+  DataProviderBeforeFetchParameters,
+  DataProviderQueryParameters,
+  DataProviderFetchResult,
+  RowMutationPayload,
+  DataProviderConfig,
+} from '../plugins/dataProvider';
 import type { RangeType } from './types';
 
 /**
@@ -87,7 +96,8 @@ export interface GridSettings {
 
   // Rendering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderer?: string | ((hotInstance: any, td: HTMLTableCellElement, row: number, col: number, prop: string | number, value: any, cellProperties: any) => HTMLTableCellElement | void);
+  renderer?: string | ((hotInstance: any, td: HTMLTableCellElement, row: number, col: number,
+    prop: string | number, value: any, cellProperties: any) => HTMLTableCellElement | void);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   valueFormatter?: (value: any, cellProperties: any) => any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,7 +198,8 @@ export interface GridSettings {
   locale?: string;
   language?: string;
   numericFormat?: object;
-  selectOptions?: string[] | number[] | object[] | Record<string, string> | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
+  selectOptions?: string[] | number[] | object[] | Record<string, string>
+    | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;
   title?: string;
   trimDropdown?: boolean;
@@ -210,25 +221,34 @@ export interface GridSettings {
 
   // Hook callbacks
   afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
-  afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => void;
+  afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange,
+    direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
   afterCellMetaReset?: () => void;
   afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
   afterChangesObserved?: () => void;
-  afterColumnCollapse?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], collapsePossible: boolean, successfullyCollapsed: boolean) => void;
-  afterColumnExpand?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[], expandPossible: boolean, successfullyExpanded: boolean) => void;
+  afterColumnCollapse?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[],
+    collapsePossible: boolean, successfullyCollapsed: boolean) => void;
+  afterColumnExpand?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[],
+    expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
-  afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
+  afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+    movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
-  afterColumnSequenceCacheUpdate?: (indexesChangesState: { indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean }) => void;
+  afterColumnSequenceCacheUpdate?: (indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+  }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
-  afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>) => void;
+  afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
+    => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
   afterContextMenuShow?: (context: ContextMenu) => void;
-  afterCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void;
-  afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
+  afterCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number })
+    => void;
+  afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number,
+    copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCut?: (data: CellValue[][], coords: RangeType[]) => void;
@@ -239,8 +259,10 @@ export interface GridSettings {
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
   afterDocumentKeyDown?: (event: KeyboardEvent) => void;
-  afterDrawSelection?: (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel?: number) => string | void;
-  afterDropdownMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>) => void;
+  afterDrawSelection?: (currentRow: number, currentColumn: number, cornersOfSelection: number[],
+    layerLevel?: number) => string | void;
+  afterDropdownMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
+    => void;
   afterDropdownMenuHide?: (instance: DropdownMenu) => void;
   afterDropdownMenuShow?: (instance: DropdownMenu) => void;
   afterEmptyDataStateHide?: () => void;
@@ -252,15 +274,18 @@ export interface GridSettings {
   afterGetColumnHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
-  afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
-  afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+  afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean, stateChanged: boolean) => void;
+  afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean, stateChanged: boolean) => void;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
   afterLoadData?: (sourceData: unknown[], initialLoad: boolean, source: ChangeSource | undefined) => void;
   afterLoadingHide?: () => void;
   afterLoadingShow?: () => void;
-  afterMergeCells?: (cellRange: WalkontableCellRange, mergeParent: { row: number; col: number; rowspan: number; colspan: number }, auto: boolean) => void;
+  afterMergeCells?: (cellRange: WalkontableCellRange,
+    mergeParent: { row: number; col: number; rowspan: number; colspan: number }, auto: boolean) => void;
   afterModifyTransformEnd?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformFocus?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformStart?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
@@ -268,7 +293,16 @@ export interface GridSettings {
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNotificationHide?: (id: string) => void;
-  afterNotificationShow?: (id: string, options: { id: string; variant: 'info' | 'success' | 'warning' | 'error'; duration: number; position: 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end'; closable: boolean; actions: Array<{ label: string; type?: 'primary' | 'secondary'; callback: () => void }>; title?: string; message?: string | HTMLElement }) => void;
+  afterNotificationShow?: (id: string, options: {
+    id: string;
+    variant: 'info' | 'success' | 'warning' | 'error';
+    duration: number;
+    position: 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end';
+    closable: boolean;
+    actions: Array<{ label: string; type?: 'primary' | 'secondary'; callback: () => void }>;
+    title?: string;
+    message?: string | HTMLElement;
+  }) => void;
   afterOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
@@ -285,27 +319,37 @@ export interface GridSettings {
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
   afterRedoStackChange?: (undoneActionsBefore: UndoRedoAction[], undoneActionsAfter: UndoRedoAction[]) => void;
-  afterRefreshDimensions?: (previousDimensions: { width: number; height: number }, currentDimensions: { width: number; height: number }, stateChanged: boolean) => void;
+  afterRefreshDimensions?: (previousDimensions: { width: number; height: number },
+    currentDimensions: { width: number; height: number }, stateChanged: boolean) => void;
   afterRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
   afterRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   afterRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   afterRender?: (isForced: boolean) => void;
-  afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: Record<string, unknown>) => void;
-  afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
+  afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
+    value: CellValue, cellProperties: Record<string, unknown>) => void;
+  afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
+    movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
-  afterRowSequenceCacheUpdate?: (indexesChangesState: { indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean }) => void;
+  afterRowSequenceCacheUpdate?: (indexesChangesState: {
+    indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
+  }) => void;
   afterRowsMutation?: (operation: string, payload: RowMutationPayload) => void;
   afterRowsMutationError?: (operation: string, error: Error, payload: RowMutationPayload) => void;
   afterScroll?: () => void;
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
   afterSelectAll?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight?: WalkontableCellCoords) => void;
-  afterSelectColumns?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight: WalkontableCellCoords) => void;
-  afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
-  afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
-  afterSelectionEnd?: (row: number, column: number, row2: number, column2: number, selectionLayerLevel: number) => void;
-  afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string, selectionLayerLevel: number) => void;
+  afterSelectColumns?: (from: WalkontableCellCoords, to: WalkontableCellCoords,
+    highlight: WalkontableCellCoords) => void;
+  afterSelection?: (row: number, column: number, row2: number, column2: number,
+    preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
+  afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string,
+    preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
+  afterSelectionEnd?: (row: number, column: number, row2: number, column2: number,
+    selectionLayerLevel: number) => void;
+  afterSelectionEndByProp?: (row: number, prop: string, row2: number, prop2: string,
+    selectionLayerLevel: number) => void;
   afterSelectionFocusSet?: (row: number, column: number, preventScrolling: { value: boolean }) => void;
   afterSelectRows?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight: WalkontableCellCoords) => void;
   afterSetCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
@@ -316,42 +360,63 @@ export interface GridSettings {
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: unknown[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
-  afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[], actionPossible?: boolean, stateChanged?: boolean) => void;
+  afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
+    actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
-  afterUndoStackChange?: (doneActionsBefore: UndoRedoAction[], doneActionsAfter: UndoRedoAction[]) => void;
-  afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
-  afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+  afterUndoStackChange?: (doneActionsBefore: UndoRedoAction[], doneActionsAfter: UndoRedoAction[])
+    => void;
+  afterUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean, stateChanged: boolean) => void;
+  afterUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean, stateChanged: boolean) => void;
   afterUnlisten?: () => void;
   afterUnmergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
-  afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+  afterUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
+    actionPossible: boolean, stateChanged: boolean) => void;
   afterUpdateData?: (sourceData: unknown[], initialLoad: boolean, source: ChangeSource | undefined) => void;
   afterUpdateSettings?: (newSettings: Partial<GridSettings>) => void;
-  afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number, source: ChangeSource) => void | boolean;
+  afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number,
+    source: ChangeSource) => void | boolean;
   afterDataProviderFetch?: (result: DataProviderFetchResult) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
   afterDataProviderFetchError?: (error: Error, queryParameters: DataProviderQueryParameters) => void;
-  afterViewportColumnCalculatorOverride?: (calc: { startColumn: number; endColumn: number; [key: string]: unknown }) => void;
-  afterViewportRowCalculatorOverride?: (calc: { startRow: number; endRow: number; [key: string]: unknown }) => void;
+  afterViewportColumnCalculatorOverride?: (calc: {
+    startColumn: number; endColumn: number; [key: string]: unknown;
+  }) => void;
+  afterViewportRowCalculatorOverride?: (calc: {
+    startRow: number; endRow: number; [key: string]: unknown;
+  }) => void;
   afterViewRender?: (isForced: boolean) => void;
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
-  beforeAlter?: (action: string, index: number | Array<[number, number]>, amount: number, source?: ChangeSource, keepEmptyRows?: boolean) => boolean | void;
-  beforeAutofill?: (selectionData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | void;
-  beforeBeginEditing?: (row: number, column: number, initialValue: CellValue, event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
-  beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[], type: string, alignmentClass: string) => void;
+  beforeAlter?: (action: string, index: number | Array<[number, number]>, amount: number,
+    source?: ChangeSource, keepEmptyRows?: boolean) => boolean | void;
+  beforeAutofill?: (selectionData: CellValue[][], sourceRange: WalkontableCellRange,
+    targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | void;
+  beforeBeginEditing?: (row: number, column: number, initialValue: CellValue,
+    event: { preventDefault(): void; [key: string]: unknown }, fullEditMode: boolean) => boolean | void;
+  beforeCellAlignment?: (stateBefore: Record<string, string>, range: WalkontableCellRange[],
+    type: string, alignmentClass: string) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
   beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
-  beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], collapsePossible: boolean) => void | boolean;
-  beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[], expandPossible: boolean) => void | boolean;
+  beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
+    collapsePossible: boolean) => void | boolean;
+  beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
+    expandPossible: boolean) => void | boolean;
   beforeColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void | boolean;
-  beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
+  beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+    movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
-  beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
+  beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
+    destinationSortConfigs: ColumnSortingConfig[]) => void | boolean;
   beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
-  beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords, isColumnFlipped: boolean) => void;
+  beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
+    isColumnFlipped: boolean) => void;
   beforeCompositionStart?: (event: CompositionEvent) => void;
-  beforeContextMenuSetItems?: (menuItems: Array<PredefinedMenuItemKey | MenuItemConfig>) => void;
+  beforeContextMenuSetItems?: (menuItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
+    => void;
   beforeContextMenuShow?: (context: ContextMenu) => void;
-  beforeCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void | boolean;
+  beforeCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number })
+    => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
@@ -364,13 +429,18 @@ export interface GridSettings {
   beforeDropdownMenuShow?: (instance: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
   beforeEmptyDataStateHide?: () => void;
   beforeEmptyDataStateShow?: () => void;
-  beforeFilter?: (conditionsStack: ColumnConditions[], previousConditionsStack: ColumnConditions[]) => void | boolean;
+  beforeFilter?: (conditionsStack: ColumnConditions[], previousConditionsStack: ColumnConditions[])
+    => void | boolean;
   beforeGetCellMeta?: (row: number, column: number, cellProperties: Record<string, unknown>) => void;
   beforeHeightChange?: (height: number | string) => number | string;
-  beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
-  beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
-  beforeHighlightingColumnHeader?: (column: number, headerLevel: number, highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
-  beforeHighlightingRowHeader?: (row: number, headerLevel: number, highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
+  beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean) => void | boolean;
+  beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean) => void | boolean;
+  beforeHighlightingColumnHeader?: (column: number, headerLevel: number,
+    highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
+  beforeHighlightingRowHeader?: (row: number, headerLevel: number,
+    highlightMeta: { selectionType: string; rowCursor: number; selectionHeight: number }) => number | void;
   beforeInit?: () => void;
   beforeInitWalkontable?: (walkontableConfig: object) => void;
   beforeKeyDown?: (event: KeyboardEvent) => void;
@@ -380,51 +450,74 @@ export interface GridSettings {
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
   beforeNotificationHide?: (id: string) => boolean | void;
-  beforeNotificationShow?: (options: { id: string; variant: 'info' | 'success' | 'warning' | 'error'; duration: number; position: 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end'; closable: boolean; actions: Array<{ label: string; type?: 'primary' | 'secondary'; callback: () => void }>; title?: string; message?: string | HTMLElement }) => boolean | void;
+  beforeNotificationShow?: (options: {
+    id: string;
+    variant: 'info' | 'success' | 'warning' | 'error';
+    duration: number;
+    position: 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end';
+    closable: boolean;
+    actions: Array<{ label: string; type?: 'primary' | 'secondary'; callback: () => void }>;
+    title?: string;
+    message?: string | HTMLElement;
+  }) => boolean | void;
   beforeOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
-  beforeOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement, controller: { preventDefault: boolean }) => void;
+  beforeOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement,
+    controller: { preventDefault: boolean }) => void;
   beforeOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
-  beforeOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement, controller: { preventDefault: boolean }) => void;
+  beforeOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement,
+    controller: { preventDefault: boolean }) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
-  beforeRefreshDimensions?: (previousDimensions: { width: number; height: number }, currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
+  beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
+    currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
   beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;
-  beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: CellValue, cellProperties: Record<string, unknown>) => void;
-  beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void | boolean;
+  beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
+    value: CellValue, cellProperties: Record<string, unknown>) => void;
+  beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
+    movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
   beforeRowsMutation?: (operation: string, payload: RowMutationPayload) => void | boolean;
-  beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords, isRowFlipped: boolean) => void;
-  beforeSelectAll?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight?: WalkontableCellCoords) => void;
-  beforeSelectColumns?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight: WalkontableCellCoords) => void;
+  beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
+    isRowFlipped: boolean) => void;
+  beforeSelectAll?: (from: WalkontableCellCoords, to: WalkontableCellCoords,
+    highlight?: WalkontableCellCoords) => void;
+  beforeSelectColumns?: (from: WalkontableCellCoords, to: WalkontableCellCoords,
+    highlight: WalkontableCellCoords) => void;
   beforeSelectionFocusSet?: (coords: WalkontableCellCoords) => void;
   beforeSelectionHighlightSet?: () => void;
-  beforeSelectRows?: (from: WalkontableCellCoords, to: WalkontableCellCoords, highlight: WalkontableCellCoords) => void;
+  beforeSelectRows?: (from: WalkontableCellCoords, to: WalkontableCellCoords,
+    highlight: WalkontableCellCoords) => void;
   beforeSetCellMeta?: (row: number, column: number, key: string, value: unknown) => boolean | void;
   beforeSetRangeEnd?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStart?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStartOnly?: (coords: WalkontableCellCoords) => void;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
   beforeTouchScroll?: () => void;
-  beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
+  beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
+    actionPossible: boolean) => void | boolean;
   beforeUndo?: (action: UndoRedoAction) => void;
   beforeUndoStackChange?: (doneActions: UndoRedoAction[], source?: string) => void;
-  beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
-  beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
+  beforeUnhideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean) => void | boolean;
+  beforeUnhideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
+    actionPossible: boolean) => void | boolean;
   beforeUnmergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
-  beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[], actionPossible: boolean) => void | boolean;
+  beforeUntrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
+    actionPossible: boolean) => void | boolean;
   beforeUpdateData?: (sourceData: unknown[], initialLoad: boolean, source: ChangeSource | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
   beforeValueRender?: (value: CellValue, cellProperties: Record<string, unknown>) => void;
   beforeViewportScroll?: () => void;
-  beforeViewportScrollHorizontally?: (visualColumn: number, snapping: 'auto' | 'start' | 'end') => number | boolean | null;
+  beforeViewportScrollHorizontally?: (visualColumn: number, snapping: 'auto' | 'start' | 'end')
+    => number | boolean | null;
   beforeViewportScrollVertically?: (visualRow: number, snapping: 'auto' | 'top' | 'bottom') => number | boolean | null;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   beforeWidthChange?: (width: number | string) => number | string;
@@ -433,8 +526,10 @@ export interface GridSettings {
   dialogFocusPreviousElement?: () => void;
   hasExternalDataSource?: () => boolean | void;
   init?: () => void;
-  modifyAutoColumnSizeSeed?: (seed: string, cellProperties: Record<string, unknown>, cellValue: CellValue) => string | void;
-  modifyAutofillRange?: (entireArea: [number, number, number, number], startArea: [number, number, number, number]) => [number, number, number, number] | void;
+  modifyAutoColumnSizeSeed?: (seed: string, cellProperties: Record<string, unknown>,
+    cellValue: CellValue) => string | void;
+  modifyAutofillRange?: (entireArea: [number, number, number, number],
+    startArea: [number, number, number, number]) => [number, number, number, number] | void;
   modifyColHeader?: (column: number) => void;
   modifyColumnHeaderHeight?: () => void;
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
@@ -444,7 +539,8 @@ export interface GridSettings {
   modifyFiltersMultiSelectValue?: (value: string, meta: Record<string, unknown>) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;
-  modifyGetCellCoords?: (row: number, column: number, topmost: boolean, source: string | undefined) => void | [number, number] | [number, number, number, number];
+  modifyGetCellCoords?: (row: number, column: number, topmost: boolean, source: string | undefined)
+    => void | [number, number] | [number, number, number, number];
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
@@ -466,7 +562,9 @@ export interface GridSettings {
  * Used to derive the Events type for addHook/removeHook generics.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type HookKey = { [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> extends (...args: any[]) => any ? K : never }[keyof GridSettings];
+type HookKey = {
+  [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> extends (...args: any[]) => any ? K : never;
+}[keyof GridSettings];
 
 /**
  * Map of all Handsontable hook names to their typed callback signatures.
