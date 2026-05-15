@@ -1,5 +1,5 @@
 ---
-type: how-to
+type: reference
 id: 4ca0c70r
 title: Conditional formatting
 metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
