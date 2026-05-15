@@ -79,7 +79,7 @@ export class HandsontableEditor extends TextEditor {
     }
 
     // Constructs and initializes a new Handsontable instance
-    this.htEditor = new (this.hot.constructor as any)(this.htContainer, this.htOptions) as HotInstance;
+    this.htEditor = new (this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance)(this.htContainer, this.htOptions);
     this.htEditor.rootPortalElement = this.hot.rootPortalElement;
     this.htEditor.init();
     this.htEditor.rootElement.style.display = '';

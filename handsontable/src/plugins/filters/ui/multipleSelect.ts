@@ -185,7 +185,7 @@ export class MultipleSelectUI extends BaseUI {
     addClass(itemsBoxWrapper, 'htUIMultipleSelectHot');
 
     // Constructs and initializes a new Handsontable instance
-    this.#itemsBox = new (this.hot.constructor as any)(itemsBoxWrapper, {
+    this.#itemsBox = new (this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance)(itemsBoxWrapper, {
       data: [[]],
       columns: [{
         data: 'checked',
