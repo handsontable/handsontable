@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12247 — BUG (currentRowClassName / currentColClassName ignored by updateSettings)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 180px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 20px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    /* highlight classes for the demo */
+    .row-old td { background: #ffcccc !important; }
+    .row-new td { background: #ccffcc !important; }
+    .col-old td { background: #ffcccc !important; }
+    .col-new td { background: #ccffcc !important; }
+  </style>
+</head>
+<body>
+  <h1>PR #12247 - currentRowClassName / currentColClassName ignored by updateSettings</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12247-fix.html">PR #12247 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    <code>updateSettings({ currentRowClassName: 'newClass' })</code> updates the setting value
+    but does not propagate it to already-cached highlight objects. The highlight system continues
+    applying the old class name until the page is reloaded, so the row/column highlight color
+    does not change visually.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>The grid starts with <code>currentRowClassName: 'row-old'</code> (red background). Click any cell — the row turns red.</li>
+      <li>Click <strong>"Change to green via updateSettings"</strong>.</li>
+      <li>Click the same cell again.</li>
+      <li>BUG: the row stays <strong>red</strong> — old class is still applied. Cells with <code>row-new</code> (green) = 0.</li>
+      <li>Compare with the <a href="demo-pr12247-fix.html">Fix page</a> where the row turns green immediately.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-change">Change to green via updateSettings</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Cells with old class (red)</div>
+      <div class="metric-value neutral" id="m-old">—</div>
+      <div class="metric-sub">Should be 0 after change</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Cells with new class (green)</div>
+      <div class="metric-value neutral" id="m-new">—</div>
+      <div class="metric-sub">Expected: 5 (1 row × 5 cols) — BUG: 0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Setting value</div>
+      <div class="metric-value neutral" id="m-setting">row-old</div>
+      <div class="metric-sub">What getSettings() reports</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+    let changed = false;
+
+    function countCells(cls) {
+      return document.querySelectorAll('#hot-container td.' + cls).length;
+    }
+
+    function updateMetrics() {
+      const oldCount = countCells('row-old');
+      const newCount = countCells('row-new');
+      const setting = hotInstance ? hotInstance.getSettings().currentRowClassName : '—';
+
+      document.getElementById('m-old').textContent = oldCount;
+      document.getElementById('m-old').className = 'metric-value ' + (oldCount > 0 && changed ? 'bad' : 'neutral');
+      document.getElementById('m-new').textContent = newCount;
+      document.getElementById('m-new').className = 'metric-value ' + (newCount > 0 ? 'ok' : changed ? 'bad' : 'neutral');
+      document.getElementById('m-setting').textContent = setting || '(unset)';
+    }
+
+    function initHot() {
+      changed = false;
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
+      document.getElementById('m-old').textContent = '—';
+      document.getElementById('m-old').className = 'metric-value neutral';
+      document.getElementById('m-new').textContent = '—';
+      document.getElementById('m-new').className = 'metric-value neutral';
+      document.getElementById('m-setting').textContent = 'row-old';
+
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 200,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        currentRowClassName: 'row-old',
+        afterSelectionEnd() { updateMetrics(); },
+      });
+
+      hotInstance.selectCell(2, 2);
+      setTimeout(updateMetrics, 100);
+    }
+
+    document.getElementById('btn-change').addEventListener('click', () => {
+      changed = true;
+      hotInstance.updateSettings({ currentRowClassName: 'row-new' });
+      // Re-select to trigger highlight re-render
+      hotInstance.selectCell(2, 2);
+      setTimeout(updateMetrics, 100);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>

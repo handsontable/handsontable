@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12253 — FIX (dropdown button icon visible on active + filtered column header)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .old { color: #f48771; text-decoration: line-through; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-run:hover { background: #2e7d32; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 240px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 14px; font-weight: 700; font-family: monospace; word-break: break-all; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12253 - Dropdown button icon visible on active + filtered column header</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12253-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12253 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12253 — local build).</strong>
+    Six CSS lines were removed from <code>_dropdown-menu.scss</code>. The rule that was setting
+    <code>.changeType::after { background-color: var(--ht-header-active-foreground-color) }</code>
+    inside the <code>:has(.htFiltersActive)</code> + active-highlight compound selector has been
+    deleted. The dropdown button icon now inherits its normal color in all header states.
+  </div>
+
+  <pre><span class="comment">// _dropdown-menu.scss — removed:</span>
+<span class="old">.changeType {
+  &::after {
+    background-color: var(--ht-header-active-foreground-color);
+  }
+}</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> and <code>styles/ht-theme-main.min.css</code>
+    built from the <code>develop</code> branch which includes PR #12253.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Apply filter + activate column A"</strong>.</li>
+      <li>The Name column header shows both the filter badge and active highlight.</li>
+      <li>The <strong>▾ dropdown button icon is visible</strong> — it uses its normal color. ✓</li>
+      <li>Compare with the <a href="demo-pr12253-bug.html">BUG page</a> where the icon is invisible.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-trigger">Apply filter + activate column A</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Header state classes</div>
+      <div class="metric-value neutral" id="m-classes">—</div>
+      <div class="metric-sub">Both htFiltersActive + ht__active_highlight present ✓</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Dropdown button visible?</div>
+      <div class="metric-value neutral" id="m-visible">—</div>
+      <div class="metric-sub">No overriding active-foreground color ✓</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    function updateMetrics() {
+      const th = document.querySelector('#hot-container .ht_master thead th:nth-child(2)');
+      if (!th) return;
+
+      const classes = Array.from(th.classList).filter(c =>
+        c.includes('filter') || c.includes('active') || c.includes('highlight')
+      );
+      document.getElementById('m-classes').textContent = classes.join(' ') || '(none)';
+
+      const hasActiveHighlight = th.classList.contains('ht__active_highlight');
+      const hasFilter = th.classList.contains('htFiltersActive');
+      const btn = th.querySelector('.changeType');
+
+      if (btn && hasActiveHighlight && hasFilter) {
+        document.getElementById('m-visible').textContent = 'YES — icon color not overridden ✓';
+        document.getElementById('m-visible').className = 'metric-value ok';
+        document.getElementById('m-classes').className = 'metric-value ok';
+      } else if (!hasActiveHighlight || !hasFilter) {
+        document.getElementById('m-visible').textContent = 'Click the button to trigger the state';
+        document.getElementById('m-visible').className = 'metric-value neutral';
+      }
+    }
+
+    function initHot() {
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
+      document.getElementById('m-classes').textContent = '—';
+      document.getElementById('m-classes').className = 'metric-value neutral';
+      document.getElementById('m-visible').textContent = '—';
+      document.getElementById('m-visible').className = 'metric-value neutral';
+
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: [
+          { name: 'Alice', score: 90 },
+          { name: 'Bob',   score: 45 },
+          { name: 'Carol', score: 78 },
+          { name: 'Dave',  score: 45 },
+        ],
+        columns: [{ data: 'name' }, { data: 'score', type: 'numeric' }],
+        colHeaders: ['Name', 'Score'],
+        rowHeaders: true,
+        width: '100%',
+        height: 220,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        dropdownMenu: true,
+        filters: true,
+      });
+    }
+
+    document.getElementById('btn-trigger').addEventListener('click', () => {
+      const filtersPlugin = hotInstance.getPlugin('filters');
+      filtersPlugin.addCondition(0, 'not_empty', []);
+      filtersPlugin.filter();
+      hotInstance.selectCell(0, 0);
+      setTimeout(updateMetrics, 200);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>

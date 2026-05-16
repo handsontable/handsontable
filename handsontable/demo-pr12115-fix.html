@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12115 — FIX (comment editor correctly positioned on merged cells)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .old { color: #f48771; text-decoration: line-through; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-run:hover { background: #2e7d32; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 180px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 26px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12115 - Comment editor correctly positioned at merged cell right border</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12115-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12115 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12115 — local build).</strong>
+    A new <code>getEditorAnchorWidth(metaColspan, TD, renderableColumnWidth)</code> helper reads
+    the merged cell's actual rendered width via <code>outerWidth(TD)</code> when
+    <code>metaColspan &gt; 1</code>, replacing the single-column width. A
+    <code>mergedBorderCompensation</code> of 1px is also subtracted to align the editor exactly
+    at the merged cell's right border.
+  </div>
+
+  <pre><span class="comment">// comments.js — showAtCell() anchor width:</span>
+<span class="old">const lastColWidth = isBeforeRenderedColumns ? 0 : wtTable.getColumnWidth(renderableColumn);</span>
+<span class="new">const lastColWidth = isBeforeRenderedColumns ? 0 :
+  getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
+const mergedBorderCompensation = metaColspan > 1 ? 1 : 0;
+let x = left + rootWindow.scrollX + lastColWidth - mergedBorderCompensation;</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12115.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Show comment editor on merged cell"</strong>.</li>
+      <li>The editor appears exactly at the <strong>right edge of the merged B–D cell</strong>. ✓</li>
+      <li>Offset error is ≤ 2px (border rounding). ✓</li>
+      <li>Compare with the <a href="demo-pr12115-bug.html">BUG page</a> where the editor is displaced inward.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-show">Show comment editor on merged cell</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Editor left (px)</div>
+      <div class="metric-value neutral" id="m-editor-left">—</div>
+      <div class="metric-sub">Absolute page x of the editor</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Expected left (px)</div>
+      <div class="metric-value neutral" id="m-expected-left">—</div>
+      <div class="metric-sub">mergedCell.left + mergedCell.width - 1</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Offset error (px)</div>
+      <div class="metric-value neutral" id="m-error">—</div>
+      <div class="metric-sub">Expected: ≤ 2px ✓</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+
+    function initHot() {
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
+      ['m-editor-left', 'm-expected-left', 'm-error'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'metric-value neutral';
+      });
+
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: Handsontable.helper.createSpreadsheetData(5, 6),
+        colHeaders: ['A', 'B', 'C', 'D', 'E', 'F'],
+        rowHeaders: true,
+        width: '100%',
+        height: 220,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        comments: true,
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 1, colspan: 3 },
+        ],
+        cell: [
+          { row: 1, col: 1, comment: { value: 'This is a comment on a merged cell' } },
+        ],
+      });
+    }
+
+    document.getElementById('btn-show').addEventListener('click', () => {
+      const plugin = hotInstance.getPlugin('comments');
+      const mergedCell = hotInstance.getCell(1, 1);
+
+      plugin.showAtCell(1, 1);
+
+      setTimeout(() => {
+        const editorEl = plugin.getEditorInputElement();
+        if (!editorEl) return;
+
+        const editorContainer = editorEl.parentNode;
+        const editorRect = editorContainer.getBoundingClientRect();
+        const cellRect = mergedCell ? mergedCell.getBoundingClientRect() : null;
+
+        const editorLeft = Math.round(editorRect.left + window.scrollX);
+        const expectedLeft = cellRect
+          ? Math.round(cellRect.left + cellRect.width + window.scrollX - 1)
+          : 0;
+        const error = Math.abs(editorLeft - expectedLeft);
+
+        document.getElementById('m-editor-left').textContent = editorLeft + 'px';
+        document.getElementById('m-expected-left').textContent = expectedLeft + 'px';
+        document.getElementById('m-error').textContent = error + 'px';
+
+        const isGood = error <= 2;
+        document.getElementById('m-error').className = 'metric-value ' + (isGood ? 'ok' : 'bad');
+        document.getElementById('m-editor-left').className = 'metric-value ' + (isGood ? 'ok' : 'bad');
+      }, 100);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
