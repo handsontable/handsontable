@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12152 — BUG (sort/filter/dropdown indicators missing on rowspanned nested headers)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12152 - Sort/filter/dropdown indicators missing on rowspanned nested headers</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12129-fix.html">PR #12129 Fix <span class="badge badge-fix">FIXED</span></a>
+    <a class="nav-btn" href="demo-pr12152-fix.html">PR #12152 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    Even after #12129 adds rowspan support, plugins still used <code>level === lastHeaderRow</code>
+    index comparisons to decide whether to inject sort arrows, dropdown buttons, and filter-active
+    badges. A rowspanned header cell has a lower level index, so all these guards fail — the header
+    gets no indicators and clicking it does not trigger sorting. This page uses v17.0.1 where
+    <code>rowspan</code> is also not rendered, demonstrating the root cause: the "last level" check.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>This 2-level header setup has an <strong>ID column</strong> that should span both header rows (as a rowspanned header that reaches the bottom).</li>
+      <li>In v17.0.1, the sort arrow and dropdown button are <strong>absent</strong> from the top-row header — the level guard (<code>level !== lastRow</code>) rejects it.</li>
+      <li>Compare with the <a href="demo-pr12152-fix.html">Fix page</a> where the rowspanned ID header has all indicators.</li>
+    </ol>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Sort arrow on ID header (row 0)</div>
+      <div class="metric-value bad" id="m-sort-top">—</div>
+      <div class="metric-sub">Expected with rowspan: yes — BUG: no</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Dropdown btn on ID header (row 0)</div>
+      <div class="metric-value bad" id="m-dropdown-top">—</div>
+      <div class="metric-sub">Expected with rowspan: yes — BUG: no</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Sort arrow on Name (row 1)</div>
+      <div class="metric-value ok" id="m-sort-bottom">—</div>
+      <div class="metric-sub">Bottom row always gets sort arrow</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [
+        { id: 1, name: 'Alice', dept: 'Engineering', city: 'Warsaw' },
+        { id: 2, name: 'Bob',   dept: 'Design',      city: 'Berlin' },
+        { id: 3, name: 'Carol', dept: 'Marketing',   city: 'London' },
+      ],
+      columns: [
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'dept' },
+        { data: 'city' },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 240,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      columnSorting: true,
+      dropdownMenu: true,
+      filters: true,
+      navigableHeaders: true,
+      nestedHeaders: [
+        // In v17.0.1, rowspan is ignored — but we can still observe the level-guard bug
+        // by checking whether the top-row header (level -2) gets sort/dropdown indicators
+        [{ label: 'ID', rowspan: 2 }, { label: 'People & Location', colspan: 3 }],
+        ['', 'Name', 'Department', 'City'],
+      ],
+    });
+
+    setTimeout(() => {
+      const thead = document.querySelector('#hot-container .ht_master thead');
+      const rows = thead ? Array.from(thead.querySelectorAll('tr')) : [];
+
+      // Top header row (level -2): ID header — should have sort/dropdown if rowspan is respected
+      const idTHTop = rows[0] ? rows[0].querySelector('th:nth-child(2)') : null;
+      const hasSortTop = idTHTop ? !!idTHTop.querySelector('.columnSorting') : false;
+      const hasDropTop = idTHTop ? !!idTHTop.querySelector('.changeType') : false;
+
+      // Bottom header row (level -1): Name header — always gets sort arrow
+      const nameTHBottom = rows[1] ? rows[1].querySelector('th:nth-child(2)') : null;
+      const hasSortBottom = nameTHBottom ? !!nameTHBottom.querySelector('.columnSorting') : false;
+
+      document.getElementById('m-sort-top').textContent = hasSortTop ? 'yes' : 'no';
+      document.getElementById('m-dropdown-top').textContent = hasDropTop ? 'yes' : 'no';
+      document.getElementById('m-sort-bottom').textContent = hasSortBottom ? 'yes' : 'no';
+    }, 300);
+  </script>
+</body>
+</html>

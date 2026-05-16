@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12211 — FIX (nestedHeaders + sorting no longer crashes with disableVisualSelection)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .old { color: #f48771; text-decoration: line-through; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-run:hover { background: #2e7d32; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .status-box { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; font-family: monospace; }
+    .status-idle { background: #fff; border: 1px solid #ddd; color: #555; }
+    .status-error { background: #fdecea; border: 1px solid #ef9a9a; color: #b71c1c; }
+    .status-ok { background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <h1>PR #12211 - nestedHeaders + columnSorting no longer crashes with disableVisualSelection</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12211-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12211 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12211 — local build).</strong>
+    A single null-guard was added in <code>NestedHeaders#onBeforeHighlightingColumnHeader</code>.
+    When <code>disableVisualSelection: 'current'</code> is active the focus highlight's
+    <code>visualCellRange</code> is <code>null</code>; the handler now returns early in that case
+    instead of attempting to read <code>.highlight.col</code> off <code>null</code>.
+  </div>
+
+  <pre><span class="comment">// nestedHeaders.js — onBeforeHighlightingColumnHeader:</span>
+  const focusHighlight = this.hot.selection.highlight.getFocus();
+<span class="new">  const focusVisualCellRange = focusHighlight.visualCellRange;
+
+  if (focusVisualCellRange === null) {
+    return; // disableVisualSelection:'current' leaves visualCellRange null
+  }</span>
+
+<span class="old">  focusHighlight.visualCellRange.highlight.col = columnIndex;</span>
+<span class="new">  focusVisualCellRange.highlight.col = columnIndex;</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12211.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Click column header to sort"</strong>.</li>
+      <li>No TypeError is thrown — sorting completes successfully. ✓</li>
+      <li>Click again to cycle through asc → desc → none. ✓</li>
+      <li>Compare with the <a href="demo-pr12211-bug.html">BUG page</a> where a TypeError is thrown.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-sort">Click column header to sort</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="status-box status-idle" id="status">Waiting — click the button to verify no error is thrown.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    let hotInstance = null;
+    let sortCount = 0;
+
+    function initHot() {
+      sortCount = 0;
+      if (hotInstance) { hotInstance.destroy(); hotInstance = null; }
+      document.getElementById('status').textContent = 'Waiting — click the button to verify no error is thrown.';
+      document.getElementById('status').className = 'status-box status-idle';
+
+      hotInstance = window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 220,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        columnSorting: true,
+        navigableHeaders: true,
+        disableVisualSelection: 'current',
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 4 }],
+        ],
+      });
+    }
+
+    document.getElementById('btn-sort').addEventListener('click', () => {
+      const prevError = window.onerror;
+      let caught = false;
+
+      window.onerror = (msg, src, line, col, err) => {
+        caught = true;
+        document.getElementById('status').textContent = 'ERROR: ' + (err ? err.message : msg);
+        document.getElementById('status').className = 'status-box status-error';
+        window.onerror = prevError;
+        return true;
+      };
+
+      try {
+        sortCount++;
+        const sortOrders = ['asc', 'desc', undefined];
+        const order = sortOrders[(sortCount - 1) % 3];
+
+        if (order) {
+          hotInstance.getPlugin('columnSorting').sort({ column: 1, sortOrder: order });
+        } else {
+          hotInstance.getPlugin('columnSorting').clearSort();
+        }
+
+        setTimeout(() => {
+          if (!caught) {
+            const isSorted = hotInstance.getPlugin('columnSorting').isSorted();
+            document.getElementById('status').textContent =
+              'Sort #' + sortCount + ' completed — no errors. Sorted: ' + isSorted + ' ✓';
+            document.getElementById('status').className = 'status-box status-ok';
+          }
+          window.onerror = prevError;
+        }, 200);
+      } catch (e) {
+        caught = true;
+        document.getElementById('status').textContent = 'ERROR: ' + e.message;
+        document.getElementById('status').className = 'status-box status-error';
+        window.onerror = prevError;
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>

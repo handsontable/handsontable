@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12129 — BUG (nestedHeaders rowspan property is silently ignored)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 180px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 22px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12129 - nestedHeaders: rowspan property is silently ignored</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12129-fix.html">PR #12129 Fix <span class="badge badge-fix">FIXED</span></a>
+    <a class="nav-btn" href="demo-pr12152-fix.html">PR #12152 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    The <code>nestedHeaders</code> plugin ignores the <code>rowspan</code> property on header
+    config objects. A header declared as <code>{ label: 'ID', rowspan: 2 }</code> renders as
+    a single-row cell — no <code>rowspan</code> attribute is set on the <code>&lt;th&gt;</code>.
+    All sort indicators and dropdown buttons are missing from such headers.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>The grid is configured with two header rows. Column 0 uses <code>{ label: 'ID', rowspan: 2 }</code> — it should span both header rows.</li>
+      <li>In v17.0.1 the <strong>ID header occupies only the top row</strong>, leaving an empty gap below it.</li>
+      <li>The <code>rowspan</code> attribute on the TH is <code>1</code> (not <code>2</code>).</li>
+      <li>Compare with the <a href="demo-pr12129-fix.html">Fix page</a> where ID spans both rows correctly.</li>
+    </ol>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">ID header rowspan</div>
+      <div class="metric-value bad" id="m-rowspan">—</div>
+      <div class="metric-sub">Expected: 2 — BUG: 1 (ignored)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Header rows rendered</div>
+      <div class="metric-value neutral" id="m-rows">—</div>
+      <div class="metric-sub">Config has 2 rows</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Sort indicator on ID</div>
+      <div class="metric-value bad" id="m-sort">—</div>
+      <div class="metric-sub">Expected: yes — BUG: no</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const hot = window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [
+        { id: 1, name: 'Alice', dept: 'Engineering', city: 'Warsaw' },
+        { id: 2, name: 'Bob',   dept: 'Design',      city: 'Berlin' },
+        { id: 3, name: 'Carol', dept: 'Marketing',   city: 'London' },
+        { id: 4, name: 'Dave',  dept: 'Engineering', city: 'Warsaw' },
+      ],
+      columns: [
+        { data: 'id' },
+        { data: 'name' },
+        { data: 'dept' },
+        { data: 'city' },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 260,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      columnSorting: true,
+      navigableHeaders: true,
+      nestedHeaders: [
+        // ID should span both header rows; Name+Dept+City grouped under "People & Location"
+        [{ label: 'ID', rowspan: 2 }, { label: 'People & Location', colspan: 3 }],
+        ['', 'Name', 'Department', 'City'],
+      ],
+    });
+
+    setTimeout(() => {
+      const thead = document.querySelector('#hot-container .ht_master thead');
+      const rows = thead ? thead.querySelectorAll('tr') : [];
+      const idTH = rows[0] ? rows[0].querySelector('th:nth-child(2)') : null;
+      const rowspan = idTH ? (idTH.getAttribute('rowspan') || '1') : '?';
+      const hasSortSpan = idTH ? !!idTH.querySelector('.columnSorting') : false;
+
+      document.getElementById('m-rowspan').textContent = rowspan;
+      document.getElementById('m-rows').textContent = rows.length;
+      document.getElementById('m-sort').textContent = hasSortSpan ? 'yes' : 'no';
+    }, 200);
+  </script>
+</body>
+</html>
