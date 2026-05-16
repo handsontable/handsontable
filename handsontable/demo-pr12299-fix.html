@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notification plugin — PR Build</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info-fix { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info-fix strong { color: #1b5e20; }
+    .info-fix code { background: #c8e6c9; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .btn {
+      padding: 8px 18px; border-radius: 6px; font-size: 14px; cursor: pointer;
+      border: 1px solid #ccc; background: #fff; color: #333;
+    }
+    .btn:hover { background: #f0f0f0; }
+    .btn-info      { border-color: #1976d2; color: #1976d2; }
+    .btn-success   { border-color: #388e3c; color: #388e3c; }
+    .btn-warning   { border-color: #f57c00; color: #f57c00; }
+    .btn-error     { border-color: #d32f2f; color: #d32f2f; }
+    .btn-persistent { border-color: #6a1b9a; color: #6a1b9a; }
+    .btn-hide-all  { border-color: #555; color: #555; }
+    .keyboard-note { font-size: 13px; color: #555; margin-top: 12px; padding: 10px 14px; background: #fff; border: 1px solid #ddd; border-radius: 6px; }
+    .keyboard-note kbd {
+      display: inline-block; padding: 1px 6px; border: 1px solid #bbb;
+      border-radius: 3px; font-size: 12px; background: #f5f5f5; color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>PR #12299 - Notification plugin (toast messages)</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="demo-pr12299-bug.html">Released <span class="badge badge-cdn">v17.0.1</span></a>
+    <span class="nav-btn active">PR Build <span class="badge badge-local">local</span></span>
+  </nav>
+
+  <div class="info-fix">
+    <strong>Fix:</strong> The new <code>notification</code> plugin is enabled via <code>notification: true</code>.
+    Use <code>hot.getPlugin('notification').showMessage({...})</code> to display toast notifications.
+    Click the buttons below to trigger toasts of each variant, a persistent toast with an action button,
+    or hide all active toasts.
+  </div>
+
+  <div class="button-row">
+    <button class="btn btn-info"       onclick="showInfo()">Info toast</button>
+    <button class="btn btn-success"    onclick="showSuccess()">Success toast</button>
+    <button class="btn btn-warning"    onclick="showWarning()">Warning toast</button>
+    <button class="btn btn-error"      onclick="showError()">Error toast</button>
+    <button class="btn btn-persistent" onclick="showPersistent()">Persistent + action</button>
+    <button class="btn btn-hide-all"   onclick="hideAll()">Hide all</button>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <p class="keyboard-note">
+    Keyboard: <kbd>F6</kbd> moves focus to the notification region.
+    <kbd>Escape</kbd> returns focus to the grid.
+  </p>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      notification: true,
+    });
+
+    function getPlugin() {
+      return window.hot.getPlugin('notification');
+    }
+
+    function showInfo() {
+      getPlugin().showMessage({ variant: 'info', message: 'This is an info message.', duration: 3000, closable: true });
+    }
+
+    function showSuccess() {
+      getPlugin().showMessage({ variant: 'success', message: 'Data saved successfully!', duration: 3000, closable: true });
+    }
+
+    function showWarning() {
+      getPlugin().showMessage({ variant: 'warning', message: 'Watch out - unsaved changes.', duration: 3000, closable: true });
+    }
+
+    function showError() {
+      getPlugin().showMessage({ variant: 'error', message: 'Failed to save. Please retry.', duration: 3000, closable: true });
+    }
+
+    function showPersistent() {
+      getPlugin().showMessage({
+        variant: 'info',
+        message: 'Row deleted. Undo?',
+        duration: 0,
+        closable: true,
+        actions: [{ label: 'Undo', callback: function() { getPlugin().hideAll(); } }],
+      });
+    }
+
+    function hideAll() {
+      getPlugin().hideAll();
+    }
+  </script>
+</body>
+</html>

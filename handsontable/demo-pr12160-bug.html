@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Server-side sorting via dataProvider — Released v17.0.1</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info-bug { background: #fce4ec; border: 1px solid #e91e63; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info-bug strong { color: #880e4f; }
+    label { display: block; font-size: 13px; font-weight: 600; margin: 16px 0 6px; color: #444; }
+    textarea { width: 100%; height: 120px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; padding: 8px; background: #fff; resize: vertical; color: #333; }
+    .hint { font-size: 12px; color: #888; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Server-side sorting via dataProvider — PR #12160</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <span class="nav-btn active">Released <span class="badge badge-cdn">v17.0.1</span></span>
+    <a class="nav-btn" href="demo-pr12160-fix.html">PR Build <span class="badge badge-local">local</span></a>
+  </nav>
+
+  <div class="info-bug">
+    <strong>Bug — no server-side sorting:</strong> In v17.0.1, the <code>dataProvider</code> plugin does not exist.
+    Sorting is always performed client-side (in-memory). Clicking a column header reorders the displayed rows
+    locally without calling any server. The Sort log below stays empty - no <code>fetchRows</code> calls are made
+    with a <code>sort</code> parameter. Switch to the PR Build to see server-side sorting in action.
+  </div>
+
+  <div id="hot-container"></div>
+
+  <label for="sort-log">Sort log (server calls)</label>
+  <textarea id="sort-log" readonly placeholder="(empty — no server calls are made, sorting is client-side only)"></textarea>
+  <p class="hint">Click a column header to sort. Notice: no server calls appear in the log. All sorting happens in-memory.</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = [
+      { id: 1,  make: 'Toyota',    model: 'Camry',    year: 2020, country: 'Japan'   },
+      { id: 2,  make: 'Honda',     model: 'Civic',    year: 2021, country: 'Japan'   },
+      { id: 3,  make: 'Ford',      model: 'Mustang',  year: 2019, country: 'USA'     },
+      { id: 4,  make: 'BMW',       model: '3 Series', year: 2022, country: 'Germany' },
+      { id: 5,  make: 'Mercedes',  model: 'C-Class',  year: 2021, country: 'Germany' },
+      { id: 6,  make: 'Audi',      model: 'A4',       year: 2020, country: 'Germany' },
+      { id: 7,  make: 'Chevrolet', model: 'Corvette', year: 2022, country: 'USA'     },
+      { id: 8,  make: 'Nissan',    model: 'Altima',   year: 2021, country: 'Japan'   },
+      { id: 9,  make: 'Hyundai',   model: 'Sonata',   year: 2020, country: 'Korea'   },
+      { id: 10, make: 'Kia',       model: 'Stinger',  year: 2019, country: 'Korea'   },
+      { id: 11, make: 'Subaru',    model: 'Outback',  year: 2021, country: 'Japan'   },
+      { id: 12, make: 'Mazda',     model: 'CX-5',     year: 2022, country: 'Japan'   },
+      { id: 13, make: 'Volkswagen',model: 'Golf',     year: 2020, country: 'Germany' },
+      { id: 14, make: 'Peugeot',   model: '308',      year: 2021, country: 'France'  },
+      { id: 15, make: 'Renault',   model: 'Megane',   year: 2019, country: 'France'  },
+    ];
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: DATA,
+      colHeaders: ['ID', 'Make', 'Model', 'Year', 'Country'],
+      columns: [
+        { data: 'id',      readOnly: true },
+        { data: 'make' },
+        { data: 'model' },
+        { data: 'year',    type: 'numeric' },
+        { data: 'country' },
+      ],
+      rowHeaders: true,
+      columnSorting: true,
+      width: '100%',
+      height: 340,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

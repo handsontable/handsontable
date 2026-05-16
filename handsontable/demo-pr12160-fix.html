@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Server-side sorting via dataProvider — PR Build</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info-fix { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info-fix strong { color: #1b5e20; }
+    label { display: block; font-size: 13px; font-weight: 600; margin: 16px 0 6px; color: #444; }
+    textarea { width: 100%; height: 140px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; border: 1px solid #ccc; border-radius: 4px; padding: 8px; background: #fff; resize: vertical; color: #333; }
+    .hint { font-size: 12px; color: #888; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Server-side sorting via dataProvider — PR #12160</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="demo-pr12160-bug.html">Released <span class="badge badge-cdn">v17.0.1</span></a>
+    <span class="nav-btn active">PR Build <span class="badge badge-local">local</span></span>
+  </nav>
+
+  <div class="info-fix">
+    <strong>Fix — server-side sorting via dataProvider:</strong> With PR #12160, enabling both
+    <code>dataProvider</code> and <code>columnSorting</code> delegates sorting to the server.
+    Clicking a column header triggers <code>fetchRows</code> with a <code>sort: { prop, order }</code>
+    field in the query params. The grid displays the pre-sorted rows returned by the server.
+    Client-side reordering is disabled. Note: <code>multiColumnSorting</code> is automatically
+    disabled with a console warning when <code>dataProvider</code> is set.
+  </div>
+
+  <div id="hot-container"></div>
+
+  <label for="sort-log">Sort log (server calls)</label>
+  <textarea id="sort-log" readonly placeholder="(waiting for sort interaction...)"></textarea>
+  <p class="hint">Click a column header to sort - the server receives the sort parameter and returns pre-sorted data.</p>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const logEl = document.getElementById('sort-log');
+
+    function log(msg) {
+      const ts = new Date().toLocaleTimeString();
+      logEl.value += '[' + ts + '] ' + msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const ALL_ROWS = [
+      { id: 1,  make: 'Toyota',     model: 'Camry',    year: 2020, country: 'Japan'   },
+      { id: 2,  make: 'Honda',      model: 'Civic',    year: 2021, country: 'Japan'   },
+      { id: 3,  make: 'Ford',       model: 'Mustang',  year: 2019, country: 'USA'     },
+      { id: 4,  make: 'BMW',        model: '3 Series', year: 2022, country: 'Germany' },
+      { id: 5,  make: 'Mercedes',   model: 'C-Class',  year: 2021, country: 'Germany' },
+      { id: 6,  make: 'Audi',       model: 'A4',       year: 2020, country: 'Germany' },
+      { id: 7,  make: 'Chevrolet',  model: 'Corvette', year: 2022, country: 'USA'     },
+      { id: 8,  make: 'Nissan',     model: 'Altima',   year: 2021, country: 'Japan'   },
+      { id: 9,  make: 'Hyundai',    model: 'Sonata',   year: 2020, country: 'Korea'   },
+      { id: 10, make: 'Kia',        model: 'Stinger',  year: 2019, country: 'Korea'   },
+    ];
+
+    function mockFetchRows({ page, pageSize, sort }) {
+      return new Promise(resolve => setTimeout(() => {
+        let rows = [...ALL_ROWS];
+        if (sort) {
+          rows.sort((a, b) => {
+            const av = a[sort.prop], bv = b[sort.prop];
+            if (av === bv) return 0;
+            return sort.order === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+          });
+        }
+        const start = (page - 1) * pageSize;
+        resolve({ rows: rows.slice(start, start + pageSize), totalRows: rows.length });
+      }, 300));
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      dataProvider: {
+        rowId: 'id',
+        fetchRows: (params, { signal }) => {
+          log('fetchRows: ' + JSON.stringify(params));
+          return mockFetchRows(params);
+        },
+        onRowsCreate: () => Promise.resolve(),
+        onRowsUpdate: () => Promise.resolve(),
+        onRowsRemove: () => Promise.resolve(),
+      },
+      colHeaders: ['ID', 'Make', 'Model', 'Year', 'Country'],
+      columns: [
+        { data: 'id',      readOnly: true },
+        { data: 'make' },
+        { data: 'model' },
+        { data: 'year',    type: 'numeric' },
+        { data: 'country' },
+      ],
+      rowHeaders: true,
+      columnSorting: true,
+      width: '100%',
+      height: 260,
+      pagination: { pageSize: 5, initialPage: 1 },
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

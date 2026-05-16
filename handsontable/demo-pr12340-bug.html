@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12340 — BUG (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .info ol { margin: 8px 0 0 20px; }
+    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      padding: 8px 18px; border-radius: 6px; font-size: 14px; cursor: pointer;
+      border: 1px solid #ccc; background: #fff; color: #333;
+    }
+    .btn:hover { background: #f0f0f0; }
+    .btn-danger { border-color: #e57373; color: #c62828; background: #fff8f8; }
+    .btn-danger:hover { background: #fdecea; }
+    .btn-disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-disabled:hover { background: #fff; }
+    .log-label { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #555; }
+    textarea#log {
+      width: 100%; height: 110px; font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px; border: 1px solid #ccc; border-radius: 4px;
+      padding: 8px; resize: vertical; background: #1e1e1e; color: #d4d4d4;
+      margin-bottom: 16px;
+    }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    #hot-container { background: #fff; }
+  </style>
+</head>
+<body>
+  <h1>PR #12340 - DataProvider error toasts via Notification plugin</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12340-fix.html">PR Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (released v17.0.1).</strong>
+    In v17.0.1 neither <code>dataProvider</code> nor <code>notification</code> options exist.
+    When a fetch fails, the developer is responsible for all error handling manually.
+    There is no built-in error toast or Refetch button - only a raw <code>alert()</code> can be shown.
+    The "Refetch" button below does nothing useful because there is no <code>dataProvider</code> plugin to call.<br><br>
+    <strong>Steps to reproduce:</strong>
+    <ol>
+      <li>Click <strong>"Trigger fetch error"</strong> below.</li>
+      <li>A plain browser <code>alert()</code> appears - this is the only built-in error mechanism available.</li>
+      <li>Click <strong>"Refetch"</strong> - nothing happens. There is no plugin to retry the fetch.</li>
+      <li>Switch to the <strong>PR Fix</strong> build to see the notification toast with a proper Refetch action.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-danger" id="btn-trigger">Trigger fetch error</button>
+    <button class="btn btn-disabled" id="btn-refetch" disabled>Refetch (no-op in v17.0.1)</button>
+  </div>
+
+  <div class="log-label">Developer console log:</div>
+  <textarea id="log" readonly></textarea>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    function log(msg) {
+      const ts = new Date().toISOString().slice(11, 23);
+      logEl.value += '[' + ts + '] ' + msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // In v17.0.1 there is no dataProvider - use a plain static dataset.
+    const STATIC_DATA = [
+      { id: 1, make: 'Toyota',   model: 'Camry',    year: 2020 },
+      { id: 2, make: 'Honda',    model: 'Civic',    year: 2021 },
+      { id: 3, make: 'Ford',     model: 'Mustang',  year: 2019 },
+      { id: 4, make: 'BMW',      model: '3 Series', year: 2022 },
+      { id: 5, make: 'Mercedes', model: 'C-Class',  year: 2021 },
+    ];
+
+    log('Handsontable v17.0.1 loaded (CDN)');
+    log('No dataProvider or notification options available.');
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: STATIC_DATA,
+      colHeaders: ['ID', 'Make', 'Model', 'Year'],
+      columns: [
+        { data: 'id', readOnly: true },
+        { data: 'make' },
+        { data: 'model' },
+        { data: 'year', type: 'numeric' },
+      ],
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    log('Grid initialized with static data (no server-backed fetchRows).');
+
+    // Simulate a fetch error the old way: all the developer can do is call alert().
+    document.getElementById('btn-trigger').addEventListener('click', function() {
+      log('Simulating fetch error...');
+      setTimeout(function() {
+        log('ERROR: Network error: connection timed out');
+        log('Falling back to alert() - no built-in error UI available.');
+        // This is what a developer had to do before PR #12340:
+        alert('Error: fetch failed\n\nNetwork error: connection timed out\n\n(In v17.0.1 there is no Notification plugin.\nDevelopers must handle errors like this themselves.)');
+      }, 400);
+    });
+
+    // Refetch button does nothing useful - there is no dataProvider plugin.
+    document.getElementById('btn-refetch').addEventListener('click', function() {
+      log('Refetch clicked - no dataProvider plugin available, nothing to retry.');
+    });
+  </script>
+</body>
+</html>

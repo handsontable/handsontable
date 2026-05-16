@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notification plugin — Released v17.0.1</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info-bug { background: #fdecea; border: 1px solid #f44336; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info-bug strong { color: #b71c1c; }
+    .button-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .btn {
+      padding: 8px 18px; border-radius: 6px; font-size: 14px; cursor: pointer;
+      border: 1px solid #ccc; background: #fff; color: #333;
+    }
+    .btn:hover { background: #f0f0f0; }
+    .btn-info    { border-color: #1976d2; color: #1976d2; }
+    .btn-success { border-color: #388e3c; color: #388e3c; }
+    .btn-warning { border-color: #f57c00; color: #f57c00; }
+    .btn-error   { border-color: #d32f2f; color: #d32f2f; }
+  </style>
+</head>
+<body>
+  <h1>PR #12299 - Notification plugin (toast messages)</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <span class="nav-btn active">Released <span class="badge badge-cdn">v17.0.1</span></span>
+    <a class="nav-btn" href="demo-pr12299-fix.html">PR Build <span class="badge badge-local">local</span></a>
+  </nav>
+
+  <div class="info-bug">
+    <strong>Bug:</strong> The <code>notification</code> plugin does not exist in v17.0.1.
+    <code>hot.getPlugin('notification')</code> returns <code>null</code>.
+    Clicking the buttons below triggers a plain <code>alert()</code> to illustrate the missing API.
+    Switch to the PR Build to see the real toast notifications.
+  </div>
+
+  <div class="button-row">
+    <button class="btn btn-info"    onclick="showNotification('info')">Info toast</button>
+    <button class="btn btn-success" onclick="showNotification('success')">Success toast</button>
+    <button class="btn btn-warning" onclick="showNotification('warning')">Warning toast</button>
+    <button class="btn btn-error"   onclick="showNotification('error')">Error toast</button>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    function showNotification(variant) {
+      var plugin = window.hot.getPlugin('notification');
+      if (plugin) {
+        plugin.showMessage({ variant: variant, message: 'This is a ' + variant + ' message.', duration: 3000, closable: true });
+      } else {
+        alert('Notification plugin is not available in v17.0.1');
+      }
+    }
+  </script>
+</body>
+</html>

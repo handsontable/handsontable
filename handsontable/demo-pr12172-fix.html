@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DataProvider CRUD — PR Build (CRUD callbacks)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info-fix { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info-fix strong { color: #1b5e20; }
+    .buttons { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    button {
+      padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;
+      border: 1px solid #bbb; background: #fff; color: #222;
+    }
+    button:hover { background: #f0f0f0; }
+    button:active { background: #e0e0e0; }
+    .log-label { font-size: 13px; font-weight: 600; margin-top: 16px; margin-bottom: 6px; color: #444; }
+    textarea { width: 100%; height: 160px; font-family: monospace; font-size: 12px; padding: 8px; border: 1px solid #ccc; border-radius: 6px; background: #fafafa; resize: vertical; }
+    .hint { font-size: 12px; color: #666; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>DataProvider CRUD — PR #12172</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="demo-pr12172-bug.html">Released <span class="badge badge-cdn">v17.0.1</span></a>
+    <span class="nav-btn active">PR Build <span class="badge badge-local">local</span></span>
+  </nav>
+
+  <div class="info-fix">
+    <strong>Fix — CRUD callbacks fire via DataProvider plugin:</strong> This build adds
+    <code>onRowsCreate</code>, <code>onRowsUpdate</code>, and <code>onRowsRemove</code> callbacks
+    to the <code>dataProvider</code> plugin configuration. Each server operation is simulated with a
+    200ms delay. Watch the Server log below respond in real time.
+    <br><br>
+    <strong>Steps to test:</strong>
+    1. Edit any cell - the <code>onRowsUpdate</code> callback fires with the row id and changed fields.
+    2. Click "Create row (server)" - <code>onRowsCreate</code> is called and a new row appears after the server resolves.
+    3. Click "Remove first row (server)" - <code>onRowsRemove</code> is called and the first row disappears.
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div class="buttons">
+    <button id="btn-create">Create row (server)</button>
+    <button id="btn-remove">Remove first row (server)</button>
+    <button id="btn-edit-hint">Edit a cell to trigger update</button>
+  </div>
+  <p class="hint">Hint: Edit any cell - the onRowsUpdate callback fires with the row id and changed fields.</p>
+
+  <p class="log-label">Server log:</p>
+  <textarea id="log" readonly placeholder="Server callbacks will appear here..."></textarea>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    // --- Mock server data ---
+    const ALL_ROWS = [
+      { id: 1, make: 'Toyota',   model: 'Camry',    year: 2020, country: 'Japan' },
+      { id: 2, make: 'Honda',    model: 'Civic',    year: 2021, country: 'Japan' },
+      { id: 3, make: 'Ford',     model: 'Mustang',  year: 2019, country: 'USA' },
+      { id: 4, make: 'BMW',      model: '3 Series', year: 2022, country: 'Germany' },
+      { id: 5, make: 'Mercedes', model: 'C-Class',  year: 2021, country: 'Germany' },
+    ];
+    let nextId = 6;
+
+    function mockFetchRows({ page, pageSize }) {
+      return new Promise(resolve => setTimeout(() => {
+        const start = (page - 1) * pageSize;
+        resolve({ rows: ALL_ROWS.slice(start, start + pageSize), totalRows: ALL_ROWS.length });
+      }, 200));
+    }
+
+    function mockOnRowsCreate({ rowsAmount }) {
+      return new Promise(resolve => setTimeout(() => {
+        for (let i = 0; i < rowsAmount; i++) {
+          ALL_ROWS.push({ id: nextId++, make: 'New', model: 'Row', year: 2024, country: 'Unknown' });
+        }
+        resolve();
+      }, 200));
+    }
+
+    function mockOnRowsUpdate(rows) {
+      return new Promise(resolve => setTimeout(() => {
+        rows.forEach(({ id, changes }) => {
+          const row = ALL_ROWS.find(r => r.id === id);
+          if (row) Object.assign(row, changes);
+        });
+        resolve();
+      }, 200));
+    }
+
+    function mockOnRowsRemove(rowIds) {
+      return new Promise(resolve => setTimeout(() => {
+        rowIds.forEach(id => {
+          const idx = ALL_ROWS.findIndex(r => r.id === id);
+          if (idx >= 0) ALL_ROWS.splice(idx, 1);
+        });
+        resolve();
+      }, 200));
+    }
+
+    // --- Server log helper ---
+    const logEl = document.getElementById('log');
+    function log(msg) {
+      const ts = new Date().toISOString().slice(11, 23);
+      logEl.value += '[' + ts + '] ' + msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // --- Handsontable instance ---
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      dataProvider: {
+        rowId: 'id',
+        fetchRows: (params) => {
+          log('fetchRows: ' + JSON.stringify(params));
+          return mockFetchRows(params);
+        },
+        onRowsCreate: (payload) => {
+          log('onRowsCreate: ' + JSON.stringify(payload));
+          return mockOnRowsCreate(payload);
+        },
+        onRowsUpdate: (rows) => {
+          log('onRowsUpdate: ' + JSON.stringify(rows));
+          return mockOnRowsUpdate(rows);
+        },
+        onRowsRemove: (ids) => {
+          log('onRowsRemove: ' + JSON.stringify(ids));
+          return mockOnRowsRemove(ids);
+        },
+      },
+      colHeaders: ['ID', 'Make', 'Model', 'Year', 'Country'],
+      columns: [
+        { data: 'id', readOnly: true },
+        { data: 'make' },
+        { data: 'model' },
+        { data: 'year', type: 'numeric' },
+        { data: 'country' },
+      ],
+      rowHeaders: true,
+      contextMenu: true,
+      width: '100%',
+      height: 260,
+      pagination: { pageSize: 5, initialPage: 1 },
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // --- Button handlers ---
+    document.getElementById('btn-create').addEventListener('click', () => {
+      const dp = window.hot.getPlugin('dataProvider');
+      if (!dp) { log('[ERROR] dataProvider plugin not found — is this the PR build?'); return; }
+      dp.createRows({ rowsAmount: 1 });
+    });
+
+    document.getElementById('btn-remove').addEventListener('click', () => {
+      const dp = window.hot.getPlugin('dataProvider');
+      if (!dp) { log('[ERROR] dataProvider plugin not found — is this the PR build?'); return; }
+      const sourceData = window.hot.getSourceData();
+      if (!sourceData || sourceData.length === 0) { log('[WARN] No rows to remove.'); return; }
+      const firstRowId = sourceData[0].id;
+      dp.removeRows([firstRowId]);
+    });
+
+    document.getElementById('btn-edit-hint').addEventListener('click', () => {
+      // Focus the first editable cell (row 0, col 1 = "make") to guide the reviewer
+      window.hot.selectCell(0, 1);
+      window.hot.getActiveEditor && window.hot.getActiveEditor();
+      log('[hint] Cell (0,1) selected — press F2 or start typing to trigger onRowsUpdate.');
+    });
+  </script>
+</body>
+</html>

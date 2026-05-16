@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DataProvider plugin (server-side rows) — PR Build</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fde8e8; color: #b91c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info-fix {
+      background: #e8f5e9; border: 1px solid #86efac; border-radius: 6px;
+      padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6;
+    }
+    .info-fix strong { color: #166534; }
+    .section-label { font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    #hot-container { background: #fff; border-radius: 6px; overflow: hidden; }
+    .controls {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 14px; margin-bottom: 8px; flex-wrap: wrap;
+    }
+    .controls button {
+      padding: 7px 16px; border-radius: 6px; border: 1px solid #6366f1;
+      background: #6366f1; color: #fff; font-size: 14px; cursor: pointer;
+    }
+    .controls button:hover { background: #4f46e5; border-color: #4f46e5; }
+    .metrics {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      font-size: 13px; color: #444;
+    }
+    .metric { background: #fff; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 14px; }
+    .metric span { font-weight: 700; color: #111; }
+    .log-label { font-size: 13px; font-weight: 600; color: #555; margin-top: 14px; margin-bottom: 4px; }
+    #server-log {
+      width: 100%; height: 80px;
+      font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+      font-size: 12px; resize: vertical;
+      border: 1px solid #d1d5db; border-radius: 6px;
+      padding: 8px; background: #f9fafb; color: #111;
+    }
+  </style>
+</head>
+<body>
+  <h1>DataProvider plugin — server-side row model</h1>
+
+  <nav>
+    <span class="nav-label">PR #12147:</span>
+    <a class="nav-btn" href="demo-pr12147-bug.html">
+      Released <span class="badge badge-bug">v17.0.1 - bug</span>
+    </a>
+    <span class="nav-btn active">
+      PR Build <span class="badge badge-fix">local - fix</span>
+    </span>
+  </nav>
+
+  <div class="info-fix">
+    <strong>Fix - DataProvider plugin is available in this PR build.</strong><br>
+    The <code>dataProvider</code> option enables server-side row loading via
+    <code>fetchRows(queryParams, { signal })</code>. The mock server below holds
+    15 cars. Page size is 5, giving 3 pages. Each <code>fetchRows</code> call is
+    logged in the Server log below.
+    <br><br>
+    <strong>How to test:</strong>
+    1. The grid loads page 1 automatically on init.
+    2. Click <em>Fetch page 2</em> to trigger a manual <code>fetchData({ page: 2 })</code>
+       call via <code>hot.getPlugin('dataProvider').fetchData()</code>.
+    3. Watch the Server log for the query params sent to the mock server.
+    4. Check <em>Total rows from server</em> and <em>Current page</em> metrics.
+    5. Open the console and run <code>hot.getPlugin('dataProvider').getQueryParameters()</code>
+       to inspect current params.
+  </div>
+
+  <div class="section-label">Grid (server-side data via DataProvider plugin)</div>
+  <div id="hot-container"></div>
+
+  <div class="controls">
+    <button id="btn-page2" type="button">Fetch page 2</button>
+    <div class="metrics">
+      <div class="metric">Total rows from server: <span id="metric-total">—</span></div>
+      <div class="metric">Current page: <span id="metric-page">1</span></div>
+    </div>
+  </div>
+
+  <div class="log-label">Server log</div>
+  <textarea id="server-log" readonly placeholder="fetchRows calls will appear here..."></textarea>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    // ---------------------------------------------------------------------------
+    // Server log helper
+    // ---------------------------------------------------------------------------
+    const logEl = document.getElementById('server-log');
+    function log(msg) {
+      const ts = new Date().toISOString().substring(11, 23);
+      logEl.value += '[' + ts + '] ' + msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Mock server — 15 cars, 300 ms simulated latency
+    // ---------------------------------------------------------------------------
+    const ALL_ROWS = [
+      { id: 1,  make: 'Toyota',    model: 'Camry',    year: 2020, country: 'Japan'   },
+      { id: 2,  make: 'Honda',     model: 'Civic',    year: 2021, country: 'Japan'   },
+      { id: 3,  make: 'Ford',      model: 'Mustang',  year: 2019, country: 'USA'     },
+      { id: 4,  make: 'BMW',       model: '3 Series', year: 2022, country: 'Germany' },
+      { id: 5,  make: 'Mercedes',  model: 'C-Class',  year: 2021, country: 'Germany' },
+      { id: 6,  make: 'Audi',      model: 'A4',       year: 2020, country: 'Germany' },
+      { id: 7,  make: 'Chevrolet', model: 'Corvette', year: 2022, country: 'USA'     },
+      { id: 8,  make: 'Nissan',    model: 'Altima',   year: 2021, country: 'Japan'   },
+      { id: 9,  make: 'Hyundai',   model: 'Sonata',   year: 2020, country: 'Korea'   },
+      { id: 10, make: 'Kia',       model: 'Stinger',  year: 2019, country: 'Korea'   },
+      { id: 11, make: 'VW',        model: 'Golf',     year: 2021, country: 'Germany' },
+      { id: 12, make: 'Volvo',     model: 'XC60',     year: 2022, country: 'Sweden'  },
+      { id: 13, make: 'Subaru',    model: 'Outback',  year: 2020, country: 'Japan'   },
+      { id: 14, make: 'Mazda',     model: 'CX-5',     year: 2021, country: 'Japan'   },
+      { id: 15, make: 'Tesla',     model: 'Model 3',  year: 2022, country: 'USA'     },
+    ];
+
+    function mockFetchRows({ page, pageSize }) {
+      return new Promise(resolve => setTimeout(() => {
+        const start = (page - 1) * pageSize;
+        resolve({
+          rows: ALL_ROWS.slice(start, start + pageSize),
+          totalRows: ALL_ROWS.length,
+        });
+      }, 300));
+    }
+
+    // ---------------------------------------------------------------------------
+    // Handsontable
+    // ---------------------------------------------------------------------------
+    // window.hot exposed for browser console / DevTools debugging
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      dataProvider: {
+        rowId: 'id',
+        fetchRows: (params, { signal }) => {
+          log('fetchRows called: ' + JSON.stringify(params));
+          document.getElementById('metric-page').textContent = params.page || 1;
+          const promise = mockFetchRows(params);
+          promise.then(({ totalRows }) => {
+            document.getElementById('metric-total').textContent = totalRows;
+          });
+          return promise;
+        },
+        onRowsCreate: () => Promise.resolve(),
+        onRowsUpdate: () => Promise.resolve(),
+        onRowsRemove: () => Promise.resolve(),
+      },
+      colHeaders: ['ID', 'Make', 'Model', 'Year', 'Country'],
+      columns: [
+        { data: 'id',      readOnly: true },
+        { data: 'make' },
+        { data: 'model' },
+        { data: 'year',    type: 'numeric' },
+        { data: 'country' },
+      ],
+      rowHeaders: true,
+      width: '100%',
+      height: 260,
+      pagination: { pageSize: 5, initialPage: 1 },
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // ---------------------------------------------------------------------------
+    // "Fetch page 2" button
+    // ---------------------------------------------------------------------------
+    document.getElementById('btn-page2').addEventListener('click', () => {
+      const plugin = hot.getPlugin('dataProvider');
+      if (!plugin) {
+        log('ERROR: dataProvider plugin not found');
+        return;
+      }
+      log('Button clicked — calling fetchData({ page: 2 })');
+      document.getElementById('metric-page').textContent = 2;
+      plugin.fetchData({ page: 2 });
+    });
+  </script>
+</body>
+</html>
