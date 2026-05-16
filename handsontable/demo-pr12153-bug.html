@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12153 — BUG (mixed checkbox multi-selection Delete / Undo broken)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-undo { background: #1565c0; color: #fff; border-color: #0d47a1; font-weight: 600; }
+    .btn-undo:hover { background: #0d47a1; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 180px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 18px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12153 - Mixed checkbox multi-selection Delete / Undo</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12153-fix.html">PR #12153 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When a multi-layer selection (Ctrl+A then Ctrl+click inner range) is deleted with the Delete key,
+    checkbox cells may receive a <code>noValue</code> CSS class (broken visual state), multiple undo
+    actions may be registered instead of one, and Ctrl+Z may fail to restore all original data.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"Select All + inner range + Delete"</strong>.</li>
+      <li>BUG: Undo action count may be &gt; 1. Checkboxes may show <code>noValue</code> class.</li>
+      <li>Click <strong>"Undo"</strong>.</li>
+      <li>BUG: Data may not be fully restored — some cells remain <code>null</code>.</li>
+      <li>Compare with the <a href="demo-pr12153-fix.html">Fix page</a>.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-select-delete">1. Select All + inner range + Delete</button>
+    <button class="btn btn-undo" id="btn-undo">2. Undo</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Undo actions after Delete</div>
+      <div class="metric-value neutral" id="m-undo-count">—</div>
+      <div class="metric-sub">Expected: 1 — BUG: may be &gt; 1</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Checkbox "noValue" count</div>
+      <div class="metric-value neutral" id="m-novalue">—</div>
+      <div class="metric-sub">Expected: 0 — BUG: may be &gt; 0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Data restored after Undo?</div>
+      <div class="metric-value neutral" id="m-restored">—</div>
+      <div class="metric-sub">Expected: YES — BUG: may be NO</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click "Select All + inner range + Delete" to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const ORIGINAL_DATA = [
+      { car: 'Nissan',   year: 2016, available: false },
+      { car: 'Volvo',    year: 2019, available: true  },
+      { car: 'Chrysler', year: 2020, available: false },
+    ];
+    const COLUMNS = [
+      { data: 'car',       type: 'text'     },
+      { data: 'year',      type: 'numeric'  },
+      { data: 'available', type: 'checkbox' },
+    ];
+
+    let originalSnapshot = null;
+
+    function deepClone(arr) { return arr.map(row => ({ ...row })); }
+
+    function countNoValue() {
+      return document.querySelectorAll('#hot-container input[type=checkbox].noValue').length;
+    }
+
+    function dataMatches(a, b) {
+      if (a.length !== b.length) return false;
+      return a.every((row, r) => Object.keys(row).every(k => row[k] === b[r][k]));
+    }
+
+    function updateMetrics(afterDelete, afterUndo) {
+      const undoPlugin = window.hot.getPlugin('undoRedo');
+      const undoCount = undoPlugin.doneActions.length;
+      const noVal = countNoValue();
+      const currentData = window.hot.getSourceData();
+
+      document.getElementById('m-undo-count').textContent = undoCount;
+      document.getElementById('m-undo-count').className =
+        'metric-value ' + (undoCount === 1 ? 'ok' : afterDelete ? 'bad' : 'neutral');
+
+      document.getElementById('m-novalue').textContent = noVal;
+      document.getElementById('m-novalue').className =
+        'metric-value ' + (noVal === 0 ? 'ok' : 'bad');
+
+      if (afterUndo) {
+        const restored = dataMatches(currentData, originalSnapshot);
+        document.getElementById('m-restored').textContent = restored ? 'YES ✓' : 'NO ✗';
+        document.getElementById('m-restored').className = 'metric-value ' + (restored ? 'ok' : 'bad');
+      } else {
+        document.getElementById('m-restored').textContent = afterDelete ? '(undo not yet run)' : '—';
+        document.getElementById('m-restored').className = 'metric-value neutral';
+      }
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      ['m-undo-count', 'm-novalue', 'm-restored'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'metric-value neutral';
+      });
+      document.getElementById('status').textContent = 'Click "Select All + inner range + Delete" to test.';
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: deepClone(ORIGINAL_DATA),
+        columns: COLUMNS,
+        colHeaders: ['Car', 'Year', 'Available'],
+        rowHeaders: true,
+        width: '100%',
+        height: 200,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        undo: true,
+        autoWrapRow: true,
+        autoWrapCol: true,
+      });
+
+      originalSnapshot = deepClone(ORIGINAL_DATA);
+    }
+
+    document.getElementById('btn-select-delete').addEventListener('click', () => {
+      window.hot.selectCell(0, 0);
+      window.hot.selectAll();
+      const cell = window.hot.getCell(1, 1);
+      cell.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, ctrlKey: true, metaKey: true }));
+      cell.dispatchEvent(new MouseEvent('mouseup',   { bubbles: true, cancelable: true, ctrlKey: true, metaKey: true }));
+      window.hot.listen();
+      ['keydown', 'keyup'].forEach(type => {
+        window.hot.rootDocument.documentElement.dispatchEvent(new KeyboardEvent(type, {
+          key: 'Delete', code: 'Delete', keyCode: 46, which: 46, bubbles: true, cancelable: true,
+        }));
+      });
+      setTimeout(() => {
+        const data = window.hot.getData();
+        document.getElementById('status').textContent =
+          'After Delete:\n' +
+          'Row 0: ' + JSON.stringify(data[0]) + '\n' +
+          'Row 1: ' + JSON.stringify(data[1]) + '\n' +
+          'Row 2: ' + JSON.stringify(data[2]) + '\n\n' +
+          'noValue checkboxes: ' + countNoValue();
+        updateMetrics(true, false);
+      }, 100);
+    });
+
+    document.getElementById('btn-undo').addEventListener('click', () => {
+      window.hot.getPlugin('undoRedo').undo();
+      setTimeout(() => {
+        const data = window.hot.getData();
+        document.getElementById('status').textContent =
+          'After Undo:\n' +
+          'Row 0: ' + JSON.stringify(data[0]) + '\n' +
+          'Row 1: ' + JSON.stringify(data[1]) + '\n' +
+          'Row 2: ' + JSON.stringify(data[2]);
+        updateMetrics(true, true);
+      }, 100);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+    initHot();
+  </script>
+</body>
+</html>
