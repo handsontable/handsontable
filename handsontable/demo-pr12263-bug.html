@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12263 — HotTableRef typing (bug: old pattern) — v17.0.1</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+
+    .info-bug {
+      background: #dbeafe;
+      border: 1px solid #3b82f6;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #1e3a5f;
+    }
+    .info-bug strong { color: #1e40af; }
+
+    /* Framework tab bar */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      padding: 6px 8px 0;
+      margin-bottom: 0;
+    }
+    .tab-btn {
+      padding: 6px 14px;
+      border-radius: 4px 4px 0 0;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #555;
+      border-bottom: none;
+    }
+    .tab-btn.active {
+      background: #fff;
+      border-color: #999;
+      border-bottom-color: #fff;
+      font-weight: 600;
+      color: #111;
+    }
+    .tab-btn:not(.active):hover { background: #e0e0e0; }
+
+    .tab-content {
+      display: none;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 0 0 6px 6px;
+      padding: 14px;
+      margin-bottom: 20px;
+    }
+    .tab-content.active { display: block; }
+
+    /* Code snippet */
+    pre.code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin-bottom: 12px;
+      font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+      white-space: pre;
+    }
+    .c-comment { color: #6a9955; }
+    .c-keyword { color: #569cd6; }
+    .c-string { color: #ce9178; }
+    .c-type { color: #4ec9b0; }
+    .c-func { color: #dcdcaa; }
+    .c-bad { color: #f44747; }
+    .c-ok { color: #6a9955; }
+
+    .snippet-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    /* Live demo area */
+    .demo-section { margin-top: 8px; }
+    .demo-section h2 { font-size: 15px; margin-bottom: 10px; color: #333; }
+    .btn-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    button.demo-btn {
+      padding: 7px 16px;
+      border-radius: 5px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #333;
+    }
+    button.demo-btn:hover { background: #f0f0f0; }
+    .status-box {
+      font-size: 13px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      min-height: 32px;
+      color: #333;
+    }
+    #hot-container { width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>PR #12263 — HotTableRef typing guide for React (bug: old pattern)</h1>
+
+  <nav>
+    <span class="nav-label">Page:</span>
+    <span class="nav-btn active">Bug (old pattern) <span class="badge badge-cdn">CDN v17.0.1</span></span>
+    <a class="nav-btn" href="demo-pr12263-fix.html">Fix (correct pattern) <span class="badge badge-local">local build</span></a>
+  </nav>
+
+  <div class="info-bug">
+    <strong>PR #12263 is documentation-only</strong> — it documents the correct <code>HotTableRef</code> typing for React.
+    The runtime behavior is unchanged. The "bug" is incorrect documentation/typing guidance.
+    Since HotTable became a functional component in v14.1.0, <code>useRef&lt;HotTable&gt;</code> no longer gives access
+    to <code>hotInstance</code>. The tabs below show the outdated patterns.
+  </div>
+
+  <!-- Framework tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('js')">JavaScript</button>
+    <button class="tab-btn" onclick="showTab('ts')">TypeScript</button>
+    <button class="tab-btn" onclick="showTab('react')">React</button>
+    <button class="tab-btn" onclick="showTab('vue')">Vue 3</button>
+    <button class="tab-btn" onclick="showTab('angular')">Angular</button>
+  </div>
+
+  <!-- JavaScript tab -->
+  <div id="tab-js" class="tab-content active">
+    <div class="snippet-label">Direct reference (always worked)</div>
+    <pre class="code-block"><span class="c-comment">// Vanilla JS: direct reference to Handsontable instance</span>
+<span class="c-keyword">const</span> container = document.<span class="c-func">getElementById</span>(<span class="c-string">'hot-container'</span>);
+<span class="c-keyword">const</span> hot = <span class="c-keyword">new</span> <span class="c-type">Handsontable</span>(container, { <span class="c-comment">/* config */</span> });
+
+<span class="c-comment">// Access instance directly</span>
+hot.<span class="c-func">selectCell</span>(<span class="c-string">0</span>, <span class="c-string">0</span>);
+<span class="c-keyword">const</span> value = hot.<span class="c-func">getDataAtCell</span>(<span class="c-string">0</span>, <span class="c-string">0</span>);
+console.<span class="c-func">log</span>(value);</pre>
+  </div>
+
+  <!-- TypeScript tab -->
+  <div id="tab-ts" class="tab-content">
+    <div class="snippet-label">OUTDATED PATTERN (before PR #12263 docs)</div>
+    <pre class="code-block"><span class="c-comment">// ❌ OUTDATED: This pattern is documented in old guides</span>
+<span class="c-comment">// HotTable is a functional component since v14.1.0</span>
+<span class="c-keyword">import</span> { <span class="c-type">HotTable</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/react-wrapper'</span>;
+<span class="c-keyword">import</span> { <span class="c-func">useRef</span> } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;
+
+<span class="c-keyword">const</span> hotRef = <span class="c-func">useRef</span>&lt;<span class="c-bad">HotTable</span>&gt;(<span class="c-keyword">null</span>);
+<span class="c-comment">// ❌ hotRef.current is the functional component instance proxy</span>
+<span class="c-comment">// ❌ hotRef.current.hotInstance → undefined (class-based access)</span>
+<span class="c-comment">// This worked pre-v14.1.0 when HotTable was a class component</span></pre>
+  </div>
+
+  <!-- React tab -->
+  <div id="tab-react" class="tab-content">
+    <div class="snippet-label">BROKEN pattern (before docs fix)</div>
+    <pre class="code-block"><span class="c-keyword">import</span> { <span class="c-type">HotTable</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/react-wrapper'</span>;
+<span class="c-keyword">import</span> { <span class="c-func">useRef</span> } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;
+
+<span class="c-comment">// ❌ WRONG: Using HotTable as the ref type</span>
+<span class="c-keyword">const</span> hotRef = <span class="c-func">useRef</span>&lt;<span class="c-bad">HotTable</span>&gt;(<span class="c-keyword">null</span>);
+
+<span class="c-keyword">function</span> <span class="c-func">App</span>() {
+  <span class="c-keyword">const</span> <span class="c-func">handleClick</span> = () =&gt; {
+    <span class="c-comment">// ❌ This returns undefined since v14.1.0</span>
+    <span class="c-keyword">const</span> hotInstance = hotRef.current?.<span class="c-bad">hotInstance</span>;
+    console.<span class="c-func">log</span>(hotInstance); <span class="c-comment">// undefined ❌</span>
+    hotInstance?.<span class="c-func">selectCell</span>(<span class="c-string">0</span>, <span class="c-string">0</span>); <span class="c-comment">// TypeError: Cannot read properties of undefined</span>
+  };
+  <span class="c-keyword">return</span> &lt;<span class="c-type">HotTable</span> ref={hotRef} data={[[<span class="c-string">'A1'</span>]]} licenseKey=<span class="c-string">"non-commercial-and-evaluation"</span> /&gt;;
+}</pre>
+  </div>
+
+  <!-- Vue 3 tab -->
+  <div id="tab-vue" class="tab-content">
+    <div class="snippet-label">Vue: templateRef access</div>
+    <pre class="code-block">&lt;<span class="c-keyword">template</span>&gt;
+  &lt;<span class="c-type">HotTable</span> ref=<span class="c-string">"hotTableRef"</span> :data=<span class="c-string">"data"</span> license-key=<span class="c-string">"non-commercial-and-evaluation"</span> /&gt;
+  &lt;<span class="c-keyword">button</span> @click=<span class="c-string">"selectCell"</span>&gt;Select cell (0,0)&lt;/<span class="c-keyword">button</span>&gt;
+&lt;/<span class="c-keyword">template</span>&gt;
+&lt;<span class="c-keyword">script</span> setup lang=<span class="c-string">"ts"</span>&gt;
+<span class="c-keyword">import</span> { <span class="c-func">ref</span> } <span class="c-keyword">from</span> <span class="c-string">'vue'</span>;
+<span class="c-keyword">import</span> { <span class="c-type">HotTable</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/vue3'</span>;
+<span class="c-keyword">const</span> hotTableRef = <span class="c-func">ref</span>(<span class="c-keyword">null</span>);
+<span class="c-keyword">function</span> <span class="c-func">selectCell</span>() {
+  <span class="c-comment">// Vue: access via .hotInstance on the component ref</span>
+  hotTableRef.value?.hotInstance?.<span class="c-func">selectCell</span>(<span class="c-string">0</span>, <span class="c-string">0</span>);
+}
+&lt;/<span class="c-keyword">script</span>&gt;</pre>
+  </div>
+
+  <!-- Angular tab -->
+  <div id="tab-angular" class="tab-content">
+    <div class="snippet-label">Angular: @ViewChild access</div>
+    <pre class="code-block"><span class="c-keyword">import</span> { <span class="c-type">Component</span>, <span class="c-type">ViewChild</span> } <span class="c-keyword">from</span> <span class="c-string">'@angular/core'</span>;
+<span class="c-keyword">import</span> { <span class="c-type">HotTableComponent</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/angular-wrapper'</span>;
+
+@<span class="c-func">Component</span>({
+  selector: <span class="c-string">'app-root'</span>,
+  template: <span class="c-string">`
+    &lt;hot-table #hotTable [data]="data" licenseKey="non-commercial-and-evaluation"&gt;&lt;/hot-table&gt;
+    &lt;button (click)="selectCell()"&gt;Select cell (0,0)&lt;/button&gt;
+  `</span>
+})
+<span class="c-keyword">export class</span> <span class="c-type">AppComponent</span> {
+  @<span class="c-func">ViewChild</span>(<span class="c-string">'hotTable'</span>) hotTable: <span class="c-type">HotTableComponent</span>;
+  data = [[<span class="c-string">'A1'</span>, <span class="c-string">'B1'</span>], [<span class="c-string">'A2'</span>, <span class="c-string">'B2'</span>]];
+  <span class="c-func">selectCell</span>() {
+    <span class="c-keyword">this</span>.hotTable.hotInstance?.<span class="c-func">selectCell</span>(<span class="c-string">0</span>, <span class="c-string">0</span>);
+  }
+}</pre>
+  </div>
+
+  <!-- Live demo -->
+  <div class="demo-section">
+    <h2>Live demo (vanilla JS — CDN v17.0.1)</h2>
+    <div class="btn-row">
+      <button class="demo-btn" onclick="demoSelectCell()">Select cell (0,0)</button>
+      <button class="demo-btn" onclick="demoGetValue()">Get value at (0,0)</button>
+    </div>
+    <div class="status-box" id="status">Click a button above to interact with the grid.</div>
+    <div id="hot-container"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // Tab switching
+    function showTab(name) {
+      document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(el) { el.classList.remove('active'); });
+      document.getElementById('tab-' + name).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Live demo
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [
+        ['Alice', 'Engineering', 95],
+        ['Bob', 'Marketing', 72],
+        ['Carol', 'Engineering', 88],
+      ],
+      colHeaders: ['Name', 'Department', 'Score'],
+      rowHeaders: true,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    function demoSelectCell() {
+      window.hot.selectCell(0, 0);
+      document.getElementById('status').textContent = 'selectCell(0, 0) called — cell (0,0) should be selected.';
+    }
+
+    function demoGetValue() {
+      var value = window.hot.getDataAtCell(0, 0);
+      document.getElementById('status').textContent = 'getDataAtCell(0, 0) = "' + value + '"';
+    }
+  </script>
+</body>
+</html>
