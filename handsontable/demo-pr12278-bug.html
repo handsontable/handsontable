@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12278 — wrappers skip init-only settings — Bug (v17.0.1)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fde8e8; color: #b91c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+
+    .info-bug {
+      background: #fde8e8;
+      border: 1px solid #f87171;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .info-bug strong { color: #b91c1c; }
+
+    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    button {
+      padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 500;
+    }
+    .btn-action { background: #dc2626; color: #fff; }
+    .btn-action:hover { background: #b91c1c; }
+    .btn-reset { background: #6b7280; color: #fff; }
+    .btn-reset:hover { background: #4b5563; }
+
+    .metrics {
+      display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .metric {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+      padding: 10px 16px; font-size: 13px; min-width: 210px;
+    }
+    .metric-label { color: #6b7280; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric-value { font-weight: 700; font-size: 15px; }
+    .metric-value.bad { color: #dc2626; }
+    .metric-value.ok { color: #16a34a; }
+    .metric-value.neutral { color: #374151; }
+
+    #error-output {
+      background: #1e1e1e; color: #f87171; border-radius: 6px; padding: 12px 16px;
+      font-family: 'Menlo', 'Consolas', monospace; font-size: 13px;
+      margin-bottom: 16px; min-height: 44px; white-space: pre-wrap;
+      display: none;
+    }
+    #error-output.visible { display: block; }
+
+    #hot-container { background: #fff; border-radius: 6px; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <h1>PR #12278 — Wrappers skip init-only settings in updateSettings</h1>
+
+  <nav>
+    <span class="nav-label">Demo:</span>
+    <span class="nav-btn active">Bug <span class="badge badge-bug">v17.0.1</span></span>
+    <a class="nav-btn" href="demo-pr12278-fix.html">Fix <span class="badge badge-fix">local build</span></a>
+  </nav>
+
+  <div class="info-bug">
+    <strong>Bug — v17.0.1 and core Handsontable:</strong> Passing an init-only setting
+    (e.g. <code>renderAllRows</code>) to <code>updateSettings()</code> throws an error.
+    Because the whole call is aborted by the throw, <em>no</em> setting in that call is applied
+    — even a perfectly valid one like <code>colHeaders: false</code>.
+    In React/Vue/Angular wrappers this crash bubbled up whenever the user changed a prop
+    that maps to an init-only setting.
+  </div>
+
+  <div class="controls">
+    <button class="btn-action" id="btn-update">updateSettings with renderAllRows + colHeaders (broken)</button>
+    <button class="btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Error thrown</div>
+      <div class="metric-value neutral" id="metric-error">-</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">colHeaders applied</div>
+      <div class="metric-value neutral" id="metric-col">-</div>
+    </div>
+  </div>
+
+  <div id="error-output"></div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    var hot;
+
+    function initGrid() {
+      if (hot) {
+        hot.destroy();
+      }
+      hot = new Handsontable(document.getElementById('hot-container'), {
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+          ['A4', 'B4', 'C4'],
+          ['A5', 'B5', 'C5'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 200,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      window.hot = hot;
+
+      // Reset UI
+      document.getElementById('metric-error').textContent = '-';
+      document.getElementById('metric-error').className = 'metric-value neutral';
+      document.getElementById('metric-col').textContent = '-';
+      document.getElementById('metric-col').className = 'metric-value neutral';
+      var errOut = document.getElementById('error-output');
+      errOut.textContent = '';
+      errOut.classList.remove('visible');
+    }
+
+    document.getElementById('btn-update').addEventListener('click', function() {
+      var errOut = document.getElementById('error-output');
+      var metricError = document.getElementById('metric-error');
+      var metricCol = document.getElementById('metric-col');
+
+      try {
+        hot.updateSettings({ renderAllRows: true, colHeaders: false });
+
+        // If we somehow reach here without throwing (future versions may handle this),
+        // report that no error occurred and check whether colHeaders was applied.
+        metricError.textContent = 'NO (no error thrown)';
+        metricError.className = 'metric-value ok';
+        var colHeadersApplied = hot.getSettings().colHeaders === false;
+        metricCol.textContent = colHeadersApplied ? 'YES (headers hidden)' : 'NO (still shows headers)';
+        metricCol.className = colHeadersApplied ? 'metric-value ok' : 'metric-value bad';
+        errOut.classList.remove('visible');
+      } catch (err) {
+        // Error thrown — updateSettings was aborted; colHeaders: false was never applied
+        metricError.textContent = 'YES';
+        metricError.className = 'metric-value bad';
+
+        var colHeadersApplied = hot.getSettings().colHeaders === false;
+        metricCol.textContent = colHeadersApplied
+          ? 'YES (headers hidden)'
+          : 'NO (still shows headers)';
+        metricCol.className = colHeadersApplied ? 'metric-value ok' : 'metric-value bad';
+
+        errOut.textContent = 'Error: ' + err.message;
+        errOut.classList.add('visible');
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initGrid);
+
+    initGrid();
+  </script>
+</body>
+</html>

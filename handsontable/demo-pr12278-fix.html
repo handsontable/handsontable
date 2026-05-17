@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12278 — wrappers skip init-only settings — Fix (local build)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fde8e8; color: #b91c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+
+    .info-fix {
+      background: #e8f5e9;
+      border: 1px solid #86efac;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .info-fix strong { color: #15803d; }
+    .info-fix code {
+      background: #dcfce7; padding: 1px 5px; border-radius: 3px; font-size: 13px;
+    }
+
+    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    button {
+      padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 500;
+    }
+    .btn-action { background: #16a34a; color: #fff; }
+    .btn-action:hover { background: #15803d; }
+    .btn-reset { background: #6b7280; color: #fff; }
+    .btn-reset:hover { background: #4b5563; }
+
+    .metrics {
+      display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .metric {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+      padding: 10px 16px; font-size: 13px; min-width: 210px;
+    }
+    .metric-label { color: #6b7280; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric-value { font-weight: 700; font-size: 15px; }
+    .metric-value.bad { color: #dc2626; }
+    .metric-value.ok { color: #16a34a; }
+    .metric-value.neutral { color: #374151; }
+
+    .skipped-keys {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 6px;
+      padding: 10px 16px; font-size: 13px; margin-bottom: 16px; display: none;
+    }
+    .skipped-keys.visible { display: block; }
+    .skipped-keys-label { color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    .skipped-keys-value { font-family: 'Menlo', 'Consolas', monospace; color: #7c3aed; }
+
+    #hot-container { background: #fff; border-radius: 6px; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <h1>PR #12278 — Wrappers skip init-only settings in updateSettings</h1>
+
+  <nav>
+    <span class="nav-label">Demo:</span>
+    <a class="nav-btn" href="demo-pr12278-bug.html">Bug <span class="badge badge-bug">v17.0.1</span></a>
+    <span class="nav-btn active">Fix <span class="badge badge-fix">local build</span></span>
+  </nav>
+
+  <div class="info-fix">
+    <strong>Fix — PR #12278:</strong> Framework wrappers (React, Vue, Angular) now read
+    <code>hot.getSettings()._initOnlySettings</code> before calling <code>updateSettings()</code>.
+    Any setting whose key appears in that list is silently skipped. This means a prop change
+    to <code>renderAllRows</code> (or <code>layoutDirection</code>, <code>renderAllColumns</code>,
+    <code>ariaTags</code>) no longer crashes the wrapper — and every other setting in the same
+    call is applied normally. Core Handsontable still throws for direct calls; the filtering
+    happens exclusively inside the wrapper layer.
+  </div>
+
+  <div class="controls">
+    <button class="btn-action" id="btn-update">updateSettings with renderAllRows + colHeaders (safe - like fixed wrappers)</button>
+    <button class="btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Error thrown</div>
+      <div class="metric-value neutral" id="metric-error">-</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">colHeaders applied</div>
+      <div class="metric-value neutral" id="metric-col">-</div>
+    </div>
+  </div>
+
+  <div class="skipped-keys" id="skipped-box">
+    <div class="skipped-keys-label">Init-only keys silently skipped</div>
+    <div class="skipped-keys-value" id="skipped-value"></div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    var hot;
+
+    /**
+     * Mirrors the fix applied in the React/Vue/Angular wrappers.
+     * Reads _initOnlySettings from the live settings object and filters them out
+     * before forwarding to updateSettings(), so core never sees init-only keys.
+     *
+     * @param {Handsontable} instance
+     * @param {object} settings - the full settings object, possibly containing init-only keys
+     * @returns {string[]} list of keys that were silently skipped
+     */
+    function safeUpdateSettings(instance, settings) {
+      var initOnly = instance.getSettings()._initOnlySettings || [];
+      var skipped = [];
+      var safe = Object.fromEntries(
+        Object.entries(settings).filter(function(entry) {
+          var key = entry[0];
+          if (initOnly.includes(key)) {
+            skipped.push(key);
+            return false;
+          }
+          return true;
+        })
+      );
+      instance.updateSettings(safe);
+      return skipped;
+    }
+
+    function initGrid() {
+      if (hot) {
+        hot.destroy();
+      }
+      hot = new Handsontable(document.getElementById('hot-container'), {
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2'],
+          ['A3', 'B3', 'C3'],
+          ['A4', 'B4', 'C4'],
+          ['A5', 'B5', 'C5'],
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 200,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      window.hot = hot;
+
+      // Reset UI
+      document.getElementById('metric-error').textContent = '-';
+      document.getElementById('metric-error').className = 'metric-value neutral';
+      document.getElementById('metric-col').textContent = '-';
+      document.getElementById('metric-col').className = 'metric-value neutral';
+      var skippedBox = document.getElementById('skipped-box');
+      skippedBox.classList.remove('visible');
+      document.getElementById('skipped-value').textContent = '';
+    }
+
+    document.getElementById('btn-update').addEventListener('click', function() {
+      var metricError = document.getElementById('metric-error');
+      var metricCol = document.getElementById('metric-col');
+      var skippedBox = document.getElementById('skipped-box');
+      var skippedValue = document.getElementById('skipped-value');
+
+      try {
+        var skipped = safeUpdateSettings(hot, { renderAllRows: true, colHeaders: false });
+
+        metricError.textContent = 'NO ✓';
+        metricError.className = 'metric-value ok';
+
+        var colHeadersApplied = hot.getSettings().colHeaders === false;
+        metricCol.textContent = colHeadersApplied ? 'YES ✓ (headers hidden)' : 'NO (still shows headers)';
+        metricCol.className = colHeadersApplied ? 'metric-value ok' : 'metric-value bad';
+
+        if (skipped.length > 0) {
+          skippedValue.textContent = skipped.join(', ');
+          skippedBox.classList.add('visible');
+        }
+      } catch (err) {
+        // Should not reach here with the fix applied
+        metricError.textContent = 'YES (unexpected!)';
+        metricError.className = 'metric-value bad';
+        metricCol.textContent = '-';
+        metricCol.className = 'metric-value neutral';
+        console.error('Unexpected error:', err);
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initGrid);
+
+    initGrid();
+  </script>
+</body>
+</html>
