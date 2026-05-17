@@ -3,347 +3,305 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PR #12207 — Deep settings equality (BUG — v17.0.1)</title>
+  <title>PR #12207 - BUG (deep settings equality for non-plain objects in React wrapper)</title>
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; color: #222; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
     h1 { font-size: 18px; margin-bottom: 12px; }
-    h2 { font-size: 15px; margin-bottom: 8px; color: #444; font-weight: 600; }
-
-    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
     .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
     .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
     .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
     .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
-    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .nav-btn:not(.active):hover { background: #ddd; }
     .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
-    .badge-cdn  { background: #e3f2fd; color: #1565c0; }
-    .badge-local { background: #e8f5e9; color: #2e7d32; }
-
-    /* Framework tabs */
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-primary { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-primary:hover { background: #c62828; }
+    .btn-secondary { background: #ef6c00; color: #fff; border-color: #bf360c; font-weight: 600; }
+    .btn-secondary:hover { background: #bf360c; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .btn-reset:hover { background: #fff176; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 26px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad  { color: #b71c1c; }
+    .metric-value.ok   { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
     .tabs-bar { display: flex; gap: 4px; margin-bottom: 0; flex-wrap: wrap; }
     .tab-btn {
-      padding: 7px 14px; border: 1px solid #ccc; border-bottom: none;
-      border-radius: 6px 6px 0 0; font-size: 13px; background: #e0e0e0;
-      cursor: pointer; color: #444; font-weight: 500;
+      padding: 7px 16px; font-size: 13px; cursor: pointer; border-radius: 6px 6px 0 0;
+      border: 1px solid #ccc; border-bottom: none; background: #e0e0e0; color: #555;
     }
-    .tab-btn.active { background: #fff; border-color: #aaa; color: #111; font-weight: 700; }
-    .tabs-content { border: 1px solid #aaa; border-radius: 0 6px 6px 6px; background: #fff; }
+    .tab-btn.active { background: #fff; font-weight: 700; border-color: #999; color: #111; }
+    .tab-btn:not(.active):hover { background: #ececec; }
+    .tabs-content {
+      background: #fff; border: 1px solid #ccc; border-radius: 0 6px 6px 6px;
+      padding: 16px; margin-bottom: 16px;
+    }
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
-
-    .tab-title { font-size: 13px; font-weight: 600; padding: 10px 14px 0; color: #555; }
+    .tab-pane .tab-title { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: #333; }
     pre {
       background: #1e1e1e; color: #d4d4d4; border-radius: 6px;
       font-size: 11px; line-height: 1.5; overflow-x: auto;
-      padding: 14px 16px; margin: 10px 14px 14px;
-      white-space: pre; tab-size: 2;
+      padding: 14px 16px; margin: 0; white-space: pre; font-family: 'Consolas', 'Fira Code', 'Monaco', monospace;
     }
-
-    /* Info banners */
-    .info-bug {
-      background: #fdecea; border: 1px solid #f44336; border-radius: 6px;
-      padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5;
-    }
-    .info-bug strong { color: #c62828; }
-    .info-fix {
-      background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px;
-      padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5;
-    }
-    .info-fix strong { color: #1b5e20; }
-
-    /* Demo section */
-    .section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-    .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
-    .btn {
-      padding: 7px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
-      cursor: pointer; border: 1px solid #ccc; background: #f0f0f0; color: #222;
-    }
-    .btn:hover { background: #e4e4e4; }
-    .btn-danger { background: #ffebee; border-color: #ef9a9a; color: #c62828; }
-    .btn-danger:hover { background: #ffcdd2; }
-    .btn-reset { background: #f3e5f5; border-color: #ce93d8; color: #6a1b9a; }
-    .btn-reset:hover { background: #e1bee7; }
-
-    /* Metrics */
-    .metrics { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
-    .metric { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 8px 14px; font-size: 13px; }
-    .metric-label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-    .metric-val { font-weight: 700; font-size: 15px; }
-    .val-yes { color: #2e7d32; }
-    .val-no  { color: #c62828; }
+    .section-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #333; }
+    #hot-container { margin-bottom: 16px; }
   </style>
 </head>
 <body>
+  <h1>PR #12207 - Deep settings equality for non-plain object values in React wrapper</h1>
 
-<h1>PR #12207 — Deep settings equality for non-plain object values (React wrapper)</h1>
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12207-fix.html">PR #12207 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
 
-<nav>
-  <span class="nav-label">View:</span>
-  <span class="nav-btn active">BUG <span class="badge badge-cdn">v17.0.1 CDN</span></span>
-  <a class="nav-btn" href="demo-pr12207-fix.html">FIX <span class="badge badge-local">PR build</span></a>
-</nav>
+  <div class="info info-bug">
+    <strong>BUG (v17.0.1):</strong> After clicking "Simulate re-render", <code>updateSettings()</code> is called
+    with <code>dataSchema</code> and <code>columns</code> (new object references each render), resetting the
+    autocomplete validator state. The <code>htInvalid</code> class disappears from the invalid cell.
+  </div>
 
-<div class="info-bug">
-  <strong>BUG (v17.0.1):</strong> The React wrapper uses <strong>reference equality</strong> for
-  <code>dataSchema</code> and <code>columns</code>. Every React re-render that passes new object
-  literals always triggers <code>updateSettings({ dataSchema, columns })</code>, resetting the
-  autocomplete validator state. The <code>htInvalid</code> CSS class disappears from invalid cells
-  after any re-render caused by <code>afterChange</code>.
-</div>
+  <div class="hint">
+    <strong>How to reproduce:</strong>
+    <ol>
+      <li>Click <strong>"Type 'INVALID' in Name cell"</strong> - the Name cell gets an invalid value.</li>
+      <li>Wait ~200 ms - the <code>htInvalid</code> metric should turn <strong>YES</strong> (green).</li>
+      <li>Click <strong>"Simulate re-render (sends dataSchema+columns again)"</strong> - this mimics what the v17.0.1 React wrapper does on every re-render triggered by <code>afterChange</code>.</li>
+      <li>Observe: <code>htInvalid</code> turns <strong>NO</strong> (red) - the validator state was wiped by <code>updateSettings</code>.</li>
+    </ol>
+  </div>
 
-<!-- Framework tabs -->
-<div style="margin-bottom: 20px;">
-  <h2>Framework comparison</h2>
   <div class="tabs-bar">
-    <button class="tab-btn active" data-tab="js">🟨 JavaScript</button>
-    <button class="tab-btn" data-tab="ts">🟦 TypeScript</button>
-    <button class="tab-btn" data-tab="react">⚛️ React</button>
-    <button class="tab-btn" data-tab="vue">💚 Vue 3</button>
-    <button class="tab-btn" data-tab="angular">🔴 Angular</button>
+    <button class="tab-btn active" onclick="showTab('js')">&#x1F7E8; JavaScript</button>
+    <button class="tab-btn" onclick="showTab('ts')">&#x1F7E6; TypeScript</button>
+    <button class="tab-btn" onclick="showTab('react')">&#x269B;&#xFE0F; React</button>
+    <button class="tab-btn" onclick="showTab('vue')">&#x1F49A; Vue 3</button>
+    <button class="tab-btn" onclick="showTab('angular')">&#x1F534; Angular</button>
   </div>
   <div class="tabs-content">
 
-    <!-- JS tab -->
     <div id="tab-js" class="tab-pane active">
-      <div class="tab-title">Not affected in vanilla JavaScript</div>
-      <pre><span style="color:#6a9955">// Vanilla JS: updateSettings() is called directly — no equality comparison</span>
-<span style="color:#569cd6">const</span> hot = <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Handsontable</span>(container, {
-  dataSchema: { name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() },
-  columns: [{ data: <span style="color:#ce9178">'name'</span>, type: <span style="color:#ce9178">'autocomplete'</span>,
-    source: [<span style="color:#ce9178">'Alice'</span>, <span style="color:#ce9178">'Bob'</span>], strict: <span style="color:#569cd6">true</span>, allowInvalid: <span style="color:#569cd6">true</span> }],
-  licenseKey: <span style="color:#ce9178">'non-commercial-and-evaluation'</span>,
+      <div class="tab-title">Not affected in vanilla JS</div>
+<pre>// Vanilla JS: updateSettings() is called directly - no equality comparison
+const hot = new Handsontable(container, {
+  dataSchema: { name: '', createdAt: new Date() },
+  columns: [{ data: 'name', type: 'autocomplete',
+    source: ['Alice', 'Bob'], strict: true, allowInvalid: true }],
+  licenseKey: 'non-commercial-and-evaluation',
 });
-<span style="color:#6a9955">// Direct call always works — no wrapper skipping logic</span>
-hot.updateSettings({ dataSchema: { name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() } });</pre>
+// Direct call always works - no wrapper skipping logic
+hot.updateSettings({ dataSchema: { name: '', createdAt: new Date() } });</pre>
     </div>
 
-    <!-- TS tab -->
     <div id="tab-ts" class="tab-pane">
-      <div class="tab-title">Not affected in TypeScript</div>
-      <pre><span style="color:#569cd6">import</span> <span style="color:#4ec9b0">Handsontable</span> <span style="color:#569cd6">from</span> <span style="color:#ce9178">'handsontable'</span>;
-<span style="color:#569cd6">interface</span> <span style="color:#4ec9b0">RowSchema</span> { name: <span style="color:#569cd6">string</span>; createdAt: <span style="color:#4ec9b0">Date</span>; }
-
-<span style="color:#569cd6">const</span> hot = <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Handsontable</span>(container, {
-  dataSchema: { name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() } <span style="color:#569cd6">as</span> <span style="color:#4ec9b0">RowSchema</span>,
-  columns: [{ data: <span style="color:#ce9178">'name'</span>, type: <span style="color:#ce9178">'autocomplete'</span>,
-    source: [<span style="color:#ce9178">'Alice'</span>, <span style="color:#ce9178">'Bob'</span>], strict: <span style="color:#569cd6">true</span>, allowInvalid: <span style="color:#569cd6">true</span> }],
-  licenseKey: <span style="color:#ce9178">'non-commercial-and-evaluation'</span>,
+      <div class="tab-title">Not affected in TypeScript (same as vanilla JS)</div>
+<pre>import Handsontable from 'handsontable';
+interface RowSchema { name: string; createdAt: Date; }
+const hot = new Handsontable(container, {
+  dataSchema: { name: '', createdAt: new Date() } as RowSchema,
+  columns: [{ data: 'name', type: 'autocomplete',
+    source: ['Alice', 'Bob'], strict: true, allowInvalid: true }],
+  licenseKey: 'non-commercial-and-evaluation',
 });
-hot.updateSettings({ dataSchema: { name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() } });</pre>
+hot.updateSettings({ dataSchema: { name: '', createdAt: new Date() } });</pre>
     </div>
 
-    <!-- React tab -->
     <div id="tab-react" class="tab-pane">
-      <div class="tab-title" style="color: #c62828;">AFFECTED — BUG in v17.0.1</div>
-      <pre><span style="color:#6a9955">// BUG: v17.0.1 React wrapper uses reference equality for dataSchema/columns.</span>
-<span style="color:#6a9955">// Every re-render passes NEW object literals → updateSettings() ALWAYS called</span>
-<span style="color:#6a9955">// with dataSchema+columns → validator state RESETS → htInvalid disappears.</span>
-<span style="color:#569cd6">import</span> { <span style="color:#4ec9b0">HotTable</span> } <span style="color:#569cd6">from</span> <span style="color:#ce9178">'@handsontable/react-wrapper'</span>;
-
-<span style="color:#569cd6">function</span> <span style="color:#dcdcaa">App</span>() {
-  <span style="color:#569cd6">const</span> [count, setCount] = <span style="color:#4ec9b0">React</span>.<span style="color:#dcdcaa">useState</span>(<span style="color:#b5cea8">0</span>);
-  <span style="color:#569cd6">return</span> (
-    &lt;<span style="color:#4ec9b0">HotTable</span>
-      <span style="color:#6a9955">{/* NEW object literal on every render → reference !== prev → ALWAYS sent to updateSettings */}</span>
-      dataSchema={{ name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() }}
-      columns={[{ data: <span style="color:#ce9178">'name'</span>, type: <span style="color:#ce9178">'autocomplete'</span>,
-        source: [<span style="color:#ce9178">'Alice'</span>, <span style="color:#ce9178">'Bob'</span>], strict: <span style="color:#569cd6">true</span>, allowInvalid: <span style="color:#569cd6">true</span> }]}
-      afterChange={() =&gt; setCount(c =&gt; c + <span style="color:#b5cea8">1</span>)}  <span style="color:#6a9955">// triggers re-render</span>
-      licenseKey=<span style="color:#ce9178">"non-commercial-and-evaluation"</span>
+      <div class="tab-title">AFFECTED - BUG in v17.0.1</div>
+<pre>// BUG: v17.0.1 React wrapper uses reference equality for dataSchema/columns.
+// Every re-render passes NEW object literals -&gt; updateSettings() ALWAYS called
+// with dataSchema+columns -&gt; validator state RESETS -&gt; htInvalid disappears.
+import { HotTable } from '@handsontable/react-wrapper';
+function App() {
+  const [count, setCount] = React.useState(0);
+  return (
+    &lt;HotTable
+      {/* NEW object literal on every render -&gt; reference !== prev -&gt; ALWAYS sent to updateSettings */}
+      dataSchema={{ name: '', createdAt: new Date() }}
+      columns={[{ data: 'name', type: 'autocomplete',
+        source: ['Alice', 'Bob'], strict: true, allowInvalid: true }]}
+      afterChange={() =&gt; setCount(c =&gt; c + 1)}
+      licenseKey="non-commercial-and-evaluation"
     /&gt;
   );
 }</pre>
     </div>
 
-    <!-- Vue tab -->
     <div id="tab-vue" class="tab-pane">
-      <div class="tab-title">Vue 3 — uses JSON.stringify comparison</div>
-      <pre><span style="color:#808080">&lt;template&gt;</span>
-  <span style="color:#808080">&lt;HotTable</span>
-    <span style="color:#9cdcfe">:data-schema</span>=<span style="color:#ce9178">"schema"</span>
-    <span style="color:#9cdcfe">:columns</span>=<span style="color:#ce9178">"columns"</span>
-    <span style="color:#9cdcfe">@after-change</span>=<span style="color:#ce9178">"onAfterChange"</span>
-    <span style="color:#9cdcfe">license-key</span>=<span style="color:#ce9178">"non-commercial-and-evaluation"</span>
-  <span style="color:#808080">/&gt;</span>
-<span style="color:#808080">&lt;/template&gt;</span>
-
-<span style="color:#808080">&lt;script setup&gt;</span>
-<span style="color:#569cd6">import</span> { ref } <span style="color:#569cd6">from</span> <span style="color:#ce9178">'vue'</span>;
-<span style="color:#569cd6">import</span> { <span style="color:#4ec9b0">HotTable</span> } <span style="color:#569cd6">from</span> <span style="color:#ce9178">'@handsontable/vue3'</span>;
-
-<span style="color:#569cd6">const</span> schema = <span style="color:#dcdcaa">ref</span>({ name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() });
-<span style="color:#569cd6">const</span> columns = <span style="color:#dcdcaa">ref</span>([{ data: <span style="color:#ce9178">'name'</span>, type: <span style="color:#ce9178">'autocomplete'</span>,
-  source: [<span style="color:#ce9178">'Alice'</span>, <span style="color:#ce9178">'Bob'</span>], strict: <span style="color:#569cd6">true</span>, allowInvalid: <span style="color:#569cd6">true</span> }]);
-
-<span style="color:#569cd6">function</span> <span style="color:#dcdcaa">onAfterChange</span>() {
-  <span style="color:#6a9955">// Vue uses JSON.stringify for comparison — Date serializes correctly.</span>
-  <span style="color:#6a9955">// Note: Set/Map objects serialize to {} in JSON (different Vue limitation).</span>
-  schema.value = { ...schema.value, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() };
+      <div class="tab-title">Vue 3 uses JSON.stringify comparison</div>
+<pre>&lt;template&gt;
+  &lt;HotTable
+    :data-schema="schema"
+    :columns="columns"
+    @after-change="onAfterChange"
+    license-key="non-commercial-and-evaluation"
+  /&gt;
+&lt;/template&gt;
+&lt;script setup&gt;
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+const schema = ref({ name: '', createdAt: new Date() });
+const columns = ref([{ data: 'name', type: 'autocomplete',
+  source: ['Alice', 'Bob'], strict: true, allowInvalid: true }]);
+function onAfterChange() {
+  // Vue uses JSON.stringify for comparison - Date serializes correctly.
+  // Note: Set/Map objects serialize to {} in JSON (different Vue limitation).
+  schema.value = { ...schema.value, createdAt: new Date() };
 }
-<span style="color:#808080">&lt;/script&gt;</span></pre>
+&lt;/script&gt;</pre>
     </div>
 
-    <!-- Angular tab -->
     <div id="tab-angular" class="tab-pane">
-      <div class="tab-title">Angular — uses direct property binding</div>
-      <pre><span style="color:#6a9955">// app.component.ts</span>
-<span style="color:#569cd6">import</span> { <span style="color:#4ec9b0">Component</span> } <span style="color:#569cd6">from</span> <span style="color:#ce9178">'@angular/core'</span>;
-
-<span style="color:#c586c0">@Component</span>({
-  selector: <span style="color:#ce9178">'app-root'</span>,
-  template: <span style="color:#ce9178">`&lt;hot-table
+      <div class="tab-title">Angular uses direct property binding</div>
+<pre>// app.component.ts
+import { Component } from '@angular/core';
+@Component({
+  selector: 'app-root',
+  template: `&lt;hot-table
     [dataSchema]="schema"
     [columns]="columns"
     (afterChange)="onAfterChange()"
     licenseKey="non-commercial-and-evaluation"&gt;
-  &lt;/hot-table&gt;`</span>
+  &lt;/hot-table&gt;`
 })
-<span style="color:#569cd6">export class</span> <span style="color:#4ec9b0">AppComponent</span> {
-  schema = { name: <span style="color:#ce9178">''</span>, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() };
-  columns = [{ data: <span style="color:#ce9178">'name'</span>, type: <span style="color:#ce9178">'autocomplete'</span>,
-    source: [<span style="color:#ce9178">'Alice'</span>, <span style="color:#ce9178">'Bob'</span>], strict: <span style="color:#569cd6">true</span>, allowInvalid: <span style="color:#569cd6">true</span> }];
-
-  <span style="color:#dcdcaa">onAfterChange</span>() {
-    <span style="color:#6a9955">// Angular change detection checks reference; updating schema triggers update</span>
-    <span style="color:#569cd6">this</span>.schema = { ...<span style="color:#569cd6">this</span>.schema, createdAt: <span style="color:#569cd6">new</span> <span style="color:#4ec9b0">Date</span>() };
+export class AppComponent {
+  schema = { name: '', createdAt: new Date() };
+  columns = [{ data: 'name', type: 'autocomplete',
+    source: ['Alice', 'Bob'], strict: true, allowInvalid: true }];
+  onAfterChange() {
+    // Angular change detection checks reference; updating schema triggers update
+    this.schema = { ...this.schema, createdAt: new Date() };
   }
 }</pre>
     </div>
 
-  </div><!-- /.tabs-content -->
-</div>
+  </div>
 
-<!-- Live demo -->
-<div class="section">
-  <h2>Live demo — bug reproduction</h2>
-  <p style="font-size:13px; color:#555; margin-bottom:12px;">
-    Steps: (1) click <strong>Type 'INVALID'</strong> to set an invalid value and trigger autocomplete
-    validation. (2) Observe <code>htInvalid</code> appears on the cell. (3) Click
-    <strong>Simulate re-render</strong> — this mimics what the React wrapper does: calls
-    <code>updateSettings</code> with new <code>dataSchema</code>+<code>columns</code> object
-    references. (4) The <code>htInvalid</code> class disappears — validator state is lost.
-  </p>
+  <div class="section-title">Live demo (vanilla JS simulating the React wrapper bug)</div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">htInvalid on Name cell</div>
+      <div class="metric-value neutral" id="metric-invalid">-</div>
+      <div class="metric-sub">Should stay YES after re-render (but does not - bug)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">updateSettings() calls</div>
+      <div class="metric-value neutral" id="metric-calls">0</div>
+      <div class="metric-sub">Increments each simulated re-render</div>
+    </div>
+  </div>
 
   <div class="controls">
-    <button class="btn btn-danger" onclick="typeInvalid()">Type 'INVALID' in Name cell</button>
-    <button class="btn" onclick="simulateRerender()">Simulate re-render (sends dataSchema+columns again)</button>
+    <button class="btn btn-primary" onclick="typeInvalid()">Type 'INVALID' in Name cell</button>
+    <button class="btn btn-secondary" onclick="simulateRerender()">Simulate re-render (sends dataSchema+columns again)</button>
     <button class="btn btn-reset" onclick="resetDemo()">Reset</button>
   </div>
 
   <div id="hot-container"></div>
 
-  <div class="metrics">
-    <div class="metric">
-      <div class="metric-label">htInvalid on cell</div>
-      <div class="metric-val" id="m-invalid">—</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">updateSettings calls</div>
-      <div class="metric-val" id="m-calls">0</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Last action</div>
-      <div class="metric-val" id="m-action" style="font-size:12px; max-width:260px;">—</div>
-    </div>
-  </div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    var updateSettingsCalls = 0;
 
-<script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
-<script>
-  var updateSettingsCount = 0;
-
-  function updateMetrics() {
-    var cell = document.querySelector('#hot-container td.htInvalid');
-    var mInvalid = document.getElementById('m-invalid');
-    if (cell) {
-      mInvalid.textContent = 'YES';
-      mInvalid.className = 'metric-val val-yes';
-    } else {
-      mInvalid.textContent = 'NO';
-      mInvalid.className = 'metric-val val-no';
+    function updateMetrics() {
+      var cell = window.hot && window.hot.getCell(0, 0);
+      var hasInvalid = cell && cell.classList.contains('htInvalid');
+      var el = document.getElementById('metric-invalid');
+      if (hasInvalid) {
+        el.textContent = 'YES';
+        el.className = 'metric-value ok';
+      } else {
+        el.textContent = 'NO';
+        el.className = 'metric-value bad';
+      }
+      document.getElementById('metric-calls').textContent = updateSettingsCalls;
     }
-    document.getElementById('m-calls').textContent = updateSettingsCount;
-  }
 
-  window.hot = new Handsontable(document.getElementById('hot-container'), {
-    data: [{ name: '', createdAt: '' }],
-    dataSchema: { name: '', createdAt: '' },
-    columns: [
-      {
-        data: 'name',
-        type: 'autocomplete',
-        source: ['Alice', 'Bob'],
-        strict: true,
-        allowInvalid: true
-      },
-      { data: 'createdAt', readOnly: true }
-    ],
-    colHeaders: ['Name (autocomplete)', 'CreatedAt (readonly)'],
-    rowHeaders: true,
-    width: '100%',
-    height: 130,
-    themeName: 'ht-theme-main',
-    licenseKey: 'non-commercial-and-evaluation',
-  });
-
-  function typeInvalid() {
-    hot.setDataAtRowProp(0, 'name', 'INVALID', 'edit');
-    document.getElementById('m-action').textContent = "Set name='INVALID' (edit source)";
-    setTimeout(function() {
-      updateMetrics();
-    }, 300);
-  }
-
-  function simulateRerender() {
-    // BUG: always calling updateSettings with dataSchema+columns resets validator state
-    updateSettingsCount++;
-    hot.updateSettings({
-      dataSchema: { name: '', createdAt: '' },   // new object reference
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [{ name: '', createdAt: '' }],
+      dataSchema: { name: '', createdAt: '' },
       columns: [
         {
           data: 'name',
           type: 'autocomplete',
           source: ['Alice', 'Bob'],
           strict: true,
-          allowInvalid: true
+          allowInvalid: true,
         },
-        { data: 'createdAt', readOnly: true }
-      ]
+        { data: 'createdAt', readOnly: true },
+      ],
+      colHeaders: ['Name (autocomplete)', 'CreatedAt (readonly)'],
+      rowHeaders: true,
+      width: '100%',
+      height: 130,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      afterValidate: function() {
+        setTimeout(updateMetrics, 50);
+      },
     });
-    document.getElementById('m-action').textContent =
-      'updateSettings({ dataSchema, columns }) called — validator reset!';
-    setTimeout(updateMetrics, 100);
-  }
 
-  function resetDemo() {
-    updateSettingsCount = 0;
-    hot.setDataAtRowProp(0, 'name', '', 'loadData');
-    document.getElementById('m-action').textContent = 'Reset';
-    setTimeout(function() {
-      updateMetrics();
-      document.getElementById('m-invalid').textContent = '—';
-      document.getElementById('m-invalid').className = 'metric-val';
-    }, 100);
-  }
+    function typeInvalid() {
+      window.hot.setDataAtRowProp(0, 'name', 'INVALID', 'edit');
+      setTimeout(updateMetrics, 200);
+    }
 
-  updateMetrics();
-</script>
+    function simulateRerender() {
+      // BUG: always calling updateSettings with dataSchema+columns resets validator state
+      window.hot.updateSettings({
+        dataSchema: { name: '', createdAt: '' },  // new object reference every time
+        columns: [
+          {
+            data: 'name',
+            type: 'autocomplete',
+            source: ['Alice', 'Bob'],
+            strict: true,
+            allowInvalid: true,
+          },
+        ],
+      });
+      updateSettingsCalls++;
+      setTimeout(updateMetrics, 50);
+    }
 
-<script>
-  // Framework tab switching
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var tab = btn.getAttribute('data-tab');
-      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-      document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
-      btn.classList.add('active');
-      document.getElementById('tab-' + tab).classList.add('active');
-    });
-  });
-</script>
+    function resetDemo() {
+      updateSettingsCalls = 0;
+      window.hot.setDataAtRowProp(0, 'name', '', 'edit');
+      setTimeout(updateMetrics, 100);
+    }
 
+    function showTab(id) {
+      document.querySelectorAll('.tab-pane').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-btn').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      document.getElementById('tab-' + id).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    setTimeout(updateMetrics, 200);
+  </script>
 </body>
 </html>

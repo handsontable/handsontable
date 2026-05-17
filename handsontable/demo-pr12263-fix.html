@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PR #12263 — HotTableRef typing guide for React (bug: old pattern) — v17.0.1</title>
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <title>PR #12263 — HotTableRef typing guide for React (fix: correct pattern) — local build</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
@@ -23,17 +22,29 @@
     .badge-cdn { background: #e3f2fd; color: #1565c0; }
     .badge-local { background: #e8f5e9; color: #2e7d32; }
 
-    .info-bug {
-      background: #dbeafe;
-      border: 1px solid #3b82f6;
+    .info-fix {
+      background: #dcfce7;
+      border: 1px solid #22c55e;
       border-radius: 6px;
       padding: 12px 16px;
       margin-bottom: 16px;
       font-size: 14px;
       line-height: 1.5;
-      color: #1e3a5f;
+      color: #14532d;
     }
-    .info-bug strong { color: #1e40af; }
+    .info-fix strong { color: #15803d; }
+
+    .mobile-note {
+      background: #fefce8;
+      border: 1px solid #eab308;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #713f12;
+    }
+    .mobile-note strong { color: #92400e; }
 
     /* Framework tab bar */
     .tab-bar {
@@ -131,19 +142,19 @@
   </style>
 </head>
 <body>
-  <h1>PR #12263 — HotTableRef typing guide for React (bug: old pattern)</h1>
+  <h1>PR #12263 — HotTableRef typing guide for React (fix: correct pattern)</h1>
 
   <nav>
     <span class="nav-label">Page:</span>
-    <span class="nav-btn active">Bug (old pattern) <span class="badge badge-cdn">CDN v17.0.1</span></span>
-    <a class="nav-btn" href="demo-pr12263-fix.html">Fix (correct pattern) <span class="badge badge-local">local build</span></a>
+    <a class="nav-btn" href="demo-pr12263-bug.html">Bug (old pattern) <span class="badge badge-cdn">CDN v17.0.1</span></a>
+    <span class="nav-btn active">Fix (correct pattern) <span class="badge badge-local">local build</span></span>
   </nav>
 
-  <div class="info-bug">
-    <strong>PR #12263 is documentation-only</strong> — it documents the correct <code>HotTableRef</code> typing for React.
-    The runtime behavior is unchanged. The "bug" is incorrect documentation/typing guidance.
-    Since HotTable became a functional component in v14.1.0, <code>useRef&lt;HotTable&gt;</code> no longer gives access
-    to <code>hotInstance</code>. The tabs below show the outdated patterns.
+  <div class="info-fix">
+    <strong>FIX (PR #12263 docs):</strong> HotTableRef typing guide documented.
+    Use <code>useRef&lt;HotTableRef&gt;</code> to correctly access <code>hotInstance</code> in React TypeScript projects.
+    The <code>HotTableRef</code> interface exposes <code>hotInstance: Handsontable | null</code>
+    and <code>hotElementRef: HTMLElement</code>.
   </div>
 
   <!-- Framework tab bar -->
@@ -170,35 +181,49 @@ console.<span class="c-func">log</span>(value);</pre>
 
   <!-- TypeScript tab -->
   <div id="tab-ts" class="tab-content">
-    <div class="snippet-label">OUTDATED PATTERN (before PR #12263 docs)</div>
-    <pre class="code-block"><span class="c-comment">// &#10007; OUTDATED: This pattern is documented in old guides</span>
-<span class="c-comment">// HotTable is a functional component since v14.1.0</span>
-<span class="c-keyword">import</span> { <span class="c-type">HotTable</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/react-wrapper'</span>;
+    <div class="snippet-label">CORRECT PATTERN (documented by PR #12263)</div>
+    <pre class="code-block"><span class="c-comment">// &#10003; CORRECT: Use HotTableRef for the ref type</span>
+<span class="c-keyword">import</span> { <span class="c-type">HotTable</span>, <span class="c-type">HotTableRef</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/react-wrapper'</span>;
 <span class="c-keyword">import</span> { <span class="c-func">useRef</span> } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;
 
-<span class="c-keyword">const</span> hotRef = <span class="c-func">useRef</span>&lt;<span class="c-bad">HotTable</span>&gt;(<span class="c-keyword">null</span>);
-<span class="c-comment">// &#10007; hotRef.current is the functional component instance proxy</span>
-<span class="c-comment">// &#10007; hotRef.current.hotInstance &#8594; undefined (class-based access)</span>
-<span class="c-comment">// This worked pre-v14.1.0 when HotTable was a class component</span></pre>
+<span class="c-keyword">const</span> hotRef = <span class="c-func">useRef</span>&lt;<span class="c-ok">HotTableRef</span>&gt;(<span class="c-keyword">null</span>);
+<span class="c-comment">// &#10003; hotRef.current?.hotInstance &#8594; Handsontable instance</span>
+<span class="c-comment">// &#10003; hotRef.current?.hotElementRef &#8594; HTMLElement (root DOM node)</span>
+
+<span class="c-comment">// HotTableRef interface:</span>
+<span class="c-comment">// {</span>
+<span class="c-comment">//   hotInstance: Handsontable | null;  // The Handsontable instance</span>
+<span class="c-comment">//   hotElementRef: HTMLElement;        // The grid root element</span>
+<span class="c-comment">// }</span></pre>
   </div>
 
   <!-- React tab -->
   <div id="tab-react" class="tab-content">
-    <div class="snippet-label">BROKEN pattern (before docs fix)</div>
-    <pre class="code-block"><span class="c-keyword">import</span> { <span class="c-type">HotTable</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/react-wrapper'</span>;
+    <div class="snippet-label">CORRECT pattern (documented by PR #12263)</div>
+    <pre class="code-block"><span class="c-keyword">import</span> { <span class="c-type">HotTable</span>, <span class="c-type">HotTableRef</span> } <span class="c-keyword">from</span> <span class="c-string">'@handsontable/react-wrapper'</span>;
 <span class="c-keyword">import</span> { <span class="c-func">useRef</span> } <span class="c-keyword">from</span> <span class="c-string">'react'</span>;
 
-<span class="c-comment">// &#10007; WRONG: Using HotTable as the ref type</span>
-<span class="c-keyword">const</span> hotRef = <span class="c-func">useRef</span>&lt;<span class="c-bad">HotTable</span>&gt;(<span class="c-keyword">null</span>);
+<span class="c-comment">// &#10003; CORRECT: Use HotTableRef as the ref type</span>
+<span class="c-keyword">const</span> hotRef = <span class="c-func">useRef</span>&lt;<span class="c-ok">HotTableRef</span>&gt;(<span class="c-keyword">null</span>);
 
 <span class="c-keyword">function</span> <span class="c-func">App</span>() {
   <span class="c-keyword">const</span> <span class="c-func">handleClick</span> = () =&gt; {
-    <span class="c-comment">// &#10007; This returns undefined since v14.1.0</span>
-    <span class="c-keyword">const</span> hotInstance = hotRef.current?.<span class="c-bad">hotInstance</span>;
-    console.<span class="c-func">log</span>(hotInstance); <span class="c-comment">// undefined &#10007;</span>
-    hotInstance?.<span class="c-func">selectCell</span>(0, 0); <span class="c-comment">// TypeError: Cannot read properties of undefined</span>
+    <span class="c-comment">// &#10003; hotInstance is correctly typed and accessible</span>
+    <span class="c-keyword">const</span> hotInstance = hotRef.current?.<span class="c-ok">hotInstance</span>;
+    hotInstance?.<span class="c-func">selectCell</span>(0, 0);
+    console.<span class="c-func">log</span>(hotInstance?.<span class="c-func">getDataAtCell</span>(0, 0));
   };
-  <span class="c-keyword">return</span> &lt;<span class="c-type">HotTable</span> ref={hotRef} data={[[<span class="c-string">'A1'</span>]]} licenseKey=<span class="c-string">"non-commercial-and-evaluation"</span> /&gt;;
+  <span class="c-keyword">return</span> (
+    &lt;&gt;
+      &lt;<span class="c-type">HotTable</span>
+        ref={hotRef}
+        data={[[<span class="c-string">'Alice'</span>, 100], [<span class="c-string">'Bob'</span>, 200]]}
+        colHeaders={[<span class="c-string">'Name'</span>, <span class="c-string">'Score'</span>]}
+        licenseKey=<span class="c-string">"non-commercial-and-evaluation"</span>
+      /&gt;
+      &lt;<span class="c-keyword">button</span> onClick={handleClick}&gt;Select (0,0)&lt;/<span class="c-keyword">button</span>&gt;
+    &lt;/&gt;
+  );
 }</pre>
   </div>
 
@@ -242,9 +267,15 @@ console.<span class="c-func">log</span>(value);</pre>
 }</pre>
   </div>
 
+  <!-- Mobile note -->
+  <div class="mobile-note">
+    <strong>Mobile note (also added by PR #12263):</strong> Handsontable is designed for desktop browsers.
+    Some interactions (keyboard shortcuts, cell selection) may not work as expected on mobile or touch devices.
+  </div>
+
   <!-- Live demo -->
   <div class="demo-section">
-    <h2>Live demo (vanilla JS — CDN v17.0.1)</h2>
+    <h2>Live demo (vanilla JS — local build)</h2>
     <div class="btn-row">
       <button class="demo-btn" onclick="demoSelectCell()">Select cell (0,0)</button>
       <button class="demo-btn" onclick="demoGetValue()">Get value at (0,0)</button>
@@ -253,7 +284,7 @@ console.<span class="c-func">log</span>(value);</pre>
     <div id="hot-container"></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script src="dist/handsontable.full.min.js"></script>
   <script>
     // Tab switching
     function showTab(name, btn) {
