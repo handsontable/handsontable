@@ -2,38 +2,14 @@
   "version": "17.0",
   "highlighted": [
     {
-      "prNumber": 11950,
-      "tagline": "Theme API replaces legacy stylesheets",
-      "whyItMatters": "Legacy CSS files such as handsontable.full.min.css are removed. Configure themes through the new Theme API or import the built-in theme CSS that ships with version 17.",
-      "codeBefore": "import 'handsontable/dist/handsontable.full.min.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
-      "codeAfter": "import 'handsontable/styles/handsontable.css';\nimport 'handsontable/styles/ht-theme-main.css';\n\nconst hot = new Handsontable(container, {\n  data,\n  themeName: 'ht-theme-main',\n  licenseKey: 'non-commercial-and-evaluation'\n});",
-      "migrationAnchor": "/migration-from-16.2-to-17.0#1-remove-legacy-styles"
-    },
-    {
-      "prNumber": 12015,
-      "tagline": "Deprecated wrappers and PersistentState removed",
-      "whyItMatters": "The old wrapper packages (@handsontable/angular, @handsontable/react, @handsontable/vue), the PersistentState plugin, and the legacy undo/redo methods are gone. Switch to the current wrapper packages and remove any code that depends on PersistentState."
-    },
-    {
-      "prNumber": 12016,
-      "tagline": "New sanitizer option replaces built-in DOMPurify",
-      "whyItMatters": "Handsontable no longer bundles DOMPurify. Pass your own sanitizer through the new sanitizer option, or convert untrusted content to plain text before rendering it in cells.",
-      "codeBefore": "const hot = new Handsontable(container, {\n  data,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
-      "codeAfter": "import DOMPurify from 'dompurify';\n\nconst hot = new Handsontable(container, {\n  data,\n  sanitizer: (html) => DOMPurify.sanitize(html),\n  licenseKey: 'non-commercial-and-evaluation'\n});",
-      "migrationAnchor": "/migration-from-16.2-to-17.0#5-migrate-from-built-in-dompurify-to-the-sanitizer-option"
-    },
-    {
-      "prNumber": 11997,
-      "tagline": "Intl.NumberFormat options for numeric cells",
-      "whyItMatters": "numeric cells now accept native Intl.NumberFormat options. numbro is deprecated and will be removed in a later release - move existing numericFormat patterns to Intl.NumberFormat to avoid future breakage.",
-      "codeBefore": "{\n  type: 'numeric',\n  numericFormat: {\n    pattern: '$0,0.00',\n    culture: 'en-US'\n  }\n}",
-      "codeAfter": "{\n  type: 'numeric',\n  numericFormat: {\n    style: 'currency',\n    currency: 'USD',\n    minimumFractionDigits: 2,\n    locale: 'en-US'\n  }\n}",
-      "migrationAnchor": "/migration-from-16.2-to-17.0#3-migrate-from-numbro-format-to-intlnumberformat"
+      "prNumber": 11899,
+      "tagline": "Simpler way to define custom editors",
+      "whyItMatters": "New API for easier creation and integration of custom cell types. It speeds up development, increases flexibility, and enables new ways to tailor the grid for specific needs."
     },
     {
       "prNumber": 11981,
       "tagline": "New multiselect cell type",
-      "whyItMatters": "A built-in multiselect cell type ships with its own editor, renderer, and validator. Use it instead of hand-rolled multi-value editors for selecting more than one option per cell.",
+      "whyItMatters": "A new cell type that allows users select multiple options, extending the dropdown functionality for more flexible data entry.",
       "codeBefore": "{\n  type: 'dropdown',\n  source: ['Engineering', 'Marketing', 'Sales']\n}",
       "codeAfter": "{\n  type: 'multiselect',\n  source: ['Engineering', 'Marketing', 'Sales']\n}"
     }

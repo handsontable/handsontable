@@ -1,5 +1,6 @@
 import './VersionComparison.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
 function readData(): VersionComparisonData {
@@ -122,20 +123,20 @@ function entriesInRange(entries: VersionEntry[], from: string, to: string): Vers
 }
 
 const FILTER_LABELS: Record<FilterKind, string> = {
-  all: 'All',
   new: 'New',
   fixed: 'Fixed',
   deprecated: 'Deprecated',
   breaking: 'Breaking',
+  all: 'All',
 };
 
 function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
   switch (filter) {
     case 'all': return true;
     case 'breaking': return entry.breaking;
-    case 'deprecated': return entry.category === 'deprecated';
+    case 'deprecated': return entry.category === 'deprecated' && !entry.breaking;
     case 'new': return entry.category === 'added' && !entry.breaking;
-    case 'fixed': return entry.category === 'fixed';
+    case 'fixed': return entry.category === 'fixed' && !entry.breaking;
   }
 }
 
@@ -182,62 +183,80 @@ function pillClass(category: ChangeCategory, breaking: boolean) {
   return `vc-pill vc-pill-${category}`;
 }
 
+const CATEGORY_LABELS: Record<ChangeCategory, string> = {
+  added: 'New',
+  changed: 'Changed',
+  deprecated: 'Deprecated',
+  removed: 'Removed',
+  fixed: 'Fixed',
+};
+
 function pillLabel(category: ChangeCategory, breaking: boolean) {
-  if (breaking) return 'breaking';
-  return category;
+  if (breaking) return 'Breaking';
+  return CATEGORY_LABELS[category];
 }
 
-function PrLink({ prNumber }: { prNumber: number | null }) {
-  if (prNumber === null) return null;
-  const href = `https://github.com/handsontable/handsontable/pull/${prNumber}`;
-  return <a href={href} target="_blank" rel="noreferrer">#{prNumber}</a>;
+function prHref(prNumber: number | null) {
+  return prNumber === null ? null : `https://github.com/handsontable/handsontable/pull/${prNumber}`;
 }
 
 function FeaturedEntry({ entry }: { entry: VersionEntry }) {
-  return (
-    <article className="vc-featured-card">
+  const href = prHref(entry.prNumber);
+  const content = (
+    <>
       <header className="vc-featured-card-header">
         <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
         {entry.prNumber !== null && (
-          <a
-            className="vc-featured-card-pr"
-            href={`https://github.com/handsontable/handsontable/pull/${entry.prNumber}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            #{entry.prNumber}
-          </a>
+          <span className="vc-featured-card-pr">#{entry.prNumber}</span>
         )}
       </header>
       <p className="vc-featured-card-title">{entry.tagline ?? entry.title}</p>
       {entry.whyItMatters && <p className="vc-featured-card-why">{entry.whyItMatters}</p>}
-    </article>
+    </>
+  );
+  if (href === null) {
+    return <article className="vc-featured-card">{content}</article>;
+  }
+  return (
+    <a className="vc-featured-card" href={href} target="_blank" rel="noreferrer">
+      {content}
+    </a>
   );
 }
 
 function CompactEntry({ entry }: { entry: VersionEntry }) {
-  return (
-    <li className="vc-entry vc-entry-compact">
+  const href = prHref(entry.prNumber);
+  const content = (
+    <>
       <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
       <span className="vc-entry-title">{entry.title}</span>
-      <PrLink prNumber={entry.prNumber} />
+      {entry.prNumber !== null && <span className="vc-entry-pr">#{entry.prNumber}</span>}
+    </>
+  );
+  return (
+    <li className="vc-entry">
+      {href === null ? (
+        <span className="vc-entry-compact">{content}</span>
+      ) : (
+        <a className="vc-entry-compact" href={href} target="_blank" rel="noreferrer">{content}</a>
+      )}
     </li>
   );
 }
 
-const COMPACT_THRESHOLD = 10;
+const COMPACT_THRESHOLD = 5;
 
-function ReleaseGroup({ version, entries }: { version: string; entries: VersionEntry[] }) {
+function ReleaseGroup({ version, entries, showFeatured }: { version: string; entries: VersionEntry[]; showFeatured: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const featured = entries.filter((e) => e.highlighted);
-  const compact = entries.filter((e) => !e.highlighted);
-  const shown = expanded || compact.length <= COMPACT_THRESHOLD
+  const featured = showFeatured ? entries.filter((e) => e.highlighted) : [];
+  const compact = showFeatured ? entries.filter((e) => !e.highlighted) : entries;
+  const isCollapsible = compact.length > COMPACT_THRESHOLD;
+  const shown = !isCollapsible || expanded
     ? compact
     : compact.slice(0, COMPACT_THRESHOLD);
-  const hiddenCount = compact.length - shown.length;
 
   return (
-    <section className="vc-release-group">
+    <section className="vc-release-group" id={`vc-v${version}`}>
       <h2 className="vc-release-heading">{version}</h2>
       {featured.length > 0 && (
         <div className="vc-featured-grid">
@@ -249,9 +268,9 @@ function ReleaseGroup({ version, entries }: { version: string; entries: VersionE
           {shown.map((e) => <CompactEntry key={`${e.version}-${e.prNumber}-${e.title}`} entry={e} />)}
         </ul>
       )}
-      {hiddenCount > 0 && (
-        <button type="button" className="vc-show-all" onClick={() => setExpanded(true)}>
-          Show all {compact.length} changes
+      {isCollapsible && (
+        <button type="button" className="vc-show-all" onClick={() => setExpanded((v) => !v)}>
+          {expanded ? 'Show fewer changes' : `Show all ${compact.length} changes`}
         </button>
       )}
     </section>
@@ -316,6 +335,10 @@ export function VersionComparison() {
   });
   const { from, to, filter } = state;
   useUrlSync(state);
+  useEffect(() => {
+    document.body.classList.add('vc-page');
+    return () => document.body.classList.remove('vc-page');
+  }, []);
 
   const filtered = useMemo(
     () => entriesInRange(data.entries, from, to),
@@ -348,8 +371,78 @@ export function VersionComparison() {
         />
       </div>
       <FilterTabs value={filter} entries={filtered} onChange={(f) => setState((s) => ({ ...s, filter: f }))} />
-      <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
-      {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} />)}
+      {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} showFeatured={filter !== 'breaking'} />)}
+      <TocPortal groups={groups} />
     </div>
+  );
+}
+
+function useActiveVersion(versions: string[]): string | null {
+  const [active, setActive] = useState<string | null>(versions[0] ?? null);
+  useEffect(() => {
+    if (versions.length === 0) return;
+    const visibility = new Map<string, number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const v = (e.target as HTMLElement).dataset.vcVersion;
+          if (!v) continue;
+          visibility.set(v, e.intersectionRatio);
+        }
+        let best: string | null = null;
+        let bestTop = Infinity;
+        for (const v of versions) {
+          const el = document.getElementById(`vc-v${v}`);
+          if (!el) continue;
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom > 80 && rect.top < window.innerHeight * 0.5) {
+            if (rect.top < bestTop) {
+              bestTop = rect.top;
+              best = v;
+            }
+          }
+        }
+        if (best) setActive(best);
+      },
+      { rootMargin: '-80px 0px -50% 0px', threshold: [0, 0.1, 0.5, 1] },
+    );
+    for (const v of versions) {
+      const el = document.getElementById(`vc-v${v}`);
+      if (el) {
+        el.dataset.vcVersion = v;
+        observer.observe(el);
+      }
+    }
+    return () => observer.disconnect();
+  }, [versions.join('|')]);
+  return active;
+}
+
+function TocPortal({ groups }: { groups: { version: string; entries: VersionEntry[] }[] }) {
+  const [target, setTarget] = useState<Element | null>(null);
+  const versions = useMemo(() => groups.map((g) => g.version), [groups]);
+  const active = useActiveVersion(versions);
+  useEffect(() => {
+    setTarget(document.getElementById('vc-toc-portal-target'));
+  }, []);
+  if (!target || groups.length === 0) return null;
+  return createPortal(
+    <nav className="vc-toc" aria-label="Versions in range">
+      <h3 className="vc-toc-heading">Versions</h3>
+      <ul className="vc-toc-list">
+        {groups.map((g) => (
+          <li key={g.version}>
+            <a
+              href={`#vc-v${g.version}`}
+              aria-current={active === g.version ? 'true' : undefined}
+              className={active === g.version ? 'is-active' : undefined}
+            >
+              {g.version}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>,
+    target,
   );
 }

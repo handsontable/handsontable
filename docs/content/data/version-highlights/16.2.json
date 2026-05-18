@@ -2,29 +2,19 @@
   "version": "16.2",
   "highlighted": [
     {
-      "prNumber": 11879,
-      "tagline": "EmptyDataState plugin for no-data UX",
-      "whyItMatters": "A built-in plugin renders a configurable empty state when the grid has no rows. Replace any custom DOM overlays you were using for empty datasets."
+      "prNumber": 11913,
+      "tagline": "Simplified Theming",
+      "whyItMatters": "Support for easy creation of custom themes aligned with any design system, powered by the Theme Builder for visual customization."
     },
     {
       "prNumber": 11902,
-      "tagline": "Dialog plugin gains a template option",
-      "whyItMatters": "The Dialog plugin now accepts a template option so you can drive its content from a string or function instead of imperatively writing into its container."
+      "tagline": "Notifications",
+      "whyItMatters": "Ability to display messages such as alert, info, success, error, or custom types."
     },
     {
-      "prNumber": 11871,
-      "tagline": "Filters plugin adds searchMode option",
-      "whyItMatters": "The Filters plugin gains an Enter key handler and a new searchMode option that controls how the by-value list reacts to user input. Useful if you customized filter behavior with hooks."
-    },
-    {
-      "prNumber": 11898,
-      "tagline": "minRowHeights alias for rowHeights",
-      "whyItMatters": "rowHeights now has a minRowHeights alias for API consistency with minSpareRows and similar minimum-style options. Both keys keep working - choose whichever reads better in your code."
-    },
-    {
-      "prNumber": 11804,
-      "tagline": "Focus scopes mechanism for nested grids",
-      "whyItMatters": "Focus management is now organized around named scopes, which fixes focus jumping between nested grids, dialogs, and editors. Custom plugins that called focus APIs directly may need light adjustments."
+      "prNumber": 11879,
+      "tagline": "Empty State",
+      "whyItMatters": "Improved user experience with informative messages when data is missing or errors occur."
     }
   ]
 }
