@@ -198,11 +198,11 @@ class DataSource {
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
-   * @param {number} row Physical row index.
+   * @param {number|string} row Physical row index.
    * @param {number|string} column Property name / physical column index.
    * @param {*} value The value to be set at the provided coordinates.
    */
-  setAtCell(row: number, column: string | number, value: unknown) {
+  setAtCell(row: number | string, column: string | number, value: unknown) {
     // Normalize row: accept string numeric indices (e.g. '0', '1') passed by setSourceDataAtCell,
     // but reject prototype-pollution keys like '__proto__', 'constructor', 'prototype'.
     let normalizedRow: number;
@@ -239,9 +239,15 @@ class DataSource {
 
     if (!Number.isInteger(column)) {
       // column argument is the prop name
+      if (!isObject(dataRow) && !Array.isArray(dataRow)) {
+        return;
+      }
       setProperty(dataRow as Record<string, unknown>, String(column), value);
     } else {
-      (dataRow as unknown[])[column as number] = value;
+      if (!Array.isArray(dataRow)) {
+        return;
+      }
+      dataRow[column as number] = value;
     }
   }
 
