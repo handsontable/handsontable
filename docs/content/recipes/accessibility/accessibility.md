@@ -7,7 +7,7 @@ canonicalUrl: /recipes/accessibility
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: t1a3b5c7
 react:
   id: u2b4c6d8

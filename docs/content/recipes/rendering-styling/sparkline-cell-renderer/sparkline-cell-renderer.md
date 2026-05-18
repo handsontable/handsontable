@@ -18,7 +18,7 @@ angular:
   metaTitle: Sparkline cell renderer - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build a custom cell renderer that draws an inline SVG bar chart from an array of numbers in each cell. You will learn how to register a named renderer with `registerRenderer`, bundle it into a cell type with `registerCellType`, and assign it to a read-only sparkline column.

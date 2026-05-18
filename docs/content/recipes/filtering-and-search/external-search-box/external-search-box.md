@@ -19,7 +19,7 @@ angular:
   metaTitle: External search box recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will add a search input outside Handsontable that highlights matching cells as you type. You will learn how to use the `Search` plugin's `query()` method and `hot.render()` to apply real-time cell highlights from an external control.

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: e50f0177
 title: Colorful Picker
 metaTitle: Color Picker Cell Type - React Data Grid | Handsontable

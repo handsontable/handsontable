@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 1f21530e
 title: Moment.js-based time
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable

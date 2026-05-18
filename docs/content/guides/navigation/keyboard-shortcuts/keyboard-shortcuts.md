@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 5w6juytv
 title: Keyboard shortcuts
 metaTitle: Keyboard shortcuts - JavaScript Data Grid | Handsontable

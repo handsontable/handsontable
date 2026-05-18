@@ -17,7 +17,7 @@ angular:
   metaTitle: Programmatic row operations - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu and Interaction
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will add, delete, and reorder rows in Handsontable using external toolbar buttons. You will learn how to wire buttons to the `alter()` API and the `ManualRowMove` plugin to give users full programmatic control over row order.

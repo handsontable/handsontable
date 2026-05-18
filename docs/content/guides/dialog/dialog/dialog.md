@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 1xi1xek4
 title: Dialog
 metaTitle: Dialog - JavaScript Data Grid | Handsontable

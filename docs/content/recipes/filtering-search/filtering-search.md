@@ -6,7 +6,7 @@ canonicalUrl: /recipes/filtering-search
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: b9f32a7c
 description: Practical recipes for building external filtering and search interfaces with Handsontable.
 react:
