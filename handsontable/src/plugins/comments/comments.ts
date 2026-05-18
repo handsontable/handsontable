@@ -460,8 +460,8 @@ export class Comments extends BasePlugin {
   targetIsCellWithComment(event: Event) {
     const closestCell = closest(eventTargetEl(event)!, ['TD']);
 
-    return !!(closestCell && hasClass(closestCell as HTMLElement, 'htCommentCell') &&
-      closest(closestCell as HTMLElement, [this.hot.rootElement]));
+    return !!(closestCell && hasClass(closestCell, 'htCommentCell') &&
+      closest(closestCell, [this.hot.rootElement]));
   }
 
   /**
@@ -662,31 +662,28 @@ export class Comments extends BasePlugin {
     const { wtTable } = wt;
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
-    const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true);
+    const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true) as HTMLTableCellElement;
     const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
     const metaColspan = (cellMeta.colspan as number | undefined) ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
-    const styleData = commentStyle as { width: number; height: number } | undefined;
-
-    if (styleData) {
-      this.#editor.setSize(styleData.width, styleData.height);
+    if (commentStyle) {
+      this.#editor.setSize(commentStyle.width, commentStyle.height);
 
     } else {
       this.#editor.resetSize();
     }
 
     const lastColWidth = isBeforeRenderedColumns ? 0 :
-      getEditorAnchorWidth(metaColspan, TD as HTMLTableCellElement,
-        (wtTable.getColumnWidth as (col: number) => number)(renderableColumn));
-    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD as HTMLElement) : 0;
+      getEditorAnchorWidth(metaColspan, TD, wtTable.getColumnWidth(renderableColumn));
+    const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
 
     const {
       left,
       top,
       width: cellWidth,
       height: cellHeight,
-    } = (TD as HTMLElement).getBoundingClientRect();
+    } = TD.getBoundingClientRect();
     const {
       width: editorWidth,
       height: editorHeight,
@@ -718,7 +715,7 @@ export class Comments extends BasePlugin {
     }
 
     this.#editor.setPosition(x, y);
-    this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) as boolean);
+    this.#editor.setReadOnlyState(!!this.getCommentMeta(visualRow, visualColumn, META_READONLY));
     this.#editor.observeSize();
   }
 
@@ -758,6 +755,12 @@ export class Comments extends BasePlugin {
    * @param {string} property Cell meta property.
    * @returns {Mixed}
    */
+  getCommentMeta(row: number, column: number, property: typeof META_COMMENT_VALUE): string | undefined;
+  getCommentMeta(row: number, column: number, property: typeof META_READONLY): boolean | undefined;
+  getCommentMeta(
+    row: number, column: number, property: typeof META_STYLE
+  ): { width: number; height: number } | undefined;
+  getCommentMeta(row: number, column: number, property: string): unknown;
   getCommentMeta(row: number, column: number, property: string): unknown {
     const cellMeta = this.hot.getCellMeta(row, column);
 
@@ -785,7 +788,7 @@ export class Comments extends BasePlugin {
       let coordinates = null;
 
       if (eventCell) {
-        coordinates = this.hot.getCoords(eventCell as HTMLElement);
+        coordinates = this.hot.getCoords(eventCell);
       }
 
       if (!eventCell || ((this.range.from && coordinates) &&
@@ -940,9 +943,9 @@ export class Comments extends BasePlugin {
   addToContextMenu(options: Record<string, unknown>) {
     (options.items as unknown[]).push(
       { name: SEPARATOR },
-      addEditCommentItem(this as unknown as Record<string, Function>),
-      removeCommentItem(this as unknown as Record<string, Function>),
-      readOnlyCommentItem(this as unknown as Record<string, Function>),
+      addEditCommentItem(this),
+      removeCommentItem(this),
+      readOnlyCommentItem(this),
     );
   }
 

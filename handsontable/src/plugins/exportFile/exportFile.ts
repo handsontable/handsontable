@@ -141,6 +141,16 @@ export type Settings = ExportFileSettings;
 export const PLUGIN_PRIORITY = 240;
 
 /**
+ * Type guard returning the user-provided `exportFile` settings when they are an object.
+ *
+ * @param {unknown} settings Raw value read from `hot.getSettings()[PLUGIN_KEY]`.
+ * @returns {ExportFileSettings|undefined}
+ */
+function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
+  return isObject(settings) ? (settings as ExportFileSettings) : undefined;
+}
+
+/**
  * @plugin ExportFile
  * @class ExportFile
  *
@@ -289,7 +299,7 @@ export class ExportFile extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', (a: any) => this.#onAfterContextMenuDefaultOptions(a));
+    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
 
     super.enablePlugin();
   }
@@ -306,12 +316,12 @@ export class ExportFile extends BasePlugin {
    *
    * @param {object} options Contains default added options of the Context Menu.
    */
-  #onAfterContextMenuDefaultOptions(options: any) {
+  #onAfterContextMenuDefaultOptions = (options: { items: unknown[] }) => {
     options.items.push(
       { name: '---------' },
       exportItem(this),
     );
-  }
+  };
 
   /**
    * Exports table data as a string.
@@ -533,7 +543,7 @@ export class ExportFile extends BasePlugin {
    * @param {Blob} blob The blob to download.
    * @param {string} name The filename (including extension).
    */
-  #triggerDownload(blob: any, name: string) {
+  #triggerDownload(blob: Blob, name: string) {
     const { rootDocument, rootWindow } = this.hot;
     const URL = rootWindow.URL || rootWindow.webkitURL;
     const url = URL.createObjectURL(blob);
@@ -563,14 +573,14 @@ export class ExportFile extends BasePlugin {
    * @returns {boolean}
    */
   supportsExportFormat(format: string) {
-    if (!(EXPORT_TYPES as Record<string, unknown>)[format]) {
+    if (!EXPORT_TYPES[format]) {
       return false;
     }
 
     if (format === 'xlsx') {
-      const settings = this.hot.getSettings()[PLUGIN_KEY];
+      const settings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
 
-      return isObject(settings) && isObject(settings.engines) && Boolean(settings.engines.xlsx);
+      return settings !== undefined && isObject(settings.engines) && Boolean(settings.engines.xlsx);
     }
 
     return true;
@@ -588,20 +598,23 @@ export class ExportFile extends BasePlugin {
    * @returns {BaseType}
    */
   _createTypeFormatter(format: string, options: Record<string, unknown> = {}): BaseType {
-    if (!(EXPORT_TYPES as Record<string, Function>)[format]) {
+    if (!EXPORT_TYPES[format]) {
       throwWithCause(`Export format type "${format}" is not supported.`);
     }
 
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const engines = isObject(pluginSettings) && isObject((pluginSettings as Record<string, unknown>).engines)
-      ? (pluginSettings as Record<string, unknown>).engines
-      : undefined;
-    const engineFromSettings = (engines as Record<string, unknown>)?.[format];
+    const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
+    const engineFromSettings = engines?.[format];
     const mergedOptions = engineFromSettings !== undefined
       ? { engine: engineFromSettings, ...options }
       : options;
+    const formatter = typeFactory(format, new DataProvider(this.hot), mergedOptions);
 
-    return typeFactory(format, new DataProvider(this.hot), mergedOptions)!;
+    if (formatter === null) {
+      throwWithCause(`Export format type "${format}" is not supported.`);
+    }
+
+    return formatter;
   }
 
   /**
@@ -614,21 +627,18 @@ export class ExportFile extends BasePlugin {
    * @param {BaseType} typeFormatter The instance of the specific formatter/exporter.
    * @returns {Blob|Promise<Blob>}
    */
-  _createBlob(typeFormatter: BaseType) {
+  _createBlob(typeFormatter: BaseType): Blob | Promise<Blob> {
     if (typeof Blob === 'undefined') {
       throwWithCause('Blob is not available in this environment.');
     }
 
     const exported = typeFormatter.export();
+    const { mimeType, encoding } = typeFormatter.options as { mimeType?: string; encoding?: string };
 
     if (exported instanceof Promise) {
-      return exported.then((buffer: unknown) => new Blob([buffer as BlobPart], {
-        type: typeFormatter.options.mimeType as string,
-      }));
+      return exported.then(buffer => new Blob([buffer as BlobPart], { type: mimeType }));
     }
 
-    return new Blob([exported], {
-      type: `${typeFormatter.options.mimeType};charset=${typeFormatter.options.encoding}`,
-    });
+    return new Blob([exported], { type: `${mimeType};charset=${encoding}` });
   }
 }

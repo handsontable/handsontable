@@ -1,10 +1,11 @@
 import * as C from '../../../i18n/constants';
+import type { Comments } from '../comments';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
  * @returns {object}
  */
-export default function removeCommentItem(plugin: Record<string, Function>) {
+export default function removeCommentItem(plugin: Comments) {
   return {
     key: 'commentsRemove',
     name() {

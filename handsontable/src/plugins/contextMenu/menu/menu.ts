@@ -27,8 +27,8 @@ import {
   removeClass,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
-import { debounce, isFunction } from '../../../helpers/function';
-import { isUndefined, isDefined } from '../../../helpers/mixed';
+import { debounce } from '../../../helpers/function';
+import { isDefined } from '../../../helpers/mixed';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import { createMenuItemRenderer } from './menuItemRenderer';
@@ -39,6 +39,27 @@ import {
 } from '../../../helpers/a11y';
 
 const MIN_WIDTH = 215;
+
+/**
+ * Type guard that checks whether the provided value has a readable `name` property.
+ *
+ * @param {unknown} value Value to inspect.
+ * @returns {boolean} `true` when the value is an object with a `name` property.
+ */
+function hasName(value: unknown): value is { name: unknown } {
+  return typeof value === 'object' && value !== null && 'name' in value;
+}
+
+interface MenuOptions {
+  // eslint-disable-next-line no-use-before-define
+  parent: Menu | null;
+  name: string | null;
+  className: string;
+  keepInViewport: boolean;
+  standalone: boolean;
+  minWidth: number;
+  container: HTMLElement;
+}
 
 /**
  * @typedef MenuOptions
@@ -67,7 +88,7 @@ export class Menu {
    *
    * @type {object}
    */
-  declare options: Record<string, unknown>;
+  declare options: MenuOptions;
   /**
    * @type {EventManager}
    */
@@ -151,9 +172,9 @@ export class Menu {
    * @param {Core} hotInstance Handsontable instance.
    * @param {MenuOptions} [options] Menu options.
    */
-  constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
+  constructor(hotInstance: HotInstance, options?: Partial<MenuOptions>) {
     this.hot = hotInstance;
-    this.options = options || {
+    this.options = {
       parent: null,
       name: null,
       className: '',
@@ -161,10 +182,11 @@ export class Menu {
       standalone: false,
       minWidth: MIN_WIDTH,
       container: this.hot.rootPortalElement,
+      ...options,
     };
-    this.container = this.createContainer(this.options.name as string | null);
-    this.positioner = new Positioner(this.options.keepInViewport as boolean);
-    this.parentMenu = (this.options.parent as Menu) || null;
+    this.container = this.createContainer(this.options.name);
+    this.positioner = new Positioner(this.options.keepInViewport);
+    this.parentMenu = this.options.parent || null;
 
     this.eventManager = new EventManager(this);
 
@@ -177,7 +199,7 @@ export class Menu {
 
     this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
       if (this.options.container !== this.hot.rootPortalElement) {
-        const menuContainer = this.options.container as HTMLElement;
+        const menuContainer = this.options.container;
 
         removeClass(menuContainer, /ht-theme-.*/g);
         addClass(menuContainer, themeName);
@@ -195,14 +217,14 @@ export class Menu {
    * @private
    */
   registerEvents() {
-    let frame = this.hot.rootWindow;
+    let frame: Window = this.hot.rootWindow;
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'touchstart', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
 
-      frame = getParentWindow(frame) as Window & typeof globalThis;
+      frame = getParentWindow(frame);
     }
   }
 
@@ -239,9 +261,25 @@ export class Menu {
    * @returns {object|null}
    */
   getSelectedItem(): Record<string, unknown> | null {
-    return this.hasSelectedItem()
-      ? this.hotMenu!.getSourceDataAtRow(this.hotMenu!.getSelectedActive()![0]) as Record<string, unknown>
-      : null;
+    if (!this.hasSelectedItem()) {
+      return null;
+    }
+
+    const rowIndex = this.hotMenu!.getSelectedActive()![0];
+
+    return this.#getSourceDataAtRow<Record<string, unknown>>(rowIndex);
+  }
+
+  /**
+   * Returns the source data at the provided row index typed as `T`.
+   *
+   * @param {number} row Row index.
+   * @returns {T | null} The source data entry or `null` when the row is not available.
+   */
+  #getSourceDataAtRow<T extends Record<string, unknown>>(row: number): T | null {
+    const data = this.hotMenu?.getSourceDataAtRow(row);
+
+    return data ? data as T : null;
   }
 
   /**
@@ -278,22 +316,22 @@ export class Menu {
     const minWidthOfMenu = (Number(this.options.minWidth) || MIN_WIDTH);
     let noItemsDefined = false;
 
-    let filteredItems = arrayFilter(this.menuItems!, (item) => {
-      if ((item as Record<string, unknown>).key === NO_ITEMS) {
+    let filteredItems = arrayFilter<Record<string, unknown>>(this.menuItems!, (item) => {
+      if (item.key === NO_ITEMS) {
         noItemsDefined = true;
       }
 
-      return isItemHidden(item as Record<string, unknown>, this.hot);
+      return isItemHidden(item, this.hot);
     });
 
     if (filteredItems.length < 1 && !noItemsDefined) {
-      filteredItems.push((predefinedItems() as Record<string, Record<string, unknown>>)[NO_ITEMS]);
+      filteredItems.push(predefinedItems()[NO_ITEMS]);
 
     } else if (filteredItems.length === 0) {
       return;
     }
 
-    filteredItems = filterSeparators(filteredItems as Record<string, unknown>[]);
+    filteredItems = filterSeparators(filteredItems);
 
     let shouldAutoCloseMenu = false;
 
@@ -327,7 +365,7 @@ export class Menu {
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
       modifyRowHeight: (rowHeight: number, visualRowIndex: number) => {
-        const item = this.hotMenu.getSourceDataAtRow(visualRowIndex) as { name?: unknown } | null;
+        const item = this.#getSourceDataAtRow<MenuItemConfig>(visualRowIndex);
 
         return item && item.name === SEPARATOR ? 1 : rowHeight;
       },
@@ -473,7 +511,7 @@ export class Menu {
       return false;
     }
 
-    const dataItem = this.hotMenu!.getSourceDataAtRow(row) as MenuItemConfig;
+    const dataItem = this.#getSourceDataAtRow<MenuItemConfig>(row)!;
     const subMenu = new Menu(this.hot, {
       parent: this,
       name: typeof dataItem.name === 'function' ? dataItem.name.call(this.hot) : dataItem.name,
@@ -482,7 +520,7 @@ export class Menu {
       container: this.options.container,
     });
 
-    subMenu.setMenuItems(dataItem.submenu!.items as Record<string, unknown>[]);
+    subMenu.setMenuItems(dataItem.submenu!.items);
     subMenu.open();
     subMenu.setPosition(cell.getBoundingClientRect());
     this.hotSubMenus[dataItem.key!] = subMenu;
@@ -503,7 +541,7 @@ export class Menu {
    * @param {number} row Row index.
    */
   closeSubMenu(row: number) {
-    const dataItem = this.hotMenu!.getSourceDataAtRow(row) as MenuItemConfig;
+    const dataItem = this.#getSourceDataAtRow<MenuItemConfig>(row)!;
     const menus = this.hotSubMenus[dataItem.key!];
 
     if (menus) {
@@ -659,12 +697,13 @@ export class Menu {
     const holderStyle = wtTable.holder.style;
     const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    const realHeight = arrayReduce<unknown, number>(data,
+    const realHeight = arrayReduce<unknown[] | object, number>(data,
       (accumulator, value, index) => {
         const itemCell = this.hotMenu!.getCell(index, 0);
         const currentRowHeight = itemCell ? outerHeight(this.hotMenu!.getCell(index, 0)) : 0;
+        const isSeparator = hasName(value) && value.name === SEPARATOR;
 
-        return accumulator + ((value as Record<string, unknown>).name === SEPARATOR ? 1 : currentRowHeight);
+        return accumulator + (isSeparator ? 1 : currentRowHeight);
       }, 0);
 
     holderStyle.width = `${currentHiderWidth}px`;
@@ -680,28 +719,17 @@ export class Menu {
    * @param {string} [name] Class name.
    * @returns {HTMLElement}
    */
-  createContainer(name: string | null = null) {
-    const menuContainer = this.options.container as HTMLElement;
+  createContainer(name: string | null = null): HTMLElement {
+    const menuContainer = this.options.container;
     const doc = menuContainer.ownerDocument;
-    let className = name;
-    let container;
+    let className: string | null = name;
+    let container: HTMLElement | null = null;
 
     if (className) {
-      if (isFunction(className)) {
-        className = className.call(this.hot);
-
-        if (className === null || isUndefined(className)) {
-          className = '';
-
-        } else {
-          className = className.toString();
-        }
-      }
-
       className = className.replace(/[^A-Za-z0-9]/g, '_');
       className = `${this.options.className}Sub_${className}`;
 
-      container = doc.querySelector(`.${this.options.className}.${className}`);
+      container = doc.querySelector<HTMLElement>(`.${this.options.className}.${className}`);
     }
 
     if (!container) {
@@ -716,7 +744,7 @@ export class Menu {
       menuContainer.appendChild(container);
     }
 
-    return container as HTMLElement;
+    return container;
   }
 
   /**

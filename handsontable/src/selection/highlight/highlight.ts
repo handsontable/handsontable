@@ -173,8 +173,13 @@ class Highlight {
       type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
     }
 
-    type DisabledFn = (row: number, col: number) => unknown;
-    let disableHighlight = (this.options.disabledCellSelection as DisabledFn)(coords.row, coords.col);
+    const disabledCellSelection = this.options.disabledCellSelection;
+
+    if (typeof disabledCellSelection !== 'function') {
+      return true;
+    }
+
+    let disableHighlight = disabledCellSelection(coords.row, coords.col);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];
@@ -424,25 +429,36 @@ class Highlight {
   }) {
     if ('rowClassName' in options) {
       this.options.rowClassName = options.rowClassName;
-      arrayEach(this.rowHighlights.values(), (h: any) => { h.settings.className = options.rowClassName; });
+      arrayEach(this.rowHighlights.values(), (h: VisualSelection) => {
+        h.settings.className = options.rowClassName;
+      });
     }
     if ('columnClassName' in options) {
       this.options.columnClassName = options.columnClassName;
-      arrayEach(this.columnHighlights.values(), (h: any) => { h.settings.className = options.columnClassName; });
+      arrayEach(this.columnHighlights.values(), (h: VisualSelection) => {
+        h.settings.className = options.columnClassName;
+      });
     }
     if ('headerClassName' in options) {
       this.options.headerClassName = options.headerClassName;
-      arrayEach(this.rowHeaders.values(), (h: any) => { h.settings.className = options.headerClassName; });
-      arrayEach(this.columnHeaders.values(), (h: any) => { h.settings.className = options.headerClassName; });
+      arrayEach(this.rowHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.headerClassName;
+      });
+      arrayEach(this.columnHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.headerClassName;
+      });
     }
     if ('activeHeaderClassName' in options) {
       this.options.activeHeaderClassName = options.activeHeaderClassName;
-      arrayEach(this.activeRowHeaders.values(),
-        (h: any) => { h.settings.className = options.activeHeaderClassName; });
-      arrayEach(this.activeColumnHeaders.values(),
-        (h: any) => { h.settings.className = options.activeHeaderClassName; });
-      arrayEach(this.activeCornerHeaders.values(),
-        (h: any) => { h.settings.className = options.activeHeaderClassName; });
+      arrayEach(this.activeRowHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.activeHeaderClassName;
+      });
+      arrayEach(this.activeColumnHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.activeHeaderClassName;
+      });
+      arrayEach(this.activeCornerHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.activeHeaderClassName;
+      });
     }
   }
 

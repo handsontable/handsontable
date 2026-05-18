@@ -170,8 +170,9 @@ class DataMap {
     if (columns) {
       let columnsLen = 0;
       let filteredIndex = 0;
+      const isColumnsFn = typeof columns === 'function';
 
-      if (typeof columns === 'function') {
+      if (isColumnsFn) {
         const schemaLen = deepObjectSize(schema);
 
         columnsLen = schemaLen > 0 ? schemaLen : this.countFirstRowKeys();
@@ -183,16 +184,15 @@ class DataMap {
       }
 
       for (i = 0; i < columnsLen; i++) {
-        const column = typeof columns === 'function'
-          ? columns(i)
-          : (columns as Record<string, unknown>[])[i];
+        const column = isColumnsFn ? columns(i) : columns[i];
 
         if (isObject(column)) {
           if (typeof column.data !== 'undefined') {
-            const index = typeof columns === 'function' ? filteredIndex : i;
+            const index = isColumnsFn ? filteredIndex : i;
+            const columnData = column.data as string | number;
 
-            this.colToPropCache[index] = column.data as string | number;
-            this.propToColCache.set(column.data as string | number, index);
+            this.colToPropCache[index] = columnData;
+            this.propToColCache.set(columnData, index);
           }
 
           filteredIndex += 1;
@@ -221,7 +221,7 @@ class DataMap {
    * @param {number} parent The property cache for recursive calls.
    * @returns {number}
    */
-  recursiveDuckColumns(schema: Record<string, unknown>, lastCol?: number, parent?: string) {
+  recursiveDuckColumns(schema: unknown, lastCol?: number, parent?: string) {
     let lastColumn = lastCol;
     let propertyParent = parent;
     let prop;
@@ -230,7 +230,7 @@ class DataMap {
       lastColumn = 0;
       propertyParent = '';
     }
-    if (typeof schema === 'object' && !Array.isArray(schema)) {
+    if (typeof schema === 'object' && schema !== null && !Array.isArray(schema)) {
       objectEach(schema, (value: unknown, key: string) => {
         if (value === null) {
           prop = propertyParent + key;
@@ -238,8 +238,8 @@ class DataMap {
           this.propToColCache.set(prop, lastColumn);
 
           lastColumn += 1;
-        } else {
-          lastColumn = this.recursiveDuckColumns(value as Record<string, unknown>, lastColumn, `${key}.`);
+        } else if (typeof value === 'object' && value !== null) {
+          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${key}.`);
         }
       });
     }
@@ -387,7 +387,12 @@ class DataMap {
         }
 
       } else if (this.hot.dataType === 'function') {
-        row = (this.tableMeta.dataSchema as (rowIndex: number) => unknown)(rowIndex + numberOfCreatedRows);
+        const dataSchemaFn = this.tableMeta.dataSchema;
+
+        if (typeof dataSchemaFn !== 'function') {
+          throwWithCause('`dataSchema` must be a function when `dataType` is `function`');
+        }
+        row = (dataSchemaFn as (rowIndex: number) => unknown)(rowIndex + numberOfCreatedRows);
 
       } else {
         row = {};

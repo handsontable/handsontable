@@ -20,7 +20,23 @@ import { EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
 import { EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
 import { EDITOR_TYPE as TIME_EDITOR } from './timeEditor';
 
-const registeredEditorClasses = new WeakMap();
+/**
+ * Constructor signature of any editor class. Editors extend `BaseEditor` but historically
+ * the public API also accepts plain constructors, so we use a structural type here.
+ */
+type EditorConstructor = new (hotInstance: HotInstance) => unknown;
+
+/**
+ * Editor constructor with the optional static `EDITOR_TYPE` identifier used during registration.
+ */
+type EditorConstructorWithType = EditorConstructor & { EDITOR_TYPE?: string };
+
+/**
+ * Public accepted shape for an editor class. Historically the registry accepts any `Function`
+ * (this is the documented type used by `CellTypeObject.editor`), so the public signatures
+ * stay compatible while the internal logic narrows to `EditorConstructorWithType`.
+ */
+type EditorClass = EditorConstructorWithType | Function;
 
 const {
   register,
@@ -31,27 +47,71 @@ const {
 } = staticRegister('editors');
 
 /**
- * @param {BaseEditor} editorClass The editor constructor.
+ * Wraps an editor class and lazily creates a single editor instance per Handsontable instance.
  */
-export function RegisteredEditor(this: Record<string, unknown>, editorClass: typeof BaseEditor | Function) {
-  const instances: Record<string, unknown> = {};
-  const Clazz = editorClass as typeof BaseEditor;
+export class RegisteredEditor {
+  #editorClass: EditorConstructorWithType;
+  #instances: Record<string, unknown> = {};
 
-  this.getConstructor = function(): typeof BaseEditor | Function {
-    return editorClass;
-  };
+  constructor(editorClass: EditorConstructorWithType) {
+    this.#editorClass = editorClass;
 
-  this.getInstance = function(hotInstance: HotInstance): unknown {
-    if (!(hotInstance.guid in instances)) {
-      instances[hotInstance.guid] = new Clazz(hotInstance);
+    const instances = this.#instances;
+
+    Hooks.getSingleton().add('afterDestroy', function(this: HotInstance) {
+      instances[this.guid] = null;
+    });
+  }
+
+  /**
+   * Returns the underlying editor constructor.
+   *
+   * @returns {Function} The editor class.
+   */
+  getConstructor(): EditorConstructorWithType {
+    return this.#editorClass;
+  }
+
+  /**
+   * Returns a memoized editor instance for the given Handsontable instance.
+   *
+   * @param {HotInstance} hotInstance The Handsontable instance.
+   * @returns {object} The editor instance.
+   */
+  getInstance(hotInstance: HotInstance): unknown {
+    if (!(hotInstance.guid in this.#instances)) {
+      this.#instances[hotInstance.guid] = new this.#editorClass(hotInstance);
     }
 
-    return instances[hotInstance.guid];
-  };
+    return this.#instances[hotInstance.guid];
+  }
 
-  Hooks.getSingleton().add('afterDestroy', function(this: Record<string, unknown>) {
-    instances[String(this.guid)] = null;
-  });
+}
+
+const registeredEditorClasses = new WeakMap<EditorConstructorWithType, RegisteredEditor>();
+
+/**
+ * Type guard for the function form of the `name` argument accepted by registry helpers.
+ *
+ * @param {unknown} value Value to test.
+ * @returns {boolean} `true` when the value is an editor constructor.
+ */
+function isEditorConstructor(value: unknown): value is EditorConstructorWithType {
+  return typeof value === 'function';
+}
+
+/**
+ * Narrows the public `EditorClass` type to the structural constructor type used internally.
+ *
+ * @param {Function} editorClass The editor class accepted from the public API.
+ * @returns {EditorConstructorWithType} The same value, typed as a constructor.
+ */
+function toEditorConstructor(editorClass: EditorClass): EditorConstructorWithType {
+  if (!isEditorConstructor(editorClass)) {
+    throwWithCause('Editor class must be a constructor function.');
+  }
+
+  return editorClass;
 }
 
 /**
@@ -61,11 +121,11 @@ export function RegisteredEditor(this: Record<string, unknown>, editorClass: typ
  * @param {object} hotInstance Instance of Handsontable.
  * @returns {Function} Returns instance of editor.
  */
-export function _getEditorInstance(name: string | typeof BaseEditor | Function, hotInstance: HotInstance): unknown {
-  let editor: Record<string, Function>;
+export function _getEditorInstance(name: string | EditorClass, hotInstance: HotInstance): unknown {
+  let editor: RegisteredEditor | undefined;
 
-  if (typeof name === 'function') {
-    if (!(registeredEditorClasses.get(name))) {
+  if (isEditorConstructor(name)) {
+    if (!registeredEditorClasses.get(name)) {
       _register(null, name);
     }
     editor = registeredEditorClasses.get(name);
@@ -90,15 +150,17 @@ export function _getEditorInstance(name: string | typeof BaseEditor | Function, 
  * @param {string} name Editor identification.
  * @returns {Function} Returns editor class.
  */
-function _getItem(name: string | typeof BaseEditor | Function): typeof BaseEditor | Function {
-  if (typeof name === 'function') {
-    return name;
+function _getItem(name: string | EditorClass): EditorConstructorWithType {
+  if (typeof name !== 'string') {
+    return toEditorConstructor(name);
   }
   if (!hasItem(name)) {
     throwWithCause(`No registered editor found under "${name}" name`);
   }
 
-  return getItem(name).getConstructor();
+  const wrapper: RegisteredEditor = getItem(name);
+
+  return wrapper.getConstructor();
 }
 
 /**
@@ -107,19 +169,29 @@ function _getItem(name: string | typeof BaseEditor | Function): typeof BaseEdito
  * @param {string} name Editor identification.
  * @param {Function} editorClass Editor class.
  */
-function _register(name: string | typeof BaseEditor | Function, editorClass?: typeof BaseEditor | Function): void {
-  if (name && typeof name !== 'string') {
-    editorClass = name;
-    name = (editorClass as unknown as { EDITOR_TYPE: string }).EDITOR_TYPE;
+function _register(
+  name: string | EditorClass | null,
+  editorClass?: EditorClass,
+): void {
+  let editorName: string | null = typeof name === 'string' ? name : null;
+  let resolvedClass: EditorClass | undefined = editorClass;
+
+  if (name && isEditorConstructor(name)) {
+    resolvedClass = name;
+    editorName = name.EDITOR_TYPE ?? null;
   }
 
-  type WrapperCtor = new (editorClass: typeof BaseEditor | Function) => unknown;
-  const editorWrapper = new (RegisteredEditor as unknown as WrapperCtor)(editorClass);
-
-  if (typeof name === 'string') {
-    register(name, editorWrapper);
+  if (!resolvedClass) {
+    throwWithCause('Editor class is required to register an editor.');
   }
-  registeredEditorClasses.set(editorClass, editorWrapper);
+
+  const editorCtor = toEditorConstructor(resolvedClass);
+  const editorWrapper = new RegisteredEditor(editorCtor);
+
+  if (editorName !== null) {
+    register(editorName, editorWrapper);
+  }
+  registeredEditorClasses.set(editorCtor, editorWrapper);
 }
 
 export {

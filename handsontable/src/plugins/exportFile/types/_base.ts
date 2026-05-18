@@ -32,8 +32,17 @@ class BaseType {
    *
    * @returns {boolean}
    */
-  get binary() {
+  get binary(): boolean {
     return false;
+  }
+
+  /**
+   * Type predicate: narrows this formatter to a binary (asynchronous) one.
+   *
+   * @returns {boolean}
+   */
+  isBinary(): this is BaseType & { binary: true; export(): Promise<unknown> } {
+    return this.binary;
   }
 
   /**

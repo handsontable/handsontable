@@ -7,7 +7,15 @@ export const TYPE_CSV = 'csv';
 export const TYPE_XLSX = 'xlsx';
 export const TYPE_PDF = 'pdf'; // TODO
 
-export const EXPORT_TYPES = {
+/**
+ * Constructor signature shared by every exporter registered in {@link EXPORT_TYPES}.
+ */
+export type ExportTypeConstructor = new (
+  dataProvider: DataProvider,
+  options: Record<string, unknown>
+) => BaseType;
+
+export const EXPORT_TYPES: Record<string, ExportTypeConstructor> = {
   [TYPE_CSV]: Csv,
   [TYPE_XLSX]: Xlsx,
 };
@@ -22,10 +30,9 @@ export const EXPORT_TYPES = {
 export default function typeFactory(
   type: string, dataProvider: DataProvider, options: Record<string, unknown>
 ): BaseType | null {
-  if (typeof (EXPORT_TYPES as Record<string, Function>)[type] === 'function') {
-    type ExportTypeConstructor = new (...args: unknown[]) => BaseType;
-    const ExportType = (EXPORT_TYPES as Record<string, Function>)[type] as unknown as ExportTypeConstructor;
+  const ExportType = EXPORT_TYPES[type];
 
+  if (typeof ExportType === 'function') {
     return new ExportType(dataProvider, options);
   }
 

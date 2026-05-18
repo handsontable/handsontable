@@ -1,12 +1,12 @@
 import * as C from '../../../i18n/constants';
 import { checkSelectionConsistency, markLabelAsSelected } from '../../contextMenu/utils';
-import { META_READONLY } from '../comments';
+import { META_READONLY, type Comments } from '../comments';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
  * @returns {object}
  */
-export default function readOnlyCommentItem(plugin: Record<string, Function>) {
+export default function readOnlyCommentItem(plugin: Comments) {
   return {
     key: 'commentsReadOnly',
     name() {

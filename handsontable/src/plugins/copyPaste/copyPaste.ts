@@ -250,9 +250,9 @@ export class CopyPaste extends BasePlugin {
 
     // Events are attached to the document, not the root table element - as it should,
     // for Chrome 133 and lower to copy/paste/cut work properly (#dev-2277).
-    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (e: Event) => this.onCopy(e as ClipboardEvent));
-    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (e: Event) => this.onCut(e as ClipboardEvent));
-    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (e: Event) => this.onPaste(e as ClipboardEvent));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (e: ClipboardEvent) => this.onCopy(e));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (e: ClipboardEvent) => this.onCut(e));
+    this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (e: ClipboardEvent) => this.onPaste(e));
 
     // Without this workaround Safari (tested on Safari@16.5.2) does allow copying/cutting from the browser menu.
     if (isSafari()) {
@@ -464,7 +464,7 @@ export class CopyPaste extends BasePlugin {
       .filter(range => range !== null)
       .map(({ startRow, startCol, endRow, endCol }) => ({ startRow, startCol, endRow, endCol }));
 
-    this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges) as Record<string, number>[];
+    this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
     const cellsRange = groupedRanges.get('cells');
 
@@ -672,9 +672,9 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event: ClipboardEvent) {
-    const eventTarget = event.composedPath()[0] as HTMLElement;
+    const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = eventTarget?.hasAttribute('data-hot-input');
+    const isHotInput = isHTMLElement(eventTarget) && eventTarget.hasAttribute('data-hot-input');
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
@@ -716,9 +716,9 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event: ClipboardEvent) {
-    const eventTarget = event.composedPath()[0] as HTMLElement;
+    const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = eventTarget?.hasAttribute('data-hot-input');
+    const isHotInput = isHTMLElement(eventTarget) && eventTarget.hasAttribute('data-hot-input');
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
@@ -757,9 +757,9 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event: ClipboardEvent | PasteEvent) {
-    const eventTarget = event.composedPath()[0] as HTMLElement | undefined;
+    const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = eventTarget?.hasAttribute('data-hot-input');
+    const isHotInput = isHTMLElement(eventTarget) && eventTarget.hasAttribute('data-hot-input');
 
     if (
       !this.hot.isListening() ||
@@ -799,7 +799,7 @@ export class CopyPaste extends BasePlugin {
       const rawTextHTML = clipboardData.getData('text/html') ?? '';
       const customSanitizer = this.hot.getSettings().sanitizer;
       const textHTML: string = typeof customSanitizer === 'function'
-        ? (customSanitizer as (html: string, context: string) => string)(rawTextHTML, 'CopyPaste.paste')
+        ? customSanitizer(rawTextHTML, 'CopyPaste.paste')
         : sanitize(rawTextHTML, {
           ADD_TAGS: ['meta'],
           ADD_ATTR: ['content'],
@@ -823,7 +823,7 @@ export class CopyPaste extends BasePlugin {
       pastedData = parse(pastedData);
     }
 
-    if (pastedData === void 0 || pastedData && (pastedData as unknown[]).length === 0) {
+    if (pastedData === void 0 || Array.isArray(pastedData) && pastedData.length === 0) {
       return;
     }
 
@@ -881,29 +881,29 @@ export class CopyPaste extends BasePlugin {
    *
    * @param {object} options Contains default added options of the Context Menu.
    */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, any>) => {
-    (options.items as unknown[]).push(
+  #onAfterContextMenuDefaultOptions = (options: { items: unknown[] }) => {
+    options.items.push(
       { name: '---------' },
       copyItem(this),
     );
 
     if (this.#enableCopyColumnHeaders) {
-      (options.items as unknown[]).push(
+      options.items.push(
         copyWithColumnHeadersItem(this),
       );
     }
     if (this.#enableCopyColumnGroupHeaders) {
-      (options.items as unknown[]).push(
+      options.items.push(
         copyWithColumnGroupHeadersItem(this),
       );
     }
     if (this.#enableCopyColumnHeadersOnly) {
-      (options.items as unknown[]).push(
+      options.items.push(
         copyColumnHeadersOnlyItem(this),
       );
     }
 
-    (options.items as unknown[]).push(cutItem(this));
+    options.items.push(cutItem(this));
   };
 
   /**

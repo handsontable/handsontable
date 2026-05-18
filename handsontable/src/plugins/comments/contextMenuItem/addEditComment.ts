@@ -1,10 +1,11 @@
 import * as C from '../../../i18n/constants';
+import type { Comments } from '../comments';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
  * @returns {object}
  */
-export default function addEditCommentItem(plugin: Record<string, Function>) {
+export default function addEditCommentItem(plugin: Comments) {
   return {
     key: 'commentsAddEdit',
     name() {
