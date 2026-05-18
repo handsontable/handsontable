@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: qiasr3y1
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable

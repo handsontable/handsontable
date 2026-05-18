@@ -19,7 +19,7 @@ angular:
   metaTitle: Dependent Dropdowns Recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will drive a child column dropdown from a parent column using a dependency map. You will learn how to use `afterChange`, `setCellMeta`, and `render` to update dropdown source options dynamically when the user selects a value in the parent column.

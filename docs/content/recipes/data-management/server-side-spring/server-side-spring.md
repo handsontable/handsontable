@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: b7e4912f
 title: Server-side Data with Spring Boot
 metaTitle: Server-side Data with Spring Boot - JavaScript Data Grid | Handsontable

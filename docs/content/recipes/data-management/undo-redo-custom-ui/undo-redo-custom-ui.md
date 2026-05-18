@@ -20,7 +20,7 @@ angular:
   metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.

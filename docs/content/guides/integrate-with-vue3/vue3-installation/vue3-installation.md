@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 6sl4ak1f
 title: Installation in Vue 3
 metaTitle: Installation - Vue 3 Data Grid | Handsontable

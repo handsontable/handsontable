@@ -17,7 +17,7 @@ angular:
   metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will export grid data to a downloadable PDF using jsPDF and jspdf-autotable. You will learn how to read the current grid state with `getData()` and `getColHeader()`, build a multi-page PDF table with headers, and trigger a browser download.

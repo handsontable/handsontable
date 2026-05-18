@@ -22,7 +22,7 @@ angular:
   metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will integrate Handsontable into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.

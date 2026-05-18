@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 39o3uw0q
 title: Custom plugins
 metaTitle: Custom plugins - JavaScript Data Grid | Handsontable

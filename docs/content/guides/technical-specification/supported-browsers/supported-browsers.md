@@ -1,4 +1,5 @@
 ---
+type: reference
 id: zzjh2u93
 title: Supported browsers
 metaTitle: Supported browsers - JavaScript Data Grid | Handsontable

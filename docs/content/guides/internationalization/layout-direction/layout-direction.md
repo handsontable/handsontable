@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: gcdt3pns
 title: Layout direction
 metaTitle: Layout direction - JavaScript Data Grid | Handsontable

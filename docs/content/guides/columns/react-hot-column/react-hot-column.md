@@ -1,4 +1,5 @@
 ---
+type: reference
 id: h5waqmlx
 title: Column component
 metaTitle: Column component - React Data Grid | Handsontable

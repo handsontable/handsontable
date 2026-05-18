@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - JavaScript Data Grid | Handsontable

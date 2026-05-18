@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 2anhuqf7
 title: Column freezing
 metaTitle: Column freezing - JavaScript Data Grid | Handsontable

@@ -7,7 +7,7 @@ canonicalUrl: /recipes/data-management
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: c4b7e2f1
 react:
   id: 9d2f6a4b

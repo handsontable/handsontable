@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: 4055bdfa
 title: Long Term Support (LTS)
 metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable

@@ -18,7 +18,7 @@ angular:
   metaTitle: Custom context menu actions - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will add custom items to the Handsontable right-click context menu. You will learn how to define custom actions alongside built-in menu items and how to control which built-in items appear.

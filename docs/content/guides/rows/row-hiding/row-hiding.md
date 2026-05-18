@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 37786931
 title: Row hiding
 metaTitle: Row hiding - JavaScript Data Grid | Handsontable

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: bpcuomaq
 title: Column widths
 metaTitle: Column widths - JavaScript Data Grid | Handsontable

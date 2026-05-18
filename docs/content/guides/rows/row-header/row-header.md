@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: j1zswn3i
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable

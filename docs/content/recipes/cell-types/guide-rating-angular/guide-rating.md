@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: ibewekco
 title: "Star Rating Editor"
 metaTitle: "Star Rating Editor - JavaScript Data Grid | Handsontable"
