@@ -15,7 +15,7 @@ export function duckSchema(object: unknown[] | object): unknown {
     schema = object.length ? new Array(object.length).fill(null) : [];
 
   } else {
-    const schemaObj: Record<string, unknown> = {};
+    const schemaObj: Record<string, unknown> = Object.create(null);
 
     objectEach(object, (value, key) => {
       if (key === '__children') {
@@ -347,7 +347,9 @@ export function setProperty(object: Record<string, unknown>, name: string, value
   const names = name.split('.');
   let workingObject: Record<string, unknown> = object;
 
-  names.forEach((propName, index) => {
+  for (let index = 0; index < names.length; index += 1) {
+    const propName = names[index];
+
     if (propName === '__proto__' || propName === 'constructor' || propName === 'prototype') {
       // Security: prototype-polluting is not allowed
       return;
@@ -355,7 +357,7 @@ export function setProperty(object: Record<string, unknown>, name: string, value
 
     if (index !== names.length - 1) {
       if (!hasOwnProperty(workingObject, propName)) {
-        workingObject[propName] = {};
+        workingObject[propName] = Object.create(null);
       }
 
       const nextLevel = workingObject[propName];
@@ -369,7 +371,7 @@ export function setProperty(object: Record<string, unknown>, name: string, value
     } else {
       workingObject[propName] = value;
     }
-  });
+  }
 }
 
 /**
