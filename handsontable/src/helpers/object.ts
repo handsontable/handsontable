@@ -344,6 +344,10 @@ export function setProperty(object: Record<string, unknown>, name: string, value
     return;
   }
 
+  if (!isPlainObject(object)) {
+    return;
+  }
+
   const names = name.split('.');
   let workingObject: Record<string, unknown> = object;
 
