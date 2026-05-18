@@ -196,59 +196,32 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    this.addHook('beforeLoadData',
-      (sourceData: unknown[], initialLoad: boolean, source?: string) =>
-        this.#onBeforeLoadData(sourceData, initialLoad, source));
-    this.addHook('afterLoadData',
-      (sourceData: unknown[], initialLoad: boolean, source?: string) =>
-        this.#onAfterLoadData(sourceData, initialLoad, source));
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
 
     // The `updateData` hooks utilize the same logic as the `loadData` hooks.
-    this.addHook('beforeUpdateData',
-      (sourceData: unknown[], initialLoad: boolean, source?: string) =>
-        this.#onBeforeLoadData(sourceData, initialLoad, source));
-    this.addHook('afterUpdateData',
-      (sourceData: unknown[], initialLoad: boolean, source?: string) =>
-        this.#onAfterLoadData(sourceData, initialLoad, source));
+    this.addHook('beforeUpdateData', this.#onBeforeLoadData);
+    this.addHook('afterUpdateData', this.#onAfterLoadData);
 
-    this.addHook('modifyData',
-      (visualRow: number, visualColumn: number, valueHolder: Record<string, unknown>, ioMode: string) =>
-        this.#onModifyData(visualRow, visualColumn, valueHolder, ioMode));
-    this.addHook('modifySourceData',
-      (physicalRow: number, physicalColumn: number | string, valueHolder: Record<string, unknown>, ioMode: string) =>
-        this.#onModifySourceData(physicalRow, physicalColumn, valueHolder, ioMode));
-    this.addHook('beforeValidate',
-      (value: unknown, visualRow: number, prop: number | string) =>
-        this.#onBeforeValidate(value, visualRow, prop));
+    this.addHook('modifyData', this.#onModifyData);
+    this.addHook('modifySourceData', this.#onModifySourceData);
+    this.addHook('beforeValidate', this.#onBeforeValidate);
 
-    this.addHook('afterSetSourceDataAtCell',
-      (changes: unknown[][][], source: string) => this.#onAfterSetSourceDataAtCell(changes, source));
-    this.addHook('afterSetDataAtCell',
-      (changes: unknown[][][], source: string) => this.#onAfterSetDataAtCell(changes, source));
-    this.addHook('afterSetDataAtRowProp',
-      (changes: unknown[][][], source: string) => this.#onAfterSetDataAtCell(changes, source));
+    this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
+    this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
+    this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
 
-    this.addHook('beforeCreateRow',
-      (visualRow: number, amount: number) => this.#onBeforeCreateRow(visualRow, amount));
-    this.addHook('beforeCreateCol',
-      (visualColumn: number, amount: number) => this.#onBeforeCreateCol(visualColumn, amount));
+    this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
+    this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
 
-    this.addHook('afterCreateRow',
-      (visualRow: number, amount: number, source: string) => this.#onAfterCreateRow(visualRow, amount, source));
-    this.addHook('afterCreateCol',
-      (visualColumn: number, amount: number, source: string) => this.#onAfterCreateCol(visualColumn, amount, source));
+    this.addHook('afterCreateRow', this.#onAfterCreateRow);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
 
-    this.addHook('beforeRemoveRow',
-      (row: number, amount: number, physicalRows: number[]) => this.#onBeforeRemoveRow(row, amount, physicalRows));
-    this.addHook('beforeRemoveCol',
-      (col: number, amount: number, physicalColumns: number[]) => this.#onBeforeRemoveCol(col, amount, physicalColumns));
+    this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
+    this.addHook('beforeRemoveCol', this.#onBeforeRemoveCol);
 
-    this.addHook('afterRemoveRow',
-      (row: number, amount: number, physicalRows: number[], source: string) =>
-        this.#onAfterRemoveRow(row, amount, physicalRows, source));
-    this.addHook('afterRemoveCol',
-      (col: number, amount: number, physicalColumns: number[], source: string) =>
-        this.#onAfterRemoveCol(col, amount, physicalColumns, source));
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
 
     this.indexSyncer = new IndexSyncer(
       this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
@@ -312,7 +285,7 @@ export class Formulas extends BasePlugin {
     // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
     // hook, because some hooks, such as `afterLoadData` doesn't have information about composed cell properties.
     // Another hooks are triggered to late for setting HF's engine data needed for some actions.
-    this.addHook('afterCellMetaReset', () => this.#onAfterCellMetaReset());
+    this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
@@ -336,12 +309,8 @@ export class Formulas extends BasePlugin {
       this.indexSyncer.setPerformRedo(false);
     });
 
-    this.addHook('afterDetachChild',
-      (parent: Record<string, unknown>, element: Record<string, unknown>, finalElementRowIndex: number) =>
-        this.#onAfterDetachChild(parent, element, finalElementRowIndex));
-    this.addHook('beforeAutofill',
-      (fillData: unknown[][][][], sourceRange: Record<string, Function>, targetRange: Record<string, Function>) =>
-        this.#onBeforeAutofill(fillData, sourceRange, targetRange));
+    this.addHook('afterDetachChild', this.#onAfterDetachChild);
+    this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
     this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
 
@@ -740,7 +709,7 @@ export class Formulas extends BasePlugin {
    * @param {number|string} prop The visual column index or property name of the column.
    * @returns {*} Returns value to validate.
    */
-  #onBeforeValidate(value: unknown, visualRow: number, prop: number | string) {
+  #onBeforeValidate = (value: unknown, visualRow: number, prop: number | string) => {
     const visualColumn = this.hot.propToCol(prop);
 
     if (this.isFormulaCellType(visualRow, visualColumn)) {
@@ -763,7 +732,7 @@ export class Formulas extends BasePlugin {
     }
 
     return value;
-  }
+  };
 
   /**
    * `onBeforeAutofill` hook callback.
@@ -774,9 +743,9 @@ export class Formulas extends BasePlugin {
    * @param {CellRange} targetRange The range new values will be filled into.
    * @returns {boolean|*}
    */
-  #onBeforeAutofill(
+  #onBeforeAutofill = (
     fillData: unknown[][][][], sourceRange: Record<string, Function>, targetRange: Record<string, Function>
-  ) {
+  ) => {
     const { row: sourceTopStartRow, col: sourceTopStartColumn } = sourceRange.getTopStartCorner();
     const { row: sourceBottomEndRow, col: sourceBottomEndColumn } = sourceRange.getBottomEndCorner();
     const { row: targetTopStartRow, col: targetTopStartColumn } = targetRange.getTopStartCorner();
@@ -849,7 +818,7 @@ export class Formulas extends BasePlugin {
     }
 
     return fillRangeData;
-  }
+  };
 
   /**
    * `beforeLoadData` hook callback.
@@ -858,7 +827,7 @@ export class Formulas extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} [source] Source of the call.
    */
-  #onBeforeLoadData(sourceData: unknown[], initialLoad: boolean, source = '') {
+  #onBeforeLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -866,12 +835,12 @@ export class Formulas extends BasePlugin {
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
     this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
-  }
+  };
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
-  #onAfterCellMetaReset() {
+  #onAfterCellMetaReset = () => {
     if (this.#hotWasInitializedWithEmptyData) {
       this.switchSheet(this.sheetName);
 
@@ -903,7 +872,7 @@ export class Formulas extends BasePlugin {
     this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
     this.renderDependentSheets(dependentCells);
     this.#internalOperationPending = false;
-  }
+  };
 
   /**
    * `afterLoadData` hook callback.
@@ -912,7 +881,7 @@ export class Formulas extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    * @param {string} [source] Source of the call.
    */
-  #onAfterLoadData(sourceData: unknown[], initialLoad: boolean, source = '') {
+  #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
     if (source.includes(toUpperCaseFirst(PLUGIN_KEY))) {
       return;
     }
@@ -944,7 +913,7 @@ export class Formulas extends BasePlugin {
     } else {
       this.switchSheet(this.sheetName);
     }
-  }
+  };
 
   /**
    * `modifyData` hook callback.
@@ -955,7 +924,7 @@ export class Formulas extends BasePlugin {
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  #onModifyData(visualRow: number, visualColumn: number, valueHolder: Record<string, unknown>, ioMode: string) {
+  #onModifyData = (visualRow: number, visualColumn: number, valueHolder: Record<string, unknown>, ioMode: string) => {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -993,7 +962,7 @@ export class Formulas extends BasePlugin {
     // If `cellValue` is an object it is expected to be an error
     valueHolder.value = (typeof cellValue === 'object' && cellValue !== null)
       ? (cellValue as { value: unknown }).value : cellValue;
-  }
+  };
 
   /**
    * `modifySourceData` hook callback.
@@ -1004,9 +973,9 @@ export class Formulas extends BasePlugin {
    *   property.
    * @param {string} ioMode String which indicates for what operation hook is fired (`get` or `set`).
    */
-  #onModifySourceData(
+  #onModifySourceData = (
     row: number, columnOrProp: number | string, valueHolder: Record<string, unknown>, ioMode: string
-  ) {
+  ) => {
     if (
       ioMode !== 'get' ||
       this.#internalOperationPending ||
@@ -1046,7 +1015,7 @@ export class Formulas extends BasePlugin {
     };
 
     valueHolder.value = this.engine.getCellSerialized(address);
-  }
+  };
 
   /**
    * `onAfterSetDataAtCell` hook callback.
@@ -1055,7 +1024,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterSetDataAtCell(changes: unknown[][][], source: string) {
+  #onAfterSetDataAtCell = (changes: unknown[][][], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1109,7 +1078,7 @@ export class Formulas extends BasePlugin {
 
     this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
-  }
+  };
 
   /**
    * `onAfterSetSourceDataAtCell` hook callback.
@@ -1118,7 +1087,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterSetSourceDataAtCell(changes: unknown[][][], source: string) {
+  #onAfterSetSourceDataAtCell = (changes: unknown[][][], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1153,7 +1122,7 @@ export class Formulas extends BasePlugin {
 
     this.renderDependentSheets(dependentCells);
     this.validateDependentCells(dependentCells, changedCells);
-  }
+  };
 
   /**
    * `beforeCreateRow` hook callback.
@@ -1162,7 +1131,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created rows in the data source array.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeCreateRow(visualRow: number, amount: number) {
+  #onBeforeCreateRow = (visualRow: number, amount: number) => {
     let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
 
     if (visualRow >= this.hot.countRows()) {
@@ -1176,7 +1145,7 @@ export class Formulas extends BasePlugin {
     ) {
       return false;
     }
-  }
+  };
 
   /**
    * `beforeCreateCol` hook callback.
@@ -1185,7 +1154,7 @@ export class Formulas extends BasePlugin {
    * @param {number} amount Number of newly created columns in the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeCreateCol(visualColumn: number, amount: number) {
+  #onBeforeCreateCol = (visualColumn: number, amount: number) => {
     let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
 
     if (visualColumn >= this.hot.countCols()) {
@@ -1199,7 +1168,7 @@ export class Formulas extends BasePlugin {
     ) {
       return false;
     }
-  }
+  };
 
   /**
    * `beforeRemoveRow` hook callback.
@@ -1209,7 +1178,7 @@ export class Formulas extends BasePlugin {
    * @param {number[]} physicalRows An array of physical rows removed from the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeRemoveRow(row: number, amount: number, physicalRows: number[]) {
+  #onBeforeRemoveRow = (row: number, amount: number, physicalRows: number[]) => {
     const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
 
     const possible = hfRows.every((hfRow: number) => {
@@ -1217,7 +1186,7 @@ export class Formulas extends BasePlugin {
     });
 
     return possible === false ? false : undefined;
-  }
+  };
 
   /**
    * `beforeRemoveCol` hook callback.
@@ -1227,7 +1196,7 @@ export class Formulas extends BasePlugin {
    * @param {number[]} physicalColumns An array of physical columns removed from the data source.
    * @returns {*|boolean} If false is returned the action is canceled.
    */
-  #onBeforeRemoveCol(col: number, amount: number, physicalColumns: number[]) {
+  #onBeforeRemoveCol = (col: number, amount: number, physicalColumns: number[]) => {
     const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
 
     const possible = hfColumns.every((hfColumn: number) => {
@@ -1235,7 +1204,7 @@ export class Formulas extends BasePlugin {
     });
 
     return possible === false ? false : undefined;
-  }
+  };
 
   /**
    * `afterCreateRow` hook callback.
@@ -1245,7 +1214,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterCreateRow(visualRow: number, amount: number, source: string) {
+  #onAfterCreateRow = (visualRow: number, amount: number, source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1254,7 +1223,7 @@ export class Formulas extends BasePlugin {
       [this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow), amount]);
 
     this.renderDependentSheets(changes);
-  }
+  };
 
   /**
    * `afterCreateCol` hook callback.
@@ -1264,7 +1233,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterCreateCol(visualColumn: number, amount: number, source: string) {
+  #onAfterCreateCol = (visualColumn: number, amount: number, source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1273,7 +1242,7 @@ export class Formulas extends BasePlugin {
       [this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn), amount]);
 
     this.renderDependentSheets(changes);
-  }
+  };
 
   /**
    * `afterRemoveRow` hook callback.
@@ -1284,7 +1253,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterRemoveRow(row: number, amount: number, physicalRows: number[], source: string) {
+  #onAfterRemoveRow = (row: number, amount: number, physicalRows: number[], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1300,7 +1269,7 @@ export class Formulas extends BasePlugin {
     });
 
     this.renderDependentSheets(changes);
-  }
+  };
 
   /**
    * `afterRemoveCol` hook callback.
@@ -1311,7 +1280,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterRemoveCol(col: number, amount: number, physicalColumns: number[], source: string) {
+  #onAfterRemoveCol = (col: number, amount: number, physicalColumns: number[], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1327,7 +1296,7 @@ export class Formulas extends BasePlugin {
     });
 
     this.renderDependentSheets(changes);
-  }
+  };
 
   /**
    * `afterDetachChild` hook callback.
@@ -1337,7 +1306,7 @@ export class Formulas extends BasePlugin {
    * @param {object} element The detached element.
    * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  #onAfterDetachChild(parent: Record<string, unknown>, element: Record<string, unknown>, finalElementRowIndex: number) {
+  #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>, finalElementRowIndex: number) => {
     this.#internalOperationPending = true;
 
     const rowsData = this.#getProcessedSourceDataArray(
@@ -1358,7 +1327,7 @@ export class Formulas extends BasePlugin {
         }, [[value]]);
       });
     });
-  }
+  };
 
   /**
    * Called when a value is updated in the engine.

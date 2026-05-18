@@ -167,11 +167,9 @@ export class ManualColumnResize extends BasePlugin {
         this.hot.view?.invalidateColumnWidthCache();
       });
 
-    this.addHook('modifyColWidth', (width: number, column: number) => this.#onModifyColWidth(width, column), 1);
-    this.addHook('beforeStretchingColumnWidth', (stretchedWidth: number, column: number) => {
-      return this.#onBeforeStretchingColumnWidth(stretchedWidth, column);
-    }, 1);
-    this.addHook('beforeColumnResize', () => this.#onBeforeColumnResize());
+    this.addHook('modifyColWidth', this.#onModifyColWidth, 1);
+    this.addHook('beforeStretchingColumnWidth', this.#onBeforeStretchingColumnWidth, 1);
+    this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
 
     this.bindEvents();
 
@@ -670,7 +668,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {number}
    */
-  #onModifyColWidth(width: number, column: number) {
+  #onModifyColWidth = (width: number, column: number) => {
     let newWidth = width;
 
     if (this.enabled) {
@@ -683,7 +681,7 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     return newWidth;
-  }
+  };
 
   /**
    * Modifies the provided column stretched width. This hook decides if specified column should be stretched or not.
@@ -692,7 +690,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {number}
    */
-  #onBeforeStretchingColumnWidth(stretchedWidth: number, column: number) {
+  #onBeforeStretchingColumnWidth = (stretchedWidth: number, column: number) => {
     const width = this.#columnWidthsMap.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
     if (typeof width === 'number') {
@@ -700,15 +698,15 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     return stretchedWidth;
-  }
+  };
 
   /**
    * `beforeColumnResize` hook callback.
    */
-  #onBeforeColumnResize() {
+  #onBeforeColumnResize = () => {
     // clear the header height cache information
     this.hot.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
-  }
+  };
 
   /**
    * Destroys the plugin instance.

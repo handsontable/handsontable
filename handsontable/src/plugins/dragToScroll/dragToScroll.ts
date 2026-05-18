@@ -143,10 +143,8 @@ export class DragToScroll extends BasePlugin {
       this.#setupListening('cell', event as MouseEvent, controller);
     });
     this.addHook('afterOnCellCornerMouseDown', (event: Event) => this.#setupListening('corner', event as MouseEvent));
-    this.addHook('afterSelection', (
-      row: unknown, column: unknown, endRow: unknown, endColumn: unknown, preventScrolling: unknown
-    ) => this.#onAfterSelection(row, column, endRow, endColumn, preventScrolling));
-    this.addHook('afterScroll', () => this.#onAfterScroll());
+    this.addHook('afterSelection', this.#onAfterSelection);
+    this.addHook('afterScroll', this.#onAfterScroll);
 
     this.registerEvents();
 
@@ -425,11 +423,11 @@ export class DragToScroll extends BasePlugin {
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    */
-  #onAfterSelection(row: any, column: any, endRow: any, endColumn: any, preventScrolling: any) {
+  #onAfterSelection = (row: any, column: any, endRow: any, endColumn: any, preventScrolling: any) => {
     if (this.listening && this.#isOutsideViewport) {
       preventScrolling.value = true;
     }
-  }
+  };
 
   /**
    * 'mouseMove' event callback.
@@ -453,7 +451,7 @@ export class DragToScroll extends BasePlugin {
    * after each viewport auto-scroll tick. Autofill drags are skipped — the autofill plugin
    * owns its own selection extension via its `afterScroll` hook.
    */
-  #onAfterScroll() {
+  #onAfterScroll = () => {
     if (this.#activeDragKind !== 'cell') {
       return;
     }
@@ -529,7 +527,7 @@ export class DragToScroll extends BasePlugin {
     }
 
     selection.setRangeEnd(target);
-  }
+  };
 
   /**
    * Destroys the plugin instance.

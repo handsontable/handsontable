@@ -171,14 +171,14 @@ export class ContextMenu extends BasePlugin {
       container: (settingsObj?.uiContainer as HTMLElement) || this.hot.rootPortalElement,
     });
 
-    this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
-    this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
-    this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
+    this.menu.addLocalHook('beforeOpen', this.#onMenuBeforeOpen);
+    this.menu.addLocalHook('afterOpen', this.#onMenuAfterOpen);
+    this.menu.addLocalHook('afterClose', this.#onMenuAfterClose);
     this.menu.addLocalHook('executeCommand', (...params: unknown[]) => {
       this.executeCommand.call(this, ...params as [string, ...unknown[]]);
     });
 
-    this.addHook('afterOnCellContextMenu', (event: Event) => this.#onAfterOnCellContextMenu(event));
+    this.addHook('afterOnCellContextMenu', this.#onAfterOnCellContextMenu);
     this.addHook('beforeDialogShow', () => this.close());
 
     this.registerShortcuts();
@@ -383,7 +383,7 @@ export class ContextMenu extends BasePlugin {
    *
    * @param {Event} event The mouse event object.
    */
-  #onAfterOnCellContextMenu(event: Event) {
+  #onAfterOnCellContextMenu = (event: Event) => {
     const settings = this.hot.getSettings();
     const showRowHeaders = settings.rowHeaders;
     const showColHeaders = settings.colHeaders;
@@ -419,29 +419,29 @@ export class ContextMenu extends BasePlugin {
       top: (event as MouseEvent).clientY + offset.top,
       left: (event as MouseEvent).clientX + offset.left,
     });
-  }
+  };
 
   /**
    * On menu before open listener.
    */
-  #onMenuBeforeOpen() {
+  #onMenuBeforeOpen = () => {
     this.hot.runHooks('beforeContextMenuShow', this);
-  }
+  };
 
   /**
    * On menu after open listener.
    */
-  #onMenuAfterOpen() {
+  #onMenuAfterOpen = () => {
     this.hot.runHooks('afterContextMenuShow', this);
-  }
+  };
 
   /**
    * On menu after close listener.
    */
-  #onMenuAfterClose() {
+  #onMenuAfterClose = () => {
     this.hot.listen();
     this.hot.runHooks('afterContextMenuHide', this);
-  }
+  };
 
   /**
    * Destroys the plugin instance.

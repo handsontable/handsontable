@@ -233,15 +233,11 @@ export class HiddenRows extends BasePlugin {
     this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
 
-    this.addHook('afterContextMenuDefaultOptions', (options: Record<string, unknown>) => {
-      this.#onAfterContextMenuDefaultOptions(options);
-    });
-    this.addHook('afterGetCellMeta', (row: number, col: number, cellProperties: Record<string, unknown>) => {
-      this.#onAfterGetCellMeta(row, col, cellProperties);
-    });
-    this.addHook('modifyRowHeight', (height: number, row: number) => this.#onModifyRowHeight(height, row));
-    this.addHook('afterGetRowHeader', (row: number, TH: HTMLTableCellElement) => this.#onAfterGetRowHeader(row, TH));
-    this.addHook('modifyCopyableRange', (ranges: Record<string, number>[]) => this.#onModifyCopyableRange(ranges));
+    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
+    this.addHook('modifyRowHeight', this.#onModifyRowHeight);
+    this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
+    this.addHook('modifyCopyableRange', this.#onModifyCopyableRange);
 
     super.enablePlugin();
   }
@@ -419,7 +415,7 @@ export class HiddenRows extends BasePlugin {
    * @param {number} row Visual row index.
    * @returns {number}
    */
-  #onModifyRowHeight(height: number, row: number) {
+  #onModifyRowHeight = (height: number, row: number) => {
     // Hook is triggered internally only for the visible rows. Conditional will be handled for the API
     // calls of the `getRowHeight` function on not visible indexes.
     if (this.isHidden(row)) {
@@ -427,7 +423,7 @@ export class HiddenRows extends BasePlugin {
     }
 
     return height;
-  }
+  };
 
   /**
    * Sets the copy-related cell meta.
@@ -436,7 +432,7 @@ export class HiddenRows extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {object} cellProperties Object containing the cell properties.
    */
-  #onAfterGetCellMeta(row: number, column: number, cellProperties: Record<string, unknown>) {
+  #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
     if (this.getSetting('copyPasteEnabled') === false && this.isHidden(row)) {
       // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
       cellProperties.skipRowOnPaste = true;
@@ -461,7 +457,7 @@ export class HiddenRows extends BasePlugin {
         cellProperties.className = classArr.join(' ');
       }
     }
-  }
+  };
 
   /**
    * Modifies the copyable range, accordingly to the provided config.
@@ -469,7 +465,7 @@ export class HiddenRows extends BasePlugin {
    * @param {Array} ranges An array of objects defining copyable cells.
    * @returns {Array}
    */
-  #onModifyCopyableRange(ranges: Record<string, number>[]) {
+  #onModifyCopyableRange = (ranges: Record<string, number>[]) => {
     // Ranges shouldn't be modified when `copyPasteEnabled` option is set to `true` (by default).
     if (this.getSetting('copyPasteEnabled')) {
       return ranges;
@@ -509,7 +505,7 @@ export class HiddenRows extends BasePlugin {
     });
 
     return newRanges;
-  }
+  };
 
   /**
    * Adds the needed classes to the headers.
@@ -517,7 +513,7 @@ export class HiddenRows extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {HTMLElement} TH Header's TH element.
    */
-  #onAfterGetRowHeader(row: number, TH: HTMLTableCellElement) {
+  #onAfterGetRowHeader = (row: number, TH: HTMLTableCellElement) => {
     if (!this.getSetting('indicators') || row < 0) {
       return;
     }
@@ -533,14 +529,14 @@ export class HiddenRows extends BasePlugin {
     }
 
     addClass(TH, classList);
-  }
+  };
 
   /**
    * Add Show-hide rows to context menu.
    *
    * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
    */
-  #onAfterContextMenuDefaultOptions(options: Record<string, unknown>) {
+  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
     (options.items as unknown[]).push(
       {
         name: SEPARATOR
@@ -548,7 +544,7 @@ export class HiddenRows extends BasePlugin {
       hideRowItem(this as unknown as Record<string, Function>),
       showRowItem(this as unknown as Record<string, Function>)
     );
-  }
+  };
 
   /**
    * On map initialized hook callback.

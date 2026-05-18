@@ -263,7 +263,7 @@ export class Filters extends BasePlugin {
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
-    this.hot.addHook('afterGetColHeader', this.#onAfterGetColHeader.bind(this));
+    this.hot.addHook('afterGetColHeader', this.#onAfterGetColHeader);
   }
 
   /**
@@ -373,13 +373,13 @@ export class Filters extends BasePlugin {
 
     this.components.forEach(component => component.show());
 
-    this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterDropdownMenuDefaultOptions.bind(this));
-    this.addHook('beforeDropdownMenuShow', () => this.#onBeforeDropdownMenuShow());
-    this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
-    this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
-    this.addHook('afterChange', (changes: unknown[]) => this.#onAfterChange(changes));
-    this.addHook('afterDataProviderFetch', (result: Record<string, unknown>) => this.#onAfterDataProviderFetch(result));
-    this.addHook('afterDataProviderFetchError', () => this.#onAfterDataProviderFetchError());
+    this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterDropdownMenuDefaultOptions);
+    this.addHook('beforeDropdownMenuShow', this.#onBeforeDropdownMenuShow);
+    this.addHook('afterDropdownMenuShow', this.#onAfterDropdownMenuShow);
+    this.addHook('afterDropdownMenuHide', this.#onAfterDropdownMenuHide);
+    this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch);
+    this.addHook('afterDataProviderFetchError', this.#onAfterDataProviderFetchError);
 
     // Temp. solution (extending menu items bug in contextMenu/dropdownMenu)
     if (this.hot.getSettings().dropdownMenu && this.dropdownMenuPlugin) {
@@ -1127,7 +1127,7 @@ export class Filters extends BasePlugin {
    *
    * @param {Array} changes Array of changes.
    */
-  #onAfterChange(changes: unknown[]) {
+  #onAfterChange = (changes: unknown[]) => {
     if (changes) {
       arrayEach(changes, (change) => {
         const [, prop] = change as unknown[];
@@ -1139,7 +1139,7 @@ export class Filters extends BasePlugin {
         }
       });
     }
-  }
+  };
 
   /**
    * Update the condition of ValueComponent, based on the handled changes.
@@ -1182,40 +1182,40 @@ export class Filters extends BasePlugin {
    *
    * @param {object} [result] Fetch result (filters match the request that just completed). May include `filtersConditionsStack` (Array).
    */
-  #onAfterDataProviderFetch(result: Record<string, unknown> | null) {
+  #onAfterDataProviderFetch = (result: Record<string, unknown> | null) => {
     this.importConditions((result?.filtersConditionsStack as ColumnConditions[]) ?? []);
-  }
+  };
 
   /**
    * After dataProvider fetch error listener.
    */
-  #onAfterDataProviderFetchError() {
+  #onAfterDataProviderFetchError = () => {
     this.importConditions(this.#dataProviderFilterRollbackStack);
-  }
+  };
 
   /**
    * After dropdown menu show listener.
    */
-  #onAfterDropdownMenuShow() {
+  #onAfterDropdownMenuShow = () => {
     const menu = this.dropdownMenuPlugin.menu;
 
     this.restoreComponents(Array.from(this.components.values()));
 
     menu.updateMenuDimensions();
-  }
+  };
 
   /**
    * After dropdown menu hide listener.
    */
-  #onAfterDropdownMenuHide() {
+  #onAfterDropdownMenuHide = () => {
     this.components.get('filter_by_condition').getSelectElement().closeOptions();
     this.components.get('filter_by_condition2').getSelectElement().closeOptions();
-  }
+  };
 
   /**
    * Hooks applies the new dropdown menu instance to the focus navigator.
    */
-  #onBeforeDropdownMenuShow() {
+  #onBeforeDropdownMenuShow = () => {
     const mainMenu = this.dropdownMenuPlugin.menu;
 
     if (!this.#dropdownMenuTraces.has(mainMenu)) {
@@ -1223,20 +1223,20 @@ export class Filters extends BasePlugin {
     }
 
     this.#dropdownMenuTraces.add(mainMenu);
-  }
+  };
 
   /**
    * After dropdown menu default options listener.
    *
    * @param {object} defaultOptions ContextMenu default item options.
    */
-  #onAfterDropdownMenuDefaultOptions(defaultOptions: Record<string, unknown[]>) {
+  #onAfterDropdownMenuDefaultOptions = (defaultOptions: Record<string, unknown[]>) => {
     defaultOptions.items.push({ name: SEPARATOR });
 
     this.components.forEach((component) => {
       defaultOptions.items.push(component.getMenuItemDescriptor());
     });
-  }
+  };
 
   /**
    * Get an operation, based on the number and types of arguments (where arguments are states of components).
@@ -1391,7 +1391,7 @@ export class Filters extends BasePlugin {
    * @param {HTMLTableCellElement} TH Header's TH element.
    *
    */
-  #onAfterGetColHeader(col: number, TH: HTMLElement) {
+  #onAfterGetColHeader = (col: number, TH: HTMLElement) => {
     const physicalColumn = this.hot.toPhysicalColumn(col);
 
     if (
@@ -1403,7 +1403,7 @@ export class Filters extends BasePlugin {
     } else {
       removeClass(TH, 'htFiltersActive');
     }
-  }
+  };
 
   /**
    * Creates DataFilter instance based on condition collection.

@@ -300,15 +300,15 @@ export class EmptyDataState extends BasePlugin {
       this.#registerObservers();
     }
 
-    this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('afterRender', () => this.#onAfterRender());
+    this.addHook('afterInit', this.#onAfterInit);
+    this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterRowSequenceCacheUpdate', () => {
       this.#toggleEmptyDataState();
     });
     this.addHook('afterColumnSequenceCacheUpdate', () => {
       this.#toggleEmptyDataState();
     });
-    this.addHook('beforeFilter', (conditions: unknown[]) => this.#onBeforeFilter(conditions));
+    this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('beforeDataProviderFetch', (queryParameters: Record<string, unknown>) => {
       if (!queryParameters.skipLoading) {
         this.#setLoadingActive();
@@ -622,22 +622,22 @@ export class EmptyDataState extends BasePlugin {
    * Called after the initialization of the table is completed.
    * It toggles the emptyDataState.
    */
-  #onAfterInit() {
+  #onAfterInit = () => {
     this.#toggleEmptyDataState();
 
     this.hot.render();
-  }
+  };
 
   /**
    * Called after the rendering of the table is completed.
    * It updates the height and class names of the emptyDataState element.
    */
-  #onAfterRender() {
+  #onAfterRender = () => {
     if (this.#ui?.getElement() && this.isVisible() && this.hot.view) {
       this.#ui.updateSize(this.hot.view, this.#loadingActive);
       this.#ui.updateClassNames(this.hot.view);
     }
-  }
+  };
 
   /**
    * Called before the filtering of the table is completed.
@@ -645,13 +645,13 @@ export class EmptyDataState extends BasePlugin {
    *
    * @param {Array} conditions - The filter conditions.
    */
-  #onBeforeFilter(conditions: unknown[]) {
+  #onBeforeFilter = (conditions: unknown[]) => {
     this.#hasFilterConditions = conditions?.length > 0;
 
     if (this.isVisible()) {
       this.#update();
     }
-  }
+  };
 
   /**
    * Destroy plugin instance.

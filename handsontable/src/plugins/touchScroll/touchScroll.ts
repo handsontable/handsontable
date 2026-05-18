@@ -68,7 +68,7 @@ export class TouchScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterViewRender', () => this.#onAfterViewRender());
+    this.addHook('afterViewRender', this.#onAfterViewRender);
     this.registerEvents();
 
     super.enablePlugin();
@@ -96,14 +96,14 @@ export class TouchScroll extends BasePlugin {
    * @private
    */
   registerEvents() {
-    this.addHook('beforeTouchScroll', () => this.#onBeforeTouchScroll());
-    this.addHook('afterMomentumScroll', () => this.#onAfterMomentumScroll());
+    this.addHook('beforeTouchScroll', this.#onBeforeTouchScroll);
+    this.addHook('afterMomentumScroll', this.#onAfterMomentumScroll);
   }
 
   /**
    * After view render listener.
    */
-  #onAfterViewRender() {
+  #onAfterViewRender = () => {
     if (this.lockedCollection) {
       return;
     }
@@ -150,23 +150,23 @@ export class TouchScroll extends BasePlugin {
     if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
       this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
     }
-  }
+  };
 
   /**
    * Touch scroll listener.
    */
-  #onBeforeTouchScroll() {
+  #onBeforeTouchScroll = () => {
     this.freezeOverlays = true;
 
     arrayEach(this.clones, (clone) => {
       addClass(clone as HTMLElement, 'hide-tween');
     });
-  }
+  };
 
   /**
    * After momentum scroll listener.
    */
-  #onAfterMomentumScroll() {
+  #onAfterMomentumScroll = () => {
     this.freezeOverlays = false;
 
     arrayEach(this.clones, (clone) => {
@@ -186,5 +186,5 @@ export class TouchScroll extends BasePlugin {
     });
 
     (this.hot.view._wt.wtOverlays as unknown as { syncScrollWithMaster(): void }).syncScrollWithMaster();
-  }
+  };
 }

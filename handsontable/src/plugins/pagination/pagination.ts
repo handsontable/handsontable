@@ -244,24 +244,18 @@ export class Pagination extends BasePlugin {
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
-    this.addHook('init', () => this.#onInit(), -1);
-    this.addHook('beforeSelectAll', (
-      from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }
-    ) => this.#onBeforeSelectAllRows(from, to));
-    this.addHook('beforeSelectColumns', (
-      from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }
-    ) => this.#onBeforeSelectAllRows(from, to));
-    this.addHook('beforeSetRangeEnd', (coords: { row: number }) => this.#onBeforeSetRangeEnd(coords));
-    this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
-    this.addHook('beforePaste', (data: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
-      return this.#onBeforePaste(data, ranges);
-    });
-    this.addHook('afterViewRender', () => this.#onAfterViewRender());
-    this.addHook('afterRender', () => this.#onAfterRender());
-    this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
-    this.addHook('afterLanguageChange', () => this.#onAfterLanguageChange());
-    this.addHook('beforeHeightChange', (height: number | string) => this.#onBeforeHeightChange(height));
-    this.addHook('afterSetTheme', (themeName: unknown) => this.#onAfterSetTheme(themeName));
+    this.addHook('init', this.#onInit, -1);
+    this.addHook('beforeSelectAll', this.#onBeforeSelectAllRows);
+    this.addHook('beforeSelectColumns', this.#onBeforeSelectAllRows);
+    this.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd);
+    this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
+    this.addHook('beforePaste', this.#onBeforePaste);
+    this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRender', this.#onAfterRender);
+    this.addHook('afterScrollVertically', this.#onAfterScrollVertically);
+    this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
+    this.addHook('beforeHeightChange', this.#onBeforeHeightChange);
+    this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
@@ -870,7 +864,7 @@ export class Pagination extends BasePlugin {
    * @param {CellCoords} from Starting cell coordinates.
    * @param {CellCoords} to Ending cell coordinates.
    */
-  #onBeforeSelectAllRows(from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) {
+  #onBeforeSelectAllRows = (from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) => {
     const { firstVisibleRowIndex, lastVisibleRowIndex } = this.getPaginationData();
 
     if (this.#currentPage > 1 || from.row >= 0) {
@@ -878,7 +872,7 @@ export class Pagination extends BasePlugin {
     }
 
     to.row = lastVisibleRowIndex;
-  }
+  };
 
   /**
    * Called before the selection end is fired. It modifies the selection to the range of
@@ -886,19 +880,19 @@ export class Pagination extends BasePlugin {
    *
    * @param {CellCoords} coords Ending cell coordinates.
    */
-  #onBeforeSetRangeEnd(coords: { row: number }) {
+  #onBeforeSetRangeEnd = (coords: { row: number }) => {
     if (this.hot.selection.isSelectedByColumnHeader()) {
       const { lastVisibleRowIndex } = this.getPaginationData();
 
       coords.row = lastVisibleRowIndex;
     }
-  }
+  };
 
   /**
    * The hook corrects the focus position (before drawing it) after the selection was made
    * (the visual coordinates was collected).
    */
-  #onBeforeSelectionHighlightSet() {
+  #onBeforeSelectionHighlightSet = () => {
     if (!this.hot.getSettings().navigableHeaders) {
       return;
     }
@@ -914,7 +908,7 @@ export class Pagination extends BasePlugin {
         selectedRange.getBottomEndCorner().row
       );
     }
-  }
+  };
 
   /**
    * Called before the paste operation is performed. It removes the rows that are not visible
@@ -924,7 +918,7 @@ export class Pagination extends BasePlugin {
    * @param {Array<{startRow: number, endRow: number}>} ranges The ranges of the pasted data.
    * @returns {boolean} Returns `false` to prevent the paste operation.
    */
-  #onBeforePaste(pastedData: unknown[][][], ranges: { startRow: number; endRow: number }[]) {
+  #onBeforePaste = (pastedData: unknown[][][], ranges: { startRow: number; endRow: number }[]) => {
     const {
       firstVisibleRowIndex,
       lastVisibleRowIndex,
@@ -946,7 +940,7 @@ export class Pagination extends BasePlugin {
 
       pastedData.splice(0, rowsToRemove);
     });
-  }
+  };
 
   /**
    * Called after the view is rendered. It recalculates the pagination state only when
@@ -955,7 +949,7 @@ export class Pagination extends BasePlugin {
    * that each row resize, multiline cell value, or other factors that may affect the
    * rows height will be taken into account.
    */
-  #onAfterViewRender() {
+  #onAfterViewRender = () => {
     if (this.#pageSize !== 'auto' || this.#internalRenderCall) {
       this.#internalRenderCall = false;
 
@@ -964,13 +958,13 @@ export class Pagination extends BasePlugin {
 
     this.#internalRenderCall = true;
     this.#refreshUI();
-  }
+  };
 
   /**
    * Called after the rendering of the table is completed. It updates the width of
    * the pagination container to the same size as the table.
    */
-  #onAfterRender() {
+  #onAfterRender = () => {
     const view = this.hot.view;
     const width = view.isHorizontallyScrollableByWindow()
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
@@ -978,7 +972,7 @@ export class Pagination extends BasePlugin {
     this.#ui
       .updateWidth(width)
       .refreshBorderState();
-  }
+  };
 
   /**
    * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
@@ -987,7 +981,7 @@ export class Pagination extends BasePlugin {
    * @param {number|string} height Table height.
    * @returns {string} Returns the new table height.
    */
-  #onBeforeHeightChange(height: number | string) {
+  #onBeforeHeightChange = (height: number | string) => {
     if (this.getSetting('uiContainer')) {
       return height;
     }
@@ -1006,42 +1000,42 @@ export class Pagination extends BasePlugin {
       ? height : `${height}px`;
 
     return `calc(${heightValue} - ${this.#ui.getHeight()}px)`;
-  }
+  };
 
   /**
    * Called after the initialization of the plugin. It computes the initial state of the pagination.
    */
-  #onInit() {
+  #onInit = () => {
     if (this.#pageSize === 'auto') {
       return;
     }
 
     this.#computeAndApplyState();
-  }
+  };
 
   /**
    * Called after the vertical scrolling of the table is completed. It refreshes
    * the border state of the pagination UI.
    */
-  #onAfterScrollVertically() {
+  #onAfterScrollVertically = () => {
     this.#ui.refreshBorderState();
-  }
+  };
 
   /**
    * Called after the language change. It recomputes the pagination state which updates the UI.
    */
-  #onAfterLanguageChange() {
+  #onAfterLanguageChange = () => {
     this.#refreshUI();
-  }
+  };
 
   /**
    * Called after the theme is set. It updates the theme of the pagination container.
    *
    * @param {string | undefined} themeName The name of the theme to use.
    */
-  #onAfterSetTheme(themeName: unknown) {
+  #onAfterSetTheme = (themeName: unknown) => {
     this.#ui.updateTheme(themeName as string | undefined);
-  }
+  };
 
   /**
    * IndexMapper cache update listener. Once the cache is updated, we need to recompute

@@ -242,14 +242,10 @@ export class CollapsibleColumns extends BasePlugin {
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders') as unknown as NestedHeadersPlugin;
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
-    this.addHook('init', () => this.#onInit());
-    this.addHook('afterLoadData', (...args: unknown[]) =>
-      this.#onAfterLoadData(args[0] as unknown[][][], args[1] as boolean));
-    this.addHook('afterGetColHeader', (column: number, TH: HTMLTableCellElement, headerLevel: number) =>
-      this.#onAfterGetColHeader(column, TH, headerLevel));
-    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, coords: { row: number, col: number }) => {
-      this.#onBeforeOnCellMouseDown(event, coords);
-    });
+    this.addHook('init', this.#onInit);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
+    this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -594,7 +590,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {number} headerLevel The index of header level counting from the top (positive
    *                             values counting from 0 to N).
    */
-  #onAfterGetColHeader(column: number, TH: HTMLTableCellElement, headerLevel: number) {
+  #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement, headerLevel: number) => {
     const headerSettings = this.headerStateManager.getHeaderSettings(headerLevel, column);
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
     const isNodeCollapsible = collapsible === true &&
@@ -647,7 +643,7 @@ export class CollapsibleColumns extends BasePlugin {
     } else {
       collapsibleElement?.remove();
     }
-  }
+  };
 
   /**
    * Indicator mouse event callback.
@@ -655,7 +651,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} event Mouse event.
    * @param {object} coords Event coordinates.
    */
-  #onBeforeOnCellMouseDown(event: MouseEvent, coords: { row: number, col: number }) {
+  #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number, col: number }) => {
     const target = eventTargetEl(event)!;
 
     if (hasClass(target, COLLAPSIBLE_ELEMENT_CLASS)) {
@@ -670,15 +666,15 @@ export class CollapsibleColumns extends BasePlugin {
 
       stopImmediatePropagation(event);
     }
-  }
+  };
 
   /**
    * Updates the plugin state after HoT initialization.
    */
-  #onInit() {
+  #onInit = () => {
     // @TODO: Workaround for broken plugin initialization abstraction (#6806).
     this.updatePlugin();
-  }
+  };
 
   /**
    * Updates the plugin state after new dataset load.
@@ -687,11 +683,11 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  #onAfterLoadData(sourceData: unknown[][][], initialLoad: boolean) {
+  #onAfterLoadData = (sourceData: unknown[][][], initialLoad: boolean) => {
     if (!initialLoad) {
       this.updatePlugin();
     }
-  }
+  };
 
   /**
    * Destroys the plugin instance.

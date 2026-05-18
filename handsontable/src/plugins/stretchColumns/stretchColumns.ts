@@ -136,10 +136,8 @@ export class StretchColumns extends BasePlugin {
     this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
     this.#resizeObserver.observe(this.hot.rootElement);
 
-    this.addHook('beforeRender', (fullRender: boolean) => this.#onBeforeRender(fullRender));
-    this.addHook('modifyColWidth', (width: number, column: number, source: string) => {
-      return this.#onModifyColWidth(width, column, source);
-    }, 10);
+    this.addHook('beforeRender', this.#onBeforeRender);
+    this.addHook('modifyColWidth', this.#onModifyColWidth, 10);
 
     super.enablePlugin();
   }
@@ -179,7 +177,7 @@ export class StretchColumns extends BasePlugin {
    * @param {string} source The source of the modification.
    * @returns {number}
    */
-  #onModifyColWidth(width: number, column: number, source: string) {
+  #onModifyColWidth = (width: number, column: number, source: string) => {
     if (source === this.pluginName) {
       return;
     }
@@ -191,7 +189,7 @@ export class StretchColumns extends BasePlugin {
     }
 
     return width;
-  }
+  };
 
   /**
    * On each before render the plugin recalculates the column widths
@@ -199,11 +197,11 @@ export class StretchColumns extends BasePlugin {
    *
    * @param {boolean} fullRender If `true` then the full render is in progress.
    */
-  #onBeforeRender(fullRender: boolean) {
+  #onBeforeRender = (fullRender: boolean) => {
     if (fullRender) {
       this.#stretchCalculator.refreshStretching();
     }
-  }
+  };
 
   /**
    * Destroys the plugin instance.

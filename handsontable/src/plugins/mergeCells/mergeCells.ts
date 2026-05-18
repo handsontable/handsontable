@@ -204,76 +204,45 @@ export class MergeCells extends BasePlugin {
     this.autofillCalculations = new AutofillCalculations(this);
     this.selectionCalculations = new SelectionCalculations(this as unknown as Record<string, unknown>);
 
-    this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('modifyTransformFocus', (delta: { row: number, col: number }) => this.#onModifyTransformFocus(delta));
-    this.addHook('modifyTransformStart', (delta: { row: number, col: number }) => this.#onModifyTransformStart(delta));
-    this.addHook('modifyTransformEnd', (delta: { row: number, col: number }) => this.#onModifyTransformEnd(delta));
-    this.addHook('beforeSelectionHighlightSet', () => this.#onBeforeSelectionHighlightSet());
-    this.addHook('beforeSetRangeStart', () => this.#onBeforeSetRangeStart());
-    this.addHook('beforeSetRangeStartOnly', () => this.#onBeforeSetRangeStart());
-    this.addHook('beforeSelectionFocusSet', () => this.#onBeforeSelectionFocusSet());
-    this.addHook('afterSelectionFocusSet',
-      (row: number, column: number) => this.#onAfterSelectionFocusSet(row, column));
-    this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
-    this.addHook('modifyGetCellCoords',
-      (row: number, column: number, topmost: boolean, source: string) =>
-        this.#onModifyGetCellCoords(row, column, topmost, source));
-    this.addHook('modifyGetCoordsElement',
-      (row: number, column: number, topmost: boolean, source: string) =>
-        this.#onModifyGetCellCoords(row, column, topmost, source));
-    this.addHook('afterIsMultipleSelection',
-      (isMultiple: boolean) => this.#onAfterIsMultipleSelection(isMultiple));
+    this.addHook('afterInit', this.#onAfterInit);
+    this.addHook('modifyTransformFocus', this.#onModifyTransformFocus);
+    this.addHook('modifyTransformStart', this.#onModifyTransformStart);
+    this.addHook('modifyTransformEnd', this.#onModifyTransformEnd);
+    this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
+    this.addHook('beforeSetRangeStart', this.#onBeforeSetRangeStart);
+    this.addHook('beforeSetRangeStartOnly', this.#onBeforeSetRangeStart);
+    this.addHook('beforeSelectionFocusSet', this.#onBeforeSelectionFocusSet);
+    this.addHook('afterSelectionFocusSet', this.#onAfterSelectionFocusSet);
+    this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
+    this.addHook('modifyGetCellCoords', this.#onModifyGetCellCoords);
+    this.addHook('modifyGetCoordsElement', this.#onModifyGetCellCoords);
+    this.addHook('afterIsMultipleSelection', this.#onAfterIsMultipleSelection);
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number) => this.#cellRenderer.after(TD, row, col));
     this.addHook('afterContextMenuDefaultOptions',
       (defaultOptions: { items: unknown[] }) => this.#addMergeActionsToContextMenu(defaultOptions));
-    this.addHook('afterGetCellMeta',
-      (row: number, col: number, cellProperties: Record<string, unknown>) =>
-        this.#onAfterGetCellMeta(row, col, cellProperties));
-    this.addHook('afterViewportRowCalculatorOverride',
-      (calc: { startRow: number, endRow: number }) => this.#onAfterViewportRowCalculatorOverride(calc));
-    this.addHook('afterViewportColumnCalculatorOverride',
-      (calc: { startColumn: number, endColumn: number }) => this.#onAfterViewportColumnCalculatorOverride(calc));
-    this.addHook('modifyAutofillRange',
-      (fullArea: number[], baseArea: number[]) => this.#onModifyAutofillRange(fullArea, baseArea));
-    this.addHook('afterCreateCol', (column: number, count: number) => this.#onAfterCreateCol(column, count));
-    this.addHook('afterRemoveCol', (column: number, count: number) => this.#onAfterRemoveCol(column, count));
-    this.addHook('afterCreateRow',
-      (row: number, count: number, source: string) => this.#onAfterCreateRow(row, count, source));
-    this.addHook('afterRemoveRow', (row: number, count: number) => this.#onAfterRemoveRow(row, count));
-    this.addHook('beforeColumnMove',
-      (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean) =>
-        this.#onBeforeColumnMove(columns, finalIndex, dropIndex, movePossible));
-    this.addHook('afterColumnMove',
-      (columns: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) =>
-        this.#onAfterColumnMove(columns, finalIndex, dropIndex, movePossible, orderChanged));
-    this.addHook('beforeRowMove',
-      (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean) =>
-        this.#onBeforeRowMove(rows, finalIndex, dropIndex, movePossible));
-    this.addHook('afterRowMove',
-      (rows: number[], finalIndex: number, dropIndex: number, movePossible: boolean, orderChanged: boolean) =>
-        this.#onAfterRowMove(rows, finalIndex, dropIndex, movePossible, orderChanged));
-    this.addHook('beforeColumnFreeze',
-      (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
-    this.addHook('afterColumnFreeze',
-      (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
-    this.addHook('beforeColumnUnfreeze',
-      (column: number, performed: boolean) => this.#onBeforeColumnFreeze(column, performed));
-    this.addHook('afterColumnUnfreeze',
-      (column: number, performed: boolean) => this.#onAfterColumnFreeze(column, performed));
-    this.addHook('afterChange', (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
-    this.addHook('beforeDrawBorders',
-      (corners: number[], className: string) => this.#onBeforeDrawAreaBorders(corners, className));
-    this.addHook('afterDrawSelection',
-      (currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined) =>
-        this.#onAfterDrawSelection(currentRow, currentColumn, cornersOfSelection, layerLevel));
-    this.addHook('beforeRemoveCellClassNames', () => this.#onBeforeRemoveCellClassNames());
-    this.addHook('beforeBeginEditing',
-      (row: number, column: number, initialValue: string | null, event: MouseEvent | KeyboardEvent) =>
-        this.#onBeforeBeginEditing(row, column, initialValue, event));
-    this.addHook('modifyRowHeightByOverlayName',
-      (height: number, row: number, overlayType: string) =>
-        this.#onModifyRowHeightByOverlayName(height, row, overlayType));
+    this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
+    this.addHook('afterViewportRowCalculatorOverride', this.#onAfterViewportRowCalculatorOverride);
+    this.addHook('afterViewportColumnCalculatorOverride', this.#onAfterViewportColumnCalculatorOverride);
+    this.addHook('modifyAutofillRange', this.#onModifyAutofillRange);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
+    this.addHook('afterCreateRow', this.#onAfterCreateRow);
+    this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
+    this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
+    this.addHook('afterColumnMove', this.#onAfterColumnMove);
+    this.addHook('beforeRowMove', this.#onBeforeRowMove);
+    this.addHook('afterRowMove', this.#onAfterRowMove);
+    this.addHook('beforeColumnFreeze', this.#onBeforeColumnFreeze);
+    this.addHook('afterColumnFreeze', this.#onAfterColumnFreeze);
+    this.addHook('beforeColumnUnfreeze', this.#onBeforeColumnFreeze);
+    this.addHook('afterColumnUnfreeze', this.#onAfterColumnFreeze);
+    this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('beforeDrawBorders', this.#onBeforeDrawAreaBorders);
+    this.addHook('afterDrawSelection', this.#onAfterDrawSelection);
+    this.addHook('beforeRemoveCellClassNames', this.#onBeforeRemoveCellClassNames);
+    this.addHook('beforeBeginEditing', this.#onBeforeBeginEditing);
+    this.addHook('modifyRowHeightByOverlayName', this.#onModifyRowHeightByOverlayName);
     this.addHook('beforeUndoStackChange', (action: unknown, source: unknown) => {
       if (source === 'MergeCells') {
         return false;
@@ -675,11 +644,11 @@ export class MergeCells extends BasePlugin {
   /**
    * `afterInit` hook callback.
    */
-  #onAfterInit() {
+  #onAfterInit = () => {
     this.generateFromSettings();
     this.hot.render();
     this.#initialized = true;
-  }
+  };
 
   /**
    * Register shortcuts responsible for toggling a merge.
@@ -724,7 +693,7 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} isMultiple Determines whether the current selection contains multiple cells.
    * @returns {boolean}
    */
-  #onAfterIsMultipleSelection(isMultiple: boolean) {
+  #onAfterIsMultipleSelection = (isMultiple: boolean) => {
     if (isMultiple) {
       const mergedCells = this.mergedCellsCollection.mergedCells;
       const selectionRange = this.hot.getSelectedRangeActive();
@@ -744,24 +713,24 @@ export class MergeCells extends BasePlugin {
     }
 
     return isMultiple;
-  }
+  };
 
   /**
    * `modifyTransformFocus` hook callback.
    *
    * @param {object} delta The transformation delta.
    */
-  #onModifyTransformFocus(delta: { row: number, col: number }) {
+  #onModifyTransformFocus = (delta: { row: number, col: number }) => {
     this.#lastFocusDelta.row = delta.row;
     this.#lastFocusDelta.col = delta.col;
-  }
+  };
 
   /**
    * `modifyTransformStart` hook callback.
    *
    * @param {object} delta The transformation delta.
    */
-  #onModifyTransformStart(delta: { row: number, col: number }) {
+  #onModifyTransformStart = (delta: { row: number, col: number }) => {
     const selectedRange = this.hot.getSelectedRangeActive();
     const { highlight } = selectedRange;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
@@ -835,14 +804,14 @@ export class MergeCells extends BasePlugin {
         delta.row = Math.max(this.hot.view.countRenderableRowsInRange(highlight.row, notHiddenRowIndex) - 1, 1);
       }
     }
-  }
+  };
 
   /**
    * The hook allows to modify the delta transformation object necessary for correct selection end transformations.
    *
    * @param {{ row: number, col: number }} delta The transformation delta.
    */
-  #onModifyTransformEnd(delta: { row: number, col: number }) {
+  #onModifyTransformEnd = (delta: { row: number, col: number }) => {
     const selectedRange = this.hot.getSelectedRangeActive();
     const cloneRange = selectedRange.clone();
     const { to } = selectedRange;
@@ -916,12 +885,12 @@ export class MergeCells extends BasePlugin {
         delta.row = Math.max(this.hot.view.countRenderableRowsInRange(to.row, notHiddenRowIndex) - 1, 1);
       }
     }
-  }
+  };
 
   /**
    * The hook corrects the range (before drawing it) after the selection was made on the merged cells.
    */
-  #onBeforeSelectionHighlightSet() {
+  #onBeforeSelectionHighlightSet = () => {
     const selectedRange = this.hot.getSelectedRangeLast();
     const { highlight } = selectedRange;
 
@@ -945,7 +914,7 @@ export class MergeCells extends BasePlugin {
     if (mergedParent) {
       highlight.assign(mergedParent);
     }
-  }
+  };
 
   /**
    * The `modifyGetCellCoords` hook callback.
@@ -956,7 +925,7 @@ export class MergeCells extends BasePlugin {
    * @param {string} [source] String that identifies how this coords change will be processed.
    * @returns {Array|undefined} Visual coordinates of the merge.
    */
-  #onModifyGetCellCoords(row: number, column: number, topmost: boolean, source: string) {
+  #onModifyGetCellCoords = (row: number, column: number, topmost: boolean, source: string) => {
     if (row < 0 || column < 0) {
       return;
     }
@@ -999,7 +968,7 @@ export class MergeCells extends BasePlugin {
       bottomEndRow,
       bottomEndColumn,
     ];
-  }
+  };
 
   /**
    * `afterContextMenuDefaultOptions` hook callback.
@@ -1018,14 +987,14 @@ export class MergeCells extends BasePlugin {
   /**
    * Clears the last selected coordinates before setting a new selection range.
    */
-  #onBeforeSetRangeStart() {
+  #onBeforeSetRangeStart = () => {
     this.#lastSelectedFocus = null;
-  }
+  };
 
   /**
    * Detects if the last selected cell was a header cell.
    */
-  #onBeforeSelectionFocusSet() {
+  #onBeforeSelectionFocusSet = () => {
     if (this.#lastSelectedFocus.isCell()) {
       return;
     }
@@ -1046,7 +1015,7 @@ export class MergeCells extends BasePlugin {
     ) {
       this.#focusOrder.setNextNodeAsActive();
     }
-  }
+  };
 
   /**
    * Changes the focus selection to the next or previous cell or merged cell position.
@@ -1054,7 +1023,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} row The visual row index.
    * @param {number} column The visual column index.
    */
-  #onAfterSelectionFocusSet(row: number, column: number) {
+  #onAfterSelectionFocusSet = (row: number, column: number) => {
     const { columnIndexMapper, rowIndexMapper } = this.hot;
     let activeSelectionLayerIndex = this.hot.getActiveSelectionLayerIndex();
     let notHiddenRowIndex = null;
@@ -1117,14 +1086,14 @@ export class MergeCells extends BasePlugin {
 
     this.#focusOrder.setActiveNode(row, column, activeSelectionLayerIndex);
     this.#lastFocusDelta = { row: 0, col: 0 };
-  }
+  };
 
   /**
    * Creates the horizontal and vertical cells order matrix (linked lists) for focused cell.
    */
-  #onAfterSelectionEnd() {
+  #onAfterSelectionEnd = () => {
     this.#focusOrder.buildFocusOrder(this.hot.getSelectedRange());
-  }
+  };
 
   /**
    * The `afterGetCellMeta` hook callback.
@@ -1133,7 +1102,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} col Column index.
    * @param {object} cellProperties The cell properties object.
    */
-  #onAfterGetCellMeta(row: number, col: number, cellProperties: Record<string, unknown>) {
+  #onAfterGetCellMeta = (row: number, col: number, cellProperties: Record<string, unknown>) => {
     const mergeParent = this.mergedCellsCollection.get(row, col);
 
     if (mergeParent) {
@@ -1145,14 +1114,14 @@ export class MergeCells extends BasePlugin {
         cellProperties.colspan = mergeParent.colspan;
       }
     }
-  }
+  };
 
   /**
    * `afterViewportRowCalculatorOverride` hook callback.
    *
    * @param {object} calc The row calculator object.
    */
-  #onAfterViewportRowCalculatorOverride(calc: { startRow: number, endRow: number }) {
+  #onAfterViewportRowCalculatorOverride = (calc: { startRow: number, endRow: number }) => {
     if (this.getSetting('virtualized')) {
       return;
     }
@@ -1161,7 +1130,7 @@ export class MergeCells extends BasePlugin {
 
     this.modifyViewportRowStart(calc, nrOfColumns);
     this.modifyViewportRowEnd(calc, nrOfColumns);
-  }
+  };
 
   /**
    * Modify viewport start when needed.
@@ -1225,7 +1194,7 @@ export class MergeCells extends BasePlugin {
    *
    * @param {object} calc The column calculator object.
    */
-  #onAfterViewportColumnCalculatorOverride(calc: { startColumn: number, endColumn: number }) {
+  #onAfterViewportColumnCalculatorOverride = (calc: { startColumn: number, endColumn: number }) => {
     if (this.getSetting('virtualized')) {
       return;
     }
@@ -1234,7 +1203,7 @@ export class MergeCells extends BasePlugin {
 
     this.modifyViewportColumnStart(calc, nrOfRows);
     this.modifyViewportColumnEnd(calc, nrOfRows);
-  }
+  };
 
   /**
    * Modify viewport start when needed.
@@ -1335,7 +1304,7 @@ export class MergeCells extends BasePlugin {
    * @param {number[]} baseArea The selection area coordinates (`[startRow, startColumn, endRow, endColumn]`).
    * @returns {number[]} The new drag area (`[startRow, startColumn, endRow, endColumn]`).
    */
-  #onModifyAutofillRange(fullArea: number[], baseArea: number[]) {
+  #onModifyAutofillRange = (fullArea: number[], baseArea: number[]) => {
     const dragDirection = this.autofillCalculations.getDirection(baseArea, fullArea);
 
     if (this.autofillCalculations.dragAreaOverlapsCollections(baseArea, fullArea, dragDirection)) {
@@ -1353,7 +1322,7 @@ export class MergeCells extends BasePlugin {
 
     return this.autofillCalculations
       .snapDragArea(baseArea, fullArea, dragDirection, mergedCellsWithinSelectionArea);
-  }
+  };
 
   /**
    * `afterCreateCol` hook callback.
@@ -1361,9 +1330,9 @@ export class MergeCells extends BasePlugin {
    * @param {number} column Column index.
    * @param {number} count Number of created columns.
    */
-  #onAfterCreateCol(column: number, count: number) {
+  #onAfterCreateCol = (column: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('right', column, count);
-  }
+  };
 
   /**
    * `afterRemoveCol` hook callback.
@@ -1371,9 +1340,9 @@ export class MergeCells extends BasePlugin {
    * @param {number} column Column index.
    * @param {number} count Number of removed columns.
    */
-  #onAfterRemoveCol(column: number, count: number) {
+  #onAfterRemoveCol = (column: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('left', column, count);
-  }
+  };
 
   /**
    * `afterCreateRow` hook callback.
@@ -1382,13 +1351,13 @@ export class MergeCells extends BasePlugin {
    * @param {number} count Number of created rows.
    * @param {string} source Source of change.
    */
-  #onAfterCreateRow(row: number, count: number, source: string) {
+  #onAfterCreateRow = (row: number, count: number, source: string) => {
     if (source === 'auto') {
       return;
     }
 
     this.mergedCellsCollection.shiftCollections('down', row, count);
-  }
+  };
 
   /**
    * `afterRemoveRow` hook callback.
@@ -1396,9 +1365,9 @@ export class MergeCells extends BasePlugin {
    * @param {number} row Row index.
    * @param {number} count Number of removed rows.
    */
-  #onAfterRemoveRow(row: number, count: number) {
+  #onAfterRemoveRow = (row: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('up', row, count);
-  }
+  };
 
   /**
    * `beforeColumnMove` hook callback. Captures physical column positions of every merge
@@ -1409,7 +1378,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} dropIndex Drop index from drag.
    * @param {boolean} movePossible Whether the move is allowed.
    */
-  #onBeforeColumnMove(_columns: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) {
+  #onBeforeColumnMove = (_columns: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) => {
     if (!movePossible || !this.#initialized) {
       this.#columnMoveSnapshot = null;
 
@@ -1417,7 +1386,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
-  }
+  };
 
   /**
    * `afterColumnMove` hook callback. Translates merges using the pre-move snapshot
@@ -1430,9 +1399,9 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} movePossible Whether the move was allowed.
    * @param {boolean} orderChanged Whether the move actually changed the order.
    */
-  #onAfterColumnMove(
+  #onAfterColumnMove = (
     _columns: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean
-  ) {
+  ) => {
     const snapshot = this.#columnMoveSnapshot;
 
     this.#columnMoveSnapshot = null;
@@ -1443,7 +1412,7 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
     this.hot.render();
-  }
+  };
 
   /**
    * `beforeRowMove` hook callback. Captures physical row positions of every merge
@@ -1454,7 +1423,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} dropIndex Drop index from drag.
    * @param {boolean} movePossible Whether the move is allowed.
    */
-  #onBeforeRowMove(_rows: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) {
+  #onBeforeRowMove = (_rows: number[], _finalIndex: number, _dropIndex: number, movePossible: boolean) => {
     if (!movePossible || !this.#initialized) {
       this.#rowMoveSnapshot = null;
 
@@ -1462,7 +1431,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#rowMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('row');
-  }
+  };
 
   /**
    * `afterRowMove` hook callback. Translates merges using the pre-move snapshot
@@ -1475,9 +1444,9 @@ export class MergeCells extends BasePlugin {
    * @param {boolean} movePossible Whether the move was allowed.
    * @param {boolean} orderChanged Whether the move actually changed the order.
    */
-  #onAfterRowMove(
+  #onAfterRowMove = (
     _rows: number[], _finalIndex: number, _dropIndex: number, _movePossible: boolean, orderChanged: boolean
-  ) {
+  ) => {
     const snapshot = this.#rowMoveSnapshot;
 
     this.#rowMoveSnapshot = null;
@@ -1488,7 +1457,7 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('row', snapshot);
     this.hot.render();
-  }
+  };
 
   /**
    * `beforeColumnFreeze` / `beforeColumnUnfreeze` hook callback. `manualColumnFreeze`
@@ -1498,7 +1467,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} column Visual column index being frozen/unfrozen.
    * @param {boolean} performed Whether the (un)freeze will actually run.
    */
-  #onBeforeColumnFreeze(_column: number, performed: boolean) {
+  #onBeforeColumnFreeze = (_column: number, performed: boolean) => {
     if (!performed || !this.#initialized) {
       this.#columnMoveSnapshot = null;
 
@@ -1506,7 +1475,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#columnMoveSnapshot = this.mergedCellsCollection.capturePhysicalSpans('column');
-  }
+  };
 
   /**
    * `afterColumnFreeze` / `afterColumnUnfreeze` hook callback.
@@ -1514,7 +1483,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} column Visual column index that was frozen/unfrozen.
    * @param {boolean} performed Whether the (un)freeze actually ran.
    */
-  #onAfterColumnFreeze(_column: number, performed: boolean) {
+  #onAfterColumnFreeze = (_column: number, performed: boolean) => {
     const snapshot = this.#columnMoveSnapshot;
 
     this.#columnMoveSnapshot = null;
@@ -1525,7 +1494,7 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
     this.hot.render();
-  }
+  };
 
   /**
    * `afterChange` hook callback. Used to propagate merged cells after using Autofill.
@@ -1533,13 +1502,13 @@ export class MergeCells extends BasePlugin {
    * @param {Array} changes The changes array.
    * @param {string} source Determines the source of the change.
    */
-  #onAfterChange(changes: unknown[][], source: string) {
+  #onAfterChange = (changes: unknown[][], source: string) => {
     if (source !== 'Autofill.fill') {
       return;
     }
 
     this.autofillCalculations.recreateAfterDataPopulation(changes);
-  }
+  };
 
   /**
    * `beforeDrawAreaBorders` hook callback.
@@ -1547,7 +1516,7 @@ export class MergeCells extends BasePlugin {
    * @param {Array} corners Visual coordinates of the area corners.
    * @param {string} className Class name for the area.
    */
-  #onBeforeDrawAreaBorders(corners: number[], className: string) {
+  #onBeforeDrawAreaBorders = (corners: number[], className: string) => {
     if (className && className === 'area') {
       const selectedRange = this.hot.getSelectedRangeActive();
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
@@ -1562,7 +1531,7 @@ export class MergeCells extends BasePlugin {
         }
       });
     }
-  }
+  };
 
   /**
    * `afterDrawSelection` hook callback.
@@ -1573,9 +1542,9 @@ export class MergeCells extends BasePlugin {
    * @param {number|undefined} layerLevel Number indicating which layer of selection is currently processed.
    * @returns {string|undefined}
    */
-  #onAfterDrawSelection(
+  #onAfterDrawSelection = (
     currentRow: number, currentColumn: number, cornersOfSelection: number[], layerLevel: number | undefined
-  ) {
+  ) => {
     // Nothing's selected (hook might be triggered by the custom borders)
     if (!cornersOfSelection) {
       return;
@@ -1583,16 +1552,16 @@ export class MergeCells extends BasePlugin {
 
     return this.selectionCalculations
       .getSelectedMergedCellClassName(currentRow, currentColumn, cornersOfSelection, layerLevel);
-  }
+  };
 
   /**
    * `beforeRemoveCellClassNames` hook callback.
    *
    * @returns {string[]}
    */
-  #onBeforeRemoveCellClassNames() {
+  #onBeforeRemoveCellClassNames = () => {
     return this.selectionCalculations.getSelectedMergedCellClassNameToRemove();
-  }
+  };
 
   /**
    * Allows to prevent opening the editor while more than one merged cell is selected.
@@ -1603,7 +1572,9 @@ export class MergeCells extends BasePlugin {
    * @param {MouseEvent | KeyboardEvent} event The event which was responsible for opening the editor.
    * @returns {boolean | undefined}
    */
-  #onBeforeBeginEditing(row: number, column: number, initialValue: string | null, event: MouseEvent | KeyboardEvent) {
+  #onBeforeBeginEditing = (
+    row: number, column: number, initialValue: string | null, event: MouseEvent | KeyboardEvent
+  ) => {
     if (!(event instanceof MouseEvent)) {
       return;
     }
@@ -1627,7 +1598,7 @@ export class MergeCells extends BasePlugin {
     return this.hot.selection.getLayerLevel() === 0 && selection.isEqual(
       this.hot._createCellRange(from, from, to)
     );
-  }
+  };
 
   /**
    * Hook used to modify the row height depends on the merged cells in the row.
@@ -1637,7 +1608,7 @@ export class MergeCells extends BasePlugin {
    * @param {string} overlayType The overlay type that is currently rendered.
    * @returns {number}
    */
-  #onModifyRowHeightByOverlayName(height: number, row: number, overlayType: string) {
+  #onModifyRowHeightByOverlayName = (height: number, row: number, overlayType: string) => {
     if (
       this.hot.getSettings().rowHeaders ||
       // merged cells do not work with the bottom overlays
@@ -1698,5 +1669,5 @@ export class MergeCells extends BasePlugin {
     });
 
     return height;
-  }
+  };
 }

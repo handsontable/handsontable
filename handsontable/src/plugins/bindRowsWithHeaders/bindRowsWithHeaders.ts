@@ -100,7 +100,7 @@ export class BindRowsWithHeaders extends BasePlugin {
       'bindRowsWithHeaders', new MapStrategy()
     ) as unknown as Record<string, unknown>;
 
-    this.addHook('modifyRowHeader', (row: number) => this.#onModifyRowHeader(row));
+    this.addHook('modifyRowHeader', this.#onModifyRowHeader);
 
     super.enablePlugin();
   }
@@ -120,10 +120,10 @@ export class BindRowsWithHeaders extends BasePlugin {
    * @param {number} row Row index.
    * @returns {number}
    */
-  #onModifyRowHeader(row: number) {
+  #onModifyRowHeader = (row: number) => {
     return (this.headerIndexes as { getValueAtIndex: (index: number) => number })
       .getValueAtIndex(this.hot.toPhysicalRow(row));
-  }
+  };
 
   /**
    * Destroys the plugin instance.

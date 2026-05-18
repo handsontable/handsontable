@@ -8,7 +8,7 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - No barrel imports from `plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index` - import from specific submodule paths. Only exception: `src/registry.ts`
 - No global `window`, `document`, `console` - use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`
 - Private fields use `#` prefix, not `@private` JSDoc
-- Arrow function class fields for callbacks: `#onAfterX = () => { ... }` (not `.bind(this)`)
+- **Required**: Plugin hook callbacks must be arrow function class fields — `#onAfterX = (arg1, arg2) => { ... }` — and passed directly: `this.addHook('afterX', this.#onAfterX)`. Never wrap in `(args) => this.#onX(args)` or use `.bind(this)`.
 - Cognitive complexity: keep each function at 15 or below
 - Optional chaining `?.` only when value is genuinely optional by design
 - No hardcoded user-visible strings in source - add constants to `src/i18n/constants.ts` and update all language files in `src/i18n/languages/`

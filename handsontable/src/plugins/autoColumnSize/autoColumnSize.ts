@@ -287,8 +287,7 @@ export class AutoColumnSize extends BasePlugin {
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
-    this.addHook('beforeColumnResize',
-      (size: number, column: number, isDblClick: boolean) => this.#onBeforeColumnResize(size, column, isDblClick));
+    this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
   }
 
   /**
@@ -318,16 +317,12 @@ export class AutoColumnSize extends BasePlugin {
       this.samplesGenerator.setSampleCount(parseInt(String(samplingRatio), 10));
     }
 
-    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => {
-      this.#onAfterLoadData(sourceData, isFirstLoad);
-    });
-    this.addHook('beforeChangeRender', (changes: unknown[][][]) => this.#onBeforeChange(changes));
-    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => {
-      this.#onAfterFormulasValuesUpdate(changes);
-    });
-    this.addHook('beforeRender', () => this.#onBeforeRender());
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('beforeChangeRender', this.#onBeforeChange);
+    this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width));
-    this.addHook('init', () => this.#onInit());
+    this.addHook('init', this.#onInit);
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
       .observeMapChange(this.columnWidthsMap, () => {
@@ -358,8 +353,7 @@ export class AutoColumnSize extends BasePlugin {
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
-    this.addHook('beforeColumnResize',
-      (size: number, column: number, isDblClick: boolean) => this.#onBeforeColumnResize(size, column, isDblClick));
+    this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
   }
 
   /**
@@ -672,14 +666,14 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * On before view render listener.
    */
-  #onBeforeRender() {
+  #onBeforeRender = () => {
     this.calculateVisibleColumnsWidth();
 
     if (!this.inProgress) {
       this.#calculateSpecificColumnsWidth(this.#visualColumnsToRefresh);
       this.#visualColumnsToRefresh = [];
     }
-  }
+  };
 
   /**
    * On after load data listener.
@@ -687,18 +681,18 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} sourceData Source data.
    * @param {boolean} isFirstLoad `true` if this is the first load.
    */
-  #onAfterLoadData(sourceData: unknown[][], isFirstLoad: boolean) {
+  #onAfterLoadData = (sourceData: unknown[][], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
     }
-  }
+  };
 
   /**
    * On before change listener.
    *
    * @param {Array} changes An array of modified data.
    */
-  #onBeforeChange(changes: unknown[][][]) {
+  #onBeforeChange = (changes: unknown[][][]) => {
     const changedColumns = changes.reduce((acc: number[], [, columnProperty]: unknown[]) => {
       const visualColumn = this.hot.propToCol(columnProperty as string | number);
 
@@ -710,7 +704,7 @@ export class AutoColumnSize extends BasePlugin {
     }, []);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
-  }
+  };
 
   /**
    * On before column resize listener.
@@ -720,7 +714,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {boolean} isDblClick  Flag that determines whether there was a double-click.
    * @returns {number}
    */
-  #onBeforeColumnResize(size: number, column: number, isDblClick: boolean) {
+  #onBeforeColumnResize = (size: number, column: number, isDblClick: boolean) => {
     let newSize = size;
 
     if (isDblClick) {
@@ -730,23 +724,23 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     return newSize;
-  }
+  };
 
   /**
    * On after Handsontable init fill plugin with all necessary values.
    */
-  #onInit() {
+  #onInit = () => {
     this.#cachedColumnHeaders = this.hot.getColHeader() as unknown[];
     this.recalculateAllColumnsWidth();
     this.#isInitialized = true;
-  }
+  };
 
   /**
    * After formulas values updated listener.
    *
    * @param {Array} changes An array of modified data.
    */
-  #onAfterFormulasValuesUpdate(changes: Record<string, unknown>[]) {
+  #onAfterFormulasValuesUpdate = (changes: Record<string, unknown>[]) => {
     if (!this.#isInitialized) {
       return;
     }
@@ -773,7 +767,7 @@ export class AutoColumnSize extends BasePlugin {
     }, []);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
-  }
+  };
 
   /**
    * Destroys the plugin instance.

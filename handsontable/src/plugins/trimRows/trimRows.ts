@@ -194,7 +194,7 @@ export class TrimRows extends BasePlugin {
     }
 
     this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new TrimmingMap()) as TrimmingMap;
-    this.trimmedRowsMap!.addLocalHook('init', () => this.#onMapInit());
+    this.trimmedRowsMap!.addLocalHook('init', this.#onMapInit);
 
     super.enablePlugin();
   }
@@ -370,7 +370,7 @@ export class TrimRows extends BasePlugin {
   /**
    * On map initialized hook callback.
    */
-  #onMapInit() {
+  #onMapInit = () => {
     const trimmedRows = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(trimmedRows)) {
@@ -380,7 +380,7 @@ export class TrimRows extends BasePlugin {
         });
       }, true);
     }
-  }
+  };
 
   /**
    * Destroys the plugin instance.

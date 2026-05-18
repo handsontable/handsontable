@@ -192,17 +192,13 @@ export class ColumnSorting extends BasePlugin {
     });
     this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
 
-    this.addHook('afterGetColHeader',
-      (column: number, TH: HTMLTableCellElement) => this.#onAfterGetColHeader(column, TH));
-    this.addHook('beforeOnCellMouseDown',
-      (event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-       controller: { column: boolean }) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
+    this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
+    this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown',
       (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
-    this.addHook('afterInit', () => this.#loadOrSortBySettings());
-    this.addHook('afterLoadData', (initialLoad: boolean) => this.#onAfterLoadData(initialLoad));
-    this.addHook('afterDataProviderFetch',
-      (result: { columnSortConfig?: Record<string, unknown>[] }) => this.#onAfterDataProviderFetch(result), -1);
+    this.addHook('afterInit', this.#loadOrSortBySettings);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
 
     // TODO: Workaround? It should be refactored / described.
     if (this.hot.view) {
@@ -711,7 +707,7 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Load saved settings or sort by predefined plugin configuration.
    */
-  #loadOrSortBySettings() {
+  #loadOrSortBySettings = () => {
     const storedAllSortSettings = this.getAllSavedSortSettings();
     const allSortSettings = this.hot.getSettings()[this.pluginKey];
 
@@ -721,7 +717,7 @@ export class ColumnSorting extends BasePlugin {
     } else {
       this.sortBySettings(allSortSettings as Record<string, unknown>);
     }
-  }
+  };
 
   /**
    * Sort the table by provided configuration.
@@ -752,7 +748,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {number} column Visual column index.
    * @param {Element} TH TH HTML element.
    */
-  #onAfterGetColHeader(column: number, TH: HTMLTableCellElement) {
+  #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
     const headerSpanElement = getHeaderSpanElement(TH);
 
     if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
@@ -776,7 +772,7 @@ export class ColumnSorting extends BasePlugin {
 
       setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
-  }
+  };
 
   /**
    * Update header classes.
@@ -818,14 +814,14 @@ export class ColumnSorting extends BasePlugin {
    *
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
    */
-  #onAfterLoadData(initialLoad: boolean) {
+  #onAfterLoadData = (initialLoad: boolean) => {
     if (initialLoad === true) {
       // TODO: Workaround? It should be refactored / described.
       if (this.hot.view) {
         this.#loadOrSortBySettings();
       }
     }
-  }
+  };
 
   /**
    * Callback for the `afterDataProviderFetch` hook.
@@ -863,10 +859,10 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseDown(
+  #onBeforeOnCellMouseDown = (
     event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: { column: boolean }
-  ) {
+  ) => {
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
@@ -874,7 +870,7 @@ export class ColumnSorting extends BasePlugin {
     if (this.wasClickableHeaderClicked(event, coords.col) && this.hot.getShortcutManager().isCtrlPressed()) {
       controller.column = true;
     }
-  }
+  };
 
   /**
    * Callback for the `onAfterOnCellMouseDown` hook.

@@ -244,13 +244,9 @@ export class CopyPaste extends BasePlugin {
     this.#enableCopyColumnHeadersOnly = this.getSetting<boolean>('copyColumnHeadersOnly')!;
     this.uiContainer = this.getSetting<HTMLElement>('uiContainer') ?? this.uiContainer;
 
-    this.addHook('afterContextMenuDefaultOptions',
-      (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('afterSelection',
-      (fromRow: number, fromColumn: number, toRow: number, toColumn: number,
-       preventScrolling: { value: boolean }) =>
-        this.#onAfterSelection(fromRow, fromColumn, toRow, toColumn, preventScrolling));
-    this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
+    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    this.addHook('afterSelection', this.#onAfterSelection);
+    this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
 
     // Events are attached to the document, not the root table element - as it should,
     // for Chrome 133 and lower to copy/paste/cut work properly (#dev-2277).
@@ -267,7 +263,7 @@ export class CopyPaste extends BasePlugin {
         this.hot.rootDocument.body, 'mouseleave', this.#onSafariMouseLeave
       );
 
-      this.addHook('afterSelection', () => this.#onSafariAfterSelection());
+      this.addHook('afterSelection', this.#onSafariAfterSelection);
     }
 
     super.enablePlugin();
@@ -885,7 +881,7 @@ export class CopyPaste extends BasePlugin {
    *
    * @param {object} options Contains default added options of the Context Menu.
    */
-  #onAfterContextMenuDefaultOptions(options: Record<string, any>) {
+  #onAfterContextMenuDefaultOptions = (options: Record<string, any>) => {
     (options.items as unknown[]).push(
       { name: '---------' },
       copyItem(this),
@@ -908,7 +904,7 @@ export class CopyPaste extends BasePlugin {
     }
 
     (options.items as unknown[]).push(cutItem(this));
-  }
+  };
 
   /**
    * Disables the viewport scroll after pasting the data.
@@ -919,21 +915,21 @@ export class CopyPaste extends BasePlugin {
    * @param {number} toColumn Selection end column visual index.
    * @param {object} preventScrolling Object with `value` property. If `true`, the viewport scroll will be prevented.
    */
-  #onAfterSelection(
+  #onAfterSelection = (
     fromRow: number, fromColumn: number, toRow: number, toColumn: number,
     preventScrolling: { value: boolean }
-  ) {
+  ) => {
     if (this.#preventViewportScrollOnPaste) {
       preventScrolling.value = true;
     }
 
     this.#preventViewportScrollOnPaste = false;
-  }
+  };
 
   /**
    * Force focus on focusableElement after end of the selection.
    */
-  #onAfterSelectionEnd() {
+  #onAfterSelectionEnd = () => {
     if (this.isEditorOpened()) {
       return;
     }
@@ -943,30 +939,30 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.setCopyableText();
-  }
+  };
 
   /**
    * `document.body` `mouseenter` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
    */
-  #onSafariMouseEnter() {
+  #onSafariMouseEnter = () => {
     this.#removeContentEditableFromHighlightedCell();
-  }
+  };
 
   /**
    * `document.body` `mouseleave` callback used to work around a Safari's problem with copying/cutting from the
    * browser's menu.
    */
-  #onSafariMouseLeave() {
+  #onSafariMouseLeave = () => {
     this.#addContentEditableToHighlightedCell();
-  }
+  };
 
   /**
    * `afterSelection` hook callback triggered only on Safari.
    */
-  #onSafariAfterSelection() {
+  #onSafariAfterSelection = () => {
     this.#removeContentEditableFromHighlightedCell();
-  }
+  };
 
   /**
    * Destroys the `CopyPaste` plugin instance.

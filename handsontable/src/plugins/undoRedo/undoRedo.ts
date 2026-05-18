@@ -95,7 +95,7 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    this.addHook('afterChange', (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
+    this.addHook('afterChange', this.#onAfterChange);
     this.registerShortcuts();
 
     super.enablePlugin();
@@ -317,11 +317,11 @@ export class UndoRedo extends BasePlugin {
    * @param {Array} changes The data changes.
    * @param {string} source The source of the change.
    */
-  #onAfterChange(changes: unknown[][], source: string) {
+  #onAfterChange = (changes: unknown[][], source: string) => {
     if (source === 'loadData') {
       this.clear();
     }
-  }
+  };
 
   /**
    * Expose the plugin API to the Core. It is for backward compatibility and it should be removed in the future.

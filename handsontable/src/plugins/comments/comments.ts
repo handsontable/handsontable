@@ -298,10 +298,10 @@ export class Comments extends BasePlugin {
       (TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
-    this.addHook('afterScroll', () => this.#onAfterScroll());
+    this.addHook('afterScroll', this.#onAfterScroll);
     this.addHook('afterBeginEditing', () => this.hide());
-    this.addHook('afterDocumentKeyDown', (event: Event) => this.#onAfterDocumentKeyDown(event));
-    this.addHook('beforeCompositionStart', (event: Event) => this.#onAfterDocumentKeyDown(event));
+    this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
+    this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
@@ -916,20 +916,20 @@ export class Comments extends BasePlugin {
    *
    * @param {Event} event The keydown event.
    */
-  #onAfterDocumentKeyDown(event: Event) {
+  #onAfterDocumentKeyDown = (event: Event) => {
     if (this.#editor.isFocused()) {
       stopImmediatePropagation(event);
     }
-  }
+  };
 
   /**
    * Observes the changes in the scroll position if triggered it hides the comment editor.
    */
-  #onAfterScroll() {
+  #onAfterScroll = () => {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
-  }
+  };
 
   /**
    * Add Comments plugin options to the Context Menu.

@@ -170,9 +170,7 @@ export class DropdownMenu extends BasePlugin {
     super(hotInstance);
 
     // One listener for enable/disable functionality
-    this.hot.addHook('afterGetColHeader', (col: number, TH: HTMLTableCellElement) => {
-      this.#onAfterGetColHeader(col, TH);
-    });
+    this.hot.addHook('afterGetColHeader', this.#onAfterGetColHeader);
   }
 
   /**
@@ -198,10 +196,8 @@ export class DropdownMenu extends BasePlugin {
 
     this.itemsFactory = new ItemsFactory(this.hot, DropdownMenu.DEFAULT_ITEMS);
 
-    this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => this.#onBeforeOnCellMouseDown(event));
-    this.addHook('beforeViewportScrollHorizontally', (visualColumn: number) => {
-      return this.#onBeforeViewportScrollHorizontally(visualColumn);
-    });
+    this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
+    this.addHook('beforeViewportScrollHorizontally', this.#onBeforeViewportScrollHorizontally);
     this.addHook('beforeDialogShow', () => this.close());
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
@@ -639,7 +635,7 @@ export class DropdownMenu extends BasePlugin {
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
-  #onAfterGetColHeader(col: number, TH: HTMLTableCellElement) {
+  #onAfterGetColHeader = (col: number, TH: HTMLTableCellElement) => {
     if (col < 0 || !isBottomMostColumnHeader(TH)) {
       return;
     }
@@ -693,7 +689,7 @@ export class DropdownMenu extends BasePlugin {
     } else {
       relativeContainer.appendChild(button);
     }
-  }
+  };
 
   /**
    * On menu before open listener.
@@ -746,20 +742,20 @@ export class DropdownMenu extends BasePlugin {
    * @param {number} visualColumn Visual column index.
    * @returns {number | null}
    */
-  #onBeforeViewportScrollHorizontally(visualColumn: number) {
+  #onBeforeViewportScrollHorizontally = (visualColumn: number) => {
     return this.#isButtonClicked ? null : visualColumn;
-  }
+  };
 
   /**
    * Hook sets the internal flag to `true` when the button is clicked.
    *
    * @param {MouseEvent} event The mouse event object.
    */
-  #onBeforeOnCellMouseDown(event: MouseEvent) {
+  #onBeforeOnCellMouseDown = (event: MouseEvent) => {
     if (hasClass(eventTargetEl(event)!, BUTTON_CLASS_NAME)) {
       this.#isButtonClicked = true;
     }
-  }
+  };
 
   /**
    * Destroys the plugin instance.

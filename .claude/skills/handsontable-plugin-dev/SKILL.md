@@ -39,13 +39,35 @@ destroy()        // Null out all fields. Call super.destroy() AT THE END.
 
 **Private fields** - Use `#` prefix for all internal state. No `@private` JSDoc.
 
-**Hook callbacks** - Arrow function class fields so `removeLocalHook` works:
-```js
-#onIndexCacheUpdate = () => {
-  if (!this.#internalCall && this.hot?.view) {
-    this.#recompute();
-  }
+**Hook callbacks** (**required pattern**) - All `#on*` methods that are passed to `addHook` must be arrow function class fields, not regular methods. This is mandatory, not optional:
+
+```ts
+// ✅ Correct — arrow field, passed directly
+#onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
+  // ...
 };
+
+enablePlugin() {
+  this.addHook('afterLoadData', this.#onAfterLoadData);  // direct reference
+  super.enablePlugin();
+}
+
+// ❌ Wrong — regular method wrapped in an inline arrow
+enablePlugin() {
+  this.addHook('afterLoadData',
+    (data, init, src) => this.#onAfterLoadData(data, init, src));  // never do this
+  super.enablePlugin();
+}
+
+// ❌ Wrong — .bind(this)
+this.addHook('afterLoadData', this.#onAfterLoadData.bind(this));  // never do this
+```
+
+Why: arrow fields capture `this` at construction time so `removeHook` can match the exact reference. Inline wrappers create new function instances on each `enablePlugin()` call, which means `removeHook` can never clean them up.
+
+If the hook with a priority argument:
+```ts
+this.addHook('init', this.#onInit, -1);  // priority as 3rd arg — still use direct ref
 ```
 
 **Hook registration** - `this.addHook()` auto-cleans on `disablePlugin()`. `this.hot.addHook()` does NOT.

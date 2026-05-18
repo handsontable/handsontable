@@ -273,9 +273,7 @@ export class AutoRowSize extends BasePlugin {
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => {
-      return this.#onBeforeRowResize(size, row, isDblClick);
-    });
+    this.addHook('beforeRowResize', this.#onBeforeRowResize);
   }
 
   /**
@@ -306,18 +304,14 @@ export class AutoRowSize extends BasePlugin {
       this.samplesGenerator.setSampleCount(samplingRatio);
     }
 
-    this.addHook('afterLoadData', (sourceData: unknown[][], isFirstLoad: boolean) => {
-      this.#onAfterLoadData(sourceData, isFirstLoad);
-    });
-    this.addHook('beforeChangeRender', (changes: unknown[][][]) => this.#onBeforeChange(changes));
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
-    this.addHook('afterFormulasValuesUpdate', (changes: Record<string, unknown>[]) => {
-      this.#onAfterFormulasValuesUpdate(changes);
-    });
-    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
-    this.addHook('beforeRender', () => this.#onBeforeRender());
+    this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('beforeViewRender', this.#onBeforeViewRender);
+    this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyRowHeight', (height: number, row: number) => this.getRowHeight(row, height));
-    this.addHook('init', () => this.#onInit());
+    this.addHook('init', this.#onInit);
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
     this.#disposeMapObserver = this.hot.rowIndexMapper
@@ -350,9 +344,7 @@ export class AutoRowSize extends BasePlugin {
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
-    this.addHook('beforeRowResize', (size: number, row: number, isDblClick: boolean) => {
-      return this.#onBeforeRowResize(size, row, isDblClick);
-    });
+    this.addHook('beforeRowResize', this.#onBeforeRowResize);
   }
 
   /**
@@ -693,21 +685,21 @@ export class AutoRowSize extends BasePlugin {
   /**
    * `beforeViewRender` hook listener.
    */
-  #onBeforeViewRender() {
+  #onBeforeViewRender = () => {
     this.#toggleFirstDatasetColumnRenderedClassName();
-  }
+  };
 
   /**
    * `beforeRender` hook listener.
    */
-  #onBeforeRender() {
+  #onBeforeRender = () => {
     this.calculateVisibleRowsHeight();
 
     if (!this.inProgress) {
       this.#calculateSpecificRowsHeight(this.#visualRowsToRefresh);
       this.#visualRowsToRefresh = [];
     }
-  }
+  };
 
   /**
    * On before row resize listener.
@@ -717,7 +709,7 @@ export class AutoRowSize extends BasePlugin {
    * @param {boolean} isDblClick Indicates if the resize was triggered by doubleclick.
    * @returns {number}
    */
-  #onBeforeRowResize(size: number, row: number, isDblClick: boolean) {
+  #onBeforeRowResize = (size: number, row: number, isDblClick: boolean) => {
     let newSize = size;
 
     if (isDblClick) {
@@ -727,7 +719,7 @@ export class AutoRowSize extends BasePlugin {
     }
 
     return newSize;
-  }
+  };
 
   /**
    * On after load data listener.
@@ -735,18 +727,18 @@ export class AutoRowSize extends BasePlugin {
    * @param {Array} sourceData Source data.
    * @param {boolean} isFirstLoad `true` if this is the first load.
    */
-  #onAfterLoadData(sourceData: unknown[][], isFirstLoad: boolean) {
+  #onAfterLoadData = (sourceData: unknown[][], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
       this.recalculateAllRowsHeight();
     }
-  }
+  };
 
   /**
    * On before change listener.
    *
    * @param {Array} changes 2D array containing information about each of the edited cells.
    */
-  #onBeforeChange(changes: unknown[][][]) {
+  #onBeforeChange = (changes: unknown[][][]) => {
     const changedRows = changes.reduce((acc: number[], [row]: unknown[]) => {
       const rowIndex = Number(row);
 
@@ -758,22 +750,22 @@ export class AutoRowSize extends BasePlugin {
     }, []);
 
     this.#visualRowsToRefresh.push(...changedRows);
-  }
+  };
 
   /**
    * On after Handsontable init plugin with all necessary values.
    */
-  #onInit() {
+  #onInit = () => {
     this.recalculateAllRowsHeight();
     this.#isInitialized = true;
-  }
+  };
 
   /**
    * After formulas values updated listener.
    *
    * @param {Array} changes An array of modified data.
    */
-  #onAfterFormulasValuesUpdate(changes: Record<string, unknown>[]) {
+  #onAfterFormulasValuesUpdate = (changes: Record<string, unknown>[]) => {
     if (!this.#isInitialized) {
       return;
     }
@@ -800,7 +792,7 @@ export class AutoRowSize extends BasePlugin {
     }, []);
 
     this.#visualRowsToRefresh.push(...changedRows);
-  }
+  };
 
   /**
    * Destroys the plugin instance.

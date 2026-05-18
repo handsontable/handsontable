@@ -120,17 +120,13 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    this.addHook('beforeOnCellMouseDown',
-      (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
-       controller: Record<string, boolean>) => this.#onBeforeOnCellMouseDown(event, coords, TD, controller));
-    this.addHook('beforeOnCellMouseOver',
-      (event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
-       controller: Record<string, boolean>) => this.#onBeforeOnCellMouseOver(event, coords, TD, controller));
+    this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
+    this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
     this.addHook('beforeOnCellMouseOverOutside',
       (event: MouseEvent, coords: unknown, TD: HTMLElement, controller: Record<string, boolean>) =>
         this.#onBeforeOnCellMouseOverOutside(controller));
-    this.addHook('afterScrollVertically', () => this.#onAfterScrollVertically());
-    this.addHook('afterLoadData', () => this.#onAfterLoadData());
+    this.addHook('afterScrollVertically', this.#onAfterScrollVertically);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
 
     this.buildPluginUI();
     this.registerEvents();
@@ -531,10 +527,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseDown(
+  #onBeforeOnCellMouseDown = (
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: Record<string, boolean>
-  ) {
+  ) => {
     const wtTable = this.hot.view._wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
     const selection = this.hot.getSelectedRangeActive();
@@ -597,7 +593,7 @@ export class ManualColumnMove extends BasePlugin {
       this.#pressed = false;
       this.#columnsToMove.length = 0;
     }
-  }
+  };
 
   /**
    * 'mouseMove' event callback. Fired when pointer move on document.documentElement.
@@ -622,10 +618,10 @@ export class ManualColumnMove extends BasePlugin {
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
-  #onBeforeOnCellMouseOver(
+  #onBeforeOnCellMouseOver = (
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: Record<string, boolean>
-  ) {
+  ) => {
     const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {
@@ -644,7 +640,7 @@ export class ManualColumnMove extends BasePlugin {
     controller.cell = true;
     this.#hoveredColumn = coords.col;
     this.#target.TD = TD;
-  }
+  };
 
   /**
    * Suppresses selection changes during a column move drag when the mouse
@@ -702,7 +698,7 @@ export class ManualColumnMove extends BasePlugin {
   /**
    * `afterScrollHorizontally` hook callback. Fired the table was scrolled horizontally.
    */
-  #onAfterScrollVertically() {
+  #onAfterScrollVertically = () => {
     const wtTable = this.hot.view._wt.wtTable;
     const headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
     const scrollTop = wtTable.holder.scrollTop;
@@ -710,7 +706,7 @@ export class ManualColumnMove extends BasePlugin {
 
     this.#backlight.setPosition(posTop);
     this.#backlight.setSize(null, wtTable.hider.offsetHeight - posTop);
-  }
+  };
 
   /**
    * Builds the plugin's UI.
@@ -727,9 +723,9 @@ export class ManualColumnMove extends BasePlugin {
    *
    * @private
    */
-  #onAfterLoadData() {
+  #onAfterLoadData = () => {
     this.moveBySettingsOrLoad();
-  }
+  };
 
   /**
    * Destroys the plugin instance.

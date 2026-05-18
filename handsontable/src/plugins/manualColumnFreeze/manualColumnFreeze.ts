@@ -64,9 +64,7 @@ export class ManualColumnFreeze extends BasePlugin {
     this.addHook('afterContextMenuDefaultOptions', (options: unknown) => {
       this.#addContextMenuEntry(options as Record<string, unknown>);
     });
-    this.addHook('beforeColumnMove', (columns: unknown, finalIndex: unknown) => {
-      return this.#onBeforeColumnMove(columns as unknown[], finalIndex as number);
-    });
+    this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
 
     super.enablePlugin();
   }
@@ -185,7 +183,7 @@ export class ManualColumnFreeze extends BasePlugin {
    * @param {number} finalIndex Visual column index, being a start index for the moved columns. Points to where the elements will be placed after the moving action.
    * @returns {boolean|undefined}
    */
-  #onBeforeColumnMove(columns: unknown[], finalIndex: number) {
+  #onBeforeColumnMove = (columns: unknown[], finalIndex: number) => {
     if (this.#afterFirstUse) {
       const freezeLine = this.hot.getSettings().fixedColumnsStart ?? 0;
 
@@ -199,5 +197,5 @@ export class ManualColumnFreeze extends BasePlugin {
         return false;
       }
     }
-  }
+  };
 }

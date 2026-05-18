@@ -162,11 +162,11 @@ export class Autofill extends BasePlugin {
 
     this.registerEvents();
 
-    this.addHook('afterOnCellCornerMouseDown', () => this.#onAfterCellCornerMouseDown());
-    this.addHook('afterOnCellCornerDblClick', () => this.#onCellCornerDblClick());
+    this.addHook('afterOnCellCornerMouseDown', this.#onAfterCellCornerMouseDown);
+    this.addHook('afterOnCellCornerDblClick', this.#onCellCornerDblClick);
     this.addHook('beforeOnCellMouseOver',
       (_: unknown, coords: { row: number, col: number }) => this.#onBeforeCellMouseOver(coords));
-    this.addHook('afterScroll', () => this.#onAfterScroll());
+    this.addHook('afterScroll', this.#onAfterScroll);
 
     super.enablePlugin();
   }
@@ -720,22 +720,22 @@ export class Autofill extends BasePlugin {
    *
    * @private
    */
-  #onCellCornerDblClick() {
+  #onCellCornerDblClick = () => {
     const selectionApplied = this.selectAdjacent();
 
     if (selectionApplied) {
       this.fillIn();
     }
-  }
+  };
 
   /**
    * On after cell corner mouse down listener.
    */
-  #onAfterCellCornerMouseDown() {
+  #onAfterCellCornerMouseDown = () => {
     this.handleDraggedCells = 1;
     this.mouseDownOnCellCorner = true;
     this.#currentDragDirection = null;
-  }
+  };
 
   /**
    * On before cell mouse over listener.
@@ -802,11 +802,11 @@ export class Autofill extends BasePlugin {
   /**
    * Refreshes the autofill borders using the last mouse client position after scroll.
    */
-  #onAfterScroll() {
+  #onAfterScroll = () => {
     if (this.mouseDownOnCellCorner) {
       this.#onMouseMove(this.#lastMouseClientPosition as MouseEvent);
     }
-  }
+  };
 
   /**
    * Destroys the plugin instance.

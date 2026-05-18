@@ -192,13 +192,11 @@ export class ColumnSummary extends BasePlugin {
       this, this.settings as unknown as EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])
     );
 
-    this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('afterChange', (changes: unknown[][], source: string) => {
-      this.#onAfterChange(changes, source);
-    });
-    this.addHook('afterUpdateSettings', (settings: Record<string, unknown>) => this.#onAfterUpdateSettings(settings));
-    this.addHook('afterLoadData', (data: unknown[], firstRun: boolean) => this.#onAfterLoadData(data, firstRun));
-    this.addHook('afterUpdateData', (data: unknown[], firstRun: boolean) => this.#onAfterUpdateData(data, firstRun));
+    this.addHook('afterInit', this.#onAfterInit);
+    this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
 
     this.addHook('beforeCreateRow', (index: number, amount: number) => {
       this.endpoints!.resetSetupBeforeStructureAlteration('insert_row', index, amount);
@@ -223,10 +221,8 @@ export class ColumnSummary extends BasePlugin {
       (index: number, amount: number, physicalRows: number[], source: string) => this.endpoints!.resetSetupAfterStructureAlteration('remove_row', index, amount, physicalRows, source)); // eslint-disable-line max-len
     this.addHook('afterRemoveCol',
       (index: number, amount: number, physicalColumns: number[], source: string) => this.endpoints!.resetSetupAfterStructureAlteration('remove_col', index, amount, physicalColumns, source)); // eslint-disable-line max-len
-    this.addHook('afterRowMove', (rows: number[], finalIndex: number) => this.#onAfterRowMove(rows, finalIndex));
-    this.addHook('afterFormulasValuesUpdate', (changes: Array<{ address?: { sheet: number; col: number } }>) => {
-      this.#onAfterFormulasValuesUpdate(changes);
-    });
+    this.addHook('afterRowMove', this.#onAfterRowMove);
+    this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
 
     super.enablePlugin();
   }
@@ -524,9 +520,9 @@ export class ColumnSummary extends BasePlugin {
   /**
    * `afterInit` hook callback.
    */
-  #onAfterInit() {
+  #onAfterInit = () => {
     this.endpoints!.initEndpoints();
-  }
+  };
 
   /**
    * Called after the settings were updated. There is a need to refresh cell metas after the settings update with
@@ -534,11 +530,11 @@ export class ColumnSummary extends BasePlugin {
    *
    * @param {object} settings The settings object.
    */
-  #onAfterUpdateSettings(settings: Record<string, unknown>) {
+  #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
     if (settings.columns !== undefined) {
       this.endpoints!.refreshCellMetas();
     }
-  }
+  };
 
   /**
    * `afterChange` hook callback.
@@ -546,11 +542,11 @@ export class ColumnSummary extends BasePlugin {
    * @param {Array} changes 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of changes.
    */
-  #onAfterChange(changes: unknown[][], source: string) {
+  #onAfterChange = (changes: unknown[][], source: string) => {
     if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
       this.endpoints!.refreshChangedEndpoints(changes);
     }
-  }
+  };
 
   /**
    * `afterLoadData` hook callback.
@@ -558,11 +554,11 @@ export class ColumnSummary extends BasePlugin {
    * @param {Array} data The updated data.
    * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
    */
-  #onAfterLoadData(data: unknown[], firstRun: boolean) {
+  #onAfterLoadData = (data: unknown[], firstRun: boolean) => {
     if (!firstRun) {
       this.endpoints!.refreshAllEndpoints();
     }
-  }
+  };
 
   /**
    * `afterUpdateData` hook callback.
@@ -570,11 +566,11 @@ export class ColumnSummary extends BasePlugin {
    * @param {Array} data The updated data.
    * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
    */
-  #onAfterUpdateData(data: unknown[], firstRun: boolean) {
+  #onAfterUpdateData = (data: unknown[], firstRun: boolean) => {
     if (!firstRun) {
       this.endpoints!.refreshAllEndpoints();
     }
-  }
+  };
 
   /**
    * `afterFormulasValuesUpdate` hook callback. Refresh only endpoints whose
@@ -582,7 +578,7 @@ export class ColumnSummary extends BasePlugin {
    *
    * @param {Array} changes Changes from the formula engine.
    */
-  #onAfterFormulasValuesUpdate(changes: Array<{ address?: { sheet: number; col: number } }>) {
+  #onAfterFormulasValuesUpdate = (changes: Array<{ address?: { sheet: number; col: number } }>) => {
     if (this.#refreshingFromFormulas || !this.endpoints || !changes?.length) {
       return;
     }
@@ -628,7 +624,7 @@ export class ColumnSummary extends BasePlugin {
     } finally {
       this.#refreshingFromFormulas = false;
     }
-  }
+  };
 
   /**
    * `beforeRowMove` hook callback.
@@ -637,8 +633,8 @@ export class ColumnSummary extends BasePlugin {
    * @param {number} finalIndex Visual row index, being a start index for the moved rows. Points to where the elements will be placed after the moving action.
    * To check the visualization of the final index, please take a look at [documentation](@/guides/rows/row-moving/row-moving.md).
    */
-  #onAfterRowMove(rows: number[], finalIndex: number) {
+  #onAfterRowMove = (rows: number[], finalIndex: number) => {
     this.endpoints!.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length);
     this.endpoints!.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
-  }
+  };
 }

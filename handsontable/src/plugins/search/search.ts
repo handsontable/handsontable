@@ -110,10 +110,7 @@ export class Search extends BasePlugin {
 
     this.updatePluginSettings(searchSettings as Record<string, unknown>);
 
-    this.addHook('beforeRenderer', (
-      td: HTMLTableCellElement, row: number, col: number, prop: string | number,
-      value: string, cellProperties: Record<string, unknown>
-    ) => this.#onBeforeRenderer(td, row, col, prop, value, cellProperties));
+    this.addHook('beforeRenderer', this.#onBeforeRenderer);
 
     super.enablePlugin();
   }
@@ -276,10 +273,10 @@ export class Search extends BasePlugin {
    * @param {string} value Value of the rendered cell.
    * @param {object} cellProperties Object containing the cell's properties.
    */
-  #onBeforeRenderer(
+  #onBeforeRenderer = (
     TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
     value: string, cellProperties: Record<string, unknown>
-  ) {
+  ) => {
     // TODO: #4972
     const className = cellProperties.className || [];
     let classArray = [];
@@ -301,7 +298,7 @@ export class Search extends BasePlugin {
     }
 
     cellProperties.className = classArray.join(' ');
-  }
+  };
 
   /**
    * Destroys the plugin instance.

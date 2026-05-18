@@ -165,7 +165,7 @@ export class ManualRowResize extends BasePlugin {
         this.hot.view?.invalidateRowHeightCache();
       });
 
-    this.addHook('modifyRowHeight', (height: number, row: number) => this.#onModifyRowHeight(height, row));
+    this.addHook('modifyRowHeight', this.#onModifyRowHeight);
 
     this.bindEvents();
 
@@ -666,7 +666,7 @@ export class ManualRowResize extends BasePlugin {
    * @param {number} row Visual row index.
    * @returns {number}
    */
-  #onModifyRowHeight(height: number, row: number) {
+  #onModifyRowHeight = (height: number, row: number) => {
     let newHeight = height;
 
     if (this.enabled) {
@@ -684,7 +684,7 @@ export class ManualRowResize extends BasePlugin {
     }
 
     return newHeight;
-  }
+  };
 
   /**
    * Callback to call on map's `init` local hook.
