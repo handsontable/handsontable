@@ -1306,7 +1306,8 @@ export class Formulas extends BasePlugin {
    * @param {object} element The detached element.
    * @param {number} finalElementRowIndex The final row index of the detached element.
    */
-  #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>, finalElementRowIndex: number) => {
+  #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
+                         finalElementRowIndex: number) => {
     this.#internalOperationPending = true;
 
     const rowsData = this.#getProcessedSourceDataArray(

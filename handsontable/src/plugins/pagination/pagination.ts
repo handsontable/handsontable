@@ -864,7 +864,8 @@ export class Pagination extends BasePlugin {
    * @param {CellCoords} from Starting cell coordinates.
    * @param {CellCoords} to Ending cell coordinates.
    */
-  #onBeforeSelectAllRows = (from: { row: number; [key: string]: unknown }, to: { row: number; [key: string]: unknown }) => {
+  #onBeforeSelectAllRows = (from: { row: number; [key: string]: unknown },
+                            to: { row: number; [key: string]: unknown }) => {
     const { firstVisibleRowIndex, lastVisibleRowIndex } = this.getPaginationData();
 
     if (this.#currentPage > 1 || from.row >= 0) {
