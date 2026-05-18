@@ -1,4 +1,5 @@
 import { clamp } from '../number';
+import { throwWithCause } from '../errors';
 import type { HotInstance } from '../../core/types';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 
@@ -37,10 +38,10 @@ function findColumnAtX(
 
     accumulatedX += width;
 
-    const { colspan } = hotInstance.getCellMeta(row, column);
+    const { colspan } = hotInstance.getCellMeta<{ colspan?: number }>(row, column);
 
-    if ((colspan as number) > 1) {
-      column += (colspan as number) - 1;
+    if (colspan !== undefined && colspan > 1) {
+      column += colspan - 1;
     }
   }
 
@@ -82,10 +83,10 @@ function findRowAtY(
 
     accumulatedY += height;
 
-    const { rowspan } = hotInstance.getCellMeta(row, column);
+    const { rowspan } = hotInstance.getCellMeta<{ rowspan?: number }>(row, column);
 
-    if ((rowspan as number) > 1) {
-      row += (rowspan as number) - 1;
+    if (rowspan !== undefined && rowspan > 1) {
+      row += rowspan - 1;
     }
   }
 
@@ -112,16 +113,14 @@ export function getCellCoordsFromMousePosition(
     rowIndexMapper,
   } = hotInstance;
   const isRtl = hotInstance.isRtl();
-  const numberOfFixedColumnsStart =
-    (view as unknown as { countNotHiddenFixedColumnsStart(): number }).countNotHiddenFixedColumnsStart();
+  const numberOfFixedColumnsStart = view.countNotHiddenFixedColumnsStart();
   const numberOfFixedRowsTop = view.countNotHiddenFixedRowsTop();
-  const numberOfFixedRowsBottom =
-    (view as unknown as { countNotHiddenFixedRowsBottom(): number }).countNotHiddenFixedRowsBottom();
+  const numberOfFixedRowsBottom = view.countNotHiddenFixedRowsBottom();
 
-  const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow() as number | null;
-  const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow() as number | null;
-  const firstPartiallyVisibleColumn = hotInstance.getFirstPartiallyVisibleColumn() as number | null;
-  const lastPartiallyVisibleColumn = hotInstance.getLastPartiallyVisibleColumn() as number | null;
+  const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow();
+  const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow();
+  const firstPartiallyVisibleColumn = hotInstance.getFirstPartiallyVisibleColumn();
+  const lastPartiallyVisibleColumn = hotInstance.getLastPartiallyVisibleColumn();
   const tableOffset = hotInstance.rootElement.getBoundingClientRect();
 
   const columnHeaderHeight = hotInstance.hasColHeaders() ? view.getColumnHeaderHeight() : 0;
@@ -288,5 +287,9 @@ export function getCellCoordsFromMousePosition(
     }
   }
 
-  return hotInstance._createCellCoords(foundRow as number, foundColumn as number);
+  if (foundRow === null || foundColumn === null) {
+    throwWithCause('Failed to resolve cell coordinates from mouse position.');
+  }
+
+  return hotInstance._createCellCoords(foundRow, foundColumn);
 }

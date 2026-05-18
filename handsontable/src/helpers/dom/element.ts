@@ -22,8 +22,8 @@ export function getParent(element: HTMLElement | Node, level: number = 0): HTMLE
       break;
     }
 
-    if ((elementToCheck as ShadowRoot).host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = (elementToCheck as ShadowRoot).host;
+    if (isShadowRoot(elementToCheck)) {
+      elementToCheck = elementToCheck.host;
 
     } else {
       iteration += 1;
@@ -113,10 +113,8 @@ export function closest(
       return elementToCheck as HTMLElement;
     }
 
-    const { host } = elementToCheck as ShadowRoot;
-
-    if (host && nodeType === DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = host;
+    if (isShadowRoot(elementToCheck)) {
+      elementToCheck = elementToCheck.host;
 
     } else {
       elementToCheck = elementToCheck.parentNode;
@@ -147,8 +145,8 @@ export function closestDown(
     }
     matched.push(elementToCheck);
 
-    if ((elementToCheck as unknown as ShadowRoot).host && elementToCheck.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      elementToCheck = (elementToCheck as unknown as ShadowRoot).host as HTMLElement;
+    if (isShadowRoot(elementToCheck)) {
+      elementToCheck = elementToCheck.host as HTMLElement;
 
     } else {
       elementToCheck = elementToCheck.parentNode as HTMLElement | null;
@@ -181,7 +179,7 @@ export function findFirstParentWithClass(element: HTMLElement, className: string
       matched.classNames.push(className);
 
     } else if (className instanceof RegExp) {
-      const matchingClasses = Array.from(elementToCheck.classList).filter(cls => className.test(cls as string));
+      const matchingClasses = Array.from(elementToCheck.classList).filter(cls => className.test(cls));
 
       if (matchingClasses.length) {
 
@@ -301,6 +299,8 @@ function filterEmptyClassNames(classNames: string[]) {
   return classNames.filter((x: string) => !!x);
 }
 
+function filterRegexes(list: (string | RegExp)[], returnBoth: true): { regexFree: string[]; regexes: RegExp[] };
+function filterRegexes(list: (string | RegExp)[], returnBoth?: false): string[];
 /**
  * Filter out the RegExp entries from an array.
  *
@@ -309,7 +309,7 @@ function filterEmptyClassNames(classNames: string[]) {
  * @returns {string[]|{regexFree: string[], regexes: RegExp[]}}
  */
 function filterRegexes(
-  list: (string | RegExp)[], returnBoth: boolean): string[] | { regexFree: string[]; regexes: RegExp[] } {
+  list: (string | RegExp)[], returnBoth?: boolean): string[] | { regexFree: string[]; regexes: RegExp[] } {
   if (!list || !list.length) {
     return returnBoth ? { regexFree: [], regexes: [] } : [];
   }
@@ -384,7 +384,7 @@ export function removeClass(element: HTMLElement, className: string | string[] |
     regexFree: stringClasses,
     // eslint-disable-next-line prefer-const
     regexes: regexClasses
-  } = filterRegexes(className as (string | RegExp)[], true) as { regexFree: string[]; regexes: RegExp[]; };
+  } = filterRegexes(className, true);
 
   stringClasses = filterEmptyClassNames(stringClasses);
 
@@ -437,7 +437,7 @@ export function setAttribute(
 export function removeAttribute(
   domElement: HTMLElement, attributesToRemove: (string | RegExp)[] | string | RegExp = []) {
   if (typeof attributesToRemove === 'string') {
-    attributesToRemove = (attributesToRemove as string).split(' ');
+    attributesToRemove = attributesToRemove.split(' ');
 
   } else if (attributesToRemove instanceof RegExp) {
     attributesToRemove = [attributesToRemove];
@@ -446,7 +446,7 @@ export function removeAttribute(
   const {
     regexFree: stringAttributes,
     regexes: regexAttributes
-  } = filterRegexes(attributesToRemove as (string | RegExp)[], true) as { regexFree: string[]; regexes: RegExp[]; };
+  } = filterRegexes(attributesToRemove, true);
 
   stringAttributes.forEach((attributeNameToRemove: string) => {
     if (attributeNameToRemove !== '') {
@@ -578,21 +578,20 @@ export function isVisible(element: HTMLElement): boolean {
     if (next === null) { // parent detached from DOM
       return false;
 
-    } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      if ((next as ShadowRoot).host) { // this is Web Components Shadow DOM
-        // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
-        // according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
-        if (((next as ShadowRoot).host as HTMLElement & { impl?: HTMLElement }).impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
-          return isVisible(((next as ShadowRoot).host as HTMLElement & { impl?: HTMLElement }).impl);
+    } else if (isShadowRoot(next)) { // this is Web Components Shadow DOM
+      // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
+      // according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
+      const hostWithImpl = next.host as HTMLElement & { impl?: HTMLElement };
 
-        } else if ((next as ShadowRoot).host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
-          return isVisible((next as ShadowRoot).host as HTMLElement);
-        }
-        throwWithCause('Lost in Web Components world');
+      if (hostWithImpl.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
+        return isVisible(hostWithImpl.impl);
 
-      } else {
-        return false; // this is a node detached from document in IE8
+      } else { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
+        return isVisible(next.host as HTMLElement);
       }
+
+    } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+      return false; // this is a node detached from document in IE8
 
     } else if (windowElement.getComputedStyle(next as HTMLElement).display === 'none') {
       return false;
@@ -922,7 +921,7 @@ export function outerHeight(element: HTMLElement): number {
  * @returns {number} Element's inner height.
  */
 export function innerHeight(element: HTMLElement | Window): number {
-  return (element as HTMLElement).clientHeight || (element as Window).innerHeight;
+  return element instanceof Window ? element.innerHeight : element.clientHeight;
 }
 
 /**
@@ -932,7 +931,7 @@ export function innerHeight(element: HTMLElement | Window): number {
  * @returns {number} Element's inner width.
  */
 export function innerWidth(element: HTMLElement | Window): number {
-  return (element as HTMLElement).clientWidth || (element as Window).innerWidth;
+  return element instanceof Window ? element.innerWidth : element.clientWidth;
 }
 
 /**
@@ -961,8 +960,10 @@ export function removeEvent(element: HTMLElement, event: string, callback: () =>
  * @returns {number}
  */
 export function getCaretPosition(el: HTMLElement): number {
-  if ((el as HTMLInputElement).selectionStart) {
-    return (el as HTMLInputElement).selectionStart;
+  const input = el as HTMLInputElement | HTMLTextAreaElement;
+
+  if (input.selectionStart) {
+    return input.selectionStart;
   }
 
   return 0;
@@ -975,8 +976,10 @@ export function getCaretPosition(el: HTMLElement): number {
  * @returns {number}
  */
 export function getSelectionEndPosition(el: HTMLElement): number {
-  if ((el as HTMLInputElement).selectionEnd) {
-    return (el as HTMLInputElement).selectionEnd;
+  const input = el as HTMLInputElement | HTMLTextAreaElement;
+
+  if (input.selectionEnd) {
+    return input.selectionEnd;
   }
 
   return 0;
@@ -1251,8 +1254,8 @@ export function isOutsideInput(element: HTMLElement): boolean {
 export function selectElementIfAllowed(element: HTMLElement): void {
   const activeElement = element.ownerDocument.activeElement;
 
-  if (!isOutsideInput(activeElement as HTMLElement)) {
-    (element as HTMLInputElement).select();
+  if (isHTMLElement(activeElement) && !isOutsideInput(activeElement)) {
+    (element as HTMLInputElement | HTMLTextAreaElement).select();
   }
 }
 
@@ -1370,6 +1373,26 @@ export function isHTMLElement(element: unknown): element is HTMLElement {
   const OwnElement = (element as HTMLElement)?.ownerDocument?.defaultView.Element;
 
   return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
+}
+
+/**
+ * Check if the element is an HTMLInputElement.
+ *
+ * @param {HTMLElement} element Element to check.
+ * @returns {boolean} `true` if the element is an HTMLInputElement.
+ */
+export function isHTMLInputElement(element: HTMLElement): element is HTMLInputElement {
+  return element.tagName === 'INPUT';
+}
+
+/**
+ * Check if the node is a ShadowRoot (a document fragment attached to a host element).
+ *
+ * @param {Node} node Node to check.
+ * @returns {boolean} `true` if the node is a ShadowRoot.
+ */
+export function isShadowRoot(node: Node): node is ShadowRoot {
+  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && !!((node as ShadowRoot).host);
 }
 
 /**

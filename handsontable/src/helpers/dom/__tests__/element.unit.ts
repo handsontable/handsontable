@@ -16,6 +16,8 @@ import {
   isVisible,
   findFirstParentWithClass,
   isHTMLElement,
+  isHTMLInputElement,
+  isShadowRoot,
   outerHeight,
   outerWidth,
 } from 'handsontable/helpers/dom/element';
@@ -913,6 +915,54 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.isHTMLInputElement
+  //
+  describe('isHTMLInputElement', () => {
+    it('should return `false` for a regular div element', () => {
+      expect(isHTMLInputElement(document.createElement('div'))).toBe(false);
+    });
+
+    it('should return `false` for a textarea element', () => {
+      expect(isHTMLInputElement(document.createElement('textarea'))).toBe(false);
+    });
+
+    it('should return `false` for a select element', () => {
+      expect(isHTMLInputElement(document.createElement('select'))).toBe(false);
+    });
+
+    it('should return `true` for an input element', () => {
+      expect(isHTMLInputElement(document.createElement('input'))).toBe(true);
+    });
+  });
+
+  // Handsontable.helper.isShadowRoot
+  //
+  describe('isShadowRoot', () => {
+    it('should return `false` for a regular HTMLElement', () => {
+      expect(isShadowRoot(document.createElement('div'))).toBe(false);
+    });
+
+    it('should return `false` for a text node', () => {
+      expect(isShadowRoot(document.createTextNode('hello'))).toBe(false);
+    });
+
+    it('should return `false` for a document fragment without a host', () => {
+      expect(isShadowRoot(document.createDocumentFragment())).toBe(false);
+    });
+
+    it('should return `true` for a ShadowRoot attached to a host element', () => {
+      const host = document.createElement('div');
+
+      document.body.appendChild(host);
+      const shadow = host.attachShadow({ mode: 'open' });
+
+      expect(isShadowRoot(shadow)).toBe(true);
+
+      host.remove();
     });
   });
 

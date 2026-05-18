@@ -23,7 +23,7 @@ export function duckSchema(object: unknown[] | object): unknown {
       }
 
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        schemaObj[key] = duckSchema(value as object);
+        schemaObj[key] = duckSchema(value);
 
       } else if (Array.isArray(value)) {
         if (value.length && typeof value[0] === 'object' && !Array.isArray(value[0])) {
@@ -91,21 +91,23 @@ export function extend(
  * @param {object} extension An object containing additional properties to merge into the target.
  */
 export function deepExtend(target: Record<string, unknown>, extension: Record<string, unknown>): void {
-  objectEach(extension, (value, key) => {
-    if (extension[key] && typeof extension[key] === 'object') {
+  objectEach(extension, (_value, key) => {
+    const extensionValue = extension[key];
+
+    if (extensionValue && typeof extensionValue === 'object') {
       if (!target[key]) {
-        if (Array.isArray(extension[key])) {
+        if (Array.isArray(extensionValue)) {
           target[key] = [];
-        } else if (Object.prototype.toString.call(extension[key]) === '[object Date]') {
-          target[key] = extension[key];
+        } else if (Object.prototype.toString.call(extensionValue) === '[object Date]') {
+          target[key] = extensionValue;
         } else {
           target[key] = {};
         }
       }
-      deepExtend(target[key] as Record<string, unknown>, extension[key] as Record<string, unknown>);
+      deepExtend(target[key] as Record<string, unknown>, extensionValue as Record<string, unknown>);
 
     } else {
-      target[key] = extension[key];
+      target[key] = extensionValue;
     }
   });
 }
@@ -256,7 +258,19 @@ export function isObjectEqual(object1: object | unknown[], object2: object | unk
  * @returns {boolean}
  */
 export function isObject(object: unknown): boolean {
-  return Object.prototype.toString.call(object) === '[object Object]';
+  return isPlainObject(object);
+}
+
+/**
+ * Internal type-guard variant of {@link isObject} used to narrow values within this module.
+ * Kept private to avoid changing the public `isObject` return type, which downstream
+ * code relies on for compatibility with `as` casts to unrelated types.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]';
 }
 
 /**
@@ -344,7 +358,13 @@ export function setProperty(object: Record<string, unknown>, name: string, value
         workingObject[propName] = {};
       }
 
-      workingObject = workingObject[propName] as Record<string, unknown>;
+      const nextLevel = workingObject[propName];
+
+      if (!isPlainObject(nextLevel)) {
+        return;
+      }
+
+      workingObject = nextLevel;
 
     } else {
       workingObject[propName] = value;
@@ -366,8 +386,8 @@ export function deepObjectSize(object: unknown): number {
   const recursObjLen = function(obj: unknown) {
     let result = 0;
 
-    if (isObject(obj)) {
-      objectEach(obj as object, (value, key) => {
+    if (isPlainObject(obj)) {
+      objectEach(obj, (value, key) => {
         if (key === '__children') {
           return;
         }
@@ -456,17 +476,15 @@ export function assignObjectDefaults(target: Record<string, unknown>, defaults: 
 
   // Assign defaults
   Object.keys(defaults).forEach((key) => {
-    if (
-      typeof defaults[key] === 'object' &&
-      defaults[key] !== null &&
-      !Array.isArray(defaults[key])
-    ) {
-      result[key] = assignObjectDefaults(
-        target[key] as Record<string, unknown>, defaults[key] as Record<string, unknown>);
+    const defaultValue = defaults[key];
+    const targetValue = target[key];
+
+    if (isPlainObject(defaultValue)) {
+      result[key] = assignObjectDefaults(targetValue as Record<string, unknown>, defaultValue);
     } else {
-      result[key] = hasOwnProperty(target, key) && target[key] !== undefined
-        ? target[key]
-        : defaults[key];
+      result[key] = hasOwnProperty(target, key) && targetValue !== undefined
+        ? targetValue
+        : defaultValue;
     }
   });
 
@@ -521,7 +539,5 @@ export function deepMerge(target: Record<string, any> = {}, source: Record<strin
  * @returns {boolean}
  */
 export function isKeyValueObject(value: unknown): boolean {
-  return isObject(value) &&
-    isDefined((value as Record<string, unknown>).key) &&
-    isDefined((value as Record<string, unknown>).value);
+  return isPlainObject(value) && isDefined(value.key) && isDefined(value.value);
 }

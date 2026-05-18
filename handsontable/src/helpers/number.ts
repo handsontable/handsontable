@@ -38,8 +38,8 @@ export function isNumeric(value: unknown, additionalDelimiters: string[] = []): 
     return new RegExp(`^[+-]?(((${delimiter})?\\d+((${delimiter})\\d+)?(e[+-]?\\d+)?)|(0x[a-f\\d]+))$`, 'i')
       .test(value.trim());
 
-  } else if (typeof value === 'object') {
-    return !!value && typeof (value as { valueOf(): unknown }).valueOf() === 'number' && !(value instanceof Date);
+  } else if (typeof value === 'object' && value !== null) {
+    return typeof value.valueOf() === 'number' && !(value instanceof Date);
   }
 
   return false;
@@ -116,19 +116,28 @@ export function isDotThousandsGroupedFloat(value: string, decimalSeparator: '.' 
  * @param {number|Function} rangeTo The number where finish iterate or function as a iteratee.
  * @param {Function} [iteratee] The function invoked per iteration.
  */
-export function rangeEach(rangeFrom: number, rangeTo: number | Function, iteratee?: (index: number) => unknown): void {
-  let index = -1;
+export function rangeEach(
+  rangeFrom: number,
+  rangeTo: number | ((index: number) => unknown),
+  iteratee?: (index: number) => unknown
+): void {
+  let index: number;
+  let end: number;
+  let fn: (index: number) => unknown;
 
   if (typeof rangeTo === 'function') {
-    iteratee = rangeTo as (index: number) => unknown;
-    rangeTo = rangeFrom;
+    index = -1;
+    end = rangeFrom;
+    fn = rangeTo;
   } else {
     index = rangeFrom - 1;
+    end = rangeTo;
+    fn = iteratee!;
   }
 
   /* eslint-disable-next-line no-plusplus */
-  while (++index <= (rangeTo as number)) {
-    if (iteratee(index) === false) {
+  while (++index <= end) {
+    if (fn(index) === false) {
       break;
     }
   }
@@ -142,16 +151,25 @@ export function rangeEach(rangeFrom: number, rangeTo: number | Function, iterate
  * @param {Function} [iteratee] The function invoked per iteration.
  */
 export function rangeEachReverse(
-  rangeFrom: number, rangeTo: number | Function, iteratee?: (index: number) => unknown): void {
+  rangeFrom: number,
+  rangeTo: number | ((index: number) => unknown),
+  iteratee?: (index: number) => unknown
+): void {
   let index = rangeFrom + 1;
+  let end: number;
+  let fn: (index: number) => unknown;
 
   if (typeof rangeTo === 'function') {
-    iteratee = rangeTo as (index: number) => unknown;
-    rangeTo = 0;
+    fn = rangeTo;
+    end = 0;
+  } else {
+    fn = iteratee!;
+    end = rangeTo;
   }
+
   /* eslint-disable-next-line no-plusplus */
-  while (--index >= (rangeTo as number)) {
-    if (iteratee(index) === false) {
+  while (--index >= end) {
+    if (fn(index) === false) {
       break;
     }
   }
@@ -232,6 +250,6 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
  * @param {*} value Value to check.
  * @returns {boolean}
  */
-export function isUnsignedNumber(value: unknown) {
-  return Number.isInteger(value) && (value as number) >= 0;
+export function isUnsignedNumber(value: unknown): value is number {
+  return Number.isInteger(value) && typeof value === 'number' && value >= 0;
 }

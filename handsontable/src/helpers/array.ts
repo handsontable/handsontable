@@ -32,12 +32,12 @@ export function extendArray(arr: unknown[], extension: unknown[]): void {
 export function pivot(arr: unknown[][]): unknown[] {
   const pivotedArr: unknown[][] = [];
 
-  if (!arr || arr.length === 0 || !arr[0] || (arr[0] as unknown[]).length === 0) {
+  if (!arr || arr.length === 0 || !arr[0] || arr[0].length === 0) {
     return pivotedArr;
   }
 
   const rowCount = arr.length;
-  const colCount = (arr[0] as unknown[]).length;
+  const colCount = arr[0].length;
 
   for (let i = 0; i < rowCount; i++) {
     for (let j = 0; j < colCount; j++) {
@@ -45,7 +45,7 @@ export function pivot(arr: unknown[][]): unknown[] {
         pivotedArr[j] = [];
       }
 
-      pivotedArr[j][i] = (arr[i] as unknown[])[j];
+      pivotedArr[j][i] = arr[i][j];
     }
   }
 
@@ -65,14 +65,10 @@ export function pivot(arr: unknown[][]): unknown[] {
  * @returns {A} Returns the accumulated value.
  */
 export function arrayReduce<T, A>(
-  array: T[], iteratee: (acc: A, value: T, index: number, array: T[]) => A,
+  array: T[] | Iterable<T>, iteratee: (acc: A, value: T, index: number, array: T[]) => A,
   accumulator: A, initFromArray?: boolean): A {
   let index = -1;
-  let iterable: T[] = array;
-
-  if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<T>);
-  }
+  const iterable: T[] = Array.isArray(array) ? array : Array.from(array);
   const length = iterable.length;
 
   if (initFromArray && length) {
@@ -102,14 +98,10 @@ export function arrayReduce<T, A>(
  * @param {Function} predicate The function invoked per iteration.
  * @returns {Array} Returns the new filtered array.
  */
-export function arrayFilter<T>(array: T[], predicate: (value: T, index: number, array: T[]) => unknown): T[] {
+export function arrayFilter<T>(
+  array: T[] | Iterable<T>, predicate: (value: T, index: number, array: T[]) => unknown): T[] {
   let index = 0;
-  let iterable: T[] = array;
-
-  if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<T>);
-  }
-
+  const iterable: T[] = Array.isArray(array) ? array : Array.from(array);
   const length = iterable.length;
   const result: T[] = [];
   let resIndex = -1;
@@ -136,14 +128,10 @@ export function arrayFilter<T>(array: T[], predicate: (value: T, index: number, 
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {Array} Returns the new filtered array.
  */
-export function arrayMap<T, U>(array: T[], iteratee: (value: T, index: number, array: T[]) => U): U[] {
+export function arrayMap<T, U>(
+  array: T[] | Iterable<T>, iteratee: (value: T, index: number, array: T[]) => U): U[] {
   let index = 0;
-  let iterable: T[] = array;
-
-  if (!Array.isArray(array)) {
-    iterable = Array.from(array as Iterable<T>);
-  }
-
+  const iterable: T[] = Array.isArray(array) ? array : Array.from(array);
   const length = iterable.length;
   const result: U[] = [];
   let resIndex = -1;
@@ -247,9 +235,9 @@ export function arrayAvg(array: number[]): number {
  * @param {Array} array Array of Arrays.
  * @returns {Array}
  */
-export function arrayFlatten(array: unknown[][]): unknown[] {
-  return arrayReduce<unknown[], unknown[]>(array,
-    (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value as unknown[][]) : value), []);
+export function arrayFlatten(array: unknown[]): unknown[] {
+  return arrayReduce<unknown, unknown[]>(array,
+    (initial, value) => initial.concat(Array.isArray(value) ? arrayFlatten(value) : value), []);
 }
 
 /**
@@ -287,6 +275,9 @@ export function getDifferenceOfArrays<T extends string | number>(...arrays: Arra
   return filteredFirstArray;
 }
 
+type IntersectionComparator = (a: string | number, b: string | number) => boolean;
+type IntersectionArg = Array<string | number> | IntersectionComparator;
+
 /**
  * Intersection of two or more arrays.
  *
@@ -294,16 +285,20 @@ export function getDifferenceOfArrays<T extends string | number>(...arrays: Arra
  * @returns {Array} Returns elements that exists in every array.
  */
 export function getIntersectionOfArrays(
-  ...args: Array<Array<string | number> | ((a: string | number, b: string | number) => boolean)>
+  ...args: IntersectionArg[]
 ): (string | number)[] {
-  const lastArgument = args[args.length - 1];
-  let comparator: ((a: string | number, b: string | number) => boolean) | undefined;
-  let arrays: Array<Array<string | number>> = args as Array<Array<string | number>>;
+  const arrays: Array<Array<string | number>> = [];
+  let comparator: IntersectionComparator | undefined;
 
-  if (typeof lastArgument === 'function') {
-    comparator = lastArgument;
-    arrays = arrays.slice(0, -1) as Array<Array<string | number>>;
-  }
+  arrayEach(args, (arg, index) => {
+    if (typeof arg === 'function') {
+      if (index === args.length - 1) {
+        comparator = arg;
+      }
+    } else {
+      arrays.push(arg);
+    }
+  });
 
   const isMatch = comparator
     ? (value: string | number, array: Array<string | number>) => array.some(item => comparator!(value, item))
