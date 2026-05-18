@@ -531,41 +531,6 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Adjusts menu position for horizon theme (corrects 4px offset from theme styling).
-   *
-   * @private
-   * @param {{ top: number, left: number }} position Position object.
-   * @param {boolean} [menuOpensOnLeft] When true, menu is positioned on the left (no space on right); applies opposite left correction.
-   * @returns {{ top: number, left: number }} Adjusted position when horizon theme is active, otherwise unchanged.
-   */
-  #adjustPositionForTheme(position: Record<string, number>, menuOpensOnLeft?: boolean): Record<string, number> {
-    const themeName = this.hot.getCurrentThemeName?.();
-
-    if (!themeName) {
-      return position;
-    }
-    if (themeName.includes('classic')) {
-      // Classic theme: align menu top with e2e expected (top 6px up); no left correction to avoid overcorrection in RTL/no-space cases.
-      return {
-        top: position.top - 6,
-        left: position.left,
-      };
-    }
-    if (!themeName.includes('horizon')) {
-      return position;
-    }
-    // Horizon: RTL menu left alignment (e2e expects ~912; -4 matches).
-    const ltrCorrection = menuOpensOnLeft ? -4 : 4;
-    const rtlCorrection = menuOpensOnLeft ? 4 : -4;
-    const leftCorrection = this.hot.isLtr() ? ltrCorrection : rtlCorrection;
-
-    return {
-      top: position.top - 4,
-      left: position.left + leftCorrection,
-    };
-  }
-
-  /**
    * Table click listener.
    *
    * @private
@@ -581,10 +546,10 @@ export class DropdownMenu extends BasePlugin {
       event.stopPropagation();
       this.#isButtonClicked = false;
 
-      this.open(this.#adjustPositionForTheme({
+      this.open({
         left: buttonRect.left + offset.left,
         top: buttonRect.bottom + offset.top,
-      }, false), {
+      }, {
         left: buttonRect.width,
         right: 0,
         above: 0,
