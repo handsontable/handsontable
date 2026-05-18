@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the browser page scrolling to the grid when `dataProvider` loads rows for the first time into an empty grid with `emptyDataState` enabled.",
+  "type": "fixed",
+  "issueOrPR": 12591,
+  "breaking": false,
+  "framework": "none"
+}
