@@ -124,43 +124,6 @@ function FilterTabs({ value, onChange, entries }: FilterTabsProps) {
   );
 }
 
-interface VersionBreadcrumbProps {
-  releases: ReleaseSummary[];
-  from: string;
-  to: string;
-  onJumpTo: (version: string) => void;
-}
-
-function VersionBreadcrumb({ releases, from, to, onJumpTo }: VersionBreadcrumbProps) {
-  const inRange = releases
-    .filter((r) => compareVersions(r.version, from) >= 0 && compareVersions(r.version, to) <= 0)
-    .sort((a, b) => compareVersions(a.version, b.version));
-
-  const visible: (ReleaseSummary | { collapsed: true })[] = inRange.length <= 8
-    ? inRange
-    : [inRange[0], inRange[1], { collapsed: true }, inRange[inRange.length - 2], inRange[inRange.length - 1]];
-
-  return (
-    <nav className="vc-breadcrumb" aria-label="Version path">
-      {visible.map((node, idx) => {
-        if ('collapsed' in node) {
-          return <span key={`gap-${idx}`} className="vc-breadcrumb-gap">...</span>;
-        }
-        return (
-          <button
-            key={node.version}
-            type="button"
-            className={`vc-breadcrumb-node ${node.version === to ? 'is-target' : ''} ${node.version === from ? 'is-source' : ''}`}
-            onClick={() => onJumpTo(node.version)}
-          >
-            {node.version}
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
-
 function pillClass(category: ChangeCategory, breaking: boolean) {
   if (breaking) return 'vc-pill vc-pill-breaking';
   return `vc-pill vc-pill-${category}`;
@@ -331,12 +294,6 @@ export function VersionComparison() {
           onChange={(v) => setState((s) => ({ ...s, to: v }))}
         />
       </div>
-      <VersionBreadcrumb
-        releases={data.releases}
-        from={from}
-        to={to}
-        onJumpTo={(v) => setState((s) => ({ ...s, to: v }))}
-      />
       <FilterTabs value={filter} entries={filtered} onChange={(f) => setState((s) => ({ ...s, filter: f }))} />
       <p data-testid="entry-count">{visible.length} of {filtered.length} changes</p>
       {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} />)}

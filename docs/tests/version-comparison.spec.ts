@@ -33,16 +33,6 @@ test.describe('Version comparison page', () => {
     await expect(page.locator('.vc-pill-breaking').first()).toBeVisible();
   });
 
-  test('clicking a breadcrumb node sets To', async ({ page }) => {
-    await page.goto(`${PAGE_PATH}?from=14.0&to=17.0`);
-
-    const breadcrumb = page.locator('.vc-breadcrumb-node', { hasText: '16.0' });
-    await breadcrumb.first().click();
-
-    const toSelect = page.locator('label.vc-selector', { hasText: 'To' }).locator('select');
-    await expect(toSelect).toHaveValue('16.0');
-  });
-
   test('deep link preselects From, To, and category', async ({ page }) => {
     await page.goto(`${PAGE_PATH}?from=14.0&to=17.0&category=breaking`);
 

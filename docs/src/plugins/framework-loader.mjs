@@ -424,7 +424,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v36';
+const LOADER_VERSION = 'v37';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
