@@ -15,10 +15,8 @@ export const VIEWPORT_MARGIN = 8;
  * the visible viewport (most common on mobile portrait screens).
  *
  * @param {{ width: number, height: number }} size The desired size.
- * @param {{ innerWidth: number, innerHeight: number }} viewport The viewport
- *   dimensions (typically `window.innerWidth` / `innerHeight`).
- * @param {number} [margin] Distance to keep from the viewport edges. Defaults
- *   to `VIEWPORT_MARGIN`.
+ * @param {{ innerWidth: number, innerHeight: number }} viewport Viewport dimensions (typically `window.innerWidth` / `innerHeight`).
+ * @param {number} [margin] Distance to keep from the viewport edges. Defaults to `VIEWPORT_MARGIN`.
  * @returns {{ width: number, height: number }} The capped size.
  */
 export function shrinkSizeToViewport(size, viewport, margin = VIEWPORT_MARGIN) {
@@ -40,18 +38,15 @@ export function shrinkSizeToViewport(size, viewport, margin = VIEWPORT_MARGIN) {
  * prefers the top/left edge so the rect stays anchored to the visible area
  * rather than wrapping into negative coordinates.
  *
- * @param {{ x: number, y: number, width: number, height: number }} rect The
- *   target rectangle.
- * @param {{
- *   innerWidth: number,
- *   innerHeight: number,
- *   scrollX: number,
- *   scrollY: number,
- *   verticalScrollbarWidth?: number,
- *   horizontalScrollbarWidth?: number,
- * }} viewport Viewport dimensions and scroll offsets.
- * @param {number} [margin] Distance to keep from the viewport edges. Defaults
- *   to `VIEWPORT_MARGIN`.
+ * @param {{ x: number, y: number, width: number, height: number }} rect The target rectangle.
+ * @param {object} viewport Viewport dimensions and scroll offsets.
+ * @param {number} viewport.innerWidth Viewport inner width in pixels.
+ * @param {number} viewport.innerHeight Viewport inner height in pixels.
+ * @param {number} viewport.scrollX Horizontal page scroll offset.
+ * @param {number} viewport.scrollY Vertical page scroll offset.
+ * @param {number} [viewport.verticalScrollbarWidth] Width of the vertical scrollbar, if any.
+ * @param {number} [viewport.horizontalScrollbarWidth] Height of the horizontal scrollbar, if any.
+ * @param {number} [margin] Distance to keep from the viewport edges. Defaults to `VIEWPORT_MARGIN`.
  * @returns {{ x: number, y: number }} The clamped x/y.
  */
 export function clampPositionToViewport(rect, viewport, margin = VIEWPORT_MARGIN) {
