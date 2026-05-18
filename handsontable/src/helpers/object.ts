@@ -369,7 +369,12 @@ export function setProperty(object: Record<string, unknown>, name: string, value
       if (!isPlainObject(nextLevel)) {
         return;
       }
-
+      Object.defineProperty(workingObject, propName, {
+        value,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
       workingObject = nextLevel;
 
     } else {
