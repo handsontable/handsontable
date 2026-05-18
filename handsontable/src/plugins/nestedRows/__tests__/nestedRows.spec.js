@@ -439,6 +439,87 @@ describe('NestedRows', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  describe('context menu "Insert row above/below" on a deeply-nested leaf (#9670)', () => {
+    const getDeeplyNestedData = () => [
+      {
+        a: 'Group 1',
+        __children: [
+          { a: 'Group 2', __children: [{ a: 'Line 1' }] },
+          { a: 'Group 3', __children: [{ a: 'Line 2' }] },
+        ]
+      }
+    ];
+
+    it('should preserve sibling branches when inserting a row above a level-2 leaf', async() => {
+      const spy = spyOn(console, 'error');
+
+      handsontable({
+        data: getDeeplyNestedData(),
+        nestedRows: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      expect(countRows()).toEqual(5);
+
+      // Visual row 2 is "Line 1" (Group 1 = 0, Group 2 = 1, Line 1 = 2).
+      await selectCell(2, 0);
+      await contextMenu();
+
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(2) // Insert row above
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(countRows()).toEqual(6);
+
+      const flatColumnA = getData().map(row => row[0]);
+
+      expect(flatColumnA).toContain('Group 1');
+      expect(flatColumnA).toContain('Group 2');
+      expect(flatColumnA).toContain('Line 1');
+      expect(flatColumnA).toContain('Group 3');
+      expect(flatColumnA).toContain('Line 2');
+    });
+
+    it('should preserve sibling branches when inserting a row below a level-2 leaf', async() => {
+      const spy = spyOn(console, 'error');
+
+      handsontable({
+        data: getDeeplyNestedData(),
+        nestedRows: true,
+        rowHeaders: true,
+        contextMenu: true,
+      });
+
+      expect(countRows()).toEqual(5);
+
+      await selectCell(2, 0);
+      await contextMenu();
+
+      $('.htContextMenu .ht_master .htCore')
+        .find('tbody td')
+        .not('.htSeparator')
+        .eq(3) // Insert row below
+        .simulate('mousedown')
+        .simulate('mouseup');
+
+      expect(spy).not.toHaveBeenCalled();
+      expect(countRows()).toEqual(6);
+
+      const flatColumnA = getData().map(row => row[0]);
+
+      expect(flatColumnA).toContain('Group 1');
+      expect(flatColumnA).toContain('Group 2');
+      expect(flatColumnA).toContain('Line 1');
+      expect(flatColumnA).toContain('Group 3');
+      expect(flatColumnA).toContain('Line 2');
+    });
+  });
+
   describe('context menu items defined as object', () => {
     it('should resolve `add_child` to the plugin-provided full entry (translated name + callback)', async() => {
       handsontable({

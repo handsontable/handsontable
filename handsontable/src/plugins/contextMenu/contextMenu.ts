@@ -171,7 +171,6 @@ export class ContextMenu extends BasePlugin {
       container: (settingsObj?.uiContainer as HTMLElement) || this.hot.rootPortalElement,
     });
 
-    this.menu.addLocalHook('beforeOpen', this.#onMenuBeforeOpen);
     this.menu.addLocalHook('afterOpen', this.#onMenuAfterOpen);
     this.menu.addLocalHook('afterClose', this.#onMenuAfterClose);
     this.menu.addLocalHook('executeCommand', (...params: unknown[]) => {
@@ -289,6 +288,11 @@ export class ContextMenu extends BasePlugin {
     if (this.menu?.isOpened()) {
       return;
     }
+
+    // Fire the user-facing hook before any menu state is committed. If a listener calls
+    // `updateSettings({ contextMenu })`, the plugin reinitializes synchronously, and the
+    // open flow below proceeds on the fresh `this.menu` instance with the new items.
+    this.hot.runHooks('beforeContextMenuShow', this);
 
     this.prepareMenuItems();
     this.menu!.open();
@@ -419,13 +423,6 @@ export class ContextMenu extends BasePlugin {
       top: (event as MouseEvent).clientY + offset.top,
       left: (event as MouseEvent).clientX + offset.left,
     });
-  };
-
-  /**
-   * On menu before open listener.
-   */
-  #onMenuBeforeOpen = () => {
-    this.hot.runHooks('beforeContextMenuShow', this);
   };
 
   /**
