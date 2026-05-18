@@ -509,6 +509,293 @@ describe('Dynamic HotColumn configuration changes', () => {
   }, 15000);
 });
 
+describe('Dynamic HotColumn add/remove', () => {
+  it('should drop column settings when a HotColumn is removed from the end', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const baseProps: HotTableProps = {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: createSpreadsheetData(2, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
+
+    renderHotTableWithProps({
+      ...baseProps,
+      children: [
+        <HotColumn title="A" key="a" />,
+        <HotColumn title="B" key="b" />,
+        <HotColumn title="C" key="c" />,
+      ],
+    }, true, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    expect(hotInstance.countCols()).toBe(3);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['A', 'B', 'C']);
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="A" key="a" />,
+          <HotColumn title="B" key="b" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(50);
+
+    expect(hotInstance.countCols()).toBe(2);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['A', 'B']);
+  });
+
+  it('should drop column settings when a HotColumn is removed from the middle (stable keys)', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const baseProps: HotTableProps = {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: createSpreadsheetData(2, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
+
+    renderHotTableWithProps({
+      ...baseProps,
+      children: [
+        <HotColumn title="A" key="a" />,
+        <HotColumn title="B" key="b" />,
+        <HotColumn title="C" key="c" />,
+      ],
+    }, true, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    expect(hotInstance.countCols()).toBe(3);
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="A" key="a" />,
+          <HotColumn title="C" key="c" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(50);
+
+    expect(hotInstance.countCols()).toBe(2);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['A', 'C']);
+  });
+
+  it('should reduce columns to one when all-but-one HotColumns are removed', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const baseProps: HotTableProps = {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: createSpreadsheetData(2, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
+
+    renderHotTableWithProps({
+      ...baseProps,
+      children: [
+        <HotColumn title="A" key="a" />,
+        <HotColumn title="B" key="b" />,
+        <HotColumn title="C" key="c" />,
+      ],
+    }, true, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="A" key="a" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(50);
+
+    expect(hotInstance.countCols()).toBe(1);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['A']);
+  });
+
+  it('should keep a component renderer on a surviving column when an earlier column is removed', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const baseProps: HotTableProps = {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: createSpreadsheetData(2, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
+
+    renderHotTableWithProps({
+      ...baseProps,
+      children: [
+        <HotColumn title="A" key="a" />,
+        <HotColumn title="B" key="b" renderer={RendererComponent} />,
+        <HotColumn title="C" key="c" />,
+      ],
+    }, true, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    expect(hotInstance.getCell(0, 1)!.innerHTML).toEqual('<div>value: B1</div>');
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="B" key="b" renderer={RendererComponent} />,
+          <HotColumn title="C" key="c" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(100);
+
+    expect(hotInstance.countCols()).toBe(2);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['B', 'C']);
+    expect(hotInstance.getCell(0, 0)!.innerHTML).toEqual('<div>value: A1</div>');
+    expect(hotInstance.getCell(0, 1)!.innerHTML).toEqual('B1');
+  });
+
+  it('should reflect a keyed reorder of HotColumn children', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const baseProps: HotTableProps = {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: createSpreadsheetData(2, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
+
+    renderHotTableWithProps({
+      ...baseProps,
+      children: [
+        <HotColumn title="A" key="a" />,
+        <HotColumn title="B" key="b" />,
+        <HotColumn title="C" key="c" />,
+      ],
+    }, true, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="C" key="c" />,
+          <HotColumn title="A" key="a" />,
+          <HotColumn title="B" key="b" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(100);
+
+    expect(hotInstance.countCols()).toBe(3);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['C', 'A', 'B']);
+  });
+
+  it('should restore correct column settings through an add -> remove -> add cycle', async () => {
+    const hotTableRef = React.createRef<HotTableRef>();
+    const baseProps: HotTableProps = {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: createSpreadsheetData(2, 3),
+      width: 300,
+      height: 300,
+      rowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+    };
+
+    renderHotTableWithProps({
+      ...baseProps,
+      children: [
+        <HotColumn title="A" key="a" />,
+        <HotColumn title="B" key="b" />,
+      ],
+    }, true, hotTableRef);
+
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="A" key="a" />,
+          <HotColumn title="B" key="b" />,
+          <HotColumn title="C" key="c" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(50);
+
+    expect(hotInstance.countCols()).toBe(3);
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="A" key="a" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(50);
+
+    expect(hotInstance.countCols()).toBe(1);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['A']);
+
+    act(() => {
+      renderHotTableWithProps({
+        ...baseProps,
+        children: [
+          <HotColumn title="A" key="a" />,
+          <HotColumn title="X" key="x" />,
+        ],
+      }, true, hotTableRef);
+    });
+
+    await sleep(50);
+
+    expect(hotInstance.countCols()).toBe(2);
+    expect((hotInstance.getSettings().columns as Handsontable.ColumnSettings[]).map(c => c.title))
+      .toEqual(['A', 'X']);
+  });
+});
+
 describe('Miscellaneous scenarios with `HotColumn` config', () => {
   it('should validate all cells correctly in a `dropdown`-typed column after populating data through it', async () => {
     const onAfterValidate = jest.fn();
