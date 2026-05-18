@@ -54,22 +54,6 @@ export class ThemeManager {
    */
   themeConfig: ThemeConfig | null = null;
 
-  #debugLog(message: string, data: Record<string, unknown>, location: string) {
-    const debugLogger = (this.hot as {
-      rootWindow?: { agentDebugLog?: (payload: Record<string, unknown>) => void };
-    }).rootWindow?.agentDebugLog;
-
-    if (typeof debugLogger === 'function') {
-      debugLogger({
-        hypothesisId: 'A',
-        location,
-        message,
-        data,
-        timestamp: Date.now(),
-      });
-    }
-  }
-
   /**
    * Unsubscribes from the theme object's change notifications.
    *
@@ -97,15 +81,6 @@ export class ThemeManager {
     if (!this.themeConfig || !this.hot || !this.hot.rootDocument || !this.hot.rootWrapperElement) {
       return;
     }
-
-    // #region agent log
-    this.#debugLog('Injecting theme styles', {
-      themeClassName: this.themeClassName,
-      docThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-      wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-      hasThemeStyleRef: Boolean(this.themeStyles),
-    }, 'src/themes/engine/manager.ts:#injectThemeStyles');
-    // #endregion
 
     const colorScheme = this.themeConfig.colorScheme === 'auto' ? 'light dark' : this.themeConfig.colorScheme;
 
@@ -217,14 +192,6 @@ export class ThemeManager {
     if (this.themeStyles) {
       this.themeStyles.remove();
 
-      // #region agent log
-      this.#debugLog('Unmounted theme style node', {
-        themeClassName: this.themeClassName,
-        isConnectedAfterRemove: this.themeStyles.isConnected,
-        docThemeStyleCount: this.hot.rootDocument.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-        wrapperThemeStyleCount: this.hot.rootWrapperElement.querySelectorAll(`style[${THEME_STYLE_ATTRIBUTE}]`).length,
-      }, 'src/themes/engine/manager.ts:unmount');
-      // #endregion
     }
   }
 

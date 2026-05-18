@@ -71,23 +71,6 @@ export class DataChangeAction extends BaseAction {
         return oldValue !== newValue;
       });
 
-      // #region agent log
-      (hot.rootWindow as {
-        agentDebugLog?: (payload: Record<string, unknown>) => void;
-      })?.agentDebugLog?.({
-        hypothesisId: 'D',
-        location: 'src/plugins/undoRedo/actions/dataChange.ts:beforeChange',
-        message: 'UndoRedo beforeChange payload snapshot',
-        data: {
-          source,
-          changesLen,
-          hasDifferences: Boolean(hasDifferences),
-          firstChange: effectiveChanges[0]?.slice(0, 4) ?? null,
-        },
-        timestamp: Date.now(),
-      });
-      // #endregion
-
       const effectiveLen = effectiveChanges.length;
 
       const wrappedAction = () => {
