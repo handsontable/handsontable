@@ -1,4 +1,5 @@
 ---
+type: reference
 id: h7j4k8l2
 title: Server-side configuration
 metaTitle: Server-side configuration - JavaScript Data Grid | Handsontable

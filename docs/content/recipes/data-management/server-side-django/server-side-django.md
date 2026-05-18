@@ -19,7 +19,7 @@ angular:
   metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
-type: tutorial
+type: how-to
 ---
 
 This tutorial shows how to wire Handsontable's `dataProvider` plugin to a [Django REST Framework](https://www.django-rest-framework.org/) (DRF) backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends all edits back to the API.

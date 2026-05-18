@@ -19,7 +19,7 @@ angular:
   metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time and Integrations
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will sync selected rows from a Handsontable grid to a Chart.js bar chart in real time. You will learn how to use `afterSelectionEnd` and `afterDeselect` hooks to read the current selection and update the chart without destroying and recreating it.

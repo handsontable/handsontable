@@ -19,7 +19,7 @@ angular:
   metaTitle: Freeze and unfreeze columns at runtime - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will freeze and unfreeze columns at runtime using external buttons. You will learn how to call `hot.updateSettings` with `fixedColumnsStart` and how frozen columns interact with manual column reordering.

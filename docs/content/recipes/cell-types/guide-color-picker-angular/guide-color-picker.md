@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 7wh7yk48
 title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable

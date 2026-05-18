@@ -13,7 +13,7 @@ tags:
   - recipe
 searchCategory: Recipes
 category: Data Management
-type: tutorial
+type: how-to
 ---
 
 This tutorial shows how to wire Handsontable's `dataProvider` plugin to a [Ruby on Rails](https://rubyonrails.org/) API-only backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.

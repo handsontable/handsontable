@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: k4mb003v
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable

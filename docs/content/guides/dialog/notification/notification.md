@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 3zi3znot
 title: Notification
 metaTitle: Notification - JavaScript Data Grid | Handsontable

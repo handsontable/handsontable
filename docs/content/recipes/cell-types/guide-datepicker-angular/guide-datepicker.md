@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 0slrmsni
 title: "Date picker"
 metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
