@@ -78,7 +78,7 @@ Together these two libraries give you end-to-end type safety from the HTTP reque
 
 Copy `ticket.entity.ts` into `src/tickets/`:
 
-@[code typescript](@/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
 
 **What's happening:**
 - `TicketStatus` and `TicketPriority` are union types that match the `source` arrays in the Handsontable column definitions. Sharing these types between server and client prevents mismatched values.
@@ -92,7 +92,7 @@ Replace the interface and array with a `@Entity()` class and inject `Repository<
 
 Copy `fetch-tickets.dto.ts` into `src/tickets/dto/`:
 
-@[code typescript](@/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
 
 **What's happening:**
 
@@ -122,7 +122,7 @@ A filter condition can carry one or two values depending on the condition type (
 
 Copy `main.ts` into `src/`:
 
-@[code typescript](@/recipes/data-management/server-side-nestjs/server/main.ts)
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/main.ts)
 
 **What's happening:**
 
@@ -158,7 +158,7 @@ export class AppModule {}
 
 Copy `tickets.service.ts` into `src/tickets/`:
 
-@[code typescript](@/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
+@[code typescript collapse={42-130}](@/content/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
 
 **What's happening:**
 
@@ -201,7 +201,7 @@ After inserting a row the service returns it with its server-assigned `id`. The 
 
 Copy `tickets.controller.ts` into `src/tickets/`:
 
-@[code typescript](@/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
+@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
 
 **What's happening:**
 - `@Controller('tickets')` sets the base path. All four endpoints share the `/tickets` prefix.
@@ -223,21 +223,25 @@ Copy `tickets.controller.ts` into `src/tickets/`:
 
 With the server running on `http://localhost:3000`, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is below.
 
-::: only-for javascript
+::: only-for javascript vue
 
-@[code js](@/recipes/data-management/server-side-nestjs/javascript/example1.js)
+::: example #example1 :hot-recipe --js 1 --ts 2
+
+@[code collapse={16-140}](@/content/recipes/data-management/server-side-nestjs/javascript/example1.js)
+@[code collapse={16-140}](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
 
 :::
-
-::: only-for typescript
-
-@[code ts](@/recipes/data-management/server-side-nestjs/javascript/example1.ts)
 
 :::
 
 ::: only-for react
 
-@[code](@/content/recipes/data-management/server-side-nestjs/react/example1.jsx)
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code collapse={17-165}](@/content/recipes/data-management/server-side-nestjs/react/example1.jsx)
+@[code collapse={17-165}](@/content/recipes/data-management/server-side-nestjs/react/example1.tsx)
+
+:::
 
 :::
 
@@ -245,7 +249,7 @@ With the server running on `http://localhost:3000`, configure Handsontable to us
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/recipes/data-management/server-side-nestjs/angular/example1.ts)
+@[code collapse={7-120}](@/content/recipes/data-management/server-side-nestjs/angular/example1.ts)
 @[code](@/content/recipes/data-management/server-side-nestjs/angular/example1.html)
 
 :::
