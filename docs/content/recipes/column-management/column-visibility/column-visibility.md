@@ -25,9 +25,8 @@ In this tutorial, you will build a checkbox list outside the grid that shows or 
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --html 1 --js 2
+::: example #example1 :hot-recipe --js 1
 
-@[code](@/content/recipes/column-management/column-visibility/javascript/example1.html)
 @[code](@/content/recipes/column-management/column-visibility/javascript/example1.js)
 
 :::
