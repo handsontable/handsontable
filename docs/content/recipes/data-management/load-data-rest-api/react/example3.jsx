@@ -1,13 +1,14 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
+const pagination = { pageSize: 5 };
+
 const ExampleComponent = () => {
   const cachedRowsRef = useRef(null);
-  const [status, setStatus] = useState('Loading...');
-  const [statusColor, setStatusColor] = useState('#202124');
+  const statusRef = useRef(null);
 
   const loadAllRows = useCallback(async (signal) => {
     if (cachedRowsRef.current !== null) {
@@ -70,26 +71,30 @@ const ExampleComponent = () => {
   );
 
   const beforeDataProviderFetch = useCallback((params) => {
-    if (!params.skipLoading) {
-      setStatus('Loading...');
-      setStatusColor('#202124');
-    }
+    if (params.skipLoading || !statusRef.current) return;
+    statusRef.current.textContent = 'Loading...';
+    statusRef.current.style.color = '#202124';
   }, []);
 
   const afterDataProviderFetch = useCallback(() => {
-    setStatus('Loaded from REST API via dataProvider.');
-    setStatusColor('#202124');
+    if (!statusRef.current) return;
+    statusRef.current.textContent = 'Loaded from REST API via dataProvider.';
+    statusRef.current.style.color = '#202124';
   }, []);
 
   const afterDataProviderFetchError = useCallback((error) => {
-    setStatus(`Error: ${error.message}`);
-    setStatusColor('#c62828');
+    if (!statusRef.current) return;
+    statusRef.current.textContent = `Error: ${error.message}`;
+    statusRef.current.style.color = '#c62828';
   }, []);
 
   return (
     <div>
-      <p style={{ margin: '0 0 8px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: statusColor }}>
-        {status}
+      <p
+        ref={statusRef}
+        style={{ margin: '0 0 8px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#202124' }}
+      >
+        Loading...
       </p>
       <HotTable
         dataProvider={dataProvider}
@@ -102,7 +107,7 @@ const ExampleComponent = () => {
           { data: 'city', type: 'text', width: 140, readOnly: true },
           { data: 'company', type: 'text', width: 180, readOnly: true },
         ]}
-        pagination={{ pageSize: 5 }}
+        pagination={pagination}
         columnSorting={true}
         emptyDataState={true}
         rowHeaders={true}
