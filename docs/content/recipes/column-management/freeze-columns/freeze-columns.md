@@ -26,10 +26,9 @@ In this tutorial, you will freeze and unfreeze columns at runtime using external
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --html 2 --css 3
+::: example #example1 :hot-recipe --js 1 --css 2
 
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.js)
-@[code](@/content/recipes/column-management/freeze-columns/javascript/example1.html)
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.css)
 
 :::

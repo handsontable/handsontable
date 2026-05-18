@@ -22,8 +22,26 @@ let frozenCount = 0;
 const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions', 'CPC ($)', 'Revenue ($)', 'ROI'];
 
 const container = document.querySelector('#example1');
-const controlsContainer = document.querySelector('#freeze-buttons');
-const statusEl = document.querySelector('#freeze-status');
+
+const toolbar = document.createElement('div');
+
+toolbar.classList.add('example-controls-container');
+
+const freezeRow = document.createElement('div');
+
+freezeRow.className = 'controls';
+
+const unfreezeRow = document.createElement('div');
+
+unfreezeRow.className = 'controls';
+
+const statusEl = document.createElement('span');
+
+statusEl.className = 'freeze-status';
+
+toolbar.appendChild(freezeRow);
+toolbar.appendChild(unfreezeRow);
+container.before(toolbar);
 
 const hot = new Handsontable(container, {
   data,
@@ -70,20 +88,27 @@ colHeaders.forEach((header, index) => {
 
   btn.type = 'button';
   btn.textContent = `Freeze up to "${header}"`;
-  btn.dataset.colIndex = String(index);
 
   btn.addEventListener('click', () => {
     freezeUpTo(index + 1);
   });
 
-  controlsContainer.appendChild(btn);
+  freezeRow.appendChild(btn);
 });
 
 // "Unfreeze all" resets fixedColumnsStart to 0.
-document.querySelector('#unfreeze-btn').addEventListener('click', () => {
+const unfreezeBtn = document.createElement('button');
+
+unfreezeBtn.type = 'button';
+unfreezeBtn.textContent = 'Unfreeze all';
+
+unfreezeBtn.addEventListener('click', () => {
   frozenCount = 0;
   hot.updateSettings({ fixedColumnsStart: 0 });
   updateStatus();
 });
+
+unfreezeRow.appendChild(unfreezeBtn);
+unfreezeRow.appendChild(statusEl);
 
 updateStatus();

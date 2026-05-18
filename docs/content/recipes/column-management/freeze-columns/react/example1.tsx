@@ -63,9 +63,9 @@ const ExampleComponent = () => {
     : `${frozenCount} column${frozenCount > 1 ? 's' : ''} frozen`;
 
   return (
-    <div>
-      <div className="freeze-controls">
-        <div className="freeze-controls__freeze-btns">
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
           {colHeaders.map((header, index) => (
             <button
               key={header}
@@ -76,9 +76,9 @@ const ExampleComponent = () => {
             </button>
           ))}
         </div>
-        <div className="freeze-controls__footer">
+        <div className="controls">
           <button type="button" onClick={unfreezeAll}>Unfreeze all</button>
-          <span className="freeze-controls__status">{statusText}</span>
+          <span className="freeze-status">{statusText}</span>
         </div>
       </div>
       <HotTable
@@ -94,7 +94,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         licenseKey="non-commercial-and-evaluation"
       />
-    </div>
+    </>
   );
 };
 
