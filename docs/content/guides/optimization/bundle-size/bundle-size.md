@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: vjcvrdeh
 title: Bundle size
 metaTitle: Bundle size - JavaScript Data Grid | Handsontable

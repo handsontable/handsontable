@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 8f3c91ab
 title: Handsontable with shadcn/ui
 metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 2rti5w12
 title: "Feedback Editor"
 metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: cf4e768b
 title: Numbro
 metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable

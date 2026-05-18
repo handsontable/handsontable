@@ -6,7 +6,7 @@ canonicalUrl: /recipes/themes
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: a8f2d91c
 description: Practical recipes for integrating Handsontable with design systems and UI libraries.
 react:

@@ -6,7 +6,7 @@ description: Developer recipes and step-by-step tutorials for building with Hand
 permalink: /recipes/
 canonicalUrl: /recipes/
 searchCategory: Recipes
-type: tutorial
+type: how-to
 react:
   id: 1ae45a27
   metaTitle: Recipes - React Data Grid | Handsontable

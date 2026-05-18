@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: w6bvsin5
 title: Performance
 metaTitle: Performance - JavaScript Data Grid | Handsontable

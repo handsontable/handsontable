@@ -6,7 +6,7 @@ canonicalUrl: /recipes/filtering-and-search
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: b7d4k9q2
 description: Practical recipes for building external and in-grid search workflows with Handsontable.
 react:

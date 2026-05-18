@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 95c84eb4
 title: Star Rating
 metaTitle: Star Rating Cell Type - React Data Grid | Handsontable

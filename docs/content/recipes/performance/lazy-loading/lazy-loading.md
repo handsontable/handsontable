@@ -21,7 +21,7 @@ angular:
   metaTitle: Lazy loading with pagination - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will load grid data page by page as the user scrolls to the bottom of the grid. You will learn how to use the `afterScrollVertically` hook and `hot.updateData()` to append new rows without resetting the scroll position or grid state.

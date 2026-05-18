@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: m4n7p2q8
 title: Server-side data with Laravel
 metaTitle: Server-side data with Laravel - JavaScript Data Grid | Handsontable

@@ -1,4 +1,5 @@
 ---
+type: reference
 id: glh01i6q
 title: Undo and redo
 metaTitle: Undo and redo - JavaScript Data Grid | Handsontable

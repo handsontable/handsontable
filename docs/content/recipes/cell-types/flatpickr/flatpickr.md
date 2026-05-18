@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: c757a3b3
 title: Flatpickr
 metaTitle: Flatpickr Cell Type - JavaScript Data Grid | Handsontable
