@@ -1,5 +1,6 @@
 import Handsontable from './base';
 export { CellCoords, CellRange } from './base';
+export type { HooksRegistry } from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
