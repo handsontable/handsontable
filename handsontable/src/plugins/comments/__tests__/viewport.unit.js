@@ -53,6 +53,24 @@ describe('Comments / viewport helpers', () => {
 
       expect(result).toEqual({ width: 288, height: 208 });
     });
+
+    it('subtracts the vertical scrollbar width from the width cap', () => {
+      const result = shrinkSizeToViewport(
+        { width: 9999, height: 100 },
+        { innerWidth: 1024, innerHeight: 768, verticalScrollbarWidth: 17 }
+      );
+
+      expect(result.width).toBe(1024 - 17 - (2 * VIEWPORT_MARGIN));
+    });
+
+    it('subtracts the horizontal scrollbar width from the height cap', () => {
+      const result = shrinkSizeToViewport(
+        { width: 100, height: 9999 },
+        { innerWidth: 1024, innerHeight: 768, horizontalScrollbarWidth: 17 }
+      );
+
+      expect(result.height).toBe(768 - 17 - (2 * VIEWPORT_MARGIN));
+    });
   });
 
   describe('clampPositionToViewport', () => {

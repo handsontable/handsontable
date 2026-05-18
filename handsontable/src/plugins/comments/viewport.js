@@ -10,18 +10,29 @@
 export const VIEWPORT_MARGIN = 8;
 
 /**
- * Caps the given size so it never exceeds the viewport minus 2 * margin on
- * each axis. Used to prevent the comments editor from rendering larger than
- * the visible viewport (most common on mobile portrait screens).
+ * Caps the given size so it never exceeds the viewport (minus any reserved
+ * scrollbar widths and 2 * margin) on each axis. Used to prevent the comments
+ * editor from rendering larger than the visible viewport (most common on
+ * mobile portrait screens).
  *
  * @param {{ width: number, height: number }} size The desired size.
- * @param {{ innerWidth: number, innerHeight: number }} viewport Viewport dimensions (typically `window.innerWidth` / `innerHeight`).
+ * @param {object} viewport Viewport dimensions.
+ * @param {number} viewport.innerWidth Viewport inner width in pixels.
+ * @param {number} viewport.innerHeight Viewport inner height in pixels.
+ * @param {number} [viewport.verticalScrollbarWidth] Width of the vertical scrollbar, if any.
+ * @param {number} [viewport.horizontalScrollbarWidth] Height of the horizontal scrollbar, if any.
  * @param {number} [margin] Distance to keep from the viewport edges. Defaults to `VIEWPORT_MARGIN`.
  * @returns {{ width: number, height: number }} The capped size.
  */
 export function shrinkSizeToViewport(size, viewport, margin = VIEWPORT_MARGIN) {
-  const maxWidth = Math.max(0, viewport.innerWidth - (2 * margin));
-  const maxHeight = Math.max(0, viewport.innerHeight - (2 * margin));
+  const {
+    innerWidth,
+    innerHeight,
+    verticalScrollbarWidth = 0,
+    horizontalScrollbarWidth = 0,
+  } = viewport;
+  const maxWidth = Math.max(0, innerWidth - verticalScrollbarWidth - (2 * margin));
+  const maxHeight = Math.max(0, innerHeight - horizontalScrollbarWidth - (2 * margin));
 
   return {
     width: Math.min(size.width, maxWidth),

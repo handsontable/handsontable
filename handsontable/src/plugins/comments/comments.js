@@ -690,7 +690,7 @@ export class Comments extends BasePlugin {
     // be persisted to the cell meta and overwrite the user's intent.
     const shrunk = shrinkSizeToViewport(
       { width: editorWidth, height: editorHeight },
-      { innerWidth, innerHeight }
+      { innerWidth, innerHeight, verticalScrollbarWidth, horizontalScrollbarWidth }
     );
 
     if (shrunk.width !== editorWidth || shrunk.height !== editorHeight) {
