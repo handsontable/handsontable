@@ -16,6 +16,7 @@ import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorWidth } from './utils';
+import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
@@ -683,7 +684,32 @@ export class Comments extends BasePlugin {
       y -= (editorHeight - cellHeight + 1);
     }
 
-    this.#editor.setPosition(x, y);
+    // Cap the display size to the viewport. This setSize MUST happen before
+    // observeSize() below so the resize observer's #ignoreInitialCall guard
+    // swallows the resulting resize event - otherwise the clamped size would
+    // be persisted to the cell meta and overwrite the user's intent.
+    const shrunk = shrinkSizeToViewport(
+      { width: editorWidth, height: editorHeight },
+      { innerWidth, innerHeight, verticalScrollbarWidth, horizontalScrollbarWidth }
+    );
+
+    if (shrunk.width !== editorWidth || shrunk.height !== editorHeight) {
+      this.#editor.setSize(shrunk.width, shrunk.height);
+    }
+
+    const clamped = clampPositionToViewport(
+      { x, y, width: shrunk.width, height: shrunk.height },
+      {
+        innerWidth,
+        innerHeight,
+        scrollX: rootWindow.scrollX,
+        scrollY: rootWindow.scrollY,
+        verticalScrollbarWidth,
+        horizontalScrollbarWidth,
+      }
+    );
+
+    this.#editor.setPosition(clamped.x, clamped.y);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
     this.#editor.observeSize();
   }
