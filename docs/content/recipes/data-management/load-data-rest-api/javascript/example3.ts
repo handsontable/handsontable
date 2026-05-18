@@ -56,22 +56,16 @@ async function loadAllRows(signal: AbortSignal): Promise<UserRow[]> {
 
 const rootContainer = document.querySelector('#example3') as HTMLDivElement;
 
-const statusBar = document.createElement('div');
-const statusLabel = document.createElement('p');
+const controlsContainer = document.createElement('div');
+const statusOutput = document.createElement('output');
 const gridContainer = document.createElement('div');
 
-statusBar.style.display = 'flex';
-statusBar.style.alignItems = 'center';
-statusBar.style.marginBottom = '8px';
+controlsContainer.className = 'example-controls-container';
+statusOutput.id = 'example3-status';
+statusOutput.textContent = 'Loading...';
 
-statusLabel.style.margin = '0';
-statusLabel.style.fontFamily = 'Arial, sans-serif';
-statusLabel.style.fontSize = '14px';
-statusLabel.style.color = 'var(--ht-foreground-color, #202124)';
-statusLabel.textContent = 'Loading...';
-
-rootContainer.appendChild(statusBar);
-statusBar.appendChild(statusLabel);
+rootContainer.appendChild(controlsContainer);
+controlsContainer.appendChild(statusOutput);
 rootContainer.appendChild(gridContainer);
 
 new Handsontable(gridContainer, {
@@ -148,16 +142,16 @@ new Handsontable(gridContainer, {
   // in those cases so the grid does not flash a spinner on every column header click.
   beforeDataProviderFetch: ({ skipLoading }: DataProviderBeforeFetchParameters) => {
     if (!skipLoading) {
-      statusLabel.textContent = 'Loading...';
-      statusLabel.style.color = 'var(--ht-foreground-color, #202124)';
+      statusOutput.textContent = 'Loading...';
+      statusOutput.classList.remove('is-error');
     }
   },
   afterDataProviderFetch: () => {
-    statusLabel.textContent = 'Loaded from REST API via dataProvider.';
-    statusLabel.style.color = 'var(--ht-foreground-color, #202124)';
+    statusOutput.textContent = 'Loaded from REST API via dataProvider.';
+    statusOutput.classList.remove('is-error');
   },
   afterDataProviderFetchError: (error: Error) => {
-    statusLabel.textContent = `Error: ${error.message}`;
-    statusLabel.style.color = 'var(--ht-notification-error-accent, #c62828)';
+    statusOutput.textContent = `Error: ${error.message}`;
+    statusOutput.classList.add('is-error');
   },
 });

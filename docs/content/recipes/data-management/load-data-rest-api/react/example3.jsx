@@ -73,29 +73,28 @@ const ExampleComponent = () => {
   const beforeDataProviderFetch = useCallback((params) => {
     if (params.skipLoading || !statusRef.current) return;
     statusRef.current.textContent = 'Loading...';
-    statusRef.current.style.color = '#202124';
+    statusRef.current.classList.remove('is-error');
   }, []);
 
   const afterDataProviderFetch = useCallback(() => {
     if (!statusRef.current) return;
     statusRef.current.textContent = 'Loaded from REST API via dataProvider.';
-    statusRef.current.style.color = '#202124';
+    statusRef.current.classList.remove('is-error');
   }, []);
 
   const afterDataProviderFetchError = useCallback((error) => {
     if (!statusRef.current) return;
     statusRef.current.textContent = `Error: ${error.message}`;
-    statusRef.current.style.color = '#c62828';
+    statusRef.current.classList.add('is-error');
   }, []);
 
   return (
     <div>
-      <p
-        ref={statusRef}
-        style={{ margin: '0 0 8px', fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#202124' }}
-      >
-        Loading...
-      </p>
+      <div className="example-controls-container">
+        <output ref={statusRef} className="console">
+          Loading...
+        </output>
+      </div>
       <HotTable
         dataProvider={dataProvider}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}

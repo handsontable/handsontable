@@ -13,30 +13,24 @@ if (!container) {
   throw new Error('Missing #example1 element.');
 }
 
-const status = document.createElement('p');
+const controlsContainer = document.createElement('div');
+const controls = document.createElement('div');
+const statusOutput = document.createElement('output');
 const retryButton = document.createElement('button');
+const gridContainer = document.createElement('div');
 
-status.textContent = STATUS_LOADING;
-status.style.margin = '0';
-status.style.fontFamily = 'Arial, sans-serif';
-status.style.fontSize = '14px';
+controlsContainer.className = 'example-controls-container';
+controls.className = 'controls';
+statusOutput.id = 'example1-status';
 
 retryButton.type = 'button';
 retryButton.textContent = 'Retry';
 retryButton.hidden = true;
-retryButton.style.marginBottom = '0';
 
-const statusBar = document.createElement('div');
-const gridContainer = document.createElement('div');
-
-statusBar.style.display = 'flex';
-statusBar.style.gap = '12px';
-statusBar.style.alignItems = 'center';
-statusBar.style.marginBottom = '8px';
-
-container.appendChild(statusBar);
-statusBar.appendChild(status);
-statusBar.appendChild(retryButton);
+controls.appendChild(retryButton);
+controlsContainer.appendChild(controls);
+controlsContainer.appendChild(statusOutput);
+container.appendChild(controlsContainer);
 container.appendChild(gridContainer);
 
 const hot = new Handsontable(gridContainer, {
@@ -59,10 +53,8 @@ const hot = new Handsontable(gridContainer, {
 });
 
 function setUiState({ loading = false, hasError = false, message = '' } = {}) {
-  status.textContent = message;
-  status.style.color = hasError
-    ? 'var(--ht-cell-error-foreground-color, #c62828)'
-    : 'var(--ht-foreground-color, #202124)';
+  statusOutput.textContent = message;
+  statusOutput.classList.toggle('is-error', hasError);
   retryButton.hidden = !hasError;
   retryButton.disabled = loading;
 }

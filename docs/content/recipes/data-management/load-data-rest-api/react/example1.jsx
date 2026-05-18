@@ -55,15 +55,15 @@ const ExampleComponent = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px' }}>
-        <p style={{ margin: 0, fontFamily: 'Arial, sans-serif', fontSize: '14px', color: hasError ? '#c62828' : '#202124' }}>
-          {status}
-        </p>
-        {hasError && (
-          <button type="button" onClick={loadUsers}>
-            Retry
-          </button>
-        )}
+      <div className="example-controls-container">
+        <div className="controls">
+          {hasError && (
+            <button type="button" onClick={loadUsers} disabled={status === STATUS_LOADING}>
+              Retry
+            </button>
+          )}
+        </div>
+        <output className={hasError ? 'is-error' : undefined}>{status}</output>
       </div>
       <HotTable
         data={rows}
