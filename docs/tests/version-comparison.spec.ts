@@ -7,7 +7,7 @@ test.describe('Version comparison page', () => {
     await page.goto(PAGE_PATH);
 
     await expect(page.locator('#version-comparison-root')).toBeAttached();
-    await expect(page.locator('.vc-controls select').first()).toBeVisible();
+    await expect(page.locator('.vc-selector-trigger').first()).toBeVisible();
 
     const count = page.locator('[data-testid="entry-count"]');
     await expect(count).toBeVisible();
@@ -20,8 +20,9 @@ test.describe('Version comparison page', () => {
     const count = page.locator('[data-testid="entry-count"]');
     const before = await count.textContent();
 
-    const fromSelect = page.locator('label.vc-selector', { hasText: 'From' }).locator('select');
-    await fromSelect.selectOption('14.0');
+    const fromWrapper = page.locator('.vc-selector', { hasText: 'From' });
+    await fromWrapper.locator('.vc-selector-trigger').click();
+    await fromWrapper.locator('.vc-selector-item', { hasText: /^14\.0/ }).click();
 
     await expect(count).not.toHaveText(before ?? '');
   });
@@ -36,8 +37,8 @@ test.describe('Version comparison page', () => {
   test('deep link preselects From, To, and category', async ({ page }) => {
     await page.goto(`${PAGE_PATH}?from=14.0&to=17.0&category=breaking`);
 
-    const toSelect = page.locator('label.vc-selector', { hasText: 'To' }).locator('select');
-    await expect(toSelect).toHaveValue('17.0');
+    const toTrigger = page.locator('.vc-selector', { hasText: 'To' }).locator('.vc-selector-trigger');
+    await expect(toTrigger).toContainText('17.0');
 
     const breakingTab = page.getByRole('tab', { name: 'Breaking' });
     await expect(breakingTab).toHaveAttribute('aria-selected', 'true');

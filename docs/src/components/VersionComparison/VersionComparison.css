@@ -4,6 +4,14 @@
   gap: 1rem;
   margin: 1.5rem 0;
 }
+/* Cancel Starlight's .sl-markdown-content > * + * flow margins inside our
+   custom widget so flex layouts (selector row, filter tab strip, featured
+   grid) align as designed. Self-chain bumps specificity past Starlight's
+   .sl-markdown-content > * + * rule. */
+.version-comparison.version-comparison *,
+.version-comparison.version-comparison * + * {
+  margin-top: 0;
+}
 
 .vc-controls {
   display: flex;
@@ -11,17 +19,92 @@
   flex-wrap: wrap;
 }
 .vc-selector {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   font-size: 0.875rem;
 }
-.vc-selector select {
-  padding: 0.375rem 0.625rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 4px;
-  background: var(--sl-color-bg);
+.vc-selector-label {
   color: var(--sl-color-text);
+}
+.vc-selector-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 8rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--sl-color-bg);
+  border: 1px solid var(--sl-color-gray-5);
+  color: var(--sl-color-text);
+  font-size: var(--sl-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.vc-selector-trigger:hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+}
+.vc-selector-trigger[aria-expanded='true'] {
+  border-color: var(--sl-color-accent);
+}
+.vc-selector-value {
+  flex: 1;
+  text-align: left;
+}
+.vc-selector-chevron {
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.vc-selector-trigger[aria-expanded='true'] .vc-selector-chevron {
+  transform: rotate(180deg);
+}
+.vc-selector-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 100%;
+  max-height: 20rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--sl-color-bg-nav);
+  border: 1px solid var(--sl-color-gray-5);
+  overflow-y: auto;
+  z-index: 100;
+}
+.vc-selector-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  color: var(--sl-color-text);
+  font-size: var(--sl-text-sm);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+.vc-selector-item:last-child {
+  border-bottom: none;
+}
+.vc-selector-item:hover:not([disabled]),
+.vc-selector-item:focus-visible {
+  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  color: var(--sl-color-white);
+  outline: none;
+}
+.vc-selector-item.is-selected {
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+.vc-selector-item[disabled] {
+  color: var(--sl-color-gray-4);
+  cursor: not-allowed;
 }
 
 .vc-filter-tabs {

@@ -320,7 +320,7 @@ function buildChangelogSidebar(framework, prefix) {
 
     const slug = item.path.split('/').pop();
 
-    if (slug.startsWith('changelog')) {
+    if (slug.startsWith('changelog') || slug === 'version-comparison') {
       changelog.push(item);
     } else if (POLICY_SLUGS.includes(slug)) {
       policy.push(item);

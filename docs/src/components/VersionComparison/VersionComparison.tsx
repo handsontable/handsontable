@@ -1,5 +1,5 @@
 import './VersionComparison.css';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
 function readData(): VersionComparisonData {
@@ -41,22 +41,75 @@ interface VersionSelectorProps {
 }
 
 function VersionSelector({ label, value, releases, onChange, disableNewerThan, disableOlderThan }: VersionSelectorProps) {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('click', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('click', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const selected = releases.find((r) => r.version === value);
+  const triggerLabel = selected
+    ? `${selected.version}${selected.isCurrent ? ' (current)' : ''}`
+    : value;
+
   return (
-    <label className="vc-selector">
-      <span>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        {releases.map((r) => {
-          const tooNew = disableNewerThan ? compareVersions(r.version, disableNewerThan) > 0 : false;
-          const tooOld = disableOlderThan ? compareVersions(r.version, disableOlderThan) < 0 : false;
-          return (
-            <option key={r.version} value={r.version} disabled={tooNew || tooOld}>
-              {r.version}
-              {r.isCurrent ? ' (current)' : ''}
-            </option>
-          );
-        })}
-      </select>
-    </label>
+    <div className="vc-selector" ref={wrapperRef}>
+      <span className="vc-selector-label">{label}</span>
+      <button
+        type="button"
+        className="vc-selector-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="vc-selector-value">{triggerLabel}</span>
+        <svg className="vc-selector-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 9l6 6l6 -6" />
+        </svg>
+      </button>
+      {open && (
+        <ul className="vc-selector-menu" role="listbox" aria-label={label}>
+          {releases.map((r) => {
+            const tooNew = disableNewerThan ? compareVersions(r.version, disableNewerThan) > 0 : false;
+            const tooOld = disableOlderThan ? compareVersions(r.version, disableOlderThan) < 0 : false;
+            const disabled = tooNew || tooOld;
+            const isSelected = r.version === value;
+            return (
+              <li role="none" key={r.version}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={disabled}
+                  disabled={disabled}
+                  className={`vc-selector-item ${isSelected ? 'is-selected' : ''}`}
+                  onClick={() => {
+                    if (disabled) return;
+                    onChange(r.version);
+                    setOpen(false);
+                  }}
+                >
+                  {r.version}{r.isCurrent ? ' (current)' : ''}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
 
