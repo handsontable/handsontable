@@ -27,17 +27,19 @@ In this tutorial, you will build an auto-save flow that sends grid edits to a ba
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 @[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.js)
 @[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.ts)
+@[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.css)
 :::
 
 :::
 
 ::: only-for react
 
-::: example #example1 :react-advanced --js 1 --ts 2
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
 
+@[code](@/content/recipes/data-management/auto-save-backend/react/example1.css)
 @[code](@/content/recipes/data-management/auto-save-backend/react/example1.jsx)
 @[code](@/content/recipes/data-management/auto-save-backend/react/example1.tsx)
 :::
@@ -46,10 +48,11 @@ In this tutorial, you will build an auto-save flow that sends grid edits to a ba
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --ts 1 --html 2 --css 3
 
 @[code](@/content/recipes/data-management/auto-save-backend/angular/example1.ts)
 @[code](@/content/recipes/data-management/auto-save-backend/angular/example1.html)
+@[code](@/content/recipes/data-management/auto-save-backend/angular/example1.css)
 
 :::
 
