@@ -217,3 +217,28 @@ const _umdTextRendererResult = UMDTextRenderer(
 
 const UMDNumericValidator = Handsontable.validators.NumericValidator;
 const _umdValidatorResult = UMDNumericValidator.call(hot, 42, () => {});
+
+// ---------------------------------------------------------------------------
+// dom namespace: Handsontable.dom.* must be properly typed (not unknown)
+// ---------------------------------------------------------------------------
+const _domElem = document.createElement('div');
+
+// element helpers
+const _addClass: ReturnType<typeof Handsontable.dom.addClass> = Handsontable.dom.addClass(_domElem, 'foo');
+const _removeClass: ReturnType<typeof Handsontable.dom.removeClass> = Handsontable.dom.removeClass(_domElem, 'foo');
+const _hasClass: boolean = Handsontable.dom.hasClass(_domElem, 'foo');
+const _empty: void = Handsontable.dom.empty(_domElem);
+const _getParent: HTMLElement | null = Handsontable.dom.getParent(_domElem);
+
+// event helpers
+const _domEvent = new Event('click');
+const _isRightClick: boolean = Handsontable.dom.isRightClick(_domEvent);
+const _isLeftClick: boolean = Handsontable.dom.isLeftClick(_domEvent);
+const _stopImmediatePropagation: void = Handsontable.dom.stopImmediatePropagation(_domEvent);
+
+// ---------------------------------------------------------------------------
+// helper namespace: Handsontable.helper.* must be properly typed (not unknown)
+// ---------------------------------------------------------------------------
+const _arrayEach: ReturnType<typeof Handsontable.helper.arrayEach> = Handsontable.helper.arrayEach([], () => {});
+const _isObject: boolean = Handsontable.helper.isObject({});
+const _stringify: string = Handsontable.helper.stringify('foo');

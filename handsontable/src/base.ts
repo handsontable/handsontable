@@ -101,10 +101,21 @@ interface HandsontableFactory {
     editorFactory: typeof import('./editors/factory').editorFactory;
     [key: string]: unknown;
   };
-  dom: {
-    empty: typeof empty;
-    [key: string]: unknown;
-  };
+  dom: typeof import('./helpers/dom/element') & typeof import('./helpers/dom/event');
+  helper:
+    typeof import('./helpers/array') &
+    typeof import('./helpers/browser') &
+    typeof import('./helpers/data') &
+    typeof import('./helpers/dateTime') &
+    typeof import('./helpers/errors') &
+    typeof import('./helpers/feature') &
+    typeof import('./helpers/function') &
+    typeof import('./helpers/mixed') &
+    typeof import('./helpers/number') &
+    typeof import('./helpers/object') &
+    typeof import('./helpers/string') &
+    typeof import('./helpers/unicode') &
+    typeof import('./utils/parseTable');
   themes: {
     hasTheme: typeof import('./themes/registry').hasTheme;
     getTheme: typeof import('./themes/registry').getTheme;
@@ -253,9 +264,8 @@ Handsontable.editors = {
   BaseEditor,
   TextEditor,
 } as unknown as HandsontableFactory['editors'];
-Handsontable.dom = {
-  empty,
-};
+Handsontable.dom = { empty } as unknown as HandsontableFactory['dom'];
+Handsontable.helper = {} as unknown as HandsontableFactory['helper'];
 Handsontable.Core = function(
   this: HotInstance,
   rootElement: HTMLElement,
