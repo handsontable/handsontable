@@ -197,5 +197,10 @@ const hot = new Handsontable(container, {
     { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
     { data: 'stock', type: 'numeric' },
   ],
+
+  // Fixed height keeps the docs preview compact when fetchRows fails (no local API).
+  height: 360,
+  width: '100%',
+
   licenseKey: 'non-commercial-and-evaluation',
 } as Handsontable.GridSettings);
