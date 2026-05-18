@@ -3195,7 +3195,7 @@ export default function Core(
         }
 
       } else if (height !== undefined) {
-        instance.rootElement.style.height = typeof height !== 'number' ? `${height}` : `${height}px`;
+        instance.rootElement.style.height = isNaN(height as number) ? `${height}` : `${height}px`;
         instance.rootElement.style.overflow = 'clip';
       }
     }
@@ -3208,7 +3208,7 @@ export default function Core(
       }
 
       width = instance.runHooks('beforeWidthChange', width);
-      instance.rootElement.style.width = typeof width !== 'number' ? `${width}` : `${width}px`;
+      instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
     }
 
     if (!init) {

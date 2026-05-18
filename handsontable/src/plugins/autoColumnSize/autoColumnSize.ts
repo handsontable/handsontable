@@ -217,7 +217,8 @@ export class AutoColumnSize extends BasePlugin {
 
     if (!cellMeta.spanned) {
       seedValue = this.hot.getDataAtCell(row, column);
-      cellValue = String(seedValue ?? '');
+      // Use the raw value for rendering (functions remain as functions for the renderer to call)
+      cellValue = seedValue as string;
 
       if (typeof cellMeta.valueFormatter === 'function') {
         cellValue = (cellMeta.valueFormatter as (value: unknown, meta: typeof cellMeta) => string)(cellValue, cellMeta);
