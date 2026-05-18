@@ -1,16 +1,17 @@
 ---
 type: explanation
+id: c2670b72
 title: Custom Cells
 metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells
 react:
+  id: 6b3e971b
   metaTitle: Custom Cell Definitions - React Data Grid | Handsontable
 angular:
+  id: 29d3662c
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---
@@ -886,54 +887,6 @@ gridSettings: GridSettings = {
 
 All the sections below describe how to utilize the features available for the Handsontable factory based editors.
 This information is also applicable in Angular when you need lower-level control or want to share code between vanilla JavaScript and Angular implementations.
-
-:::
-
-:::
-
-::: only-for vue
-
-## Vue
-
-The Vue 3 wrapper does not provide a component-based editor API equivalent to React's `EditorComponent` or Angular's `HotCellEditorAdvancedComponent`. Instead, you use Handsontable's standard renderer functions and editor classes directly — the same primitives that work in vanilla JavaScript — but you can also mount Vue components into cells using Vue's `render` function.
-
-### Custom renderers
-
-A **renderer function** receives the cell's `td` element and fills it with whatever markup you need. You pass it directly to the `renderer` option on a column.
-
-#### Function renderer
-
-The simplest approach: write a plain function, manipulate the `td` element, and return it.
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/cell-functions/custom-cells/vue/example1.vue)
-
-:::
-
-#### Vue component renderer
-
-For richer cell content, use Vue's `h` and `render` helpers to mount a Vue component into the `td` element on every render call.
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/cell-functions/custom-cells/vue/example2.vue)
-
-:::
-
-### Custom editors
-
-Create a custom editor by extending one of Handsontable's built-in editor classes (for example, `TextEditor`) and overriding the methods you need to change. Pass the class to the `editor` option on a column.
-
-::: example #example3 :vue3
-
-@[code](@/content/guides/cell-functions/custom-cells/vue/example3.vue)
-
-:::
-
-::: tip
-
-The sections below describe the framework-agnostic `rendererFactory` and `editorFactory` helpers. You can use both helpers in Vue 3 projects — pass the result to the `renderer` or `editor` column option the same way you would pass a renderer function or editor class.
 
 :::
 

@@ -18,7 +18,7 @@ angular:
   metaTitle: Dynamic Column Visibility Toggle - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build a checkbox list outside the grid that shows or hides columns on demand. You will learn how to use `updateSettings` to update the `columns` array while preserving each column's type, renderer, and validator configuration.

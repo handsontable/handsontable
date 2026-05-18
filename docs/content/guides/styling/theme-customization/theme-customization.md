@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: x2u15qpx
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
@@ -17,11 +18,11 @@ tags:
   - local variables
   - tokens
 react:
+  id: 0m19ic0d
   metaTitle: Theme Customization - React Data Grid | Handsontable
 angular:
+  id: xau2jfok
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Theme Customization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 menuTag: updated
@@ -122,34 +123,6 @@ myTheme.setDensityType('default');
 
 :::
 
-::: only-for vue
-
-```ts
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-import { mainTheme, registerTheme } from 'handsontable/themes';
-
-registerAllModules();
-
-const myTheme = registerTheme(mainTheme);
-
-myTheme.setColorScheme('light');
-myTheme.setDensityType('default');
-
-const hotSettings = ref({
-  theme: myTheme,
-  // other options
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
-```
-
-:::
-
 ### Configure theme parameters
 
 Use the `params()` method to update theme parameters dynamically:
@@ -201,16 +174,6 @@ The following example demonstrates using the Theme API to register a theme with 
 
 :::
 
-::: only-for vue
-
-::: example #example2 .disable-auto-theme :vue3
-
-@[code](@/content/guides/styling/theme-customization/vue/example2.vue)
-
-:::
-
-:::
-
 ## Option 2: Figma Theme Generator
 
 The Figma Theme Generator allows designers and developers to work together seamlessly by exporting design tokens directly from Figma into a CSS theme file.
@@ -257,16 +220,6 @@ Here's an example for `.ht-theme-main`:
 ::: example #example1 :angular --ts 1 --html 2
 @[code](@/content/guides/styling/theme-customization/angular/example1.ts)
 @[code](@/content/guides/styling/theme-customization/angular/example1.html)
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example1 .disable-auto-theme :vue3
-
-@[code](@/content/guides/styling/theme-customization/vue/example1.vue)
-
 :::
 
 :::

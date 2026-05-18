@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: gcdt3pns
 title: Layout direction
 metaTitle: Layout direction - JavaScript Data Grid | Handsontable
 description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
@@ -17,11 +18,11 @@ tags:
   - L10n
   - i18n
 react:
+  id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 angular:
+  id: orgwjmih
   metaTitle: Layout direction - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Layout direction - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
@@ -78,16 +79,6 @@ To try out Handsontable's RTL support, check out the demo below:
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example1.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example1.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example1 :vue3-languages
-
-@[code](@/content/guides/internationalization/layout-direction/vue/example1.vue)
 
 :::
 
@@ -163,16 +154,6 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 :::
 
-::: only-for vue
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/internationalization/layout-direction/vue/example2.vue)
-
-:::
-
-:::
-
 ### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
@@ -208,16 +189,6 @@ and set it to `'rtl'`:
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example3.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example3.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example3 :vue3
-
-@[code](@/content/guides/internationalization/layout-direction/vue/example3.vue)
 
 :::
 
@@ -263,16 +234,6 @@ and set it to `'ltr'`:
 
 :::
 
-::: only-for vue
-
-::: example #example4 :vue3
-
-@[code](@/content/guides/internationalization/layout-direction/vue/example4.vue)
-
-:::
-
-:::
-
 ## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
@@ -307,16 +268,6 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example5.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example5.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example5 :vue3
-
-@[code](@/content/guides/internationalization/layout-direction/vue/example5.vue)
 
 :::
 

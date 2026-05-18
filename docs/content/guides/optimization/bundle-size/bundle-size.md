@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: vjcvrdeh
 title: Bundle size
 metaTitle: Bundle size - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
@@ -8,11 +9,11 @@ canonicalUrl: /bundle-size
 tags:
   - size
 react:
+  id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 angular:
+  id: qdq3dmts
   metaTitle: Bundle size - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
@@ -82,27 +83,6 @@ export class ExampleComponent {
     contextMenu: true,
   };
 }
-```
-
-:::
-
-::: only-for vue
-
-```js
-import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/vue3';
-import { registerPlugin, ContextMenu } from 'handsontable/plugins';
-
-registerPlugin(ContextMenu);
-
-const hotSettings = ref({
-  contextMenu: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -205,34 +185,6 @@ export class ExampleComponent {
     type: "date",
   };
 }
-```
-
-:::
-
-::: only-for vue
-
-```js
-import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/vue3';
-import { registerCellType, DateCellType } from 'handsontable/cellTypes';
-
-// explicitly import Moment.js
-import moment from 'moment';
-// explicitly import a Moment.js locale of your choice
-import 'moment/locale/ja';
-
-// register the Moment.js locale of your choice
-moment.locale('ja');
-registerCellType(DateCellType);
-
-const hotSettings = ref({
-  type: 'date',
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
 ```
 
 :::

@@ -1,5 +1,6 @@
 ---
 type: reference
+id: glh01i6q
 title: Undo and redo
 metaTitle: Undo and redo - JavaScript Data Grid | Handsontable
 description: Revert and restore your changes, using the undo and redo features.
@@ -14,11 +15,11 @@ tags:
   - erase last change
   - roll back changes
 react:
+  id: me8uxp3w
   metaTitle: Undo and redo - React Data Grid | Handsontable
 angular:
+  id: o21k5bjr
   metaTitle: Undo and redo - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Undo and redo - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---
@@ -72,16 +73,6 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>⌘
 
 :::
 
-::: only-for vue
-
-::: example #example :vue3
-
-@[code](@/content/guides/accessories-and-menus/undo-redo/vue/example.vue)
-
-:::
-
-:::
-
 ## Known limitations
 
 Not all user-triggered actions are recorded in the undo-and-redo history.
@@ -114,6 +105,18 @@ Here's the list of all unsupported features:
 <div class="boxes-list">
 
 - [undo](@/api/options.md#undo)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [clearUndo()](@/api/core.md#clearundo)
+- [isRedoAvailable()](@/api/core.md#isredoavailable)
+- [isUndoAvailable()](@/api/core.md#isundoavailable)
+- [redo()](@/api/core.md#redo)
+- [undo()](@/api/core.md#undo)
 
 </div>
 

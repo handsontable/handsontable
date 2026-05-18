@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 1g89qnhe
 title: Language
 metaTitle: Language - JavaScript Data Grid | Handsontable

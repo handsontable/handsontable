@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: a3f82c91
 title: Server-side Data with NestJS
 metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable

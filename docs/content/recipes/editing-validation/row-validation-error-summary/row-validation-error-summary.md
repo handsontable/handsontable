@@ -18,7 +18,7 @@ angular:
   metaTitle: Row Validation Error Summary Recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will validate every row when the user clicks Submit and list all failures in an error summary outside the grid. You will learn how to highlight invalid cells with `htInvalid` and clear the error state automatically when the user corrects a cell.

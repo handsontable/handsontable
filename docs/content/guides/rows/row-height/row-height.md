@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: fehmrn1j
 title: Row heights
 metaTitle: Row heights - JavaScript Data Grid | Handsontable
 description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
@@ -17,11 +18,11 @@ tags:
   - row dimensions
   - manual resize
 react:
+  id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
 angular:
+  id: h42skmvo
   metaTitle: Row heights - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Row heights - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -75,16 +76,6 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 :::
 
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/rows/row-height/vue/example1.vue)
-
-:::
-
-:::
-
 ## Set row heights with an array
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
@@ -117,16 +108,6 @@ In this example, the height is only set for the first rows. Each additional row 
 
 @[code](@/content/guides/rows/row-height/angular/example2.ts)
 @[code](@/content/guides/rows/row-height/angular/example2.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/rows/row-height/vue/example2.vue)
 
 :::
 
@@ -169,16 +150,6 @@ The row height can be set using a function. In this example, the size of all row
 
 :::
 
-::: only-for vue
-
-::: example #example3 :vue3
-
-@[code](@/content/guides/rows/row-height/vue/example3.vue)
-
-:::
-
-:::
-
 ## Adjust row heights manually
 
 Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
@@ -213,16 +184,6 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 @[code](@/content/guides/rows/row-height/angular/example4.ts)
 @[code](@/content/guides/rows/row-height/angular/example4.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example4 :vue3
-
-@[code](@/content/guides/rows/row-height/vue/example4.vue)
 
 :::
 

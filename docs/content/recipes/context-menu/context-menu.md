@@ -7,7 +7,7 @@ canonicalUrl: /recipes/context-menu
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
-type: tutorial
+type: how-to
 id: c0j2k4l6
 react:
   id: d1k3l5m7

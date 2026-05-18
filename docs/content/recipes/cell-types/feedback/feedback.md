@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: e23f98e7
 title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable

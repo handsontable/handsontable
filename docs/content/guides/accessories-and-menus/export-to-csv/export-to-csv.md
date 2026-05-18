@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: 51aacis1
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
 description: Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
@@ -9,11 +10,11 @@ tags:
   - export to file
   - save file
 react:
+  id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
 angular:
+  id: hwhzgoir
   metaTitle: Export to CSV - Angular Data Grid | Handsontable
-vue:
-  metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -56,14 +57,6 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 :::
 :::
 
-::: only-for vue
-::: example #example1 :vue3
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example1.vue)
-
-:::
-:::
-
 ### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
@@ -96,14 +89,6 @@ Open a console in browser developer tools to see the result for the below exampl
 :::
 :::
 
-::: only-for vue
-::: example #example2 :vue3
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example2.vue)
-
-:::
-:::
-
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
@@ -132,14 +117,6 @@ Open a console in browser developer tools to see the result for the below exampl
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.html)
-
-:::
-:::
-
-::: only-for vue
-::: example #example3 :vue3
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example3.vue)
 
 :::
 :::
@@ -179,14 +156,6 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
-::: only-for vue
-::: example #example4 :vue3
-
-@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example4.vue)
-
-:::
-:::
-
 ## Available methods
 
 ::: only-for react
@@ -200,18 +169,6 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 :::
 
 :::
-
-:::: only-for vue
-
-::: tip
-
-To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
-
-For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
-
-:::
-
-::::
 
 The plugin exposes the following methods to export data.
 
