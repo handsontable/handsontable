@@ -3170,4 +3170,49 @@ describe('ContextMenu', () => {
 
     expect($('.htContextMenu').is(':visible')).toBe(false);
   });
+
+  describe('updateSettings called from beforeContextMenuShow', () => {
+    it('should open the menu without throwing when the hook callback calls ' +
+      'updateSettings({ contextMenu })', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        height: 200,
+        beforeContextMenuShow() {
+          this.updateSettings({
+            contextMenu: ['row_above'],
+          });
+        },
+      });
+
+      await selectCell(0, 0);
+
+      await expectAsync((async() => {
+        await contextMenu();
+      })()).toBeResolved();
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
+
+    it('should apply the updated contextMenu items on the same open', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        height: 200,
+        beforeContextMenuShow() {
+          this.updateSettings({
+            contextMenu: ['row_above'],
+          });
+        },
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+
+      const items = $('.htContextMenu tbody td').not('.htSeparator');
+
+      expect(items.length).toBe(1);
+      expect(items.text()).toContain('Insert row above');
+    });
+  });
 });
