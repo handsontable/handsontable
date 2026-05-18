@@ -50,6 +50,8 @@ export class SelectEditor extends BaseEditor {
 
     this.hot.rootElement.appendChild(this.selectWrapper);
     this.registerHooks();
+
+    this.hot.addHookOnce('afterDestroy', () => this.destroy());
   }
 
   /**
@@ -97,7 +99,7 @@ export class SelectEditor extends BaseEditor {
     }
 
     this.unregisterShortcuts();
-    this.clearHooks();
+    this.removeHooksByKey('beforeDialogShow');
   }
 
   /**
@@ -143,36 +145,44 @@ export class SelectEditor extends BaseEditor {
 
     empty(this.select);
 
-    objectEach(options, (optionValue, key) => {
-      const optionElement = this.hot.rootDocument.createElement('OPTION');
+    const { sanitizer } = this.hot.getSettings();
 
-      optionElement.value = key;
+    if (Array.isArray(options)) {
+      for (let i = 0; i < options.length; i++) {
+        const optionElement = this.hot.rootDocument.createElement('OPTION');
 
-      fastInnerHTML(optionElement, optionValue, this.hot.getSettings().sanitizer);
-      this.select.appendChild(optionElement);
-    });
+        optionElement.value = options[i];
+        fastInnerHTML(optionElement, options[i], sanitizer);
+        this.select.appendChild(optionElement);
+      }
+    } else {
+      objectEach(options, (optionValue, key) => {
+        const optionElement = this.hot.rootDocument.createElement('OPTION');
+
+        optionElement.value = key;
+        fastInnerHTML(optionElement, optionValue, sanitizer);
+        this.select.appendChild(optionElement);
+      });
+    }
   }
 
   /**
    * Creates consistent list of available options.
    *
    * @private
-   * @param {Array|object} optionsToPrepare The list of the values to render in the select eleemnt.
-   * @returns {object}
+   * @param {Array|object} optionsToPrepare The list of the values to render in the select element.
+   * @returns {Array|object}
    */
   prepareOptions(optionsToPrepare) {
-    let preparedOptions = {};
-
     if (Array.isArray(optionsToPrepare)) {
-      for (let i = 0, len = optionsToPrepare.length; i < len; i++) {
-        preparedOptions[optionsToPrepare[i]] = optionsToPrepare[i];
-      }
-
-    } else if (typeof optionsToPrepare === 'object') {
-      preparedOptions = optionsToPrepare;
+      return optionsToPrepare;
     }
 
-    return preparedOptions;
+    if (typeof optionsToPrepare === 'object') {
+      return optionsToPrepare;
+    }
+
+    return {};
   }
 
   /**
@@ -271,5 +281,14 @@ export class SelectEditor extends BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Clears all attached hooks.
+   *
+   * @private
+   */
+  destroy() {
+    this.clearHooks();
   }
 }

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: explanation
 id: c2670b72
 title: Custom Cells
 metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
@@ -14,7 +14,6 @@ angular:
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
-menuTag: new
 ---
 
 [[toc]]

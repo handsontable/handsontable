@@ -1,11 +1,13 @@
 ---
 name: code-graph-refactor-safely
-description: Plan and execute safe refactoring using dependency analysis from the knowledge graph
+description: Use when planning a refactor, rename, or API change - preview every affected location before touching code, measure blast radius, find dead code, or rename a symbol safely across the codebase. Required before large renames, moves, or API redesigns. Trigger on phrases like "rename X to Y", "extract this into", "find dead code", "what would break if I change", "blast radius", "safe to remove", "move this function", or any change with non-obvious downstream impact.
 ---
 
 ## Refactor Safely
 
 Use the knowledge graph to plan and execute refactoring with confidence.
+
+**Before the first graph call in a session**, load the tool schemas: call `ToolSearch` with `query: "select:mcp__code-review-graph__query_graph_tool,mcp__code-review-graph__get_impact_radius_tool,mcp__code-review-graph__refactor_tool"` (or whichever tools you plan to call). Graph MCP tools are deferred at session start, so calling them without this bootstrap fails with `InputValidationError`. One cheap call unblocks every subsequent graph query for the rest of the session.
 
 **Note:** `refactor_tool`, `apply_refactor_tool`, and `find_large_functions` have not been empirically validated on this codebase. Treat the suggestions they produce as hypotheses, not prescriptions -- verify each edit against the actual code.
 

@@ -443,7 +443,8 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(1, 1)).toEqual('200,000.5');
     expect(getDataAtCell(0, 2)).toEqual('300,000.5');
     expect(getDataAtCell(1, 2)).toEqual('300.000,5');
-    expect(getDataAtCell(0, 3)).toEqual('400.000,5');
+    // '400.000,5' in a de-DE column is correctly parsed as 400000.5 (dot-thousands + comma-decimal).
+    expect(getDataAtCell(0, 3)).toBe(400000.5);
     expect(getDataAtCell(1, 3)).toEqual('400,000.5');
   });
 
@@ -1038,6 +1039,76 @@ describe('NumericEditor', () => {
     const editableElement = getActiveEditor().TEXTAREA;
 
     expect(editableElement.getAttribute('dir')).toBeNull();
+  });
+
+  describe('European locale (dot-thousands, comma-decimal)', () => {
+    it('should store 7000 when typing "7.000" in a de-DE numeric cell (issue #4396)', async() => {
+      handsontable({
+        data: [[7000]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('7.000');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(7000);
+    });
+
+    it('should store 1234567 when typing "1.234.567" in a de-DE numeric cell', async() => {
+      handsontable({
+        data: [[0]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('1.234.567');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(1234567);
+    });
+
+    it('should store 7000.25 when typing "7.000,25" in a de-DE numeric cell', async() => {
+      handsontable({
+        data: [[0]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('7.000,25');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(7000.25);
+    });
+
+    it('should keep comma as decimal when typing "100,25" in a de-DE numeric cell', async() => {
+      handsontable({
+        data: [[0]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('100,25');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(100.25);
+    });
   });
 
   describe('IME support', () => {

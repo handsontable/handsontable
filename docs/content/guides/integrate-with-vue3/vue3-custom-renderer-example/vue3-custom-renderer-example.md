@@ -3,7 +3,7 @@ type: tutorial
 id: uu0rzeo6
 title: Custom renderer in Vue 3
 metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
-description: Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function.
+description: Create a custom cell renderer, and use it in your Vue 3 data grid by declaring it as a function or as a Vue 3 component.
 permalink: /vue3-custom-renderer-example
 canonicalUrl: /vue3-custom-renderer-example
 react:
@@ -35,6 +35,21 @@ The following example is an implementation of `@handsontable/vue3` with a custom
 @[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example1.js)
 
 :::
+
+## Declare a renderer as a Vue 3 component
+
+You can use a Vue 3 component as a custom cell renderer by mounting it into the cell's TD element from inside the renderer function. Use Vue 3's `render(vnode, container)` API to mount the component imperatively and reuse the same component instance across re-renders -- Vue patches the existing tree instead of remounting.
+
+The renderer function receives the same arguments as a regular function-based renderer. You build a VNode from your component with `h(Component, props)` and pass it to `render()` together with the TD element. To pass static props alongside cell data, merge them into the second argument of `h()`.
+
+::: example #example2 :vue3 --html 1 --js 2
+
+@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example2.html)
+@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example2.js)
+
+:::
+
+If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- create a dedicated app per cell with `createApp(Component, props).mount(td)` instead of `render()`. Track the returned app instances so you can call `app.unmount()` when the grid is destroyed.
 
 ## Related articles
 
@@ -94,6 +109,7 @@ The following example is an implementation of `@handsontable/vue3` with a custom
 - How to declare a custom renderer function in a Vue 3 application.
 - How to read cell values and render HTML elements -- such as images -- inside cells.
 - How to assign the renderer to a specific column using the `renderer` option.
+- How to mount a Vue 3 component as a custom cell renderer with `render(vnode, td)`.
 
 ## Next steps
 

@@ -2293,23 +2293,50 @@ export default () => {
      *
      * You can set the `dragToScroll` option to one of the following:
      *
-     * | Setting          | Description                                                                 |
-     * | ---------------- | --------------------------------------------------------------------------- |
-     * | `true` (default) | When selection reaches the edge of the grid's viewport, scroll the viewport |
-     * | `false`          | Don't scroll the viewport                                                   |
+     * | Setting          | Description                                                                                                                                 |
+     * | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | Enable with default auto-scroll settings                                                                                                    |
+     * | `false`          | Disable the plugin entirely                                                                                                                 |
+     * | Object           | Enable with custom auto-scroll settings (see below)                                                                                        |
+     *
+     * When passing an object, the following properties control the auto-scroll speed:
+     *
+     * ```js
+     * dragToScroll: {
+     *   interval: {
+     *     min: 20,   // Fastest scroll interval in ms (reached at rampDistance)
+     *     max: 500,  // Slowest scroll interval in ms (applied at the viewport edge)
+     *   },
+     *   rampDistance: 120,  // Pixels outside the edge over which speed ramps up
+     * },
+     * ```
+     *
+     * The viewport scrolls periodically while the mouse pointer stays outside the
+     * viewport edge. Speed follows a logarithmic curve: slow at the edge, fast when
+     * far outside. The active selection (regular drag-select or autofill drag)
+     * extends to follow the scroll.
      *
      * Read more:
      * - [Plugins: `DragToScroll`](@/api/dragToScroll.md)
      *
      * @memberof Options#
-     * @type {boolean}
+     * @type {boolean|object}
      * @default true
      * @category DragToScroll
      *
      * @example
      * ```js
-     * // when selection reaches the edge of the grid's viewport, scroll the viewport
+     * // Enable with default settings
      * dragToScroll: true,
+     *
+     * // Enable with custom scroll speed
+     * dragToScroll: {
+     *   interval: { min: 60, max: 300 },
+     *   rampDistance: 60,
+     * },
+     *
+     * // Disable
+     * dragToScroll: false,
      * ```
      */
     dragToScroll: true,
@@ -3082,6 +3109,79 @@ export default () => {
      * ```
      */
     fragmentSelection: false,
+
+    /**
+     * The `hashLength` option sets a fixed display length for the hash mask used by the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type.
+     *
+     * By default, the hash length equals the actual value length. Set `hashLength` to a positive
+     * integer to always display that many hash symbols regardless of the real value length.
+     *
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashLength: 10,
+     *   },
+     * ],
+     * ```
+     */
+    hashLength: undefined,
+
+    /**
+     * The `hashRevealDelay` option enables a brief character-reveal on each keystroke in the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type editor.
+     *
+     * When set to a positive number (milliseconds), each typed character stays visible for that
+     * duration and is then replaced by the `hashSymbol`. This lets the user confirm what they
+     * typed without permanently exposing the value. Requires `type: 'password'`.
+     *
+     * @since 17.2.0
+     * @memberof Options#
+     * @type {number}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashRevealDelay: 1000,
+     *   },
+     * ],
+     * ```
+     */
+    hashRevealDelay: undefined,
+
+    /**
+     * The `hashSymbol` option sets the character used as the hash mask in the
+     * [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell type renderer.
+     *
+     * Defaults to `'*'`. You can use any character, HTML entity, or string.
+     *
+     * @memberof Options#
+     * @type {string}
+     * @default '*'
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     type: 'password',
+     *     hashSymbol: '•',
+     *   },
+     * ],
+     * ```
+     */
+    hashSymbol: '*',
 
     /**
      * The `headerClassName` option allows adding one or more class names to the column headers' inner `div` element.

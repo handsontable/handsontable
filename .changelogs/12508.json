@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed merged cells not following their data when columns or rows are reordered with `manualColumnMove`, `manualRowMove`, or `manualColumnFreeze`. Merges now translate with the underlying data; merges whose physical span becomes non-contiguous after a reorder auto-split into smaller merges, and any single-cell fragment left behind is dropped.",
+  "type": "fixed",
+  "issueOrPR": 12508,
+  "breaking": false,
+  "framework": "none"
+}

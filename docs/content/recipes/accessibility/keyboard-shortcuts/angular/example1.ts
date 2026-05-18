@@ -1,6 +1,6 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { Component, ViewChild, AfterViewInit, OnDestroy, NgZone, inject } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
 const employees = [
@@ -11,28 +11,43 @@ const employees = [
   { name: 'Carlos Mendes', department: 'Finance', role: 'Financial Analyst', salary: 88000, startDate: '2021-09-05' },
   { name: 'Fatima Al-Hassan', department: 'Engineering', role: 'Backend Developer', salary: 92000, startDate: '2020-04-18' },
   { name: 'Noah Kim', department: 'Design', role: 'UX Designer', salary: 75000, startDate: '2023-02-14' },
-  { name: 'Sara Lindqvist', department: 'Marketing', role: 'Content Strategist', salary: 71000, startDate: '2022-06-30' },
+  { name: 'Sara Lindqvist', department: 'Marketing', role: 'Content Strategist', salary: 71000, startDate: '2019-06-30' },
 ];
 /* end:skip-in-preview */
 
 @Component({
   selector: 'example1-keyboard-shortcuts',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-    <span class="shortcut-status" [class.visible]="statusMessage">{{ statusMessage }}</span>
-    <div class="submit-log">{{ submitLog }}</div>
+    <strong>Shortcut log:</strong>
+    <table class="debug-table">
+      <colgroup>
+        <col style="width: 180px">
+        <col>
+      </colgroup>
+      <tbody>
+        <tr>
+          <td>Last shortcut triggered</td>
+          <td><code>{{ lastShortcut }}</code></td>
+        </tr>
+        <tr>
+          <td>Last submission</td>
+          <td><code>{{ lastSubmission }}</code></td>
+        </tr>
+      </tbody>
+    </table>
   `,
-  styleUrls: ['./example1.css'],
 })
-export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDestroy {
+export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  data = employees;
-  statusMessage = '';
-  submitLog = '';
+  private readonly ngZone = inject(NgZone);
 
-  private statusTimeout: ReturnType<typeof setTimeout> | null = null;
+  data = employees;
+  lastShortcut = '—';
+  lastSubmission = '—';
 
   readonly gridSettings: GridSettings = {
     colHeaders: ['Name', 'Department', 'Role', 'Salary', 'Start Date'],
@@ -40,7 +55,7 @@ export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDest
       { data: 'name', type: 'text' },
       { data: 'department', type: 'text' },
       { data: 'role', type: 'text' },
-      { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
+      { data: 'salary', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 } },
       { data: 'startDate', type: 'text' },
     ],
     rowHeaders: true,
@@ -56,15 +71,18 @@ export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDest
       return;
     }
 
-    const shortcutManager = hot.getShortcutManager();
-    const gridContext = shortcutManager.getContext('grid');
+    const gridContext = hot.getShortcutManager().getContext('grid');
+
+    if (!gridContext) {
+      return;
+    }
 
     // Ctrl+D: duplicate the currently selected row
     gridContext.addShortcut({
       keys: [['Control', 'd']],
       group: 'customActions',
       runOnlyIf: () => hot.getSelected() !== undefined,
-      callback: (event: KeyboardEvent) => {
+      callback: (event: Event) => {
         event.preventDefault();
 
         const selectedRange = hot.getSelectedRangeLast();
@@ -79,7 +97,7 @@ export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDest
         hot.alter('insert_row_below', row);
         hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
 
-        this.showStatus('Ctrl+D -- row duplicated');
+        this.ngZone.run(() => { this.lastShortcut = 'Ctrl+D -- row duplicated'; });
       },
     });
 
@@ -88,7 +106,7 @@ export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDest
       keys: [['Control', 'Enter']],
       group: 'customActions',
       runOnlyIf: () => true,
-      callback: (event: KeyboardEvent) => {
+      callback: (event: Event) => {
         event.preventDefault();
 
         const data = hot.getData();
@@ -96,8 +114,10 @@ export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDest
         const rowCount = data.length;
         const timestamp = new Date().toLocaleTimeString();
 
-        this.submitLog = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
-        this.showStatus('Ctrl+Enter -- data submitted');
+        this.ngZone.run(() => {
+          this.lastShortcut = 'Ctrl+Enter -- data submitted';
+          this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
+        });
       },
     });
   }
@@ -109,52 +129,25 @@ export class Example1KeyboardShortcutsComponent implements AfterViewInit, OnDest
       return;
     }
 
-    hot.getShortcutManager().getContext('grid').removeShortcutsByGroup('customActions');
-  }
-
-  private showStatus(message: string): void {
-    this.statusMessage = message;
-    if (this.statusTimeout !== null) {
-      clearTimeout(this.statusTimeout);
-    }
-    this.statusTimeout = setTimeout(() => {
-      this.statusMessage = '';
-      this.statusTimeout = null;
-    }, 2000);
+    hot.getShortcutManager().getContext('grid')?.removeShortcutsByGroup('customActions');
   }
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1KeyboardShortcutsComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1KeyboardShortcutsComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1KeyboardShortcutsComponent],
-})
-export class AppModule {}
 /* end-file */

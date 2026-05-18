@@ -507,7 +507,7 @@ describe('BaseEditor API (RTL mode)', () => {
 
               return {
                 start: scrollLeftAbs,
-                top: v.offsetHeight - bottomOverlayHeight - L.cellBorderWidth,
+                top: v.offsetHeight - bottomOverlayHeight,
               };
             });
 

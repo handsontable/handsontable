@@ -1,11 +1,13 @@
 ---
 name: code-graph-explore-codebase
-description: Navigate and understand codebase structure using the knowledge graph
+description: Use FIRST for any cross-file code lookup in this monorepo - finding callers of a function, importers of a file, dependency chains, references to a symbol, methods on a class, blast radius, or "who uses X". The pre-built knowledge graph returns structured results 2-6x cheaper than Grep+Read traversal. Trigger on phrases like "who calls", "what imports", "where is X used", "find references", "dependency chain", "methods of class", "callers of", "callees of", or any question that spans multiple files - even when you think Grep would work.
 ---
 
 ## Explore Codebase
 
 Use the code-review-graph MCP tools to explore and understand the codebase.
+
+**Before the first graph call in a session**, load the tool schemas: call `ToolSearch` with `query: "select:mcp__code-review-graph__query_graph_tool"` (comma-separate names to load several at once). Graph MCP tools are deferred at session start, so calling them without this bootstrap fails with `InputValidationError`. This is one cheap call that unblocks every subsequent graph query for the rest of the session.
 
 ### Steps
 

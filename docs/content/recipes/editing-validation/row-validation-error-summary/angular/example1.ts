@@ -40,7 +40,7 @@ function cellKey(row: number, col: number): string {
   template: `
     <div class="row-validation-demo">
       <div class="row-validation-demo__toolbar">
-        <button type="button" class="row-validation-demo__submit" (click)="onSubmit()">
+        <button type="button" (click)="onSubmit()">
           Submit orders
         </button>
       </div>
@@ -99,7 +99,7 @@ export class AppComponent {
       }
       for (const change of changes) {
         const [row, prop] = change;
-        const col = typeof prop === 'string' ? hot.propToCol(prop) : (prop as number);
+        const col = (typeof prop === 'string' ? hot.propToCol(prop) : prop) as number;
         const key = cellKey(row, col);
         if (!this.invalidCells.has(key)) {
           continue;

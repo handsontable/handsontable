@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 39o3uw0q
 title: Custom plugins
 metaTitle: Custom plugins - JavaScript Data Grid | Handsontable
@@ -17,7 +18,6 @@ angular:
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
 Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 

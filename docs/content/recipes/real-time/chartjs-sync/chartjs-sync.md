@@ -19,8 +19,10 @@ angular:
   metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time and Integrations
-type: tutorial
+type: how-to
 ---
+
+In this tutorial, you will sync selected rows from a Handsontable grid to a Chart.js bar chart in real time. You will learn how to use `afterSelectionEnd` and `afterDeselect` hooks to read the current selection and update the chart without destroying and recreating it.
 
 ::: only-for javascript vue
 
@@ -185,7 +187,7 @@ function updateChart(hot) {
 }
 ```
 
-`hot.getSelected()` returns an array of `[startRow, startCol, endRow, endCol]` tuples -- one entry per selection range. With `selectionMode: 'row'`, columns are always the full column range, but the logic handles arbitrary ranges correctly.
+`hot.getSelected()` returns an array of `[startRow, startCol, endRow, endCol]` tuples -- one entry per selection range. With `selectionMode: 'range'`, the logic handles arbitrary ranges correctly by extracting unique row indices.
 
 The function uses a `Set` to collect unique row indices. This prevents duplicates when selection ranges overlap. Rows are then sorted so the chart bars appear in the same top-to-bottom order as the grid.
 
@@ -193,7 +195,7 @@ The function uses a `Set` to collect unique row indices. This prevents duplicate
 
 Assigning new arrays to `chart.data.labels` and `chart.data.datasets[i].data` then calling `chart.update()` is the recommended Chart.js pattern for in-place updates. It avoids the cost of destroying and recreating the chart instance.
 
-## Step 5: Initialize Handsontable with `selectionMode: 'row'`
+## Step 5: Initialize Handsontable with `selectionMode: 'range'`
 
 ```javascript
 const hot = new Handsontable(container, {
@@ -207,7 +209,7 @@ const hot = new Handsontable(container, {
     { data: 'q2Revenue', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
   ],
   rowHeaders: true,
-  selectionMode: 'row',
+  selectionMode: 'range',
   afterSelectionEnd() {
     updateChart(this);
   },
@@ -218,7 +220,7 @@ const hot = new Handsontable(container, {
 });
 ```
 
-`selectionMode: 'row'` makes clicking a cell select the entire row. Hold `Ctrl` (Windows/Linux) or `Cmd` (macOS) and click another row to add it to the selection.
+`selectionMode: 'range'` allows selecting a contiguous range of cells. Click any cell in a row to include that row in the chart. Drag to select multiple rows at once.
 
 Two hooks drive the chart updates:
 
@@ -229,18 +231,18 @@ Two hooks drive the chart updates:
 
 1. **Grid renders** with 8 campaign rows. The chart shows a placeholder label.
 2. **User clicks a row** -- `afterSelectionEnd` fires. `hot.getSelected()` returns one range tuple. `updateChart` reads that row's campaign name and revenue values, then calls `chart.update()`. The chart now shows one group of two bars.
-3. **User Ctrl-clicks another row** -- `afterSelectionEnd` fires again. `hot.getSelected()` returns two range tuples. The `Set` deduplicates rows. The chart now shows two groups of bars.
+3. **User drags across another row** -- `afterSelectionEnd` fires again. `hot.getSelected()` returns the range tuple. The `Set` deduplicates rows. The chart now shows two groups of bars.
 4. **User presses Escape** -- `afterDeselect` fires. `hot.getSelected()` returns `undefined`. `updateChart` resets the chart to the placeholder state.
 
-## What You Learned
+## What you learned
 
 - How to use `afterSelectionEnd` and `afterDeselect` hooks to react to grid selection changes.
 - How to read multi-range selections with `hot.getSelected()` and collect unique row indices.
 - How to use `hot.getDataAtRow()` to read current cell values.
 - How to update a Chart.js chart in place with `chart.data.labels`, `chart.data.datasets[i].data`, and `chart.update()` -- without destroying and recreating the chart instance.
-- How `selectionMode: 'row'` enables full-row selection for comparison workflows.
+- How `selectionMode: 'range'` enables range selection for comparison workflows.
 
-## Next Steps
+## Next steps
 
 - Extend the chart to include more numeric columns (e.g., add Q1 Budget and Q2 Budget as additional datasets).
 - Add a column filter so the chart only reflects visible rows.

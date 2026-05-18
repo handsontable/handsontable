@@ -1,11 +1,11 @@
 ---
-type: tutorial
+type: how-to
 id: 7wh7yk48
 title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
-permalink: /recipes/color-picker-angular
-canonicalUrl: /recipes/color-picker-angular
+permalink: /recipes/cell-types/color-picker-angular
+canonicalUrl: /recipes/cell-types/color-picker-angular
 tags:
   - guides
   - tutorial
@@ -175,7 +175,7 @@ const colorValidator = (value: string): boolean => {
 
 **What's happening:**
 
-- Simple function returning `boolean` - this is Angular's `CustomValidatorFn<string>` type
+- Returns `boolean` - this is Angular's `CustomValidatorFn<string>` type
 - Uses regex to validate hex color format: `#` followed by 6 hex characters
 - Returns `true` for valid colors like "#FF0000", "#00ff00"
 - Returns `false` for invalid formats
@@ -483,7 +483,7 @@ export class ColorRendererConfigurableComponent extends HotCellRendererAdvancedC
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](/recipes/cell-types/color-picker).
+**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](@/javascript/recipes/cell-types/color-picker/color-picker.md).
 
 ## What you learned
 
@@ -491,6 +491,6 @@ You built a custom color picker cell in Angular using `HotCellEditorAdvancedComp
 
 ## Next steps
 
-- [Color Picker (JavaScript)](/recipes/cell-types/color-picker) - The same concept using `editorFactory` and the Pickr library.
-- [Colorful Picker (React)](/recipes/cell-types/colorful-picker) - The React version using `EditorComponent` and `react-colorful`.
-- [Star Rating Editor (Angular)](/recipes/stars-rating-angular) - Another Angular custom cell built with `HotCellEditorAdvancedComponent`.
+- [Color Picker (JavaScript)](@/javascript/recipes/cell-types/color-picker/color-picker.md) - The same concept using `editorFactory` and the Pickr library.
+- [Colorful Picker (React)](@/react/recipes/cell-types/colorful-picker/colorful-picker.md) - The React version using `EditorComponent` and `react-colorful`.
+- [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - Another Angular custom cell built with `HotCellEditorAdvancedComponent`.

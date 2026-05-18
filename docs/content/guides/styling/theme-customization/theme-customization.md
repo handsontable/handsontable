@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: x2u15qpx
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
@@ -764,7 +765,12 @@ These variables style the [Notification](@/guides/dialog/notification/notificati
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverBorderColor` </div>   | Border color of pagination navigation button on hover |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverForegroundColor` </div>   | Icon color of pagination navigation button on hover |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverBackgroundColor` </div>   | Background color of pagination navigation button on hover |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledBorderColor` </div>   | Border color of pagination navigation button when disabled |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledForegroundColor` </div>   | Icon color of pagination navigation button when disabled |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledBackgroundColor` </div>   | Background color of pagination navigation button when disabled |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBorderColor` </div>   | Border color of pagination navigation button on focus |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusForegroundColor` </div>   | Icon color of pagination navigation button on focus |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBackgroundColor` </div>   | Background color of pagination navigation button on focus |
 
 </div>
 

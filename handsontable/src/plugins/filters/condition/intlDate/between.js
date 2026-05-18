@@ -1,7 +1,6 @@
 import * as C from '../../../../i18n/constants';
-import { registerCondition, getCondition } from '../../conditionRegisterer';
-import { CONDITION_NAME as CONDITION_INTL_DATE_AFTER } from './after';
-import { CONDITION_NAME as CONDITION_INTL_DATE_BEFORE } from './before';
+import { registerCondition } from '../../conditionRegisterer';
+import { parseToLocalDate } from '../../../../helpers/dateTime';
 
 export const CONDITION_NAME = 'intl_date_between';
 
@@ -13,10 +12,15 @@ export const CONDITION_NAME = 'intl_date_between';
  * @returns {boolean}
  */
 export function condition(dataRow, [from, to]) {
-  const dateBefore = getCondition(CONDITION_INTL_DATE_BEFORE, [to]);
-  const dateAfter = getCondition(CONDITION_INTL_DATE_AFTER, [from]);
+  const dataDate = parseToLocalDate(dataRow.value);
+  const fromDate = parseToLocalDate(from);
+  const toDate = parseToLocalDate(to);
 
-  return dateBefore(dataRow) && dateAfter(dataRow);
+  if (dataDate === null || fromDate === null || toDate === null) {
+    return false;
+  }
+
+  return dataDate >= fromDate && dataDate <= toDate;
 }
 
 registerCondition(CONDITION_NAME, condition, {

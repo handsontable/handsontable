@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 3zi3znot
 title: Notification
 metaTitle: Notification - JavaScript Data Grid | Handsontable
@@ -18,6 +19,7 @@ angular:
   metaTitle: Notification - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
+menuTag: new
 ---
 
 Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.
@@ -73,10 +75,11 @@ Use separate buttons for save, error recovery, and warnings. Primary and seconda
 
 ::: only-for javascript
 
-::: example #example2 --js 1 --ts 2
+::: example #example2 --js 1 --ts 2 --html 3
 
 @[code](@/content/guides/dialog/notification/javascript/example2.js)
 @[code](@/content/guides/dialog/notification/javascript/example2.ts)
+@[code](@/content/guides/dialog/notification/javascript/example2.html)
 
 :::
 

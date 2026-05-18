@@ -17,15 +17,17 @@ const data = [
   imports: [HotTableModule],
   selector: 'example1-external-search-box',
   template: `
-    <div style="margin-bottom: 12px;">
-      <label for="external-search-input" style="display: block; margin-bottom: 4px;">Search rows</label>
-      <input
-        id="external-search-input"
-        type="text"
-        placeholder="Type to highlight matching cells..."
-        style="width: 100%; box-sizing: border-box; padding: 8px;"
-        (input)="onSearch($event)"
-      />
+    <div class="example-controls-container">
+      <div class="controls">
+        <label for="external-search-input">Search rows</label>
+        <input
+          id="external-search-input"
+          type="search"
+          placeholder="Type to highlight matching cells..."
+          style="min-width: 20rem"
+          (input)="onSearch($event)"
+        />
+      </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,

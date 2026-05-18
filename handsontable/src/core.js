@@ -52,7 +52,7 @@ import {
 } from './focusManager';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
-import { registerAllShortcutContexts } from './shortcutContexts';
+import { registerAllShortcutContexts } from './shortcuts/contexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
@@ -263,6 +263,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.rootGridElement.appendChild(this.rootElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
+    this.rootWrapperElement.__hotInstance = this;
 
     addClass(this.rootPortalElement, 'ht-portal');
 
@@ -571,7 +572,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     );
 
     const selectionSource = selection.getSelectionSource();
-    const ignoreScrollSources = ['loadData', 'updateData'];
+    const ignoreScrollSources = ['loadData', 'updateData', 'deselect', 'shift'];
 
     if (
       isLastSelectionLayer &&
@@ -602,11 +603,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (!['shift', 'refresh', 'loadData', 'updateData'].includes(selectionSource)) {
+    if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       editorManager.closeEditor(null);
     }
 
-    if (!['refresh', 'loadData', 'updateData'].includes(selectionSource)) {
+    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -639,7 +640,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.runHooks('afterSelectionEndByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
 
-    if (selection.getSelectionSource() === 'refresh') {
+    if (['refresh', 'deselect'].includes(selection.getSelectionSource())) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -1248,6 +1249,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                     pushData = true;
                   }
 
+                  // Editor saves always accept the new value regardless of the original cell type (#3234)
+                  if (source === 'edit') {
+                    pushData = true;
+                    value = deepClone(value);
+                  }
+
                 } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
@@ -1255,6 +1262,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   // Allow overwriting values with the same object-based schema or any array-based schema.
                   if (
                     hasValueSetter || // If the cell has a value setter, we don't know the value schema (it's dynamic)
+                    source === 'edit' || // Editor saves always accept the new value regardless of schema (#3234)
                     (
                       isObjectEqual(orgValueSchema, valueSchema) ||
                       (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
@@ -1482,7 +1490,37 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const waitingForValidator = new ValidatorsQueue();
     let shouldBeCanceled = true;
 
+    // Track value corrections applied by validators via setDataAtCell during the validation window.
+    // Without this, a corrected value written by a nested setDataAtCell call gets overwritten when
+    // applyChanges() runs on the original changes array. The hook is removed before applyChanges()
+    // runs (in onQueueEmpty), so it does not capture the parent apply itself.
+    //
+    // Source filtering is structurally required: each nested validateChanges() call registers its
+    // own onAfterChange hook. Without filtering, when the parent applyChanges() fires afterChange,
+    // the nested hook would intercept it and corrupt the nested changes array. Filtering to sources
+    // that end with 'Validator' ensures only corrections emitted by validators are captured, never
+    // values applied by applyChanges(). Custom validators that correct values must follow this
+    // convention by passing a source ending in 'Validator' to their setDataAtCell call.
+    const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]) => {
+      const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
+
+      if (idx !== -1) {
+        changes[idx][3] = correctedValue;
+      }
+    };
+    const onAfterChange = (afterChanges, afterSource) => {
+      if (typeof afterSource !== 'string' || !afterSource.endsWith('Validator')) {
+        return;
+      }
+
+      afterChanges?.forEach(applyValidatorCorrection);
+    };
+
+    instance.addHook('afterChange', onAfterChange);
+
     waitingForValidator.onQueueEmpty = () => {
+      instance.removeHook('afterChange', onAfterChange);
+
       if (
         activeEditor &&
         shouldBeCanceled &&
@@ -1715,8 +1753,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     if (isFunction(validator)) {
+      // When the column data accessor is a function, cellProperties.prop holds the accessor
+      // function itself — not a usable column reference. Fall back to the visual column index
+      // so hook listeners always receive a number or a property string, never a function.
+      const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
+
       // eslint-disable-next-line no-param-reassign
-      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
+      value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
@@ -1726,11 +1769,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
           // eslint-disable-next-line no-param-reassign
           valid = instance
-            .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+            .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
           cellProperties.valid = valid;
 
           done(valid);
-          instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
+          instance.runHooks(
+            'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
+          );
         });
       });
 
@@ -3134,7 +3179,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
-   * Clears the data from the table (the table settings remain intact).
+   * Clears the data from the table (the table settings remain intact) and clears the current selection.
    *
    * @memberof Core#
    * @function clear
@@ -3142,6 +3187,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.clear = function() {
     this.selectAll();
     this.emptySelectedCells();
+    this.deselectCell();
   };
 
   /**
@@ -4649,7 +4695,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @param {number} [endRow] If selecting a range: the visual row index of the last cell in the range.
    * @param {number|string} [endColumn] If selecting a range: the visual column index (or a column property's value) of the last cell in the range.
    * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCell = function(row, column, endRow, endColumn, scrollToCell = true, changeListener = true) {
@@ -4714,20 +4762,33 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * passed either as an array of arrays (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
    * or as an array of [`CellRange`](@/api/cellRange.md) objects.
    * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the previous keyboard focus.
+   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
+   * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
    */
   this.selectCells = function(coords = [[]], scrollToCell = true, changeListener = true) {
     if (scrollToCell === false) {
       viewportScroller.suspend();
     }
+    if (changeListener === false) {
+      focusGridManager.suspend();
+    }
 
-    const wasSelected = selection.selectCells(coords);
+    let wasSelected;
+
+    try {
+      wasSelected = selection.selectCells(coords);
+    } finally {
+      // Always release the suspended state even if `selection.selectCells` throws on malformed
+      // coordinates. Otherwise the flags would leak across subsequent calls.
+      viewportScroller.resume();
+      focusGridManager.resume();
+    }
 
     if (wasSelected && changeListener) {
       instance.listen();
     }
-    viewportScroller.resume();
 
     return wasSelected;
   };
@@ -5133,7 +5194,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {BaseEditor | undefined} The active editor instance, or `undefined` if no cell is selected.
    */
   this.getActiveEditor = function() {
-    return editorManager.getActiveEditor();
+    // During the first `afterLoadData` hook (fired from `loadData` inside `init`),
+    // `editorManager` has not been assigned yet. Guard so callers (e.g.
+    // `setSourceDataAtCell`) invoked from that hook do not crash.
+    return editorManager?.getActiveEditor();
   };
 
   /**

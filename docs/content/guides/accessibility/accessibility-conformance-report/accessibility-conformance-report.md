@@ -22,7 +22,6 @@ angular:
   metaTitle: Accessibility conformance report (VPAT) - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
-menuTag: new
 ---
 
 This page is the Voluntary Product Accessibility Template (VPAT) for Handsontable, documenting conformance with WCAG 2.1 and Section 508 accessibility standards.
@@ -508,4 +507,8 @@ This document does not constitute a legal certification of conformance. Use of t
 
 ## Related
 
+<div class="boxes-list gray">
+
 - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
+
+</div>

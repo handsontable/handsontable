@@ -86,7 +86,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);
-    options = { ...options, ...negotiatedSettings, data: this.data };
+    options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
 
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);

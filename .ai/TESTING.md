@@ -32,8 +32,6 @@ npm run test:unit --testPathPattern=cellMeta
 
 # Run specific E2E test pattern (must be run from handsontable/ directory):
 # The pattern is baked into the Rspack bundle at dump time via __ENV_ARGS__.testPathPattern.
-# rspack.config.js copies the lowercase npm_config_testpathpattern to npm_config_testPathPattern
-# so the standard npm --key=value syntax works.
 # Step 1: rebuild the test bundle with the pattern (skips full UMD build):
 npm run test:e2e.dump --testPathPattern=filters
 # Step 2: run puppeteer against the filtered bundle:
@@ -56,7 +54,7 @@ npm run test:unit -- --coverage
 - Per-run Puppeteer runner: `handsontable/test/E2ERunner-<runId>.html`
 - Generic dev runner (always regenerated alongside): `handsontable/test/E2ERunner.html`
 
-`run-puppeteer.mjs` computes the same hash from `npm_config_testpathpattern` / `npm_config_theme` and opens the matching HTML. It also binds the local HTTP server to the first free port starting at `8086` (retries on `EADDRINUSE`, up to 100 ports), so each concurrent run gets its own port. Any number of `npm run test:e2e --testPathPattern=<X>` invocations with distinct patterns (or themes) can run in parallel without further configuration -- the practical limit is machine resources, not the tooling.
+`run-puppeteer.mjs` computes the same hash from `npm_config_testpathpattern` / `npm_config_theme` (env vars set by the `test-e2e.mjs` wrapper) and opens the matching HTML. It also binds the local HTTP server to the first free port starting at `8086` (retries on `EADDRINUSE`, up to 100 ports), so each concurrent run gets its own port. Any number of `npm run test:e2e --testPathPattern=<X>` invocations with distinct patterns (or themes) can run in parallel without further configuration -- the practical limit is machine resources, not the tooling.
 
 The helper that derives the hash lives in `handsontable/.config/helper/run-id.js` -- used by both the Rspack config and the Puppeteer script so they stay in lockstep.
 
@@ -70,14 +68,17 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 **Location:**
 - **Unit tests**: Co-located with source in `src/**/__tests__/` directories
 - **Helper unit tests**: `handsontable/test/helpers/__tests__/` (for shared test helpers like themeLayoutFromTokens and its contract tests)
-- **E2E core tests**: `handsontable/test/e2e/` (top-level core tests)
-- **E2E core API tests**: `handsontable/test/e2e/core/` (per-method tests like `selectCell.spec.js`)
-- **E2E settings tests**: `handsontable/test/e2e/settings/` (per-setting tests like `colWidths.spec.js`)
+- **E2E core method tests**: `src/__tests__/core/` — filename matches the method name (e.g., `selectCell.spec.js`)
+- **E2E hook tests**: `src/__tests__/hooks/` — filename matches the hook name (e.g., `afterChange.spec.js`)
+- **E2E settings tests**: `src/__tests__/settings/` — filename matches the setting name (e.g., `colWidths.spec.js`)
+- **E2E keyboard shortcut tests**: `src/shortcuts/__tests__/keyboardShortcuts/`
+- **E2E i18n tests**: `src/i18n/__tests__/`
+- **E2E mobile tests**: `src/__tests__/mobile/`
 - **Plugin E2E tests**: `src/plugins/{pluginName}/__tests__/` (alongside plugin source)
 
 **Naming:**
 - Unit tests: `{feature}.unit.js` (e.g., `cellMeta.unit.js`, `dataFilter.unit.js`)
-- E2E tests: `{Feature}.spec.js` or `Core_{feature}.spec.js` (e.g., `Core_dataSchema.spec.js`, `filters.spec.js`)
+- E2E tests: `{featureName}.spec.js` — the filename must match the method, hook, or setting name exactly (e.g., `selectCell.spec.js`, `afterChange.spec.js`, `height.spec.js`)
 - Type tests: `*.types.ts` in `test/types/`
 
 **Structure Examples:**
@@ -115,19 +116,26 @@ src/plugins/filters/
 ```
 
 ```
-test/e2e/
-├── Core_dataSchema.spec.js      # Core feature tests
-├── Core_render.spec.js
-├── core/                         # Per-method API tests
+src/__tests__/
+├── core/                         # Per-method Core API tests
 │   ├── selectCell.spec.js
 │   ├── getData.spec.js
-│   └── alter/
+│   ├── insertColEnd.spec.js      # alter/* flattened here
+│   └── ...
+├── hooks/                        # Hook-specific tests
+│   ├── afterChange.spec.js
+│   └── ...
 ├── settings/                     # Per-setting tests
 │   ├── colWidths.spec.js
 │   ├── fixedColumnsStart.spec.js
-│   └── validator.spec.js
-├── hooks/                        # Hook-specific tests
-└── i18n/                         # Internationalization tests
+│   └── ...
+├── mobile/                       # Mobile-specific tests
+└── tableView/
+
+src/shortcuts/__tests__/
+└── keyboardShortcuts/            # Keyboard shortcut tests
+
+src/i18n/__tests__/               # i18n tests
 ```
 
 ## Test Structure

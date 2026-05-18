@@ -414,6 +414,57 @@ describe('timeValidator', () => {
 
       expect(countRows()).toBe(6);
     });
+
+    it('should preserve corrected time format when batch-setting data alongside cells with async validators (#10614)', async() => {
+      handsontable({
+        data: [
+          ['Alice', '13:5:0', '1'],
+          ['Bob', '9:30:0', '1'],
+          ['Carol', '8:0:0', ''],
+          ['Dave', '17:45:0', ''],
+          ['Eve', '6:1:1', ''],
+        ],
+        columns: [
+          {},
+          {
+            type: 'time',
+            timeFormat: 'HH:mm:ss',
+            correctFormat: true,
+          },
+          {
+            type: 'autocomplete',
+            allowInvalid: false,
+            strict: true,
+            source: (query, callback) => {
+              setTimeout(() => {
+                callback(['1', '2', '3']);
+              }, 100);
+            }
+          },
+        ],
+      });
+
+      await setDataAtCell([
+        [0, 1, '13:5:0'],
+        [0, 2, '1'],
+        [1, 1, '9:30:0'],
+        [1, 2, '1'],
+        [2, 1, '8:0:0'],
+        [2, 2, ''],
+        [3, 1, '17:45:0'],
+        [3, 2, ''],
+        [4, 1, '6:1:1'],
+        [4, 2, ''],
+      ]);
+
+      await sleep(300);
+
+      expect(getDataAtCell(0, 1)).toEqual('13:05:00');
+      expect(getDataAtCell(1, 1)).toEqual('09:30:00');
+      expect(getDataAtCell(2, 1)).toEqual('08:00:00');
+      expect(getDataAtCell(3, 1)).toEqual('17:45:00');
+      expect(getDataAtCell(4, 1)).toEqual('06:01:01');
+    });
   });
 
   describe('Time formats', () => {

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 8f3c91ab
 title: Handsontable with shadcn/ui
 metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
@@ -391,7 +391,6 @@ function DataGridWrapper() {
 export default DataGridWrapper;
 ```
 
-**Congratulations!** You've integrated Handsontable with your shadcn/ui design system using a custom theme, CSS variables, and a filterable data grid that matches your app's look and feel!
 
 ## What you learned
 
@@ -399,9 +398,9 @@ You registered a custom Handsontable theme that maps shadcn CSS variables to Han
 
 ## Next steps
 
-- [Handsontable with Base Web](/recipes/themes/base-theme) - The same pattern using Base Web design tokens.
-- [Handsontable with MUI](/recipes/themes/mui-theme) - The same pattern reading colors from the MUI `Theme` object.
-- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.
+- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.
 
 ## Related
 

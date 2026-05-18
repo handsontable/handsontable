@@ -429,6 +429,68 @@ describe('StylesHandler', () => {
       document.head.removeChild(style);
     });
 
+    it('should return base height and base+1 for the first rendered row at 100% zoom (border-bottom-width: 1px)', () => {
+      const mockHot = createMockHot();
+
+      mockHot.view.getFirstRenderedVisibleRow.mockReturnValue(0);
+
+      const rootElement = document.createElement('div');
+
+      rootElement.style.setProperty('--ht-line-height', '20px');
+      rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+      document.body.appendChild(rootElement);
+
+      const style = document.createElement('style');
+
+      style.textContent = 'td { border-bottom-width: 1px; }';
+      document.head.appendChild(style);
+
+      const handler = new StylesHandler({
+        hot: mockHot,
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.clearCache();
+
+      // Base height: 20 + (2 * 5) + Math.round(1) = 31
+      expect(handler.getDefaultRowHeight()).toBe(31);
+      // First rendered row gets +1 for the tr:first-child border-top compensation
+      expect(handler.getDefaultRowHeight(0)).toBe(32);
+
+      document.body.removeChild(rootElement);
+      document.head.removeChild(style);
+    });
+
+    it('should round fractional border-bottom-width to the nearest integer (sub-100% zoom)', () => {
+      const rootElement = document.createElement('div');
+
+      rootElement.style.setProperty('--ht-line-height', '20px');
+      rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+      document.body.appendChild(rootElement);
+
+      const style = document.createElement('style');
+
+      // Simulate what the browser reports at 90% zoom: 1px / 0.9 ≈ 1.111px
+      style.textContent = 'td { border-bottom-width: 1.11111px; }';
+      document.head.appendChild(style);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.clearCache();
+
+      // Math.round(1.111) = 1, not Math.ceil(1.111) = 2
+      // Expected: 20 + (2 * 5) + 1 = 31
+      expect(handler.getDefaultRowHeight()).toBe(31);
+
+      document.body.removeChild(rootElement);
+      document.head.removeChild(style);
+    });
+
     it('should add 1px compensation for the first rendered visible row', () => {
       const mockHot = createMockHot();
 

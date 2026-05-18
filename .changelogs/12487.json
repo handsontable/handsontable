@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the select cell type not preserving the order of numeric selectOptions values.",
+  "type": "fixed",
+  "issueOrPR": 12487,
+  "breaking": false,
+  "framework": "none"
+}

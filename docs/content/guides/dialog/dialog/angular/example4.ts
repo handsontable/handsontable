@@ -1,16 +1,19 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'app-example4',
+  encapsulation: ViewEncapsulation.None,
   template: `
-    <div style="margin-bottom: 16px; display: flex; gap: 10px;">
-      <button (click)="showAlert()">Show Alert</button>
-      <button (click)="showConfirm()">Show Confirm</button>
-      <button (click)="showCustomConfirm()">Show custom Confirm (with solid background)</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" (click)="showAlert()">Show Alert</button>
+        <button type="button" (click)="showConfirm()">Show Confirm</button>
+        <button type="button" (click)="showCustomConfirm()">Show custom Confirm (with solid background)</button>
+      </div>
     </div>
     <hot-table
       #hotTable
@@ -20,7 +23,7 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
     </hot-table>
   `,
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -111,7 +114,7 @@ export class AppComponent implements AfterViewInit {
   };
 
   showAlert() {
-    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
+    const dialogPlugin = this.hotTable.hotInstance!.getPlugin('dialog');
 
     dialogPlugin.showAlert({
       title: 'Alert',
@@ -122,10 +125,10 @@ export class AppComponent implements AfterViewInit {
   }
 
   showConfirm() {
-    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
+    const dialogPlugin = this.hotTable.hotInstance!.getPlugin('dialog');
 
     dialogPlugin.showConfirm('Do you want to undo the last action?', () => {
-      this.hotTable.hotInstance.getPlugin('undoRedo').undo();
+      this.hotTable.hotInstance!.getPlugin('undoRedo').undo();
       dialogPlugin.hide();
     }, () => {
       dialogPlugin.hide();
@@ -133,7 +136,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   showCustomConfirm() {
-    const hotInstance = this.hotTable.hotInstance;
+    const hotInstance = this.hotTable.hotInstance!;
     const dialogPlugin = hotInstance.getPlugin('dialog');
 
     dialogPlugin.show({

@@ -207,6 +207,18 @@ describe('TrimRows', () => {
     expect(getDataAtCell(2, 0)).toBe(null);
   });
 
+  it('should remove the last rows when `index` is `null` and rows are trimmed (regression #11643)', async() => {
+    handsontable({
+      data: createSpreadsheetData(8, 1),
+      trimRows: [1, 3],
+    });
+
+    await alter('remove_row', null, 2);
+
+    expect(countRows()).toBe(4);
+    expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A5', 'A6']);
+  });
+
   it('should remove correct rows after inserting new ones', async() => {
     handsontable({
       data: getMultilineData(6, 10),

@@ -193,21 +193,13 @@ async function parseFile(file) {
     }
     throw new Error('Unsupported file type. Use a .csv or .xlsx file.');
 }
-let pending = null;
-function renderHeaderPreview(listEl, headers) {
-    listEl.innerHTML = '';
-    for (const h of headers) {
-        const li = document.createElement('li');
-        li.textContent = h;
-        listEl.appendChild(li);
-    }
-}
-function columnsFromHeaders(headers) {
-    if (!pending) {
-        return headers.map((data) => ({ data, type: 'text' }));
-    }
+const SAMPLE_CSV = `Product,Category,In stock,Price
+Widget A,Hardware,true,19.99
+Widget B,Hardware,false,24.5
+Service Pack,Services,true,0`;
+function columnsFromHeaders(headers, rows) {
     return headers.map((data) => {
-        const values = pending?.rows
+        const values = rows
             .map((row) => row[data])
             .filter((v) => v !== null);
         if (values.length > 0 && values.every((v) => typeof v === 'number')) {
@@ -220,36 +212,34 @@ function columnsFromHeaders(headers) {
     });
 }
 const gridContainer = document.querySelector('#example1');
+const emptyEl = document.querySelector('#import-empty');
 const errEl = document.querySelector('#import-error');
-const previewEl = document.querySelector('#import-preview');
-const headerListEl = document.querySelector('#import-header-list');
-const applyBtn = document.querySelector('#import-apply');
 const fileInput = document.querySelector('#import-file');
 const dropzone = document.querySelector('#import-dropzone');
-const sampleTa = document.querySelector('#import-sample-csv');
-const sampleBtn = document.querySelector('#import-parse-sample');
-const initialSettings = {
-    data: [],
-    columns: [],
-    colHeaders: [],
-    rowHeaders: true,
-    height: 'auto',
-    width: '100%',
-    licenseKey: 'non-commercial-and-evaluation',
-};
-const hot = new Handsontable(gridContainer, initialSettings);
-function clearPendingPreview() {
-    pending = null;
-    if (previewEl) {
-        previewEl.hidden = true;
+const sampleBtn = document.querySelector('#import-load-sample');
+let hot = null;
+function loadIntoGrid({ headers, rows }) {
+    const columns = columnsFromHeaders(headers, rows);
+    if (!hot) {
+        if (emptyEl) {
+            emptyEl.hidden = true;
+        }
+        if (gridContainer) {
+            gridContainer.hidden = false;
+        }
+        hot = new Handsontable(gridContainer, {
+            data: rows,
+            columns,
+            colHeaders: headers,
+            rowHeaders: true,
+            height: 'auto',
+            width: '100%',
+            licenseKey: 'non-commercial-and-evaluation',
+        });
     }
-}
-function setPending(payload) {
-    pending = payload;
-    clearError(errEl);
-    if (headerListEl && previewEl) {
-        renderHeaderPreview(headerListEl, payload.headers);
-        previewEl.hidden = false;
+    else {
+        hot.updateSettings({ colHeaders: headers, columns });
+        hot.loadData(rows);
     }
 }
 async function handleFile(file) {
@@ -263,30 +253,12 @@ async function handleFile(file) {
     }
     try {
         const payload = await parseFile(file);
-        setPending(payload);
+        loadIntoGrid(payload);
     }
     catch (e) {
-        clearPendingPreview();
         showError(errEl, e instanceof Error ? e.message : String(e));
     }
 }
-applyBtn?.addEventListener('click', () => {
-    clearError(errEl);
-    if (!pending) {
-        showError(errEl, 'Nothing to load. Import a file first.');
-        return;
-    }
-    const { headers, rows } = pending;
-    hot.updateSettings({
-        colHeaders: headers,
-        columns: columnsFromHeaders(headers),
-    });
-    hot.loadData(rows);
-    if (previewEl) {
-        previewEl.hidden = true;
-    }
-    pending = null;
-});
 fileInput?.addEventListener('change', () => {
     const f = fileInput.files?.[0];
     handleFile(f);
@@ -309,12 +281,10 @@ sampleBtn?.addEventListener('click', async () => {
     clearError(errEl);
     try {
         const PapaRef = await ensurePapa();
-        const text = sampleTa?.value ?? '';
-        const payload = parseCsvText(text, PapaRef);
-        setPending(payload);
+        const payload = parseCsvText(SAMPLE_CSV, PapaRef);
+        loadIntoGrid(payload);
     }
     catch (e) {
-        clearPendingPreview();
         showError(errEl, e instanceof Error ? e.message : String(e));
     }
 });

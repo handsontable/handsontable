@@ -189,7 +189,7 @@ export class AppComponent {
     dropdownMenu: true,
     afterFilter(this: Handsontable) {
       const filtersPlugin = this.getPlugin('filters');
-      const filtersRowsMap = filtersPlugin.filtersRowsMap;
+      const filtersRowsMap = (filtersPlugin as any).filtersRowsMap;
 
       filtersRowsMap.setValueAtIndex(0, false);
       filtersRowsMap.setValueAtIndex(

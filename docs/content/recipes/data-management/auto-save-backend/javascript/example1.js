@@ -46,12 +46,12 @@ if (container instanceof HTMLElement) {
     statusEl.dataset.state = state;
   };
 
-  const saveRowsToBackend = async (rows) => {
-    await new Promise((resolve) => setTimeout(resolve, 450));
-
-    // Replace this with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
-    // eslint-disable-next-line no-console
-    console.log('PATCH /api/products', rows);
+  const saveRowsToBackend = (rows) => {
+    return new Promise((resolve) => setTimeout(resolve, 450)).then(() => {
+      // Replace this with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
+      // eslint-disable-next-line no-console
+      console.log('PATCH /api/products', rows);
+    });
   };
 
   const hot = new Handsontable(container, {
@@ -86,7 +86,7 @@ if (container instanceof HTMLElement) {
         clearTimeout(saveTimeout);
       }
 
-      saveTimeout = setTimeout(async () => {
+      saveTimeout = setTimeout(() => {
         const physicalRows = Array.from(dirtyRows);
 
         if (physicalRows.length === 0) {
@@ -94,26 +94,40 @@ if (container instanceof HTMLElement) {
         }
 
         const requestId = ++saveRequestCounter;
-        const rowsToSave = physicalRows
-          .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
-          .filter((row) => row !== undefined && row !== null);
+        const visualRows = physicalRows
+          .map((physicalRow) => hot.toVisualRow(physicalRow))
+          .filter((row) => row !== null);
 
-        dirtyRows.clear();
-        setSaveStatus('saving');
+        hot.validateRows(visualRows, (valid) => {
+          if (!valid) {
+            if (requestId === saveRequestCounter) {
+              setSaveStatus('error');
+            }
 
-        try {
-          await saveRowsToBackend(rowsToSave);
-
-          if (requestId === saveRequestCounter) {
-            setSaveStatus('saved');
+            return;
           }
-        } catch (_error) {
-          physicalRows.forEach((physicalRow) => dirtyRows.add(physicalRow));
 
-          if (requestId === saveRequestCounter) {
-            setSaveStatus('error');
-          }
-        }
+          const rowsToSave = physicalRows
+            .map((physicalRow) => hot.getSourceDataAtRow(physicalRow))
+            .filter((row) => row !== undefined && row !== null);
+
+          dirtyRows.clear();
+          setSaveStatus('saving');
+
+          void saveRowsToBackend(rowsToSave)
+            .then(() => {
+              if (requestId === saveRequestCounter) {
+                setSaveStatus('saved');
+              }
+            })
+            .catch(() => {
+              physicalRows.forEach((physicalRow) => dirtyRows.add(physicalRow));
+
+              if (requestId === saveRequestCounter) {
+                setSaveStatus('error');
+              }
+            });
+        });
       }, 800);
     },
   });

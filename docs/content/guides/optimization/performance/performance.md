@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: w6bvsin5
 title: Performance
 metaTitle: Performance - JavaScript Data Grid | Handsontable
@@ -15,6 +16,7 @@ angular:
   metaTitle: Performance - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 

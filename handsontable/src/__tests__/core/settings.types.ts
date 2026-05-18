@@ -164,6 +164,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   fragmentSelection: oneOf(true, 'cell'),
   headerClassName: 'htCenter test',
+  hashLength: 8,
+  hashRevealDelay: 1000,
+  hashSymbol: '#',
   height: oneOf(500, 'auto', '75vh', () => 500, () => 'auto'),
   hiddenColumns: true,
   hiddenRows: true,
@@ -581,7 +584,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
   beforeColumnFreeze: (columnIndex, isFreezingPerformed) => false,
   beforeColumnMove: (columns, target) => {},
-  beforeColumnResize: (newSize, column, isDoubleClick) => {},
+  beforeColumnResize: (newSize, column, isDoubleClick) => false,
   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   beforeColumnWrap: (isActionInterrupted, newCoords, isColumnFlipped) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
@@ -670,7 +673,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
-  beforeRowResize: (newSize, row, isDoubleClick) => {},
+  beforeRowResize: (newSize, row, isDoubleClick) => false,
   beforeRowWrap: (isActionInterrupted, newCoords, isRowFlipped) => {
     const _isActionInterrupted: boolean = isActionInterrupted.value;
     const _isRowFlipped: boolean = isRowFlipped;

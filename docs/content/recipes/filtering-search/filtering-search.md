@@ -6,6 +6,7 @@ canonicalUrl: /recipes/filtering-search
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
+type: how-to
 id: b9f32a7c
 description: Practical recipes for building external filtering and search interfaces with Handsontable.
 react:
@@ -31,6 +32,6 @@ Use these recipes to build custom filter controls outside of the grid and apply 
 
 <div class="boxes-list">
 
-- [Multi-column filter panel](@/content/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md)
+- [Multi-column filter panel](@/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md)
 
 </div>

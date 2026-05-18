@@ -394,7 +394,7 @@ jobs:
           name: nuget_pack_${{ needs.first-rc-build.outputs.rc-version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # https://github.com/NuGet/login/releases/tag/v1.2.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -428,6 +428,8 @@ jobs:
             STATUS=":x: Failed"; NPM_STATUS=":x: :npm: *npm*"; NPM_OK="false"
           fi
           if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
+          BASE_VERSION_DASHES=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//' | tr '.' '-')
+          DOCS_URL="https://rc-handsontable-${BASE_VERSION_DASHES}.netlify.app/docs/javascript-data-grid/"
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
           jq -n \
@@ -437,6 +439,7 @@ jobs:
             --arg npm_status    "$NPM_STATUS" \
             --arg npm_ok        "$NPM_OK" \
             --arg nuget_status  "$NUGET_STATUS" \
+            --arg docs_url      "$DOCS_URL" \
             --arg changelog_url "$CHANGELOG_URL" \
             --arg repo_url      "${REPO_URL}" \
             --arg run_url       "${RUN_URL}" \
@@ -475,7 +478,7 @@ jobs:
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>\n\n*📖 RC Docs*\n• :chrome: <" + $docs_url + "|View RC Docs Preview>" else "" end)
                 }
               },
               {
@@ -488,7 +491,7 @@ jobs:
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -846,7 +849,7 @@ jobs:
           name: nuget_pack_${{ needs.rc-build.outputs.rc-version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # https://github.com/NuGet/login/releases/tag/v1.2.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -889,6 +892,8 @@ jobs:
           BASE_VERSION=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//')
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
           PREV_TAG="${BASE_VERSION}-rc$((RC_NUMBER - 1))"
+          BASE_VERSION_DASHES=$(echo "$BASE_VERSION" | tr '.' '-')
+          DOCS_URL="https://rc-handsontable-${BASE_VERSION_DASHES}.netlify.app/docs/javascript-data-grid/"
           RELEASE_BRANCH="${{ github.ref_name }}"
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
@@ -920,6 +925,7 @@ jobs:
             --arg npm_status       "$NPM_STATUS" \
             --arg npm_ok           "$NPM_OK" \
             --arg nuget_status     "$NUGET_STATUS" \
+            --arg docs_url         "$DOCS_URL" \
             --arg prev_tag         "${PREV_TAG}" \
             --arg commits          "$COMMITS_TEXT" \
             --arg changelog_synced "${CHANGELOG_SYNCED}" \
@@ -972,7 +978,7 @@ jobs:
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>\n\n*📖 RC Docs*\n• :chrome: <" + $docs_url + "|View RC Docs Preview>" else "" end)
                 }
               },
               {
@@ -985,7 +991,7 @@ jobs:
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # v2.1.1
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -1658,7 +1664,7 @@ jobs:
           name: nuget_pack_${{ needs.stable-build-nuget.outputs.version }}
 
       - name: NuGet login (OIDC trusted publishing)
-        uses: NuGet/login@d22cc5f58ff5b88bf9bd452535b4335137e24544 # https://github.com/NuGet/login/releases/tag/v1.0.0
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # https://github.com/NuGet/login/releases/tag/v1.2.0
         id: nuget-login
         with:
           user: ${{ secrets.NUGET_USER }}
@@ -1789,7 +1795,7 @@ jobs:
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>" else "" end)
+                  text: ("*📋 Changelog*\n<" + $changelog_url + "|View CHANGELOG.md>" + if $npm_ok == "true" then "\n\n*🎮 Demos*\n• :javascript: <https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=" + $version + "|JS>\n• :react: <https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=" + $version + "|React>\n• :angular: <https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=" + $version + "|Angular>\n• :vue: <https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=" + $version + "|Vue>\n• :typescript: <https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=" + $version + "|TypeScript>\n\n*📖 Docs*\n• :chrome: <https://handsontable.com/docs/javascript-data-grid/|View Docs>" else "" end)
                 }
               },
               {
@@ -1809,7 +1815,7 @@ jobs:
           cat /tmp/slack-payload.json
 
       - name: Notify Slack
-        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a # https://github.com/slackapi/slack-github-action/releases/tag/v2.1.1
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
         with:
           webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
           webhook-type: incoming-webhook

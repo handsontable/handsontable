@@ -14,7 +14,15 @@ Choose the prefix that matches your work:
 | Docs | `docs/issue-xxxx` | `docs/issue-9500` |
 | Release | `release/x.y.z` | `release/16.1.0` |
 
-When working from a ClickUp task, the task ID (e.g. `DEV-627`) **must** appear in the branch name so ClickUp links automatically.
+When working from a ClickUp task, the **human-readable custom ID** (e.g. `DEV-627`, `IT-42`) **must** appear in the branch name so ClickUp links automatically. Never use the internal ClickUp hash ID (e.g. `86c9j4fxj`) — it is not a valid task identifier for branch linking.
+
+**Important:** `clickup_create_task` returns `custom_id: null` in its response. Always call `clickup_get_task` immediately after creating a task to retrieve the real custom ID before naming the branch:
+
+```
+1. clickup_create_task → returns task_id (hash, e.g. "86c9j4fxj")
+2. clickup_get_task(task_id) → returns custom_id (e.g. "DEV-1532")
+3. Use custom_id in the branch name: feature/DEV-1532_Short-Description
+```
 
 ## 2. Pre-flight Checks
 
@@ -29,10 +37,10 @@ npm run stylelint --prefix handsontable
 npm run build --prefix handsontable
 
 # Unit tests for the area you changed
-npm run test:unit --testPathPattern=<regex> --prefix handsontable
+npm run test:unit --prefix handsontable --testPathPattern=<regex>
 
 # E2E tests for the area you changed
-npm run test:e2e --testPathPattern=<regex> --prefix handsontable
+npm run test:e2e --prefix handsontable --testPathPattern=<regex>
 
 # If you touched a wrapper, test it too
 npm run test --prefix wrappers/react-wrapper

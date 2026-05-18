@@ -97,12 +97,12 @@ export class AppComponent {
       { data: 'price', type: 'numeric', numericFormat: { pattern: '0.00' } },
       { data: 'tax', type: 'numeric', numericFormat: { pattern: '0.00' } },
     ],
-    cells(row: number, _col: number, prop: string | number): Handsontable.CellProperties {
+    cells(row: number, _col: number, prop: string | number): Handsontable.CellMeta {
       if (row !== summaryRowIndex) {
         return {};
       }
 
-      const meta: Handsontable.CellProperties = {
+      const meta: Handsontable.CellMeta = {
         readOnly: true,
         className: 'htSummaryRow',
       };
@@ -122,7 +122,7 @@ export class AppComponent {
       changes: Handsontable.CellChange[] | null,
       source: Handsontable.ChangeSource,
     ): void {
-      if (!changes || source === SUMMARY_SOURCE) {
+      if (!changes || (source as string) === SUMMARY_SOURCE) {
         return;
       }
 

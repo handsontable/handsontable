@@ -19,6 +19,7 @@ angular:
   metaTitle: Context menu - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
 The context menu provides cell-level actions accessible by right-clicking. This page lists all available menu items and their configuration keys.
 

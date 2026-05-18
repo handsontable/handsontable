@@ -1,0 +1,37 @@
+{
+  "name": "docs-angular-type-check",
+  "private": true,
+  "scripts": {
+    "typecheck": "node check.mjs"
+  },
+  "devDependencies": {
+    "@angular/common": "^19.2.20",
+    "@angular/compiler": "^19.2.20",
+    "@angular/compiler-cli": "^19.2.20",
+    "@angular/core": "^19.2.20",
+    "@angular/forms": "^19.2.20",
+    "@angular/platform-browser": "^19.2.20",
+    "@angular/platform-browser-dynamic": "^19.2.20",
+    "@angular/router": "^19.2.20",
+    "@handsontable/angular-wrapper": "link:../../wrappers/angular-wrapper/dist/hot-table",
+    "@handsontable/pikaday": "latest",
+    "@simonwep/pickr": "latest",
+    "@types/node": "^25.6.0",
+    "@types/papaparse": "^5.5.2",
+    "chart.js": "latest",
+    "exceljs": "latest",
+    "date-fns": "latest",
+    "flatpickr": "latest",
+    "handsontable": "link:../../handsontable/tmp",
+    "hyperformula": "latest",
+    "jspdf": "latest",
+    "jspdf-autotable": "latest",
+    "moment": "latest",
+    "numbro": "latest",
+    "papaparse": "latest",
+    "rxjs": "~7.8.0",
+    "typescript": "~5.8.3",
+    "xlsx": "latest",
+    "zone.js": "~0.15.0"
+  }
+}

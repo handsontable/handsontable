@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: f2a7b9c1
 title: Handsontable with MUI
 metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable
@@ -232,6 +232,6 @@ You registered a custom Handsontable theme that maps MUI palette values to Hands
 
 ## Next steps
 
-- [Handsontable with shadcn/ui](/recipes/themes/custom-theme) - The same pattern using shadcn CSS variables and Lucide icons.
-- [Handsontable with Base Web](/recipes/themes/base-theme) - The same pattern using Base Web design tokens.
-- [Theme customization](/guides/styling/theme-customization/theme-customization) - Full reference for Theme API parameters and CSS variables.
+- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn CSS variables and Lucide icons.
+- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.

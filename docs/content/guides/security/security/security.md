@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: nb36sme6
 title: Security
 metaTitle: Security - JavaScript Data Grid | Handsontable
@@ -13,7 +14,6 @@ angular:
   metaTitle: Security - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Security
-menuTag: updated
 ---
 Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 

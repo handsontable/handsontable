@@ -1,11 +1,13 @@
 ---
 name: code-graph-debug-issue
-description: Systematically debug issues using graph-powered code navigation
+description: Use when debugging any bug, regression, or unexpected behavior - trace from symptom to root cause via callers/callees, find the entry point of an execution path, or identify which recent change caused a regression. Reach for this BEFORE manual Grep+Read traversal of call chains. Trigger on phrases like "why does X fail", "trace this bug", "what triggers Y", "follow the call chain", "what changed recently", "where does this error come from", or any symptom that needs cross-file investigation to find the root cause.
 ---
 
 ## Debug Issue
 
 Use the knowledge graph to systematically trace and debug issues.
+
+**Before the first graph call in a session**, load the tool schemas: call `ToolSearch` with `query: "select:mcp__code-review-graph__query_graph_tool"` (comma-separate names to load several at once). Graph MCP tools are deferred at session start, so calling them without this bootstrap fails with `InputValidationError`. This is one cheap call that unblocks every subsequent graph query for the rest of the session.
 
 ### Steps
 

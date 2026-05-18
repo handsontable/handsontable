@@ -20,7 +20,10 @@ angular:
   metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+type: how-to
 ---
+
+In this tutorial, you will build external Undo and Redo buttons that stay in sync with the Handsontable undo/redo stack. You will learn how to use `afterChange`, `afterUndo`, and `afterRedo` to keep button states accurate at all times.
 
 ::: only-for javascript vue
 
@@ -222,3 +225,15 @@ syncHistoryButtons();
 - [afterRedo](@/api/hooks.md#afterredo)
 
 </div>
+
+## What you learned
+
+- How to enable the `UndoRedo` plugin with `undoRedo: true` in Handsontable settings.
+- How to call `undo()` and `redo()` on the plugin instance from external button click handlers.
+- How to use the `afterChange`, `afterUndo`, and `afterRedo` hooks to check `isUndoAvailable()` and `isRedoAvailable()` and keep button disabled states accurate.
+- How to keep the undo/redo stack in sync with the UI so buttons always reflect the actual stack state.
+
+## Next steps
+
+- Add keyboard shortcuts (`Ctrl+Z`, `Ctrl+Shift+Z`) using the [ShortcutManager](@/guides/navigation/custom-shortcuts/custom-shortcuts.md) to supplement the buttons.
+- Explore [auto-save changes to a backend](@/recipes/data-management/auto-save-backend/auto-save-backend.md) to persist changes after each successful undo/redo cycle.

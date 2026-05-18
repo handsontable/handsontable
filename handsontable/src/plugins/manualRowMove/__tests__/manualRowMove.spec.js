@@ -832,7 +832,7 @@ describe('manualRowMove', () => {
           .simulate('mousemove')
           .simulate('mouseup');
 
-        expect(tableView().getFirstFullyVisibleRow()).toBe(7);
+        expect(tableView().getFirstFullyVisibleRow()).toBe(8);
       });
     });
   });

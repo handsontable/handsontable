@@ -1,6 +1,6 @@
 import { baseRenderer } from '../baseRenderer';
 import { addClass, empty, fastInnerText } from '../../helpers/dom/element';
-import { stringify } from '../../helpers/mixed';
+import { isEmpty, stringify } from '../../helpers/mixed';
 import {
   parseValue,
   createChipElement,
@@ -33,7 +33,7 @@ export function multiSelectRenderer(hotInstance, TD, row, col, prop, value, cell
 
   let escaped = value;
 
-  if (!escaped && cellProperties.placeholder) {
+  if (isEmpty(escaped) && cellProperties.placeholder) {
     escaped = cellProperties.placeholder;
 
     escaped = stringify(escaped);

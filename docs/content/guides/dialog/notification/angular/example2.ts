@@ -1,28 +1,37 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import Handsontable from 'handsontable/base';
-import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
   imports: [HotTableModule],
   selector: 'notification-example-2',
-  templateUrl: './example2.html',
+  template: `
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" class="button button--primary" (click)="onSave()">Save</button>
+        <button type="button" class="button button--primary" (click)="onSyncError()">Sync error</button>
+        <button type="button" class="button button--primary" (click)="onLowStock()">Low stock</button>
+      </div>
+    </div>
+    <hot-table #hotTable [data]="hotData" [settings]="hotSettings"></hot-table>
+  `,
 })
 export class AppComponent {
-  @ViewChild('hotTable', { static: false }) hotTable: HotTableComponent;
+  @ViewChild('hotTable', { static: false }) hotTable!: HotTableComponent;
 
-  hotSettings: Handsontable.GridSettings = {
-    data: [
-      ['SKU-001', 'Alkaline AA 4pk', 240, 40, 'A-12'],
-      ['SKU-002', 'USB-C cable 1m', 18, 24, 'B-03'],
-      ['SKU-003', 'Notebook A5 ruled', 0, 30, 'C-01'],
-      ['SKU-004', 'Wireless mouse', 6, 15, 'B-07'],
-      ['SKU-005', 'HDMI cable 2m', 2, 10, 'A-04'],
-      ['SKU-006', 'Desk lamp LED', 45, 12, 'D-02'],
-      ['SKU-007', 'Laptop stand aluminum', 0, 8, 'C-14'],
-      ['SKU-008', 'Mechanical keycap set', 112, 20, 'B-01'],
-    ],
+  readonly hotData = [
+    ['SKU-001', 'Alkaline AA 4pk', 240, 40, 'A-12'],
+    ['SKU-002', 'USB-C cable 1m', 18, 24, 'B-03'],
+    ['SKU-003', 'Notebook A5 ruled', 0, 30, 'C-01'],
+    ['SKU-004', 'Wireless mouse', 6, 15, 'B-07'],
+    ['SKU-005', 'HDMI cable 2m', 2, 10, 'A-04'],
+    ['SKU-006', 'Desk lamp LED', 45, 12, 'D-02'],
+    ['SKU-007', 'Laptop stand aluminum', 0, 8, 'C-14'],
+    ['SKU-008', 'Mechanical keycap set', 112, 20, 'B-01'],
+  ];
+
+  readonly hotSettings: GridSettings = {
     colHeaders: ['SKU', 'Product', 'Qty on hand', 'Reorder at', 'Bin'],
     columns: [
       { data: 0, type: 'text', width: 90 },
@@ -35,7 +44,6 @@ export class AppComponent {
     width: '100%',
     height: 280,
     notification: true,
-    licenseKey: 'non-commercial-and-evaluation',
   };
 
   onSave(): void {

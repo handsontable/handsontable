@@ -623,10 +623,47 @@ export class Formulas extends BasePlugin {
    * @returns {Array} The source data array to be passed to the formula engine.
    */
   #getProcessedSourceDataArray(row, column, row2, column2) {
-    return this.hot.getSourceDataArray(row, column, row2, column2).map((rowObject, rowIndex) => {
-      return rowObject.map((value, columnIndex) => {
-        return this.#getValueGetterValue(rowIndex, columnIndex, value);
+    const dataArray = this.hot.getSourceDataArray(row, column, row2, column2);
+    const visibleColumnCount = this.hot.countCols();
+    const physicalColumnCount = this.hot.countSourceCols();
+    const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
+      && isArrayOfArrays(this.hot.getSourceData());
+
+    if (!isAoAWithSkippedColumns) {
+      return dataArray.map((rowObject, rowIndex) => {
+        return rowObject.map((value, columnIndex) => {
+          return this.#getValueGetterValue(rowIndex, columnIndex, value);
+        });
       });
+    }
+
+    // Array-of-objects data is already projected to visible columns by
+    // `dataSource.getAtRow`. Array-of-arrays data returns the full source row,
+    // so when `columns` skips physical indexes the data fed to HF misaligns
+    // with the axis-syncer's visual->HF mapping (issue #10021). Build a row
+    // containing only visible columns so HF cell coordinates stay in sync.
+    const columnOffset = column ?? 0;
+
+    return dataArray.map((rowArray, rowIndex) => {
+      const projected = [];
+
+      for (let visualCol = 0; visualCol < visibleColumnCount; visualCol++) {
+        const physicalCol = this.hot.colToProp(visualCol);
+
+        if (typeof physicalCol !== 'number') {
+          continue;
+        }
+
+        const arrayIndex = physicalCol - columnOffset;
+
+        if (arrayIndex < 0 || arrayIndex >= rowArray.length) {
+          continue;
+        }
+
+        projected.push(this.#getValueGetterValue(rowIndex, visualCol, rowArray[arrayIndex]));
+      }
+
+      return projected;
     });
   }
 

@@ -218,13 +218,13 @@ export class DropdownMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
         keepInViewport: true,
-        container: settings.uiContainer || this.hot.rootPortalElement,
+        container: (typeof settings === 'object' ? settings.uiContainer : null) ||
+          this.hot.rootPortalElement,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 
       this.menu.setMenuItems(menuItems);
 
-      this.menu.addLocalHook('beforeOpen', () => this.#onMenuBeforeOpen());
       this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
       this.menu.addLocalHook('afterSubmenuOpen', subMenuInstance => this.#onSubMenuAfterOpen(subMenuInstance));
       this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
@@ -422,6 +422,11 @@ export class DropdownMenu extends BasePlugin {
     if (this.menu?.isOpened()) {
       return;
     }
+
+    // Fire the user-facing hook before any menu state is committed. If a listener calls
+    // `updateSettings({ dropdownMenu })`, the plugin reinitializes synchronously, and the
+    // open flow below proceeds on the fresh `this.menu` instance with the new items.
+    this.hot.runHooks('beforeDropdownMenuShow', this);
 
     this.menu.open();
 
@@ -621,16 +626,6 @@ export class DropdownMenu extends BasePlugin {
     } else {
       relativeContainer.appendChild(button);
     }
-  }
-
-  /**
-   * On menu before open listener.
-   *
-   * @private
-   * @fires Hooks#beforeDropdownMenuShow
-   */
-  #onMenuBeforeOpen() {
-    this.hot.runHooks('beforeDropdownMenuShow', this);
   }
 
   /**

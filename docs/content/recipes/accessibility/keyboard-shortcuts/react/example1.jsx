@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -13,26 +13,14 @@ const employees = [
   { name: 'Carlos Mendes', department: 'Finance', role: 'Financial Analyst', salary: 88000, startDate: '2021-09-05' },
   { name: 'Fatima Al-Hassan', department: 'Engineering', role: 'Backend Developer', salary: 92000, startDate: '2020-04-18' },
   { name: 'Noah Kim', department: 'Design', role: 'UX Designer', salary: 75000, startDate: '2023-02-14' },
-  { name: 'Sara Lindqvist', department: 'Marketing', role: 'Content Strategist', salary: 71000, startDate: '2022-06-30' },
+  { name: 'Sara Lindqvist', department: 'Marketing', role: 'Content Strategist', salary: 71000, startDate: '2019-06-30' },
 ];
 /* end:skip-in-preview */
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [submitLog, setSubmitLog] = useState('');
-  const statusTimeoutRef = useRef(null);
-
-  const showStatus = useCallback((message) => {
-    setStatusMessage(message);
-    if (statusTimeoutRef.current !== null) {
-      clearTimeout(statusTimeoutRef.current);
-    }
-    statusTimeoutRef.current = setTimeout(() => {
-      setStatusMessage('');
-      statusTimeoutRef.current = null;
-    }, 2000);
-  }, []);
+  const [lastShortcut, setLastShortcut] = useState('—');
+  const [lastSubmission, setLastSubmission] = useState('—');
 
   useEffect(() => {
     const hot = hotRef.current?.hotInstance;
@@ -41,8 +29,7 @@ const ExampleComponent = () => {
       return;
     }
 
-    const shortcutManager = hot.getShortcutManager();
-    const gridContext = shortcutManager.getContext('grid');
+    const gridContext = hot.getShortcutManager().getContext('grid');
 
     // Ctrl+D: duplicate the currently selected row
     gridContext.addShortcut({
@@ -64,7 +51,7 @@ const ExampleComponent = () => {
         hot.alter('insert_row_below', row);
         hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
 
-        showStatus('Ctrl+D -- row duplicated');
+        setLastShortcut('Ctrl+D -- row duplicated');
       },
     });
 
@@ -81,15 +68,15 @@ const ExampleComponent = () => {
         const rowCount = data.length;
         const timestamp = new Date().toLocaleTimeString();
 
-        setSubmitLog(`[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`);
-        showStatus('Ctrl+Enter -- data submitted');
+        setLastShortcut('Ctrl+Enter -- data submitted');
+        setLastSubmission(`[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`);
       },
     });
 
     return () => {
       gridContext.removeShortcutsByGroup('customActions');
     };
-  }, [showStatus]);
+  }, []);
 
   return (
     <>
@@ -101,7 +88,7 @@ const ExampleComponent = () => {
           { data: 'name', type: 'text' },
           { data: 'department', type: 'text' },
           { data: 'role', type: 'text' },
-          { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
+          { data: 'salary', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 } },
           { data: 'startDate', type: 'text' },
         ]}
         rowHeaders={true}
@@ -110,10 +97,23 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <span className={`shortcut-status${statusMessage ? ' visible' : ''}`}>
-        {statusMessage}
-      </span>
-      <div className="submit-log">{submitLog}</div>
+      <strong>Shortcut log:</strong>
+      <table className="debug-table">
+        <colgroup>
+          <col style={{ width: '180px' }} />
+          <col />
+        </colgroup>
+        <tbody>
+          <tr>
+            <td>Last shortcut triggered</td>
+            <td><code>{lastShortcut}</code></td>
+          </tr>
+          <tr>
+            <td>Last submission</td>
+            <td><code>{lastSubmission}</code></td>
+          </tr>
+        </tbody>
+      </table>
     </>
   );
 };

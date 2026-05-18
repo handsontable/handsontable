@@ -89,6 +89,28 @@ describe('baseRenderer', () => {
       expect(TD.outerHTML).toMatchHTML('<td class="placeholder"></td>', toMatchHTMLConfig);
     });
 
+    it('should not add placeholder class name when value is 0', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, 0, {
+        placeholder: 'Placeholder',
+        placeholderCellClassName: 'placeholder'
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
+    });
+
+    it('should not add placeholder class name when value is false', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, false, {
+        placeholder: 'Placeholder',
+        placeholderCellClassName: 'placeholder'
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
+    });
+
     it('should manage text-truncate class name', () => {
       const TD = document.createElement('td');
 

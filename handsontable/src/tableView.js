@@ -449,6 +449,8 @@ class TableView {
           return;
         }
       } else {
+        const { rootPortalElement } = this.hot;
+
         while (next !== documentElement) {
           if (next === null) {
             if (event.isTargetWebComponent) {
@@ -458,8 +460,8 @@ class TableView {
             // click on something that was a row but now is detached (possibly because your click triggered a rerender)
             return;
           }
-          if (next === rootElement) {
-            // click inside container
+          if (next === rootElement || next === rootPortalElement) {
+            // click inside container or portal
             return;
           }
           next = next.parentNode;
@@ -1046,6 +1048,32 @@ class TableView {
         }
 
         this.hot.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
+        this.activeWt = this._wt;
+        this.#mouseDownLastPos = null;
+      },
+      onCellMouseOverOutside: (event, coords, TD, wt) => {
+        const visualCoords = this.translateFromRenderableToVisualCoords(coords);
+        const controller = {
+          row: false,
+          column: false,
+          cell: false
+        };
+
+        this.activeWt = wt;
+        this.hot.runHooks('beforeOnCellMouseOverOutside', event, visualCoords, TD, controller);
+
+        if (isImmediatePropagationStopped(event)) {
+          return;
+        }
+
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          controller,
+          cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
+        });
+
+        this.hot.runHooks('afterOnCellMouseOverOutside', event, visualCoords, TD);
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },

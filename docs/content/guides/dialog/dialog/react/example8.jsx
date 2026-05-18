@@ -52,9 +52,11 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
-        <button onClick={showDialog}>Show Dialog</button>
-        <button onClick={hideDialog}>Hide Dialog</button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" onClick={showDialog}>Show Dialog</button>
+          <button type="button" onClick={hideDialog}>Hide Dialog</button>
+        </div>
       </div>
       <HotTable
         ref={hotTableRef}

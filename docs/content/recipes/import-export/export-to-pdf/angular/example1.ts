@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 
@@ -20,10 +19,11 @@ const data = Array.from({ length: ROWS }, (_, row) => [
   standalone: true,
   imports: [HotTableModule],
   selector: 'example1-export-to-pdf',
-  styleUrls: ['./example1.css'],
   template: `
-    <div class="export-pdf-toolbar">
-      <button type="button" class="export-pdf-btn" (click)="exportToPdf()">Export to PDF</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" (click)="exportToPdf()">Export to PDF</button>
+      </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,

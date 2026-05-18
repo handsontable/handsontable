@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed autofill being silently blocked when object-typed cells contain undefined-valued properties or have different key insertion order.",
+  "type": "fixed",
+  "issueOrPR": 12556,
+  "breaking": false,
+  "framework": "none"
+}

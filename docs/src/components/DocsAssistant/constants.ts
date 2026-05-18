@@ -27,6 +27,7 @@ export const API_URL =
   'https://hot-docs-assistant.netlify.app';
 
 export const CHAT_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/chat`;
+export const FEEDBACK_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/feedback`;
 
 export const SHIKI_LANGS = ['js', 'ts', 'html', 'css', 'json', 'bash'] as const;
 export const SHIKI_THEMES = { light: 'github-light', dark: 'github-dark' } as const;

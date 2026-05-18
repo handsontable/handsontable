@@ -12,7 +12,7 @@ import {
   setAttribute
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
-import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import {
   A11Y_EXPANDED,
   A11Y_HIDDEN

@@ -626,6 +626,7 @@
 
   .ht_master .wtHolder {
     overflow: auto;
+    overscroll-behavior: none;
   }
 
   [dir="rtl"].handsontable {

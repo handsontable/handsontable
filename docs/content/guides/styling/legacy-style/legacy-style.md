@@ -21,7 +21,6 @@ angular:
   metaTitle: Legacy Style - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
-menuTag: updated
 ---
 Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 

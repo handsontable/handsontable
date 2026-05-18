@@ -22,8 +22,10 @@ angular:
   metaTitle: Persist and restore column widths and order - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance
-type: tutorial
+type: how-to
 ---
+
+In this tutorial, you will save column widths and column order to `localStorage` as the user resizes or reorders columns. You will learn how to restore that layout on grid initialization so user preferences survive a page refresh.
 
 ::: only-for javascript
 
@@ -279,4 +281,4 @@ document.querySelector('#reset-layout-btn').addEventListener('click', () => {
 - Extend the recipe to also persist `colHeaders` label overrides or hidden column state.
 - If your page has multiple grids, give each grid its own storage key (e.g., `ht-column-layout-v1-products`, `ht-column-layout-v1-orders`).
 - Replace `localStorage` with a server-side API call to sync layout preferences across devices and browsers.
-- Combine this recipe with [Build a dynamic column visibility toggle](@/content/recipes/column-management/column-visibility/column-visibility.md) to let users both hide columns and remember their visibility state.
+- Combine this recipe with [Build a dynamic column visibility toggle](@/recipes/column-management/column-visibility/column-visibility.md) to let users both hide columns and remember their visibility state.

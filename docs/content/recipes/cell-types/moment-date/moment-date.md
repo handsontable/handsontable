@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 9f21530e
 title: Moment.js-based date
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
@@ -130,7 +130,7 @@ const correctFormat = (value, dateFormat) => {
 
 ## Step 3: Create the Renderer
 
-We reuse the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
+The example reuses the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
 
 ```typescript
 renderer: getRenderer('autocomplete')
@@ -369,6 +369,6 @@ You created a custom Moment.js-based date cell type in Handsontable. You used `e
 
 ## Next steps
 
-- [Pikaday](/recipes/cell-types/pikaday) - A standalone Pikaday date picker recipe that also serves as a migration path from the built-in date cell type.
-- [Moment.js time](/recipes/cell-types/moment-time) - The same Moment.js pattern applied to time values.
-- [Flatpickr](/recipes/cell-types/flatpickr) - An alternative date picker using the Flatpickr library with dark theme support.
+- [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - A standalone Pikaday date picker recipe that also serves as a migration path from the built-in date cell type.
+- [Moment.js time](@/recipes/cell-types/moment-time/moment-time.md) - The same Moment.js pattern applied to time values.
+- [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - An alternative date picker using the Flatpickr library with dark theme support.

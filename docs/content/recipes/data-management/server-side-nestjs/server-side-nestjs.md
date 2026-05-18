@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: a3f82c91
 title: Server-side Data with NestJS
 metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
@@ -21,6 +21,8 @@ angular:
 searchCategory: Recipes
 category: Data Management
 ---
+
+This tutorial shows how to wire Handsontable's `dataProvider` plugin to a NestJS 10 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using an in-memory store.
 
 ::: tip Handsontable sponsors NestJS
 Handsontable is a proud sponsor of NestJS. You can support the project on [Open Collective](https://opencollective.com/handsontable-javascript-data-grid).
@@ -76,7 +78,7 @@ Together these two libraries give you end-to-end type safety from the HTTP reque
 
 Copy `ticket.entity.ts` into `src/tickets/`:
 
-@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
+@[code typescript](@/recipes/data-management/server-side-nestjs/server/ticket.entity.ts)
 
 **What's happening:**
 - `TicketStatus` and `TicketPriority` are union types that match the `source` arrays in the Handsontable column definitions. Sharing these types between server and client prevents mismatched values.
@@ -90,7 +92,7 @@ Replace the interface and array with a `@Entity()` class and inject `Repository<
 
 Copy `fetch-tickets.dto.ts` into `src/tickets/dto/`:
 
-@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
+@[code typescript](@/recipes/data-management/server-side-nestjs/server/fetch-tickets.dto.ts)
 
 **What's happening:**
 
@@ -120,7 +122,7 @@ A filter condition can carry one or two values depending on the condition type (
 
 Copy `main.ts` into `src/`:
 
-@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/main.ts)
+@[code typescript](@/recipes/data-management/server-side-nestjs/server/main.ts)
 
 **What's happening:**
 
@@ -156,7 +158,7 @@ export class AppModule {}
 
 Copy `tickets.service.ts` into `src/tickets/`:
 
-@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
+@[code typescript](@/recipes/data-management/server-side-nestjs/server/tickets.service.ts)
 
 **What's happening:**
 
@@ -199,7 +201,7 @@ After inserting a row the service returns it with its server-assigned `id`. The 
 
 Copy `tickets.controller.ts` into `src/tickets/`:
 
-@[code typescript](@/content/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
+@[code typescript](@/recipes/data-management/server-side-nestjs/server/tickets.controller.ts)
 
 **What's happening:**
 - `@Controller('tickets')` sets the base path. All four endpoints share the `/tickets` prefix.
@@ -223,13 +225,13 @@ With the server running on `http://localhost:3000`, configure Handsontable to us
 
 ::: only-for javascript
 
-@[code js](@/content/recipes/data-management/server-side-nestjs/javascript/example1.js)
+@[code js](@/recipes/data-management/server-side-nestjs/javascript/example1.js)
 
 :::
 
 ::: only-for typescript
 
-@[code ts](@/content/recipes/data-management/server-side-nestjs/javascript/example1.ts)
+@[code ts](@/recipes/data-management/server-side-nestjs/javascript/example1.ts)
 
 :::
 
@@ -380,4 +382,4 @@ emptyDataState: true,
 - Replace the in-memory store with TypeORM + SQLite (zero extra config) or PostgreSQL.
 - Add authentication -- pass a `Bearer` token in the `fetchRows` fetch headers and protect mutation endpoints with a NestJS `AuthGuard`.
 - Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
-- Compare with the [Spring Boot recipe](@/content/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.
+- Compare with the [Spring Boot recipe](@/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.

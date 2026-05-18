@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
@@ -26,7 +27,6 @@ angular:
   metaTitle: Column filter - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
-menuTag: updated
 ---
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
@@ -359,7 +359,9 @@ The following table contains all available filter operators for each built-in da
 | All cell types                                                   | Default operators:<br><br>None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to                                                  |
 | text<br>time<br>checkbox<br>dropdown<br>autocomplete<br>password | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
 | numeric                                                          | Default operators plus:<br><br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
-| date                                                             | Default operators plus:<br><br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
 
 ## Filter data on initialization
 

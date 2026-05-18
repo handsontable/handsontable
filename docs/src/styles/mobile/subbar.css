@@ -6,7 +6,7 @@
   display: none;
 }
 
-@media (max-width: 71.99rem) {
+@media screen and (max-width: 71.99rem) {
   .mobile-subheader {
     display: flex !important;
     align-items: center;
@@ -26,7 +26,7 @@
 }
 
 /* On mobile subheader goes full width; on tablet starts after sidebar */
-@media (max-width: 49.99rem) {
+@media screen and (max-width: 49.99rem) {
   .mobile-subheader {
     left: 0;
   }

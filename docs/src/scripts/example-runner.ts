@@ -62,6 +62,29 @@ function markLoaded(el: Element): void {
   el.querySelector('.hot-example-preview')?.classList.remove('hot-example-preview--loading');
 }
 
+/**
+ * Calls render() on every Handsontable instance inside an example element.
+ *
+ * The delay is intentional: autoRowSize sampling runs over several RAF cycles
+ * immediately after mount. Calling render() mid-sampling produces 0 rows because
+ * the plugin temporarily resets holder dimensions. 100ms lets sampling complete
+ * before the forced re-render.
+ */
+function renderInstances(el: Element): void {
+  setTimeout(() => {
+    try {
+      el.querySelectorAll<HTMLElement>('.ht-root-wrapper').forEach((wrapper) => {
+        const hot = (wrapper as any).__hotInstance;
+
+        if (!hot || hot.isDestroyed) return;
+        hot.render();
+      });
+    } catch (err) {
+      console.warn('[hot-example] renderInstances failed:', err);
+    }
+  }, 100);
+}
+
 // ── Main runner ───────────────────────────────────────────────────────────
 
 async function runExamples(): Promise<void> {
@@ -97,6 +120,7 @@ async function runExamples(): Promise<void> {
     try {
       await loader();
       markLoaded(el);
+      renderInstances(el);
     } catch (err) {
       console.error('[hot-example] JS failed:', src, err);
       markLoaded(el);
@@ -138,6 +162,7 @@ async function runExamples(): Promise<void> {
         const root = createRoot(container);
         root.render(createElement(Component));
         markLoaded(el);
+        renderInstances(el);
       } catch (err) {
         console.error('[hot-example] JSX failed:', src, err);
         markLoaded(el);
@@ -185,6 +210,7 @@ async function runExamples(): Promise<void> {
 
         app.mount(container);
         markLoaded(el);
+        renderInstances(el);
       } catch (err) {
         console.error('[hot-example] Vue failed:', src, err);
         markLoaded(el);
@@ -235,12 +261,14 @@ async function runExamples(): Promise<void> {
         const mod = await loader() as Record<string, unknown>;
         await bootstrapAngular(mod);
         markLoaded(el);
+        renderInstances(el);
       } catch (err) {
         console.error('[hot-example] Angular failed:', src, err);
         markLoaded(el);
       }
     }
   }
+
 }
 
 if (document.readyState === 'loading') {

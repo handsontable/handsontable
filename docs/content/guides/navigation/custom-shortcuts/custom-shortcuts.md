@@ -25,7 +25,6 @@ angular:
   metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
-menuTag: updated
 ---
 Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
 

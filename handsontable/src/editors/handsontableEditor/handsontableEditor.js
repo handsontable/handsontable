@@ -4,7 +4,7 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
-import { EDITOR_EDIT_GROUP } from '../../shortcutContexts';
+import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -43,6 +43,7 @@ export class HandsontableEditor extends TextEditor {
     const containerStyle = this.htContainer.style;
 
     if (this.htEditor) {
+      this.htEditor.rootPortalElement = null;
       this.htEditor.destroy();
       containerStyle.width = '';
       containerStyle.height = '';
@@ -55,6 +56,7 @@ export class HandsontableEditor extends TextEditor {
 
     // Constructs and initializes a new Handsontable instance
     this.htEditor = new this.hot.constructor(this.htContainer, this.htOptions);
+    this.htEditor.rootPortalElement = this.hot.rootPortalElement;
     this.htEditor.init();
     this.htEditor.rootElement.style.display = '';
 
@@ -118,7 +120,11 @@ export class HandsontableEditor extends TextEditor {
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(_, coords) {
-        const sourceValue = this.getSourceData(coords.row, coords.col);
+        if (coords.row < 0 || coords.col < 0) {
+          return;
+        }
+
+        const sourceValue = this.getDataAtCell(coords.row, coords.col);
 
         // if the value is undefined then it means we don't want to set the value
         if (sourceValue !== undefined) {
@@ -264,15 +270,19 @@ export class HandsontableEditor extends TextEditor {
     const { view } = this.hot;
     const cellRect = this.getEditedCellRect();
     let spaceInlineStart = cellRect.start + cellRect.width;
+    let workspaceWidth = view.getWorkspaceWidth();
 
     if (view.isHorizontallyScrollableByWindow()) {
       const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
 
       spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
+      // For window-scrollable tables, spaceInlineStart is viewport-relative so the right
+      // boundary must also be viewport width, not the holder's offsetWidth.
+      workspaceWidth = this.hot.rootDocument.documentElement.clientWidth;
     }
 
     const dropdownTargetWidth = this.getDropdownWidth();
-    const spaceInlineEnd = view.getWorkspaceWidth() - spaceInlineStart + cellRect.width;
+    const spaceInlineEnd = workspaceWidth - spaceInlineStart + cellRect.width;
     const flipNeeded = dropdownTargetWidth > spaceInlineEnd && spaceInlineStart > spaceInlineEnd;
 
     if (flipNeeded) {
@@ -364,7 +374,10 @@ export class HandsontableEditor extends TextEditor {
    */
   assignHooks() {
     this.hot.addHook('afterDestroy', () => {
-      this.htEditor?.destroy();
+      if (this.htEditor) {
+        this.htEditor.rootPortalElement = null;
+        this.htEditor.destroy();
+      }
     });
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {

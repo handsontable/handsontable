@@ -12,7 +12,6 @@ const options = [
 ];
 
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
   const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   const [selected, setSelected] = useState('multiple');
@@ -41,7 +40,6 @@ const ExampleComponent = () => {
   const handleSelect = (value) => {
     setSelected(value);
     setIsOpen(false);
-    hotRef.current?.hotInstance?.updateSettings({ selectionMode: value });
   };
 
   const selectedLabel = options.find((o) => o.value === selected)?.label;
@@ -79,7 +77,6 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
-        ref={hotRef}
         data={[
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
@@ -96,7 +93,7 @@ const ExampleComponent = () => {
         colWidths={100}
         rowHeaders={true}
         colHeaders={true}
-        selectionMode="multiple"
+        selectionMode={selected}
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

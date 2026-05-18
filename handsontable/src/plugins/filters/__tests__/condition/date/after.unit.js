@@ -13,7 +13,7 @@ describe('Filters condition (`date_after`)', () => {
       dateFormat: 'YYYY-MM-DD',
       testDate: '2015-12-20',
       startDate: '2015-12-20',
-      assumption: true
+      assumption: false
     },
     {
       dateFormat: 'YYYY-MM-DD',
@@ -49,7 +49,7 @@ describe('Filters condition (`date_after`)', () => {
       dateFormat: 'DD/MM/YYYY',
       testDate: '12/05/2015',
       startDate: '12/05/2015',
-      assumption: true
+      assumption: false
     },
     {
       dateFormat: 'DD/MM/YYYY',
@@ -99,7 +99,7 @@ describe('Filters condition (`date_after`)', () => {
       dateFormat: 'YY-MM-DD',
       testDate: '2015-12-20',
       startDate: '2015-12-20',
-      assumption: true
+      assumption: false
     },
     {
       dateFormat: 'YYYY-M-D',

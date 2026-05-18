@@ -7,6 +7,7 @@ canonicalUrl: /recipes/performance
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
+type: how-to
 id: e7c3b1a9
 react:
   id: f8d4c2ba
@@ -27,7 +28,7 @@ Current recipes:
 
 <div class="boxes-list">
 
-- [Lazy loading with pagination](@/content/recipes/performance/lazy-loading/lazy-loading.md)
-- [Persist and restore column widths and order](@/content/recipes/performance/persist-column-layout/persist-column-layout.md)
+- [Lazy loading with pagination](@/recipes/performance/lazy-loading/lazy-loading.md)
+- [Persist and restore column widths and order](@/recipes/performance/persist-column-layout/persist-column-layout.md)
 
 </div>

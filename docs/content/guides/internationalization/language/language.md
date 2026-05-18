@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 1g89qnhe
 title: Language
 metaTitle: Language - JavaScript Data Grid | Handsontable
@@ -19,7 +20,6 @@ angular:
   metaTitle: Language - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
-menuTag: updated
 ---
 Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
 
@@ -213,28 +213,6 @@ Language files were loaded after loading Handsontable.
 
 @[code](@/content/guides/internationalization/language/angular/example1.ts)
 @[code](@/content/guides/internationalization/language/angular/example1.html)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example2 :react-languages --js 1 --ts 2
-
-@[code](@/content/guides/internationalization/language/react/example2.jsx)
-@[code](@/content/guides/internationalization/language/react/example2.tsx)
-
-:::
-
-:::
-
-::: only-for angular
-
-::: example #example2 :angular-languages --ts 1 --html 2
-
-@[code](@/content/guides/internationalization/language/angular/example2.ts)
-@[code](@/content/guides/internationalization/language/angular/example2.html)
 
 :::
 

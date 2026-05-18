@@ -2,7 +2,6 @@ import {
   addClass,
   getScrollbarWidth,
   getScrollTop,
-  getWindowScrollLeft,
   hasClass,
   outerHeight,
   removeClass,
@@ -77,7 +76,17 @@ export class BottomOverlay extends Overlay {
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       overlayPosition = this.getOverlayOffset();
-      overlayRoot.style.bottom = `${overlayPosition}px`;
+
+      // At non-integer zoom levels (e.g. 90%) the browser physically rounds each row's
+      // border to the nearest physical pixel, causing the rendered TABLE to extend a
+      // fractional CSS pixel past the holder's integer CSS height. Subtract this overflow
+      // so the overlay sits flush against the actual table content instead of the
+      // CSS-integer hider boundary.
+      const masterTableRect = this.wot.wtTable.TABLE.getBoundingClientRect();
+      const masterHolderRect = this.wot.wtTable.holder.getBoundingClientRect();
+      const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
+
+      overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
 
     } else {
       overlayPosition = this.getScrollPosition();
@@ -120,19 +129,22 @@ export class BottomOverlay extends Overlay {
   setScrollPosition(pos) {
     const { rootWindow } = this.domBindings;
     const scrollableElement = this.mainTableScrollableElement;
+    const getScrollPosition = () => {
+      return scrollableElement === rootWindow ? rootWindow.scrollY : scrollableElement.scrollTop;
+    };
+    const setScrollPosition = (newPosition) => {
+      if (scrollableElement === rootWindow) {
+        rootWindow.scrollTo(rootWindow.scrollX, newPosition);
+      } else {
+        scrollableElement.scrollTop = newPosition;
+      }
+    };
+    const oldScrollPosition = getScrollPosition();
     let result = false;
 
-    if (scrollableElement === rootWindow && pos !== rootWindow.scrollY) {
-      const oldScrollX = rootWindow.scrollY;
-
-      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), top);
-      result = oldScrollX !== rootWindow.scrollY;
-
-    } else if (pos !== scrollableElement.scrollTop) {
-      const oldScrollLeft = scrollableElement.scrollTop;
-
-      scrollableElement.scrollTop = pos;
-      result = oldScrollLeft !== scrollableElement.scrollTop;
+    if (pos !== oldScrollPosition) {
+      setScrollPosition(pos);
+      result = oldScrollPosition !== getScrollPosition();
     }
 
     return result;

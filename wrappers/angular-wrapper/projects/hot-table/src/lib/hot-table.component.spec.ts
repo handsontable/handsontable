@@ -53,6 +53,24 @@ describe('HotTableComponent', () => {
     expect(fixture.componentInstance.hotInstance.getDataAtCell(0, 0)).toBe('A1');
   });
 
+  it(`should use data from settings when [data] input is not bound`, () => {
+    const settingsData = createSpreadsheetData(3, 3);
+
+    fixture = TestBed.createComponent(HotTableComponent);
+    // GridSettings intentionally omits 'data' (users should use [data] binding),
+    // but we cast here to verify the runtime merge does not override it with null
+    // when [data] is unbound (e.g. JavaScript users or future API changes).
+    fixture.componentInstance.settings = {
+      ...settings,
+      data: settingsData,
+    } as unknown as GridSettings;
+    // [data] input is intentionally not set — remains null (the default)
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.hotInstance.getDataAtCell(0, 0)).toBe('A1');
+    expect(fixture.componentInstance.hotInstance.countRows()).toBe(3);
+  });
+
   it(`should be possible to set some option and pass it to Handsontable`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.componentInstance.settings = {
@@ -248,7 +266,7 @@ describe('HotTableComponent', () => {
       expect(instance.getPlugin('copyPaste')).toBeTruthy();
     });
 
-    it(`should use Handsontable as a hook's context, if is defined as a function in settings object`, async () => {
+    it(`should use Handsontable as a hook's context, if is defined as a function in settings object`, () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {
         ...settings,

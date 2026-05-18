@@ -13,6 +13,7 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
+import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
 
 // Read the current handsontable library version for StackBlitz package.json.
 const _require = createRequire(import.meta.url);
@@ -250,10 +251,13 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const scriptFiles = files.filter(f => scriptExts.has(f.ext));
   const otherFiles = files.filter(f => !scriptExts.has(f.ext));
 
-  // Build logical tab names: "JavaScript" (once for all script variants) + others
+  // Build logical tab names: "JavaScript" (once for all script variants) + others.
+  // Angular examples with other tabs (HTML/CSS) use "Code" instead of "JavaScript".
   const tabNames = [];
 
-  if (scriptFiles.length > 0) tabNames.push('JavaScript');
+  if (scriptFiles.length > 0) {
+    tabNames.push(isAngularDir && otherFiles.length > 0 ? 'Code' : 'JavaScript');
+  }
 
   for (const f of otherFiles) tabNames.push(f.label);
 
@@ -403,7 +407,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v33';
+const LOADER_VERSION = 'v34';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -842,9 +846,7 @@ function convertAsideBlocks(content) {
     } else if (/^:::\s*$/.test(line)) {
       // Convert markdown syntax to HTML since the body is injected as raw
       // HTML and won't be processed by remark.
-      const body = asideBody.join('\n').trim()
-        .replace(/`([^`]+)`/g, '<code>$1</code>')
-        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+      const body = convertAsideBodyMarkdown(asideBody.join('\n').trim());
 
       result.push(`<aside class="starlight-aside starlight-aside--${asideType}" aria-label="${asideTitle}">`);
       result.push(`<p class="starlight-aside__title" aria-hidden="true">${asideTitle}</p>`);

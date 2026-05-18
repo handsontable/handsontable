@@ -18,7 +18,7 @@ export function condition(dataRow, [value]) {
     return false;
   }
 
-  return dataTime <= inputTime;
+  return dataTime < inputTime;
 }
 
 registerCondition(CONDITION_NAME, condition, {

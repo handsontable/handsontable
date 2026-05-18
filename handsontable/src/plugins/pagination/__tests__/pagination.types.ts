@@ -62,6 +62,7 @@ const paginationData: {
   lastVisibleRowIndex: number;
 } = plugin.getPaginationData();
 const currentPageIndex: number = plugin.getCurrentPage();
+const currentPageSize: number | 'auto' = plugin.getCurrentPageSize();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();
 const data: any[][] = plugin.getCurrentPageData();

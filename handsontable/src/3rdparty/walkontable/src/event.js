@@ -5,6 +5,8 @@ import {
   getParent,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
+import { clamp } from '../../../helpers/number';
+import { findColumnAtX, findRowAtY } from './utils/cellCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
@@ -57,11 +59,44 @@ class Event {
    */
   #longPressTimeout = null;
   /**
-   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press).
+   * Marks that the long-press contextmenu gesture has been triggered for the current touch.
+   *
+   * @type {boolean}
+   */
+  #longPressFired = false;
+  /**
+   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press
+   * and to distinguish a tap from a scroll).
    *
    * @type {{ x: number, y: number }|null}
    */
   #touchStartCoords = null;
+  /**
+   * Marks that the current touch gesture has moved beyond the threshold and should be treated
+   * as a scroll rather than a tap.
+   *
+   * @type {boolean}
+   */
+  #touchWasMoved = false;
+  /**
+   * The original `touchstart` event captured so the synthesized mousedown can be deferred to
+   * `touchend` and only fired when the gesture is a tap (not a scroll).
+   *
+   * @type {TouchEvent|null}
+   */
+  #deferredTouchStartEvent = null;
+  /**
+   * @type {boolean}
+   */
+  #mouseDown = false;
+  /**
+   * The last renderable coords seen in `onMouseMove` while the mouse was outside the viewport.
+   * Used to skip the `onCellMouseOverOutside` listener call (and therefore `setRangeEnd`) when
+   * repeated mousemove events land on the same edge cell.
+   *
+   * @type {{ row: number, col: number } | null}
+   */
+  #mouseOverOutsideLastCoords = null;
 
   /**
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
@@ -94,31 +129,27 @@ class Event {
     this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseover', event => this.onMouseOver(event));
     this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseout', event => this.onMouseOut(event));
 
+    if (this.#wtTable.isMaster) {
+      this.#eventManager.addEventListener(
+        this.#domBindings.rootDocument,
+        'mousemove',
+        event => this.onMouseMove(event)
+      );
+      this.#eventManager.addEventListener(
+        this.#domBindings.rootDocument,
+        'mouseup',
+        () => {
+          this.#mouseDown = false;
+          this.#mouseOverOutsideLastCoords = null;
+        }
+      );
+    }
+
     const initTouchEvents = () => {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend', event => this.onTouchEnd(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.#onTouchMove(event));
-
-      if (!this.momentumScrolling) {
-        this.momentumScrolling = {};
-      }
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => {
-        this.#cancelLongPressTimer();
-        clearTimeout(this.momentumScrolling._timeout);
-
-        if (!this.momentumScrolling.ongoing) {
-          this.#wtSettings.getSetting('onBeforeTouchScroll');
-        }
-        this.momentumScrolling.ongoing = true;
-
-        this.momentumScrolling._timeout = setTimeout(() => {
-          if (!this.touchApplied) {
-            this.momentumScrolling.ongoing = false;
-
-            this.#wtSettings.getSetting('onAfterMomentumScroll');
-          }
-        }, 200);
-      });
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.onTouchMove(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => this.onHolderScroll());
     };
 
     const initMouseEvents = () => {
@@ -217,8 +248,13 @@ class Event {
     if (hasClass(realTarget, 'corner')) {
       this.#wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
 
-    } else if (cell.TD && this.#wtSettings.has('onCellMouseDown')) {
-      this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
+    } else if (cell.TD) {
+      this.#mouseDown = true;
+      this.#mouseOverOutsideLastCoords = null;
+
+      if (this.#wtSettings.has('onCellMouseDown')) {
+        this.callListener('onCellMouseDown', event, cell.coords, cell.TD);
+      }
     }
 
     // doubleclick reacts only for left mouse button or from touch events
@@ -274,6 +310,186 @@ class Event {
   }
 
   /**
+   * OnMouseMove callback.
+   *
+   * @private
+   * @param {MouseEvent} event The mouse event object.
+   */
+  onMouseMove(event) {
+    if (!this.#mouseDown) {
+      return;
+    }
+
+    const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
+
+    if (isOutside) {
+      const lastCoords = this.#mouseOverOutsideLastCoords;
+
+      if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
+        const TD = this.#wtTable.getCell(coords, true);
+
+        if (TD instanceof HTMLElement) {
+          this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
+          this.callListener('onCellMouseOverOutside', event, coords, TD);
+        }
+      }
+    } else {
+      this.#mouseOverOutsideLastCoords = null;
+    }
+  }
+
+  /**
+   * Returns the cell coordinates for the given mouse position and whether the mouse is
+   * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+   *
+   * @private
+   * @param {number} mouseX Client X coordinate of the mouse.
+   * @param {number} mouseY Client Y coordinate of the mouse.
+   * @returns {{ coords: CellCoords, isOutside: boolean }}
+   */
+  #getCellCoordsFromMousePosition(mouseX, mouseY) {
+    const isRtl = this.#wtSettings.getSetting('rtlMode');
+    const wot = this.#facadeGetter();
+
+    const numberOfFixedColumnsStart = this.#wtSettings.getSetting('fixedColumnsStart');
+    const numberOfFixedRowsTop = this.#wtSettings.getSetting('fixedRowsTop');
+    const numberOfFixedRowsBottom = this.#wtSettings.getSetting('fixedRowsBottom');
+
+    const firstPartiallyVisibleRow = wot.wtScroll.getFirstPartiallyVisibleRow();
+    const lastPartiallyVisibleRow = wot.wtScroll.getLastPartiallyVisibleRow();
+    const firstPartiallyVisibleColumn = wot.wtScroll.getFirstPartiallyVisibleColumn();
+    const lastPartiallyVisibleColumn = wot.wtScroll.getLastPartiallyVisibleColumn();
+    const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
+
+    const columnHeaderHeight = this.#wtSettings.getSetting('columnHeaders').length > 0
+      ? wot.wtViewport.getColumnHeaderHeight() : 0;
+    const rowHeaderWidth = this.#wtSettings.getSetting('rowHeaders').length > 0
+      ? wot.wtViewport.getRowHeaderWidth() : 0;
+    const { rootWindow } = this.#domBindings;
+    // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL
+    // at max-left scroll where tableOffset.left can exceed innerWidth), using it as the
+    // clamp minimum causes clamp(min > max) to always return min, mapping every mouse
+    // position to the wrong edge column. Math.min(0, tableOffset) corrects this while
+    // preserving the original boundary when the table is partially off-screen to the
+    // left/top (tableOffset < 0), which is the normal scrolled-past-origin case.
+    const tableViewportLeft = wot.wtViewport.isHorizontallyScrollableByWindow()
+      ? Math.min(0, tableOffset.left)
+      : tableOffset.left;
+    const tableViewportTop = wot.wtViewport.isVerticallyScrollableByWindow()
+      ? Math.min(0, tableOffset.top)
+      : tableOffset.top;
+    const tableViewportRight = wot.wtViewport.isHorizontallyScrollableByWindow()
+      ? rootWindow.innerWidth
+      : tableOffset.left + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
+    const tableViewportBottom = wot.wtViewport.isVerticallyScrollableByWindow()
+      ? rootWindow.innerHeight
+      : tableOffset.top + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
+
+    const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
+    const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
+
+    let foundColumn = null;
+
+    if (numberOfFixedColumnsStart > 0) {
+      const fixedCell = wot.getCell({ row: firstPartiallyVisibleRow, col: 0 }, true);
+
+      if (fixedCell instanceof HTMLElement) {
+        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
+
+        foundColumn = findColumnAtX(wot, firstPartiallyVisibleRow, 0, numberOfFixedColumnsStart - 1, fixedRelativeX);
+      }
+    }
+
+    if (foundColumn === null) {
+      const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
+
+      if (scrollCell instanceof HTMLElement) {
+        const scrollCellRect = scrollCell.getBoundingClientRect();
+        const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
+
+        foundColumn = findColumnAtX(
+          wot,
+          firstPartiallyVisibleRow,
+          firstPartiallyVisibleColumn,
+          lastPartiallyVisibleColumn,
+          scrollRelativeX,
+        );
+
+        if (foundColumn === null) {
+          foundColumn = scrollRelativeX < 0 ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
+        }
+      } else {
+        foundColumn = firstPartiallyVisibleColumn;
+      }
+    }
+
+    let foundRow = null;
+
+    if (numberOfFixedRowsTop > 0) {
+      const fixedCell = wot.getCell({ row: 0, col: firstPartiallyVisibleColumn }, true);
+
+      if (fixedCell instanceof HTMLElement) {
+        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedRelativeY = clampedY - fixedCellRect.top;
+
+        foundRow = findRowAtY(wot, firstPartiallyVisibleColumn, 0, numberOfFixedRowsTop - 1, fixedRelativeY);
+      }
+    }
+
+    if (foundRow === null && numberOfFixedRowsBottom > 0) {
+      const totalRows = this.#wtSettings.getSetting('totalRows');
+      const bottomStartRow = totalRows - numberOfFixedRowsBottom;
+      const bottomEndRow = totalRows - 1;
+      const fixedBottomCell = wot.getCell({ row: bottomStartRow, col: firstPartiallyVisibleColumn }, true);
+
+      if (fixedBottomCell instanceof HTMLElement) {
+        const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
+        const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
+
+        if (fixedBottomRelativeY >= 0) {
+          foundRow = findRowAtY(wot, firstPartiallyVisibleColumn, bottomStartRow, bottomEndRow, fixedBottomRelativeY);
+
+          if (foundRow === null) {
+            foundRow = bottomEndRow;
+          }
+        }
+      }
+    }
+
+    if (foundRow === null) {
+      const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
+
+      if (scrollCell instanceof HTMLElement) {
+        const scrollCellRect = scrollCell.getBoundingClientRect();
+        const scrollRelativeY = clampedY - scrollCellRect.top;
+
+        foundRow = findRowAtY(
+          wot,
+          firstPartiallyVisibleColumn,
+          firstPartiallyVisibleRow,
+          lastPartiallyVisibleRow,
+          scrollRelativeY,
+        );
+
+        if (foundRow === null) {
+          foundRow = lastPartiallyVisibleRow;
+        }
+      } else {
+        foundRow = firstPartiallyVisibleRow;
+      }
+    }
+
+    return {
+      coords: wot.createCellCoords(foundRow, foundColumn),
+      isOutside: mouseX < tableViewportLeft ||
+                 mouseX > tableViewportRight ||
+                 mouseY < tableViewportTop ||
+                 mouseY > tableViewportBottom,
+    };
+  }
+
+  /**
    * OnMouseOut callback.
    *
    * @private
@@ -305,6 +521,9 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseUp(event) {
+    this.#mouseDown = false;
+    this.#mouseOverOutsideLastCoords = null;
+
     const cell = this.parentCell(event.target);
 
     if (cell.TD && this.#wtSettings.has('onCellMouseUp')) {
@@ -338,7 +557,9 @@ class Event {
   }
 
   /**
-   * OnTouchStart callback. Simulates mousedown event.
+   * OnTouchStart callback. Captures the gesture start so the synthesized mousedown can be
+   * deferred to `touchend`; this lets a touch-drag gesture scroll the grid without
+   * re-triggering the cell selection (see issue #11659).
    *
    * @private
    * @param {TouchEvent} event The touch event object.
@@ -346,19 +567,32 @@ class Event {
   onTouchStart(event) {
     this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection().cellRange;
     this.touchApplied = true;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
+    this.#deferredTouchStartEvent = event;
 
-    this.onMouseDown(event);
     this.#startLongPressTimer(event);
   }
 
   /**
-   * OnTouchEnd callback. Simulates mouseup event.
+   * OnTouchEnd callback. Fires the deferred mousedown only when the gesture is a tap
+   * (no movement past the threshold and no long-press); for a scroll gesture the
+   * selection stays untouched (see issue #11659).
    *
    * @private
    * @param {TouchEvent} event The touch event object.
    */
   onTouchEnd(event) {
+    const wasScrolled = this.#touchWasMoved;
+    const isTap = !wasScrolled && !this.#longPressFired && this.#deferredTouchStartEvent !== null;
+    const deferredTouchStartEvent = this.#deferredTouchStartEvent;
+
     this.#cancelLongPressTimer();
+    this.#deferredTouchStartEvent = null;
+
+    if (isTap) {
+      this.onMouseDown(deferredTouchStartEvent);
+    }
 
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
@@ -390,9 +624,19 @@ class Event {
       }
     }
 
-    this.onMouseUp(event);
+    // Fire mouseUp whenever the gesture also produced a mouseDown - either a tap
+    // (deferred mousedown above) or a long-press (mousedown fired from the timer
+    // callback). Skipping it for a long-press that ended in a scroll would leave
+    // an unpaired mousedown and break plugins listening to onCellMouseUp /
+    // before/after hooks (e.g. nestedHeaders, ContextMenu close logic).
+    // Suppress only for pure scroll gestures, where onMouseDown was never fired.
+    if (!wasScrolled || this.#longPressFired) {
+      this.onMouseUp(event);
+    }
 
     this.touchApplied = false;
+    this.#touchWasMoved = false;
+    this.#longPressFired = false;
   }
 
   /**
@@ -416,7 +660,13 @@ class Event {
 
     this.#longPressTimeout = setTimeout(() => {
       this.#longPressTimeout = null;
+      this.#longPressFired = true;
       this.#touchStartCoords = null;
+
+      // Select the long-pressed cell so context-menu commands (e.g. "Insert row above")
+      // operate on it. With the deferred-mousedown flow, touchend skips onMouseDown
+      // when #longPressFired is true, so we fire it here before opening the menu.
+      this.onMouseDown(event);
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
@@ -438,6 +688,39 @@ class Event {
   }
 
   /**
+   * Holder `scroll` callback. Cancels the long-press timer and runs the momentum-scroll
+   * bookkeeping. When called during an active touch sequence it also marks the gesture
+   * as a scroll so the deferred mousedown is not fired on `touchend` - native scrolling
+   * can start at ~8px, before the 10px LONG_PRESS_MOVE_THRESHOLD that `onTouchMove`
+   * watches (issue #11659).
+   *
+   * @private
+   */
+  onHolderScroll() {
+    if (!this.momentumScrolling) {
+      this.momentumScrolling = {};
+    }
+    if (this.touchApplied) {
+      this.#touchWasMoved = true;
+    }
+    this.#cancelLongPressTimer();
+    clearTimeout(this.momentumScrolling._timeout);
+
+    if (!this.momentumScrolling.ongoing) {
+      this.#wtSettings.getSetting('onBeforeTouchScroll');
+    }
+    this.momentumScrolling.ongoing = true;
+
+    this.momentumScrolling._timeout = setTimeout(() => {
+      if (!this.touchApplied) {
+        this.momentumScrolling.ongoing = false;
+
+        this.#wtSettings.getSetting('onAfterMomentumScroll');
+      }
+    }, 200);
+  }
+
+  /**
    * Cancels the pending long-press timer.
    *
    * @private
@@ -451,19 +734,21 @@ class Event {
   }
 
   /**
-   * OnTouchMove callback. Cancels the long-press timer if the finger moves beyond the threshold.
+   * OnTouchMove callback. Once the finger moves beyond the threshold, marks the gesture as a
+   * scroll so `touchend` skips firing the deferred mousedown, and cancels the long-press timer.
    *
    * @private
    * @param {TouchEvent} event The touch event object.
    */
-  #onTouchMove(event) {
-    if (this.#longPressTimeout === null || this.#touchStartCoords === null) {
+  onTouchMove(event) {
+    if (this.#touchStartCoords === null) {
       return;
     }
 
     const touch = event.touches[0];
 
     if (!touch) {
+      this.#touchWasMoved = true;
       this.#cancelLongPressTimer();
 
       return;
@@ -473,6 +758,7 @@ class Event {
     const dy = Math.abs(touch.clientY - this.#touchStartCoords.y);
 
     if (dx > LONG_PRESS_MOVE_THRESHOLD || dy > LONG_PRESS_MOVE_THRESHOLD) {
+      this.#touchWasMoved = true;
       this.#cancelLongPressTimer();
     }
   }
@@ -501,6 +787,10 @@ class Event {
     clearTimeout(this.#dblClickTimeout[0]);
     clearTimeout(this.#dblClickTimeout[1]);
     this.#cancelLongPressTimer();
+
+    if (this.momentumScrolling) {
+      clearTimeout(this.momentumScrolling._timeout);
+    }
 
     this.#eventManager.destroy();
   }

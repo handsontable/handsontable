@@ -4,6 +4,7 @@ import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
 import * as C from '../../../i18n/constants';
 import { unifyColumnValues, intersectValues, toEmptyString } from '../utils';
+import { getSortComparatorForMeta } from '../sortComparators';
 import { BaseComponent } from './_base';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 import { CONDITION_BY_VALUE, CONDITION_NONE } from '../constants';
@@ -138,7 +139,9 @@ export class ValueComponent extends BaseComponent {
         const rowMetaMap = new Map(
           filteredRows.map(row => [row.value, row.meta])
         );
-        const unifiedRowValues = unifyColumnValues(rowValues);
+        const columnMeta = filteredRows[0]?.meta;
+        const comparator = getSortComparatorForMeta(columnMeta);
+        const unifiedRowValues = unifyColumnValues(rowValues, comparator);
 
         if (conditionArgsChange) {
           firstByValueCondition.args[0] = conditionArgsChange;
@@ -244,7 +247,9 @@ export class ValueComponent extends BaseComponent {
     const rowEntries = this._getColumnVisibleValues();
     const rowValues = rowEntries.map(entry => entry.value);
     const rowMetaMap = new Map(rowEntries.map(row => [row.value, row.meta]));
-    const values = unifyColumnValues(rowValues);
+    const columnMeta = rowEntries[0]?.meta;
+    const comparator = getSortComparatorForMeta(columnMeta);
+    const values = unifyColumnValues(rowValues, comparator);
     const items = intersectValues(values, values, defaultBlankCellValue, (item) => {
       this.#triggerModifyMultipleSelectionValueHook(item, rowMetaMap);
     });

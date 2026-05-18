@@ -6,6 +6,11 @@
  * - Other modern CSS features that jsdom doesn't support.
  */
 
+// Memoize preprocessModernCSS — the same rule/string always produces the same output.
+// Avoids re-running 4 regexes on the same 133 KB handsontableStyles string 644×
+// (once per insertRule call when jsdom parses the style element).
+const preprocessCache = new Map();
+
 /**
  * Patches CSSStyleSheet.prototype.insertRule to handle modern CSS features.
  */
@@ -75,6 +80,12 @@ function preprocessModernCSS(cssText) {
     return cssText;
   }
 
+  const cached = preprocessCache.get(cssText);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
   let processed = cssText;
 
   // Replace light-dark() with a fallback value that jsdom can parse.
@@ -99,6 +110,8 @@ function preprocessModernCSS(cssText) {
   // nwsapi in JSDOM 16.x does not support :has(); it produces "invalid selector" SyntaxErrors.
   // :not(*) is a valid selector that matches nothing, so the rule stays valid but has no effect.
   processed = processed.replace(/:has\s*\([^)]+\)/g, ':not(*)');
+
+  preprocessCache.set(cssText, processed);
 
   return processed;
 }
@@ -193,6 +206,19 @@ function getMinimalComputedStyle(element) {
   };
 }
 
+// Module-level so clearComputedStyleCache() can replace it between tests.
+// WeakMap has no .clear() method — reassigning the reference is the only option.
+let computedStyleCache = new WeakMap();
+
+/**
+ * Replaces the per-element computed style cache with a fresh WeakMap.
+ * Call this in a beforeEach hook to prevent stale cached snapshots from leaking
+ * between tests when an element's class list or inline styles change mid-test.
+ */
+function clearComputedStyleCache() {
+  computedStyleCache = new WeakMap();
+}
+
 /**
  * Patches CSSStyleDeclaration to improve CSS custom property support.
  */
@@ -204,14 +230,20 @@ function patchCSSStyleDeclaration() {
   const originalGetPropertyValue = CSSStyleDeclaration.prototype.getPropertyValue;
   const originalGetComputedStyle = window.getComputedStyle;
 
-  // Enhance getPropertyValue to better handle CSS custom properties.
+  // Cache for CSS custom property values resolved from :root.
+  // CSS custom properties are defined on :root and don't change during a test run,
+  // so we can safely cache them for the lifetime of the jsdom instance.
+  const cssVarCache = new Map();
+
+  // Enhance getPropertyValue to handle CSS custom properties.
+  // Does NOT fall back to getComputedStyle — that path is both expensive and
+  // recursive (the returned CSSStyleDeclaration has the same patched prototype).
+  // The getComputedStyle proxy below handles the CSS variable lookup with caching.
   CSSStyleDeclaration.prototype.getPropertyValue = function(property) {
     const value = originalGetPropertyValue.call(this, property);
 
-    // If it's a CSS custom property and we got an empty string,
-    // try to get it from the element's inline style or computed style.
     if (!value && property.startsWith('--')) {
-      // Try inline style first.
+      // Try inline style first (cheap, no cascade evaluation).
       if (this._ownerElement && this._ownerElement.style) {
         const inlineValue = this._ownerElement.style.getPropertyValue(property);
 
@@ -219,52 +251,69 @@ function patchCSSStyleDeclaration() {
           return inlineValue;
         }
       }
-
-      // Try computed style from parent/root.
-      if (this._ownerElement && originalGetComputedStyle) {
-        try {
-          const computed = originalGetComputedStyle(this._ownerElement);
-          const computedValue = computed.getPropertyValue(property);
-
-          if (computedValue) {
-            return computedValue;
-          }
-        } catch (e) {
-          // Ignore errors.
-        }
-      }
     }
 
     return value;
   };
 
-  // Enhance getComputedStyle to better support CSS custom properties.
-  window.getComputedStyle = function(element, pseudoElement) {
+  /**
+   * Returns a cached CSSStyleDeclaration for the element, calling jsdom's
+   * getComputedStyle at most once per unique element.
+   *
+   * @param {Element} element The element to compute styles for.
+   * @param {string|null} pseudoElement Optional pseudo-element string.
+   * @returns {CSSStyleDeclaration} The computed style object.
+   */
+  function getCachedComputed(element, pseudoElement) {
+    // Only cache non-pseudo-element lookups (pseudo-elements are rare and uncacheable).
+    if (pseudoElement) {
+      try {
+        return originalGetComputedStyle.call(window, element, pseudoElement);
+      } catch (e) {
+        if (e instanceof SyntaxError || (e.message && /not a valid selector/i.test(e.message))) {
+          return getMinimalComputedStyle(element);
+        }
+        throw e;
+      }
+    }
+
+    if (computedStyleCache.has(element)) {
+      return computedStyleCache.get(element);
+    }
+
     let computed;
 
     try {
-      computed = originalGetComputedStyle.call(this, element, pseudoElement);
+      computed = originalGetComputedStyle.call(window, element, pseudoElement);
     } catch (e) {
       // JSDOM's nwsapi throws SyntaxError on unsupported selectors (e.g. :has()).
-      // If CSS wasn't preprocessed (e.g. dynamic styles), return a minimal style object.
       if (e instanceof SyntaxError || (e.message && /not a valid selector/i.test(e.message))) {
-        return getMinimalComputedStyle(element);
+        computed = getMinimalComputedStyle(element);
+      } else {
+        throw e;
       }
-
-      throw e;
     }
 
-    // Create a proxy that enhances CSS custom property retrieval.
+    computedStyleCache.set(element, computed);
+
+    return computed;
+  }
+
+  // Enhance getComputedStyle to support CSS custom properties.
+  // PERF: getCachedComputed() ensures jsdom's CSS cascade evaluation (~34ms) runs at
+  // most once per unique element per test, instead of once per call (195× per HOT init).
+  window.getComputedStyle = function(element, pseudoElement) {
+    const computed = getCachedComputed(element, pseudoElement);
+
+    // Create a proxy that resolves unresolved CSS custom properties.
     return new Proxy(computed, {
       get(target, prop) {
         if (prop === 'getPropertyValue') {
           return function(property) {
             const value = target.getPropertyValue(property);
 
-            // If it's a CSS custom property and we got an empty string,
-            // try to find it in the element's style or parent styles.
             if (!value && property.startsWith('--')) {
-              // Check inline style.
+              // Check inline style (cheapest, no cascade).
               if (element.style) {
                 const inlineValue = element.style.getPropertyValue(property);
 
@@ -273,55 +322,31 @@ function patchCSSStyleDeclaration() {
                 }
               }
 
-              // Check for default theme CSS vars if element has a theme class.
+              // Check theme defaults (no DOM traversal).
               const defaultValue = getDefaultThemeCSSVar(element, property);
 
               if (defaultValue) {
                 return defaultValue;
               }
 
-              // Check parent elements for CSS custom properties.
-              let current = element.parentElement;
-
-              while (current) {
-                try {
-                  const parentComputed = originalGetComputedStyle.call(window, current);
-                  const parentValue = parentComputed.getPropertyValue(property);
-
-                  if (parentValue) {
-                    return parentValue;
-                  }
-
-                  // Check for default theme CSS vars in parent.
-                  const parentDefault = getDefaultThemeCSSVar(current, property);
-
-                  if (parentDefault) {
-                    return parentDefault;
-                  }
-                } catch (e) {
-                  // Ignore errors.
-                }
-
-                current = current.parentElement;
+              // CSS custom properties are defined on :root so the value is the
+              // same regardless of which element triggered the lookup.
+              if (cssVarCache.has(property)) {
+                return cssVarCache.get(property);
               }
 
-              // Check document root.
+              // Resolve from :root — single call, no parent-chain walk.
               try {
                 const rootComputed = originalGetComputedStyle.call(window, document.documentElement);
-                const rootValue = rootComputed.getPropertyValue(property);
+                const rootValue = originalGetPropertyValue.call(rootComputed, property);
+
+                cssVarCache.set(property, rootValue || '');
 
                 if (rootValue) {
                   return rootValue;
                 }
-
-                // Check for default theme CSS vars in root.
-                const rootDefault = getDefaultThemeCSSVar(document.documentElement, property);
-
-                if (rootDefault) {
-                  return rootDefault;
-                }
               } catch (e) {
-                // Ignore errors.
+                cssVarCache.set(property, '');
               }
             }
 
@@ -471,5 +496,6 @@ function initCSSPolyfill() {
 module.exports = {
   patchCSSStyleSheet,
   patchConsoleErrors,
-  initCSSPolyfill
+  initCSSPolyfill,
+  clearComputedStyleCache
 };
