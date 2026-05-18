@@ -35,6 +35,14 @@ export interface HotTableContextImpl {
   readonly emitColumnSettings: (columnSettings: Handsontable.ColumnSettings, columnIndex: number) => void;
 
   /**
+   * Trim the column settings array to the given length. Used to drop slots
+   * left over from HotColumn children that have unmounted.
+   *
+   * @param {Number} length Target length for the column settings array.
+   */
+  readonly trimColumnSettings: (length: number) => void;
+
+  /**
    * Return a renderer wrapper function for the provided renderer component.
    *
    * @param {ComponentType<HotRendererProps>} Renderer React renderer component.
@@ -72,6 +80,10 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const setHotColumnSettings = useCallback((columnSettings: Handsontable.ColumnSettings, columnIndex: number) => {
     columnsSettings.current[columnIndex] = columnSettings;
+  }, [])
+
+  const trimColumnSettings = useCallback((length: number) => {
+    columnsSettings.current.length = length;
   }, [])
 
   const componentRendererColumns = useRef<Map<number | 'global', boolean>>(new Map());
@@ -144,12 +156,13 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     componentRendererColumns: componentRendererColumns.current,
     columnsSettings: columnsSettings.current,
     emitColumnSettings: setHotColumnSettings,
+    trimColumnSettings,
     getRendererWrapper,
     clearPortalCache,
     clearRenderedCellCache,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
-  }), [setHotColumnSettings, getRendererWrapper, clearRenderedCellCache, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
+  }), [setHotColumnSettings, trimColumnSettings, getRendererWrapper, clearRenderedCellCache, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
 
   return (
     <HotTableContext.Provider value={contextImpl}>{children}</HotTableContext.Provider>
