@@ -369,16 +369,15 @@ export function setProperty(object: Record<string, unknown>, name: string, value
       if (!isPlainObject(nextLevel)) {
         return;
       }
+      workingObject = nextLevel;
+
+    } else {
       Object.defineProperty(workingObject, propName, {
         value,
         writable: true,
         enumerable: true,
         configurable: true,
       });
-      workingObject = nextLevel;
-
-    } else {
-      workingObject[propName] = value;
     }
   }
 }
