@@ -21,9 +21,9 @@ import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
-import type { HotInstance } from '../../core/types';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine } from './engine/types';
+import type { CellChange } from '../../settings';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -35,6 +35,44 @@ interface HFCellChange {
     col?: number;
   };
   newValue?: unknown;
+}
+
+/**
+ * Narrow an arbitrary value to a HyperFormula cell change shape.
+ *
+ * @param {unknown} value Value to check.
+ * @returns {boolean} `true` if the value matches the cell change shape.
+ */
+function isHFCellChange(value: unknown): value is HFCellChange {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * The expected shape of the `formulas` plugin settings object (the non-boolean form).
+ */
+interface FormulasPluginSettings {
+  sheetName?: string;
+  engine: unknown;
+}
+
+/**
+ * Narrow the raw `formulas` setting value to the object form.
+ *
+ * @param {unknown} value Raw setting value.
+ * @returns {boolean} `true` when the value is a settings object.
+ */
+function isFormulasSettingsObject(value: unknown): value is FormulasPluginSettings {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Narrow a value to an object with a `value` property.
+ *
+ * @param {unknown} candidate Value to check.
+ * @returns {boolean} `true` when the value is an object exposing a `value` property.
+ */
+function hasValueProperty(candidate: unknown): candidate is { value: unknown } {
+  return typeof candidate === 'object' && candidate !== null && 'value' in candidate;
 }
 
 export const PLUGIN_KEY = 'formulas';
@@ -98,19 +136,82 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
+   * Called when a value is updated in the engine.
+   *
+   * @fires Hooks#afterFormulasValuesUpdate
+   * @param {Array} changes The values and location of applied changes.
+   */
+  #onEngineValuesUpdated = (changes: unknown[][]) => {
+    this.hot.runHooks('afterFormulasValuesUpdate', changes);
+  };
+
+  /**
+   * Called when a named expression is added to the engine instance.
+   *
+   * @fires Hooks#afterNamedExpressionAdded
+   * @param {string} namedExpressionName The name of the added expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  #onEngineNamedExpressionsAdded = (namedExpressionName: string, changes: unknown[][]) => {
+    this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
+  };
+
+  /**
+   * Called when a named expression is removed from the engine instance.
+   *
+   * @fires Hooks#afterNamedExpressionRemoved
+   * @param {string} namedExpressionName The name of the removed expression.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  #onEngineNamedExpressionsRemoved = (namedExpressionName: string, changes: unknown[][]) => {
+    this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
+  };
+
+  /**
+   * Called when a new sheet is added to the engine instance.
+   *
+   * @fires Hooks#afterSheetAdded
+   * @param {string} addedSheetDisplayName The name of the added sheet.
+   */
+  #onEngineSheetAdded = (addedSheetDisplayName: string) => {
+    this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
+  };
+
+  /**
+   * Called when a sheet in the engine instance is renamed.
+   *
+   * @fires Hooks#afterSheetRenamed
+   * @param {string} oldDisplayName The old name of the sheet.
+   * @param {string} newDisplayName The new name of the sheet.
+   */
+  #onEngineSheetRenamed = (oldDisplayName: string, newDisplayName: string) => {
+    this.#updateSheetNameAndSheetId(newDisplayName);
+    this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
+  };
+
+  /**
+   * Called when a sheet is removed from the engine instance.
+   *
+   * @fires Hooks#afterSheetRemoved
+   * @param {string} removedSheetDisplayName The removed sheet name.
+   * @param {Array} changes The values and location of applied changes.
+   */
+  #onEngineSheetRemoved = (removedSheetDisplayName: string, changes: unknown[][]) => {
+    this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
+  };
+
+  /**
    * The list of the HyperFormula listeners.
    *
    * @type {Array}
    */
-  #engineListeners: [string, (...args: unknown[]) => void][] = [
-    ['valuesUpdated', (...args: unknown[]) => this.#onEngineValuesUpdated(args[0] as unknown[][])],
-    ['namedExpressionAdded', (...args: unknown[]) =>
-      this.#onEngineNamedExpressionsAdded(args[0] as string, args[1] as unknown[][])],
-    ['namedExpressionRemoved', (...args: unknown[]) =>
-      this.#onEngineNamedExpressionsRemoved(args[0] as string, args[1] as unknown[][])],
-    ['sheetAdded', (...args: unknown[]) => this.#onEngineSheetAdded(args[0] as string)],
-    ['sheetRenamed', (...args: unknown[]) => this.#onEngineSheetRenamed(args[0] as string, args[1] as string)],
-    ['sheetRemoved', (...args: unknown[]) => this.#onEngineSheetRemoved(args[0] as string, args[1] as unknown[][])],
+  #engineListeners: [string, Function][] = [
+    ['valuesUpdated', this.#onEngineValuesUpdated],
+    ['namedExpressionAdded', this.#onEngineNamedExpressionsAdded],
+    ['namedExpressionRemoved', this.#onEngineNamedExpressionsRemoved],
+    ['sheetAdded', this.#onEngineSheetAdded],
+    ['sheetRenamed', this.#onEngineSheetRenamed],
+    ['sheetRemoved', this.#onEngineSheetRemoved],
   ];
 
   /**
@@ -357,8 +458,8 @@ export class Formulas extends BasePlugin {
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
     // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
     if (!newSettings.data && this.sheetName === null) {
-      const formulasSettings = this.hot.getSettings()[PLUGIN_KEY] as { sheetName?: string; engine: unknown };
-      const sheetName = formulasSettings.sheetName;
+      const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
+      const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
       if (sheetName && this.engine.doesSheetExist(sheetName)) {
         this.switchSheet(this.sheetName);
@@ -514,12 +615,10 @@ export class Formulas extends BasePlugin {
 
     dependentCells.forEach((change: unknown) => {
       // For the Named expression the address is empty, hence the `sheetId` is undefined.
-      const sheetId = (change as HFCellChange)?.address?.sheet;
+      const sheetId = isHFCellChange(change) ? change.address?.sheet : undefined;
 
-      if (sheetId !== undefined) {
-        if (!affectedSheetIds.has(sheetId)) {
-          affectedSheetIds.add(sheetId);
-        }
+      if (sheetId !== undefined && !affectedSheetIds.has(sheetId)) {
+        affectedSheetIds.add(sheetId);
       }
     });
 
@@ -528,10 +627,8 @@ export class Formulas extends BasePlugin {
         (renderSelf || (sheetId !== this.sheetId)) &&
         affectedSheetIds.has(sheetId)
       ) {
-        const hot = relatedHot as HotInstance;
-
-        hot.render();
-        hot.view?.adjustElementsSize();
+        relatedHot.render();
+        relatedHot.view?.adjustElementsSize();
       }
     });
   }
@@ -545,14 +642,16 @@ export class Formulas extends BasePlugin {
    */
   validateDependentCells(dependentCells: unknown[], changedCells: unknown[] = []) {
     const stringifyAddress = (change: unknown) => {
-      const { row, col, sheet } = (change as HFCellChange)?.address ?? {};
+      const address = isHFCellChange(change) ? change.address : undefined;
+      const { row, col, sheet } = address ?? {};
 
       return isDefined(sheet) ? `${sheet}:${row}x${col}` : '';
     };
     const changedCellsSet = new Set(changedCells.map((change: unknown) => stringifyAddress(change)));
 
     dependentCells.forEach((change: unknown) => {
-      const { row, col } = (change as HFCellChange).address ?? {};
+      const address = isHFCellChange(change) ? change.address : undefined;
+      const { row, col, sheet: sheetId } = address ?? {};
 
       // Don't try to validate cells outside of the visual part of the table.
       if (isDefined(row) === false || isDefined(col) === false ||
@@ -560,14 +659,12 @@ export class Formulas extends BasePlugin {
         return;
       }
 
-      // For the Named expression the address is empty, hence the `sheetId` is undefined.
-      const sheetId = (change as HFCellChange)?.address?.sheet;
       const addressId = stringifyAddress(change);
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
       if (sheetId !== undefined && !changedCellsSet.has(addressId)) {
-        const boundHot = getRegisteredHotInstances(this.engine).get(sheetId) as HotInstance | undefined;
+        const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
 
         // if `sheetId` is not bound to any Handsontable instance, skip the validation process
         if (!boundHot) {
@@ -639,7 +736,10 @@ export class Formulas extends BasePlugin {
       const valueGetter = cellMeta.valueGetter;
 
       value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
-      value = (value as object).toString();
+
+      if (value !== null && value !== undefined) {
+        value = Object(value).toString();
+      }
     }
 
     return normalizeValueForFormulaEngine(value);
@@ -660,11 +760,13 @@ export class Formulas extends BasePlugin {
     const visibleColumnCount = this.hot.countCols();
     const physicalColumnCount = this.hot.countSourceCols();
     const isAoAWithSkippedColumns = visibleColumnCount < physicalColumnCount
-      && isArrayOfArrays(this.hot.getSourceData() as unknown[][]);
+      && isArrayOfArrays(this.hot.getSourceData());
 
     if (!isAoAWithSkippedColumns) {
-      return (dataArray as unknown[][]).map((rowObject: unknown[], rowIndex: number) => {
-        return rowObject.map((value: unknown, columnIndex: number) => {
+      return dataArray.map((rowObject, rowIndex) => {
+        const rowArray = Array.isArray(rowObject) ? rowObject : [];
+
+        return rowArray.map((value: unknown, columnIndex: number) => {
           return this.#getValueGetterValue(rowIndex, columnIndex, value);
         });
       });
@@ -727,8 +829,7 @@ export class Formulas extends BasePlugin {
       }
 
       // If `cellValue` is an object it is expected to be an error
-      return (typeof cellValue === 'object' && cellValue !== null)
-        ? (cellValue as { value: unknown }).value : cellValue;
+      return hasValueProperty(cellValue) ? cellValue.value : cellValue;
     }
 
     return value;
@@ -886,8 +987,9 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const formulasSettings = this.hot.getSettings()[PLUGIN_KEY] as { sheetName?: string; engine: unknown };
-    const sheetName = setupSheet(this.engine, formulasSettings.sheetName!);
+    const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
+    const sheetName = setupSheet(this.engine, settingsSheetName!);
 
     this.#updateSheetNameAndSheetId(sheetName);
 
@@ -960,8 +1062,7 @@ export class Formulas extends BasePlugin {
     }
 
     // If `cellValue` is an object it is expected to be an error
-    valueHolder.value = (typeof cellValue === 'object' && cellValue !== null)
-      ? (cellValue as { value: unknown }).value : cellValue;
+    valueHolder.value = hasValueProperty(cellValue) ? cellValue.value : cellValue;
   };
 
   /**
@@ -1024,7 +1125,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterSetDataAtCell = (changes: unknown[][][], source: string) => {
+  #onAfterSetDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1039,7 +1140,10 @@ export class Formulas extends BasePlugin {
     const changedCells: unknown[] = [];
 
     const dependentCells = this.engine.batch(() => {
-      (changes as [number, string | number, unknown, unknown][]).forEach(([visualRow, prop, , newValue]) => {
+      changes.forEach(([visualRow, prop, , newValue]) => {
+        if (typeof prop !== 'string' && typeof prop !== 'number') {
+          return;
+        }
         const visualColumn = this.hot.propToCol(prop);
         const physicalRow = this.hot.toPhysicalRow(visualRow);
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
@@ -1087,7 +1191,7 @@ export class Formulas extends BasePlugin {
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources]{@link https://handsontable.com/docs/javascript-data-grid/events-and-hooks/#handsontable-hooks}).
    */
-  #onAfterSetSourceDataAtCell = (changes: unknown[][][], source: string) => {
+  #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
       return;
     }
@@ -1095,7 +1199,10 @@ export class Formulas extends BasePlugin {
     const dependentCells: unknown[] = [];
     const changedCells: unknown[] = [];
 
-    (changes as unknown as [number, string | number, unknown, unknown][]).forEach(([visualRow, prop, , newValue]) => {
+    changes.forEach(([visualRow, prop, , newValue]) => {
+      if (typeof prop !== 'string' && typeof prop !== 'number') {
+        return;
+      }
       const visualColumn = this.hot.propToCol(prop);
 
       if (!isNumeric(visualColumn)) {
@@ -1310,10 +1417,12 @@ export class Formulas extends BasePlugin {
                          finalElementRowIndex: number) => {
     this.#internalOperationPending = true;
 
+    const children = element.__children;
+    const childrenCount = Array.isArray(children) ? children.length : 0;
     const rowsData = this.#getProcessedSourceDataArray(
       finalElementRowIndex,
       0,
-      finalElementRowIndex + ((element.__children as unknown[] | undefined)?.length || 0),
+      finalElementRowIndex + childrenCount,
       this.hot.countSourceCols()
     );
 
@@ -1330,68 +1439,4 @@ export class Formulas extends BasePlugin {
     });
   };
 
-  /**
-   * Called when a value is updated in the engine.
-   *
-   * @fires Hooks#afterFormulasValuesUpdate
-   * @param {Array} changes The values and location of applied changes.
-   */
-  #onEngineValuesUpdated(changes: unknown[][]) {
-    this.hot.runHooks('afterFormulasValuesUpdate', changes);
-  }
-
-  /**
-   * Called when a named expression is added to the engine instance.
-   *
-   * @fires Hooks#afterNamedExpressionAdded
-   * @param {string} namedExpressionName The name of the added expression.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  #onEngineNamedExpressionsAdded(namedExpressionName: string, changes: unknown[][]) {
-    this.hot.runHooks('afterNamedExpressionAdded', namedExpressionName, changes);
-  }
-
-  /**
-   * Called when a named expression is removed from the engine instance.
-   *
-   * @fires Hooks#afterNamedExpressionRemoved
-   * @param {string} namedExpressionName The name of the removed expression.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  #onEngineNamedExpressionsRemoved(namedExpressionName: string, changes: unknown[][]) {
-    this.hot.runHooks('afterNamedExpressionRemoved', namedExpressionName, changes);
-  }
-
-  /**
-   * Called when a new sheet is added to the engine instance.
-   *
-   * @fires Hooks#afterSheetAdded
-   * @param {string} addedSheetDisplayName The name of the added sheet.
-   */
-  #onEngineSheetAdded(addedSheetDisplayName: string) {
-    this.hot.runHooks('afterSheetAdded', addedSheetDisplayName);
-  }
-
-  /**
-   * Called when a sheet in the engine instance is renamed.
-   *
-   * @fires Hooks#afterSheetRenamed
-   * @param {string} oldDisplayName The old name of the sheet.
-   * @param {string} newDisplayName The new name of the sheet.
-   */
-  #onEngineSheetRenamed(oldDisplayName: string, newDisplayName: string) {
-    this.#updateSheetNameAndSheetId(newDisplayName);
-    this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
-  }
-
-  /**
-   * Called when a sheet is removed from the engine instance.
-   *
-   * @fires Hooks#afterSheetRemoved
-   * @param {string} removedSheetDisplayName The removed sheet name.
-   * @param {Array} changes The values and location of applied changes.
-   */
-  #onEngineSheetRemoved(removedSheetDisplayName: string, changes: unknown[][]) {
-    this.hot.runHooks('afterSheetRemoved', removedSheetDisplayName, changes);
-  }
 }

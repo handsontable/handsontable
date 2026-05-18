@@ -68,8 +68,8 @@ export function getNextSortOrder(sortOrder?: string) {
  * @param {Element} TH Th HTML element.
  * @returns {Element | null}
  */
-export function getHeaderSpanElement(TH: HTMLTableCellElement) {
-  const headerSpanElement = TH.querySelector(`.${HEADER_SPAN_CLASS}`);
+export function getHeaderSpanElement(TH: HTMLTableCellElement): HTMLElement | null {
+  const headerSpanElement = TH.querySelector<HTMLElement>(`.${HEADER_SPAN_CLASS}`);
 
   return headerSpanElement;
 }

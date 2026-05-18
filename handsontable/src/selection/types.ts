@@ -39,3 +39,30 @@ export interface SelectionTableProps {
   autoWrapCol(): boolean;
   [key: string]: unknown;
 }
+
+/**
+ * Subset of grid settings consumed by the Selection module.
+ */
+export interface SelectionSettings {
+  currentHeaderClassName?: string;
+  activeHeaderClassName?: string;
+  currentRowClassName?: string;
+  currentColClassName?: string;
+  navigableHeaders?: boolean;
+  fixedRowsBottom?: number;
+  minSpareRows?: number;
+  minSpareCols?: number;
+  autoWrapRow?: boolean;
+  autoWrapCol?: boolean;
+  selectionMode?: 'single' | 'range' | 'multiple';
+  fillHandle?: unknown;
+  [key: string]: unknown;
+}
+
+/**
+ * Optional focus position used by selectAll/selectColumns/selectRows.
+ */
+export interface SelectionFocusPosition {
+  row?: number;
+  col?: number;
+}

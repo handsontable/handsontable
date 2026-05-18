@@ -69,8 +69,8 @@ class GhostTable {
    * @param {number} visualColumn Visual column index.
    * @returns {number|null}
    */
-  getWidth(visualColumn: number) {
-    return this.widthsMap.getValueAtIndex(this.hot.toPhysicalColumn(visualColumn));
+  getWidth(visualColumn: number): number | undefined {
+    return this.widthsMap.getValueAtIndex<number>(this.hot.toPhysicalColumn(visualColumn));
   }
 
   /**

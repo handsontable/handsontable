@@ -291,7 +291,7 @@ class TableView {
 
     addClass(rootElement, 'handsontable');
 
-    this.#table = rootDocument.createElement('TABLE') as HTMLTableElement;
+    this.#table = rootDocument.createElement('table');
     addClass(this.#table, 'htCore');
 
     if (this.hot.getSettings().tableClassName) {
@@ -311,10 +311,10 @@ class TableView {
       ]);
     }
 
-    this.THEAD = rootDocument.createElement('THEAD') as HTMLTableSectionElement;
+    this.THEAD = rootDocument.createElement('thead');
     this.#table.appendChild(this.THEAD);
 
-    this.TBODY = rootDocument.createElement('TBODY') as HTMLTableSectionElement;
+    this.TBODY = rootDocument.createElement('tbody');
     this.#table.appendChild(this.TBODY);
 
     this.hot.table = this.#table;
@@ -534,7 +534,7 @@ class TableView {
    */
   translateFromRenderableToVisualCoords({ row, col }: {row: number, col: number}) {
     // TODO: To consider an idea to reusing the CellCoords instance instead creating new one.
-    return this.hot._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col) as [number, number]);
+    return this.hot._createCellCoords(...this.translateFromRenderableToVisualIndex(row, col));
   }
 
   /**
@@ -544,20 +544,15 @@ class TableView {
    * @param {number} renderableColumn Renderable columnIndex.
    * @returns {number[]}
    */
-  translateFromRenderableToVisualIndex(renderableRow: number, renderableColumn: number) {
+  translateFromRenderableToVisualIndex(renderableRow: number, renderableColumn: number): [number, number] {
     // TODO: Some helper may be needed.
     // We perform translation for indexes (without headers).
-    let visualRow = renderableRow >= 0 ?
+    const mappedRow = renderableRow >= 0 ?
       this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRow) : renderableRow;
-    let visualColumn = renderableColumn >= 0 ?
+    const mappedColumn = renderableColumn >= 0 ?
       this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderableColumn) : renderableColumn;
-
-    if (visualRow === null) {
-      visualRow = renderableRow;
-    }
-    if (visualColumn === null) {
-      visualColumn = renderableColumn;
-    }
+    const visualRow = mappedRow === null ? renderableRow : mappedRow;
+    const visualColumn = mappedColumn === null ? renderableColumn : mappedColumn;
 
     return [visualRow, visualColumn];
   }
@@ -646,7 +641,8 @@ class TableView {
       return 0;
     }
 
-    const firstVisibleIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, incrementBy as 1 | -1);
+    const searchDirection: 1 | -1 = incrementBy < 0 ? -1 : 1;
+    const firstVisibleIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
     const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
 
     if (!Number.isInteger(renderableIndex)) {
@@ -748,10 +744,11 @@ class TableView {
    * @param {string} className The class name to add.
    */
   addClassNameToLicenseElement(className: string) {
-    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+    const licenseInfoElement = this.hot.rootElement.parentNode
+      ?.querySelector<HTMLElement>('.hot-display-license-info');
 
     if (licenseInfoElement) {
-      addClass(licenseInfoElement as HTMLElement, className);
+      addClass(licenseInfoElement, className);
     }
   }
 
@@ -761,10 +758,11 @@ class TableView {
    * @param {string} className The class name to remove.
    */
   removeClassNameFromLicenseElement(className: string) {
-    const licenseInfoElement = this.hot.rootElement.parentNode?.querySelector('.hot-display-license-info');
+    const licenseInfoElement = this.hot.rootElement.parentNode
+      ?.querySelector<HTMLElement>('.hot-display-license-info');
 
     if (licenseInfoElement) {
-      removeClass(licenseInfoElement as HTMLElement, className);
+      removeClass(licenseInfoElement, className);
     }
   }
 
@@ -801,7 +799,7 @@ class TableView {
       data: (renderableRow: number, renderableColumn: number) => {
         const [visualRow, visualCol] = this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn);
 
-        return this.hot.getDataAtCell(visualRow as number, visualCol as number);
+        return this.hot.getDataAtCell(visualRow, visualCol);
       },
       totalRows: () => this.countRenderableRows(),
       totalColumns: () => this.countRenderableColumns(),
@@ -921,11 +919,12 @@ class TableView {
         if (typeof cellProperties.valueFormatter === 'function') {
           formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
 
-        } else if (typeof renderer === 'function' && 'valueFormatter' in renderer &&
-          typeof (renderer as unknown as { valueFormatter: unknown }).valueFormatter === 'function') {
-          type RendererWithFormatter = { valueFormatter: (value: unknown, props: unknown) => unknown };
-          formattedValue = (renderer as unknown as RendererWithFormatter)
-            .valueFormatter.call(cellProperties, formattedValue, cellProperties);
+        } else if (typeof renderer === 'function' && 'valueFormatter' in renderer) {
+          const { valueFormatter } = renderer as { valueFormatter: unknown };
+
+          if (typeof valueFormatter === 'function') {
+            formattedValue = valueFormatter.call(cellProperties, formattedValue, cellProperties);
+          }
         }
 
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
@@ -1442,11 +1441,9 @@ class TableView {
    * @private
    * @returns {boolean}
    */
-  #isSyntheticMouseEvent(event: Event) {
-    const mouseEvent = event as Event & { sourceCapabilities?: { firesTouchEvents: boolean } };
-
-    if (mouseEvent.sourceCapabilities) {
-      return mouseEvent.sourceCapabilities.firesTouchEvents === true;
+  #isSyntheticMouseEvent(event: Event & { sourceCapabilities?: { firesTouchEvents: boolean } }) {
+    if (event.sourceCapabilities) {
+      return event.sourceCapabilities.firesTouchEvents === true;
     }
 
     return this.#recentTouchEnd;
@@ -1511,7 +1508,7 @@ class TableView {
       }
 
       this.updateCellHeader(
-        container.querySelector('.rowHeader') as HTMLElement, visualRowIndex, this.hot.getRowHeader);
+        container.querySelector<HTMLElement>('.rowHeader')!, visualRowIndex, this.hot.getRowHeader);
 
     } else {
       const { rootDocument, getRowHeader } = this.hot;
@@ -1567,7 +1564,7 @@ class TableView {
 
       if (hasClass(container, 'relative')) {
         this.updateCellHeader(
-          container.querySelector('.colHeader') as HTMLElement, visualColumnIndex, label, headerLevel);
+          container.querySelector<HTMLElement>('.colHeader')!, visualColumnIndex, label, headerLevel);
 
         container.className = '';
         addClass(container, ['relative', ...getColumnHeaderClassNames()]);

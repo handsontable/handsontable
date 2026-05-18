@@ -1,4 +1,3 @@
-import { clone } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { getConditionDescriptor } from './conditionRegisterer';
@@ -86,7 +85,7 @@ export const TYPE_INTL_TIME = 'intl-time';
  *
  * @type {object}
  */
-export const TYPES = {
+export const TYPES: Record<string, string[]> = {
   [TYPE_NUMERIC]: [
     CONDITION_NONE,
     SEPARATOR,
@@ -186,24 +185,24 @@ export const TYPES = {
  * @param {string} type The data type.
  * @returns {object}
  */
-export default function getOptionsList(type: string) {
+export default function getOptionsList(type: string): Record<string, unknown>[] {
   const items: Record<string, unknown>[] = [];
   let typeName = type;
 
-  if (!(TYPES as Record<string, unknown>)[typeName]) {
+  if (!TYPES[typeName]) {
     typeName = TYPE_TEXT;
   }
 
-  arrayEach((TYPES as Record<string, string[]>)[typeName], (typeValue) => {
-    let option;
+  arrayEach(TYPES[typeName], (typeValue) => {
+    let option: Record<string, unknown>;
 
     if (typeValue === SEPARATOR) {
       option = { name: SEPARATOR };
 
     } else {
-      option = clone(getConditionDescriptor(typeValue as string));
+      option = { ...getConditionDescriptor(typeValue) };
     }
-    items.push(option as Record<string, unknown>);
+    items.push(option);
   });
 
   return items;

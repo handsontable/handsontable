@@ -273,7 +273,7 @@ export class IndexMapper {
    * @param {IndexMap} indexMap Registered index map updated on items removal and insertion.
    * @returns {IndexMap}
    */
-  registerMap(uniqueName: string, indexMap: IndexMap) {
+  registerMap<T extends IndexMap>(uniqueName: string, indexMap: T): T {
     if (this.trimmingMapsCollection.get(uniqueName) ||
         this.hidingMapsCollection.get(uniqueName) ||
         this.variousMapsCollection.get(uniqueName)) {

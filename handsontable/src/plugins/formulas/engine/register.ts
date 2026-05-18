@@ -150,11 +150,15 @@ export function registerEngine(
  * @param {object} engine The engine instance.
  * @returns {Map<number, Handsontable>} Returns Map with Handsontable instances.
  */
-export function getRegisteredHotInstances(engine: HyperFormulaEngine) {
+export function getRegisteredHotInstances(engine: HyperFormulaEngine): Map<number | null, HotInstance> {
   const engineRegistry = getEngineRelationshipRegistry();
   const hotInstances = engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
 
-  return new Map(hotInstances.map(hot => [(hot as HotInstance).getPlugin('formulas').sheetId, hot]));
+  return new Map(hotInstances.map((hot) => {
+    const hotInstance = hot as HotInstance;
+
+    return [hotInstance.getPlugin('formulas').sheetId, hotInstance];
+  }));
 }
 
 /**

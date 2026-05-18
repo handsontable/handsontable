@@ -220,7 +220,7 @@ export class ColumnSorting extends BasePlugin {
         return;
       }
 
-      this.updateHeaderClasses(headerSpanElement as HTMLElement);
+      this.updateHeaderClasses(headerSpanElement);
     };
 
     pluginConflictsState.delete(this.hot);
@@ -311,7 +311,7 @@ export class ColumnSorting extends BasePlugin {
    * @fires Hooks#afterColumnSort
    */
   sort(sortConfig?: Record<string, unknown> | Record<string, unknown>[]): void {
-    const currentSortConfig = this.getSortConfig() as object[];
+    const currentSortConfig = this.columnStatesManager!.getSortStates();
 
     // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig) as unknown as SortConfig[];
@@ -325,7 +325,7 @@ export class ColumnSorting extends BasePlugin {
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
       this.indexesSequenceCache =
-        this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence()) as IndexesSequence;
+        this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence());
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
@@ -448,7 +448,7 @@ export class ColumnSorting extends BasePlugin {
    * @fires Hooks#persistentStateSave
    */
   saveAllSortSettings(sortConfigs: SortConfig[]) {
-    const allSortSettings = this.columnStatesManager!.getAllColumnsProperties() as Record<string, unknown>;
+    const allSortSettings = this.columnStatesManager!.getAllColumnsProperties();
     const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }: SortConfig) =>
       ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
 
@@ -470,13 +470,18 @@ export class ColumnSorting extends BasePlugin {
 
     this.hot.runHooks('persistentStateLoad', 'columnSorting', storedAllSortSettings);
 
-    const allSortSettings = storedAllSortSettings.value as Record<string, unknown> | undefined;
+    const { value } = storedAllSortSettings;
+
+    if (!isObject(value)) {
+      return value as Record<string, unknown> | undefined;
+    }
+
+    const allSortSettings = value as Record<string, unknown>;
     const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }: SortConfig) =>
       ({ column: this.hot.toVisualColumn(physicalColumn), ...restOfProperties });
 
-    if (isDefined(allSortSettings) && Array.isArray((allSortSettings as Record<string, unknown>).initialConfig)) {
-      (allSortSettings as Record<string, unknown>).initialConfig = arrayMap(
-        (allSortSettings as Record<string, unknown>).initialConfig as SortConfig[], translateColumnToVisual);
+    if (Array.isArray(allSortSettings.initialConfig)) {
+      allSortSettings.initialConfig = arrayMap(allSortSettings.initialConfig, translateColumnToVisual);
     }
 
     return allSortSettings;
@@ -533,7 +538,7 @@ export class ColumnSorting extends BasePlugin {
   getNextSortConfig(columnToChange: number, strategyId = APPEND_COLUMN_CONFIG_STRATEGY) {
     const indexOfColumnToChange = this.columnStatesManager!.getIndexOfColumnInSortQueue(columnToChange);
     const isColumnSorted = indexOfColumnToChange !== -1;
-    const currentSortConfig = this.getSortConfig() as object[];
+    const currentSortConfig = this.columnStatesManager!.getSortStates();
     const nextColumnConfig = this.getColumnNextConfig(columnToChange);
 
     if (isColumnSorted) {
@@ -576,7 +581,7 @@ export class ColumnSorting extends BasePlugin {
    */
   getPluginColumnConfig(columnConfig: Record<string, unknown>) {
     if (isObject(columnConfig)) {
-      const pluginColumnConfig = (columnConfig as Record<string, unknown>)[this.pluginKey];
+      const pluginColumnConfig = columnConfig[this.pluginKey];
 
       if (isObject(pluginColumnConfig)) {
         return pluginColumnConfig;
@@ -687,21 +692,16 @@ export class ColumnSorting extends BasePlugin {
 
     const indexesAfter = arrayMap(indexesWithData, (indexWithData: [number, ...unknown[]]) => indexWithData[0]);
 
-    const indexMapping = new Map<number, number>(
-      arrayMap(indexesBefore,
-        (indexBefore: number, indexInsideArray: number) =>
-          [indexBefore, indexesAfter[indexInsideArray]] as [number, number]) as [number, number][]
+    const indexMapping: Map<number, number> = new Map(
+      arrayMap(indexesBefore, (indexBefore: number, indexInsideArray: number): [number, number] =>
+        [indexBefore, indexesAfter[indexInsideArray]])
     );
 
     const newIndexesSequence = arrayMap(this.hot.rowIndexMapper.getIndexesSequence(), (physicalIndex: number) => {
-      if (indexMapping.has(physicalIndex)) {
-        return indexMapping.get(physicalIndex);
-      }
-
-      return physicalIndex;
+      return indexMapping.get(physicalIndex) ?? physicalIndex;
     });
 
-    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence as number[]);
+    this.hot.rowIndexMapper.setIndexesSequence(newIndexesSequence);
   }
 
   /**
@@ -712,7 +712,7 @@ export class ColumnSorting extends BasePlugin {
     const allSortSettings = this.hot.getSettings()[this.pluginKey];
 
     if (isObject(storedAllSortSettings)) {
-      this.sortBySettings(storedAllSortSettings as Record<string, unknown>);
+      this.sortBySettings(storedAllSortSettings);
 
     } else {
       this.sortBySettings(allSortSettings as Record<string, unknown>);
@@ -730,7 +730,7 @@ export class ColumnSorting extends BasePlugin {
     if (isObject(allSortSettings)) {
       this.columnStatesManager!.updateAllColumnsProperties(allSortSettings);
 
-      const initialConfig = (allSortSettings as Record<string, unknown>).initialConfig as object | object[];
+      const { initialConfig } = allSortSettings;
 
       if (Array.isArray(initialConfig) || isObject(initialConfig)) {
         this.sort(initialConfig as Record<string, unknown> | Record<string, unknown>[]);
@@ -760,7 +760,7 @@ export class ColumnSorting extends BasePlugin {
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
     this.updateHeaderClasses(
-      headerSpanElement as HTMLElement,
+      headerSpanElement,
       this.columnStatesManager,
       column,
       showSortIndicator,
@@ -782,10 +782,10 @@ export class ColumnSorting extends BasePlugin {
    * @param {...*} args Extra arguments for helpers.
    */
   updateHeaderClasses(headerSpanElement: HTMLElement, ...args: unknown[]) {
-    removeClass(headerSpanElement as HTMLElement, getClassesToRemove(headerSpanElement as HTMLElement));
+    removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
     if (this.enabled !== false) {
-      addClass(headerSpanElement as HTMLElement, (getClassesToAdd as (...a: unknown[]) => string[])(...args));
+      addClass(headerSpanElement, (getClassesToAdd as (...a: unknown[]) => string[])(...args));
     }
   }
 
@@ -804,8 +804,10 @@ export class ColumnSorting extends BasePlugin {
       this.columnMetaCache.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
 
-    if (isDefined((newSettings as Record<string, unknown>)[this.pluginKey])) {
-      this.sortBySettings((newSettings as Record<string, unknown>)[this.pluginKey] as Record<string, unknown>);
+    const pluginSettings = newSettings[this.pluginKey];
+
+    if (isDefined(pluginSettings)) {
+      this.sortBySettings(pluginSettings as Record<string, unknown>);
     }
   }
 
@@ -891,7 +893,7 @@ export class ColumnSorting extends BasePlugin {
       }
 
       const activeEditor = this.hot.getActiveEditor();
-      const nextConfig = this.getColumnNextConfig(coords.col) as object | undefined;
+      const nextConfig = this.getColumnNextConfig(coords.col) as Record<string, unknown> | undefined;
 
       if (
         activeEditor?.isOpened() &&
@@ -899,11 +901,11 @@ export class ColumnSorting extends BasePlugin {
       ) {
         // Postpone sorting until the cell's value is validated and saved.
         this.hot.addHookOnce('postAfterValidate', () => {
-          this.sort(nextConfig as Record<string, unknown>);
+          this.sort(nextConfig);
         });
 
       } else {
-        this.sort(nextConfig as Record<string, unknown>);
+        this.sort(nextConfig);
       }
     }
   }

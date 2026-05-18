@@ -404,8 +404,8 @@ export class BasePlugin {
    * @param {string} name The hook name.
    */
   removeHooks(name: string): void {
-    arrayEach(this.#hooks[name] || [], (callback: unknown) => {
-      this.hot.removeHook(name, callback as HookCallback);
+    arrayEach(this.#hooks[name] || [], (callback) => {
+      this.hot.removeHook(name, callback);
     });
   }
 

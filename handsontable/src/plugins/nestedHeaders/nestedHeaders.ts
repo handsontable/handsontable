@@ -222,8 +222,8 @@ export class NestedHeaders extends BasePlugin {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);
     }
 
-    this.#hasRowspanHeaders = (this.#stateManager
-      .mapNodes(({ origRowspan }: { origRowspan: number }) => (origRowspan > 1 ? true : undefined)) as unknown[])
+    this.#hasRowspanHeaders = this.#stateManager
+      .mapNodes(({ origRowspan }: { origRowspan: number }) => (origRowspan > 1 ? true : undefined))
       .length > 0;
 
     if (this.#hasRowspanHeaders) {
@@ -370,7 +370,8 @@ export class NestedHeaders extends BasePlugin {
       removeClass(TH, 'htRowspanHeader');
       removeClass(TH, 'htRowspanBottomLevel');
 
-      const rendererHeaderSettings = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex);
+      const rendererHeaderSettings: Partial<HeaderNodeData> =
+        this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
       const {
         colspan,
         rowspan,
@@ -378,7 +379,7 @@ export class NestedHeaders extends BasePlugin {
         isPlaceholder,
         isRowspanPlaceholder,
         headerClassNames,
-      } = rendererHeaderSettings ?? ({} as HeaderNodeData);
+      } = rendererHeaderSettings;
 
       if (isRowspanPlaceholder) {
         addClass(TH, 'hiddenHeader');
@@ -388,7 +389,7 @@ export class NestedHeaders extends BasePlugin {
         addClass(TH, 'hiddenHeader');
 
       } else {
-        if ((colspan as number) > 1) {
+        if (colspan !== undefined && colspan > 1) {
           const { wtOverlays } = view._wt;
           const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone.wtTable.THEAD.contains(TH);
           const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone.wtTable.THEAD.contains(TH);
@@ -406,7 +407,7 @@ export class NestedHeaders extends BasePlugin {
           }
         }
 
-        if (rowspan > 1) {
+        if (rowspan !== undefined && rowspan > 1) {
           const isBottomMostRowspanHeader = headerLevel + rowspan === this.getLayersCount();
 
           addClass(TH, 'htRowspanHeader');
@@ -443,7 +444,7 @@ export class NestedHeaders extends BasePlugin {
       isHidden,
       isPlaceholder,
       isRowspanPlaceholder,
-    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? ({} as HeaderNodeData);
+    }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(headerLevel, visualColumnIndex) ?? {};
 
     if (isPlaceholder || isHidden || isRowspanPlaceholder) {
       return '';
@@ -465,7 +466,7 @@ export class NestedHeaders extends BasePlugin {
     if (isNestedHeadersRange) {
       const {
         isRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {} as Partial<HeaderNodeData>;
+      }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
       const normalizedHighlightRow = isRowspanPlaceholder ?
         this.#findRenderableHeaderRow(highlight.row, highlight.col) :
         highlight.row;
@@ -503,7 +504,7 @@ export class NestedHeaders extends BasePlugin {
     for (let row = headerRow; row >= highestHeaderRow; row--) {
       const {
         isRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(row, visualColumnIndex) ?? {} as Partial<HeaderNodeData>;
+      }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(row, visualColumnIndex) ?? {};
 
       if (!isRowspanPlaceholder) {
         return row;
@@ -524,7 +525,7 @@ export class NestedHeaders extends BasePlugin {
     const rootColumnIndex = this.#stateManager.findLeftMostColumnIndex(headerRow, visualColumnIndex);
     const {
       rowspan = 1,
-    } = this.#stateManager.getHeaderSettings(headerRow, rootColumnIndex) ?? ({} as HeaderNodeData);
+    }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(headerRow, rootColumnIndex) ?? {};
 
     return rowspan;
   }
@@ -670,8 +671,8 @@ export class NestedHeaders extends BasePlugin {
     } = highlightMeta;
     const {
       isRoot,
-      colspan,
-    } = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) ?? ({} as HeaderNodeData);
+      colspan = 1,
+    }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(headerLevel, visualColumn) ?? {};
 
     if (selectionType === HEADER_TYPE) {
       if (!isRoot) {
@@ -717,7 +718,7 @@ export class NestedHeaders extends BasePlugin {
           const isRoot = this.#stateManager.getHeaderTreeNodeData(row, column)?.isRoot;
 
           if (isRoot === false) {
-            (data[zeroBasedColumnHeaderLevel] as unknown[])[zeroBasedColumnIndex] = '';
+            data[zeroBasedColumnHeaderLevel][zeroBasedColumnIndex] = '';
           }
         }
       }
@@ -759,7 +760,7 @@ export class NestedHeaders extends BasePlugin {
 
     const { selection } = this.hot;
     const currentSelection = selection.isSelected() ? selection.getSelectedRange().current() : null;
-    const columnsToSelect: number[] = [];
+    let columnsToSelect: [number, number, number] | null = null;
     const {
       columnIndex,
       origColspan,
@@ -769,20 +770,22 @@ export class NestedHeaders extends BasePlugin {
 
     if (event.shiftKey && currentSelection) {
       if (coords.col < currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopEndCorner().col, columnIndex, coords.row);
+        columnsToSelect = [currentSelection.getTopEndCorner().col, columnIndex, coords.row];
 
       } else if (coords.col > currentSelection.from.col) {
-        columnsToSelect.push(currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row);
+        columnsToSelect = [currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row];
 
       } else {
-        columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+        columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row];
       }
 
     } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection) || isTouchEvent(event)) {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, coords.row);
+      columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row];
     }
 
-    selection.selectColumns(...columnsToSelect as [number, ...number[]]);
+    if (columnsToSelect !== null) {
+      selection.selectColumns(...columnsToSelect);
+    }
   };
 
   #onBeforeOnCellMouseOver = (
@@ -812,20 +815,20 @@ export class NestedHeaders extends BasePlugin {
     controller.column = true;
     controller.cell = true;
 
-    const columnsToSelect: number[] = [];
     const headerLevel = clamp(coords.row, -Infinity, -1);
+    let columnsToSelect: [number, number, number];
 
     if (coords.col < from.col) {
-      columnsToSelect.push(bottomEndCoords.col, columnIndex, headerLevel);
+      columnsToSelect = [bottomEndCoords.col, columnIndex, headerLevel];
 
     } else if (coords.col > from.col) {
-      columnsToSelect.push(topStartCoords.col, columnIndex + origColspan - 1, headerLevel);
+      columnsToSelect = [topStartCoords.col, columnIndex + origColspan - 1, headerLevel];
 
     } else {
-      columnsToSelect.push(columnIndex, columnIndex + origColspan - 1, headerLevel);
+      columnsToSelect = [columnIndex, columnIndex + origColspan - 1, headerLevel];
     }
 
-    this.hot.selection.selectColumns(...columnsToSelect as [number, ...number[]]);
+    this.hot.selection.selectColumns(...columnsToSelect);
   };
 
   #onBeforeOnCellMouseUp = () => {
@@ -891,7 +894,7 @@ export class NestedHeaders extends BasePlugin {
       while (adjustedNextRow <= lowestHeaderRow && adjustedNextRow >= highestHeaderRow) {
         const {
           isRowspanPlaceholder,
-        } = this.#stateManager.getHeaderSettings(adjustedNextRow, targetColumn) ?? {} as Partial<HeaderNodeData>;
+        }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(adjustedNextRow, targetColumn) ?? {};
 
         if (!isRowspanPlaceholder) {
           break;
@@ -926,7 +929,7 @@ export class NestedHeaders extends BasePlugin {
       const currentHeaderEndColumn = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
       const {
         isRowspanPlaceholder: isTargetRowspanPlaceholder,
-      } = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {} as Partial<HeaderNodeData>;
+      }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {};
       const isTargetInsideCurrentHeader = targetRow === highlight.row &&
         targetColumn >= currentHeaderStartColumn &&
         targetColumn <= currentHeaderEndColumn;
@@ -967,11 +970,10 @@ export class NestedHeaders extends BasePlugin {
     if (isNestedHeadersRange) {
       const {
         isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
-      } = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {} as Partial<HeaderNodeData>;
+      }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
       const {
         isRowspanPlaceholder: isNextHeaderRowspanPlaceholderForBounds,
-      } = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col)
-        ?? {} as Partial<HeaderNodeData>;
+      }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(nextCoords.row, nextCoords.col) ?? {};
       let visualColumnIndexStart = this.#stateManager.findLeftMostColumnIndex(nextCoords.row, nextCoords.col);
       let visualColumnIndexEnd = this.#stateManager.findRightMostColumnIndex(nextCoords.row, nextCoords.col);
 
@@ -1132,7 +1134,7 @@ export class NestedHeaders extends BasePlugin {
       return width;
     }
 
-    const cachedWidth = this.ghostTable.getWidth(column) as number;
+    const cachedWidth = this.ghostTable.getWidth(column) ?? 0;
 
     return width > cachedWidth ? width : cachedWidth;
   };

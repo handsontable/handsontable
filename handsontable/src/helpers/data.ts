@@ -194,7 +194,7 @@ export function countFirstRowKeys(data: unknown[]): number {
  * @param {Array} data Dataset to be checked.
  * @returns {boolean} `true` if data is an array of arrays, `false` otherwise.
  */
-export function isArrayOfArrays(data: unknown[][]): boolean {
+export function isArrayOfArrays(data: unknown): data is unknown[][] {
   return !!(Array.isArray(data) && data.length && data.every(el => Array.isArray(el)));
 }
 

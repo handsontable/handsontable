@@ -1,6 +1,6 @@
 import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
-import type { SelectionTableProps } from './types';
+import type { SelectionFocusPosition, SelectionSettings, SelectionTableProps } from './types';
 import Highlight, {
   AREA_TYPE,
   HEADER_TYPE,
@@ -21,6 +21,18 @@ import {
 import { toSingleLine } from './../helpers/templateLiteralTag';
 import { throwWithCause } from '../helpers/errors';
 import { A11Y_SELECTED } from '../helpers/a11y';
+
+/**
+ * Checks if the value is a focus-position object with integer `row` and `col` fields.
+ *
+ * @param {unknown} value The value to check.
+ * @returns {boolean}
+ */
+function isFocusPositionObject(value: unknown): value is { row: number; col: number } {
+  return typeof value === 'object' && value !== null
+    && Number.isInteger((value as { row?: unknown }).row)
+    && Number.isInteger((value as { col?: unknown }).col);
+}
 
 /**
  * @typedef {object} SelectionState
@@ -48,7 +60,7 @@ class Selection {
    *
    * @type {GridSettings}
    */
-  settings;
+  settings: SelectionSettings;
   /**
    * An additional object with dynamically defined properties which describes table state.
    *
@@ -134,7 +146,7 @@ class Selection {
    */
   #activeSelectionLayer = 0;
 
-  constructor(settings: Record<string, unknown>, tableProps: SelectionTableProps) {
+  constructor(settings: SelectionSettings, tableProps: SelectionTableProps) {
     this.settings = settings;
     this.tableProps = tableProps;
     this.highlight = new Highlight({
@@ -157,16 +169,16 @@ class Selection {
 
     this.#extenderTransformation = new ExtenderTransformation(this.selectedRange, {
       ...this.tableProps,
-      navigableHeaders: () => settings.navigableHeaders as boolean,
+      navigableHeaders: () => !!settings.navigableHeaders,
       fixedRowsBottom: () => Number(settings.fixedRowsBottom),
       minSpareRows: () => Number(settings.minSpareRows),
       minSpareCols: () => Number(settings.minSpareCols),
-      autoWrapRow: () => settings.autoWrapRow as boolean,
-      autoWrapCol: () => settings.autoWrapCol as boolean,
+      autoWrapRow: () => !!settings.autoWrapRow,
+      autoWrapCol: () => !!settings.autoWrapCol,
     });
     this.#focusTransformation = new FocusTransformation(this.selectedRange, {
       ...this.tableProps,
-      navigableHeaders: () => settings.navigableHeaders as boolean,
+      navigableHeaders: () => !!settings.navigableHeaders,
       fixedRowsBottom: () => 0,
       minSpareRows: () => 0,
       minSpareCols: () => 0,
@@ -203,10 +215,10 @@ class Selection {
    */
   updateHighlightClassNames() {
     this.highlight.updateHighlightClassNames({
-      rowClassName: this.settings.currentRowClassName as string | undefined,
-      columnClassName: this.settings.currentColClassName as string | undefined,
-      headerClassName: this.settings.currentHeaderClassName as string | undefined,
-      activeHeaderClassName: this.settings.activeHeaderClassName as string | undefined,
+      rowClassName: this.settings.currentRowClassName,
+      columnClassName: this.settings.currentColClassName,
+      headerClassName: this.settings.currentHeaderClassName,
+      activeHeaderClassName: this.settings.activeHeaderClassName,
     });
   }
 
@@ -424,7 +436,7 @@ class Selection {
       ) {
         cellRange.from.assign({
           col: cellRange.highlight.col
-        } as CellCoords);
+        });
       }
       if (
         isMultiple &&
@@ -433,7 +445,7 @@ class Selection {
       ) {
         cellRange.from.assign({
           row: cellRange.highlight.row
-        } as CellCoords);
+        });
       }
     }
 
@@ -1045,7 +1057,7 @@ class Selection {
    * the logical coordinates points on them.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: {
-    focusPosition?: unknown; disableHeadersHighlight?: boolean
+    focusPosition?: SelectionFocusPosition | boolean; disableHeadersHighlight?: boolean
   } = { focusPosition: false, disableHeadersHighlight: false }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
@@ -1066,15 +1078,11 @@ class Selection {
       disableHeadersHighlight
     } = options;
 
-    type FocusPos = { row?: number; col?: number };
-
-    if (focusPosition &&
-        Number.isInteger((focusPosition as FocusPos)?.row) &&
-        Number.isInteger((focusPosition as FocusPos)?.col)) {
+    if (isFocusPositionObject(focusPosition)) {
       highlight = this.tableProps
         .createCellCoords(
-          clamp((focusPosition as FocusPos).row, rowFrom, nrOfRows - 1),
-          clamp((focusPosition as FocusPos).col, columnFrom, nrOfColumns - 1)
+          clamp(focusPosition.row, rowFrom, nrOfRows - 1),
+          clamp(focusPosition.col, columnFrom, nrOfColumns - 1)
         );
     }
 
@@ -1196,11 +1204,9 @@ class Selection {
       let highlightRow = 0;
       let highlightColumn = 0;
 
-      const focusPosObj = focusPosition as { row?: number; col?: number };
-
-      if (Number.isInteger(focusPosObj?.row) && Number.isInteger(focusPosObj?.col)) {
-        highlightRow = clamp(focusPosObj.row!, columnHeaderLastIndex, countRows - 1);
-        highlightColumn = clamp(focusPosObj.col!, Math.min(start, end), Math.max(start, end));
+      if (isFocusPositionObject(focusPosition)) {
+        highlightRow = clamp(focusPosition.row, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = clamp(focusPosition.col, Math.min(start, end), Math.max(start, end));
       } else {
         highlightRow = clamp(
           typeof focusPosition === 'number' ? focusPosition : 0, columnHeaderLastIndex, countRows - 1);
@@ -1256,11 +1262,9 @@ class Selection {
       let highlightRow = 0;
       let highlightColumn = 0;
 
-      const focusPosObj = focusPosition as { row?: number; col?: number };
-
-      if (Number.isInteger(focusPosObj?.row) && Number.isInteger(focusPosObj?.col)) {
-        highlightRow = clamp(focusPosObj.row!, Math.min(startRow, endRow), Math.max(startRow, endRow));
-        highlightColumn = clamp(focusPosObj.col!, rowHeaderLastIndex, countCols - 1);
+      if (isFocusPositionObject(focusPosition)) {
+        highlightRow = clamp(focusPosition.row, Math.min(startRow, endRow), Math.max(startRow, endRow));
+        highlightColumn = clamp(focusPosition.col, rowHeaderLastIndex, countCols - 1);
       } else {
         highlightRow = startRow;
         highlightColumn = clamp(
@@ -1385,15 +1389,15 @@ class Selection {
       highlight.assign({
         row: clamp(highlight.row, this.settings.navigableHeaders ? -Infinity : 0, maxRows),
         col: clamp(highlight.col, this.settings.navigableHeaders ? -Infinity : 0, maxColumns),
-      } as CellCoords);
+      });
       from.assign({
         row: clamp(from.row, -Infinity, maxRows),
         col: clamp(from.col, -Infinity, maxColumns),
-      } as CellCoords);
+      });
       to.assign({
         row: clamp(to.row, -Infinity, maxRows),
         col: clamp(to.col, -Infinity, maxColumns),
-      } as CellCoords);
+      });
 
       this.setRangeStartOnly(from, true, highlight);
       this.setRangeEnd(to);
