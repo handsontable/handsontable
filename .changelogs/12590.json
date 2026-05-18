@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed NestedRows context menu \"Insert row above/below\" destroying sibling branches on a deeply-nested leaf.",
+  "type": "fixed",
+  "issueOrPR": 12590,
+  "breaking": false,
+  "framework": "none"
+}
