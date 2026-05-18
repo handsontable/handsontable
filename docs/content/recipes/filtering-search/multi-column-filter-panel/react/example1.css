@@ -14,7 +14,3 @@
   gap: 0.25rem;
   min-width: 120px;
 }
-
-.example-controls-container .filter-label--wide {
-  min-width: 160px;
-}
