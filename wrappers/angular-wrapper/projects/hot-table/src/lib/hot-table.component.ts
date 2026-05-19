@@ -18,6 +18,7 @@ import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
+import { verifyAngularVersion } from './angular-version-checker';
 import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be used properly.';
@@ -38,6 +39,8 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
   ],
 })
 export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
+  private static _angularVersionVerified = false;
+
   /** The data for the Handsontable instance. */
   @Input() data: Handsontable.GridSettings['data'] | null = null;
   /** The settings for the Handsontable instance. */
@@ -55,7 +58,12 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     private readonly ngZone: NgZone,
     private readonly environmentInjector: EnvironmentInjector,
     private readonly destroyRef: DestroyRef,
-  ) {}
+  ) {
+    if (!HotTableComponent._angularVersionVerified) {
+      HotTableComponent._angularVersionVerified = true;
+      verifyAngularVersion();
+    }
+  }
 
   /**
    * Gets the Handsontable instance.
