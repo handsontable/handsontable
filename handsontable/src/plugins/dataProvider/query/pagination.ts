@@ -165,7 +165,8 @@ export function handleAfterPageChangeExternalPagination(
  */
 export function handleAfterPageSizeChangeExternalPagination(
   ctx: {
-    hot: HotInstance; getQueryPage: () => number; getQueryPageSize: () => number; setPageSize: (ps: number) => Promise<void>;
+    hot: HotInstance; getQueryPage: () => number; getQueryPageSize: () => number;
+    setPageSize: (ps: number) => Promise<void>;
   },
   oldPageSize: number | 'auto',
   newPageSize: number | 'auto'

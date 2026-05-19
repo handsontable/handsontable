@@ -423,7 +423,9 @@ export class DragToScroll extends BasePlugin {
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    */
-  #onAfterSelection = (row: number, column: number, endRow: number, endColumn: number, preventScrolling: { value: boolean }) => {
+  #onAfterSelection = (
+    row: number, column: number, endRow: number, endColumn: number, preventScrolling: { value: boolean }
+  ) => {
     if (this.listening && this.#isOutsideViewport) {
       preventScrolling.value = true;
     }
