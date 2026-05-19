@@ -11,7 +11,7 @@
     "start": "astro dev",
     "docs:api": "node scripts/jsdoc-convert/index.mjs",
     "docs:code-examples:generate-js": "node scripts/transpile-doc-example.mjs",
-    "build": "npm run docs:api && astro build",
+    "build": "npm run build:styles.min --prefix ../handsontable && npm run docs:api && astro build",
     "preview": "astro preview",
     "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
