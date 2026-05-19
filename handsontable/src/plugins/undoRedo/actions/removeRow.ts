@@ -156,7 +156,7 @@ export class RemoveRowAction extends BaseAction {
  * @param {number} amount Number of rows being removed.
  * @returns {Array} Array of `{ row, col, rowspan, colspan }` objects.
  */
-function collectAffectedMergedCells(hot: any, visualRow: number, amount: number) {
+function collectAffectedMergedCells(hot: HotInstance, visualRow: number, amount: number) {
   const mergeCellsPlugin = hot.getPlugin('mergeCells');
 
   if (!mergeCellsPlugin?.enabled) {
@@ -187,7 +187,7 @@ function collectAffectedMergedCells(hot: any, visualRow: number, amount: number)
  * @param {Core} hot The Handsontable instance.
  * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
  */
-function restoreMergedCells(hot: any, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>
+function restoreMergedCells(hot: HotInstance, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>
 ) {
   if (!mergedCells || mergedCells.length === 0) {
     return;

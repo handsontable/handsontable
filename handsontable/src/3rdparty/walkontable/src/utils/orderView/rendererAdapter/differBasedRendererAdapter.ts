@@ -29,7 +29,7 @@ export class DifferBasedRendererAdapter {
    *
    * @type {Array[]}
    */
-  leads: unknown[] = [];
+  leads: Array<number[]> = [];
   /**
    * Current position within the leads array. Used instead of Array.shift()
    * to avoid O(n) per-call overhead.
@@ -50,7 +50,7 @@ export class DifferBasedRendererAdapter {
    *
    * @param {Array} command The command to apply.
    */
-  applyCommand(command: any) {
+  applyCommand(command: number[]) {
     const { rootNode } = this.orderView;
     const [name, nodeIndex, nodePrevIndex, nodeIndexToRemove] = command;
     const node = this.orderView.nodesPool(nodeIndex);

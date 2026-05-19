@@ -1,5 +1,8 @@
 import type { HotInstance } from '../../../core/types';
 import type { GridSettings } from '../../../core/settings';
+import type StateManager from '../stateManager';
+import type TreeNode from '../../../utils/dataStructures/tree';
+import type { HeaderSettings } from '../stateManager/headersTree';
 
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
@@ -44,7 +47,7 @@ class GhostTable {
    */
   widthsMap;
 
-  constructor({ hot, headersStateManager }: { hot: HotInstance; headersStateManager: any }) {
+  constructor({ hot, headersStateManager }: { hot: HotInstance; headersStateManager: StateManager }) {
     this.hot = hot;
     this.headersStateManager = headersStateManager;
     this.widthsMap = this.hot.columnIndexMapper
@@ -186,7 +189,7 @@ class GhostTable {
 
       let found = false;
 
-      treeNode.walkUp((node: any) => {
+      treeNode.walkUp((node: TreeNode) => {
         if (node.data.isCollapsed === true) {
           found = true;
 
@@ -318,7 +321,7 @@ class GhostTable {
    * @returns {string} HTML string for the header label.
    */
   #buildHeaderLabelHTML(
-    headerSettings: any, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
   ) {
     const label = typeof sanitizer === 'function'
       ? sanitizer(headerSettings.label, 'innerHTML')

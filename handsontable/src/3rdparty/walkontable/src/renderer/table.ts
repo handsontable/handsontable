@@ -338,9 +338,9 @@ export class TableRenderer {
 
         if (rowHeight) {
           // Decrease height. 1 pixel will be "replaced" by 1px border top
-          TR.firstChild.style.height = `${rowHeight - borderCompensation}px`;
+          (TR.firstChild as HTMLElement).style.height = `${rowHeight - borderCompensation}px`;
         } else {
-          TR.firstChild.style.height = '';
+          (TR.firstChild as HTMLElement).style.height = '';
         }
       }
     }

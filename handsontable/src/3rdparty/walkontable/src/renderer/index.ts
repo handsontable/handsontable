@@ -7,6 +7,20 @@ import { CellsRenderer } from './cells';
 import { TableRenderer } from './table';
 import type RowFilter from '../filter/row';
 import type ColumnFilter from '../filter/column';
+import type RowUtils from '../utils/row';
+import type ColumnUtils from '../utils/column';
+import type { StylesHandler } from '../types';
+
+interface RendererOptions {
+  TABLE?: HTMLTableElement;
+  THEAD?: HTMLElement;
+  COLGROUP?: HTMLElement;
+  TBODY?: HTMLElement;
+  rowUtils?: RowUtils;
+  columnUtils?: ColumnUtils;
+  cellRenderer?: Function;
+  stylesHandler?: StylesHandler;
+}
 
 /**
  * Content renderer.
@@ -16,7 +30,7 @@ import type ColumnFilter from '../filter/column';
 class Renderer {
   declare renderer: TableRenderer;
 
-  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler }: any = {}) {
+  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler }: RendererOptions = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *

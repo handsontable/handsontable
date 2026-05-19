@@ -140,7 +140,7 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *     }
  *   }
  *
- *   private getData(): any[] {
+ *   private getData(): Array<*> {
  *     // get some data
  *   }
  * }

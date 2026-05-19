@@ -102,19 +102,19 @@ export class ItemsFactory {
  * @returns {object[]} Returns parsed and merged menu items collection ready to render.
  */
 function getItems(
-  itemsPattern: any = null, defaultPattern: string[] = [], items: Record<string, Record<string, unknown>> = {}
+  itemsPattern: unknown = null, defaultPattern: string[] = [], items: Record<string, Record<string, unknown>> = {}
 ) {
   const result: Record<string, unknown>[] = [];
-  let pattern = itemsPattern;
+  let pattern: unknown = itemsPattern;
 
-  if (pattern && pattern.items) {
-    pattern = pattern.items;
+  if (pattern && (pattern as Record<string, unknown>).items) {
+    pattern = (pattern as Record<string, unknown>).items;
 
   } else if (!Array.isArray(pattern)) {
     pattern = defaultPattern;
   }
   if (isObject(pattern)) {
-    objectEach(pattern, (value: unknown, key: string) => {
+    objectEach(pattern as object, (value: unknown, key: string) => {
       let item: Record<string, unknown> = items[typeof value === 'string' ? value : key];
 
       if (!item) {
@@ -132,7 +132,7 @@ function getItems(
       result.push(item);
     });
   } else {
-    arrayEach(pattern, (name: string, key: number) => {
+    arrayEach(pattern as string[], (name: string, key: number) => {
       let item: Record<string, unknown> = items[name];
 
       // Item deleted from settings `allowInsertRow: false` etc.

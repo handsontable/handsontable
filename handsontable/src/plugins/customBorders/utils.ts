@@ -96,7 +96,7 @@ export function denormalizeBorder(border: Record<string, unknown>) {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
- * @returns {{id: string, border: any, row: number, col: number, top: {hide: boolean}, bottom: {hide: boolean}, start: {hide: boolean}, end: {hide: boolean}}} Returns border configuration containing visual indexes.
+ * @returns {{id: string, border: *, row: number, col: number, top: {hide: boolean}, bottom: {hide: boolean}, start: {hide: boolean}, end: {hide: boolean}}} Returns border configuration containing visual indexes.
  */
 export function createEmptyBorders(row: number, col: number) {
   return {

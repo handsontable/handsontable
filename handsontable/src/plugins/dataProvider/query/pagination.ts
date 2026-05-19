@@ -1,4 +1,14 @@
 import { DEFAULT_PAGE_SIZE } from '../constants';
+import type { HotInstance } from '../../../core/types';
+
+interface PaginationPluginInterface {
+  enabled?: boolean;
+  getSetting(key: string): unknown;
+  getCurrentPage?(): number;
+  getCurrentPageSize?(): number | 'auto' | undefined;
+  revertPageTo?(page: number): void;
+  revertPageSizeTo?(pageSize: number | 'auto'): void;
+}
 
 const PAGINATION_PLUGIN_KEY = 'pagination';
 
@@ -21,7 +31,8 @@ const PAGINATION_PLUGIN_KEY = 'pagination';
  * @returns {void}
  */
 export function applyPaginationToQueryParameters(
-  paginationPlugin: any, queryParameters: { page: number; pageSize: number }
+  paginationPlugin: PaginationPluginInterface | null | undefined,
+  queryParameters: { page: number; pageSize: number }
 ): void {
   if (!paginationPlugin?.enabled) {
     return;
@@ -75,7 +86,7 @@ export function normalizeExternalPaginationPageSize(newPageSize: number | 'auto'
  * @returns {void}
  */
 export function applyPaginationToQueryFromPlugin(
-  hot: any, queryParameters: { page: number; pageSize: number }
+  hot: HotInstance, queryParameters: { page: number; pageSize: number }
 ): void {
   applyPaginationToQueryParameters(
     hot.getPlugin(PAGINATION_PLUGIN_KEY),
@@ -115,7 +126,7 @@ export function getPagedRowHeaderIndex(
  * @returns {void}
  */
 export function handleAfterPageChangeExternalPagination(
-  ctx: { hot: any; getQueryPage: () => number; goToPage: (page: number) => Promise<void> },
+  ctx: { hot: HotInstance; getQueryPage: () => number; goToPage: (page: number) => Promise<void> },
   oldPage: number,
   newPage: number
 ): void {
@@ -154,7 +165,7 @@ export function handleAfterPageChangeExternalPagination(
  */
 export function handleAfterPageSizeChangeExternalPagination(
   ctx: {
-    hot: any; getQueryPage: () => number; getQueryPageSize: () => number; setPageSize: (ps: number) => Promise<void>;
+    hot: HotInstance; getQueryPage: () => number; getQueryPageSize: () => number; setPageSize: (ps: number) => Promise<void>;
   },
   oldPageSize: number | 'auto',
   newPageSize: number | 'auto'

@@ -1,5 +1,19 @@
 import type { WalkontableInstance } from '../types';
 import type Selection from './selection';
+
+/**
+ * Minimal interface for the selections container passed to SelectionManager.
+ * The full implementation is in src/selection/highlight/highlight.ts.
+ */
+interface SelectionsContainer {
+  getFocus(): Selection | null;
+  createLayeredArea(): Selection | null;
+  options?: {
+    cellAttributes?: Array<[string, string | number | boolean]>;
+    headerAttributes?: Array<[string, string | number | boolean]>;
+  };
+  [Symbol.iterator](): Iterator<Selection>;
+}
 import {
   removeClass,
   addClass,
@@ -28,7 +42,7 @@ export class SelectionManager {
    *
    * @type {Highlight|null}
    */
-  #selections: any;
+  #selections: SelectionsContainer | null;
   /**
    * The SelectionScanner allows to scan and collect the cell and header elements that matches
    * to the coords defined in the selections.
@@ -56,7 +70,7 @@ export class SelectionManager {
    */
   #selectionBorders = new Map();
 
-  constructor(selections: any) {
+  constructor(selections: SelectionsContainer | null) {
     this.#selections = selections;
   }
 
@@ -173,7 +187,7 @@ export class SelectionManager {
       this.#resetCells();
     }
 
-    const selections: any[] = Array.from(this.#selections);
+    const selections: Selection[] = Array.from(this.#selections);
     const classNamesMap = new Map();
     const headerAttributesMap = new Map();
 
@@ -224,7 +238,7 @@ export class SelectionManager {
             }
 
             if (element.nodeName === 'TH') {
-              headerAttributesMap.get(element).push(...headerAttributes);
+              headerAttributesMap.get(element).push(...(headerAttributes as unknown[]));
             }
           }
         });
@@ -280,15 +294,15 @@ export class SelectionManager {
 
     appliedOverlaysClasses.forEach((className: string) => {
       const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
-      let cellAttributes = [];
+      let cellAttributes: string[] = [];
 
       if (Array.isArray(this.#selections.options?.cellAttributes)) {
-        cellAttributes = this.#selections.options.cellAttributes.map((el: [string, unknown]) => el[0]);
+        cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
       }
 
       if (Array.isArray(this.#selections.options?.headerAttributes)) {
         cellAttributes = [
-          ...cellAttributes, ...this.#selections.options.headerAttributes.map((el: [string, unknown]) => el[0])];
+          ...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
       }
 
       for (let i = 0, len = nodes.length; i < len; i++) {

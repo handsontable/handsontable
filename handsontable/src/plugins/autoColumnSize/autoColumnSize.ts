@@ -151,7 +151,7 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *     }
  *   }
  *
- *   private getData(): any[] {
+ *   private getData(): Array<*> {
  *     //get some data
  *   }
  * }

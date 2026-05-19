@@ -1,3 +1,6 @@
+import type { GridSettings } from '../../../core/settings';
+import type CellRange from '../../../3rdparty/walkontable/src/cell/range';
+
 /**
  * Derives export options from the current Handsontable selection and settings.
  *
@@ -15,7 +18,7 @@
  * @param {object} hot Handsontable instance (`this` inside a menu item callback).
  * @returns {object}
  */
-export function getExportOptions(hot: { getSettings(): any; getSelectedRangeLast(): any }): object {
+export function getExportOptions(hot: { getSettings(): GridSettings; getSelectedRangeLast(): CellRange | undefined }): object {
   const settings = hot.getSettings();
   const colHeaders = !!(settings.colHeaders || settings.nestedHeaders);
   const rowHeaders = !!settings.rowHeaders;

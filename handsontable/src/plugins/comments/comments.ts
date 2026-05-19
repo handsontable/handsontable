@@ -199,7 +199,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *     commentsPlugin.show();
  *   }
  *
- *   private getData(): any[] {
+ *   private getData(): Array<*> {
  *     // get some data
  *   }
  * }

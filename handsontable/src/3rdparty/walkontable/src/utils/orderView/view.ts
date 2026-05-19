@@ -55,7 +55,7 @@ export class OrderView {
    */
   rendererAdapter;
 
-  constructor(rootNode: HTMLElement, nodesPool: any, childNodeType: string) {
+  constructor(rootNode: HTMLElement, nodesPool: (index?: number) => HTMLElement, childNodeType: string) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
     this.childNodeType = childNodeType;

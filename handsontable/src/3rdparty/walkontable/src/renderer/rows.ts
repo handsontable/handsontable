@@ -38,7 +38,7 @@ export class RowsRenderer extends BaseRenderer {
    *
    * @type {WeakMap}
    */
-  declare orderView: any;
+  declare orderView: OrderView;
 
   constructor(rootNode: HTMLElement) {
     super('TR', rootNode);

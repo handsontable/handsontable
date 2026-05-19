@@ -77,8 +77,8 @@ export class DragToScroll extends BasePlugin {
   #autoScroller = new AutoScroller(
     (fn: () => void, delay: number) => this.hot._registerTimeout(fn, delay) as unknown as number
   )
-    .addLocalHook('scrollHorizontal', (distance: any) => this.#scrollHorizontal(distance))
-    .addLocalHook('scrollVertical', (distance: any) => this.#scrollVertical(distance));
+    .addLocalHook('scrollHorizontal', (distance: number) => this.#scrollHorizontal(distance))
+    .addLocalHook('scrollVertical', (distance: number) => this.#scrollVertical(distance));
   /**
    * Flag indicates if the mouse is outside the viewport.
    *
@@ -423,7 +423,7 @@ export class DragToScroll extends BasePlugin {
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    */
-  #onAfterSelection = (row: any, column: any, endRow: any, endColumn: any, preventScrolling: any) => {
+  #onAfterSelection = (row: number, column: number, endRow: number, endColumn: number, preventScrolling: { value: boolean }) => {
     if (this.listening && this.#isOutsideViewport) {
       preventScrolling.value = true;
     }

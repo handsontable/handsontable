@@ -3,15 +3,17 @@ export {
   baseRenderer,
 } from './baseRenderer';
 
+import type { HotInstance } from '../../core/types';
+
 /**
  * Type representing a Handsontable renderer function signature.
  */
 export type BaseRenderer = (
-  instance: any,
+  instance: HotInstance,
   td: HTMLTableCellElement,
   row: number,
   col: number,
   prop: string | number,
-  value: any,
+  value: unknown,
   cellProperties: Record<string, unknown>
 ) => void;

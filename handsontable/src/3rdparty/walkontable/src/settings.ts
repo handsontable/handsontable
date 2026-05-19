@@ -107,7 +107,7 @@ export default class Settings {
    * @param {SettingsPure} settings The user defined settings.
    */
   constructor(settings: Record<string, any>) {
-    objectEach(this.defaults, (value: any, key: string) => {
+    objectEach(this.defaults, (value: unknown, key: string) => {
       if (settings[key] !== undefined) {
         this.settings[key] = settings[key];
 
@@ -256,13 +256,13 @@ export default class Settings {
    * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Settings}
    */
-  update(settings: any, value?: unknown) {
+  update(settings: string | Record<string, any>, value?: unknown) {
     if (value === undefined) { // settings is object
-      objectEach(settings, (settingValue: any, key: string) => {
+      objectEach(settings as Record<string, any>, (settingValue: unknown, key: string) => {
         this.settings[key] = settingValue;
       });
     } else { // if value is defined then settings is the key
-      this.settings[settings] = value;
+      this.settings[settings as string] = value;
     }
 
     return this;

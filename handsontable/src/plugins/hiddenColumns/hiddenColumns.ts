@@ -179,7 +179,7 @@ export const PLUGIN_PRIORITY = 310;
  *     hot.render();
  *   }
  *
- *   private getData(): any[] {
+ *   private getData(): Array<*> {
  *     // Get some data
  *   }
  * }

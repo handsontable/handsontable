@@ -19,7 +19,7 @@ export interface ViewportRowsCalculatorOptions {
   totalRows: number;
   overrideFn: ((calc: unknown) => void) | null;
   horizontalScrollbarHeight?: number;
-  rowHeightCache: any;
+  rowHeightCache: PositionCache;
 }
 
 /**

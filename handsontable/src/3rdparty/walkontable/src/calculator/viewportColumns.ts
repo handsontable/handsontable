@@ -19,7 +19,7 @@ export interface ViewportColumnsCalculatorOptions {
   totalColumns: number;
   overrideFn: ((calc: unknown) => void) | null;
   inlineStartOffset: number;
-  columnWidthCache: any;
+  columnWidthCache: PositionCache;
 }
 
 /**

@@ -1,4 +1,12 @@
 import type { HotInstance } from '../../core/types';
+import type { SummaryEndpoint } from '../columnSummary/columnSummary';
+
+interface MergeCellDescriptor {
+  row: number;
+  col: number;
+  rowspan: number;
+  colspan: number;
+}
 
 /**
  * @private
@@ -343,13 +351,13 @@ class DataProvider {
     }
 
     const mergedCells = mergeCellsPlugin.mergedCellsCollection.mergedCells;
-    const result: any[] = [];
+    const result: MergeCellDescriptor[] = [];
     const excludeHiddenRows = this.options.exportHiddenRows === false;
     const excludeHiddenCols = this.options.exportHiddenColumns === false;
     const rowIncluded = (r: number) => !excludeHiddenRows || !this._isHiddenRow(r);
     const colIncluded = (c: number) => !excludeHiddenCols || !this._isHiddenColumn(c);
 
-    mergedCells.forEach((merge: any) => {
+    mergedCells.forEach((merge: MergeCellDescriptor) => {
       const mergeEndRow = merge.row + merge.rowspan - 1;
       const mergeEndCol = merge.col + merge.colspan - 1;
 
@@ -638,9 +646,9 @@ class DataProvider {
     // summary destination from every formula's source range.  Without this, multiple
     // summary rows would reference each other and create circular references in Excel
     // (e.g. SUM at row 6 references MIN at row 7, and MIN at row 7 references SUM at row 6).
-    const allDestRows = new Set();
+    const allDestRows = new Set<number>();
 
-    allEndpoints.forEach((endpoint: any) => {
+    allEndpoints.forEach((endpoint: SummaryEndpoint) => {
       const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
 
       if (destRow !== null) {
@@ -649,9 +657,9 @@ class DataProvider {
     });
 
     // Second pass: translate each endpoint into an export-coordinate summary descriptor.
-    const summaries: any[] = [];
+    const summaries: object[] = [];
 
-    allEndpoints.forEach((endpoint: any) => {
+    allEndpoints.forEach((endpoint: SummaryEndpoint) => {
       const summary = this._transformEndpointToSummary(
         endpoint, startRow, endRow, startCol, endCol, allDestRows
       );
@@ -684,7 +692,8 @@ class DataProvider {
    * @returns {object|null}
    */
   _transformEndpointToSummary(
-    endpoint: any, startRow: number, endRow: number, startCol: number, endCol: number, allDestRows: any
+    endpoint: SummaryEndpoint, startRow: number, endRow: number,
+    startCol: number, endCol: number, allDestRows: Set<number>
   ) {
     const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
     const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
@@ -703,9 +712,9 @@ class DataProvider {
     // Convert physical row ranges to sequential data-row-index ranges, merging
     // consecutive indices so the resulting array stays compact.
     const physRanges = endpoint.ranges || [[0, this.hot.countRows() - 1]];
-    const sourceRanges: any[] = [];
+    const sourceRanges: [number, number][] = [];
 
-    physRanges.forEach((range: any) => {
+    physRanges.forEach((range: number[]) => {
       const physStart = range[0];
       const physEnd = range[1] !== undefined ? range[1] : range[0];
 

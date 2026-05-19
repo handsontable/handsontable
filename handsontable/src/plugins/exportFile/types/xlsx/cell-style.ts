@@ -13,8 +13,19 @@ export interface CellMeta {
   readOnly?: boolean;
   borders?: Record<string, { width: number; color: string }>;
   type?: string;
-  source?: any[];
-  [key: string]: any;
+  source?: unknown[];
+  comment?: { value?: unknown };
+  numericFormat?: {
+    pattern?: string;
+    style?: string;
+    currency?: string;
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+    useGrouping?: boolean;
+  } | null;
+  locale?: string;
+  checkedTemplate?: unknown;
+  [key: string]: unknown;
 }
 
 // Default ARGB colors applied to read-only cells when no explicit styling is set.

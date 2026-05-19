@@ -16,7 +16,7 @@ export default class WalkontableFacade {
   /**
    * @param {SettingsPure|Walkontable} settingsOrInstance The Walkontable settings.
    */
-  constructor(settingsOrInstance: any) {
+  constructor(settingsOrInstance: CoreAbstract | Record<string, unknown>) {
     if (settingsOrInstance instanceof CoreAbstract) {
       this._wot = settingsOrInstance;
     } else {
@@ -25,7 +25,7 @@ export default class WalkontableFacade {
   }
 
   _initFromSettings(settings: Record<string, any>) {
-    settings.facade = (instance: any) => {
+    settings.facade = (instance: CoreAbstract) => {
       const facade = new WalkontableFacade(instance);
 
       return () => facade;
@@ -163,7 +163,7 @@ export default class WalkontableFacade {
     return this._wot.exportSettingsAsClassNames();
   }
 
-  update(settings: string | any, value: unknown) {
+  update(settings: string | Record<string, unknown>, value: unknown) {
     this._wot.wtSettings.update(settings, value);
 
     return this;

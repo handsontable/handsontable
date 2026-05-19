@@ -883,7 +883,7 @@ export class Filters extends BasePlugin {
    *     filtersPlugin.filter();
    *   }
    *
-   *   private getData(): any[] {
+   *   private getData(): Array<*> {
    *     // Get some data
    *   }
    * }
@@ -1078,7 +1078,7 @@ export class Filters extends BasePlugin {
    * are included.
    *
    * @param {number} physicalColumn The physical column index.
-   * @returns {Array<{meta: CellProperties, value: any}>} Array of objects with `meta` and `value`, one per source row.
+   * @returns {Array<{meta: CellProperties, value: *}>} Array of objects with `meta` and `value`, one per source row.
    */
   getDataMapAtColumn(physicalColumn: number): Record<string, unknown>[] {
     const countSourceRows = this.hot.countSourceRows();

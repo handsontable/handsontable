@@ -17,7 +17,7 @@
  * @param {*} pattern Numbro format pattern string (e.g. `'$0,0.00'`).
  * @returns {string|null}
  */
-export function numbroPatternToExcelNumFmt(pattern: any): string | null {
+export function numbroPatternToExcelNumFmt(pattern: unknown): string | null {
   if (!pattern || typeof pattern !== 'string') {
     return null;
   }

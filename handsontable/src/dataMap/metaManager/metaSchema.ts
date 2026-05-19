@@ -6436,7 +6436,7 @@ export default (): Record<string, unknown> => {
      * ```
      *
      * @memberof Options#
-     * @type {function(any, number, number): any}
+     * @type {function(*, number, number): *}
      * @param {*} value The value to be displayed in the cell.
      * @param {number} row The visual row index of the cell.
      * @param {number} column The visual column index of the cell.
@@ -6461,7 +6461,7 @@ export default (): Record<string, unknown> => {
      * ```
      *
      * @memberof Options#
-     * @type {function(any, number, number): any}
+     * @type {function(*, number, number): *}
      * @param {*} value The value to be set to a cell.
      * @param {number} row The visual row index of the cell.
      * @param {number} column The visual column index of the cell.

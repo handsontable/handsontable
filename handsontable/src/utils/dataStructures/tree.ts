@@ -107,6 +107,7 @@ export default class TreeNode {
    *
    * @type {object}
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any = {};
   /**
    * A parent node.
@@ -121,7 +122,8 @@ export default class TreeNode {
    */
   childs: TreeNode[] = [];
 
-  constructor(data: unknown) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(data: any) {
     this.data = data;
   }
 

@@ -1,6 +1,7 @@
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stripTags } from '../../helpers/string';
 import { NOTIFICATION_CLASS_NAME, NOTIFICATION_POSITIONS } from './constants';
+import type { NotificationNormalizedOptions, NotificationAction } from './notification';
 
 /**
  * Renders toast containers and individual notification elements. Used only by the Notification plugin.
@@ -121,7 +122,7 @@ export class NotificationUI {
    * @param {boolean} animation Whether enter animation is enabled.
    * @returns {{ element: HTMLElement }}
    */
-  createToastElement(options: any, closeLabel: string, animation: boolean): { element: HTMLElement } {
+  createToastElement(options: NotificationNormalizedOptions, closeLabel: string, animation: boolean): { element: HTMLElement } {
     const doc = this.#rootElement.ownerDocument;
     const element = doc.createElement('div');
     const isError = options.variant === 'error';
@@ -181,7 +182,7 @@ export class NotificationUI {
 
       actionsRow.className = `${NOTIFICATION_CLASS_NAME}__actions`;
 
-      options.actions.forEach((action: any, index: number) => {
+      options.actions.forEach((action: NotificationAction, index: number) => {
         const btn = doc.createElement('button');
 
         btn.type = 'button';

@@ -21,7 +21,7 @@ export function toExcelDateSerial(date: Date): number {
  * @param {*} value Cell value — expected to be an ISO 8601 string.
  * @returns {number|null}
  */
-export function parseIsoStringToSerial(value: any): number | null {
+export function parseIsoStringToSerial(value: unknown): number | null {
   if (!value) {
     return null;
   }
@@ -54,7 +54,7 @@ export function parseIsoStringToSerial(value: any): number | null {
  * @param {*} value Cell value — expected to be a time string.
  * @returns {number|null}
  */
-export function parseTimeStringToSerial(value: any): number | null {
+export function parseTimeStringToSerial(value: unknown): number | null {
   if (!value) {
     return null;
   }

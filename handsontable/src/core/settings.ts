@@ -7,7 +7,7 @@ import type {
   CellCoords as WalkontableCellCoords,
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
-import type { CellChange, ChangeSource, RowObject, CellValue } from '../settings';
+import type { CellChange, ChangeSource, RowObject, CellValue, CellProperties } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
@@ -95,15 +95,11 @@ export interface GridSettings {
   wordWrap?: boolean;
 
   // Rendering
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderer?: string | ((hotInstance: HotInstance, td: HTMLTableCellElement, row: number, col: number,
-    prop: string | number, value: CellValue, cellProperties: any) => HTMLTableCellElement | void);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueFormatter?: (value: CellValue, cellProperties: any) => CellValue;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: any) => CellValue;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: any) => CellValue;
+    prop: string | number, value: CellValue, cellProperties: CellProperties) => HTMLTableCellElement | void);
+  valueFormatter?: (value: CellValue, cellProperties: CellProperties) => CellValue;
+  valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
+  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: CellProperties) => CellValue;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;

@@ -55,6 +55,7 @@ import {
   isCompleteDataProviderConfig,
 } from './utils';
 import { registerConflict } from '../base/conflictRegistry';
+import type { NotificationMessageOptions } from '../notification/notification';
 
 registerConflict('dataProvider', [
   'manualRowMove',
@@ -729,13 +730,7 @@ export class DataProvider extends BasePlugin {
     const message = getDataProviderRequestErrorDescription(err);
 
     let toastId = '';
-    const options: {
-      variant: string;
-      title: string;
-      message: string;
-      duration?: number;
-      actions?: Array<{ label: string; type: string; callback: () => void }>;
-    } = {
+    const options: NotificationMessageOptions = {
       variant: 'error',
       title,
       message,
@@ -789,7 +784,7 @@ export class DataProvider extends BasePlugin {
    * @returns {Promise<void>}
    */
   #queueCrud(
-    operation: string, payload: object, userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void
+    operation: string, payload: object, userPromiseFn: () => Promise<unknown>, onSuccess: () => Promise<void> | void
   ): Promise<void> {
     return queueCrud(
       {

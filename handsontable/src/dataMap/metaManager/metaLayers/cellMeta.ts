@@ -3,6 +3,7 @@ import LazyFactoryMap from '../lazyFactoryMap';
 import { extend } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
+import type ColumnMeta from './columnMeta';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -41,7 +42,7 @@ export default class CellMeta {
    *
    * @type {ColumnMeta}
    */
-  declare columnMeta: any;
+  declare columnMeta: ColumnMeta;
   /**
    * Holder for cell meta objects, organized as a grid of LazyFactoryMap of LazyFactoryMaps.
    * The access to the cell meta object is done through access to the row defined by the physical
@@ -51,7 +52,7 @@ export default class CellMeta {
    */
   metas = new LazyFactoryMap(() => this._createRow());
 
-  constructor(columnMeta: unknown) {
+  constructor(columnMeta: ColumnMeta) {
     this.columnMeta = columnMeta;
   }
 
@@ -231,7 +232,7 @@ export default class CellMeta {
    * @returns {object}
    */
   _createMeta(physicalColumn: number) {
-    const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn);
+    const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn) as new () => Record<string, unknown>;
 
     return new ColumnMeta();
   }

@@ -6,12 +6,14 @@ import { DEFAULT_PAGE_SIZE, SETTINGS_VALIDATORS } from './constants';
  * @param {*} c Value of the `dataProvider` setting.
  * @returns {boolean}
  */
-export function isCompleteDataProviderConfig(c: any): boolean {
+export function isCompleteDataProviderConfig(c: unknown): boolean {
   if (!c || typeof c !== 'object' || Array.isArray(c)) {
     return false;
   }
 
-  return Object.keys(SETTINGS_VALIDATORS).every(key => SETTINGS_VALIDATORS[key](c[key]));
+  const record = c as Record<string, unknown>;
+
+  return Object.keys(SETTINGS_VALIDATORS).every(key => SETTINGS_VALIDATORS[key](record[key]));
 }
 
 /**
@@ -27,7 +29,7 @@ function isBareHttpStatusText(s: string): boolean {
  * @param {*} value String to append when non-empty after trim.
  * @returns {void}
  */
-function pushStringCandidate(candidates: string[], value: any): void {
+function pushStringCandidate(candidates: string[], value: unknown): void {
   if (typeof value === 'string') {
     const t = value.trim();
 
@@ -42,16 +44,18 @@ function pushStringCandidate(candidates: string[], value: any): void {
  * @param {Array<string>} candidates Collected messages (mutated).
  * @returns {void}
  */
-function collectStringsFromApiPayload(obj: any, candidates: string[]): void {
+function collectStringsFromApiPayload(obj: unknown, candidates: string[]): void {
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
     return;
   }
 
-  pushStringCandidate(candidates, obj.message);
-  pushStringCandidate(candidates, obj.error);
+  const record = obj as Record<string, unknown>;
 
-  if (typeof obj.detail === 'string') {
-    pushStringCandidate(candidates, obj.detail);
+  pushStringCandidate(candidates, record.message);
+  pushStringCandidate(candidates, record.error);
+
+  if (typeof record.detail === 'string') {
+    pushStringCandidate(candidates, record.detail);
   }
 }
 
@@ -62,7 +66,7 @@ function collectStringsFromApiPayload(obj: any, candidates: string[]): void {
  * @param {*} err Value thrown or rejected from `fetchRows` or row mutation callbacks.
  * @returns {string} Non-empty description for UI.
  */
-export function getDataProviderRequestErrorDescription(err: any): string {
+export function getDataProviderRequestErrorDescription(err: unknown): string {
   const candidates: string[] = [];
 
   if (err === undefined || err === null) {
@@ -79,7 +83,9 @@ export function getDataProviderRequestErrorDescription(err: any): string {
     return String(err);
   }
 
-  const nested = err.response?.data ?? err.data ?? err.body;
+  const errRecord = err as Record<string, unknown>;
+  const responseData = errRecord.response as Record<string, unknown> | undefined;
+  const nested = responseData?.data ?? errRecord.data ?? errRecord.body;
 
   if (nested !== undefined && nested !== null) {
     if (typeof nested === 'string') {
@@ -93,12 +99,12 @@ export function getDataProviderRequestErrorDescription(err: any): string {
     }
   }
 
-  if (typeof err.error === 'string') {
-    pushStringCandidate(candidates, err.error);
+  if (typeof errRecord.error === 'string') {
+    pushStringCandidate(candidates, errRecord.error);
   }
 
-  if (typeof err.message === 'string') {
-    pushStringCandidate(candidates, err.message);
+  if (typeof errRecord.message === 'string') {
+    pushStringCandidate(candidates, errRecord.message);
   }
 
   const preferred = candidates.find(c => !isBareHttpStatusText(c));

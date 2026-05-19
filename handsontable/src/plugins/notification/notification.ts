@@ -48,6 +48,16 @@ export interface NotificationConfig {
   animation?: boolean;
 }
 
+interface ToastState {
+  id: string;
+  options: NotificationNormalizedOptions;
+  element: HTMLElement;
+  durationMs: number;
+  remainingMs: number;
+  paused: boolean;
+  toastEventDisposers?: Array<() => void> | null;
+}
+
 export const PLUGIN_KEY = 'notification';
 
 export const PLUGIN_PRIORITY = 375;
@@ -122,12 +132,12 @@ export class Notification extends BasePlugin {
   /**
    * @type {Map<string, object>}
    */
-  readonly #toasts: Map<string, any> = new Map();
+  readonly #toasts: Map<string, ToastState> = new Map();
 
   /**
    * @type {Record<string, object[]>}
    */
-  readonly #queues: Record<NotificationPosition, any[]> = {
+  readonly #queues: Record<NotificationPosition, NotificationNormalizedOptions[]> = {
     'top-start': [],
     'top-end': [],
     'bottom-start': [],
@@ -283,7 +293,7 @@ export class Notification extends BasePlugin {
    * @returns {string}
    * @throws {Error} When `options` is invalid or actions are malformed.
    */
-  showMessage(options: any): string {
+  showMessage(options: NotificationMessageOptions): string {
     if (!this.enabled) {
       return '';
     }
@@ -453,7 +463,7 @@ export class Notification extends BasePlugin {
    * @returns {object} Normalized options including `id`, `variant`, `position`, `duration`, `closable`, and `actions`.
    * @throws {Error} When `message` or action entries are invalid.
    */
-  #normalizeOptions(raw: any): any {
+  #normalizeOptions(raw: NotificationMessageOptions): NotificationNormalizedOptions {
     if (!isObject(raw) || (typeof raw.message !== 'string' &&
       !(typeof HTMLElement !== 'undefined' && raw.message instanceof HTMLElement))) {
       throwWithCause('Notification.showMessage expects an object with a `message` string or HTMLElement.');
@@ -464,14 +474,14 @@ export class Notification extends BasePlugin {
     const position = POSITION_SET.has(raw.position) ? raw.position : 'bottom-end';
     const duration = typeof raw.duration === 'number' && raw.duration >= 0 ? raw.duration : 4000;
     const closable = typeof raw.closable === 'boolean' ? raw.closable : true;
-    const actions = Array.isArray(raw.actions) ? raw.actions.map((a: any) => {
+    const actions = Array.isArray(raw.actions) ? raw.actions.map((a) => {
       if (!isObject(a) || typeof a.label !== 'string' || typeof a.callback !== 'function') {
         throwWithCause('Each notification action needs `label` (string) and `callback` (function).');
       }
 
-      const type = a.type === 'primary' ? 'primary' : 'secondary';
+      const type: 'primary' | 'secondary' = a.type === 'primary' ? 'primary' : 'secondary';
 
-      return { label: a.label, type, callback: a.callback };
+      return { label: a.label as string, type, callback: a.callback as () => void };
     }) : [];
 
     return {
@@ -507,7 +517,7 @@ export class Notification extends BasePlugin {
    *
    * @param {object} normalized Validated toast options including `id` and `position`.
    */
-  #mountToast(normalized: any): void {
+  #mountToast(normalized: NotificationNormalizedOptions): void {
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
     const animation = this.getSetting<boolean>('animation');
     const { element } = this.#ui.createToastElement(normalized, closeLabel, animation);
@@ -565,7 +575,7 @@ export class Notification extends BasePlugin {
    *
    * @param {object} state Toast state.
    */
-  #bindToastEvents(state: any): void {
+  #bindToastEvents(state: ToastState): void {
     state.toastEventDisposers = [
       this.eventManager.addEventListener(state.element, 'click', (event) => {
         this.#onToastClick(event as MouseEvent, state);
@@ -589,7 +599,7 @@ export class Notification extends BasePlugin {
    * @param {MouseEvent} event Click event.
    * @param {object} state Toast state.
    */
-  #onToastClick(event: MouseEvent, state: any): void {
+  #onToastClick(event: MouseEvent, state: ToastState): void {
     const target = event.target;
 
     if (!(target instanceof this.hot.rootWindow.HTMLElement)) {
@@ -997,7 +1007,7 @@ export class Notification extends BasePlugin {
    * @param {object} state Toast state.
    * @param {boolean} removeDom Whether to remove the DOM node.
    */
-  #removeToastState(state: any, removeDom: boolean): void {
+  #removeToastState(state: ToastState, removeDom: boolean): void {
     if (state.toastEventDisposers) {
       state.toastEventDisposers.forEach((dispose: () => void) => dispose());
       state.toastEventDisposers = null;
