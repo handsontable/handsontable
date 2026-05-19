@@ -1199,7 +1199,7 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    arrayEach(filteredColumns, (physicalColumn) => {
+    arrayEach(filteredColumns, (physicalColumn: number) => {
       this.conditionUpdateObserver.updateStatesAtColumn(physicalColumn);
     });
   }
