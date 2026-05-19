@@ -63,9 +63,9 @@ jobs:
         run: |
           npm run docs:docker:build:production
 
-      - name: Test examples
+      - name: Test plugins
         run: |
-          npm run docs:test:example-checker
+          npm run docs:test:plugins
 
       - name: Docker tags
         run: |
