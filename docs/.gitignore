@@ -22,7 +22,6 @@ report-check-links.xlsx
 /.build-tmp/
 
 /docker/redirect-page-ids.json
-/docker/variables.conf
 !/content/api/introduction.md
 !/content/api/plugins.md
 !/content/api/sidebar.js
