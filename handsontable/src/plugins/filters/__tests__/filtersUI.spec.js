@@ -2150,4 +2150,90 @@ describe('Filters UI', () => {
       expect(items[2].value).toBe('15/12/2023');
     });
   });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should preserve dependent column "Filter by value" checkboxes when editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          width: 500,
+          height: 300,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        await dropdownMenu(2);
+        await sleep(112);
+
+        const items = byValueMultipleSelect().getItems();
+        const checkedValues = items.filter(item => item.checked).map(item => item.value);
+
+        expect(checkedValues).toEqual(['Mercedes', 'Renault']);
+      });
+
+    it('should preserve dependent column checkboxes when edit reintroduces a filtered-out value (issue repro)',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Germany', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+            { id: 5, country: 'Italy', company: 'Ferrari' },
+            { id: 6, country: 'France', company: 'Peugeot' },
+            { id: 7, country: 'Italy', company: 'Lamborghini' },
+            { id: 8, country: 'Germany', company: 'Audi' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          width: 500,
+          height: 360,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value',
+          [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
+        filters.filter();
+
+        await setDataAtCell(2, 1, 'Italy');
+
+        await dropdownMenu(2);
+        await sleep(112);
+
+        const items = byValueMultipleSelect().getItems();
+        const checkedValues = items.filter(item => item.checked).map(item => item.value);
+
+        expect(checkedValues).toEqual(
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+      });
+  });
 });
