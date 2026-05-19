@@ -18,6 +18,7 @@ import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorWidth } from './utils';
 import { SEPARATOR } from '../contextMenu/predefinedItems';
+import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
@@ -40,6 +41,16 @@ interface CommentMeta {
 }
 
 export interface CommentObject extends CommentMeta { }
+
+/**
+ * Checks if a value is a CommentMeta object.
+ *
+ * @param {unknown} value The value to check.
+ * @returns {boolean}
+ */
+function isCommentMeta(value: unknown): value is CommentMeta {
+  return value !== null && typeof value === 'object';
+}
 
 /**
  * Represents the range object used by the Comments plugin.
@@ -280,7 +291,7 @@ export class Comments extends BasePlugin {
     if (!this.#editor) {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor.addLocalHook('resize',
-        (width: unknown, height: unknown) => this.#onEditorResize(width as number, height as number));
+        (width: number, height: number) => this.#onEditorResize(width, height));
       this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
         if (!firstRun) {
           this.hide();
@@ -417,20 +428,17 @@ export class Comments extends BasePlugin {
     const { rootDocument } = this.hot;
     const editorElement = this.getEditorInputElement();
 
-    this.eventManager.addEventListener(rootDocument, 'mouseover',
-      (event: Event) => this.#onMouseOver(event as MouseEvent));
-    this.eventManager.addEventListener(rootDocument, 'mousedown',
-      (event: Event) => this.#onMouseDown(event as MouseEvent));
+    this.eventManager.addEventListener(rootDocument, 'mouseover', this.#onMouseOver);
+    this.eventManager.addEventListener(rootDocument, 'mousedown', this.#onMouseDown);
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
     this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'keydown',
-      event => this.#onEditorKeyDown(event as KeyboardEvent));
+    this.eventManager.addEventListener(editorElement, 'keydown', this.#onEditorKeyDown);
 
     this.eventManager.addEventListener(
       this.getEditorInputElement(),
       'mousedown',
-      (event: Event) => this.#onInputElementMouseDown(event as MouseEvent)
+      this.#onInputElementMouseDown
     );
   }
 
@@ -553,10 +561,10 @@ export class Comments extends BasePlugin {
    *
    * @returns {string|undefined} Returns a content of the comment.
    */
-  getComment(): string {
+  getComment(): string | undefined {
     const { row, col } = this.#getRangeCoords();
 
-    return this.getCommentMeta(row, col, META_COMMENT_VALUE) as string;
+    return this.getCommentMeta(row, col, META_COMMENT_VALUE);
   }
 
   /**
@@ -566,8 +574,8 @@ export class Comments extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {string|undefined} Returns a content of the comment.
    */
-  getCommentAtCell(row: number, column: number): string {
-    return this.getCommentMeta(row, column, META_COMMENT_VALUE) as string;
+  getCommentAtCell(row: number, column: number): string | undefined {
+    return this.getCommentMeta(row, column, META_COMMENT_VALUE);
   }
 
   /**
@@ -586,10 +594,10 @@ export class Comments extends BasePlugin {
       return false;
     }
 
-    const meta = this.hot.getCellMeta(row, col);
+    const meta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, col);
 
     this.#displaySwitch.cancelHiding();
-    const commentMeta = meta[META_COMMENT] as CommentMeta | undefined;
+    const commentMeta = meta[META_COMMENT];
 
     this.#editor.setValue((commentMeta ? commentMeta[META_COMMENT_VALUE] : null) ?? '');
     this.#editor.show();
@@ -663,8 +671,8 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true) as HTMLTableCellElement;
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-    const metaColspan = (cellMeta.colspan as number | undefined) ?? 1;
+    const cellMeta = this.hot.getCellMeta<{ colspan?: number; [META_COMMENT]?: CommentMeta }>(visualRow, visualColumn);
+    const metaColspan = cellMeta.colspan ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
 
     if (commentStyle) {
@@ -734,12 +742,12 @@ export class Comments extends BasePlugin {
    * @param {object} metaObject Object defining all the comment-related meta information.
    */
   updateCommentMeta(row: number, column: number, metaObject: Record<string, unknown>): void {
-    const oldComment = this.hot.getCellMeta(row, column)[META_COMMENT];
+    const oldComment = this.hot.getCellMeta<{ [META_COMMENT]?: Record<string, unknown> }>(row, column)[META_COMMENT];
     let newComment;
 
     if (oldComment) {
       newComment = deepClone(oldComment);
-      deepExtend(newComment as Record<string, unknown>, metaObject);
+      deepExtend(newComment, metaObject);
     } else {
       newComment = metaObject;
     }
@@ -762,9 +770,8 @@ export class Comments extends BasePlugin {
   ): { width: number; height: number } | undefined;
   getCommentMeta(row: number, column: number, property: string): unknown;
   getCommentMeta(row: number, column: number, property: string): unknown {
-    const cellMeta = this.hot.getCellMeta(row, column);
-
-    const comment = cellMeta[META_COMMENT] as CommentMeta | undefined;
+    const cellMeta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, column);
+    const comment = cellMeta[META_COMMENT];
 
     if (!comment) {
       return undefined;
@@ -776,9 +783,9 @@ export class Comments extends BasePlugin {
   /**
    * `mousedown` event callback.
    *
-   * @param {MouseEvent} event The `mousedown` event.
+   * @param {Event} event The `mousedown` event.
    */
-  #onMouseDown(event: MouseEvent) {
+  #onMouseDown = (event: Event) => {
     if (!this.hot.view || !this.hot.view._wt) {
       return;
     }
@@ -796,23 +803,23 @@ export class Comments extends BasePlugin {
         this.hide();
       }
     }
-  }
+  };
 
   /**
    * Prevent recognizing clicking on the comment editor as clicking outside of table.
    *
-   * @param {MouseEvent} event The `mousedown` event.
+   * @param {Event} event The `mousedown` event.
    */
-  #onInputElementMouseDown(event: MouseEvent) {
+  #onInputElementMouseDown = (event: Event) => {
     event.stopPropagation();
-  }
+  };
 
   /**
    * `mouseover` event callback.
    *
-   * @param {MouseEvent} event The `mouseover` event.
+   * @param {Event} event The `mouseover` event.
    */
-  #onMouseOver(event: MouseEvent) {
+  #onMouseOver = (event: Event) => {
     const { rootDocument } = this.hot;
 
     const target = eventTargetEl(event)!;
@@ -822,7 +829,8 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    this.#cellBelowCursor = rootDocument.elementFromPoint(event.clientX, event.clientY);
+    this.#cellBelowCursor = rootDocument.elementFromPoint(
+      (event as MouseEvent).clientX, (event as MouseEvent).clientY);
 
     if (this.targetIsCellWithComment(event)) {
       const range = this.hot._createCellRange(this.hot.getCoords(target));
@@ -832,7 +840,7 @@ export class Comments extends BasePlugin {
     } else if (isChildOf(target, rootDocument) && !this.targetIsCommentTextArea(event)) {
       this.#displaySwitch.hide();
     }
-  }
+  };
 
   /**
    * `mouseup` event callback.
@@ -848,10 +856,14 @@ export class Comments extends BasePlugin {
    * @param {object} cellProperties The rendered cell's property object.
    */
   #onAfterRenderer(TD: HTMLTableCellElement, cellProperties: Record<string, unknown>) {
-    const comment = cellProperties[META_COMMENT] as CommentMeta | undefined;
+    const rawComment = cellProperties[META_COMMENT];
 
-    if (comment && comment[META_COMMENT_VALUE]) {
-      addClass(TD, cellProperties.commentedCellClassName as string);
+    if (isCommentMeta(rawComment) && rawComment[META_COMMENT_VALUE]) {
+      const className = cellProperties.commentedCellClassName;
+
+      if (typeof className === 'string') {
+        addClass(TD, className);
+      }
     }
   }
 
@@ -887,17 +899,17 @@ export class Comments extends BasePlugin {
    * "select all cells") instead of native textarea behavior. Events matching shortcuts
    * registered in the `plugin:comments` context are allowed through.
    *
-   * @param {KeyboardEvent} event The keydown event from the comment textarea.
+   * @param {Event} event The keydown event from the comment textarea.
    */
-  #onEditorKeyDown(event: KeyboardEvent) {
+  #onEditorKeyDown = (event: Event) => {
     if (!this.#editor.isVisible()) {
       return;
     }
 
-    if (!this.hot.getShortcutManager().hasEventShortcut(SHORTCUTS_CONTEXT_NAME, event)) {
+    if (!this.hot.getShortcutManager().hasEventShortcut(SHORTCUTS_CONTEXT_NAME, event as KeyboardEvent)) {
       event.stopPropagation();
     }
-  }
+  };
 
   /**
    * Saves the comments editor size to the cell meta.
@@ -941,7 +953,7 @@ export class Comments extends BasePlugin {
    * @param {object} options The menu options.
    */
   addToContextMenu(options: Record<string, unknown>) {
-    (options.items as unknown[]).push(
+    (options.items as Array<PredefinedMenuItemKey | MenuItemConfig>).push(
       { name: SEPARATOR },
       addEditCommentItem(this),
       removeCommentItem(this),

@@ -199,9 +199,10 @@ export class EmptyDataStateUI {
    *
    * @returns {HTMLElement[]} The focusable elements.
    */
-  getFocusableElements() {
+  getFocusableElements(): HTMLElement[] {
     const { emptyDataStateButtons, emptyDataStateInner } = this.#refs;
-    const emptyDataStateButtonsElements = Array.from(emptyDataStateButtons?.children);
+    // HTMLCollection<Element> → cast once here so callers receive HTMLElement[]
+    const emptyDataStateButtonsElements = Array.from(emptyDataStateButtons?.children ?? []) as HTMLElement[];
 
     if (emptyDataStateButtonsElements.length === 0) {
       return [emptyDataStateInner];

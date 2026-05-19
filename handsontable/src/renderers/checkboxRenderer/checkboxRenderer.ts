@@ -61,7 +61,8 @@ export function checkboxRenderer(
 
   registerEvents(hotInstance);
 
-  let input = createInput(rootDocument) as HTMLInputElement;
+  const input: HTMLInputElement = createInput(rootDocument);
+  let inputOrWrapper: HTMLElement = input;
   const labelOptions = cellProperties.label as Record<string, unknown> | undefined;
   let badValue = false;
 
@@ -132,8 +133,8 @@ export function checkboxRenderer(
         TD.appendChild(input);
 
       } else {
-        (label as HTMLElement).appendChild(input);
-        input = label as HTMLInputElement;
+        label.appendChild(input);
+        inputOrWrapper = label;
       }
     } else if (!labelOptions.position || labelOptions.position === 'after') {
       if (labelOptions.separated) {
@@ -141,14 +142,14 @@ export function checkboxRenderer(
         TD.appendChild(label);
 
       } else {
-        (label as HTMLElement).insertBefore(input, (label as HTMLElement).firstChild);
-        input = label as HTMLInputElement;
+        label.insertBefore(input, label.firstChild);
+        inputOrWrapper = label;
       }
     }
   }
 
   if (!labelOptions || (labelOptions && !labelOptions.separated)) {
-    TD.appendChild(input);
+    TD.appendChild(inputOrWrapper);
   }
 
   if (badValue) {
@@ -214,10 +215,13 @@ export function checkboxRenderer(
    * @param {boolean} [uncheckCheckbox=false] The new "checked" state for the checkbox elements.
    */
   function changeSelectedCheckboxesState(uncheckCheckbox = false) {
+    type CellTemplates = { checkedTemplate: unknown; uncheckedTemplate: unknown };
+    type ChangeEntry = [number, number, unknown, CellTemplates?];
+
     const selRange = hotInstance.getSelectedRange();
     const changesPerSubSelection: number[] = [];
     const nonCheckboxChanges = new Map();
-    let changes: unknown[][] = [];
+    let changes: ChangeEntry[] = [];
     let changeCounter = 0;
 
     if (!selRange) {
@@ -297,8 +301,7 @@ export function checkboxRenderer(
 
     if (!changes.every(([, , cellValue]) => cellValue === changes[0][2])) {
       changes = changes.map(
-        ([visualRow, visualColumn, , templates]) => [
-          visualRow, visualColumn, (templates as Record<string, unknown>).checkedTemplate]
+        ([visualRow, visualColumn, , templates]) => [visualRow, visualColumn, templates?.checkedTemplate]
       );
     } else {
       changes = changes.map(([visualRow, visualColumn, cellValue]) => [visualRow, visualColumn, cellValue]);
@@ -307,7 +310,7 @@ export function checkboxRenderer(
     if (changes.length > 0) {
       // TODO: This is workaround for handsontable/dev-handsontable#1747 not being a breaking change.
       // Technically, the changes don't need to be split into chunks when sent to `setDataAtCell`.
-      const changesChunks: unknown[][] = [];
+      const changesChunks: ChangeEntry[][] = [];
 
       changesPerSubSelection.forEach((changesCount, sectionCount) => {
         let changesChunk = changes.splice(0, changesCount);
@@ -323,22 +326,22 @@ export function checkboxRenderer(
       });
 
       if (uncheckCheckbox) {
-        const allChanges: unknown[] = [];
+        const allChanges: ChangeEntry[] = [];
 
         changesChunks.forEach((changesChunk) => {
-          changesChunk.forEach((change: unknown) => {
+          changesChunk.forEach((change) => {
             allChanges.push(change);
           });
         });
 
         if (allChanges.length > 0) {
-          hotInstance.setDataAtCell(allChanges as unknown[][]);
+          hotInstance.setDataAtCell(allChanges);
         }
 
       } else {
         changesChunks.forEach((changesChunk) => {
           if (changesChunk.length > 0) {
-            hotInstance.setDataAtCell(changesChunk as unknown[][]);
+            hotInstance.setDataAtCell(changesChunk);
           }
         });
       }
@@ -419,16 +422,16 @@ function registerEvents(instance: HotInstance) {
  * Create input element.
  *
  * @param {Document} rootDocument The document owner.
- * @returns {Node}
+ * @returns {HTMLInputElement}
  */
-function createInput(rootDocument: Document) {
+function createInput(rootDocument: Document): HTMLInputElement {
   const input = rootDocument.createElement('input');
 
   input.className = 'htCheckboxRendererInput';
   input.type = 'checkbox';
   input.setAttribute('tabindex', '-1');
 
-  return input.cloneNode(false);
+  return input.cloneNode(false) as HTMLInputElement;
 }
 
 /**
@@ -437,9 +440,9 @@ function createInput(rootDocument: Document) {
  * @param {Document} rootDocument The document owner.
  * @param {string} text The label text.
  * @param {boolean} fullWidth Determines whether label should have full width.
- * @returns {Node}
+ * @returns {HTMLElement}
  */
-function createLabel(rootDocument: Document, text: string, fullWidth: boolean) {
+function createLabel(rootDocument: Document, text: string, fullWidth: boolean): HTMLElement {
   const label = rootDocument.createElement('label');
 
   label.className = `htCheckboxRendererLabel ${fullWidth ? 'fullWidth' : ''}`;
@@ -455,7 +458,7 @@ function createLabel(rootDocument: Document, text: string, fullWidth: boolean) {
     label.appendChild(textNode);
   }
 
-  return label.cloneNode(true);
+  return label.cloneNode(true) as HTMLElement;
 }
 
 /**

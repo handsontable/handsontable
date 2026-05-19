@@ -1270,7 +1270,9 @@ export class MergeCells extends BasePlugin {
    * @param {number} colspan Colspan.
    * @returns {[number, number]}
    */
-  translateMergedCellToRenderable(parentRow: number, rowspan: number, parentColumn: number, colspan: number): [number, number] {
+  translateMergedCellToRenderable(
+    parentRow: number, rowspan: number, parentColumn: number, colspan: number
+  ): [number, number] {
     const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
     let firstNonHiddenRow;
     let firstNonHiddenColumn;

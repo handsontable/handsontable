@@ -44,6 +44,11 @@ interface StateInfo {
  */
 export class ValueComponent extends BaseComponent {
   /**
+   * Narrowed element list — ValueComponent only ever holds MultipleSelectUI instances.
+   */
+  declare elements: BaseUI[];
+
+  /**
    * The name of the component.
    *
    * @type {string}
@@ -94,7 +99,7 @@ export class ValueComponent extends BaseComponent {
    */
   registerHooks() {
     this.getMultipleSelectElement()
-      .addLocalHook('keydown', (event: Event) => this.#onInputKeyDown(event as KeyboardEvent))
+      .addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event))
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
     this.hot
@@ -167,13 +172,13 @@ export class ValueComponent extends BaseComponent {
       conditionsStack?: ConditionStack
     ) => {
       const [firstByValueCondition] = arrayFilter(conditions,
-        condition => (condition as ConditionEntry).name === CONDITION_BY_VALUE) as unknown as ConditionEntry[];
+        condition => condition.name === CONDITION_BY_VALUE);
       const state: Record<string, unknown> = {};
       const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
 
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
-        const rowValues = arrayMap(filteredRows as unknown[], row => (row as FilteredRow).value);
+        const rowValues = arrayMap(filteredRows, row => row.value);
         const rowMetaMap = new Map(
           filteredRows.map((row: FilteredRow) =>
             [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
@@ -242,7 +247,7 @@ export class ValueComponent extends BaseComponent {
    * @returns {MultipleSelectUI}
    */
   getMultipleSelectElement() {
-    return this.elements.filter(element => element instanceof MultipleSelectUI)[0] as MultipleSelectUI;
+    return this.elements.find((element): element is MultipleSelectUI => element instanceof MultipleSelectUI)!;
   }
 
   /**
@@ -271,7 +276,7 @@ export class ValueComponent extends BaseComponent {
         // The MultipleSelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
         if (!wrapper.parentElement.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild((ui as BaseUI).element));
+          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
         }
 
         return wrapper;
@@ -285,13 +290,9 @@ export class ValueComponent extends BaseComponent {
   reset() {
     const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
     const rowEntries = this._getColumnVisibleValues();
-    const rowValues = rowEntries.map(entry => (entry as { value: unknown; meta: Record<string, unknown> }).value);
-    const rowMetaMap = new Map(rowEntries.map((row) => {
-      const r = row as { value: unknown; meta: Record<string, unknown> };
-
-      return [r.value, r.meta];
-    }));
-    const columnMeta = (rowEntries[0] as { value: unknown; meta: Record<string, unknown> } | undefined)?.meta;
+    const rowValues = rowEntries.map(entry => entry.value);
+    const rowMetaMap = new Map(rowEntries.map(row => [row.value, row.meta]));
+    const columnMeta = rowEntries[0]?.meta;
     const comparator = getSortComparatorForMeta(columnMeta);
     const values = unifyColumnValues(rowValues, comparator);
     const items = intersectValues(values, values, defaultBlankCellValue, (item: Record<string, unknown>) => {
@@ -363,7 +364,7 @@ export class ValueComponent extends BaseComponent {
    * @returns {Array}
    * @private
    */
-  _getColumnVisibleValues() {
+  _getColumnVisibleValues(): Array<{ value: string; meta: Record<string, unknown> }> {
     const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
 
     if (selectedColumn === null) {
@@ -372,7 +373,7 @@ export class ValueComponent extends BaseComponent {
 
     return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), (v, rowIndex) => {
       return {
-        value: toEmptyString(v),
+        value: toEmptyString(v) as string,
         meta: this.hot.getCellMeta(rowIndex, selectedColumn.visualIndex),
       };
     });

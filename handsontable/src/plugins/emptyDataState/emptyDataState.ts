@@ -4,6 +4,24 @@ import { isObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
+/**
+ * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
+ * The public `isObject` is intentionally non-narrowing, so we wrap it here.
+ *
+ * @param {unknown} v The value to check.
+ * @returns {boolean}
+ */
+function isPlainRecord(v: unknown): v is Record<string, unknown> {
+  return isObject(v);
+}
+
+/** The possible shapes of the `message` setting value. */
+type MessageSetting =
+  | string
+  | Record<string, unknown>
+  | ((source: string) => string | Record<string, unknown>)
+  | undefined;
+
 interface SelectionState {
   ranges: CellRange[];
   activeRange: CellRange;
@@ -212,15 +230,14 @@ export class EmptyDataState extends BasePlugin {
         if (typeof value === 'string' || typeof value === 'function' || value === undefined) {
           return true;
         }
-        if (!isObject(value)) {
+        if (!isPlainRecord(value)) {
           return false;
         }
-        const obj = value as Record<string, unknown>;
 
-        return (typeof obj.title === 'undefined' || typeof obj.title === 'string') &&
-          (typeof obj.description === 'undefined' || typeof obj.description === 'string') &&
-          (typeof obj.buttons === 'undefined' || Array.isArray(obj.buttons) &&
-            (obj.buttons as Record<string, unknown>[]).every((item: Record<string, unknown>) =>
+        return (typeof value.title === 'undefined' || typeof value.title === 'string') &&
+          (typeof value.description === 'undefined' || typeof value.description === 'string') &&
+          (typeof value.buttons === 'undefined' || Array.isArray(value.buttons) &&
+            (value.buttons as Record<string, unknown>[]).every((item: Record<string, unknown>) =>
               typeof item === 'object' &&
               typeof item.text === 'string' &&
               (typeof item.type === 'string' && ['primary', 'secondary'].includes(item.type)) &&
@@ -439,10 +456,10 @@ export class EmptyDataState extends BasePlugin {
 
           if (focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
-              (focusableElements.at(0) as HTMLElement)?.focus();
+              focusableElements.at(0)?.focus();
 
             } else if (focusSource === 'tab_from_below') {
-              (focusableElements.at(-1) as HTMLElement)?.focus();
+              focusableElements.at(-1)?.focus();
             }
           }
         },
@@ -463,31 +480,29 @@ export class EmptyDataState extends BasePlugin {
    * @returns {object} The message.
    */
   #getMessage(source: string): Record<string, unknown> {
-    let message: Record<string, unknown> | string | undefined;
+    const messageSetting = this.getSetting<MessageSetting>('message');
 
-    const messageSetting = this.getSetting('message');
+    let message: string | Record<string, unknown> | undefined;
 
     if (typeof messageSetting === 'function') {
-      message = (messageSetting as (source: string) => string | Record<string, unknown>)(source);
+      message = messageSetting(source);
     } else {
-      message = messageSetting as string | Record<string, unknown> | undefined;
+      message = messageSetting;
     }
 
     // If the message is a string, set the title
     if (typeof message === 'string') {
-      message = {
-        title: message,
-      } as Record<string, unknown>;
+      message = { title: message };
     }
 
     // If the message is not set, set the default message object
     if (!message?.title && !message?.description && !message?.buttons) {
-      message = {} as Record<string, unknown>;
+      const result: Record<string, unknown> = {};
 
       if (source === SOURCE.FILTERS) {
-        message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_FILTERS);
-        message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS);
-        message.buttons = [{
+        result.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_FILTERS);
+        result.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS);
+        result.buttons = [{
           text: this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET),
           type: 'secondary',
           callback: () => {
@@ -500,14 +515,18 @@ export class EmptyDataState extends BasePlugin {
           }
         }];
       } else if (source === SOURCE.LOADING) {
-        message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_LOADING);
-        message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_LOADING);
+        result.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_LOADING);
+        result.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_LOADING);
       } else {
-        message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE);
-        message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION);
+        result.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE);
+        result.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION);
       }
+
+      return result;
     }
 
+    // At this point message is a Record<string, unknown> (string was already converted above).
+    // The union type is narrowed to Record<string, unknown> by the checks above.
     return message as Record<string, unknown>;
   }
 
@@ -608,7 +627,9 @@ export class EmptyDataState extends BasePlugin {
    * @param {WheelEvent} event - The wheel event.
    */
   #onMouseWheel(event: WheelEvent) {
-    const wheelDeltaX = (event as WheelEvent & { wheelDeltaX?: number }).wheelDeltaX ?? 0;
+    // wheelDeltaX is a non-standard property present in some browsers (e.g. Safari)
+    const extendedEvent: WheelEvent & { wheelDeltaX?: number } = event;
+    const wheelDeltaX = extendedEvent.wheelDeltaX ?? 0;
     const deltaX = Number.isNaN(event.deltaX) ? (-1) * wheelDeltaX : event.deltaX;
 
     if (deltaX !== 0 && this.hot.view.hasHorizontalScroll() && !this.hot.view.isHorizontallyScrollableByWindow()) {

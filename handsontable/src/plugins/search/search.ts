@@ -4,6 +4,17 @@ import { isObject } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { isUndefined } from '../../helpers/mixed';
 
+/**
+ * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
+ * `isObject` is intentionally non-narrowing in the public API.
+ *
+ * @param {unknown} v The value to check.
+ * @returns {boolean}
+ */
+function isPlainRecord(v: unknown): v is Record<string, unknown> {
+  return isObject(v);
+}
+
 export const PLUGIN_KEY = 'search';
 export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
@@ -23,6 +34,12 @@ const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellPropert
   return String(value).toLocaleLowerCase(cellProperties.locale as string | undefined)
     .indexOf(query.toLocaleLowerCase(cellProperties.locale as string | undefined)) !== -1;
 };
+
+/** Per-cell overrides stored in the `search` meta property. */
+interface CellSearchMeta {
+  callback?: typeof DEFAULT_CALLBACK;
+  queryMethod?: typeof DEFAULT_QUERY_METHOD;
+}
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -163,9 +180,10 @@ export class Search extends BasePlugin {
       rangeEach(0, colCount - 1, (colIndex) => {
         const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
         const cellProperties = this.hot.getCellMeta(rowIndex, colIndex);
-        const cellSearch = cellProperties.search as Record<string, unknown> | undefined;
-        const cellCallback = (cellSearch?.callback || callback) as typeof DEFAULT_CALLBACK;
-        const cellQueryMethod = (cellSearch?.queryMethod || queryMethod) as typeof DEFAULT_QUERY_METHOD;
+        // cellProperties.search is unknown in CellMeta; assert once to the known shape
+        const cellSearch = cellProperties.search as CellSearchMeta | undefined;
+        const cellCallback = cellSearch?.callback ?? callback;
+        const cellQueryMethod = cellSearch?.queryMethod ?? queryMethod;
         const testResult = cellQueryMethod(queryStr, cellData, cellProperties);
 
         if (testResult) {
@@ -284,8 +302,8 @@ export class Search extends BasePlugin {
     if (typeof className === 'string') {
       classArray = className.split(' ');
 
-    } else {
-      classArray.push(...(className as string[]));
+    } else if (Array.isArray(className)) {
+      classArray.push(...className);
     }
 
     if (this.isEnabled() && cellProperties.isSearchResult) {

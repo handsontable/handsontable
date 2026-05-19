@@ -141,13 +141,24 @@ export type Settings = ExportFileSettings;
 export const PLUGIN_PRIORITY = 240;
 
 /**
+ * Local type-guard narrowing `unknown` to `ExportFileSettings`.
+ * `isObject` is intentionally non-narrowing in the public API, so we wrap it here.
+ *
+ * @param {unknown} v The value to check.
+ * @returns {boolean}
+ */
+function isExportFileSettings(v: unknown): v is ExportFileSettings {
+  return isObject(v);
+}
+
+/**
  * Type guard returning the user-provided `exportFile` settings when they are an object.
  *
  * @param {unknown} settings Raw value read from `hot.getSettings()[PLUGIN_KEY]`.
  * @returns {ExportFileSettings|undefined}
  */
 function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
-  return isObject(settings) ? (settings as ExportFileSettings) : undefined;
+  return isExportFileSettings(settings) ? settings : undefined;
 }
 
 /**
@@ -423,7 +434,7 @@ export class ExportFile extends BasePlugin {
    * @since 17.1.0
    */
   async exportAsBlobAsync(format: string, options: Record<string, unknown> = {}): Promise<Blob> {
-    return this._createBlob(this._createTypeFormatter(format, options)) as Promise<Blob>;
+    return this._createBlob(this._createTypeFormatter(format, options));
   }
 
   /**

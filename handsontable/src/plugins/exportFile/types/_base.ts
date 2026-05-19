@@ -46,6 +46,15 @@ class BaseType {
   }
 
   /**
+   * Type predicate: narrows this formatter to a text (synchronous) one.
+   *
+   * @returns {boolean}
+   */
+  isText(): this is BaseType & { binary: false; export(): string } {
+    return !this.binary;
+  }
+
+  /**
    * Performs the actual export and returns the data as a string or a Promise.
    */
   export(): string | Promise<unknown> {

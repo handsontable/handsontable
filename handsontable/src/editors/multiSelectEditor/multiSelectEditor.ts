@@ -79,8 +79,8 @@ export class MultiSelectEditor extends BaseEditor {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     const parsedValue = parseStringifiedValue(value);
-    const valuesArray = Array.isArray(parsedValue) ? parsedValue : [parsedValue];
-    const valuesIntersection = getValuesIntersection(valuesArray as unknown[], this.#getSource());
+    const valuesArray: unknown[] = Array.isArray(parsedValue) ? parsedValue : [parsedValue];
+    const valuesIntersection = getValuesIntersection(valuesArray, this.#getSource());
 
     this.dropdownController!.reset();
 
@@ -91,10 +91,10 @@ export class MultiSelectEditor extends BaseEditor {
     this.#syncSelectedValues(valuesIntersection);
 
     type SortFn = ((entries: unknown[]) => unknown[]) | undefined;
-    this.dropdownController!.setSourceSortFunction(this.cellProperties.sourceSortFunction as SortFn);
+    this.dropdownController!.setSourceSortFunction(this.#getEditorSetting<SortFn>('sourceSortFunction'));
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
     this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
-    this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting('searchInput') as boolean);
+    this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting<boolean>('searchInput'));
 
     if (cellProperties.maxSelections !== undefined) {
       this.#selectedItems.setMaxSelectionCount(this.#getEditorSetting<number>('maxSelections'));
@@ -136,16 +136,18 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   open(event?: Event | null): void {
-    if (event && isPrintableChar((event as KeyboardEvent).keyCode)) {
-      const keyEvent = event as KeyboardEvent;
-      const character = keyEvent.key.length === 1 ? keyEvent.key : String.fromCharCode(keyEvent.keyCode);
+    const keyCode = event && 'keyCode' in event ? (event as { keyCode: number }).keyCode : 0;
+    const keyStr = event && 'key' in event ? (event as { key: string }).key : '';
+
+    if (keyCode && isPrintableChar(keyCode)) {
+      const character = keyStr.length === 1 ? keyStr : String.fromCharCode(keyCode);
 
       if (this.dropdownController!.getInputController()!.enabled) {
         this.dropdownController!.getInputController()!.setValue(character);
         this.#filterEntries(character);
       }
 
-      event.preventDefault();
+      event?.preventDefault();
 
       this.enableFullEditMode();
     }
@@ -237,13 +239,11 @@ export class MultiSelectEditor extends BaseEditor {
       keys: [['enter'], ['shift', 'enter'], ['control/meta', 'enter'], ['control/meta', 'shift', 'enter']],
       runOnlyIf: () => !this.#getEditorSetting('enterCommits'),
       callback: (event: Event) => {
-        const activeElement = this.hot.rootDocument.activeElement as HTMLElement;
+        const activeElement = this.hot.rootDocument.activeElement;
 
-        if (activeElement.tagName === 'INPUT' && (activeElement as HTMLInputElement).type === 'checkbox') {
-          const input = activeElement as HTMLInputElement;
-
-          input.checked = !input.checked;
-          input.dispatchEvent(new Event('change'));
+        if (activeElement instanceof HTMLInputElement && activeElement.type === 'checkbox') {
+          activeElement.checked = !activeElement.checked;
+          activeElement.dispatchEvent(new Event('change'));
         }
 
         event.preventDefault();
@@ -288,10 +288,12 @@ export class MultiSelectEditor extends BaseEditor {
 
   #filterEntries(
     query: string,
-    filterSelectedItems: boolean = (this.#getEditorSetting('filterSelectedItems') ?? true) as boolean
+    filterSelectedItems: boolean = this.#getEditorSetting<boolean>('filterSelectedItems') ?? true
   ): void {
     const filteredItems = this.#getSource().filter((item: unknown) => {
-      const value = (item as { value?: unknown })?.value ?? item;
+      const value = (typeof item === 'object' && item !== null && 'value' in item)
+        ? item.value
+        : item;
 
       if (!filterSelectedItems && this.#selectedItems.has(item)) {
         return true;

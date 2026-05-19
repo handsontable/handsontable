@@ -24,8 +24,8 @@ comments.refreshEditor();
 comments.refreshEditor(true);
 comments.updateCommentMeta(1, 2, { test: 'test' });
 
-const comment: string = comments.getComment();
-const commentAt: string = comments.getCommentAtCell(1, 2);
+const comment: string | undefined = comments.getComment();
+const commentAt: string | undefined = comments.getCommentAtCell(1, 2);
 const isShown: boolean = comments.show();
 const isShownAt: boolean = comments.showAtCell(1, 2);
 const testMeta: unknown = comments.getCommentMeta(1, 2, 'test');

@@ -25,6 +25,11 @@ interface ConditionDescriptor {
  */
 export class ConditionComponent extends BaseComponent {
   /**
+   * Narrowed element list — ConditionComponent only ever holds SelectUI and InputUI instances.
+   */
+  declare elements: BaseUI[];
+
+  /**
    * The name of the component.
    *
    * @type {string}
@@ -64,7 +69,7 @@ export class ConditionComponent extends BaseComponent {
       .addLocalHook('tabKeydown', (event: Event) => this.runLocalHooks('selectTabKeydown', event));
 
     arrayEach(this.getInputElements(), (input) => {
-      (input as InputUI).addLocalHook('keydown', (event: Event) => this.#onInputKeyDown(event as KeyboardEvent));
+      input.addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event));
     });
   }
 
@@ -82,20 +87,20 @@ export class ConditionComponent extends BaseComponent {
 
     const copyOfCommand = clone(value.command) as ConditionDescriptor;
 
-    if ((copyOfCommand.name as string).startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
-      copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name as string);
+    if (typeof copyOfCommand.name === 'string' && copyOfCommand.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
+      copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name);
     }
 
     this.getSelectElement().setValue(copyOfCommand);
     arrayEach(value.args, (arg, index) => {
-      if (index > (copyOfCommand.inputsCount as number) - 1) {
+      if (index > (copyOfCommand.inputsCount ?? 0) - 1) {
         return false;
       }
 
       const element = this.getInputElement(index);
 
       element.setValue(arg);
-      element[(copyOfCommand.inputsCount as number) > index ? 'show' : 'hide']();
+      element[(copyOfCommand.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (!index) {
         this.hot._registerTimeout(() => element.focus(), 10);
@@ -109,12 +114,13 @@ export class ConditionComponent extends BaseComponent {
    * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
   getState() {
-    const command = this.getSelectElement().getValue() as ConditionDescriptor || getConditionDescriptor(CONDITION_NONE);
+    const command = (this.getSelectElement().getValue() ||
+      getConditionDescriptor(CONDITION_NONE)) as ConditionDescriptor;
     const args: unknown[] = [];
 
     arrayEach(this.getInputElements(), (element, index) => {
-      if ((command.inputsCount as number) > index) {
-        args.push((element as InputUI).getValue());
+      if ((command.inputsCount ?? 0) > index) {
+        args.push(element.getValue());
       }
     });
 
@@ -141,7 +147,7 @@ export class ConditionComponent extends BaseComponent {
     });
 
     if (!condition) {
-      arrayEach(this.getInputElements(), element => (element as InputUI).setValue(null));
+      arrayEach(this.getInputElements(), element => element.setValue(null));
     }
   }
 
@@ -151,7 +157,7 @@ export class ConditionComponent extends BaseComponent {
    * @returns {SelectUI}
    */
   getSelectElement() {
-    return this.elements.filter(element => element instanceof SelectUI)[0] as SelectUI;
+    return this.elements.find((element): element is SelectUI => element instanceof SelectUI)!;
   }
 
   /**
@@ -170,7 +176,7 @@ export class ConditionComponent extends BaseComponent {
    * @returns {Array}
    */
   getInputElements() {
-    return this.elements.filter(element => element instanceof InputUI) as InputUI[];
+    return this.elements.filter((element): element is InputUI => element instanceof InputUI);
   }
 
   /**
@@ -205,7 +211,7 @@ export class ConditionComponent extends BaseComponent {
         // The SelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
         if (!wrapper.parentElement.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild((ui as BaseUI).element));
+          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
         }
 
         return wrapper;
@@ -226,7 +232,7 @@ export class ConditionComponent extends BaseComponent {
       items = getOptionsList(this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex));
     }
 
-    arrayEach(this.getInputElements(), element => (element as InputUI).hide());
+    arrayEach(this.getInputElements(), element => element.hide());
     this.getSelectElement().setItems(items);
     super.reset();
     // Select element as default 'None'
@@ -240,10 +246,10 @@ export class ConditionComponent extends BaseComponent {
    */
   #onConditionSelect(command: ConditionDescriptor) {
     arrayEach(this.getInputElements(), (element, index) => {
-      (element as InputUI)[(command.inputsCount as number) > index ? 'show' : 'hide']();
+      element[(command.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (index === 0) {
-        this.hot._registerTimeout(() => (element as InputUI).focus(), 10);
+        this.hot._registerTimeout(() => element.focus(), 10);
       }
     });
 

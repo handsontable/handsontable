@@ -480,7 +480,7 @@ export class BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
+    arrayEach(this.pluginsInitializedCallbacks, callback => callback());
     this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }
