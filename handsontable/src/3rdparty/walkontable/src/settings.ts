@@ -92,7 +92,7 @@ export default class Settings {
    * @protected
    * @type {SettingsPure}
    */
-  settings: Record<string, any> = {};
+  settings: Record<string, unknown> = {};
 
   /**
    * The defaults values of settings.
@@ -101,12 +101,12 @@ export default class Settings {
    * @public
    * @type {Readonly<SettingsPure>}
    */
-  defaults: Record<string, any> = Object.freeze(this.getDefaults());
+  defaults: Record<string, unknown> = Object.freeze(this.getDefaults());
 
   /**
    * @param {SettingsPure} settings The user defined settings.
    */
-  constructor(settings: Record<string, any>) {
+  constructor(settings: Record<string, unknown>) {
     objectEach(this.defaults, (value: unknown, key: string) => {
       if (settings[key] !== undefined) {
         this.settings[key] = settings[key];

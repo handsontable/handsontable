@@ -549,7 +549,11 @@ export class CopyPaste extends BasePlugin {
    * @param {object} pasteData.originalPlainData The original plain data before user modifications in beforePaste.
    * @returns {number[]} Range coordinates after populate data.
    */
-  populateValues({ plainData, originalPlainData, sourceData }: Record<string, any>) {
+  populateValues({ plainData, originalPlainData, sourceData }: {
+    plainData: unknown[][];
+    originalPlainData: unknown[][];
+    sourceData: unknown[][];
+  }) {
     if (!plainData.length) {
       return [null, null, null, null];
     }
@@ -610,8 +614,8 @@ export class CopyPaste extends BasePlugin {
         const originalCellValue = originalPlainData?.[insertedRow]?.[insertedColumn];
         let cellValue: unknown = plainData[insertedRow][insertedColumn];
 
-        if (parsePastedValue && sourceData && isJSON(sourceCellValue) && cellValue === originalCellValue) {
-          const parsedCellValue = JSON.parse(sourceCellValue);
+        if (parsePastedValue && sourceData && isJSON(sourceCellValue as string) && cellValue === originalCellValue) {
+          const parsedCellValue = JSON.parse(sourceCellValue as string);
 
           cellValue = parsedCellValue;
         }
@@ -836,9 +840,9 @@ export class CopyPaste extends BasePlugin {
     }
 
     const [startRow, startColumn, endRow, endColumn] = this.populateValues({
-      plainData: pastedData,
-      sourceData: pastedSourceData,
-      originalPlainData: originalPastedData,
+      plainData: pastedData as unknown[][],
+      sourceData: pastedSourceData as unknown[][],
+      originalPlainData: originalPastedData as unknown[][],
     });
 
     if (startRow !== null && startColumn !== null) {

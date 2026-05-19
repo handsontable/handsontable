@@ -115,7 +115,7 @@ export class ThemeBuilder {
    */
   #applyDensityConfig(config: Record<string, any>, density: DensityType | Partial<ThemeDensityConfig>) {
     if (typeof density !== 'string') {
-      config.density = deepMerge(config.density, density as Record<string, any>);
+      config.density = deepMerge(config.density as Record<string, unknown>, density as Record<string, unknown>);
 
       if (density.type !== undefined) {
         this.#densityType = density.type;

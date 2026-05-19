@@ -115,8 +115,8 @@ export class BaseEditor {
   /**
    * @param {Handsontable} hotInstance A reference to the source instance of the Handsontable.
    */
-  constructor(hotInstance: HotInstance | Record<string, any>) {
-    this.hot = hotInstance as HotInstance;
+  constructor(hotInstance: HotInstance) {
+    this.hot = hotInstance;
     this.init();
   }
 

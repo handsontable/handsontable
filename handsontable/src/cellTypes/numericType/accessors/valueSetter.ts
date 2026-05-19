@@ -13,7 +13,7 @@ import { isNullish } from '../../../dataMap/metaManager/utils';
  * @param {object} [cellMeta] The cell meta object.
  * @returns {'.'|','|undefined}
  */
-function getCellDecimalSeparator(cellMeta: Record<string, any>) {
+function getCellDecimalSeparator(cellMeta: { numericFormat?: { culture?: string; pattern?: string }; locale?: string }) {
   const locale = cellMeta?.numericFormat?.culture ?? cellMeta?.locale;
 
   if (typeof locale === 'string' && locale.length > 0) {
@@ -59,7 +59,7 @@ function getCellDecimalSeparator(cellMeta: Record<string, any>) {
  * @param {object} cellMeta The cell meta object.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: Record<string, any>): unknown {
+export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: { numericFormat?: { culture?: string; pattern?: string }; locale?: string }): unknown {
   void row;
   void column;
 

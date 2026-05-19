@@ -335,17 +335,16 @@ export class CustomBorders extends BasePlugin {
    * @param {object} border Object with `row` and `col`, `start`, `end`, `top` and `bottom`, `id` and `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    */
-  insertBorderIntoSettings(border: Record<string, any>, place: string | undefined) {
-    const typedBorder = border as BorderObject;
-    const hasSavedBorders = this.checkSavedBorders(typedBorder);
+  insertBorderIntoSettings(border: BorderObject, place: string | undefined) {
+    const hasSavedBorders = this.checkSavedBorders(border);
 
     if (!hasSavedBorders) {
-      this.savedBorders.push(typedBorder);
+      this.savedBorders.push(border);
     }
 
-    const borderCoords = this.hot._createCellCoords(typedBorder.row, typedBorder.col);
+    const borderCoords = this.hot._createCellCoords(border.row, border.col);
     const visualCellRange = this.hot._createCellRange(borderCoords, borderCoords, borderCoords);
-    const hasCustomSelections = this.checkCustomSelections(typedBorder, visualCellRange, place);
+    const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
       this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
@@ -362,7 +361,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    */
   prepareBorderFromCustomAdded(
-    row: number, column: number, borderDescriptor: Record<string, any> | null, place: string | undefined
+    row: number, column: number, borderDescriptor: Record<string, unknown> | null, place: string | undefined
   ) {
     const nrOfRows = this.hot.countRows();
     const nrOfColumns = this.hot.countCols();
@@ -394,7 +393,7 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(border));
-    this.insertBorderIntoSettings(border, place);
+    this.insertBorderIntoSettings(border as BorderObject, place);
   }
 
   /**
@@ -404,7 +403,10 @@ export class CustomBorders extends BasePlugin {
    * @param {object} range {CellRange} The CellRange object.
    * @param {object} customBorder Object with `start`, `end`, `top` and `bottom` properties.
    */
-  prepareBorderFromCustomAddedRange(range: Record<string, any>, customBorder: Record<string, any>) {
+  prepareBorderFromCustomAddedRange(
+    range: { from: { row: number; col: number }; to: { row: number; col: number } },
+    customBorder: Record<string, unknown>
+  ) {
     const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
     const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
@@ -416,7 +418,7 @@ export class CustomBorders extends BasePlugin {
         if (rowIndex === range.from.row) {
           if (hasOwnProperty(customBorder, 'top')) {
             add += 1;
-            border.top = customBorder.top;
+            border.top = customBorder.top as BorderSettings;
           }
         }
 
@@ -424,14 +426,14 @@ export class CustomBorders extends BasePlugin {
         if (rowIndex === range.to.row) {
           if (hasOwnProperty(customBorder, 'bottom')) {
             add += 1;
-            border.bottom = customBorder.bottom;
+            border.bottom = customBorder.bottom as BorderSettings;
           }
         }
 
         if (colIndex === range.from.col) {
           if (hasOwnProperty(customBorder, 'start')) {
             add += 1;
-            border.start = customBorder.start;
+            border.start = customBorder.start as BorderSettings;
           }
         }
 
@@ -439,7 +441,7 @@ export class CustomBorders extends BasePlugin {
         if (colIndex === range.to.col) {
           if (hasOwnProperty(customBorder, 'end')) {
             add += 1;
-            border.end = customBorder.end;
+            border.end = customBorder.end as BorderSettings;
           }
         }
 
@@ -592,7 +594,10 @@ export class CustomBorders extends BasePlugin {
       const normCustomBorder = normalizeBorder(customBorder);
 
       if (customBorder.range) {
-        this.prepareBorderFromCustomAddedRange(customBorder.range as Record<string, unknown>, normCustomBorder);
+        this.prepareBorderFromCustomAddedRange(
+          customBorder.range as { from: { row: number; col: number }; to: { row: number; col: number } },
+          normCustomBorder
+        );
 
       } else {
         this.prepareBorderFromCustomAdded(

@@ -16,7 +16,7 @@ export interface RowObject {
 /**
  * A cell value, which can be anything to support custom cell data types, but by default is `string | number | boolean | undefined`.
  */
-export type CellValue = any;
+export type CellValue = unknown;
 
 /**
  * An object containing possible options to use in SelectEditor.

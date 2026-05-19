@@ -521,7 +521,7 @@ export function assignObjectDefaults(target: Record<string, unknown>, defaults: 
  * @param {object} source The source object.
  * @returns {object} The merged object.
  */
-export function deepMerge(target: Record<string, any> = {}, source: Record<string, any> = {}): Record<string, any> {
+export function deepMerge(target: Record<string, unknown> = {}, source: Record<string, unknown> = {}): Record<string, unknown> {
   const result = {
     ...target,
   };
@@ -536,7 +536,7 @@ export function deepMerge(target: Record<string, any> = {}, source: Record<strin
     const targetValue = result[key];
 
     if (isObject(sourceValue) && isObject(targetValue)) {
-      result[key] = deepMerge(targetValue, sourceValue);
+      result[key] = deepMerge(targetValue as Record<string, unknown>, sourceValue as Record<string, unknown>);
     } else {
       result[key] = sourceValue;
     }

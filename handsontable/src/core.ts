@@ -76,6 +76,7 @@ import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
 import type { default as DataSourceInstance } from './dataMap/dataSource';
 import type { default as EditorManagerInstance } from './editorManager';
+import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import DataMap from './dataMap/dataMap';
 
@@ -1541,7 +1542,7 @@ export default function Core(
    * @param {BaseEditor|undefined} activeEditor Current editor instance.
    * @returns {boolean} `true` when the active, opened editor points to a changed cell.
    */
-  function doesChangeAffectOpenedEditor(changes: CellChange[], activeEditor: Record<string, any> | undefined) {
+  function doesChangeAffectOpenedEditor(changes: CellChange[], activeEditor: BaseEditor | undefined) {
     if (!activeEditor?.isOpened()) {
       return false;
     }

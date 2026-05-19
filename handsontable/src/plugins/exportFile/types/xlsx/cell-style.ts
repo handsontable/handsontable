@@ -459,7 +459,7 @@ export function getBorderFromMeta(meta: CellMeta | undefined): object | null {
   }
 
   const { borders } = meta;
-  const excelBorder: Record<string, any> = {};
+  const excelBorder: Record<string, { style: string; color: { argb: string } }> = {};
 
   ['top', 'bottom', 'left', 'right'].forEach((side) => {
     if (borders[side] && borders[side].width > 0) {
@@ -502,7 +502,7 @@ export function getFontFromMeta(meta: CellMeta | undefined, cssStyle: CssStyle |
     return null;
   }
 
-  const font: Record<string, any> = {};
+  const font: Record<string, boolean | { argb: string }> = {};
 
   if (bold) {
     font.bold = true;

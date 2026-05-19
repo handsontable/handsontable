@@ -27,7 +27,7 @@ export class RowHeadersRenderer extends BaseRenderer {
    *
    * @type {WeakMap}
    */
-  orderViews: WeakMap<object, any> = new WeakMap();
+  orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
   /**
    * Row index which specifies the row position of the processed row header.
    *

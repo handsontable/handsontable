@@ -19,9 +19,10 @@ export function rootComparator(sortingOrders: unknown[], columnMetas: unknown[])
       const columnMeta = columnMetas[column];
       const value = values[column];
       const nextValue = nextValues[column];
-      const pluginSettings = (columnMeta as Record<string, any>).columnSorting;
-      const compareFunctionFactory = pluginSettings.compareFunctionFactory ?
-        pluginSettings.compareFunctionFactory : getCompareFunctionFactory((columnMeta as Record<string, any>).type);
+      const typedMeta = columnMeta as { columnSorting?: { compareFunctionFactory?: Function }; type?: string };
+      const pluginSettings = typedMeta.columnSorting;
+      const compareFunctionFactory = pluginSettings?.compareFunctionFactory ?
+        pluginSettings.compareFunctionFactory : getCompareFunctionFactory(typedMeta.type ?? '');
       const compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue);
 
       // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.
