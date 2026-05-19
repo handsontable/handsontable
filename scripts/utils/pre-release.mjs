@@ -1,5 +1,6 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
 import moment from 'moment';
 import replace from 'replace-in-file';
 import inquirer from 'inquirer';
@@ -288,9 +289,14 @@ function validateReplacementStatus(replacementStatus, replacedString) {
     const filePath = infoObj.file.replace('./', '');
 
     if (!infoObj.hasChanged) {
-      displayErrorMessage(`${filePath} was not modified.`);
-      versionReplaced = false;
+      const alreadySet = readFileSync(infoObj.file, 'utf8').includes(replacedString);
 
+      if (alreadySet) {
+        displayConfirmationMessage(`- '${replacedString}' already set in ${path.relative(process.cwd(), filePath)}.`);
+      } else {
+        displayErrorMessage(`${filePath} was not modified.`);
+        versionReplaced = false;
+      }
     } else {
       displayConfirmationMessage(`- Saved '${replacedString}' to ${path.relative(process.cwd(), filePath)}.`);
     }

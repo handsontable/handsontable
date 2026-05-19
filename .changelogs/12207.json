@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the React wrapper skipping settings updates when `dataSchema` or `columns` contains non-plain objects such as `Date`, `Set`, or `Map`.",
-  "type": "fixed",
-  "issueOrPR": 12207,
-  "breaking": false,
-  "framework": "react"
-}
