@@ -70,6 +70,11 @@ header.header {
   z-index: 10100;
 }
 
+/* DocSearch modal must appear above the sticky header (z-index: 10100) */
+.DocSearch-Container {
+  z-index: 10200 !important;
+}
+
 header.header > .header {
   max-width: 1500px;
   margin-inline: auto;

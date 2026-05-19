@@ -22,7 +22,7 @@ html {
 
 /* Omit demo `.placeholder-input` fields: their example CSS uses an accent border on `:focus`;
    this outline would stack and read as a double ring. */
-:focus-visible:not(.handsontable *, .ht-portal *, .hot-example .placeholder-input) {
+:focus-visible:not(.handsontable *, .ht-portal *, .hot-example .placeholder-input, .DocSearch-Input) {
   outline: 2px solid var(--sl-color-accent);
   outline-offset: 2px;
 }

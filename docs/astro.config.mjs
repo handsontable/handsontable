@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import starlightThemeRapide from 'starlight-theme-rapide';
 import starlightPageActions from 'starlight-page-actions';
+import starlightDocSearch from '@astrojs/starlight-docsearch';
 import sitemap from '@astrojs/sitemap';
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
@@ -750,11 +751,21 @@ export default defineConfig({
       plugins: [
         starlightThemeRapide(),
         starlightPageActions(),
+        ...(isProduction
+          ? [
+              starlightDocSearch({
+                appId: 'MMN6OTJMGX',
+                apiKey: 'c2430302c91e0162df988d4b383c9d8b',
+                indexName: 'handsontable',
+              }),
+            ]
+          : []),
       ],
 
-      // Algolia DocSearch is used for search. Pagefind is disabled to avoid
-      // building an unused search index during production builds.
-      // Search is hidden entirely in non-production builds (see Header.astro).
+      // Algolia DocSearch powers search in production and RC builds.
+      // Pagefind disabled -- the index is built by the Algolia crawler after each deploy.
+      // Search is hidden in non-production builds via shouldRenderSearch in Header.astro.
+      // RC builds use the production Algolia index; results link to handsontable.com/docs.
       pagefind: false,
     }),
 
