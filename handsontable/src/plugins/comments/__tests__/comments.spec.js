@@ -1447,4 +1447,44 @@ describe('Comments', () => {
 
     expect(editor.parentNode.style.display).toBe('none');
   });
+
+  describe('viewport clamping (DEV-1712)', () => {
+    it('caps display size visually but preserves the persisted comment style', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        comments: true,
+        rowHeaders: true,
+        colHeaders: true,
+        cell: [{
+          row: 1,
+          col: 1,
+          comment: { value: 'huge', style: { width: 99999, height: 99999 } },
+        }],
+        width: 400,
+        height: 300,
+      });
+
+      const plugin = getPlugin('comments');
+
+      plugin.showAtCell(1, 1);
+
+      await sleep(50);
+
+      const editorRect = plugin.getEditorInputElement().getBoundingClientRect();
+
+      // Editor display is capped to the viewport with breathing room.
+      expect(editorRect.width).toBeLessThanOrEqual(window.innerWidth);
+      expect(editorRect.height).toBeLessThanOrEqual(window.innerHeight);
+
+      plugin.hide();
+
+      await sleep(50);
+
+      const cellMeta = getCellMeta(1, 1);
+
+      // Persisted user intent must not be overwritten by display-time clamping.
+      expect(cellMeta.comment.style.width).toBe(99999);
+      expect(cellMeta.comment.style.height).toBe(99999);
+    });
+  });
 });
