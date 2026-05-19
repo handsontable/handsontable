@@ -1,6 +1,6 @@
 import { isDefined } from '../../../../helpers/mixed';
 
-interface CssStyle {
+export interface CssStyle {
   fontBold: boolean;
   fontItalic: boolean;
   fontUnderline: boolean;
@@ -8,7 +8,7 @@ interface CssStyle {
   backgroundColor: string | null;
 }
 
-interface CellMeta {
+export interface CellMeta {
   className?: string | string[];
   readOnly?: boolean;
   borders?: Record<string, { width: number; color: string }>;

@@ -24,7 +24,16 @@ export const VIEWPORT_MARGIN = 8;
  * @param {number} [margin] Distance to keep from the viewport edges. Defaults to `VIEWPORT_MARGIN`.
  * @returns {{ width: number, height: number }} The capped size.
  */
-export function shrinkSizeToViewport(size, viewport, margin = VIEWPORT_MARGIN) {
+export function shrinkSizeToViewport(
+  size: { width: number; height: number },
+  viewport: {
+    innerWidth: number;
+    innerHeight: number;
+    verticalScrollbarWidth?: number;
+    horizontalScrollbarWidth?: number;
+  },
+  margin = VIEWPORT_MARGIN
+): { width: number; height: number } {
   const {
     innerWidth,
     innerHeight,
@@ -60,7 +69,18 @@ export function shrinkSizeToViewport(size, viewport, margin = VIEWPORT_MARGIN) {
  * @param {number} [margin] Distance to keep from the viewport edges. Defaults to `VIEWPORT_MARGIN`.
  * @returns {{ x: number, y: number }} The clamped x/y.
  */
-export function clampPositionToViewport(rect, viewport, margin = VIEWPORT_MARGIN) {
+export function clampPositionToViewport(
+  rect: { x: number; y: number; width: number; height: number },
+  viewport: {
+    innerWidth: number;
+    innerHeight: number;
+    scrollX: number;
+    scrollY: number;
+    verticalScrollbarWidth?: number;
+    horizontalScrollbarWidth?: number;
+  },
+  margin = VIEWPORT_MARGIN
+): { x: number; y: number } {
   const {
     innerWidth,
     innerHeight,

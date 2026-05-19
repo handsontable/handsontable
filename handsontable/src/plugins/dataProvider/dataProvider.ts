@@ -972,7 +972,7 @@ export class DataProvider extends BasePlugin {
       removeRows: (ids: unknown[]) => this.removeRows(ids),
     },
     action,
-    index,
+    index as number | [number, number][],
     amount
   );
 

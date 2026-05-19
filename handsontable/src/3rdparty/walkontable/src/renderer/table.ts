@@ -1,3 +1,15 @@
+import type { RowHeadersRenderer } from './rowHeaders';
+import type { ColumnHeaderRowsRenderer } from './columnHeaderRows';
+import type { ColumnHeadersRenderer } from './columnHeaders';
+import type { ColGroupRenderer } from './colGroup';
+import type { RowsRenderer } from './rows';
+import type { CellsRenderer } from './cells';
+import type RowFilter from '../filter/row';
+import type ColumnFilter from '../filter/column';
+import type RowUtils from '../utils/row';
+import type ColumnUtils from '../utils/column';
+import type { StylesHandler } from '../types';
+
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
  * responsible for adjusting and rendering each renderer.
@@ -58,63 +70,63 @@ export class TableRenderer {
   /**
    * Renderer class responsible for rendering row headers.
    *
-   * @type {RowsRenderer}
+   * @type {RowHeadersRenderer}
    */
-  rowHeaders: any = null;
+  rowHeaders: RowHeadersRenderer = null;
   /**
    * Renderer class responsible for rendering column header rows (TR elements in THEAD).
    *
    * @type {ColumnHeaderRowsRenderer}
    */
-  columnHeaderRows: any = null;
+  columnHeaderRows: ColumnHeaderRowsRenderer = null;
   /**
    * Renderer class responsible for rendering column headers (TH elements in TR).
    *
    * @type {ColumnHeadersRenderer}
    */
-  columnHeaders: any = null;
+  columnHeaders: ColumnHeadersRenderer = null;
   /**
    * Renderer class responsible for rendering col in colgroup.
    *
    * @type {ColGroupRenderer}
    */
-  colGroup: any = null;
+  colGroup: ColGroupRenderer = null;
   /**
    * Renderer class responsible for rendering rows in tbody.
    *
    * @type {RowsRenderer}
    */
-  rows: any = null;
+  rows: RowsRenderer = null;
   /**
    * Renderer class responsible for rendering cells.
    *
    * @type {CellsRenderer}
    */
-  cells: any = null;
+  cells: CellsRenderer = null;
   /**
    * Row filter which contains all necessary information about row index transformation.
    *
    * @type {RowFilter}
    */
-  rowFilter: any = null;
+  rowFilter: RowFilter = null;
   /**
    * Column filter which contains all necessary information about column index transformation.
    *
    * @type {ColumnFilter}
    */
-  columnFilter: any = null;
+  columnFilter: ColumnFilter = null;
   /**
    * Row utils class which contains all necessary information about sizes of the rows.
    *
    * @type {RowUtils}
    */
-  rowUtils: any = null;
+  rowUtils: RowUtils = null;
   /**
    * Column utils class which contains all necessary information about sizes of the columns.
    *
    * @type {ColumnUtils}
    */
-  columnUtils: any = null;
+  columnUtils: ColumnUtils = null;
   /**
    * Indicates how much rows should be rendered to fill whole table viewport.
    *
@@ -166,11 +178,11 @@ export class TableRenderer {
   /**
    * Styles handler instance.
    */
-  declare stylesHandler: any;
+  declare stylesHandler: StylesHandler;
 
   constructor(
     rootNode: HTMLTableElement,
-    { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: any } = {}) {
+    { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: StylesHandler } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
     this.cellRenderer = cellRenderer;
@@ -192,7 +204,7 @@ export class TableRenderer {
    * @param {RowUtils} rowUtils RowUtils instance which provides useful methods related to row sizes.
    * @param {ColumnUtils} columnUtils ColumnUtils instance which provides useful methods related to row sizes.
    */
-  setAxisUtils(rowUtils: object, columnUtils: object) {
+  setAxisUtils(rowUtils: RowUtils, columnUtils: ColumnUtils) {
     this.rowUtils = rowUtils;
     this.columnUtils = columnUtils;
   }
@@ -215,7 +227,7 @@ export class TableRenderer {
    * @param {ColumnFilter} columnFilter Column filter instance which contains all necessary information about row
    * index transformation.
    */
-  setFilters(rowFilter: object, columnFilter: object) {
+  setFilters(rowFilter: RowFilter, columnFilter: ColumnFilter) {
     this.rowFilter = rowFilter;
     this.columnFilter = columnFilter;
   }
@@ -244,7 +256,14 @@ export class TableRenderer {
    * @param {RowsRenderer} renderers.rows Rows renderer.
    * @param {CellsRenderer} renderers.cells Cells renderer.
    */
-  setRenderers({ rowHeaders, columnHeaderRows, columnHeaders, colGroup, rows, cells }: Record<string, any> = {}) {
+  setRenderers({ rowHeaders, columnHeaderRows, columnHeaders, colGroup, rows, cells }: {
+    rowHeaders: RowHeadersRenderer;
+    columnHeaderRows: ColumnHeaderRowsRenderer;
+    columnHeaders: ColumnHeadersRenderer;
+    colGroup: ColGroupRenderer;
+    rows: RowsRenderer;
+    cells: CellsRenderer;
+  }) {
     rowHeaders.setTable(this);
     columnHeaderRows.setTable(this);
     columnHeaders.setTable(this);

@@ -1624,7 +1624,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer);
+      fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer ?? true);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

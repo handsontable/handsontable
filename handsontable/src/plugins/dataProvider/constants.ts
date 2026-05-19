@@ -1,15 +1,16 @@
 import { isFunction } from '../../helpers/function';
+import type { DataProviderConfig } from './dataProvider';
 
 export const PLUGIN_KEY = 'dataProvider';
 export const PLUGIN_PRIORITY = 950;
 export const DEFAULT_PAGE_SIZE = 10;
 
 export const DEFAULT_SETTINGS: {
-  rowId: string | ((...args: any[]) => any) | undefined;
-  fetchRows: ((...args: any[]) => any) | undefined;
-  onRowsCreate: ((...args: any[]) => any) | undefined;
-  onRowsUpdate: ((...args: any[]) => any) | undefined;
-  onRowsRemove: ((...args: any[]) => any) | undefined;
+  rowId: string | ((rowData: unknown) => unknown) | undefined;
+  fetchRows: DataProviderConfig['fetchRows'] | undefined;
+  onRowsCreate: DataProviderConfig['onRowsCreate'] | undefined;
+  onRowsUpdate: DataProviderConfig['onRowsUpdate'] | undefined;
+  onRowsRemove: DataProviderConfig['onRowsRemove'] | undefined;
 } = {
   rowId: undefined,
   fetchRows: undefined,
@@ -18,12 +19,12 @@ export const DEFAULT_SETTINGS: {
   onRowsRemove: undefined,
 };
 
-export const SETTINGS_VALIDATORS: Record<string, (value: any) => boolean> = {
-  rowId: (value: any) => typeof value === 'string' || isFunction(value),
-  fetchRows: (value: any) => isFunction(value),
-  onRowsCreate: (value: any) => isFunction(value),
-  onRowsUpdate: (value: any) => isFunction(value),
-  onRowsRemove: (value: any) => isFunction(value),
+export const SETTINGS_VALIDATORS: Record<string, (value: unknown) => boolean> = {
+  rowId: (value: unknown) => typeof value === 'string' || isFunction(value),
+  fetchRows: (value: unknown) => isFunction(value),
+  onRowsCreate: (value: unknown) => isFunction(value),
+  onRowsUpdate: (value: unknown) => isFunction(value),
+  onRowsRemove: (value: unknown) => isFunction(value),
 };
 
 /**

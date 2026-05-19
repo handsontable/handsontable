@@ -1,4 +1,22 @@
+import type { HotInstance } from '../../../core/types';
+import type { ColumnSortingConfig } from '../../columnSorting/columnSorting';
+
 const COLUMN_SORTING_PLUGIN_KEY = 'columnSorting';
+
+type SortOrder = 'asc' | 'desc';
+
+/** Query-format sort descriptor `{ prop, order }`. */
+type QuerySort = { prop: string; order: SortOrder } | null;
+
+/**
+ * Duck-typed interface for the subset of ColumnSorting plugin API used in this module.
+ * Using a structural interface avoids a circular dependency on the concrete plugin class.
+ */
+interface ColumnSortingPluginLike {
+  enabled?: boolean;
+  getSortConfig(): ColumnSortingConfig | ColumnSortingConfig[];
+  setSortConfig(sortConfig?: ColumnSortingConfig | ColumnSortingConfig[]): void;
+}
 
 /**
  * Normalizes a sort descriptor to query format `{ prop, order }`.
@@ -9,24 +27,26 @@ const COLUMN_SORTING_PLUGIN_KEY = 'columnSorting';
  * @returns {{ prop: string, order: 'asc'|'desc' }|null} Query-format sort or null.
  */
 export function normalizeSortToQueryFormat(
-  sort: any, colToProp: (col: number) => string
-): { prop: string; order: 'asc' | 'desc' } | null {
+  sort: unknown, colToProp: (col: number) => string
+): QuerySort {
   if (sort === null || sort === undefined || typeof sort !== 'object') {
     return null;
   }
 
-  if (typeof sort.column === 'number' && typeof colToProp === 'function') {
+  const s = sort as Record<string, unknown>;
+
+  if (typeof s.column === 'number' && typeof colToProp === 'function') {
     return {
-      prop: colToProp(sort.column),
-      order: sort.sortOrder,
+      prop: colToProp(s.column),
+      order: s.sortOrder as SortOrder,
     };
   }
 
-  const order = sort.order ?? sort.sortOrder;
+  const order = s.order ?? s.sortOrder;
 
-  if (typeof sort.prop === 'string' && (order === 'asc' || order === 'desc')) {
+  if (typeof s.prop === 'string' && (order === 'asc' || order === 'desc')) {
     return {
-      prop: sort.prop,
+      prop: s.prop,
       order,
     };
   }
@@ -42,13 +62,19 @@ export function normalizeSortToQueryFormat(
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|null} Plugin-format sort or null.
  */
 export function querySortToPluginSort(
-  sort: any, propToCol: (prop: string) => number
-): { column: number; sortOrder: 'asc' | 'desc' } | null {
-  if ((sort === null || sort === undefined) || typeof sort !== 'object' || typeof sort.prop !== 'string') {
+  sort: unknown, propToCol: (prop: string) => number
+): { column: number; sortOrder: SortOrder } | null {
+  if ((sort === null || sort === undefined) || typeof sort !== 'object') {
     return null;
   }
 
-  const order = sort.order ?? sort.sortOrder;
+  const s = sort as Record<string, unknown>;
+
+  if (typeof s.prop !== 'string') {
+    return null;
+  }
+
+  const order = s.order ?? s.sortOrder;
 
   if (order !== 'asc' && order !== 'desc') {
     return null;
@@ -58,7 +84,7 @@ export function querySortToPluginSort(
     return null;
   }
 
-  const column = propToCol(sort.prop);
+  const column = propToCol(s.prop);
 
   if (typeof column !== 'number') {
     return null;
@@ -79,19 +105,23 @@ export function querySortToPluginSort(
  * @returns {void}
  */
 export function applyColumnSortingToQueryParameters(
-  columnSortingPlugin: any, queryParameters: { sort: any }, colToProp: (col: number) => string
+  columnSortingPlugin: ColumnSortingPluginLike | null | undefined,
+  queryParameters: { sort: QuerySort },
+  colToProp: (col: number) => string
 ): void {
   if (!columnSortingPlugin?.enabled || typeof colToProp !== 'function') {
     return;
   }
 
   const sortConfig = columnSortingPlugin.getSortConfig();
-  const first = Array.isArray(sortConfig) && sortConfig.length > 0 ? sortConfig[0] : sortConfig;
+  const first: ColumnSortingConfig | undefined = Array.isArray(sortConfig)
+    ? sortConfig[0]
+    : sortConfig;
 
-  if (first && typeof first === 'object' && typeof first.column === 'number') {
+  if (first && typeof first.column === 'number') {
     queryParameters.sort = {
       prop: colToProp(first.column),
-      order: first.sortOrder,
+      order: first.sortOrder as SortOrder,
     };
   } else {
     queryParameters.sort = null;
@@ -105,12 +135,16 @@ export function applyColumnSortingToQueryParameters(
  * @param {{ column: number, sortOrder: 'asc'|'desc' }|Array|undefined|null} sort ColumnSorting config entry, `[]` to clear, or null/undefined.
  * @returns {void}
  */
-export function syncColumnSortingFromQuerySort(columnSortingPlugin: any, sort: any): void {
+export function syncColumnSortingFromQuerySort(
+  columnSortingPlugin: ColumnSortingPluginLike | null | undefined,
+  sort: ColumnSortingConfig | ColumnSortingConfig[] | null | undefined
+): void {
   if (!columnSortingPlugin?.enabled) {
     return;
   }
 
-  const sortConfig = sort && typeof sort === 'object' && 'column' in sort ? sort : [];
+  const sortConfig: ColumnSortingConfig | ColumnSortingConfig[] =
+    sort && !Array.isArray(sort) && 'column' in sort ? sort : [];
 
   columnSortingPlugin.setSortConfig(sortConfig);
 }
@@ -122,11 +156,11 @@ export function syncColumnSortingFromQuerySort(columnSortingPlugin: any, sort: a
  * @param {{ sort: ({ prop: string, order: 'asc'|'desc' }|null) }} queryParameters Target object (mutated).
  * @returns {void}
  */
-export function applyColumnSortToQueryFromPlugin(hot: any, queryParameters: { sort: any }): void {
+export function applyColumnSortToQueryFromPlugin(hot: HotInstance, queryParameters: { sort: QuerySort }): void {
   applyColumnSortingToQueryParameters(
-    hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY),
+    hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY) as unknown as ColumnSortingPluginLike,
     queryParameters,
-    column => hot.colToProp(column)
+    column => String(hot.colToProp(column))
   );
 }
 
@@ -137,8 +171,8 @@ export function applyColumnSortToQueryFromPlugin(hot: any, queryParameters: { so
  * @param {Core} hot Handsontable instance.
  * @returns {void}
  */
-export function normalizeSortInFetchParams(params: { sort: any }, hot: any): void {
-  params.sort = normalizeSortToQueryFormat(params.sort, col => hot.colToProp(col));
+export function normalizeSortInFetchParams(params: { sort: unknown }, hot: HotInstance): void {
+  params.sort = normalizeSortToQueryFormat(params.sort, col => String(hot.colToProp(col)));
 }
 
 /**
@@ -150,8 +184,8 @@ export function normalizeSortInFetchParams(params: { sort: any }, hot: any): voi
  * @returns {{ column: number, sortOrder: 'asc'|'desc' }|Array} Empty array when there is no valid sort; otherwise a single-column config object.
  */
 export function sortingPayloadToSort(
-  hot: any, sortingPayload: any
-): { column: number; sortOrder: 'asc' | 'desc' } | any[] {
+  hot: HotInstance, sortingPayload: QuerySort | undefined
+): { column: number; sortOrder: SortOrder } | ColumnSortingConfig[] {
   const pluginSort = querySortToPluginSort(sortingPayload, prop => hot.propToCol(prop));
 
   return pluginSort && typeof pluginSort === 'object' && 'column' in pluginSort ? pluginSort : [];
@@ -173,13 +207,13 @@ export function sortingPayloadToSort(
  */
 export function handleBeforeColumnSortForServer(
   ctx: {
-    hot: any;
+    hot: HotInstance;
     hasFetchFn: () => boolean;
     applyQueryParametersFromPlugins: () => void;
-    fetchData: (overrides?: object) => Promise<any>;
+    fetchData: (overrides?: object) => Promise<unknown>;
   },
-  _currentSortConfig: any[],
-  destinationSortConfigs: any[],
+  _currentSortConfig: unknown[],
+  destinationSortConfigs: unknown[],
   sortPossible: boolean
 ): boolean | void {
   const { hot, hasFetchFn, applyQueryParametersFromPlugins, fetchData } = ctx;
@@ -190,7 +224,7 @@ export function handleBeforeColumnSortForServer(
 
   const columnSorting = hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
 
-  columnSorting.setSortConfig(destinationSortConfigs);
+  columnSorting.setSortConfig(destinationSortConfigs as unknown as Record<string, unknown>[]);
   applyQueryParametersFromPlugins();
   fetchData({ skipLoading: true });
 

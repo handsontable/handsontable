@@ -1,7 +1,7 @@
 import { BaseEditor } from './baseEditor/baseEditor';
 import EventManager from '../eventManager';
 import { throwWithCause } from '../helpers/errors';
-import { CellProperties } from '../settings';
+import { CellProperties, CellValue } from '../settings';
 import { Context } from '../shortcuts/context';
 type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: unknown[]) => unknown>;
 
@@ -31,11 +31,11 @@ type Shortcut = Parameters<Context['addShortcut']>[0];
 export type ExtendedEditor<T> = BaseEditor & {
   render: (editor: ExtendedEditor<T>) => void;
   value?: T extends {
-    value: any;
-  } ? T['value'] : any;
+    value: CellValue;
+  } ? T['value'] : CellValue;
   config?: T extends {
-    config: any;
-  } ? T['config'] : any;
+    config: CellValue;
+  } ? T['config'] : CellValue;
   container: HTMLDivElement;
 } & T;
 
@@ -96,15 +96,15 @@ export interface EditorFactoryOptions {
 /**
  * Factory function to create a custom Handsontable editor.
  */
-export const editorFactory = <TProperties, TMethods = Record<string, any>>(
+export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
   { init, afterOpen, afterInit, afterClose, beforeOpen,
     getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, position, ...args }:{
     value?: TProperties extends {
-        value: any;
-    } ? TProperties['value'] : any;
+        value: CellValue;
+    } ? TProperties['value'] : CellValue;
     config?: TProperties extends {
-        config: any;
-    } ? TProperties['config'] : any;
+        config: CellValue;
+    } ? TProperties['config'] : CellValue;
     render?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
     init: (editor: ExtendedEditor<TProperties & TMethods>) => void;
     afterOpen?: (editor: ExtendedEditor<TProperties & TMethods>, event?: Event) => void;
@@ -116,11 +116,11 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>(
       col: number;
       prop: string | number;
       td: HTMLTableCellElement;
-      originalValue: any;
+      originalValue: CellValue;
       cellProperties: CellProperties;
     }) => void;
     getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => any;
-    setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: any) => void;
+    setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: CellValue) => void;
     onFocus?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
     shortcutsGroup?: string;
     shortcuts?: (Omit<Shortcut, 'callback' | 'group'> & {
@@ -128,7 +128,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, any>>(
       group?: string;
     })[];
     position?: 'container' | 'portal';
-  } & TMethods & Record<string, any>): ExtendedEditor<TProperties> => {
+  } & TMethods & Record<string, unknown>): ExtendedEditor<TProperties> => {
   type Extended = ExtendedEditor<TProperties & TMethods>;
 
   const registerShortcuts = (editor: EditorWithExtendedProps & Extended) => {

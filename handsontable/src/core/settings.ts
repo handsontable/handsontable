@@ -20,7 +20,7 @@ import type {
   RowMutationPayload,
   DataProviderConfig,
 } from '../plugins/dataProvider';
-import type { RangeType } from './types';
+import type { RangeType, HotInstance } from './types';
 
 /**
  * Grid settings interface representing all possible Handsontable configuration options.
@@ -96,14 +96,14 @@ export interface GridSettings {
 
   // Rendering
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderer?: string | ((hotInstance: any, td: HTMLTableCellElement, row: number, col: number,
-    prop: string | number, value: any, cellProperties: any) => HTMLTableCellElement | void);
+  renderer?: string | ((hotInstance: HotInstance, td: HTMLTableCellElement, row: number, col: number,
+    prop: string | number, value: CellValue, cellProperties: any) => HTMLTableCellElement | void);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueFormatter?: (value: any, cellProperties: any) => any;
+  valueFormatter?: (value: CellValue, cellProperties: any) => CellValue;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueGetter?: (value: any, visualRow: number, visualCol: number, cellMeta: any) => any;
+  valueGetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: any) => CellValue;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  valueSetter?: (value: any, visualRow: number, visualCol: number, cellMeta: any) => any;
+  valueSetter?: (value: CellValue, visualRow: number, visualCol: number, cellMeta: any) => CellValue;
   placeholder?: string | number;
   renderAllRows?: boolean;
   renderAllColumns?: boolean;
@@ -215,6 +215,9 @@ export interface GridSettings {
   licenseKey?: string;
   preventOverflow?: boolean | string;
   preventWheel?: boolean;
+
+  // Security
+  sanitizer?: (html: string, ...args: any[]) => string; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // State
   initialState?: Record<string, unknown>;
@@ -425,8 +428,8 @@ export interface GridSettings {
   beforeDialogHide?: () => void;
   beforeDialogShow?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: string | undefined) => void;
-  beforeDropdownMenuSetItems?: (menuItems: any[]) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
-  beforeDropdownMenuShow?: (instance: any) => void; // eslint-disable-line @typescript-eslint/no-explicit-any
+  beforeDropdownMenuSetItems?: (menuItems: Array<PredefinedMenuItemKey | MenuItemConfig>) => void;
+  beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
   beforeEmptyDataStateHide?: () => void;
   beforeEmptyDataStateShow?: () => void;
   beforeFilter?: (conditionsStack: ColumnConditions[], previousConditionsStack: ColumnConditions[])
@@ -561,9 +564,8 @@ export interface GridSettings {
  * Extracts all hook callback keys from GridSettings.
  * Used to derive the Events type for addHook/removeHook generics.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type HookKey = {
-  [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> extends (...args: any[]) => any ? K : never;
+  [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> extends (...args: any[]) => any ? K : never; // eslint-disable-line @typescript-eslint/no-explicit-any
 }[keyof GridSettings];
 
 /**

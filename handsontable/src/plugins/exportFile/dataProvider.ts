@@ -84,12 +84,12 @@ class DataProvider {
    *
    * @returns {Array}
    */
-  getRowHeaders() {
-    const headers: unknown[] = [];
+  getRowHeaders(): Array<string | number | null> {
+    const headers: Array<string | number | null> = [];
 
     if (this.options.rowHeaders) {
       const { startRow, endRow } = this._getDataRange();
-      const rowHeaders = this.hot.getRowHeader();
+      const rowHeaders = this.hot.getRowHeader() as Array<string | number | null>;
 
       for (let row = startRow; row <= endRow; row++) {
         if (this.options.exportHiddenRows === false && this._isHiddenRow(row)) {
@@ -171,8 +171,8 @@ class DataProvider {
    *
    * @returns {Set<number>}
    */
-  getExcludedHiddenRows() {
-    const result = new Set();
+  getExcludedHiddenRows(): Set<number> {
+    const result = new Set<number>();
 
     if (this.options.exportHiddenRows !== false) {
       return result;
@@ -202,8 +202,8 @@ class DataProvider {
    *
    * @returns {Set<number>}
    */
-  getExcludedHiddenColumns() {
-    const result = new Set();
+  getExcludedHiddenColumns(): Set<number> {
+    const result = new Set<number>();
 
     if (this.options.exportHiddenColumns !== false) {
       return result;
@@ -286,14 +286,14 @@ class DataProvider {
    *
    * @returns {string}
    */
-  getFormulasSeparator() {
+  getFormulasSeparator(): string {
     const formulasPlugin = this.hot.getPlugin('formulas');
 
     if (!formulasPlugin || !formulasPlugin.isEnabled()) {
       return ',';
     }
 
-    return formulasPlugin.engine?.getConfig()?.functionArgSeparator ?? ',';
+    return (formulasPlugin.engine?.getConfig()?.functionArgSeparator as string | undefined) ?? ',';
   }
 
   /**
@@ -570,21 +570,31 @@ class DataProvider {
    *
    * @returns {string[]}
    */
-  getColumnHeadersClassNames() {
+  getColumnHeadersClassNames(): string[] {
     if (!this.options.colHeaders) {
       return [];
     }
 
     const { startCol, endCol } = this._getDataRange();
     const options = this.options;
-    const classNames = [];
+    const classNames: string[] = [];
 
     for (let col = startCol; col <= endCol; col++) {
       if (options.exportHiddenColumns === false && this._isHiddenColumn(col)) {
         continue;
       }
 
-      classNames.push(this.hot.getColumnMeta(col).headerClassName || '');
+      const headerClassName = this.hot.getColumnMeta(col).headerClassName;
+
+      let resolvedClassName = '';
+
+      if (Array.isArray(headerClassName)) {
+        resolvedClassName = headerClassName.join(' ');
+      } else if (typeof headerClassName === 'string') {
+        resolvedClassName = headerClassName;
+      }
+
+      classNames.push(resolvedClassName);
     }
 
     return classNames;

@@ -62,7 +62,7 @@ export function colLetterToIndex(letters: string): number {
  * @param {*} value Source data cell value.
  * @returns {boolean}
  */
-export function isFormulaValue(value: any): boolean {
+export function isFormulaValue(value: unknown): value is string {
   return typeof value === 'string' && value.startsWith('=');
 }
 

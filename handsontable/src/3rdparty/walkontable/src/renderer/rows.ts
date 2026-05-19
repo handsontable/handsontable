@@ -94,7 +94,9 @@ export class RowsRenderer extends BaseRenderer {
         setAttribute(TR, [
           A11Y_ROW(),
           // `aria-rowindex` is incremented by both tbody and thead rows.
-          A11Y_ROWINDEX(sourceRowIndex + (this.table.rowUtils?.dataAccessObject?.columnHeaders.length ?? 0) + 1),
+          A11Y_ROWINDEX(sourceRowIndex + (
+            (this.table.rowUtils?.dataAccessObject?.columnHeaders as unknown[])?.length ?? 0
+          ) + 1),
         ]);
       }
 

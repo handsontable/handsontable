@@ -19,6 +19,8 @@ import {
   getDropdownValidation,
   cssColorToArgb,
   clearStyleCaches,
+  type CellMeta,
+  type CssStyle,
 } from './xlsx/cell-style';
 import {
   parseIsoStringToSerial,
@@ -29,12 +31,123 @@ import {
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import type { HotInstance } from '../../../core/types';
 
+/**
+ * A cell value that ExcelJS accepts: a primitive, a formula object, or null.
+ */
+type ExcelCellValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | { formula: string; result?: string | number | boolean | null }
+  | { sharedFormula: string; result?: string | number | boolean | null };
+
+interface ExcelJsCell {
+  value: ExcelCellValue;
+  numFmt: string;
+  alignment: object;
+  border: object;
+  font: object;
+  fill: object;
+  protection: { locked: boolean };
+  dataValidation: object;
+  note: string;
+}
+
+interface ExcelJsRow {
+  getCell(colNumber: number): ExcelJsCell;
+  height: number;
+  hidden: boolean;
+  commit(): void;
+}
+
+interface ExcelJsColumn {
+  width: number;
+  hidden: boolean;
+}
+
+interface ExcelJsView {
+  rightToLeft?: boolean;
+  state?: string;
+  xSplit?: number;
+  ySplit?: number;
+}
+
+interface ExcelJsWorksheet {
+  getRow(rowNumber: number): ExcelJsRow;
+  getColumn(colNumber: number): ExcelJsColumn;
+  getCell(rowNumber: number, colNumber: number): ExcelJsCell;
+  mergeCells(startRow: number, startCol: number, endRow: number, endCol: number): void;
+  addConditionalFormatting(descriptor: { ref: string; rules: unknown[] }): void;
+  protect(password: string, options?: Record<string, boolean>): void;
+  state: string;
+  views: ExcelJsView[];
+}
+
 interface ExcelJsWorkbook {
-  addWorksheet(name: string): Record<string, unknown>;
+  addWorksheet(name: string): ExcelJsWorksheet;
   worksheets: Array<{ name: string }>;
   xlsx: {
     writeBuffer(options?: object): Promise<Uint8Array>;
   };
+}
+
+/** Descriptor for a merge cell, in data-array coordinate space. */
+interface MergeDescriptor {
+  row: number;
+  col: number;
+  rowspan: number;
+  colspan: number;
+}
+
+/** Descriptor for a ColumnSummary destination, in data-array coordinate space. */
+interface ColumnSummaryDescriptor {
+  type: string;
+  destRow: number;
+  destCol: number;
+  sourceCol: number;
+  sourceRanges: [number, number][];
+}
+
+/** One entry in the `conditionalFormatting` option array. */
+interface ConditionalFormattingDescriptor {
+  rows?: [number, number];
+  cols?: [number, number];
+  rules: unknown[];
+}
+
+/** An entry in a nested-header layer returned by DataProvider#getNestedColumnHeaders. */
+interface NestedHeaderEntry {
+  label: string | null;
+  colspan: number;
+  className?: string;
+}
+
+/**
+ * Sheet-level context object passed through from `#populateWorksheet` to the
+ * per-row and per-cell writing helpers.
+ */
+interface SheetContext {
+  exportFormulas: boolean;
+  formulasSeparator: string;
+  dataRowOffset: number;
+  dataColOffset: number;
+  excludedHiddenRows: Set<number> | null;
+  excludedHiddenCols: Set<number> | null;
+  summaryMap: Map<string, ColumnSummaryDescriptor>;
+  sourceData: unknown[][] | null;
+  hasRowHeaders: boolean;
+  headerFill: object | null;
+  headerBorder: object | null;
+  hasReadOnlyCells: boolean;
+  rootDocument: Document;
+  rootWindow: Window;
+  validationMap: Map<string, string>;
+  cellsMeta: CellMeta[][];
+  cellElements: Array<Array<HTMLElement | null>>;
+  rowHeaders: Array<string | number | null>;
+  rowsHeights: number[];
 }
 
 interface XlsxEngine {
@@ -60,6 +173,13 @@ const PIXELS_TO_POINTS_RATIO = 0.75;
 // Default width (in Excel column-width units) assigned to the frozen row-header column
 // when row headers are exported. Chosen to comfortably fit typical row-index numbers.
 const ROW_HEADER_DEFAULT_WIDTH = 5;
+
+/** Typed view of the options object used internally within the Xlsx exporter. */
+interface XlsxOptions extends Record<string, unknown> {
+  exportFormulas?: boolean;
+  headerStyle?: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null;
+  conditionalFormatting?: ConditionalFormattingDescriptor[];
+}
 
 /**
  * @private
@@ -89,7 +209,7 @@ class Xlsx extends BaseType {
     bom: boolean;
     engine: XlsxEngine | null;
     compression: boolean | number | null;
-    conditionalFormatting: any[];
+    conditionalFormatting: ConditionalFormattingDescriptor[];
     exportFormulas: boolean;
     headerStyle: { backgroundColor: string; border: { style: string } } | null;
     } {
@@ -196,7 +316,10 @@ class Xlsx extends BaseType {
    * @param {object} options Merged options for this sheet.
    * @returns {number} Number of data rows written.
    */
-  #populateWorksheet(workbook: any, worksheet: any, dataProvider: any, options: any): number {
+  #populateWorksheet(
+    workbook: ExcelJsWorkbook, worksheet: ExcelJsWorksheet, dataProvider: DataProvider,
+    options: XlsxOptions
+  ): number {
     const data = dataProvider.getData();
     const cellsMeta = dataProvider.getCellsMeta();
     const validationMap = this.#buildValidationSheet(workbook, cellsMeta);
@@ -204,8 +327,8 @@ class Xlsx extends BaseType {
     const columnHeaders = dataProvider.getColumnHeaders();
     const columnHeadersClassNames = dataProvider.getColumnHeadersClassNames();
     const rowHeaders = dataProvider.getRowHeaders();
-    const columnsWidths = dataProvider.getColumnsWidths();
-    const rowsHeights = dataProvider.getRowsHeights();
+    const columnsWidths = dataProvider.getColumnsWidths() as number[];
+    const rowsHeights = dataProvider.getRowsHeights() as number[];
     const mergeCells = dataProvider.getMergeCells();
     const frozenRows = dataProvider.getFrozenRows();
     const frozenColumns = dataProvider.getFrozenColumns();
@@ -219,7 +342,7 @@ class Xlsx extends BaseType {
     const summaryMap = new Map();
     const columnSummaries = dataProvider.getColumnSummaries();
 
-    columnSummaries.forEach((summary: any) => {
+    columnSummaries.forEach((summary: ColumnSummaryDescriptor) => {
       summaryMap.set(`${summary.destRow}:${summary.destCol}`, summary);
     });
 
@@ -328,7 +451,7 @@ class Xlsx extends BaseType {
       });
     }
 
-    mergeCells.forEach((merge: any) => {
+    mergeCells.forEach((merge: MergeDescriptor) => {
       const startRow = merge.row + dataRowOffset;
       const startCol = merge.col + dataColOffset;
       const endRow = startRow + merge.rowspan - 1;
@@ -363,7 +486,7 @@ class Xlsx extends BaseType {
    * @param {Array[]} data 2D data array from DataProvider.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeDataRows(worksheet: any, data: any[][], context: any): void {
+  #writeDataRows(worksheet: ExcelJsWorksheet, data: unknown[][], context: SheetContext): void {
     for (let rowIndex = 0; rowIndex < data.length; rowIndex++) {
       const rowData = data[rowIndex];
       const excelRowNumber = rowIndex + context.dataRowOffset;
@@ -404,7 +527,7 @@ class Xlsx extends BaseType {
    * @param {number} rowIndex 0-based data-array row index.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeRowCells(row: any, rowData: any[], rowIndex: number, context: any): void {
+  #writeRowCells(row: ExcelJsRow, rowData: unknown[], rowIndex: number, context: SheetContext): void {
     for (let colIndex = 0; colIndex < rowData.length; colIndex++) {
       const cellValue = rowData[colIndex];
       const cell = row.getCell(colIndex + context.dataColOffset);
@@ -444,7 +567,9 @@ class Xlsx extends BaseType {
    *   Computed CSS style from `getCssStyleFromElement`, or `null`.
    * @param {object} context Sheet-level context passed through from `#populateWorksheet`.
    */
-  #writeCellStyling(cell: any, meta: any, cssStyle: any, context: any): void {
+  #writeCellStyling(
+    cell: ExcelJsCell, meta: CellMeta, cssStyle: CssStyle | null, context: SheetContext
+  ): void {
     const alignment = getAlignmentFromMeta(meta);
 
     if (alignment) {
@@ -503,8 +628,12 @@ class Xlsx extends BaseType {
    * @returns {{ value: *, numFmt: string|null }}
    */
   #resolveCellValue(
-    cellValue: any, meta: any, sourceValue: any, summary: any, context: any
-  ): { value: any; numFmt: string | null } {
+    cellValue: unknown,
+    meta: CellMeta,
+    sourceValue: unknown,
+    summary: ColumnSummaryDescriptor | undefined,
+    context: SheetContext
+  ): { value: ExcelCellValue; numFmt: string | null } {
     const {
       exportFormulas, formulasSeparator, dataRowOffset, dataColOffset,
       excludedHiddenRows, excludedHiddenCols,
@@ -515,7 +644,7 @@ class Xlsx extends BaseType {
       const fallback = this.#getCellValue(cellValue, meta);
 
       return {
-        value: formula ? { ...formula, result: cellValue } : fallback,
+        value: formula ? { ...formula, result: cellValue as string | number | boolean | null } : fallback,
         numFmt: null,
       };
     }
@@ -573,7 +702,7 @@ class Xlsx extends BaseType {
    * @param {object} meta Cell meta object.
    * @returns {null|number|string}
    */
-  #getCellValue(value: any, meta: any): null | number | string {
+  #getCellValue(value: unknown, meta: CellMeta): null | number | string {
     if (value === null || value === undefined) {
       return null;
     }
@@ -598,7 +727,7 @@ class Xlsx extends BaseType {
    * @param {object} meta Cell meta object.
    * @returns {boolean}
    */
-  #getCheckboxValue(value: any, meta: any): boolean {
+  #getCheckboxValue(value: unknown, meta: CellMeta): boolean {
     const checkedTemplate = meta.checkedTemplate ?? true;
 
     return value === checkedTemplate;
@@ -610,7 +739,7 @@ class Xlsx extends BaseType {
    * @param {*} value Raw multiselect cell value (expected to be an array).
    * @returns {string|null}
    */
-  #getMultiSelectExportValue(value: any): string | null {
+  #getMultiSelectExportValue(value: unknown): string | null {
     if (!Array.isArray(value)) {
       return value === null || value === undefined ? null : stringify(value);
     }
@@ -631,7 +760,9 @@ class Xlsx extends BaseType {
    * @param {object|null|undefined} headerStyle The `headerStyle` option value.
    * @returns {object|null}
    */
-  #buildHeaderFill(headerStyle: { backgroundColor?: string; border?: any } | null | undefined): object | null {
+  #buildHeaderFill(
+    headerStyle: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null | undefined
+  ): object | null {
     if (!headerStyle?.backgroundColor) {
       return null;
     }
@@ -712,8 +843,8 @@ class Xlsx extends BaseType {
    * @param {number} dataCols Total number of exported data columns.
    */
   #applyConditionalFormatting(
-    worksheet: any, cfRules: any[], dataRowOffset: number, dataColOffset: number,
-    dataRows: number, dataCols: number
+    worksheet: ExcelJsWorksheet, cfRules: ConditionalFormattingDescriptor[],
+    dataRowOffset: number, dataColOffset: number, dataRows: number, dataCols: number
   ): void {
     if (dataRows === 0 || dataCols === 0) {
       return;
@@ -758,7 +889,7 @@ class Xlsx extends BaseType {
    * @param {number[]} widths Column widths in pixels, in data-column order.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    */
-  #applyColumnWidths(worksheet: any, widths: number[], hasRowHeaders: boolean): void {
+  #applyColumnWidths(worksheet: ExcelJsWorksheet, widths: number[], hasRowHeaders: boolean): void {
     if (hasRowHeaders) {
       worksheet.getColumn(1).width = ROW_HEADER_DEFAULT_WIDTH;
     }
@@ -778,7 +909,7 @@ class Xlsx extends BaseType {
    * @param {number[]} hiddenColIndices 0-based data-column indices to hide.
    * @param {boolean} hasRowHeaders Whether a row-header column is prepended.
    */
-  #applyHiddenColumns(worksheet: any, hiddenColIndices: number[], hasRowHeaders: boolean): void {
+  #applyHiddenColumns(worksheet: ExcelJsWorksheet, hiddenColIndices: number[], hasRowHeaders: boolean): void {
     const offset = hasRowHeaders ? 1 : 0;
 
     hiddenColIndices.forEach((dataColIndex) => {
@@ -793,7 +924,7 @@ class Xlsx extends BaseType {
    * @param {number[]} hiddenRowIndices 0-based data-row indices to hide.
    * @param {number} dataRowOffset 1-based Excel row number where data row 0 starts.
    */
-  #applyHiddenRows(worksheet: any, hiddenRowIndices: number[], dataRowOffset: number): void {
+  #applyHiddenRows(worksheet: ExcelJsWorksheet, hiddenRowIndices: number[], dataRowOffset: number): void {
     hiddenRowIndices.forEach((dataRowIndex) => {
       worksheet.getRow(dataRowIndex + dataRowOffset).hidden = true;
     });
@@ -810,7 +941,7 @@ class Xlsx extends BaseType {
    * @param {boolean} isRtl Whether the table layout direction is right-to-left.
    */
   #applyWorksheetViews(
-    worksheet: any, frozenRows: number, frozenColumns: number,
+    worksheet: ExcelJsWorksheet, frozenRows: number, frozenColumns: number,
     headerRowCount: number, hasRowHeaders: boolean, isRtl: boolean
   ): void {
     const hasFrozenPanes = frozenRows > 0 || frozenColumns > 0;
@@ -819,7 +950,7 @@ class Xlsx extends BaseType {
       return;
     }
 
-    const view: Record<string, any> = {};
+    const view: ExcelJsView = {};
 
     if (isRtl) {
       view.rightToLeft = true;
@@ -847,7 +978,8 @@ class Xlsx extends BaseType {
    * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
    */
   #writeColumnHeaders(
-    worksheet: any, columnHeaders: any[], classNames: string[], hasRowHeaders: boolean,
+    worksheet: ExcelJsWorksheet, columnHeaders: Array<string | number | null>,
+    classNames: string[], hasRowHeaders: boolean,
     dataColOffset: number, headerFill: object | null, headerBorder: object | null
   ): void {
     const headerRow = worksheet.getRow(1);
@@ -901,7 +1033,7 @@ class Xlsx extends BaseType {
    * @param {object|null} headerBorder ExcelJS border object for header cells, or `null` for no border.
    */
   #writeNestedColumnHeaders(
-    worksheet: any, nestedColumnHeaders: any[][], hasRowHeaders: boolean,
+    worksheet: ExcelJsWorksheet, nestedColumnHeaders: NestedHeaderEntry[][], hasRowHeaders: boolean,
     dataColOffset: number, headerFill: object | null, headerBorder: object | null
   ): void {
     for (let layerIndex = 0; layerIndex < nestedColumnHeaders.length; layerIndex++) {
@@ -959,7 +1091,8 @@ class Xlsx extends BaseType {
    * @param {number} dataColOffset 1-based column number where data columns begin.
    */
   #applyNestedHeaderMerges(
-    worksheet: any, nestedColumnHeaders: any[][], hasRowHeaders: boolean, dataColOffset: number
+    worksheet: ExcelJsWorksheet, nestedColumnHeaders: NestedHeaderEntry[][], hasRowHeaders: boolean,
+    dataColOffset: number
   ): void {
     if (hasRowHeaders && nestedColumnHeaders.length > 1) {
       worksheet.mergeCells(1, 1, nestedColumnHeaders.length, 1);
@@ -993,7 +1126,7 @@ class Xlsx extends BaseType {
    * @param {Array[]} cellsMeta 2D meta array from DataProvider.
    * @returns {Map<string, string>} Map from source JSON key to range reference.
    */
-  #buildValidationSheet(workbook: any, cellsMeta: any[][]): Map<string, string> {
+  #buildValidationSheet(workbook: ExcelJsWorkbook, cellsMeta: CellMeta[][]): Map<string, string> {
     const sourceMap = new Map();
 
     for (let rowIndex = 0; rowIndex < cellsMeta.length; rowIndex++) {
@@ -1015,7 +1148,7 @@ class Xlsx extends BaseType {
       return new Map();
     }
 
-    const existingNames = new Set(workbook.worksheets.map((ws: any) => ws.name));
+    const existingNames = new Set(workbook.worksheets.map((ws: { name: string }) => ws.name));
     let sheetName = '_HotValidation';
     let suffix = 1;
 

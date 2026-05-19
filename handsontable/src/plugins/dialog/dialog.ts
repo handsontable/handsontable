@@ -262,7 +262,7 @@ export class Dialog extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new DialogUI({
         rootElement: this.hot.rootGridElement,
-        sanitizer: this.hot.getSettings().sanitizer,
+        sanitizer: this.hot.getSettings().sanitizer as ((html: string) => string | undefined) | undefined,
         isRtl: this.hot.isRtl(),
       });
     }

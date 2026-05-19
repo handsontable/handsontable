@@ -5,6 +5,8 @@ import { ColGroupRenderer } from './colGroup';
 import { RowsRenderer } from './rows';
 import { CellsRenderer } from './cells';
 import { TableRenderer } from './table';
+import type RowFilter from '../filter/row';
+import type ColumnFilter from '../filter/column';
 
 /**
  * Content renderer.
@@ -52,7 +54,7 @@ class Renderer {
    * @param {ColumnFilter} columnFilter The column filter instance.
    * @returns {Renderer}
    */
-  setFilters(rowFilter: object, columnFilter: object) {
+  setFilters(rowFilter: RowFilter, columnFilter: ColumnFilter) {
     this.renderer.setFilters(rowFilter, columnFilter);
 
     return this;

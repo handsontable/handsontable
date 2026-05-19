@@ -2,11 +2,31 @@ import { isFunction } from '../../../helpers/function';
 import { getProperty } from '../../../helpers/object';
 import { error as logError } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
+import type { HotInstance } from '../../../core/types';
 import {
   DATA_PROVIDER_BATCH_UPDATE_SOURCES,
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
   dataProviderErrorRemoveMissingRowId,
 } from '../constants';
+
+/**
+ * Row id option — a property name string, a resolver function, or absent.
+ */
+type RowIdOption = string | ((rowData: object | unknown[]) => unknown) | undefined | null;
+
+/**
+ * A single afterChange tuple: `[visualRow, prop, oldValue, newValue]`.
+ */
+type ChangeTuple = [number, string | number, unknown, unknown];
+
+/**
+ * Internal per-row update payload used inside CRUD helpers.
+ */
+type InternalRowUpdatePayload = {
+  id?: unknown;
+  changes?: Record<string | number, unknown>;
+  rowData?: Record<string, unknown> | unknown[];
+};
 
 /**
  * Runs `beforeRowsMutation`. Return `false` from a listener to cancel.
@@ -16,7 +36,7 @@ import {
  * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {boolean|undefined} `false` when cancelled.
  */
-export function runBeforeRowsMutation(hot: any, operation: string, payload: object): false | undefined {
+export function runBeforeRowsMutation(hot: HotInstance, operation: string, payload: object): false | undefined {
   if (hot.runHooks('beforeRowsMutation', operation, payload) === false) {
     return false;
   }
@@ -32,7 +52,7 @@ export function runBeforeRowsMutation(hot: any, operation: string, payload: obje
  * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {void}
  */
-export function runAfterRowsMutation(hot: any, operation: string, payload: object): void {
+export function runAfterRowsMutation(hot: HotInstance, operation: string, payload: object): void {
   hot.runHooks('afterRowsMutation', operation, payload);
 }
 
@@ -45,7 +65,7 @@ export function runAfterRowsMutation(hot: any, operation: string, payload: objec
  * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {void}
  */
-export function runAfterRowsMutationError(hot: any, operation: string, err: Error, payload: object): void {
+export function runAfterRowsMutationError(hot: HotInstance, operation: string, err: Error, payload: object): void {
   hot.runHooks('afterRowsMutationError', operation, err, payload);
 }
 
@@ -72,13 +92,13 @@ export function enqueueMutation(state: { tail: Promise<void> }, fn: () => Promis
  * @returns {*|undefined}
  */
 export function getRowIdFromRowData(
-  rowData: object | any[], rowIdOption: string | ((...args: any[]) => any) | undefined | null
-): any {
+  rowData: object | unknown[], rowIdOption: RowIdOption
+): unknown {
   if (rowIdOption === undefined || rowIdOption === null) {
     return undefined;
   }
   if (isFunction(rowIdOption)) {
-    return (rowIdOption as (...args: any[]) => any)(rowData);
+    return (rowIdOption as (rowData: object | unknown[]) => unknown)(rowData);
   }
   if (typeof rowIdOption === 'string') {
     return getProperty(rowData as Record<string, unknown>, rowIdOption);
@@ -96,10 +116,10 @@ export function getRowIdFromRowData(
  * @returns {*|undefined}
  */
 export function getRowIdByVisualRow(
-  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, visualRow: number
-): any {
+  hot: HotInstance, rowIdOption: RowIdOption, visualRow: number
+): unknown {
   return getRowIdFromRowData(
-    hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)),
+    hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow)) as object | unknown[],
     rowIdOption
   );
 }
@@ -110,7 +130,7 @@ export function getRowIdByVisualRow(
  * @param {*} id Resolved row id.
  * @returns {boolean}
  */
-export function isMissingRowId(id: any): boolean {
+export function isMissingRowId(id: unknown): boolean {
   return id === undefined || id === null;
 }
 
@@ -123,7 +143,7 @@ export function isMissingRowId(id: any): boolean {
  * @returns {number} Visual row index or -1 when not found.
  */
 export function findVisualRowById(
-  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null, rowId: any
+  hot: HotInstance, rowIdOption: RowIdOption, rowId: unknown
 ): number {
   for (let row = 0; row < hot.countRows(); row += 1) {
     if (getRowIdByVisualRow(hot, rowIdOption, row) === rowId) {
@@ -145,10 +165,10 @@ export function findVisualRowById(
  * @throws {Error} When `rowId` resolves to null or undefined for a row in range.
  */
 export function rowIdsFromAlterRemove(
-  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null,
-  index: number | any[] | undefined | null, amount: number
-): any[] {
-  const ids: any[] = [];
+  hot: HotInstance, rowIdOption: RowIdOption,
+  index: number | [number, number][] | undefined | null, amount: number
+): unknown[] {
+  const ids: unknown[] = [];
   const n = () => hot.countRows();
   const pushRange = (start: number, amt: number) => {
     for (let r = 0; r < amt; r += 1) {
@@ -192,30 +212,32 @@ export function rowIdsFromAlterRemove(
  * @param {Array} rowChanges Tuples `[visualRow, prop, oldVal, newVal]` for one row.
  * @returns {{ changesObj: object, rowData: object|Array }}
  */
-export function buildChangesAndRowData(hot: any, rowChanges: any[]): { changesObj: object; rowData: object | any[] } {
+export function buildChangesAndRowData(
+  hot: HotInstance, rowChanges: ChangeTuple[]
+): { changesObj: Record<string | number, unknown>; rowData: Record<string, unknown> | unknown[] } {
   const visualRow = rowChanges[0][0];
   const rowData = hot.getSourceDataAtRow(hot.toPhysicalRow(visualRow));
   const isObj = rowData && typeof rowData === 'object' && !Array.isArray(rowData);
-  const changesObj: Record<string | number, any> = {};
+  const changesObj: Record<string | number, unknown> = {};
 
   rowChanges.forEach(([, prop, , nv]) => {
-    const col = typeof prop === 'number' ? prop : hot.propToCol(prop);
-    const key = isObj ? hot.colToProp(col) : col;
+    const col = typeof prop === 'number' ? prop : (hot.propToCol(prop as string) as number);
+    const key = isObj ? (hot.colToProp(col) as string | number) : col;
 
     changesObj[key] = nv;
   });
 
-  let rowDataWithChanges;
+  let rowDataWithChanges: Record<string, unknown> | unknown[];
 
   if (Array.isArray(rowData)) {
-    rowDataWithChanges = [...rowData];
+    rowDataWithChanges = [...(rowData as unknown[])];
     rowChanges.forEach(([, prop, , nv]) => {
-      const col = typeof prop === 'number' ? prop : hot.propToCol(prop);
+      const col = typeof prop === 'number' ? prop : (hot.propToCol(prop as string) as number);
 
-      rowDataWithChanges[col] = nv;
+      (rowDataWithChanges as unknown[])[col] = nv;
     });
   } else if (isObj) {
-    rowDataWithChanges = { ...rowData, ...changesObj };
+    rowDataWithChanges = { ...(rowData as Record<string, unknown>), ...changesObj };
   } else {
     rowDataWithChanges = { ...changesObj };
   }
@@ -230,7 +252,7 @@ export function buildChangesAndRowData(hot: any, rowChanges: any[]): { changesOb
  * @param {Array} changeTuples `[visualRow, prop, oldVal, newVal][]`.
  * @returns {void}
  */
-export function revertChangeTuples(hot: any, changeTuples: any[]): void {
+export function revertChangeTuples(hot: HotInstance, changeTuples: ChangeTuple[]): void {
   if (!changeTuples?.length) {
     return;
   }
@@ -249,7 +271,9 @@ export function revertChangeTuples(hot: any, changeTuples: any[]): void {
  * @param {object} changes Prop-keyed new values.
  * @returns {Promise<boolean>}
  */
-export function validateRowChanges(hot: any, visualRow: number, changes: Record<string, any>): Promise<boolean> {
+export function validateRowChanges(
+  hot: HotInstance, visualRow: number, changes: Record<string | number, unknown>
+): Promise<boolean> {
   const entries = Object.entries(changes);
 
   if (entries.length === 0) {
@@ -285,7 +309,7 @@ export function validateRowChanges(hot: any, visualRow: number, changes: Record<
         return;
       }
 
-      hot.validateCell(value, cellMeta, (result: any) => {
+      hot.validateCell(value, cellMeta, (result: boolean) => {
         if (result === false && cellMeta.allowInvalid === false) {
           valid = false;
         }
@@ -304,7 +328,7 @@ export function validateRowChanges(hot: any, visualRow: number, changes: Record<
  * @returns {boolean}
  */
 export function shouldIgnoreAfterChangeForServerUpdate(
-  hasOnRowsUpdate: boolean, changes: any[], source?: string
+  hasOnRowsUpdate: boolean, changes: ChangeTuple[] | unknown[] | null, source?: string
 ): boolean {
   if (!hasOnRowsUpdate || !changes?.length) {
     return true;
@@ -326,8 +350,15 @@ export function shouldIgnoreAfterChangeForServerUpdate(
  * @param {Array} changes `[visualRow, prop, oldVal, newVal][]`.
  * @returns {Array} Subset safe to send to the server update path.
  */
-export function filterChangesForBatchedServerUpdate(hot: any, changes: any[]): any[] {
-  const real = changes.filter(c => c[2] !== c[3]);
+export function filterChangesForBatchedServerUpdate(
+  hot: HotInstance, changes: ChangeTuple[] | unknown[] | null
+): ChangeTuple[] {
+  if (!changes) {
+    return [];
+  }
+
+  const tuples = changes as ChangeTuple[];
+  const real = tuples.filter(c => c[2] !== c[3]);
 
   if (real.length === 0) {
     return [];
@@ -353,9 +384,9 @@ export function filterChangesForBatchedServerUpdate(hot: any, changes: any[]): a
  * @returns {object[]}
  */
 export function buildManualUpdateRowPayloads(
-  hot: any, rowIdOption: string | ((...args: any[]) => any) | undefined | null,
-  rows: Array<{ id?: any; changes?: any; rowData?: any }>
-): object[] {
+  hot: HotInstance, rowIdOption: RowIdOption,
+  rows: InternalRowUpdatePayload[]
+): InternalRowUpdatePayload[] {
   return rows.map((p) => {
     const visualRow = findVisualRowById(hot, rowIdOption, p.id);
 
@@ -372,7 +403,7 @@ export function buildManualUpdateRowPayloads(
     return {
       id: p.id,
       changes: p.changes,
-      rowData: rowData && typeof rowData === 'object' ? rowData : {},
+      rowData: (rowData && typeof rowData === 'object' ? rowData : {}) as unknown[] | Record<string, unknown>,
     };
   });
 }
@@ -388,16 +419,16 @@ export function buildManualUpdateRowPayloads(
  * @returns {Promise<void>}
  */
 type CommitRowsUpdateCallbacks = {
-  getOnRowsUpdate: () => any;
-  fetchData: () => Promise<any>;
-  logError: (...args: any[]) => void;
+  getOnRowsUpdate: () => ((payload: object[]) => Promise<void>) | undefined;
+  fetchData: () => Promise<unknown>;
+  logError: (...args: unknown[]) => void;
   onRequestFailed?: (kind: string, err: Error) => void;
 };
 /**
  *
  */
 export async function commitRowsUpdate(
-  hot: any, callbacks: CommitRowsUpdateCallbacks,
+  hot: HotInstance, callbacks: CommitRowsUpdateCallbacks,
   rowPayloads: object[], options: { revertOptimistic?: () => void } = {}
 ): Promise<void> {
   const onRowsUpdate = callbacks.getOnRowsUpdate();
@@ -451,14 +482,14 @@ export async function commitRowsUpdate(
  * @returns {Promise<void>}
  */
 type ManualUpdateCtx = {
-  getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null;
-  commitRowsUpdate: (payloads: Array<{ id?: any; changes?: any; rowData?: any }>) => Promise<void>;
+  getRowIdOption: () => RowIdOption;
+  commitRowsUpdate: (payloads: InternalRowUpdatePayload[]) => Promise<void>;
 };
 /**
  *
  */
 export async function runManualUpdateRowsMutation(
-  hot: any, ctx: ManualUpdateCtx, rowPayloads: Array<{ id?: any; changes?: any; rowData?: any }>
+  hot: HotInstance, ctx: ManualUpdateCtx, rowPayloads: InternalRowUpdatePayload[]
 ): Promise<void> {
   const { getRowIdOption, commitRowsUpdate: commitUpdate } = ctx;
   const payload = { rows: rowPayloads };
@@ -499,17 +530,17 @@ export async function runManualUpdateRowsMutation(
  * @returns {Promise<void>}
  */
 type UpdateFromChangesCtx = {
-  getRowIdOption: () => string | ((...args: any[]) => any) | undefined | null;
-  commitRowsUpdate: (payloads: object[], opts?: object) => Promise<void>;
+  getRowIdOption: () => RowIdOption;
+  commitRowsUpdate: (payloads: InternalRowUpdatePayload[], opts?: { revertOptimistic?: () => void }) => Promise<void>;
 };
 /**
  *
  */
 export async function runUpdateFromChanges(
-  hot: any, ctx: UpdateFromChangesCtx, changes: any[]
+  hot: HotInstance, ctx: UpdateFromChangesCtx, changes: ChangeTuple[]
 ): Promise<void> {
   const { getRowIdOption, commitRowsUpdate: commitFn } = ctx;
-  const byRow = new Map();
+  const byRow = new Map<number, ChangeTuple[]>();
 
   changes.forEach((ch) => {
     const vr = ch[0];
@@ -592,7 +623,7 @@ type QueueCrudCtx = {
   runBeforeRowsMutation: (op: string, p: object) => false | undefined;
   runAfterRowsMutation: (op: string, p: object) => void;
   runAfterRowsMutationError: (op: string, err: Error, p: object) => void;
-  logError: (...args: any[]) => void;
+  logError: (...args: unknown[]) => void;
   onRequestFailed?: (op: string, err: Error) => void;
 };
 /**
@@ -600,7 +631,7 @@ type QueueCrudCtx = {
  */
 export function queueCrud(
   ctx: QueueCrudCtx, operation: string, payload: object,
-  userPromiseFn: () => Promise<any>, onSuccess: () => Promise<void> | void
+  userPromiseFn: () => Promise<unknown>, onSuccess: () => Promise<void> | void
 ): Promise<void> {
   const {
     enqueueMutation: enqueue,
@@ -639,6 +670,18 @@ export function queueCrud(
   });
 }
 
+type BeforeAlterForCrudCtx = {
+  hot: HotInstance;
+  getOnRowsCreate: () => ((payload: { position?: string; referenceRowId?: unknown; rowsAmount?: number }) =>
+    Promise<unknown> | void) | undefined;
+  getOnRowsRemove: () => ((rowIds: unknown[]) => Promise<unknown> | void) | undefined;
+  getRowIdOption: () => RowIdOption;
+  getRowId: (visualRow: number) => unknown;
+  createRows: (payload: { position?: string; referenceRowId?: unknown; rowsAmount?: number }) =>
+    Promise<void> | void;
+  removeRows: (rowIds: unknown[]) => Promise<void> | void;
+};
+
 /**
  * @param {object} ctx Same shape as [[handleBeforeAlterForCrud]].
  * @param {'insert_row_above'|'insert_row_below'} action Insert direction.
@@ -647,7 +690,8 @@ export function queueCrud(
  * @returns {boolean|undefined} `false` when the alter is handled.
  */
 function handleInsertRowAlterForCrud(
-  ctx: any, action: string, index: number | any[] | undefined | null, amount: number
+  ctx: BeforeAlterForCrudCtx, action: string,
+  index: number | [number, number][] | undefined | null, amount: number
 ): false | undefined {
   const { hot, getOnRowsCreate, getRowId, createRows } = ctx;
 
@@ -666,7 +710,7 @@ function handleInsertRowAlterForCrud(
 
   createRows({
     position,
-    referenceRowId: visualIndex >= 0 ? getRowId(visualIndex) : undefined,
+    referenceRowId: typeof visualIndex === 'number' && visualIndex >= 0 ? getRowId(visualIndex) : undefined,
     rowsAmount: typeof amount === 'number' && amount >= 1 ? amount : 1,
   });
 
@@ -680,7 +724,7 @@ function handleInsertRowAlterForCrud(
  * @returns {boolean|undefined} `false` when the alter is handled.
  */
 function handleRemoveRowAlterForCrud(
-  ctx: any, index: number | any[] | undefined | null, amount: number
+  ctx: BeforeAlterForCrudCtx, index: number | [number, number][] | undefined | null, amount: number
 ): false | undefined {
   const { hot, getOnRowsRemove, getRowIdOption, removeRows } = ctx;
 
@@ -716,7 +760,8 @@ function handleRemoveRowAlterForCrud(
  * @returns {boolean|undefined} False when alter is handled here.
  */
 export function handleBeforeAlterForCrud(
-  ctx: any, action: string, index: number | any[] | undefined | null, amount: number
+  ctx: BeforeAlterForCrudCtx, action: string,
+  index: number | [number, number][] | undefined | null, amount: number
 ): false | undefined {
   if (action === 'insert_row_above' || action === 'insert_row_below') {
     return handleInsertRowAlterForCrud(ctx, action, index, amount);
