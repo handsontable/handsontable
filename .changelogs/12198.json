@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed `columnHeaderHeight` overriding the actual content height, causing overlay THEAD misalignment when header text wraps.",
-  "type": "fixed",
-  "issueOrPR": 12198,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where the stretchH: 'last' option would ignore the defined column width when the viewport was too narrow, causing the last column to shrink to 0px.",
-  "type": "fixed",
-  "issueOrPR": 11761,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where rows with dataSchema default values (e.g., false for checkbox columns) were not recognized as empty by isEmptyRow and isEmptyCol, causing minSpareRows and minSpareCols to add infinite rows.",
-  "type": "fixed",
-  "issueOrPR": 12254,
-  "breaking": false,
-  "framework": "none"
-}

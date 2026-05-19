@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added a frame-based e2e test wait helper and replaced selected hook test sleeps.",
-  "type": "changed",
-  "issueOrPR": 12161,
-  "breaking": false,
-  "framework": "none"
-}
