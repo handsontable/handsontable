@@ -127,7 +127,7 @@ export class AppComponent implements OnInit {
             currChange[1] === 'name.first' ||
             currChange[1] === 'name.last'
           ) {
-            if (currChange[3] !== null) {
+            if (currChange[3] !== null && typeof currChange[3] === 'string') {
               changes[i]![3] =
                 currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
             }
