@@ -7,13 +7,15 @@ import {
 } from '../../../helpers/number';
 import { isNullish } from '../../../dataMap/metaManager/utils';
 
+type NumericCellMeta = { numericFormat?: { culture?: string; pattern?: string }; locale?: string };
+
 /**
  * Gets the decimal separator preferred by the cell.
  *
  * @param {object} [cellMeta] The cell meta object.
  * @returns {'.'|','|undefined}
  */
-function getCellDecimalSeparator(cellMeta: { numericFormat?: { culture?: string; pattern?: string }; locale?: string }) {
+function getCellDecimalSeparator(cellMeta: NumericCellMeta) {
   const locale = cellMeta?.numericFormat?.culture ?? cellMeta?.locale;
 
   if (typeof locale === 'string' && locale.length > 0) {
@@ -59,7 +61,7 @@ function getCellDecimalSeparator(cellMeta: { numericFormat?: { culture?: string;
  * @param {object} cellMeta The cell meta object.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: { numericFormat?: { culture?: string; pattern?: string }; locale?: string }): unknown {
+export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: NumericCellMeta): unknown {
   void row;
   void column;
 
