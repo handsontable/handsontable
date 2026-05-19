@@ -572,7 +572,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     );
 
     const selectionSource = selection.getSelectionSource();
-    const ignoreScrollSources = ['loadData', 'updateData', 'deselect'];
+    const ignoreScrollSources = ['loadData', 'updateData', 'deselect', 'shift'];
 
     if (
       isLastSelectionLayer &&
