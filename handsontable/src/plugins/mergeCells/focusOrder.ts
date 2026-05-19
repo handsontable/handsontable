@@ -12,45 +12,31 @@ export class FocusOrder {
   /**
    * The linked list of the all cells within the current selection in horizontal order. The list is
    * recreated every time the selection is changed.
-   *
-   * @type {LinkedList}
    */
   #cellsHorizontalOrder = new LinkedList();
   /**
-   * The linked list of the all cells within the current selection in horizontal order. The list is
+   * The linked list of the all cells within the current selection in vertical order. The list is
    * recreated every time the selection is changed.
-   *
-   * @type {LinkedList}
    */
   #cellsVerticalOrder = new LinkedList();
   /**
    * The currently highlighted cell within the horizontal linked list.
-   *
-   * @type {NodeStructure | null}
    */
   #currentHorizontalLinkedNode: NodeStructure | null = null;
   /**
    * The currently highlighted cell within the vertical linked list.
-   *
-   * @type {NodeStructure | null}
    */
   #currentVerticalLinkedNode: NodeStructure | null = null;
   /**
    * The merged cells getter function.
-   *
-   * @type {function(): {row: number, col: number, rowspan: number, colspan: number} | null}}
    */
   #mergedCellsGetter: Function | null = null;
   /**
    * The row index mapper.
-   *
-   * @type {IndexMapper}
    */
   #rowIndexMapper: IndexMapper | null = null;
   /**
    * The column index mapper.
-   *
-   * @type {IndexMapper}
    */
   #columnIndexMapper: IndexMapper | null = null;
 

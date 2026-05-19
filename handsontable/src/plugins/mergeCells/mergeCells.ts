@@ -1268,7 +1268,7 @@ export class MergeCells extends BasePlugin {
    * @param {number} rowspan Rowspan.
    * @param {number} parentColumn Visual column index.
    * @param {number} colspan Colspan.
-   * @returns {[number, number]}
+   * @returns {Array<number>} A two-element array of `[renderableRow, renderableColumn]`.
    */
   translateMergedCellToRenderable(
     parentRow: number, rowspan: number, parentColumn: number, colspan: number
