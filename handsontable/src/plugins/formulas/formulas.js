@@ -9,6 +9,7 @@ import {
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
+  getTimeFromHfTimeFraction,
   isDate,
   isDateValid,
   isFormula,
@@ -691,6 +692,8 @@ export class Formulas extends BasePlugin {
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
         cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+      } else if (cellMeta.type === 'time' && isNumeric(cellValue)) {
+        cellValue = getTimeFromHfTimeFraction(cellValue, cellMeta.timeFormat);
       }
 
       // If `cellValue` is an object it is expected to be an error
@@ -920,6 +923,8 @@ export class Formulas extends BasePlugin {
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+    } else if (cellMeta.type === 'time' && isNumeric(cellValue)) {
+      cellValue = getTimeFromHfTimeFraction(cellValue, cellMeta.timeFormat);
     }
 
     // If `cellValue` is an object it is expected to be an error
@@ -1284,13 +1289,54 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
+   * Handsontable-formatted string when the target cell is of type `date` or `time`. For other cells
+   * (or non-numeric values, or named expressions, or trimmed cells, or cells on other sheets), the
+   * original change is returned unchanged.
+   *
+   * @param {object} change The HyperFormula exported change.
+   * @returns {object}
+   */
+  #exportChangeValue(change) {
+    if (!change.address || change.address.sheet !== this.sheetId || typeof change.newValue !== 'number') {
+      return change;
+    }
+
+    const visualRow = this.rowAxisSyncer.getVisualIndexFromHfIndex(change.address.row);
+    const visualColumn = this.columnAxisSyncer.getVisualIndexFromHfIndex(change.address.col);
+
+    if (visualRow < 0 || visualColumn < 0) {
+      return change;
+    }
+
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    let newValue;
+
+    if (cellMeta.type === 'date') {
+      newValue = getDateFromExcelDate(change.newValue, cellMeta.dateFormat);
+    } else if (cellMeta.type === 'time') {
+      newValue = getTimeFromHfTimeFraction(change.newValue, cellMeta.timeFormat);
+    } else {
+      return change;
+    }
+
+    const clone = Object.assign(Object.create(Object.getPrototypeOf(change)), change);
+
+    clone.newValue = newValue;
+
+    return clone;
+  }
+
+  /**
    * Called when a value is updated in the engine.
    *
    * @fires Hooks#afterFormulasValuesUpdate
    * @param {Array} changes The values and location of applied changes.
    */
   #onEngineValuesUpdated(changes) {
-    this.hot.runHooks('afterFormulasValuesUpdate', changes);
+    const exportedChanges = changes.map(change => this.#exportChangeValue(change));
+
+    this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
   }
 
   /**
