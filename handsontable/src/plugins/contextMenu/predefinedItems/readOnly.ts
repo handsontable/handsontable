@@ -1,5 +1,4 @@
 import { checkSelectionConsistency, markLabelAsSelected } from '../utils';
-import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'make_read_only';
@@ -44,13 +43,13 @@ export default function readOnlyItem() {
         (row: number, col: number) => this.getCellMeta(row, col).readOnly
       );
 
-      arrayEach(ranges, (range: unknown) => {
-        (range as { forAll: Function }).forAll((row: number, col: number) => {
+      for (const range of ranges) {
+        range.forAll((row: number, col: number) => {
           if (row >= 0 && col >= 0) {
             this.setCellMeta(row, col, 'readOnly', !atLeastOneReadOnly);
           }
         });
-      });
+      }
 
       this.render();
     },

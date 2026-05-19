@@ -11,7 +11,7 @@ import { throwWithCause } from '../../helpers/errors';
  * @param {number} [level=0] Traversing deep level.
  * @returns {HTMLElement|null}
  */
-export function getParent(element: HTMLElement | Node, level: number = 0): HTMLElement {
+export function getParent(element: HTMLElement | Node, level: number = 0): HTMLElement | null {
   let iteration = -1;
   let parent: HTMLElement | null = null;
   let elementToCheck: Node | null = element;
@@ -68,8 +68,11 @@ export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event)
  * @param {Window} frame Frame from which should be get frameElement in safe way.
  * @returns {HTMLIFrameElement|null}
  */
-export function getFrameElement(frame: Window): HTMLIFrameElement {
-  return Object.getPrototypeOf(frame.parent) && frame.frameElement as HTMLIFrameElement;
+export function getFrameElement(frame: Window): HTMLIFrameElement | null {
+  const { frameElement } = frame;
+
+  return Object.getPrototypeOf(frame.parent) &&
+    frameElement instanceof HTMLIFrameElement ? frameElement : null;
 }
 
 /**
@@ -110,7 +113,7 @@ export function closest(
     const { nodeType, nodeName } = elementToCheck;
 
     if (nodeType === ELEMENT_NODE &&
-        (nodes.includes(nodeName) || (elementToCheck instanceof HTMLElement && nodes.includes(elementToCheck)))) {
+        (nodes.includes(nodeName) || nodes.includes(elementToCheck as HTMLElement))) {
       return elementToCheck as HTMLElement;
     }
 
@@ -147,10 +150,12 @@ export function closestDown(
     matched.push(elementToCheck);
 
     if (isShadowRoot(elementToCheck)) {
-      elementToCheck = elementToCheck.host as HTMLElement;
+      const { host } = elementToCheck;
+
+      elementToCheck = host as HTMLElement;
 
     } else {
-      elementToCheck = elementToCheck.parentNode as HTMLElement | null;
+      elementToCheck = elementToCheck.parentElement;
     }
   }
   const length = matched.length;
@@ -582,19 +587,27 @@ export function isVisible(element: HTMLElement): boolean {
     } else if (isShadowRoot(next)) { // this is Web Components Shadow DOM
       // see: http://w3c.github.io/webcomponents/spec/shadow/#encapsulation
       // according to spec, should be if (next.ownerDocument !== window.document), but that doesn't work yet
-      const hostWithImpl = next.host as HTMLElement & { impl?: HTMLElement };
+
+      // `impl` was a non-standard property in Chrome 33.0.1723.0 canary (2013-11-29) that exposed the
+      // internal implementation node when Web Platform features were disabled. It is no longer present
+      // in any supported browser, but we keep the fallback to avoid a silent regression on very old builds.
+      interface ShadowHostWithImpl extends HTMLElement { impl?: HTMLElement }
+      const { host } = next;
+
+      const hostWithImpl = host as ShadowHostWithImpl;
 
       if (hostWithImpl.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
         return isVisible(hostWithImpl.impl);
 
       } else { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
-        return isVisible(next.host as HTMLElement);
+        return isVisible(host as HTMLElement);
       }
 
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       return false; // this is a node detached from document in IE8
 
-    } else if (next instanceof HTMLElement && windowElement.getComputedStyle(next).display === 'none') {
+    } else if (next.nodeType === Node.ELEMENT_NODE &&
+      windowElement.getComputedStyle(next as HTMLElement).display === 'none') {
       return false;
     }
 
@@ -615,7 +628,7 @@ export function hasZeroHeight(element: HTMLElement): boolean {
   const rootWindow = rootDocument.defaultView;
   let currentElement: HTMLElement | null = element;
 
-  while (currentElement.parentNode) {
+  while (currentElement.parentElement) {
     if (currentElement.style.height === '0px' || currentElement.style.height === '0') {
       const computedOverflow = rootWindow.getComputedStyle(currentElement)
         .getPropertyValue('overflow');
@@ -623,7 +636,7 @@ export function hasZeroHeight(element: HTMLElement): boolean {
       return computedOverflow === 'hidden' || computedOverflow === 'clip';
     }
 
-    currentElement = currentElement.parentNode as HTMLElement;
+    currentElement = currentElement.parentElement;
   }
 
   return false;
@@ -737,18 +750,12 @@ export function getScrollLeft(element: HTMLElement | Window, rootWindow: Window 
  * @param {HTMLElement} element An element to get the scrollable element from.
  * @returns {HTMLElement} Element's scrollable parent.
  */
-export function getScrollableElement(element: HTMLElement): HTMLElement {
-  let rootDocument = element.ownerDocument as Document;
-  let rootWindow = rootDocument ? rootDocument.defaultView : undefined;
-
-  if (!rootDocument) {
-    rootDocument = (element as unknown as Window).document
-      ? (element as unknown as Window).document : element as unknown as Document;
-    rootWindow = rootDocument.defaultView;
-  }
+export function getScrollableElement(element: HTMLElement): HTMLElement | Window {
+  const rootDocument = element.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
 
   const props = ['auto', 'scroll'];
-  let el: HTMLElement | null = element.parentNode as HTMLElement;
+  let el: HTMLElement | null = element.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
     let { overflow, overflowX, overflowY } = el.style;
@@ -772,10 +779,10 @@ export function getScrollableElement(element: HTMLElement): HTMLElement {
       return el;
     }
 
-    el = el.parentNode as HTMLElement;
+    el = el.parentElement;
   }
 
-  return rootWindow as unknown as HTMLElement;
+  return rootWindow;
 }
 
 /**
@@ -804,11 +811,11 @@ export function getMaximumScrollLeft(element: HTMLElement) {
  * @param {HTMLElement} base Base element.
  * @returns {HTMLElement} Base element's trimming parent.
  */
-export function getTrimmingContainer(base: HTMLElement): HTMLElement {
+export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
   const rootDocument = base.ownerDocument;
   const rootWindow = rootDocument.defaultView;
 
-  let el: HTMLElement | null = base.parentNode as HTMLElement;
+  let el: HTMLElement | null = base.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
     if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
@@ -827,10 +834,10 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement {
       return el;
     }
 
-    el = el.parentNode as HTMLElement;
+    el = el.parentElement;
   }
 
-  return rootWindow as unknown as HTMLElement;
+  return rootWindow;
 }
 
 /**
@@ -842,30 +849,31 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement {
  * @returns {string|undefined} Element's style property.
  */
 // eslint-disable-next-line no-restricted-globals
-export function getStyle(element: HTMLElement, prop: string, rootWindow: Window = window): string {
+export function getStyle(element: HTMLElement | Window, prop: string, rootWindow: Window = window): string {
   if (!element) {
     return;
 
-  } else if (element as unknown === rootWindow) {
+  } else if (element instanceof Window) {
     if (prop === 'width') {
-      return `${rootWindow.innerWidth}px`;
+      return `${element.innerWidth}px`;
 
     } else if (prop === 'height') {
-      return `${rootWindow.innerHeight}px`;
+      return `${element.innerHeight}px`;
     }
 
     return;
   }
 
-  const styleProp = (element.style as CSSStyleDeclaration & Record<string, string>)[prop];
+  const styleProp = element.style.getPropertyValue(prop) ||
+    (element.style as CSSStyleDeclaration & Record<string, string>)[prop];
 
   if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
   }
 
   const computedStyle = rootWindow.getComputedStyle(element);
-
-  const computedProp = (computedStyle as CSSStyleDeclaration & Record<string, string>)[prop];
+  const computedProp = computedStyle.getPropertyValue(prop) ||
+    (computedStyle as CSSStyleDeclaration & Record<string, string>)[prop];
 
   if (computedProp !== '' && computedProp !== undefined) {
     return computedProp;
@@ -880,15 +888,17 @@ export function getStyle(element: HTMLElement, prop: string, rootWindow: Window 
  * @returns {boolean}
  */
 export function matchesCSSRules(element: Element, rule: CSSRule): boolean {
-  const { selectorText } = rule as CSSStyleRule;
   let result = false;
 
-  if (rule.type === CSSRule.STYLE_RULE && selectorText) {
-    if ((element as Element & { msMatchesSelector?: (sel: string) => boolean }).msMatchesSelector) {
-      result = (element as Element & { msMatchesSelector: (sel: string) => boolean }).msMatchesSelector(selectorText);
+  if (rule instanceof CSSStyleRule && rule.selectorText) {
+    // msMatchesSelector is a non-standard alias present in IE and old Edge
+    type ElementWithMs = Element & { msMatchesSelector: (selector: string) => boolean };
+
+    if ('msMatchesSelector' in element && typeof (element as ElementWithMs).msMatchesSelector === 'function') {
+      result = (element as ElementWithMs).msMatchesSelector(rule.selectorText);
 
     } else if (element.matches) {
-      result = element.matches(selectorText);
+      result = element.matches(rule.selectorText);
     }
   }
 
@@ -997,11 +1007,15 @@ export function getSelectionText(rootWindow: Window = window): string {
     text = rootWindow.getSelection().toString();
 
   } else {
+    // `document.selection` is an IE-only non-standard API
     type DocWithSelection = Document & { selection?: { type: string; createRange(): { text: string } } };
-    const docWithSel = rootDocument as DocWithSelection;
 
-    if (docWithSel.selection && docWithSel.selection.type !== 'Control') {
-      text = docWithSel.selection.createRange().text;
+    if ('selection' in rootDocument) {
+      const docWithSel = rootDocument as DocWithSelection;
+
+      if (docWithSel.selection && docWithSel.selection.type !== 'Control') {
+        text = docWithSel.selection.createRange().text;
+      }
     }
   }
 
@@ -1044,12 +1058,15 @@ export function setCaretPosition(element: HTMLInputElement | HTMLTextAreaElement
     try {
       element.setSelectionRange(pos, endPos);
     } catch (err) {
-      const elementParent = element.parentNode as HTMLElement;
-      const parentDisplayValue = elementParent.style.display;
+      const elementParent = element.parentElement;
 
-      elementParent.style.display = 'block';
-      element.setSelectionRange(pos, endPos);
-      elementParent.style.display = parentDisplayValue;
+      if (elementParent) {
+        const parentDisplayValue = elementParent.style.display;
+
+        elementParent.style.display = 'block';
+        element.setSelectionRange(pos, endPos);
+        elementParent.style.display = parentDisplayValue;
+      }
     }
   }
 }

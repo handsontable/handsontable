@@ -439,7 +439,7 @@ export class ManualRowMove extends BasePlugin {
     const rootElementOffset = offset(rootElement);
     const trimmingContainer = getTrimmingContainer(rootElement);
     const tableScroll = wtTable.holder.scrollTop;
-    const trimmingContainerScroll = this.hot.rootWindow !== (trimmingContainer as HTMLElement | Window)
+    const trimmingContainerScroll = trimmingContainer instanceof HTMLElement
       ? trimmingContainer.scrollTop : 0;
 
     const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;

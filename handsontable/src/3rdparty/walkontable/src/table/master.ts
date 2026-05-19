@@ -32,7 +32,7 @@ class MasterTable extends Table {
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.domBindings;
 
-    if ((trimmingElement as unknown) === rootWindow) {
+    if (!(trimmingElement instanceof HTMLElement)) {
       const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
       if (!preventOverflow) {

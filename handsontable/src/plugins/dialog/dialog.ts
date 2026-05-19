@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
-import { isObject } from '../../helpers/object';
+import { isObject, isPlainObject } from '../../helpers/object';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -190,13 +190,13 @@ export class Dialog extends BasePlugin {
 
   static get SETTINGS_VALIDATORS() {
     return {
-      template: (value: Record<string, unknown>) => isObject(value) &&
+      template: (value: unknown) => isPlainObject(value) &&
         (typeof ['alert', 'confirm'].includes(String(value.type))) &&
         (typeof value.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
         (typeof value?.buttons === 'undefined' ||
-          Array.isArray(value?.buttons) && value.buttons.every((item: Record<string, unknown>) =>
-            typeof item === 'object' &&
+          Array.isArray(value?.buttons) && value.buttons.every((item: unknown) =>
+            isPlainObject(item) &&
           typeof item.text === 'string' &&
           ['primary', 'secondary'].includes(String(item.type)) &&
           (typeof item.callback === 'undefined' || typeof item.callback === 'function')
@@ -209,7 +209,7 @@ export class Dialog extends BasePlugin {
       contentBackground: (value: unknown) => typeof value === 'boolean',
       animation: (value: unknown) => typeof value === 'boolean',
       closable: (value: unknown) => typeof value === 'boolean',
-      a11y: (value: Record<string, unknown>) => isObject(value) &&
+      a11y: (value: unknown) => isPlainObject(value) &&
         (typeof value?.role === 'undefined' ||
           typeof value?.role === 'string' && ['dialog', 'alertdialog'].includes(value.role)) &&
         (typeof value?.ariaLabel === 'undefined' || typeof value?.ariaLabel === 'string') &&

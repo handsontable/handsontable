@@ -155,6 +155,7 @@ class Table {
     this.spreader = this.createSpreader(this.TABLE);
     this.hider = this.createHider(this.spreader);
     this.holder = this.createHolder(this.hider);
+    // parentNode is always an HTMLElement in production; null only when TABLE is detached (e.g. Jasmine tests).
     this.wtRootElement = this.holder.parentNode as HTMLElement;
 
     if (this.isMaster) {
@@ -231,7 +232,8 @@ class Table {
     const parent = table.parentNode;
     let spreader;
 
-    if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent as HTMLElement, 'wtHolder')) {
+    if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
+        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
       spreader = this.domBindings.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -261,7 +263,8 @@ class Table {
     const parent = spreader.parentNode;
     let hider;
 
-    if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent as HTMLElement, 'wtHolder')) {
+    if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
+        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
       hider = this.domBindings.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
@@ -290,7 +293,8 @@ class Table {
     const parent = hider.parentNode;
     let holder;
 
-    if (!parent || parent.nodeType !== Node.ELEMENT_NODE || !hasClass(parent as HTMLElement, 'wtHolder')) {
+    if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
+        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
       holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
@@ -306,15 +310,18 @@ class Table {
         parent.insertBefore(holder, hider);
       }
       if (this.isMaster) {
-        const holderParent = holder.parentNode as HTMLElement;
+        const holderParent = holder.parentNode;
 
-        holderParent.className += 'ht_master handsontable';
-        holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
+        // holderParent is null when TABLE is detached (e.g. in Jasmine tests); skip class assignment in that case.
+        if (holderParent instanceof HTMLElement) {
+          holderParent.className += 'ht_master handsontable';
+          holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
 
-        if (this.wtSettings.getSetting('ariaTags')) {
-          setAttribute(holderParent, [
-            A11Y_PRESENTATION()
-          ]);
+          if (this.wtSettings.getSetting('ariaTags')) {
+            setAttribute(holderParent, [
+              A11Y_PRESENTATION()
+            ]);
+          }
         }
       }
       holder.appendChild(hider);
@@ -664,13 +671,17 @@ class Table {
       throwWithCause('TR was expected to be rendered but is not');
     }
 
-    const TD = (TR as HTMLTableRowElement).childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
+    const trElement = TR !== false ? TR : null;
+    const TD = trElement?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
 
     if (!TD && column >= 0) {
       throwWithCause('TD or TH was expected to be rendered but is not');
     }
 
-    return TD as HTMLElement; // ChildNode narrowed to HTMLElement (TD/TH element)
+    // TD is a TD/TH HTMLElement guaranteed by DOM structure. TypeScript cannot narrow ChildNode
+    // to HTMLElement without instanceof, but adding a throw here would change the existing contract
+    // for negative column (header) lookups where TD may be undefined.
+    return TD as HTMLElement;
   }
 
   /**
@@ -712,10 +723,11 @@ class Table {
    * @param {number} [level=0] Header level (0 = most distant to the table).
    * @returns {object} HTMLElement on success or undefined on error.
    */
-  getColumnHeader(col: number, level = 0) {
+  getColumnHeader(col: number, level = 0): HTMLElement | undefined {
     const TR = this.THEAD.childNodes[level];
+    const TH = TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
 
-    return TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)] as HTMLElement | undefined;
+    return TH instanceof HTMLElement ? TH : undefined;
   }
 
   /**
@@ -731,8 +743,8 @@ class Table {
     this.THEAD.childNodes.forEach((TR: ChildNode) => {
       const TH = TR.childNodes[visibleColumn];
 
-      if (TH) {
-        THs.push(TH as HTMLTableCellElement);
+      if (TH instanceof HTMLTableCellElement) {
+        THs.push(TH);
       }
     });
 
@@ -747,19 +759,20 @@ class Table {
    * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
    *   row headers`.
    */
-  getRowHeader(row: number, level = 0) {
+  getRowHeader(row: number, level = 0): HTMLElement | undefined {
     const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
 
     if (level >= rowHeadersCount) {
-      return;
+      return undefined;
     }
 
     const renderedRow = this.rowFilter.sourceToRendered(row);
     const visibleRow = renderedRow < 0 ? this.rowFilter.sourceRowToVisibleColHeadedRow(row) : renderedRow;
     const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
     const TR = parentElement.childNodes[visibleRow];
+    const TH = TR?.childNodes[level];
 
-    return TR?.childNodes[level] as HTMLElement | undefined;
+    return TH instanceof HTMLElement ? TH : undefined;
   }
 
   /**
@@ -810,7 +823,7 @@ class Table {
 
     const CONTAINER = TR.parentNode;
     let row = TR instanceof Element ? index(TR) : 0;
-    let col = (cellElement as HTMLTableCellElement).cellIndex;
+    let col = cellElement instanceof HTMLTableCellElement ? cellElement.cellIndex : 0;
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
@@ -1240,12 +1253,14 @@ class Table {
    * Modify row header widths provided by user in class contructor.
    *
    * @private
-   * @param {Function} rowHeaderWidthFactory The function which can provide default width values for rows..
+   * @param {Function | number | null} rowHeaderWidthFactory The function which can provide default width values for rows..
    * @returns {number}
    */
-  _modifyRowHeaderWidth(rowHeaderWidthFactory: Function | unknown) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let widths = isFunction(rowHeaderWidthFactory) ? (rowHeaderWidthFactory as (...args: unknown[]) => any)() : null;
+  _modifyRowHeaderWidth(rowHeaderWidthFactory: ((...args: unknown[]) => number | number[]) | number | null) {
+    const rawWidths: number | number[] | null = typeof rowHeaderWidthFactory === 'function'
+      ? rowHeaderWidthFactory()
+      : rowHeaderWidthFactory;
+    let widths: number | number[] | null = rawWidths;
 
     if (Array.isArray(widths)) {
       widths = [...widths];
@@ -1261,17 +1276,16 @@ class Table {
    * Correct row header width if necessary.
    *
    * @private
-   * @param {number} width The width to process.
+   * @param {number | null} width The width to process.
    * @returns {number}
    */
-  _correctRowHeaderWidth(width: number | unknown) {
-    let rowHeaderWidth = width;
+  _correctRowHeaderWidth(width: number | null) {
+    let rowHeaderWidth: number = typeof width === 'number'
+      ? width
+      : this.wtSettings.getSetting<number>('defaultColumnWidth');
 
-    if (typeof width !== 'number') {
-      rowHeaderWidth = this.wtSettings.getSetting('defaultColumnWidth');
-    }
     if (this.correctHeaderWidth) {
-      (rowHeaderWidth as number) += 1;
+      rowHeaderWidth += 1;
     }
 
     return rowHeaderWidth;

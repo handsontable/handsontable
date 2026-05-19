@@ -3,13 +3,14 @@ import type { WalkontableInstance, DomBindings } from './types';
 import type Settings from './settings';
 import type Table from './table';
 import type { Overlay } from './overlay/_base';
+import type EventManager from '../../../eventManager';
 
 interface OverlaysLike {
   wot: WalkontableInstance;
   wtTable: Table;
   wtSettings: Settings;
   domBindings: DomBindings;
-  eventManager: { addEventListener(el: EventTarget, type: string, handler: (event: MouseEvent) => void): void };
+  eventManager: EventManager;
   scrollableElement: HTMLElement | Window;
   topOverlay: Overlay;
   bottomOverlay: Overlay;
@@ -79,7 +80,9 @@ export class StickyScrollStrategy {
     this.#mouseDown = false;
 
     eventManager.addEventListener(rootDocument, 'mousedown', (event) => {
-      this.#mouseDown = this.#isScrollbarTarget(event);
+      if (event instanceof MouseEvent) {
+        this.#mouseDown = this.#isScrollbarTarget(event);
+      }
     });
     eventManager.addEventListener(rootDocument, 'mouseup', () => {
       this.#mouseDown = false;

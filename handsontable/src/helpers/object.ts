@@ -262,14 +262,14 @@ export function isObject(object: unknown): boolean {
 }
 
 /**
- * Internal type-guard variant of {@link isObject} used to narrow values within this module.
- * Kept private to avoid changing the public `isObject` return type, which downstream
- * code relies on for compatibility with `as` casts to unrelated types.
+ * Type-guard variant of {@link isObject} that narrows the value to `Record<string, unknown>`.
+ * Use this instead of `isObject` when you need TypeScript to narrow the type after the check.
+ * {@link isObject} intentionally returns `boolean` to preserve downstream compatibility.
  *
  * @param {*} value The value to check.
  * @returns {boolean}
  */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
   return Object.prototype.toString.call(value) === '[object Object]';
 }
 
@@ -317,7 +317,7 @@ export function objectEach(object: object, iteratee: (value: unknown, key: strin
  * @param {string} name Object property name.
  * @returns {T | undefined}
  */
-export function getProperty<T = unknown>(object: Record<string, unknown>, name: string): T | undefined {
+export function getProperty<T = unknown>(object: Record<string | symbol, unknown>, name: string): T | undefined {
   const names = name.split('.');
   let result: unknown = object;
 
@@ -473,7 +473,8 @@ export function hasOwnProperty(object: object, key: string | number): boolean {
  * @param {object} defaults The default values to assign.
  * @returns {object} The object with defaults assigned.
  */
-export function assignObjectDefaults(target: Record<string, unknown>, defaults: Record<string, unknown>) {
+export function assignObjectDefaults(
+  target: Record<string | symbol, unknown>, defaults: Record<string | symbol, unknown>) {
   if (typeof target !== 'object' || target === null) {
     return defaults;
   }

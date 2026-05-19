@@ -9,6 +9,17 @@ interface WheelEventWithLegacyDelta extends WheelEvent {
   wheelDeltaY?: number;
   wheelDeltaX?: number;
 }
+
+/**
+ * Type predicate that checks whether a WheelEvent carries the legacy
+ * non-standard `wheelDeltaX`/`wheelDeltaY` properties emitted by older browsers.
+ *
+ * @param {WheelEvent} event The wheel event to test.
+ * @returns {boolean}
+ */
+function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWithLegacyDelta {
+  return 'wheelDeltaY' in event || 'wheelDeltaX' in event;
+}
 import type { Overlay } from './overlay/_base';
 import type EventManager from '../../../eventManager';
 import {
@@ -271,7 +282,7 @@ class Overlays {
    *
    * @type {StickyScrollStrategy}
    */
-  #stickyScroll = new StickyScrollStrategy(this as unknown as ConstructorParameters<typeof StickyScrollStrategy>[0]);
+  #stickyScroll = new StickyScrollStrategy(this);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -336,9 +347,17 @@ class Overlays {
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
 
-    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode as Element)
-      .getPropertyValue('overflow');
-    const isOverflowClip = computedOverflow === 'hidden' || computedOverflow === 'clip';
+    const rootElementParent = wtTable.wtRootElement.parentNode;
+    // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
+    // Falls back to getScrollableElement when there is no element parent (null or detached).
+    const isOverflowClip = rootElementParent !== null
+      && rootElementParent.nodeType === 1
+      && (() => {
+        const overflow = rootWindow
+          .getComputedStyle(rootElementParent as Element).getPropertyValue('overflow');
+
+        return overflow === 'hidden' || overflow === 'clip';
+      })();
 
     this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
@@ -574,9 +593,9 @@ class Overlays {
     // by hot.refreshBorder
     if (this.keyPressed) {
       if ((masterVertical !== rootWindow && target !== rootWindow &&
-           !eventTargetEl(event)!.contains(masterVertical as HTMLElement)) ||
+           !(masterVertical instanceof HTMLElement && eventTargetEl(event)!.contains(masterVertical))) ||
           (masterHorizontal !== rootWindow && target !== rootWindow &&
-           !eventTargetEl(event)!.contains(masterHorizontal as HTMLElement))) {
+           !(masterHorizontal instanceof HTMLElement && eventTargetEl(event)!.contains(masterHorizontal)))) {
         return;
       }
     }
@@ -608,9 +627,11 @@ class Overlays {
     // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
     // by hot.refreshBorder
     const shouldNotWheelVertically = masterVertical !== rootWindow &&
-      target !== rootWindow && !(target as Node).contains(masterVertical as HTMLElement);
+      target !== rootWindow &&
+      !(target instanceof Node && masterVertical instanceof HTMLElement && target.contains(masterVertical));
     const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
-      target !== rootWindow && !(target as Node).contains(masterHorizontal as HTMLElement);
+      target !== rootWindow &&
+      !(target instanceof Node && masterHorizontal instanceof HTMLElement && target.contains(masterHorizontal));
 
     if (
       (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
@@ -651,9 +672,16 @@ class Overlays {
    * @returns {boolean}
    */
   translateMouseWheelToScroll(event: WheelEvent) {
-    const legacyEvent = event as WheelEventWithLegacyDelta;
-    let deltaY = isNaN(event.deltaY) ? (-1) * (legacyEvent.wheelDeltaY ?? 0) : event.deltaY;
-    let deltaX = isNaN(event.deltaX) ? (-1) * (legacyEvent.wheelDeltaX ?? 0) : event.deltaX;
+    let deltaY: number;
+    let deltaX: number;
+
+    if (isWheelEventWithLegacyDelta(event)) {
+      deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
+      deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
+    } else {
+      deltaY = event.deltaY;
+      deltaX = event.deltaX;
+    }
 
     if (event.deltaMode === 1) {
       deltaX += deltaX * this.browserLineHeight;
@@ -673,7 +701,11 @@ class Overlays {
    * @returns {boolean}
    */
   scrollVertically(delta: number) {
-    const el = this.scrollableElement as HTMLElement;
+    if (!(this.scrollableElement instanceof HTMLElement)) {
+      return false;
+    }
+
+    const el = this.scrollableElement;
     const previousScroll = el.scrollTop;
 
     el.scrollTop += delta;
@@ -688,7 +720,11 @@ class Overlays {
    * @returns {boolean}
    */
   scrollHorizontally(delta: number) {
-    const el = this.scrollableElement as HTMLElement;
+    if (!(this.scrollableElement instanceof HTMLElement)) {
+      return false;
+    }
+
+    const el = this.scrollableElement;
     const previousScroll = el.scrollLeft;
 
     el.scrollLeft += delta;
@@ -710,22 +746,23 @@ class Overlays {
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    const scrollEl = this.scrollableElement as HTMLElement;
-    let scrollX = scrollEl.scrollLeft;
-    let scrollY = scrollEl.scrollTop;
+    let scrollX = this.scrollableElement instanceof HTMLElement ? this.scrollableElement.scrollLeft : 0;
+    let scrollY = this.scrollableElement instanceof HTMLElement ? this.scrollableElement.scrollTop : 0;
 
     if (
       this.wot.wtViewport.isHorizontallyScrollableByWindow()
       && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
+      && this.scrollableElement instanceof Window
     ) {
-      scrollX = (this.scrollableElement as Window).scrollX;
+      scrollX = this.scrollableElement.scrollX;
     }
 
     if (
       this.wot.wtViewport.isVerticallyScrollableByWindow()
       && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
+      && this.scrollableElement instanceof Window
     ) {
-      scrollY = (this.scrollableElement as Window).scrollY;
+      scrollY = this.scrollableElement.scrollY;
     }
 
     this.horizontalScrolling = this.lastScrollX !== scrollX;
@@ -770,8 +807,13 @@ class Overlays {
       return;
     }
 
-    const master = this.topOverlay.mainTableScrollableElement as HTMLElement;
-    const { scrollLeft, scrollTop } = master;
+    const masterScrollable = this.topOverlay.mainTableScrollableElement;
+
+    if (!(masterScrollable instanceof HTMLElement)) {
+      return;
+    }
+
+    const { scrollLeft, scrollTop } = masterScrollable;
 
     if (this.topOverlay.needFullRender) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
@@ -844,9 +886,12 @@ class Overlays {
     }
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
-    const computedOverflow = rootWindow
-      .getComputedStyle(wtTable.wtRootElement.parentNode as Element)
-      .getPropertyValue('overflow');
+    const tableParentNode = wtTable.wtRootElement.parentNode;
+    // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
+    // Falls back to '' when there is no element parent (null or detached).
+    const computedOverflow = tableParentNode !== null && tableParentNode.nodeType === 1
+      ? rootWindow.getComputedStyle(tableParentNode as Element).getPropertyValue('overflow')
+      : '';
 
     if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.scrollableElement = wtTable.holder;
@@ -962,15 +1007,19 @@ class Overlays {
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;
     const isScrolledBeyondHiderHeight = () => {
-      return isWindowScrolled ?
-        false :
-        (this.scrollableElement as HTMLElement).scrollTop >
+      if (isWindowScrolled || !(this.scrollableElement instanceof HTMLElement)) {
+        return false;
+      }
+
+      return this.scrollableElement.scrollTop >
         Math.max(0, proposedHiderHeight - wtTable.holder.clientHeight);
     };
     const isScrolledBeyondHiderWidth = () => {
-      return isWindowScrolled ?
-        false :
-        (this.scrollableElement as HTMLElement).scrollLeft >
+      if (isWindowScrolled || !(this.scrollableElement instanceof HTMLElement)) {
+        return false;
+      }
+
+      return this.scrollableElement.scrollLeft >
         Math.max(0, proposedHiderWidth - wtTable.holder.clientWidth);
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;

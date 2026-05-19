@@ -1,6 +1,8 @@
 import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
-import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
+import {
+  defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty,
+} from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
@@ -63,7 +65,7 @@ export class BasePlugin {
    *
    * @returns {object}
    */
-  static get DEFAULT_SETTINGS(): Record<string, unknown> {
+  static get DEFAULT_SETTINGS(): Record<string | symbol, unknown> {
     return {};
   }
 
@@ -72,7 +74,7 @@ export class BasePlugin {
    *
    * @type {Function|object|null}
    */
-  static get SETTINGS_VALIDATORS(): Function | Record<string, Function> | null {
+  static get SETTINGS_VALIDATORS(): ((value: unknown) => boolean) | Record<string, (value: unknown) => boolean> | null {
     return null;
   }
 
@@ -88,7 +90,7 @@ export class BasePlugin {
    *
    * @type {object|null}
    */
-  #pluginSettings: Record<string, unknown> | unknown[] | boolean | string | number | null = null;
+  #pluginSettings: Record<string | symbol, unknown> | unknown[] | boolean | string | number | null = null;
 
   /**
    * The instance of the EventManager class.
@@ -265,8 +267,8 @@ export class BasePlugin {
     const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
 
     if (settingName === undefined) {
-      if (isObject(this.#pluginSettings)) {
-        return assignObjectDefaults(this.#pluginSettings as Record<string, unknown>, defaultSettings) as T;
+      if (isPlainObject(this.#pluginSettings)) {
+        return assignObjectDefaults(this.#pluginSettings, defaultSettings) as T;
       }
 
       return this.#pluginSettings as T;
@@ -275,28 +277,29 @@ export class BasePlugin {
     let settingValue;
 
     if (
-      (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
-      (defaultSettings as Record<string | symbol, unknown>)[defaultMainSettingSymbol] === settingName
+      (Array.isArray(this.#pluginSettings) || isPlainObject(this.#pluginSettings)) &&
+      defaultSettings[defaultMainSettingSymbol] === settingName
     ) {
       if (Array.isArray(this.#pluginSettings)) {
         settingValue = this.#pluginSettings;
       } else {
-        settingValue = (this.#pluginSettings as Record<string, unknown>)[settingName] ?? defaultSettings[settingName];
+        settingValue = this.#pluginSettings[settingName] ?? defaultSettings[settingName];
       }
     } else if (settingName.includes('.')) {
-      const pluginValue = getProperty(this.#pluginSettings as Record<string, unknown>, settingName);
+      const pluginValue = isPlainObject(this.#pluginSettings) ?
+        getProperty(this.#pluginSettings, settingName) : undefined;
       const defaultValue = getProperty(defaultSettings, settingName);
 
-      if (isObject(pluginValue)) {
+      if (isPlainObject(pluginValue)) {
         settingValue = assignObjectDefaults(
-          pluginValue as Record<string, unknown>, defaultValue as Record<string, unknown>
+          pluginValue, isPlainObject(defaultValue) ? defaultValue : {}
         );
       } else {
         settingValue = pluginValue !== undefined ? pluginValue : defaultValue;
       }
-    } else if (isObject(this.#pluginSettings)) {
+    } else if (isPlainObject(this.#pluginSettings)) {
       settingValue = assignObjectDefaults(
-        this.#pluginSettings as Record<string, unknown>, defaultSettings
+        this.#pluginSettings, defaultSettings
       )[settingName];
     } else {
       settingValue = defaultSettings[settingName];
@@ -341,7 +344,7 @@ export class BasePlugin {
       typeof settingsValidators === 'function' &&
       typeof newSettings !== 'object'
     ) {
-      const isValid = (settingsValidators as (value: unknown) => boolean)(newSettings);
+      const isValid = settingsValidators(newSettings);
 
       if (isValid === false) {
         warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);
@@ -349,26 +352,29 @@ export class BasePlugin {
         return;
       }
 
-      this.#pluginSettings = newSettings as Record<string, unknown> | boolean | string | number | null;
+      this.#pluginSettings = newSettings as boolean | string | number | null;
 
       return this.#pluginSettings;
     }
 
     if (settingsValidators &&
        typeof settingsValidators === 'object' &&
-       typeof newSettings === 'object'
+       isPlainObject(newSettings)
     ) {
-      if (this.#pluginSettings === null || typeof this.#pluginSettings !== 'object') {
+      if (!isPlainObject(this.#pluginSettings)) {
         this.#pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
       }
 
+      // isPlainObject confirms the type after the potential reset above
+      const currentSettings = isPlainObject(this.#pluginSettings) ? this.#pluginSettings : {};
+
       Object.keys(settingsValidators).forEach((key) => {
-        if (!(key in (newSettings as Record<string, unknown>))) {
+        if (!(key in newSettings)) {
           return;
         }
 
         const validator = settingsValidators[key];
-        const isValid = validator ? validator((newSettings as Record<string, unknown>)[key]) : true;
+        const isValid = validator ? validator(newSettings[key]) : true;
 
         if (isValid === false) {
           warn(`${this.pluginName} Plugin: "${key}" option is not valid and it will be ignored.`);
@@ -376,7 +382,7 @@ export class BasePlugin {
           return;
         }
 
-        (this.#pluginSettings as Record<string, unknown>)[key] = (newSettings as Record<string, unknown>)[key];
+        currentSettings[key] = newSettings[key];
       });
 
       return this.#pluginSettings;
