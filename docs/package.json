@@ -73,7 +73,8 @@
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "typescript": "^5.4.0",
-    "vite": "^7.3.2"
+    "vite": "^7.3.2",
+    "@handsontable/angular-wrapper": "~17.1.0"
   },
   "browserslist": [
     "last 2 Chrome versions",
