@@ -1088,16 +1088,21 @@ jobs:
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           TODAY=$(date +%Y-%m-%d)
+          STABLE_PATTERN="^## \[${VERSION}\] - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$"
           PATTERN="^## \[${VERSION}-rc[0-9]\+\] - [0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}$"
 
-          MATCHES=$(grep -c "$PATTERN" CHANGELOG.md || true)
-          if [ "$MATCHES" -ne 1 ]; then
-            echo "::error::Expected exactly 1 matching line in CHANGELOG.md for version ${VERSION}-rcX, found ${MATCHES}"
-            exit 1
-          fi
+          if grep -q "$STABLE_PATTERN" CHANGELOG.md; then
+            echo "::notice::CHANGELOG.md already updated for ${VERSION} — skipping."
+          else
+            MATCHES=$(grep -c "$PATTERN" CHANGELOG.md || true)
+            if [ "$MATCHES" -ne 1 ]; then
+              echo "::error::Expected exactly 1 matching line in CHANGELOG.md for version ${VERSION}-rcX, found ${MATCHES}"
+              exit 1
+            fi
 
-          sed -i "s/${PATTERN}/## [${VERSION}] - ${TODAY}/" CHANGELOG.md
-          echo "Updated CHANGELOG.md: ## [${VERSION}] - ${TODAY}"
+            sed -i "s/${PATTERN}/## [${VERSION}] - ${TODAY}/" CHANGELOG.md
+            echo "Updated CHANGELOG.md: ## [${VERSION}] - ${TODAY}"
+          fi
 
       - name: Update docs changelog
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.version }}'
