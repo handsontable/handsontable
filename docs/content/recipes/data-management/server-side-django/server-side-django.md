@@ -471,6 +471,17 @@ const hot = new Handsontable(container, {
 });
 ```
 
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2
+
+@[code collapse={5-151}](@/content/recipes/data-management/server-side-django/javascript/example1.js)
+@[code collapse={5-179}](@/content/recipes/data-management/server-side-django/javascript/example1.ts)
+
+:::
+
+:::
+
 ::: only-for react
 
 ::: example #example1 :react-advanced --js 1 --ts 2
