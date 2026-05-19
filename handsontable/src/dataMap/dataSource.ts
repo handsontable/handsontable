@@ -239,10 +239,17 @@ class DataSource {
 
     if (!Number.isInteger(column)) {
       // column argument is the prop name
-      if (!isObject(dataRow) && !Array.isArray(dataRow)) {
-        return;
+      if (Array.isArray(dataRow)) {
+        // String numeric column with array data — convert to number and write directly, same as
+        // the integer path below. setProperty rejects arrays, so this must be handled here.
+        const numericIndex = Number(column);
+
+        if (!Number.isNaN(numericIndex) && Number.isInteger(numericIndex)) {
+          dataRow[numericIndex] = value;
+        }
+      } else if (isObject(dataRow)) {
+        setProperty(dataRow as Record<string, unknown>, String(column), value);
       }
-      setProperty(dataRow as Record<string, unknown>, String(column), value);
     } else {
       if (!Array.isArray(dataRow)) {
         return;
