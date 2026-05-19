@@ -11,6 +11,12 @@ tags:
   - server-side
   - data-provider
   - recipe
+react:
+  id: v76z3enw
+  metaTitle: Server-side data with Ruby on Rails - React Data Grid | Handsontable
+angular:
+  id: dg0cfnxy
+  metaTitle: Server-side data with Ruby on Rails - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to
