@@ -698,7 +698,7 @@ describe('NestedHeaders', () => {
         height: 300,
       });
 
-      const rowMapperHooks = columnIndexMapper().__localHooks.cacheUpdated.length;
+      const rowMapperHooks = rowIndexMapper().__localHooks.cacheUpdated.length;
       const columnMapperHooks = columnIndexMapper().__localHooks.cacheUpdated.length;
 
       await updateSettings({

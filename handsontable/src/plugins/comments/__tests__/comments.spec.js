@@ -720,6 +720,34 @@ describe('Comments', () => {
 
       expect(editor.parentNode.style.display).toEqual('none');
     });
+
+    it('should show the comment editor for a column outside the first row\'s keys when using sparse object data (#9513)', async() => {
+      handsontable({
+        data: [
+          { C0: 'A0', C1: 'B0' },
+          { C0: 'A1', C1: 'B1', C2: 'C1', C3: 'D1', C4: 'E1', C5: 'F1' },
+        ],
+        dataSchema: { C0: null, C1: null, C2: null, C3: null, C4: null, C5: null },
+        columns: [
+          { data: 'C0' },
+          { data: 'C1' },
+          { data: 'C2' },
+          { data: 'C3' },
+          { data: 'C4' },
+          { data: 'C5' },
+        ],
+        comments: true,
+        cell: [
+          { row: 0, col: 3, comment: { value: 'Comment at C3' } },
+        ],
+      });
+
+      const plugin = getPlugin('comments');
+      const editor = plugin.getEditorInputElement();
+
+      expect(plugin.showAtCell(0, 3)).toBe(true);
+      expect(editor.parentNode.style.display).toEqual('block');
+    });
   });
 
   it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', async() => {
