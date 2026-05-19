@@ -303,6 +303,7 @@ export class Filters extends BasePlugin {
     this.addHook('afterDropdownMenuShow', () => this.#onAfterDropdownMenuShow());
     this.addHook('afterDropdownMenuHide', () => this.#onAfterDropdownMenuHide());
     this.addHook('afterChange', changes => this.#onAfterChange(changes));
+    this.addHook('afterUpdateData', (data, firstRun) => this.#onAfterUpdateData(firstRun));
     this.addHook('afterDataProviderFetch', result => this.#onAfterDataProviderFetch(result));
     this.addHook('afterDataProviderFetchError', () => this.#onAfterDataProviderFetchError());
 
@@ -1095,6 +1096,31 @@ export class Filters extends BasePlugin {
     });
 
     this.updateDependentComponentsVisibility();
+  }
+
+  /**
+   * `afterUpdateData` listener. `updateData` replaces the source data but keeps
+   * conditions intact. The `filter_by_value` snapshots were computed against the
+   * previous dataset, so they need to be rebuilt so newly introduced values appear
+   * in the dropdown. When `dataProvider` drives the grid, snapshot refresh is owned
+   * by the fetch flow (`afterDataProviderFetch` -> `importConditions`).
+   *
+   * @param {boolean} firstRun `true` for the initial data load.
+   */
+  #onAfterUpdateData(firstRun) {
+    if (firstRun || this.#isDataProviderActive || !this.conditionCollection) {
+      return;
+    }
+
+    const filteredColumns = this.conditionCollection.getFilteredColumns();
+
+    if (filteredColumns.length === 0) {
+      return;
+    }
+
+    arrayEach(filteredColumns, (physicalColumn) => {
+      this.conditionUpdateObserver.updateStatesAtColumn(physicalColumn);
+    });
   }
 
   /**
