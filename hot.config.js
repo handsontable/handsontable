@@ -2,8 +2,8 @@ const moment = require('moment');
 
 module.exports = {
   HOT_FILENAME: 'handsontable',
-  HOT_VERSION: '17.1.0-rc12',
+  HOT_VERSION: '17.1.0-rc13',
   HOT_PACKAGE_NAME: 'handsontable',
   HOT_BUILD_DATE: moment().format('DD/MM/YYYY HH:mm:ss'),
-  HOT_RELEASE_DATE: '14/05/2026',
+  HOT_RELEASE_DATE: '19/05/2026',
 };

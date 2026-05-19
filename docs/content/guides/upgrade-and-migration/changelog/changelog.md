@@ -27,9 +27,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 17.1.0-rc12
+## 17.1.0-rc13
 
-Released on May 14th, 2026
+Released on May 19th, 2026
 
 For more information about this release, see:
 - [Documentation (17.1)](https://handsontable.com/docs/17.1)
@@ -105,6 +105,7 @@ For more information about this release, see:
 - Fixed a memory leak caused by ThemeManager not unsubscribing from the shared theme object on destroy. [#12570](https://github.com/handsontable/handsontable/issues/12570)
 - Fixed viewport scroll jump when Ctrl+clicking a selected cell to deselect it. [#12574](https://github.com/handsontable/handsontable/issues/12574)
 - Fixed a memory leak where IntersectionObserver instances were not properly disconnected when `document.body` had zero height. [#12578](https://github.com/handsontable/handsontable/issues/12578)
+- Fixed the browser page scrolling to the grid when `dataProvider` loads rows for the first time into an empty grid with `emptyDataState` enabled. [#12591](https://github.com/handsontable/handsontable/issues/12591)
 
 #### Security
 - Patched critical and high dependency vulnerabilities across the monorepo and aligned Angular wrapper tooling for compatibility. [#12237](https://github.com/handsontable/handsontable/issues/12237)
