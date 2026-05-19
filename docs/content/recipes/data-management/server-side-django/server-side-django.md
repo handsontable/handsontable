@@ -473,7 +473,12 @@ const hot = new Handsontable(container, {
 
 ::: only-for react
 
-@[code](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+::: example #example1 :react-advanced --js 1 --ts 2
+
+@[code collapse={7-154}](@/content/recipes/data-management/server-side-django/react/example1.jsx)
+@[code collapse={7-154}](@/content/recipes/data-management/server-side-django/react/example1.tsx)
+
+:::
 
 :::
 
