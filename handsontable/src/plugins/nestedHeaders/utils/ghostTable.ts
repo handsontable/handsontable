@@ -321,7 +321,8 @@ class GhostTable {
    * @returns {string} HTML string for the header label.
    */
   #buildHeaderLabelHTML(
-    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+    headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
+    sanitizer: Function | undefined
   ) {
     const label = typeof sanitizer === 'function'
       ? sanitizer(headerSettings.label, 'innerHTML')

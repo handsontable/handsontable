@@ -187,7 +187,8 @@ function collectAffectedMergedCells(hot: HotInstance, visualRow: number, amount:
  * @param {Core} hot The Handsontable instance.
  * @param {Array} mergedCells Array of `{ row, col, rowspan, colspan }` objects.
  */
-function restoreMergedCells(hot: HotInstance, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>
+function restoreMergedCells(
+  hot: HotInstance, mergedCells: Array<{ row: number; col: number; rowspan: number; colspan: number }>
 ) {
   if (!mergedCells || mergedCells.length === 0) {
     return;

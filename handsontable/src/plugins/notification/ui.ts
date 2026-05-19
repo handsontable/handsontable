@@ -122,7 +122,8 @@ export class NotificationUI {
    * @param {boolean} animation Whether enter animation is enabled.
    * @returns {{ element: HTMLElement }}
    */
-  createToastElement(options: NotificationNormalizedOptions, closeLabel: string, animation: boolean): { element: HTMLElement } {
+  createToastElement(options: NotificationNormalizedOptions, closeLabel: string, animation: boolean):
+      { element: HTMLElement } {
     const doc = this.#rootElement.ownerDocument;
     const element = doc.createElement('div');
     const isError = options.variant === 'error';
