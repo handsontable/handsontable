@@ -48,16 +48,16 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
+      - name: Install monorepo dependencies and build packages
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile
+          npm run all build -- --e examples visual-tests
+
       - name: Update module size measurements
         working-directory: .
         run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          npm run build --prefix handsontable
           npm run measure:module-sizes --prefix handsontable
-
-      - name: Install workspace dependencies (lifecycle scripts for docs)
-        working-directory: .
-        run: pnpm install --frozen-lockfile
 
       - name: Docker build
         run: |
