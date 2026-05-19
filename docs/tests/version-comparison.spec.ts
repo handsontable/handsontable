@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const PAGE_PATH = '/javascript-data-grid/version-comparison/';
+const PAGE_PATH = '/javascript-data-grid/changes-between-versions/';
 
 test.describe('Version comparison page', () => {
   test('renders the React widget with default From and To selected', async ({ page }) => {
@@ -42,5 +42,27 @@ test.describe('Version comparison page', () => {
 
     const breakingTab = page.getByRole('tab', { name: 'Breaking' });
     await expect(breakingTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  test('renders inline markdown in entry titles and flattens links', async ({ page }) => {
+    await page.goto(`${PAGE_PATH}?from=16.2&to=17.0&category=deprecated`);
+
+    const list = page.locator('.vc-entry-list').first();
+    await expect(list).toBeVisible();
+
+    // Bold markdown becomes a <strong> element.
+    await expect(list.locator('.vc-entry-title strong').first()).toBeVisible();
+
+    // Inline code becomes a <code> element.
+    await expect(list.locator('.vc-entry-title code').first()).toBeVisible();
+
+    // No raw markdown syntax leaks through.
+    const listText = (await list.textContent()) ?? '';
+    expect(listText).not.toContain('**');
+    expect(listText).not.toContain('[Migration guide]');
+
+    // Inner markdown links are flattened: only the row-level anchor (one per entry) remains.
+    const firstEntry = list.locator('.vc-entry').first();
+    await expect(firstEntry.locator('a')).toHaveCount(1);
   });
 });

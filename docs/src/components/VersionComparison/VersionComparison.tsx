@@ -1,6 +1,8 @@
 import './VersionComparison.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { ChangeCategory, FilterKind, ReleaseSummary, VersionComparisonData, VersionEntry } from './types';
 
 function readData(): VersionComparisonData {
@@ -210,8 +212,24 @@ function FeaturedEntry({ entry }: { entry: VersionEntry }) {
           <span className="vc-featured-card-pr">#{entry.prNumber}</span>
         )}
       </header>
-      <p className="vc-featured-card-title">{entry.tagline ?? entry.title}</p>
-      {entry.whyItMatters && <p className="vc-featured-card-why">{entry.whyItMatters}</p>}
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        disallowedElements={['a']}
+        unwrapDisallowed
+        components={{ p: ({ children }) => <p className="vc-featured-card-title">{children}</p> }}
+      >
+        {entry.tagline ?? entry.title}
+      </ReactMarkdown>
+      {entry.whyItMatters && (
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          disallowedElements={['a']}
+          unwrapDisallowed
+          components={{ p: ({ children }) => <p className="vc-featured-card-why">{children}</p> }}
+        >
+          {entry.whyItMatters}
+        </ReactMarkdown>
+      )}
     </>
   );
   if (href === null) {
@@ -229,7 +247,14 @@ function CompactEntry({ entry }: { entry: VersionEntry }) {
   const content = (
     <>
       <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>
-      <span className="vc-entry-title">{entry.title}</span>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        disallowedElements={['a']}
+        unwrapDisallowed
+        components={{ p: ({ children }) => <span className="vc-entry-title">{children}</span> }}
+      >
+        {entry.title}
+      </ReactMarkdown>
       {entry.prNumber !== null && <span className="vc-entry-pr">#{entry.prNumber}</span>}
     </>
   );
