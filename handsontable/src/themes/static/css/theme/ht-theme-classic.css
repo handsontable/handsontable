@@ -125,8 +125,8 @@
   --ht-header-row-highlighted-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-800));
   --ht-header-row-active-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));
   --ht-header-row-active-background-color: light-dark(var(--ht-colors-primary-400), var(--ht-colors-primary-300));
-  --ht-row-header-odd-background-color: var(--ht-background-secondary-color);
-  --ht-row-header-even-background-color: var(--ht-background-secondary-color);
+  --ht-row-header-odd-background-color: var(--ht-header-row-background-color);
+  --ht-row-header-even-background-color: var(--ht-header-row-background-color);
   --ht-row-cell-odd-background-color: var(--ht-background-color);
   --ht-row-cell-even-background-color: var(--ht-background-color);
   --ht-button-border-radius: var(--ht-sizing-size-0-5);
@@ -162,6 +162,7 @@
   --ht-icon-button-border-color: light-dark(var(--ht-colors-palette-300), var(--ht-colors-palette-600));
   --ht-icon-button-background-color: var(--ht-background-secondary-color);
   --ht-icon-button-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
+  --ht-icon-button-hit-area-size: var(--ht-sizing-size-6);
   --ht-icon-button-hover-border-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
   --ht-icon-button-hover-background-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
   --ht-icon-button-hover-icon-color: light-dark(var(--ht-colors-palette-400), var(--ht-colors-palette-500));
@@ -297,6 +298,18 @@
   --ht-pagination-bar-background-color: var(--ht-bar-background-color);
   --ht-pagination-bar-horizontal-padding: var(--ht-bar-horizontal-padding);
   --ht-pagination-bar-vertical-padding: var(--ht-bar-vertical-padding);
+  --ht-pagination-button-border-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-foreground-color: var(--ht-foreground-secondary-color);
+  --ht-pagination-button-background-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-hover-border-color: light-dark(var(--ht-colors-palette-50), var(--ht-colors-palette-900));
+  --ht-pagination-button-hover-foreground-color: var(--ht-foreground-color);
+  --ht-pagination-button-hover-background-color: light-dark(var(--ht-colors-palette-100), var(--ht-colors-palette-800));
+  --ht-pagination-button-disabled-border-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-disabled-foreground-color: var(--ht-disabled-color);
+  --ht-pagination-button-disabled-background-color: var(--ht-pagination-bar-background-color);
+  --ht-pagination-button-focus-border-color: var(--ht-accent-color);
+  --ht-pagination-button-focus-foreground-color: var(--ht-foreground-color);
+  --ht-pagination-button-focus-background-color: var(--ht-pagination-bar-background-color);
   --ht-dialog-semi-transparent-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
   --ht-dialog-semi-transparent-background-opacity: 80%;
   --ht-dialog-solid-background-color: light-dark(var(--ht-colors-white), var(--ht-colors-palette-950));
@@ -304,6 +317,12 @@
   --ht-dialog-content-padding-vertical: var(--ht-density-dialog-vertical);
   --ht-dialog-content-border-radius: var(--ht-sizing-size-2);
   --ht-dialog-content-background-color: var(--ht-background-secondary-color);
+  --ht-notification-foreground-color: var(--ht-foreground-color);
+  --ht-notification-background-color: var(--ht-background-color);
+  --ht-notification-border-color: var(--ht-border-color);
+  --ht-notification-success-accent: #37bc6cff;
+  --ht-notification-warning-accent: #fbe952ff;
+  --ht-notification-error-accent: #fa4d32ff;
   --ht-chip-background: var(--ht-background-secondary-color);
   --ht-chip-border-radius: var(--ht-sizing-size-0-5);
   --ht-chip-vertical-padding: var(--ht-sizing-size-0);
@@ -341,7 +360,7 @@
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.93933 10.9393L6.64644 7.64644L9.93933 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
 
@@ -406,7 +425,7 @@
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.93933 10.9393L6.64644 7.64644L9.93933 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
 
@@ -430,7 +449,7 @@
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.93933 10.9393L6.64644 7.64644L9.93933 4.35354' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   background-color: currentColor;
 }
 
@@ -531,6 +550,14 @@
 }
 
 [class*=ht-theme-classic] .ht-multi-select-chip-remove::before {
+  width: var(--ht-icon-size);
+  height: var(--ht-icon-size);
+  -webkit-mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 4L4 12M4 4L12 12' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  background-color: currentColor;
+}
+
+[class*=ht-theme-classic] .ht-notification__close::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;

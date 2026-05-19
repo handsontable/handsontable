@@ -29,11 +29,42 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const selectOption = document.querySelector('#selectOption')!;
+const dropdown = document.querySelector('#selectionDropdown')!;
+const trigger = document.querySelector('#selectionTrigger')! as HTMLButtonElement;
+const menu = document.querySelector('#selectionMenu')! as HTMLUListElement;
+const label = document.querySelector('#selectionLabel')!;
 
-selectOption.addEventListener('change', (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value;
-  const first = value.split(' ')[0]!.toLowerCase();
+trigger.addEventListener('click', () => {
+  const isOpen = !menu.hidden;
 
-  hot.updateSettings({ selectionMode: first } as Handsontable.GridSettings);
+  menu.hidden = isOpen;
+  trigger.setAttribute('aria-expanded', String(!isOpen));
+});
+
+menu.addEventListener('click', (e: MouseEvent) => {
+  const item = (e.target as HTMLElement).closest('li[data-value]') as HTMLLIElement | null;
+
+  if (item) {
+    label.textContent = item.textContent!.trim();
+    menu.querySelectorAll('li').forEach((li) => li.setAttribute('aria-selected', 'false'));
+    item.setAttribute('aria-selected', 'true');
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    hot.updateSettings({ selectionMode: item.dataset.value } as Handsontable.GridSettings);
+  }
+});
+
+document.addEventListener('click', (e: MouseEvent) => {
+  if (!dropdown.contains(e.target as Node)) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+});
+
+document.addEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && !menu.hidden) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus();
+  }
 });

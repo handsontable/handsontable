@@ -54,8 +54,8 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
                            'Autofill.fill' | 'ContextMenu.clearColumn' | 'ContextMenu.columnLeft' |
                            'ContextMenu.columnRight' | 'ContextMenu.removeColumn' |
                            'ContextMenu.removeRow' | 'ContextMenu.rowAbove' | 'ContextMenu.rowBelow' |
-                           'CopyPaste.paste' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
-                           'ColumnSummary.reset';
+                           'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
+                           'ColumnSummary.reset' | 'DataProvider.revert';
 
 export interface LabelOptions {
   property?: string;

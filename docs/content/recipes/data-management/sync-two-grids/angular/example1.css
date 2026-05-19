@@ -1,0 +1,25 @@
+.sync-grids-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sync-grids-card {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 4px;
+  padding: 8px;
+  background: var(--sl-color-gray-7);
+}
+
+.sync-grids-card h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sl-color-text);
+}
+
+@media (max-width: 960px) {
+  .sync-grids-layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: xndxqkoc
 title: Column summary
 metaTitle: Column summary - JavaScript Data Grid | Handsontable
@@ -22,9 +23,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column summary
-
 Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
 
 [[toc]]
@@ -909,7 +907,18 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ## Related API reference
 
-- Configuration options:
-  - [`columnSummary`](@/api/options.md#columnsummary)
-- Plugins:
-  - [`ColumnSummary`](@/api/columnSummary.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [columnSummary](@/api/options.md#columnsummary)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ColumnSummary](@/api/columnSummary.md)
+
+</div>

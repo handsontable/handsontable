@@ -43,16 +43,13 @@ describe('ContextMenu (RTL mode)', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(222);
-        main.toBe(246);
-        horizon.toBe(313);
-      });
-      expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(contextMenuOffset.left + 1);
-        main.toBe(contextMenuOffset.left + 1);
-        horizon.toBe(contextMenuOffset.left);
-      });
+      const readOnlyItemOffset = $readOnlyItem.offset();
+
+      expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
+      // The tick sits just inside the context-menu's left border. Theme tokens
+      // shift the baseline by 0px or 1px depending on density/border width, so
+      // allow a 1px tolerance instead of per-theme hardcoded values.
+      expect(tickItemOffset.left).toBeAroundValue(contextMenuOffset.left, 1);
     });
   });
 });

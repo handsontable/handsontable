@@ -63,7 +63,49 @@ export function generateMatrix(headerRoots) {
     });
   });
 
+  applyRowspanToMatrix(matrix);
+
   return matrix;
+}
+
+/**
+ * Post-processes the generated matrix to apply rowspan. For each root cell that has
+ * `origRowspan > 1`, the cells in the rows below it (within the rowspan range and
+ * origColspan width) are marked as rowspan placeholders.
+ *
+ * @param {Array[]} matrix The generated header matrix to modify in-place.
+ */
+function applyRowspanToMatrix(matrix) {
+  for (let level = 0; level < matrix.length; level++) {
+    const row = matrix[level];
+
+    for (let col = 0; col < row.length; col++) {
+      const settings = row[col];
+
+      if (!settings || !settings.isRoot || !settings.origRowspan || settings.origRowspan <= 1) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const effectiveRowspan = Math.min(settings.origRowspan, matrix.length - level);
+      const colspanWidth = settings.origColspan || 1;
+
+      for (let r = 1; r < effectiveRowspan; r++) {
+        const targetLevel = level + r;
+
+        if (!matrix[targetLevel]) {
+          continue; // eslint-disable-line no-continue
+        }
+
+        for (let c = col; c < col + colspanWidth && c < matrix[targetLevel].length; c++) {
+          matrix[targetLevel][c] = {
+            label: '',
+            isPlaceholder: true,
+            isRowspanPlaceholder: true,
+          };
+        }
+      }
+    }
+  }
 }
 
 /**

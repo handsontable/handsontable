@@ -15,29 +15,23 @@ concurrency:
 
 jobs:
   lint:
-    name: JS & CSS & VUE
+    name: JS & CSS & Astro
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-          cache-dependency-path: docs/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install Documentation dependencies
-        run: |
-          cd docs/ && npm ci --no-audit
-
-      - name: Install Handsontable dependencies
-        run: |
-          pnpm install
+      - name: Install dependencies
+        run: CI=true pnpm install --frozen-lockfile
 
       - name: Lint
-        run: |
-          cd docs/ && npm run docs:lint
+        run: npm run docs:lint --prefix docs

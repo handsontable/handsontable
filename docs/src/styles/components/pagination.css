@@ -1,0 +1,25 @@
+/* -------------------------------------------------------------------------
+ * Prev/Next pagination — spreadsheet-style (matches .ht-card-grid)
+ * ------------------------------------------------------------------------- */
+.pagination-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-left: 1px solid var(--sl-color-gray-5);
+  padding-top: 0 !important;
+}
+
+.pagination-links a {
+  border: 0 !important;
+  border-right: 1px solid var(--sl-color-gray-5) !important;
+  border-bottom: 1px solid var(--sl-color-gray-5) !important;
+  border-radius: 0 !important;
+  padding: 1rem 1.25rem;
+  box-shadow: none !important;
+  transition: background-color 0.15s;
+}
+
+.pagination-links a:hover {
+  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+}

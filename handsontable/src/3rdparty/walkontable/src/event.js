@@ -9,6 +9,9 @@ import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
 
+const LONG_PRESS_DELAY = 500;
+const LONG_PRESS_MOVE_THRESHOLD = 10;
+
 /**
  * @class Event
  */
@@ -47,6 +50,18 @@ class Event {
    * @type {number[]}
    */
   #dblClickOrigin = [null, null];
+  /**
+   * Timer ID for the long-press gesture detection.
+   *
+   * @type {number|null}
+   */
+  #longPressTimeout = null;
+  /**
+   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press).
+   *
+   * @type {{ x: number, y: number }|null}
+   */
+  #touchStartCoords = null;
 
   /**
    * @param {FacadeGetter} facadeGetter Gets an instance facade.
@@ -82,11 +97,13 @@ class Event {
     const initTouchEvents = () => {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart', event => this.onTouchStart(event));
       this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend', event => this.onTouchEnd(event));
+      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove', event => this.#onTouchMove(event));
 
       if (!this.momentumScrolling) {
         this.momentumScrolling = {};
       }
       this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => {
+        this.#cancelLongPressTimer();
         clearTimeout(this.momentumScrolling._timeout);
 
         if (!this.momentumScrolling.ongoing) {
@@ -223,6 +240,8 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event) {
+    this.#cancelLongPressTimer();
+
     if (this.#wtSettings.has('onCellContextMenu')) {
       const cell = this.parentCell(event.target);
 
@@ -322,22 +341,25 @@ class Event {
    * OnTouchStart callback. Simulates mousedown event.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param {TouchEvent} event The touch event object.
    */
   onTouchStart(event) {
     this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection().cellRange;
     this.touchApplied = true;
 
     this.onMouseDown(event);
+    this.#startLongPressTimer(event);
   }
 
   /**
    * OnTouchEnd callback. Simulates mouseup event.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param {TouchEvent} event The touch event object.
    */
   onTouchEnd(event) {
+    this.#cancelLongPressTimer();
+
     const target = event.target;
     const parentCellCoords = this.parentCell(target)?.coords;
     const isCellsRange = isDefined(parentCellCoords) && (parentCellCoords.row >= 0 && parentCellCoords.col >= 0);
@@ -374,6 +396,88 @@ class Event {
   }
 
   /**
+   * Starts the long-press timer. When the timer fires, a synthetic `contextmenu` event is
+   * dispatched on the original touch target so that the existing contextmenu hook chain
+   * (and ContextMenu plugin) work without changes.
+   *
+   * @private
+   * @param {TouchEvent} event The original `touchstart` event.
+   */
+  #startLongPressTimer(event) {
+    this.#cancelLongPressTimer();
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    this.#touchStartCoords = { x: touch.clientX, y: touch.clientY };
+
+    this.#longPressTimeout = setTimeout(() => {
+      this.#longPressTimeout = null;
+      this.#touchStartCoords = null;
+
+      this.#dblClickOrigin[0] = null;
+      this.#dblClickOrigin[1] = null;
+      clearTimeout(this.#dblClickTimeout[0]);
+      clearTimeout(this.#dblClickTimeout[1]);
+
+      const target = event.target;
+      const contextMenuEvent = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        screenX: touch.screenX,
+        screenY: touch.screenY,
+      });
+
+      target.dispatchEvent(contextMenuEvent);
+    }, LONG_PRESS_DELAY);
+  }
+
+  /**
+   * Cancels the pending long-press timer.
+   *
+   * @private
+   */
+  #cancelLongPressTimer() {
+    if (this.#longPressTimeout !== null) {
+      clearTimeout(this.#longPressTimeout);
+      this.#longPressTimeout = null;
+    }
+    this.#touchStartCoords = null;
+  }
+
+  /**
+   * OnTouchMove callback. Cancels the long-press timer if the finger moves beyond the threshold.
+   *
+   * @private
+   * @param {TouchEvent} event The touch event object.
+   */
+  #onTouchMove(event) {
+    if (this.#longPressTimeout === null || this.#touchStartCoords === null) {
+      return;
+    }
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      this.#cancelLongPressTimer();
+
+      return;
+    }
+
+    const dx = Math.abs(touch.clientX - this.#touchStartCoords.x);
+    const dy = Math.abs(touch.clientY - this.#touchStartCoords.y);
+
+    if (dx > LONG_PRESS_MOVE_THRESHOLD || dy > LONG_PRESS_MOVE_THRESHOLD) {
+      this.#cancelLongPressTimer();
+    }
+  }
+
+  /**
    * Call listener with backward compatibility.
    *
    * @private
@@ -396,6 +500,7 @@ class Event {
   destroy() {
     clearTimeout(this.#dblClickTimeout[0]);
     clearTimeout(this.#dblClickTimeout[1]);
+    this.#cancelLongPressTimer();
 
     this.#eventManager.destroy();
   }

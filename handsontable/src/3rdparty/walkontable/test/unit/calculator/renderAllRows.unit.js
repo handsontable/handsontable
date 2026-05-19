@@ -2,10 +2,27 @@ import {
   ViewportRowsCalculator,
   RenderedAllRowsCalculationType,
 } from '../../../src/calculator';
+import { PositionCache } from '../../../src/utils/positionCache';
 
 function createViewportRowsCalculator(options) {
+  const {
+    totalRows = 0,
+    rowHeightFn = () => NaN,
+    ...rest
+  } = options;
+
+  const cache = new PositionCache({
+    totalItemsFn: () => totalRows,
+    sizeFn: rowHeightFn,
+    defaultSizeFn: () => 0,
+  });
+
+  cache.build();
+
   return new ViewportRowsCalculator({
-    ...options,
+    ...rest,
+    totalRows,
+    rowHeightCache: cache,
     calculationTypes: [
       ['rendered', new RenderedAllRowsCalculationType()],
     ],

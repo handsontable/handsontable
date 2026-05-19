@@ -16,6 +16,7 @@ export class BasePlugin {
   initialized: boolean;
 
   init(): void;
+  isHardConflictBlocked(): boolean;
   enablePlugin(): void;
   disablePlugin(): void;
   updatePlugin(): void;

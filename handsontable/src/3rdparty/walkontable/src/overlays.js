@@ -3,9 +3,9 @@ import {
   getScrollbarWidth,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
+import { debounce } from '../../../helpers/function';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
-import { isChrome } from '../../../helpers/browser';
 import { warn } from '../../../helpers/console';
 import {
   InlineStartOverlay,
@@ -14,6 +14,7 @@ import {
   BottomOverlay,
   BottomInlineStartCornerOverlay,
 } from './overlay';
+import { StickyScrollStrategy } from './stickyScrollStrategy';
 
 /**
  * @class Overlays
@@ -98,6 +99,24 @@ class Overlays {
   #hasRenderingStateChanged = false;
 
   /**
+   * Cached vertical scroll position used to deduplicate `onScrollVertically` callbacks.
+   * Tracks the value returned by `topOverlay.getScrollPosition()` at the time the callback
+   * was last fired so that a second call with an unchanged position is suppressed.
+   *
+   * @type {number | null}
+   */
+  #lastVerticalScrollPositionForCallback = null;
+
+  /**
+   * Cached horizontal scroll position used to deduplicate `onScrollHorizontally` callbacks.
+   * Tracks the value returned by `inlineStartOverlay.getScrollPosition()` at the time the
+   * callback was last fired so that a second call with an unchanged position is suppressed.
+   *
+   * @type {number | null}
+   */
+  #lastHorizontalScrollPositionForCallback = null;
+
+  /**
    * The amount of times the ResizeObserver callback was fired in direct succession.
    *
    * @type {number}
@@ -110,6 +129,23 @@ class Overlays {
    * @type {number}
    */
   #containerDomResizeCountTimeout = null;
+
+  /**
+   * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
+   * `refresh` calls do not repeat layout work every frame.
+   *
+   * @type {Function}
+   */
+  #postponedAdjustElementsSize = debounce(this.#adjustElementsSizeIfNeeded.bind(this), 200);
+
+  /**
+   * Strategy that manages the sticky-scroll optimization during native
+   * scrollbar drag. Extracted as a separate class to isolate the sticky
+   * positioning lifecycle from the overlay coordinator.
+   *
+   * @type {StickyScrollStrategy}
+   */
+  #stickyScroll = new StickyScrollStrategy(this);
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -179,6 +215,7 @@ class Overlays {
     this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
     this.initOverlays();
+    this.#cacheScrollCallbackPositions();
 
     this.destroyed = false;
     this.keyPressed = false;
@@ -303,11 +340,11 @@ class Overlays {
     }
     this.wot.draw(true);
 
-    if (this.verticalScrolling) {
+    if (this.verticalScrolling && this.#didVerticalScrollPositionChange()) {
       this.inlineStartOverlay.onScroll(); // todo the inlineStartOverlay.onScroll() fires hook. Why is it needed there, not in any another place?
     }
 
-    if (this.horizontalScrolling) {
+    if (this.horizontalScrolling && this.#didHorizontalScrollPositionChange()) {
       this.topOverlay.onScroll();
     }
 
@@ -326,6 +363,8 @@ class Overlays {
     this.eventManager.addEventListener(rootDocument.documentElement, 'keydown', event => this.onKeyDown(event));
     this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
     this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
+
+    this.#stickyScroll.registerListeners();
     this.eventManager.addEventListener(
       topOverlayScrollableElement,
       'scroll',
@@ -342,19 +381,16 @@ class Overlays {
       );
     }
 
-    const isHighPixelRatio = rootWindow.devicePixelRatio && rootWindow.devicePixelRatio > 1;
     const isScrollOnWindow = this.scrollableElement === rootWindow;
     const preventWheel = this.wtSettings.getSetting('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
-    if (preventWheel || isHighPixelRatio || !isChrome()) {
-      this.eventManager.addEventListener(
-        this.wtTable.wtRootElement,
-        'wheel',
-        event => this.onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    }
+    this.eventManager.addEventListener(
+      this.wtTable.wtRootElement,
+      'wheel',
+      event => this.onCloneWheel(event, preventWheel),
+      wheelEventOptions
+    );
 
     const overlays = [
       this.topOverlay,
@@ -562,6 +598,8 @@ class Overlays {
     this.lastScrollX = scrollX;
     this.lastScrollY = scrollY;
 
+    this.#stickyScroll.tryActivate(this.verticalScrolling, this.horizontalScrolling);
+
     if (this.horizontalScrolling) {
       topHolder.scrollLeft = scrollX;
 
@@ -577,6 +615,7 @@ class Overlays {
     }
 
     this.refreshAll();
+    this.#stickyScroll.syncOffsets();
   }
 
   /**
@@ -601,6 +640,50 @@ class Overlays {
     }
 
     this.#hasRenderingStateChanged = false;
+  }
+
+  /**
+   * Caches the initial vertical and horizontal scroll positions for callback deduplication.
+   */
+  #cacheScrollCallbackPositions() {
+    this.#lastVerticalScrollPositionForCallback = this.topOverlay.getScrollPosition();
+    this.#lastHorizontalScrollPositionForCallback = this.inlineStartOverlay.getScrollPosition();
+  }
+
+  /**
+   * Checks whether the vertical scroll position has changed since the last `onScrollVertically`
+   * callback and updates the cache. Returns `true` when the callback should fire.
+   *
+   * @returns {boolean}
+   */
+  #didVerticalScrollPositionChange() {
+    const current = this.topOverlay.getScrollPosition();
+
+    if (this.#lastVerticalScrollPositionForCallback === current) {
+      return false;
+    }
+
+    this.#lastVerticalScrollPositionForCallback = current;
+
+    return true;
+  }
+
+  /**
+   * Checks whether the horizontal scroll position has changed since the last `onScrollHorizontally`
+   * callback and updates the cache. Returns `true` when the callback should fire.
+   *
+   * @returns {boolean}
+   */
+  #didHorizontalScrollPositionChange() {
+    const current = this.inlineStartOverlay.getScrollPosition();
+
+    if (this.#lastHorizontalScrollPositionForCallback === current) {
+      return false;
+    }
+
+    this.#lastHorizontalScrollPositionForCallback = current;
+
+    return true;
   }
 
   /**
@@ -634,7 +717,15 @@ class Overlays {
    *
    */
   destroy() {
+    this.#postponedAdjustElementsSize.cancel();
+
+    if (this.#containerDomResizeCountTimeout !== null) {
+      clearTimeout(this.#containerDomResizeCountTimeout);
+      this.#containerDomResizeCountTimeout = null;
+    }
+
     this.resizeObserver.disconnect();
+    this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
     this.topOverlay.destroy();
@@ -661,10 +752,12 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
 
-    if (wasSpreaderSizeUpdated) {
-      this.adjustElementsSize();
+    if (isScrollTriggered) {
+      this.#postponedAdjustElementsSize();
+    } else {
+      this.#adjustElementsSizeIfNeeded();
     }
 
     if (this.bottomOverlay.clone) {
@@ -784,6 +877,7 @@ class Overlays {
     }
 
     this.inlineStartOverlay.applyToDOM();
+    this.#stickyScroll.syncOffsets();
   }
 
   /**
@@ -840,6 +934,21 @@ class Overlays {
 
       elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
     });
+  }
+
+  /**
+   * Adjust the elements size if needed.
+   */
+  #adjustElementsSizeIfNeeded() {
+    if (this.destroyed) {
+      return;
+    }
+
+    const wasSpreaderSizeUpdated = this.updateLastSpreaderSize();
+
+    if (wasSpreaderSizeUpdated) {
+      this.adjustElementsSize();
+    }
   }
 }
 

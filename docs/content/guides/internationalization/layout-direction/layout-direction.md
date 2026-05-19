@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: gcdt3pns
 title: Layout direction
 metaTitle: Layout direction - JavaScript Data Grid | Handsontable
@@ -25,9 +26,6 @@ angular:
 searchCategory: Guides
 category: Internationalization
 ---
-
-# Layout direction
-
 Set the layout direction for right-to-left languages. Automatically inherit your HTML file's `dir` property, or set the layout direction manually.
 
 [[toc]]
@@ -284,9 +282,9 @@ You can apply the horizontal text alignment settings to:
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Language](@/guides/internationalization/language/language.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
@@ -294,17 +292,40 @@ You can apply the horizontal text alignment settings to:
 
 </div>
 
-### Related API reference
+**Related blog articles**
 
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+<div class="boxes-list gray">
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [language](@/api/options.md#language)
+- [layoutDirection](@/api/options.md#layoutdirection)
+- [locale](@/api/options.md#locale)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getDirectionFactor()](@/api/core.md#getdirectionfactor)
+- [getTranslatedPhrase()](@/api/core.md#gettranslatedphrase)
+- [isLtr()](@/api/core.md#isltr)
+- [isRtl()](@/api/core.md#isrtl)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterLanguageChange](@/api/hooks.md#afterlanguagechange)
+- [beforeLanguageChange](@/api/hooks.md#beforelanguagechange)
+
+</div>

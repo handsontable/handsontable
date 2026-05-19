@@ -1,4 +1,5 @@
 ---
+type: tutorial
 id: kbk0pm8t
 title: Integration with Redux
 metaTitle: Integration with Redux - JavaScript Data Grid | Handsontable
@@ -18,10 +19,7 @@ searchCategory: Guides
 onlyFor: react
 category: Getting started
 ---
-
-# Integration with Redux
-
-Maintain the data and configuration options of your grid by using the Redux state container.
+In this tutorial, you will connect a Handsontable grid to a Redux store. You will learn to dispatch actions on cell changes and sync grid data with global state.
 
 [[toc]]
 
@@ -58,3 +56,14 @@ The editor component changes the behavior of the renderer component, by passing 
 @[code](@/content/guides/getting-started/react-redux/react/example6.tsx)
 
 :::
+
+## What you learned
+
+- You can connect a `HotTable` component to a Redux store using `react-redux`'s `connect()` method.
+- The `afterChange` hook dispatches Redux actions whenever the user edits a cell, keeping global state in sync.
+- Custom editor and renderer components can read from and write to the Redux store, enabling grid cells to reflect shared application state.
+
+## Next steps
+
+- [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md) -- understand how Handsontable binds to different data structures.
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md) -- learn additional patterns for persisting grid changes.

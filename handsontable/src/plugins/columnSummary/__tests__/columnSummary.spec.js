@@ -703,11 +703,13 @@ describe('ColumnSummarySpec', () => {
         .toEqual('[[0,2],[10,10],[3,6]]');
     });
 
-    it.forTheme('classic')('should shift the visual calculation result position when a row ' +
+    it('should shift the visual calculation result position when a row ' +
       'was moved outside the endpoint range', async() => {
+      const height = 252;
+
       handsontable({
         data: createNumericData(40, 40),
-        height: 200,
+        height,
         width: 200,
         manualRowMove: true,
         columnSummary: [
@@ -734,135 +736,15 @@ describe('ColumnSummarySpec', () => {
       expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
-    it.forTheme('main')('should shift the visual calculation result position when a row ' +
-      'was moved outside the endpoint range', async() => {
-      handsontable({
-        data: createNumericData(40, 40),
-        height: 252,
-        width: 200,
-        manualRowMove: true,
-        columnSummary: [
-          {
-            destinationColumn: 3,
-            destinationRow: 7,
-            ranges: [
-              [0, 6]
-            ],
-            type: 'sum'
-          }]
-      });
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
-
-      getPlugin('manualRowMove').moveRow(3, 10);
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
-    });
-
-    it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
-      'was moved outside the endpoint range', async() => {
-      handsontable({
-        data: createNumericData(40, 40),
-        height: 321,
-        width: 200,
-        manualRowMove: true,
-        columnSummary: [
-          {
-            destinationColumn: 3,
-            destinationRow: 7,
-            ranges: [
-              [0, 6]
-            ],
-            type: 'sum'
-          }]
-      });
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
-
-      getPlugin('manualRowMove').moveRow(3, 10);
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
-    });
-
-    it.forTheme('classic')('should shift the visual calculation result position when a row ' +
+    it('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
+      // Size the container so at least 9 data rows fit regardless of theme row height,
+      // otherwise the summary result row (row 8 after the move) renders outside the viewport.
+      const height = containerHeightForRows(9);
+
       handsontable({
         data: createNumericData(40, 40),
-        height: 200,
-        width: 200,
-        manualRowMove: true,
-        columnSummary: [
-          {
-            destinationColumn: 3,
-            destinationRow: 7,
-            ranges: [
-              [0, 6]
-            ],
-            type: 'sum'
-          }]
-      });
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
-
-      getPlugin('manualRowMove').moveRow(10, 3);
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
-    });
-
-    it.forTheme('main')('should shift the visual calculation result position when a row ' +
-      'was moved inside the endpoint range', async() => {
-      handsontable({
-        data: createNumericData(40, 40),
-        height: 252,
-        width: 200,
-        manualRowMove: true,
-        columnSummary: [
-          {
-            destinationColumn: 3,
-            destinationRow: 7,
-            ranges: [
-              [0, 6]
-            ],
-            type: 'sum'
-          }]
-      });
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
-
-      getPlugin('manualRowMove').moveRow(10, 3);
-
-      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
-    });
-
-    it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
-      'was moved inside the endpoint range', async() => {
-      handsontable({
-        data: createNumericData(40, 40),
-        height: 321,
+        height,
         width: 200,
         manualRowMove: true,
         columnSummary: [
@@ -979,7 +861,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
     });
@@ -1009,7 +891,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
     });
@@ -1048,7 +930,7 @@ describe('ColumnSummarySpec', () => {
           }
         }
 
-        await sleep(300);
+        await waitForNextAnimationFrames(2);
 
         toggle(0);
 
@@ -1071,6 +953,8 @@ describe('ColumnSummarySpec', () => {
         width: 200,
         rowHeaders: true,
         nestedRows: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
         columnSummary: columnSummaryFunction
       });
 

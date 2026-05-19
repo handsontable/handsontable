@@ -17,6 +17,7 @@ const manufacturerData = [
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],

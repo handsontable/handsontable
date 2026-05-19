@@ -1,4 +1,4 @@
-name: Docs Staging Deployment. Documentation Review Delete (if exist).
+name: Docs delete Staging Deployment
 
 on:
   pull_request:
@@ -15,12 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+        name: Install pnpm
+
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
-          cache-dependency-path: docs/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Get PR details
         id: get-pr

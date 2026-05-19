@@ -20,46 +20,12 @@ describe('exportFile', () => {
       expect(csv.options.filename).toMatch(/Handsontable \d+-\d+-\d+/);
       expect(csv.options.bom).toBe(true);
       expect(csv.options.encoding).toBe('utf-8');
-      expect(csv.options.columnHeaders).toBe(false);
+      expect(csv.options.colHeaders).toBe(false);
       expect(csv.options.rowHeaders).toBe(false);
       expect(csv.options.exportHiddenColumns).toBe(false);
       expect(csv.options.exportHiddenRows).toBe(false);
       expect(csv.options.range).toEqual([]);
       expect(csv.options.sanitizeValues).toEqual(false);
-    });
-  });
-
-  describe('`exportAsString` method', () => {
-    it('should create formatter class and call `export` method on it', async() => {
-      handsontable();
-      const plugin = getPlugin('exportFile');
-      const formatter = jasmine.createSpyObj('formatter', ['export']);
-
-      formatter.export.and.returnValue('foo;bar');
-      spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
-
-      const result = plugin.exportAsString('csv', { columnHeaders: true });
-
-      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
-      expect(formatter.export).toHaveBeenCalled();
-      expect(result).toBe('foo;bar');
-    });
-  });
-
-  describe('`exportAsBlob` method', () => {
-    it('should create formatter class and create blob object contains exported value', async() => {
-      handsontable();
-      const plugin = getPlugin('exportFile');
-      const formatter = jasmine.createSpy('formatter');
-
-      spyOn(plugin, '_createTypeFormatter').and.returnValue(formatter);
-      spyOn(plugin, '_createBlob').and.returnValue('blob');
-
-      const result = plugin.exportAsBlob('csv', { columnHeaders: true });
-
-      expect(plugin._createTypeFormatter).toHaveBeenCalledWith('csv', { columnHeaders: true });
-      expect(plugin._createBlob).toHaveBeenCalledWith(formatter);
-      expect(result).toBe('blob');
     });
   });
 

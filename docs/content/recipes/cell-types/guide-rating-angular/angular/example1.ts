@@ -4,6 +4,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import {
   GridSettings,
   HotCellEditorAdvancedComponent,
+  HotTableModule,
   KeyboardShortcutConfig,
   HotCellRendererAdvancedComponent,
 } from '@handsontable/angular-wrapper';
@@ -52,7 +53,8 @@ export const inputData = [
       }
     </div>`,
   styleUrls: ['./example1.css'],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class StarRendererComponent extends HotCellRendererAdvancedComponent<number> {
   readonly stars = Array(5);
@@ -61,7 +63,8 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
 
 @Component({
   selector: 'example1-guide-star-editor',
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `
     <div
       class="rating-editor"
@@ -133,13 +136,14 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 }
 
 @Component({
-  selector: 'example1-guide-star-angular',
-  standalone: false,
+  selector: 'app-root',
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1GuideStarAngularComponent {
+export class AppComponent {
   readonly data = inputData.map((el) => ({
     ...el,
     stars: Math.floor(Math.random() * 5) + 1,
@@ -170,22 +174,16 @@ export class Example1GuideStarAngularComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1GuideStarAngularComponent, StarEditorComponent, StarRendererComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -194,12 +192,4 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1GuideStarAngularComponent, StarEditorComponent, StarRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1GuideStarAngularComponent],
-})
-export class AppModule {}
 /* end-file */

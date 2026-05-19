@@ -45,11 +45,11 @@ describe('Scrolling', () => {
     let lastTR = [...TRs.toArray()].pop();
     const lastTRTextAtStart = $(lastTR).text();
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     $(window).scrollTop(window.innerHeight);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(2);
 
     TRs = $htCore.find('tr');
     lastTR = [...TRs.toArray()].pop();

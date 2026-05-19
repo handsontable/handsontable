@@ -1,28 +1,29 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example1',
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <hot-table
-      [settings]="hotSettings!" [data]="hotData">
+      [settings]="hotSettings" [data]="hotData">
     </hot-table>
   `,
-  standalone: false
 })
 export class AppComponent {
 
   readonly hotData = [
-    ['A1', 'B1', 'C1', 'D1', 'E1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5'],
-    ['A6', 'B6', 'C6', 'D6', 'E6'],
-    ['A7', 'B7', 'C7', 'D7', 'E7'],
-    ['A8', 'B8', 'C8', 'D8', 'E8'],
-    ['A9', 'B9', 'C9', 'D9', 'E9'],
+    ['Ana García',     'Engineering', 'Senior Engineer',  95000, '2026-03-14'],
+    ['James Okafor',   'Marketing',   'Product Manager',  88000, '2026-07-01'],
+    ['Li Wei',         'Engineering', 'Frontend Dev',     82000, '2026-01-10'],
+    ['Maria Santos',   'HR',          'HR Specialist',    71000, '2026-11-20'],
+    ['David Kim',      'Engineering', 'Backend Dev',      85000, '2026-08-05'],
+    ['Emma Wilson',    'Marketing',   'SEO Analyst',      68000, '2026-02-14'],
+    ['Ahmed Hassan',   'Finance',     'Controller',       92000, '2026-06-30'],
+    ['Sara Johansson', 'Engineering', 'QA Engineer',      78000, '2026-09-12'],
+    ['Carlos Mendez',  'Sales',       'Account Manager',  74000, '2026-04-25'],
   ];
 
   readonly hotSettings: GridSettings = {
@@ -37,38 +38,21 @@ export class AppComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

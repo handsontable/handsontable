@@ -198,6 +198,19 @@ describe('ColumnMeta', () => {
       expect(meta.getMetasAtRow(10)).toEqual([{ _test: 'test' }]);
     });
 
+    it('should return metas sorted by physical column index', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(2, 3)._test = 'three';
+      meta.getMeta(2, 4)._test = 'four';
+      meta.getMeta(2, 0)._test = 'zero';
+      meta.getMeta(2, 1)._test = 'one';
+
+      expect(meta.getMetasAtRow(2).map(metaObject => metaObject._test)).toEqual(['zero', 'one', 'three', 'four']);
+    });
+
     it('should change cell meta by reference', () => {
       const globalMeta = new GlobalMeta();
       const columnMeta = new ColumnMeta(globalMeta);

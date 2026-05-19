@@ -385,11 +385,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(26);
-            main.toBe(29);
-            horizon.toBe(37);
-          });
+          expect($backlight.height()).toBe(getThemeLayout().defaultDataRowHeight);
         });
 
         it('should get correct position and size while grabing the multiple rows placed after hidden rows', async() => {
@@ -420,11 +416,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(78); // 26 * 3
-            main.toBe(87); // 29 * 3
-            horizon.toBe(111); // 37 * 3
-          });
+          expect($backlight.height()).toBe((3 * getThemeLayout().defaultDataRowHeight));
         });
 
         it('should get correct position and size while grabing the row placed before hidden rows', async() => {
@@ -447,11 +439,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($headerTH.offset().top);
-          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(26);
-            main.toBe(29);
-            horizon.toBe(37);
-          });
+          expect($backlight.height()).toBe(getThemeLayout().defaultDataRowHeight);
         });
 
         it('should get correct position and size while grabing the multiple rows placed before hidden rows', async() => {
@@ -482,11 +470,7 @@ describe('HiddenRows', () => {
           const $backlight = spec().$container.find('.ht__manualRowMove--backlight');
 
           expect($backlight.offset().top).toBe($firstHeaderTH.offset().top);
-          expect($backlight.height()).forThemes(({ classic, main, horizon }) => {
-            classic.toBe(78); // 26 * 3
-            main.toBe(87); // 29 * 3
-            horizon.toBe(111); // 37 * 3
-          });
+          expect($backlight.height()).toBe((3 * getThemeLayout().defaultDataRowHeight));
         });
       });
 
@@ -520,11 +504,7 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($secondHeaderTH.offset().top - 1);
-            main.toBe($secondHeaderTH.offset().top - 1);
-            horizon.toBe($secondHeaderTH.offset().top - 1);
-          });
+          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 1);
         });
 
         it('should get correct position while grabing the row placed after hidden rows (moving up)', async() => {
@@ -555,11 +535,7 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
-            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
-            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
-          });
+          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
         });
 
         it('should get correct position while grabing the row placed before hidden rows (moving down)', async() => {
@@ -591,11 +567,7 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($secondHeaderTH.offset().top - 1);
-            main.toBe($secondHeaderTH.offset().top - 1);
-            horizon.toBe($secondHeaderTH.offset().top - 1);
-          });
+          expect($guideline.offset().top).toBe($secondHeaderTH.offset().top - 1);
         });
 
         it('should get correct position while grabing the row placed before hidden rows (moving up)', async() => {
@@ -626,11 +598,7 @@ describe('HiddenRows', () => {
 
           const $guideline = spec().$container.find('.ht__manualRowMove--guideline');
 
-          expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
-            classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
-            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
-            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
-          });
+          expect($guideline.offset().top).toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
         });
       });
     });

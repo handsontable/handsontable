@@ -76,6 +76,8 @@ describe('Core.batch', () => {
   });
 
   it('should batch showing/hiding headers correctly', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: false,
@@ -97,23 +99,12 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(300);
-    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
+    expect(getTopClone().height()).toBe(layout.defaultDataRowHeight);
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(26);
-      main.toBe(29);
-      horizon.toBe(37);
-    });
+    expect(getTopInlineStartClone().height()).toBe(layout.defaultDataRowHeight);
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(157);
-      main.toBe(175);
-      horizon.toBe(223);
-    });
+    expect(getInlineStartClone().height())
+      .toBe(layout.overlayHeight({ rows: 5 }) + layout.cellBorderWidth + layout.defaultColumnHeaderHeight);
 
     await batch(() => {
       updateSettings({
@@ -131,6 +122,8 @@ describe('Core.batch', () => {
   });
 
   it('should batch adjusting fixed headers correctly', async() => {
+    const layout = getThemeLayout();
+
     handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 0,
@@ -158,35 +151,16 @@ describe('Core.batch', () => {
     });
 
     expect(getTopClone().width()).toBe(250);
-    expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
+    expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getTopInlineStartClone().width()).toBe(50);
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
+    expect(getTopInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getInlineStartClone().width()).toBe(50);
-    expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(132);
-      main.toBe(147);
-      horizon.toBe(187);
-    });
+    expect(getInlineStartClone().height())
+      .toBe(layout.overlayHeight({ rows: 5 }) + layout.cellBorderWidth);
     expect(getBottomInlineStartClone().width()).toBe(50);
-    expect(getBottomInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
+    expect(getBottomInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
     expect(getBottomClone().width()).toBe(250);
-    expect(getBottomClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(27);
-      main.toBe(30);
-      horizon.toBe(38);
-    });
+    expect(getBottomClone().height()).toBe(layout.overlayHeight({ rows: 1 }));
 
     await batch(() => {
       updateSettings({

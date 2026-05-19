@@ -19,7 +19,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
 
     await validateCells();
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(0, 0).getAttribute('aria-invalid')).toEqual('true');
   });

@@ -54,6 +54,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Копировать',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Вырезать',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Экспортировать',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'В CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'В Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Экспорт…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Вставить дочернюю строку',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Отделить от родителя',
 
@@ -112,12 +117,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
 
   [C.LOADING_TITLE]: 'Загрузка...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Закрыть',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Данные недоступны',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Пока нечего отображать.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Результаты не найдены',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Похоже, что ваши текущие фильтры скрывают все результаты.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Сбросить фильтры',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Загрузка данных',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Подождите.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Не удалось загрузить данные',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Не удалось создать строки',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Не удалось обновить строки',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Не удалось удалить строки',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Запрос не выполнен',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Повторить загрузку',
 };
 
 export default dictionary;

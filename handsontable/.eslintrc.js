@@ -32,12 +32,19 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['scripts/**'],
+      rules: {
+        'handsontable/no-native-error-throw': 'off',
+      }
+    },
+    {
       files: [
         'test/**',
         'src/3rdparty/walkontable/test/**',
         '*.unit.js',
         '*.spec.js',
         'src/plugins/**/__tests__/helpers/**',
+        'src/editors/**/__tests__/helpers/**',
       ],
       rules: {
         'handsontable/no-native-error-throw': 'off',

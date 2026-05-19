@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: b5f02fb2
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"
@@ -19,9 +20,42 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Star Rating Cell Type - Step-by-Step Guide
+This tutorial shows you how to build an interactive SVG star rating cell using `editorFactory` and `rendererFactory`, with hover preview and keyboard shortcuts - no external libraries required.
 
-[[toc]]
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+
+@[code](@/content/recipes/cell-types/rating/javascript/example1.js)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/rating/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/rating/react/example1.css)
+@[code](@/content/recipes/cell-types/rating/react/example1.jsx)
+@[code](@/content/recipes/cell-types/rating/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/rating/angular/example1.ts)
+@[code](@/content/recipes/cell-types/rating/angular/example1.html)
+@[code](@/content/recipes/cell-types/rating/angular/example1.css)
+
+:::
+
+:::
 
 ## Overview
 
@@ -42,20 +76,6 @@ A cell that:
 - Provides immediate visual feedback
 - Works without any external libraries
 
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
-
-@[code](@/content/recipes/cell-types/rating/javascript/example1.js)
-@[code](@/content/recipes/cell-types/rating/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/rating/javascript/example1.css)
-
-:::
-
-:::
-
 ## Prerequisites
 
 None! This uses only native HTML, SVG and JavaScript features.
@@ -75,7 +95,7 @@ registerAllModules();
 - No icon libraries
 - No UI component libraries
 - No external SVG sprite sheets
-- Just Handsontable.
+- Handsontable only.
 
 ## Step 2: Define the Star SVG
 
@@ -343,8 +363,8 @@ shortcuts: [
 - Gets key value from keyboard event
 
 ### Arrow Keys:
-- **ArrowRight**: Increase rating (max 5)
-- **ArrowLeft**: Decrease rating (min 1)
+- <kbd>ArrowRight</kbd>: Increase rating (max 5)
+- <kbd>ArrowLeft</kbd>: Decrease rating (min 1)
 - Bounded within valid range
 - Smooth incremental adjustment
 
@@ -483,7 +503,7 @@ const hot = new Handsontable(container, hotOptions);
 4. **Mouse Hover**: User hovers over stars → preview rating updates in real-time (detected via `closest()`)
 5. **Click Selection**: User clicks → rating selected and editor closes
 6. **Keyboard Input**: User presses 1-5 keys → rating set directly
-7. **Arrow Navigation**: User presses ArrowLeft/Right → rating increments/decrements
+7. **Arrow Navigation**: User presses <kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd> → rating increments/decrements
 8. **Validation**: Validator checks the value is valid
 9. **Save**: Valid value saved to cell
 10. **Editor Closes**: Cell shows updated star rating
@@ -571,11 +591,20 @@ Change colors by overriding CSS for specific columns:
 
 **Keyboard navigation:**
 - **Number keys (1-5)**: Direct rating selection
-- **Arrow Right**: Increase rating (max 5)
-- **Arrow Left**: Decrease rating (min 1)
-- **Enter**: Confirm selection and finish editing
-- **Escape**: Cancel editing
+- <kbd>ArrowRight</kbd>: Increase rating (max 5)
+- <kbd>ArrowLeft</kbd>: Decrease rating (min 1)
+- <kbd>Enter</kbd>: Confirm selection and finish editing
+- <kbd>Escape</kbd>: Cancel editing
 
 ---
 
-**Congratulations!** You've created a theme-aware SVG star rating editor with hover preview and keyboard support using Handsontable CSS tokens, perfect for intuitive 1-5 star ratings in your data grid!
+
+## What you learned
+
+You built an SVG star rating cell using `editorFactory` and `rendererFactory`. You used Handsontable CSS tokens for theme-aware styling, `closest()` for reliable hover detection on inline SVG elements, and keyboard shortcuts for direct number-key and arrow-key selection.
+
+## Next steps
+
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and `react-star-rating-component`.
+- [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Feedback](@/recipes/cell-types/feedback/feedback.md) - Another no-library custom editor using `editorFactory` and CSS tokens.

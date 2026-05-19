@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: jgrtvjxx
 title: Row freezing
 metaTitle: Row freezing - JavaScript Data Grid | Handsontable
@@ -18,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row freezing
-
 Lock the position of specified rows, keeping them visible when scrolling.
 
 [[toc]]
@@ -70,6 +68,11 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 ## Related API reference
 
-- Configuration options:
-  - [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)
-  - [`fixedRowsTop`](@/api/options.md#fixedrowstop)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
+- [fixedRowsTop](@/api/options.md#fixedrowstop)
+
+</div>

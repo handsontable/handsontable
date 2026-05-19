@@ -17,12 +17,21 @@ class BaseType {
       filename: 'Handsontable [YYYY]-[MM]-[DD]',
       encoding: 'utf-8',
       bom: false,
-      columnHeaders: false,
+      colHeaders: false,
       rowHeaders: false,
       exportHiddenColumns: false,
       exportHiddenRows: false,
       range: [],
     };
+  }
+
+  /**
+   * Whether the format produces binary (asynchronous) output.
+   *
+   * @returns {boolean}
+   */
+  get binary() {
+    return false;
   }
 
   /**
@@ -55,6 +64,14 @@ class BaseType {
     const date = new Date();
 
     _options = extend(clone(BaseType.DEFAULT_OPTIONS), _options);
+
+    // Legacy alias: `columnHeaders` was renamed to `colHeaders`. When a caller
+    // passes the old name and does not also pass the new name, promote it so
+    // that the rest of the code only needs to read `colHeaders`.
+    if (options && 'columnHeaders' in options && !('colHeaders' in options)) {
+      options = { ...options, colHeaders: options.columnHeaders };
+    }
+
     _options = extend(_options, options);
 
     _options.filename = substitute(_options.filename, {

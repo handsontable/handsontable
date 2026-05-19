@@ -256,7 +256,7 @@ describe('CopyPaste', () => {
       const expectedResult = getDataAtRow(0).join('\t');
 
       await selectCells([[0, 0, 0, 49]]);
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       const cutEvent = getClipboardEvent({
         target: document.activeElement,

@@ -1,0 +1,23 @@
+/* Custom scrollbar styling — subtle (exclude Handsontable internals) */
+*:not(.handsontable *) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sl-color-gray-5) transparent;
+}
+
+*:not(.handsontable *)::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*:not(.handsontable *)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*:not(.handsontable *)::-webkit-scrollbar-thumb {
+  background-color: var(--sl-color-gray-5);
+  border-radius: 2px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--sl-color-gray-4);
+}

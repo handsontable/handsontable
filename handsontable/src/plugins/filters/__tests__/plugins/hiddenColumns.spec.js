@@ -24,7 +24,7 @@ describe('Filters UI cooperation with HiddenColumn', () => {
 
     await dropdownMenu(0);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     const elements = $(byValueBoxRootElement()).find('label').toArray();
     const text = elements.map(element => $(element).text());
@@ -34,7 +34,7 @@ describe('Filters UI cooperation with HiddenColumn', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     // Begins with 'b'
     document.activeElement.value = 'b';

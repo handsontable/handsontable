@@ -136,6 +136,8 @@ export function init() {
     autoWrapCol: true,
     autoWrapRow: true,
     fixedRowsBottom: 2,
+    viewportRowRenderingOffset: 10,
+    viewportColumnRenderingOffset: 10,
     licenseKey: 'non-commercial-and-evaluation',
   });
 
@@ -172,6 +174,8 @@ export function init() {
     autoWrapCol: true,
     autoWrapRow: true,
     bindRowsWithHeaders: true,
+    viewportRowRenderingOffset: 10,
+    viewportColumnRenderingOffset: 10,
     licenseKey: 'non-commercial-and-evaluation',
   });
 

@@ -126,8 +126,8 @@ function applyPropsToEditor(editor: EditorInstance): void {
   const rect = editor.hot.getCell(editor.row, editor.col)?.getBoundingClientRect();
 
   editor._editorPlaceHolderRef.setInput('placeholderCustomClass', '');
-  editor._editorPlaceHolderRef.setInput('height', rect.height);
-  editor._editorPlaceHolderRef.setInput('width', rect.width);
+  editor._editorPlaceHolderRef.setInput('height', rect?.height ?? 0);
+  editor._editorPlaceHolderRef.setInput('width', rect?.width ?? 0);
   editor._editorPlaceHolderRef.setInput('isVisible', true);
   editor._editorPlaceHolderRef.setInput('componentRef', editor._componentRef);
 

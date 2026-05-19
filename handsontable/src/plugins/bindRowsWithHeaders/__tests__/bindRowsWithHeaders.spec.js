@@ -54,7 +54,7 @@ describe('BindRowsWithHeaders', () => {
 
     await alter('remove_row', 1, 4);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await loadData(createSpreadsheetData(5, 5));
 
@@ -117,7 +117,7 @@ describe('BindRowsWithHeaders', () => {
         height: 300
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
@@ -143,7 +143,7 @@ describe('BindRowsWithHeaders', () => {
         height: 300
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
@@ -169,7 +169,7 @@ describe('BindRowsWithHeaders', () => {
         height: 300
       });
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');

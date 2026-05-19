@@ -16,7 +16,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
       colHeaders: true,
       rowHeaders: true,
       width: 320,
-      height: 200,
+      height: containerHeightForRows(5),
       stretchH: 'all',
       beforeStretchingColumnWidth(width, columnVisualIndex) {
         return this.toPhysicalColumn(columnVisualIndex) === 1 ? 33 : width;
@@ -26,41 +26,18 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     columnIndexMapper().setIndexesSequence([0, 2, 3, 1]);
     await render();
 
-    expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(79);
-      horizon.toBe(74);
-    });
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(79);
-      horizon.toBe(74);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(79);
-      horizon.toBe(74);
-    });
+    // available = 270; physical col 1 fixed at 33; remaining = 270 - 33 = 237; 237 / 3 = 79
+    expect(getColWidth(0)).toBe(79);
+    expect(getColWidth(1)).toBe(79);
+    expect(getColWidth(2)).toBe(79);
     expect(getColWidth(3)).toBe(33);
 
     columnIndexMapper().setIndexesSequence([1, 0, 2, 3]);
     await render();
 
     expect(getColWidth(0)).toBe(33);
-    expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(79);
-      horizon.toBe(74);
-    });
-    expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(79);
-      horizon.toBe(74);
-    });
-    expect(getColWidth(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(79);
-      main.toBe(79);
-      horizon.toBe(74);
-    });
+    expect(getColWidth(1)).toBe(79);
+    expect(getColWidth(2)).toBe(79);
+    expect(getColWidth(3)).toBe(79);
   });
 });

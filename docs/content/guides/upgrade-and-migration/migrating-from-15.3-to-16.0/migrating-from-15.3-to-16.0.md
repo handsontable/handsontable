@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 1k7arh9z
 title: Migrating from 15.3 to 16.0
 metaTitle: Migrating from 15.3 to 16.0 - JavaScript Data Grid | Handsontable
@@ -15,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 15.3 to 16.0
-
 Migrate from Handsontable 15.3 to Handsontable 16.0, released on July 9, 2025.
 
 More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements).<br/>
@@ -27,51 +25,67 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## 1. Introducing the new DOM structure
 
-In Handsontable 16.0, we changed how the table is mounted in the DOM. Previously, the container `<div>` you provided became the root element of the table. Now, that container acts as a mounting point, and Handsontable creates and injects its own root element inside it.
+In Handsontable 16.0, the table mounts to the DOM differently. Previously, the container `<div>` you provided became the root element of the table. Now, that container acts as a mounting point, and Handsontable creates and injects its own root element inside it.
 
 Here's a side-by-side comparison of the old and new DOM structures:
 
-Old DOM structure:
+**Old DOM structure:**
 
-```
-body
-├── #example.ht-wrapper.handsontable // Root Container/Element
-│   ├── .htFocusCatcher // Focus Catcher (top)
-│   ├── Data grid content
-│   └── .htFocusCatcher // Focus Catcher (down)
-├── .hot-display-license-info // License key notification bar
-└── Context menus, dropdowns, pop-ups, sidebars
-    (absolutely positioned elements)
-```
+<starlight-file-tree class="not-content">
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>#example.ht-wrapper.handsontable</span> <span class="comment">Root Container/Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (top)</span></span></li>
+<li class="file"><span class="tree-entry"><span>Data grid content</span></span></li>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (down)</span></span></li>
+</ul></details></li>
+<li class="file"><span class="tree-entry"><span>.hot-display-license-info</span> <span class="comment">License key notification bar</span></span></li>
+<li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
+</ul></details></li>
+</ul>
+</starlight-file-tree>
 
-New DOM structure:
+**New DOM structure:**
 
-```
-body
-├── #example // Root Wrapper
-│    └── .ht-root-wrapper // Root Element
-│        ├── .htFocusCatcher // Focus Catcher (top)
-│        ├── .ht-wrapper.handsontable // Root Container
-│        │   └── Data grid content
-│        ├── .htFocusCatcher // Focus Catcher (down)
-│        └── .hot-display-license-info // License key notification bar
-└── .ht-portal // Portal Element
-    └── Context menus, dropdowns, pop-ups, sidebars
-        (absolutely positioned elements)
-```
+<starlight-file-tree class="not-content">
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>body</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>#example</span> <span class="comment">Root Wrapper</span></span></summary>
+<ul>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-root-wrapper</span> <span class="comment">Root Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (top)</span></span></li>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-wrapper.handsontable</span> <span class="comment">Root Container</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>Data grid content</span></span></li>
+</ul></details></li>
+<li class="file"><span class="tree-entry"><span>.htFocusCatcher</span> <span class="comment">Focus Catcher (down)</span></span></li>
+<li class="file"><span class="tree-entry"><span>.hot-display-license-info</span> <span class="comment">License key notification bar</span></span></li>
+</ul></details></li>
+</ul></details></li>
+<li class="directory"><details open><summary><span class="tree-entry"><span>.ht-portal</span> <span class="comment">Portal Element</span></span></summary>
+<ul>
+<li class="file"><span class="tree-entry"><span>Context menus, dropdowns, pop-ups, sidebars</span> <span class="comment">absolutely positioned elements</span></span></li>
+</ul></details></li>
+</ul></details></li>
+</ul>
+</starlight-file-tree>
 
 ### Key changes
 - Root Wrapper: User-provided div is now used as a container for the new DOM structure
-- Focus Catcher Relocation: Input elements used as focus catchers have been moved outside of the treegrid element for accessibility compliance
+- Focus Catcher Relocation: Input elements used as focus catchers move outside of the treegrid element for accessibility compliance
 - Portal Element: New div.ht-portal with ht-theme class for absolutely positioned elements
 - Root Element: rootElement is now created internally by Handsontable instead of using the user-provided container directly
 
 ## 2. Updated the CSS variables
 
-In Handsontable 16.0, we've made significant improvements to our CSS variables system to adjust themes colors, variable order and provide better customization options. Here are the key changes:
+In Handsontable 16.0, Handsontable improves the CSS variables system to adjust theme colors, variable order, and customization options. Here are the key changes:
 
 ### New CSS variables
-We've introduced new variables that allow for easier customization:
+These new variables allow for easier customization:
 
  - `--ht-letter-spacing`: Controls letter spacing for improved readability and visual appearance.
  - `--ht-radio-*`: Enables more accurate styling of radio inputs.
@@ -79,7 +93,7 @@ We've introduced new variables that allow for easier customization:
  - `--ht-checkbox-indeterminate`: Lets you style the indeterminate state of checkboxes.
 
 ### Renamed CSS variables
-We've renamed a few variables to ensure more consistent naming:
+A few variables are renamed for more consistent naming:
 
 | Old variable name                                | New variable name                                |
 |--------------------------------------------------|--------------------------------------------------|
@@ -99,10 +113,10 @@ If you were using custom CSS variables in version 15.3, you'll need to:
 
 ## 3. Updated the placement of custom borders
 
-In version 16.0, we've updated how custom borders are positioned to improve accuracy and consistency. This change affects the visual positioning of borders, particularly for cells with custom borders.
+In version 16.0, Handsontable updates how custom borders are positioned to improve accuracy and consistency. This change affects the visual positioning of borders, particularly for cells with custom borders.
 
 #### What changed?
-- Border positions were adjusted to prevent overlapping with adjacent cells and headers.
+- Border positions are adjusted to prevent overlapping with adjacent cells and headers.
 
 #### Why is this a breaking change?
 It's very unlikely, but if your application relies on specific border positioning or you've implemented custom styling based on border positions, you may need to update your styles. 
@@ -422,9 +436,9 @@ This migration guide covers the major changes between the old and new Angular wr
 
 ## 5. Introducing `pnpm` as the repository package manager
 
-Starting on July 1st, 2025, we've switched to `pnpm` as the repository's main package manager.
+Starting on July 1st, 2025, Handsontable switches to `pnpm` as the repository's main package manager.
 
-As the number of packages in the repository grew, so did the number of dependencies. This made it difficult to manage dependencies and install them in a consistent way. To address this, we've switched to `pnpm` as the main package manager.
+As the number of packages in the repository grew, so did the number of dependencies. This made it difficult to manage dependencies and install them in a consistent way. To address this, the project switches to `pnpm` as the main package manager.
 
 ### Will this affect me?
 
@@ -444,3 +458,7 @@ If you are, however, you'll need to utilize `pnpm` to install the main repositor
 4. All the `npm` commands are still available, so you can build the packages as you did before, for example, by running `npm run build`.
 
 You can always find more information on the custom build process in the [Custom builds](https://handsontable.com/docs/custom-builds/) documentation page.
+
+## Result
+
+Your application now runs on Handsontable 16.0.

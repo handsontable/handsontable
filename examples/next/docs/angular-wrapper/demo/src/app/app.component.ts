@@ -1,12 +1,8 @@
-import { HotTableModule } from "@handsontable/angular-wrapper";
+import { HotTableModule, GridSettings } from "@handsontable/angular-wrapper";
 import { Component } from "@angular/core";
-import { registerAllModules } from "handsontable/registry";
 import { data } from "./constants";
 import { PredefinedMenuItemKey } from "handsontable/plugins/contextMenu";
 import { addClassesToRows } from "./utils/add-classes-to-rows.function";
-
-// register Handsontable's modules
-registerAllModules();
 
 @Component({
   selector: "app-root",
@@ -16,8 +12,8 @@ registerAllModules();
   imports: [HotTableModule],
 })
 export class AppComponent {
-  initialData = data;
-  gridSettings = {
+  readonly initialData = data;
+  readonly gridSettings: GridSettings = {
     height: 450,
     colWidths: [180, 220, 140, 120, 120, 120, 140],
     colHeaders: [

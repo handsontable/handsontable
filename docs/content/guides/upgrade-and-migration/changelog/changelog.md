@@ -1,4 +1,5 @@
 ---
+type: reference
 id: nbp8i3mk
 title: Changelog
 metaTitle: Changelog - JavaScript Data Grid | Handsontable
@@ -22,11 +23,92 @@ searchCategory: Guides
 category: Upgrade and migration
 ---
 
-# Changelog
-
-See the full history of changes made to Handsontable in each major, minor, and patch release.
+This page aggregates all Handsontable release notes. For upgrade instructions, see the migration guides in this section.
 
 [[toc]]
+
+## 17.1.0
+
+Released on May 19th, 2026
+
+For more information about this release, see:
+- [Documentation (17.1)](https://handsontable.com/docs/17.1)
+
+#### Added
+- Added a hit area for dropdown menu and collapsible buttons [#12070](https://github.com/handsontable/handsontable/pull/12070)
+- Added `rowspan` support to the NestedHeaders plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
+- Added the DataProvider plugin and `dataProvider` table option for server-side row loading and mutations. [#12147](https://github.com/handsontable/handsontable/pull/12147)
+- Added XLSX export support to the ExportFile plugin [#12166](https://github.com/handsontable/handsontable/pull/12166)
+- Added build weight comparison tables to the Modules guide, showing the minified and gzip size added by each optional module when imported on top of `handsontable/base`. [#12262](https://github.com/handsontable/handsontable/issues/12262)
+- Added Notification plugin for non-blocking toast notifications. [#12299](https://github.com/handsontable/handsontable/issues/12299)
+- Added long-press gesture detection on touch devices to open the context menu. [#12306](https://github.com/handsontable/handsontable/issues/12306)
+- Added dedicated `paginationButton*` theme tokens so pagination navigation button colors can be customized independently via the theme builder. [#12317](https://github.com/handsontable/handsontable/issues/12317)
+- Added dedicated `paginationButton*` theme tokens so pagination navigation button colors can be customized independently for default, hover, focus, and disabled states via the theme builder. [#12404](https://github.com/handsontable/handsontable/issues/12404)
+- Added `rowspan` support to the NestedHeaders plugin, allowing column headers to span multiple header rows. [#191](https://github.com/handsontable/handsontable/issues/191)
+
+#### Changed
+- Added a frame-based e2e test wait helper and replaced selected hook test sleeps. [#12161](https://github.com/handsontable/handsontable/pull/12161)
+- Improve the rendering performance [#12189](https://github.com/handsontable/handsontable/pull/12189)
+- Change the columnHeaders property name to colHeaders in the exportFile plugin [#12224](https://github.com/handsontable/handsontable/issues/12224)
+- Improve rendering performance for fast scrollbar movements [#12235](https://github.com/handsontable/handsontable/pull/12235)
+- Angular: Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling. [#12451](https://github.com/handsontable/handsontable/issues/12451)
+
+#### Fixed
+- Fixed an issue where the Nested Rows plugin was disabled after calling updateSettings with an empty data array. [#10556](https://github.com/handsontable/handsontable/issues/10556)
+- Fixed `setSourceDataAtCell()` updating parent rows instead of nested child rows when `nestedRows` is enabled. [#10657](https://github.com/handsontable/handsontable/issues/10657)
+- Fixed an issue where the stretchH: 'last' option would ignore the defined column width when the viewport was too narrow, causing the last column to shrink to 0px. [#11761](https://github.com/handsontable/handsontable/issues/11761)
+- Fixed a stack overflow error when pasting large datasets (50,000+ rows) by optimizing array operations in the HTML table parser. [#11784](https://github.com/handsontable/handsontable/issues/11784)
+- Fixed incorrect JSDoc type annotations for the `modifyAutofillRange` hook parameters. The parameters `entireArea` and `startArea` are now correctly documented as `number[]` (a flat 4-element array) instead of the generic `Array` type, and the `@returns` type annotation has been added. [#11862](https://github.com/handsontable/handsontable/issues/11862)
+- Fixed filter by value input performance degradation when searchMode: apply option is enabled. [#12104](https://github.com/handsontable/handsontable/issues/12104)
+- Fixed `getCellMetaAtRow()` to always return cell metadata in physical column order. [#12109](https://github.com/handsontable/handsontable/pull/12109)
+- Fixed the `modifyAutofillRange` hook type signature to match runtime tuple arguments and return value [#12113](https://github.com/handsontable/handsontable/issues/12113)
+- Fixed incorrect parsing of comma-grouped values in numeric cells [#12114](https://github.com/handsontable/handsontable/issues/12114)
+- Fixed comment editor positioning for merged cells [#12115](https://github.com/handsontable/handsontable/pull/12115)
+- Fixed the Filters plugin incorrectly applying filter conditions after columns were moved with the ManualColumnMove plugin. [#11832](https://github.com/handsontable/handsontable/issues/11832)
+- Fixed column resizing being misaligned and calculating incorrect widths when the grid container has a CSS `transform: scale()` applied. [#11838](https://github.com/handsontable/handsontable/issues/11838)
+- Fixed the `stretchH: 'last'` option ignoring the defined column width and shrinking the last column to 0px when the viewport was too narrow. [#11761](https://github.com/handsontable/handsontable/issues/11761)
+- Fixed HyperFormula errors when MultiSelect cells store array values. [#12135](https://github.com/handsontable/handsontable/pull/12135)
+- Fixed `setSourceDataAtCell()` updating a parent row instead of the intended nested child row when the `nestedRows` option was enabled. [#10657](https://github.com/handsontable/handsontable/issues/10657)
+- Fixed `setDataAtRowProp()` incorrectly canceling an active editor session when the programmatic update targeted a different cell in the same row. [#4305](https://github.com/handsontable/handsontable/issues/4305)
+- Fix ThemeBuilder false unknown token warning on initialization [#12146](https://github.com/handsontable/handsontable/pull/12146)
+- Prevent after scroll hooks from firing when axis position is unchanged [#12151](https://github.com/handsontable/handsontable/issues/12151)
+- Fixed six regressions related to rowspans in nested column headers. [#12152](https://github.com/handsontable/handsontable/pull/12152)
+- Fixed undo restore for mixed checkbox multi-selection delete. [#12153](https://github.com/handsontable/handsontable/issues/12153)
+- Fixed Ctrl+A selecting the entire grid instead of the comment text when the comment textarea was focused. [#12193](https://github.com/handsontable/handsontable/issues/12193)
+- Fixed `columnHeaderHeight` overriding the actual content height, causing overlay THEAD misalignment when header text wraps. [#12198](https://github.com/handsontable/handsontable/issues/12198)
+- Fixed selected fixed-column header alignment with data cells for fixedColumnsStart [#12202](https://github.com/handsontable/handsontable/issues/12202)
+- Fixed autofill over hidden columns when Formulas is enabled and hiddenColumns.copyPasteEnabled is false [#12203](https://github.com/handsontable/handsontable/issues/12203)
+- Fixed a one-pixel horizontal misalignment of the left pagination caret in the Pagination plugin. [#2791](https://github.com/handsontable/handsontable/pull/2791)
+- Fixed nested headers crash when sorting with disabled current highlight. [#12211](https://github.com/handsontable/handsontable/issues/12211)
+- Improved server-side data documentation structure and fixed disjunctionWithExtraCondition guard fallback in server filter utility examples. [#12241](https://github.com/handsontable/handsontable/issues/12241)
+- Fixed framework wrappers crashing when init-only settings (renderAllRows, renderAllColumns, layoutDirection, ariaTags) changed after initialization. [#12242](https://github.com/handsontable/handsontable/issues/12242)
+- Fixed an issue where `currentRowClassName` and `currentColClassName` could not be changed dynamically using `updateSettings`. [#12247](https://github.com/handsontable/handsontable/issues/12247)
+- Fixed column menu dropdown button styling when a filtered column header is also active [#12253](https://github.com/handsontable/handsontable/issues/12253)
+- Fixed an issue where rows with dataSchema default values (e.g., false for checkbox columns) were not recognized as empty by isEmptyRow and isEmptyCol, causing minSpareRows and minSpareCols to add infinite rows. [#12254](https://github.com/handsontable/handsontable/issues/12254)
+- Fixed autocomplete editor with strict mode and allowInvalid discarding typed value on click-away instead of saving it. [#12285](https://github.com/handsontable/handsontable/issues/12285)
+- Fixed incorrect JSDoc type annotations for the `modifyAutofillRange` hook's `entireArea` and `startArea` parameters, and added the missing `@returns` annotation. [#11862](https://github.com/handsontable/handsontable/issues/11862)
+- Fixed filter-by-value search by trimming leading and trailing spaces and treating whitespace-only input as an empty query. [#12290](https://github.com/handsontable/handsontable/issues/12290)
+- Fixed portal-based popups (e.g., date picker) closing immediately on touch devices (Android) due to outside-click detection not accounting for rootPortalElement. [#12298](https://github.com/handsontable/handsontable/pull/12298)
+- Fixed `setDataAtRowProp` ignoring the `source` parameter in array-form calls, causing `beforeChange` and `afterChange` hooks to always receive `'edit'` instead of the provided source string. [#12300](https://github.com/handsontable/handsontable/issues/12300)
+- Fixed multiple Handsontable tables with shared HyperFormula engine and auto-sizing becoming unresponsive due to cross-table formula update interference. [#12305](https://github.com/handsontable/handsontable/issues/12305)
+- Fixed `disableVisualSelection` treating `undefined` as `true` instead of falling back to the default (`false`). [#12307](https://github.com/handsontable/handsontable/issues/12307)
+- Fixed incorrect return types for in some hooks [#12309](https://github.com/handsontable/handsontable/pull/12309)
+- Fixed multiselect overflow indicator not responding to chip padding token changes [#12316](https://github.com/handsontable/handsontable/pull/12316)
+- Fixed the `headerRowBackgroundColor` theme token having no visual effect on row headers. The `rowHeaderOddBackgroundColor` and `rowHeaderEvenBackgroundColor` tokens now derive from `headerRowBackgroundColor` by default, so customizing it properly cascades to all row headers. [#12322](https://github.com/handsontable/handsontable/issues/12322)
+- Fixed an exception when showing the loading indicator from the `afterChange` hook during editor close. [#12348](https://github.com/handsontable/handsontable/issues/12348)
+- Fixed TypeScript type for the `dateFormat` option to accept `Intl.DateTimeFormatOptions` objects required by the `intl-date` cell type. [#12395](https://github.com/handsontable/handsontable/issues/12395)
+- Fixed an issue where minSpareRows and minSpareCols kept adding rows/columns when dataSchema defined non-null default values (e.g. false for checkbox columns). [#2409](https://github.com/handsontable/handsontable/issues/2409)
+- Fixed one-pixel horizontal alignment for the left pagination caret [#2791](https://github.com/handsontable/handsontable/pull/2791)
+- Fixed setDataAtRowProp interrupting edits in progress [#4305](https://github.com/handsontable/handsontable/issues/4305)
+- React: Fixed the React wrapper skipping settings updates when `dataSchema` or `columns` contains non-plain objects such as `Date`, `Set`, or `Map`. [#12207](https://github.com/handsontable/handsontable/pull/12207)
+- Fixed the loading overlay resetting the grid scroll position to the top when no cell was selected before showing the overlay. [#12514](https://github.com/handsontable/handsontable/issues/12514)
+- Fixed a memory leak caused by ThemeManager not unsubscribing from the shared theme object on destroy. [#12570](https://github.com/handsontable/handsontable/issues/12570)
+- Fixed viewport scroll jump when Ctrl+clicking a selected cell to deselect it. [#12574](https://github.com/handsontable/handsontable/issues/12574)
+- Fixed a memory leak where IntersectionObserver instances were not properly disconnected when `document.body` had zero height. [#12578](https://github.com/handsontable/handsontable/issues/12578)
+- Fixed the browser page scrolling to the grid when `dataProvider` loads rows for the first time into an empty grid with `emptyDataState` enabled. [#12591](https://github.com/handsontable/handsontable/issues/12591)
+
+#### Security
+- Patched critical and high dependency vulnerabilities across the monorepo and aligned Angular wrapper tooling for compatibility. [#12237](https://github.com/handsontable/handsontable/issues/12237)
 
 ## 17.0.1
 
@@ -450,6 +532,16 @@ For more information about this release see:
 - Fixed the missing `source` argument for the `setDataAtCell` method. [#11287](https://github.com/handsontable/handsontable/pull/11287)
 - Fixed the top overlay misalignment issue, visible after vertical scrollbar disappeared. [#11289](https://github.com/handsontable/handsontable/pull/11289)
 - React: Made the build scripts of `@handsontable/react-wrapper` place the TS type definitions in the configured directory. [#11296](https://github.com/handsontable/handsontable/pull/11296)
+
+## 14.6.2
+
+Released on February 10, 2025
+
+For more information about this release see:
+- [Documentation (14.6)](https://handsontable.com/docs/14.6)
+
+#### Fixed
+- Fixed the copy/paste feature not working correctly in Chrome 133. [#11428](https://github.com/handsontable/handsontable/pull/11428)
 
 ## 14.6.1
 
@@ -2632,3 +2724,16 @@ For more information on this release, see:
 
 The changelogs from older versions of Handsontable are
 [available on GitHub](https://github.com/handsontable/handsontable/releases).
+
+## Related
+
+- [Migrating from 7.4 to 8.0](@/guides/upgrade-and-migration/migrating-from-7.4-to-8.0/migrating-from-7.4-to-8.0.md)
+- [Migrating from 8.4 to 9.0](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md)
+- [Migrating from 9.0 to 10.0](@/guides/upgrade-and-migration/migrating-from-9.0-to-10.0/migrating-from-9.0-to-10.0.md)
+- [Migrating from 10.0 to 11.0](@/guides/upgrade-and-migration/migrating-from-10.0-to-11.0/migrating-from-10.0-to-11.0.md)
+- [Migrating from 11.1 to 12.0](@/guides/upgrade-and-migration/migrating-from-11.1-to-12.0/migrating-from-11.1-to-12.0.md)
+- [Migrating from 12.4 to 13.0](@/guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0.md)
+- [Migrating from 13.1 to 14.0](@/guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0.md)
+- [Migrating from 14.6 to 15.0](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)
+- [Migrating from 15.3 to 16.0](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)
+- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)

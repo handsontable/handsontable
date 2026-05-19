@@ -104,6 +104,7 @@ export class ManualColumnMove extends BasePlugin {
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link ManualColumnMove#enablePlugin} method is called.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */

@@ -6,75 +6,100 @@
 
 @mixin output {
   .handsontable {
-    .collapsibleIndicator {
-      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-      margin-inline-start: var(--ht-gap-size);
-      margin-inline-end: 1px;
-    }
-
     .collapsibleIndicator,
     .ht_nestingButton {
       position: relative;
-      width: var(--ht-icon-size);
-      height: var(--ht-icon-size);
+      width: var(--ht-icon-button-hit-area-size);
+      height: var(--ht-icon-button-hit-area-size);
+      margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2 + 1px);
       box-sizing: border-box;
-      border-radius: var(--ht-collapse-button-border-radius);
-      overflow: hidden;
+      overflow: visible;
       cursor: pointer;
       /* hide text */
       text-indent: -100px;
       font-size: 0;
-      float: right;
+      flex-shrink: 0;
 
+      /* Icon: mask + currentColor from ht-icons-main.css; keep ::before for icon only */
       &::before {
         @include mixins.pseudo;
 
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 50%;
+        left: 50%;
+        width: var(--ht-icon-size);
+        height: var(--ht-icon-size);
+        margin-top: calc(-0.5 * var(--ht-icon-size));
+        margin-left: calc(-0.5 * var(--ht-icon-size));
+        border-radius: var(--ht-collapse-button-border-radius);
         transition: var(--ht-table-transition) all ease-in-out;
+        z-index: 1;
+      }
+
+      /* Button background and border (behind icon so mask stays visible) */
+      &::after {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ht-icon-size);
+        height: var(--ht-icon-size);
+        margin-top: calc(-0.5 * var(--ht-icon-size));
+        margin-left: calc(-0.5 * var(--ht-icon-size));
+        border-radius: var(--ht-collapse-button-border-radius);
+        transition: var(--ht-table-transition) all ease-in-out;
+        z-index: 0;
       }
 
       &.expanded,
       &.ht_nestingCollapse {
-        background-color: var(--ht-collapse-button-open-background-color);
-        box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color); // border
-
         &::before {
           color: var(--ht-collapse-button-open-icon-color);
         }
 
-        &:hover {
-          background-color: var(
-            --ht-collapse-button-open-hover-background-color
-          );
-          box-shadow: 0 0 0 1px
-            var(--ht-collapse-button-open-hover-border-color); // border
+        &::after {
+          background-color: var(--ht-collapse-button-open-background-color);
+          box-shadow: 0 0 0 1px var(--ht-collapse-button-open-border-color); // border
+        }
 
+        &:hover {
           &::before {
             color: var(--ht-collapse-button-open-hover-icon-color);
+          }
+
+          &::after {
+            background-color: var(
+              --ht-collapse-button-open-hover-background-color
+            );
+            box-shadow: 0 0 0 1px
+              var(--ht-collapse-button-open-hover-border-color); // border
           }
         }
       }
 
       &.collapsed,
       &.ht_nestingExpand {
-        background-color: var(--ht-collapse-button-close-background-color);
-        box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color); // border
-
         &::before {
           color: var(--ht-collapse-button-close-icon-color);
         }
 
-        &:hover {
-          background-color: var(
-            --ht-collapse-button-close-hover-background-color
-          );
-          box-shadow: 0 0 0 1px
-            var(--ht-collapse-button-close-hover-border-color); // border
+        &::after {
+          background-color: var(--ht-collapse-button-close-background-color);
+          box-shadow: 0 0 0 1px var(--ht-collapse-button-close-border-color); // border
+        }
 
+        &:hover {
           &::before {
             color: var(--ht-collapse-button-close-hover-icon-color);
+          }
+
+          &::after {
+            background-color: var(
+              --ht-collapse-button-close-hover-background-color
+            );
+            box-shadow: 0 0 0 1px
+              var(--ht-collapse-button-close-hover-border-color); // border
           }
         }
       }
@@ -114,10 +139,4 @@
     }
   }
 
-  [dir="rtl"].handsontable {
-    .collapsibleIndicator,
-    .ht_nestingButton {
-      float: left;
-    }
-  }
 }

@@ -8,6 +8,8 @@ import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
 import { warn } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { getHardConflict } from './conflictRegistry';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -163,6 +165,11 @@ export class BasePlugin {
 
     this.hot.addHookOnce('afterPluginsInitialized', () => {
       if (this.isEnabled && this.isEnabled()) {
+        if (this.isHardConflictBlocked()) {
+          this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
+
+          return;
+        }
         this.enablePlugin();
       }
     });
@@ -185,6 +192,28 @@ export class BasePlugin {
     }
 
     this.initialized = true;
+  }
+
+  /**
+   * Whether this plugin is blocked by a registered hard conflict (another top-level setting is truthy; for example
+   * `nestedRows` blocks `pagination`, or `manualRowMove` blocks `dataProvider`). Emits a console warning when blocked.
+   *
+   * @returns {boolean} `true` if the plugin must not enable.
+   */
+  isHardConflictBlocked() {
+    const pluginKey = this.constructor.PLUGIN_KEY;
+    const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
+
+    if (conflict) {
+      const { incompatibleSettingKey } = conflict;
+
+      warn(toSingleLine`The \`${pluginKey}\` plugin cannot be used with the \`${incompatibleSettingKey}\` option.\x20
+        This combination is not supported. The plugin will remain disabled.`);
+
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -433,31 +462,48 @@ export class BasePlugin {
   }
 
   /**
-   * On update settings listener.
+   * On update settings listener. Re-applies hard conflict rules when settings change so a plugin that is already
+   * enabled disables if a conflicting top-level setting becomes truthy, even when this plugin's `SETTING_KEYS` do not
+   * overlap the `updateSettings` payload.
    *
    * @private
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   onUpdateSettings(newSettings) {
+    if (!this.isEnabled) {
+      return;
+    }
+
     const relevantToSettings = this.#isRelevantToSettings(newSettings);
 
-    if (this.isEnabled) {
-      if (this.enabled && !this.isEnabled()) {
-        this.disablePlugin();
-      }
+    if (this.enabled && !this.isEnabled()) {
+      this.disablePlugin();
+    }
 
-      if (!this.enabled && this.isEnabled()) {
-        this.enablePlugin();
+    if (!this.enabled && this.isEnabled()) {
+      if (this.isHardConflictBlocked()) {
+        return;
       }
+      this.enablePlugin();
+    }
 
-      if (
-        this.enabled &&
-        this.isEnabled() &&
-        relevantToSettings
-      ) {
-        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
-        this.updatePlugin(newSettings);
-      }
+    if (
+      this.enabled &&
+      this.isEnabled() &&
+      this.isHardConflictBlocked()
+    ) {
+      this.disablePlugin();
+
+      return;
+    }
+
+    if (
+      this.enabled &&
+      this.isEnabled() &&
+      relevantToSettings
+    ) {
+      this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+      this.updatePlugin(newSettings);
     }
   }
 

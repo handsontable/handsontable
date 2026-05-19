@@ -269,6 +269,8 @@ export class PaginationUI {
    * @param {Array<number | 'auto'>} state.pageSizeList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
    * @param {boolean} state.autoPageSize Indicates if the page size is set to 'auto'.
+   * @param {number} [state.counterStartRow] Optional 1-based start row for the counter (e.g. dataProvider mode).
+   * @param {number} [state.counterEndRow] Optional 1-based end row for the counter (e.g. dataProvider mode).
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   updateState({
@@ -280,6 +282,8 @@ export class PaginationUI {
     pageSizeList,
     pageSize,
     autoPageSize,
+    counterStartRow,
+    counterEndRow,
   }) {
     const {
       first,
@@ -293,9 +297,12 @@ export class PaginationUI {
       pageSizeLabel,
     } = this.#refs;
 
+    const counterStart = counterStartRow ?? firstVisibleRowIndex + 1;
+    const counterEnd = counterEndRow ?? lastVisibleRowIndex + 1;
+
     const counterSectionText = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
-      start: firstVisibleRowIndex + 1,
-      end: lastVisibleRowIndex + 1,
+      start: counterStart,
+      end: counterEnd,
       total: totalRenderedRows,
     });
     const navLabelText = this.#phraseTranslator(C.PAGINATION_NAV_SECTION, {

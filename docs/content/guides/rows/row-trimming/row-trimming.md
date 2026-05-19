@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 4q2wi29j
 title: Row trimming
 metaTitle: Row trimming - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row trimming
-
 Hide individual rows from your interface and exclude them from the rendering process and `DataMap`.
 
 [[toc]]
@@ -133,7 +131,13 @@ Note that the second, third, and sixth rows are missing in the following example
 
 :::
 
-## API examples
+## Result
+
+After completing this guide, rows you specify are excluded from rendering and from `DataMap`. You can trim rows at initialization or dynamically at runtime using the plugin API.
+
+## Related API
+
+### Plugin methods
 
 ::: only-for react
 
@@ -198,14 +202,31 @@ plugin.untrimRows([0, 4, 6]);
 
 To see the changes made, call `hot.render();` to re-render the table.
 
-## Related API reference
+### API reference
 
-- Options:
-  - [`trimRows`](@/api/options.md#trimrows)
-- Hooks:
-  - [`afterTrimRow`](@/api/hooks.md#aftertrimrow)
-  - [`afterUntrimRow`](@/api/hooks.md#afteruntrimrow)
-  - [`beforeTrimRow`](@/api/hooks.md#beforetrimrow)
-  - [`beforeUntrimRow`](@/api/hooks.md#beforeuntrimrow)
-- Plugins:
-  - [`TrimRows`](@/api/trimRows.md)
+**Options**
+
+<div class="boxes-list">
+
+- [trimRows](@/api/options.md#trimrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterTrimRow](@/api/hooks.md#aftertrimrow)
+- [afterUntrimRow](@/api/hooks.md#afteruntrimrow)
+- [beforeTrimRow](@/api/hooks.md#beforetrimrow)
+- [beforeUntrimRow](@/api/hooks.md#beforeuntrimrow)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [TrimRows](@/api/trimRows.md)
+
+</div>

@@ -1,6 +1,7 @@
+const path = require('path');
+const rspack = require('@rspack/core');
 const configFactory = require('./base');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
+const removeEmptyScripts = require('./plugin/rspack/remove-empty-scripts');
 const addCssToJsExport = require('./add-css-to-js-export');
 
 module.exports.create = function create(envArgs) {
@@ -12,13 +13,16 @@ module.exports.create = function create(envArgs) {
     c.entry = {
       handsontable: './src/styles/handsontable.scss',
     };
+    // Redirect stub JS files to a temp directory so they don't overwrite dist/ bundles
+    c.output.path = path.resolve(__dirname, '../tmp_styles');
+    c.output.filename = '[name].stub.js';
 
     c.module = {
       rules: [
         {
           test: /\.scss$/,
           use: [
-            { loader: MiniCssExtractPlugin.loader },
+            { loader: rspack.CssExtractRspackPlugin.loader },
             { loader: 'css-loader' },
             { loader: 'sass-loader' },
           ]
@@ -26,14 +30,9 @@ module.exports.create = function create(envArgs) {
       ],
     };
 
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function (plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
     c.plugins.push(
-      new RemoveEmptyScriptsPlugin(),
-      new MiniCssExtractPlugin({
+      removeEmptyScripts(),
+      new rspack.CssExtractRspackPlugin({
         filename: '../styles/handsontable.css',
       }),
     );

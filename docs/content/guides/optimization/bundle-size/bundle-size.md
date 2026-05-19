@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: vjcvrdeh
 title: Bundle size
 metaTitle: Bundle size - JavaScript Data Grid | Handsontable
@@ -16,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Optimization
 ---
-
-# Bundle size
-
 Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
 
 [[toc]]
@@ -93,16 +91,16 @@ export class ExampleComponent {
 
 By default, [Moment.js](https://momentjs.com/) (Handsontable's dependency) comes with all possible locales, which increases the bundle size.
 
-To [optimize Moment.js locales](https://github.com/jmblog/how-to-optimize-momentjs-with-webpack), use [webpack's `IgnorePlugin`](https://webpack.js.org/plugins/ignore-plugin/):
+To optimize Moment.js locales, use your bundler's ignore plugin. The example below works with both [Rspack](https://rspack.dev/) and [webpack](https://webpack.js.org/):
 
 ```js
-const webpack = require('webpack');
+const { IgnorePlugin } = require('@rspack/core'); // or require('webpack')
 
 module.exports = {
   //...
   plugins: [
     // ignore all Moment.js locale files
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new IgnorePlugin(/^\.\/locale$/, /moment$/),
   ],
 };
 ```
@@ -193,4 +191,8 @@ export class ExampleComponent {
 
 ## Related guides
 
+<div class="boxes-list">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
+
+</div>

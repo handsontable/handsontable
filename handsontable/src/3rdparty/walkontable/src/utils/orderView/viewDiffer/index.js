@@ -1,5 +1,13 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
-import { WORKING_SPACE_BOTTOM } from '../constants';
+import {
+  WORKING_SPACE_BOTTOM,
+  CMD_NONE,
+  CMD_REMOVE,
+  CMD_APPEND,
+  CMD_PREPEND,
+  CMD_INSERT_BEFORE,
+  CMD_REPLACE,
+} from '../constants';
 import { ViewOrder } from './viewOrder';
 
 /**
@@ -44,6 +52,8 @@ export class ViewDiffer {
     const {
       currentSize: currentViewSize,
       nextSize: nextViewSize,
+      currentOffset,
+      nextOffset,
     } = sizeSet.getViewSize();
 
     let maxSize = Math.max(nextViewSize, currentViewSize);
@@ -52,32 +62,26 @@ export class ViewDiffer {
       return [];
     }
 
-    const {
-      currentOffset,
-      nextOffset,
-    } = sizeSet.getViewSize();
-
-    // @TODO(perf-tip): Creating an array (createRange) is not necessary it would be enough to generate
-    // commands based on numeric values.
     const currentViewOrder = new ViewOrder(currentOffset, currentViewSize);
-    const nextViewOrder = new ViewOrder(nextOffset, nextViewSize);
+    const isShared = sizeSet.isShared();
+    const useAppend = !isShared || sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM);
     const leads = [];
 
     for (let i = 0; i < maxSize; i++) {
       const currentIndex = currentViewOrder.get(i);
-      const nextIndex = nextViewOrder.get(i);
+      const nextIndex = i < nextViewSize ? nextOffset + i : -1;
 
       // Current index exceeds the next DOM index so it is necessary to generate a "remove" command
       // to achieve new order.
       if (nextIndex === -1) {
-        leads.push(['remove', currentIndex]);
+        leads.push([CMD_REMOVE, currentIndex]);
 
       // Next index exceeds the current DOM index so it is necessary to generate a "append" command
       // to achieve new order.
       } else if (currentIndex === -1) {
         // Check what command should be generated (depends on if this work as a shared root node
         // and in what position or not)
-        if (!sizeSet.isShared() || sizeSet.isShared() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM)) {
+        if (useAppend) {
           /**
            * If the differ has only one root node to manage with, the "append" command is generated.
            *
@@ -90,7 +94,7 @@ export class ViewDiffer {
            *     │              <tr>
            *     └───────────   <tr> <--- Generates "append" command (which later executes `rootNode.appendChild(node)`)
            */
-          leads.push(['append', nextIndex]);
+          leads.push([CMD_APPEND, nextIndex]);
         } else {
           /**
            * If the differ is sharing root node, the "prepend" command is generated.
@@ -105,7 +109,7 @@ export class ViewDiffer {
            *     │              <td>
            *     └───────────   <td>
            */
-          leads.push(['prepend', nextIndex]);
+          leads.push([CMD_PREPEND, nextIndex]);
         }
 
       } else if (nextIndex > currentIndex) {
@@ -121,15 +125,15 @@ export class ViewDiffer {
             maxSize -= 1;
           }
         }
-        leads.push(['replace', nextIndex, currentIndex]);
+        leads.push([CMD_REPLACE, nextIndex, currentIndex]);
 
       } else if (nextIndex < currentIndex) {
         const indexToRemove = currentViewOrder.prepend(nextIndex);
 
-        leads.push(['insert_before', nextIndex, currentIndex, indexToRemove]);
+        leads.push([CMD_INSERT_BEFORE, nextIndex, currentIndex, indexToRemove]);
 
       } else { // for the same current and next indexes do nothing.
-        leads.push(['none', nextIndex]);
+        leads.push([CMD_NONE, nextIndex]);
       }
     }
 

@@ -154,6 +154,18 @@ export function dataRowToChangesArray(dataRow, rowOffset = 0) {
 }
 
 /**
+ * Check whether the list of changes contains data for the provided visual row and prop.
+ *
+ * @param {Array} changes List of changes in format `[visualRow, prop, ...]`.
+ * @param {number} visualRow Visual row index to match.
+ * @param {string|number} prop Prop/column identifier to match.
+ * @returns {boolean} `true` if at least one change matches the provided row and prop.
+ */
+export function hasChangeForCell(changes, visualRow, prop) {
+  return changes.some(([changeRow, changeProp]) => changeRow === visualRow && changeProp === prop);
+}
+
+/**
  * Count the number of keys (or, basically, columns when the data is an array or arrays) in the first row of the
  * provided dataset.
  *

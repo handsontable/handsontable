@@ -1,7 +1,8 @@
 module.exports = {
   testEnvironment: 'jsdom',
   roots: [
-    '<rootDir>/src'
+    '<rootDir>/src',
+    '<rootDir>/test'
   ],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['json', 'lcov', 'clover'],

@@ -41,6 +41,31 @@ describe('Hook', () => {
       expect(getSelectedRange()).toEqualCellRange(undefined);
     });
 
+    it('should not move keyboard focus to a prior selection when the hook returns false', async() => {
+      const topInput = $('<input type="text" id="modifyFocusOnTabNavigationTopInput">');
+
+      spec().$container.before(topInput);
+
+      const modifyFocusOnTabNavigation = jasmine.createSpy('modifyFocusOnTabNavigation');
+
+      modifyFocusOnTabNavigation.and.returnValue(false);
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        modifyFocusOnTabNavigation,
+      });
+
+      await selectCell(2, 2);
+
+      topInput[0].focus();
+      await keyDownUp('tab');
+
+      expect(modifyFocusOnTabNavigation).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).not.toBe(getCell(2, 2, true));
+
+      topInput.remove();
+    });
+
     it('should be possible to change the focus selection after TAB navigation (focus comes from the element above)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

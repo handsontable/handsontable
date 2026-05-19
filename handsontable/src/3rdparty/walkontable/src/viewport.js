@@ -17,6 +17,8 @@ import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
+import { PositionCache } from './utils/positionCache';
+import { DEFAULT_COLUMN_WIDTH } from './constants';
 
 /**
  * @class Viewport
@@ -56,6 +58,29 @@ class Viewport {
       ['fullyVisible', () => new FullyVisibleColumnsCalculationType()],
       ['partiallyVisible', () => new PartiallyVisibleColumnsCalculationType()],
     ]);
+
+    /**
+     * Cumulative row height prefix sum cache. Enables O(log n) scroll-to-row lookups
+     * when custom row heights are configured.
+     *
+     * @type {PositionCache}
+     */
+    this.rowHeightCache = new PositionCache({
+      totalItemsFn: () => wtSettings.getSetting('totalRows'),
+      sizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
+    });
+    /**
+     * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
+     * when custom column widths are configured.
+     *
+     * @type {PositionCache}
+     */
+    this.columnWidthCache = new PositionCache({
+      totalItemsFn: () => wtSettings.getSetting('totalColumns'),
+      sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
+    });
 
     this.eventManager = eventManager;
     this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
@@ -308,6 +333,7 @@ class Viewport {
    */
   createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
+    const totalRows = wtSettings.getSetting('totalRows');
 
     let height = this.getViewportHeight();
     let scrollbarHeight;
@@ -319,7 +345,6 @@ class Viewport {
 
     const fixedRowsTop = wtSettings.getSetting('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting('fixedRowsBottom');
-    const totalRows = wtSettings.getSetting('totalRows');
 
     if (fixedRowsTop && pos >= 0) {
       fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
@@ -343,11 +368,10 @@ class Viewport {
       calculationTypes: calculatorTypes.map(type => [type, this.rowsCalculatorTypes.get(type)()]),
       viewportHeight: height,
       scrollOffset: pos,
-      totalRows: wtSettings.getSetting('totalRows'),
-      defaultRowHeight: wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
-      rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      totalRows,
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,
+      rowHeightCache: this.rowHeightCache,
     });
   }
 
@@ -362,6 +386,7 @@ class Viewport {
    */
   createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
+    const totalColumns = wtSettings.getSetting('totalColumns');
 
     let width = this.getViewportWidth();
     let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
@@ -384,10 +409,10 @@ class Viewport {
       calculationTypes: calculatorTypes.map(type => [type, this.columnsCalculatorTypes.get(type)()]),
       viewportWidth: width,
       scrollOffset: pos,
-      totalColumns: wtSettings.getSetting('totalColumns'),
-      columnWidthFn: sourceCol => wtTable.getColumnWidth(sourceCol),
+      totalColumns,
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
-      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset
+      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset,
+      columnWidthCache: this.columnWidthCache,
     });
   }
 
@@ -401,6 +426,7 @@ class Viewport {
    */
   createCalculators(fastDraw = false) {
     const { wtSettings } = this;
+
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
 
@@ -578,6 +604,30 @@ class Viewport {
     }
 
     return true;
+  }
+
+  /**
+   * Marks the row height position cache as stale. The cache will be rebuilt
+   * on the next viewport calculation.
+   */
+  invalidateRowHeightCache() {
+    this.rowHeightCache.invalidate();
+  }
+
+  /**
+   * Marks the column width position cache as stale. The cache will be rebuilt
+   * on the next viewport calculation.
+   */
+  invalidateColumnWidthCache() {
+    this.columnWidthCache.invalidate();
+  }
+
+  /**
+   * Marks both the row height and column width position caches as stale.
+   */
+  invalidateAllCaches() {
+    this.rowHeightCache.invalidate();
+    this.columnWidthCache.invalidate();
   }
 
   /**

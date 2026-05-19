@@ -231,7 +231,7 @@ export class DynamicComponentService {
     });
 
     Object.keys(rendererParameters).forEach((key) => {
-      if (rendererParameters.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(rendererParameters, key)) {
         componentRef.setInput(key, rendererParameters[key]);
       } else {
         console.warn(`Input property "${key}" does not exist on component instance: ${component?.name}.`);

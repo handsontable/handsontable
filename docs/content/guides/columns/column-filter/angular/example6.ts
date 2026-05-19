@@ -1,9 +1,11 @@
 /* file: app.component.ts */
 import { Component, OnInit, ViewChild } from "@angular/core";
-import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
-import { FormControl } from "@angular/forms";
+import { GridSettings, HotTableComponent, HotTableModule } from "@handsontable/angular-wrapper";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule, ReactiveFormsModule],
   selector: "app-example6",
   template: `
     <div class="example-controls-container">
@@ -36,7 +38,6 @@ import { FormControl } from "@angular/forms";
       margin-top: 20px;
     }
   `,
-  standalone: false,
 })
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
@@ -58,7 +59,7 @@ export class AppComponent implements OnInit {
       brand: "Jetpulse",
       model: "Racing Socks",
       price: 30,
-      sellDate: "11/10/2023",
+      sellDate: "2023-10-11",
       sellTime: "01:23",
       inStock: false,
     },
@@ -66,7 +67,7 @@ export class AppComponent implements OnInit {
       brand: "Gigabox",
       model: "HL Mountain Frame",
       price: 1890.9,
-      sellDate: "03/05/2023",
+      sellDate: "2023-05-03",
       sellTime: "11:27",
       inStock: false,
     },
@@ -74,7 +75,7 @@ export class AppComponent implements OnInit {
       brand: "Camido",
       model: "Cycling Cap",
       price: 130.1,
-      sellDate: "27/03/2023",
+      sellDate: "2023-03-27",
       sellTime: "03:17",
       inStock: true,
     },
@@ -82,7 +83,7 @@ export class AppComponent implements OnInit {
       brand: "Chatterpoint",
       model: "Road Tire Tube",
       price: 59,
-      sellDate: "28/08/2023",
+      sellDate: "2023-08-28",
       sellTime: "08:01",
       inStock: true,
     },
@@ -90,7 +91,7 @@ export class AppComponent implements OnInit {
       brand: "Eidel",
       model: "HL Road Tire",
       price: 279.99,
-      sellDate: "02/10/2023",
+      sellDate: "2023-10-02",
       sellTime: "13:23",
       inStock: true,
     },
@@ -112,22 +113,27 @@ export class AppComponent implements OnInit {
         title: "Price",
         type: "numeric",
         data: "price",
+        locale: 'en-US',
         numericFormat: {
-          pattern: "$ 0,0.00",
-          culture: "en-US",
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
         },
       },
       {
         title: "Date",
-        type: "date",
+        type: 'intl-date',
         data: "sellDate",
+        locale: 'en-GB',
+        dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
         className: "htRight",
       },
       {
         title: "Time",
-        type: "time",
+        type: 'intl-time',
         data: "sellTime",
-        correctFormat: true,
+        locale: 'en-GB',
+        timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
         className: "htRight",
       },
       {
@@ -146,12 +152,12 @@ export class AppComponent implements OnInit {
   };
 
   ngOnInit() {
-    this.fieldControl.valueChanges.subscribe((fieldValue: string) => {
+    this.fieldControl.valueChanges.subscribe((fieldValue) => {
       const filters = this.hotTable.hotInstance!.getPlugin("filters");
       const columnValue = +this.columnControl.value!;
 
       filters.removeConditions(columnValue);
-      filters.addCondition(columnValue, "contains", [fieldValue]);
+      filters.addCondition(columnValue, "contains", [fieldValue ?? '']);
       filters.filter();
       this.hotTable.hotInstance!.render();
     });
@@ -159,38 +165,23 @@ export class AppComponent implements OnInit {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
-import { ReactiveFormsModule } from "@angular/forms";
-import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
 
-/* start:skip-in-compilation */
-import { AppComponent } from "./app.component";
-/* end:skip-in-compilation */
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule, ReactiveFormsModule],
-  declarations: [AppComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
 /* end-file */

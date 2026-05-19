@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: j1zswn3i
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable
@@ -18,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row headers
-
 Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 
 [[toc]]
@@ -42,6 +40,13 @@ You can bind row numbers with row headers. This is used mostly to differentiate 
 ### Basic example
 
 To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders) property to `true`. Move the rows in the example below to see what this plugin does.
+
+Possible values:
+
+- `true` - Enables the plugin.
+- `strict` - Enables the plugin and the order of indexes is not reorganized after the operation such as hiding or moving rows.
+- `loose` -  Enables the plugin and the order of indexes is re-organized after the operation such as hiding or moving rows.
+
 
 ::: only-for javascript
 
@@ -82,29 +87,50 @@ A tree grid enables you to represent the nested data structures within the data 
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md)
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-  - [`rowHeaders`](@/api/options.md#rowheaders)
-- Core methods:
-  - [`getRowHeader()`](@/api/core.md#getrowheader)
-  - [`hasRowHeaders()`](@/api/core.md#hasrowheaders)
-- Hooks:
-  - [`afterGetRowHeader`](@/api/hooks.md#aftergetrowheader)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`beforeHighlightingRowHeader`](@/api/hooks.md#beforehighlightingrowheader)
-  - [`modifyRowHeader`](@/api/hooks.md#modifyrowheader)
-  - [`modifyRowHeaderWidth`](@/api/hooks.md#modifyrowheaderwidth)
-- Plugins:
-  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
+<div class="boxes-list">
+
+- [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
+- [rowHeaders](@/api/options.md#rowheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getRowHeader()](@/api/core.md#getrowheader)
+- [hasRowHeaders()](@/api/core.md#hasrowheaders)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetRowHeader](@/api/hooks.md#aftergetrowheader)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [beforeHighlightingRowHeader](@/api/hooks.md#beforehighlightingrowheader)
+- [modifyRowHeader](@/api/hooks.md#modifyrowheader)
+- [modifyRowHeaderWidth](@/api/hooks.md#modifyrowheaderwidth)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)
+
+</div>

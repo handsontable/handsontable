@@ -23,6 +23,7 @@
 @use "./plugins/manual-column-move";
 @use "./plugins/manual-row-move";
 @use "./plugins/dialog";
+@use "./plugins/notification";
 @use "./plugins/pagination";
 @use "./plugins/loading";
 @use "./plugins/empty-data-state";
@@ -90,6 +91,7 @@
   @include manual-column-move.output();
   @include manual-row-move.output();
   @include dialog.output();
+  @include notification.output();
   @include pagination.output();
   @include loading.output();
   @include empty-data-state.output();

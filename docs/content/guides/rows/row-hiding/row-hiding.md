@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 37786931
 title: Row hiding
 metaTitle: Row hiding - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row hiding
-
 Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 
 [[toc]]
@@ -357,12 +355,29 @@ plugin.showRows([0, 4, 6]);
 
 ## Related API reference
 
-- Configuration options:
-  - [`hiddenRows`](@/api/options.md#hiddenrows)
-- Hooks:
-  - [`afterHideRows`](@/api/hooks.md#afterhiderows)
-  - [`afterUnhideRows`](@/api/hooks.md#afterunhiderows)
-  - [`beforeHideRows`](@/api/hooks.md#beforehiderows)
-  - [`beforeUnhideRows`](@/api/hooks.md#beforeunhiderows)
-- Plugins:
-  - [`HiddenRows`](@/api/hiddenRows.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [hiddenRows](@/api/options.md#hiddenrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterHideRows](@/api/hooks.md#afterhiderows)
+- [afterUnhideRows](@/api/hooks.md#afterunhiderows)
+- [beforeHideRows](@/api/hooks.md#beforehiderows)
+- [beforeUnhideRows](@/api/hooks.md#beforeunhiderows)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [HiddenRows](@/api/hiddenRows.md)
+
+</div>

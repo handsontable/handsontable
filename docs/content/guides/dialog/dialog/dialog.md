@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 1xi1xek4
 title: Dialog
 metaTitle: Dialog - JavaScript Data Grid | Handsontable
@@ -21,9 +22,6 @@ angular:
 searchCategory: Guides
 category: Dialog
 ---
-
-# Dialog
-
 Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 
 [[toc]]
@@ -105,6 +103,8 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 @[code](@/content/guides/dialog/dialog/angular/example2.ts)
 @[code](@/content/guides/dialog/dialog/angular/example2.html)
+
+:::
 
 :::
 
@@ -337,5 +337,18 @@ You can control the dialog programmatically using the plugin's methods.
 
 ## Related API reference
 
-- [Options: `dialog`](@/api/options.md#dialog)
-- [Plugins: `Dialog`](@/api/dialog.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [dialog](@/api/options.md#dialog)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Dialog](@/api/dialog.md)
+
+</div>

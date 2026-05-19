@@ -25,37 +25,37 @@ describe('The afterOnCellMouseOver hook', () => {
     const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(1)');
 
     $('body').simulate('mouseover');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseover');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     $('body').simulate('mouseover');
-    await sleep(100);
+    await waitForNextAnimationFrames();
 
     $('body').simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseover');
-    await sleep(100);
+    await waitForNextAnimationFrames();
 
     $colHeader.simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(1)').simulate('mouseover');
-    await sleep(100);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(1)').simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(2)').simulate('mouseover');
-    await sleep(100);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(2)').simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     expect(spy).toHaveBeenCalledTimes(4);
   });
@@ -74,16 +74,16 @@ describe('The afterOnCellMouseOver hook', () => {
     });
 
     getMaster().find('tbody tr:eq(0) td:eq(1)').simulate('mouseover');
-    await sleep(100);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(1)').simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(2)').simulate('mouseover');
-    await sleep(100);
+    await waitForNextAnimationFrames();
 
     getMaster().find('tbody tr:eq(0) td:eq(2)').simulate('mouseout');
-    await sleep(50);
+    await waitForNextAnimationFrames();
 
     expect(spy).toHaveBeenCalledTimes(0);
   });

@@ -25,7 +25,8 @@ describe('ContextMenu', () => {
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
     describe('menu opening', () => {
-      it.forTheme('classic')('should open context menu in proper position in iframe', async() => {
+      it('should open context menu in proper position in iframe', async() => {
+        const themeLinkHtml = getE2eThemeStylesheetLinkTagHtml(getLoadedTheme());
         const iframeOutside = $('<iframe/>').css({ width: '500px', height: '500px' }).appendTo(spec().$container);
         const docOutside = iframeOutside[0].contentDocument;
 
@@ -33,7 +34,7 @@ describe('ContextMenu', () => {
         docOutside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+            ${themeLinkHtml}
           </head>`);
         docOutside.close();
 
@@ -45,7 +46,7 @@ describe('ContextMenu', () => {
         docInside.write(`
           <!doctype html>
           <head>
-            <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
+            ${themeLinkHtml}
           </head>`);
         docInside.close();
 
@@ -64,7 +65,7 @@ describe('ContextMenu', () => {
         docInside.documentElement.scrollTop = 500;
         docInside.documentElement.scrollLeft = 500;
 
-        await sleep(400);
+        await waitForNextAnimationFrames(2);
 
         const cell = hot.getCell(2, 2);
 
@@ -106,16 +107,13 @@ describe('ContextMenu', () => {
       const $contextMenuRoot = $('.htContextMenu');
       const contextMenuOffset = $contextMenuRoot.offset();
 
-      expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(222);
-        main.toBe(246);
-        horizon.toBe(313);
-      });
-      expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(contextMenuOffset.left + 1);
-        main.toBe(contextMenuOffset.left + 1);
-        horizon.toBe(contextMenuOffset.left);
-      });
+      const readOnlyItemOffset = $readOnlyItem.offset();
+
+      expect(tickItemOffset.top).toBe(readOnlyItemOffset.top);
+      // The tick sits just inside the context-menu's left border. Theme tokens
+      // shift the baseline by 0px or 1px depending on density/border width, so
+      // allow a 1px tolerance instead of per-theme hardcoded values.
+      expect(tickItemOffset.left).toBeAroundValue(contextMenuOffset.left, 1);
     });
   });
 });

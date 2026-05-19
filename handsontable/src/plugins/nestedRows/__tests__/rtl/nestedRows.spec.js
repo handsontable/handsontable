@@ -119,33 +119,7 @@ describe('NestedRows (RTL)', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should display indicators properly located', async() => {
-        handsontable({
-          layoutDirection,
-          data: getMoreComplexNestedData(),
-          nestedRows: true,
-          rowHeaders: true
-        });
-
-        expect(countRows()).toEqual(13);
-        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
-        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
-      });
-
-      it.forTheme('main')('should display indicators properly located', async() => {
-        handsontable({
-          layoutDirection,
-          data: getMoreComplexNestedData(),
-          nestedRows: true,
-          rowHeaders: true
-        });
-
-        expect(countRows()).toEqual(13);
-        expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
-        expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
-      });
-
-      it.forTheme('horizon')('should display indicators properly located', async() => {
+      it('should display indicators properly located', async() => {
         handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),

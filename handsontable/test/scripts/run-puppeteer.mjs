@@ -1,26 +1,100 @@
 import puppeteer from 'puppeteer';
 import path from 'path';
+import fs from 'fs';
+import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http-server';
 import JasmineReporter from 'jasmine-terminal-reporter';
 
-const PORT = 8086;
+const require = createRequire(import.meta.url);
+const { computeRunId, readRunIdInputsFromEnv } = require('../../.config/helper/run-id');
+
+const DEFAULT_PORT = 8086;
+const PORT_ATTEMPTS = 100;
+
+/**
+ * Binds `server` to the first free port starting at `startPort`. Uses a
+ * bind-and-retry loop rather than a separate probe so there is no window in
+ * which another process can grab the port between the check and the bind.
+ *
+ * @param {object} server The server to bind (a `net.Server`-compatible instance).
+ * @param {number} startPort The preferred port to start from.
+ * @returns {Promise<number>} The port the server is now listening on.
+ */
+function listenOnFreePort(server, startPort) {
+  // `http-server`'s wrapper object proxies `.listen()` and `.close()` but does
+  // not forward events. The real `http.Server` lives on `.server` -- attach
+  // listeners there.
+  const emitter = server.server || server;
+
+  return new Promise((resolve, reject) => {
+    let port = startPort;
+
+    const attempt = () => {
+      let handleError;
+      const handleListening = () => {
+        emitter.off('error', handleError);
+        resolve(port);
+      };
+
+      handleError = (err) => {
+        emitter.off('listening', handleListening);
+
+        if (err.code === 'EADDRINUSE' && port < startPort + PORT_ATTEMPTS - 1) {
+          port += 1;
+          attempt();
+
+          return;
+        }
+        reject(err);
+      };
+
+      emitter.once('error', handleError);
+      emitter.once('listening', handleListening);
+      server.listen(port);
+    };
+
+    attempt();
+  });
+}
+
 const IS_CI = process.env.CI;
 const CI_DOTS_PER_LINE = 120;
 
-const [,, originalPath, flags] = process.argv;
+// Separate positional args (runner HTML path) from flag args (--random,
+// --verbose, --seed=..., --hotVersion=...). Without this split, a flag-only
+// invocation like `test:e2e.puppeteer -- --random` would treat `--random`
+// as the HTML path.
+const allArgs = process.argv.slice(2);
+const argvPath = allArgs.find(arg => !arg.startsWith('-'));
+const flagArgs = allArgs.filter(arg => arg.startsWith('-'));
+const flags = flagArgs.join(' ');
+
+// Resolve which HTML runner to open. An explicit argv path wins (used by the
+// watch script and dev tooling). Without it, fall back to the per-run HTML
+// emitted by `test:e2e.dump`, whose filename is derived from the same
+// `--testPathPattern` + `--theme` inputs so parallel runs don't collide.
+const runIdInputs = readRunIdInputsFromEnv();
+const originalPath = argvPath || `test/E2ERunner-${computeRunId(runIdInputs)}.html`;
 let htmlPath = originalPath;
 let verboseReporting = false;
 
-if (!originalPath) {
+// Fail fast if the runner HTML is missing. Without this, `page.goto` receives
+// a 404/directory listing and Jasmine never starts -- the process would hang
+// silently after the "Started Puppeteer" line.
+if (!fs.existsSync(originalPath)) {
   /* eslint-disable no-console */
-  console.log('The `path` argument is missing.');
+  console.log(
+    `Runner HTML not found at ${originalPath}. Did \`test:e2e.dump\` run with the same `
+    + `\`--testPathPattern\` / \`--theme\` values?`
+  );
   process.exit(1);
 }
 
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
   const random = flags.includes('random');
+  const hotVersionMatch = flags.match(/--hotVersion=([^\s,]+)/);
   const params = [];
 
   verboseReporting = flags.includes('verbose');
@@ -30,6 +104,9 @@ if (flags) {
   }
   if (seed || random) {
     params.push('random=true');
+  }
+  if (hotVersionMatch) {
+    params.push(`hotVersion=${hotVersionMatch[1]}`);
   }
 
   htmlPath = `${htmlPath}?${params.join('&')}`;
@@ -41,6 +118,17 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
   process.exit(exitCode);
 };
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootPath = path.resolve(`${__dirname}`, '../../..');
+
+const server = createServer({
+  root: rootPath,
+  showDir: true,
+  autoIndex: true,
+});
+
+const PORT = await listenOnFreePort(server, DEFAULT_PORT);
+
 const browser = await puppeteer.launch({
   // devtools: true, // Turn it on to debug the tests.
   headless: false,
@@ -50,6 +138,10 @@ const browser = await puppeteer.launch({
 });
 
 console.log(`Started Puppeteer with version: ${await browser.version()}`);
+console.log(
+  `Runner: ${originalPath} (testPathPattern: ${runIdInputs.testPathPattern || '<all>'},`
+  + ` theme: ${runIdInputs.theme})`
+);
 
 const page = await browser.newPage();
 const cdpClient = await page.createCDPSession();
@@ -62,17 +154,7 @@ page.setViewport({
   height: 720,
 });
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootPath = path.resolve(`${__dirname}`, '../../..');
-
-const server = createServer({
-  root: rootPath,
-  showDir: true,
-  autoIndex: true,
-});
 const cleanup = cleanupFactory(browser, server);
-
-server.listen(PORT);
 
 const reporter = new JasmineReporter({
   colors: 1,
@@ -116,15 +198,15 @@ await page.exposeFunction('jasmineDone', async() => {
   await cleanup(errorCount === 0 ? 0 : 1);
 });
 
-await page.exposeFunction('getEventListeners', async (selector) => {
+await page.exposeFunction('getEventListeners', async(selector) => {
   const { root } = await cdpClient.send('DOM.getDocument');
   const { nodeId } = await cdpClient.send('DOM.querySelector', {
-      nodeId: root.nodeId,
-      selector,
+    nodeId: root.nodeId,
+    selector,
   });
   const resolvedNode = await cdpClient.send('DOM.resolveNode', { nodeId });
 
-  return await cdpClient.send('DOMDebugger.getEventListeners', {
+  return cdpClient.send('DOMDebugger.getEventListeners', {
     objectId: resolvedNode.object.objectId
   });
 });

@@ -1,17 +1,18 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
 const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 const yellowRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
 
 const greenRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'green';
 };
 
@@ -32,7 +33,12 @@ new Handsontable(container, {
     { data: 'name', renderer: yellowRenderer },
     // use default 'text' cell type but overwrite its renderer with yellowRenderer
     { data: 'isActive', type: 'checkbox' },
-    { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
+    {
+      data: 'date',
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+    },
     { data: 'color', type: 'autocomplete', source: colors },
   ],
   cell: [{ row: 1, col: 0, renderer: greenRenderer }],

@@ -253,7 +253,12 @@ export class AutoRowSize extends BasePlugin {
    * @type {number[]}
    */
   #visualRowsToRefresh = [];
-
+  /**
+   * Disposer function for the row heights map observer. Called on disable to clean up.
+   *
+   * @type {Function|null}
+   */
+  #disposeMapObserver = null;
   /**
    * `true` value indicates that the #onInit() function has been already called.
    *
@@ -308,6 +313,11 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('init', () => this.#onInit());
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
+    this.#disposeMapObserver = this.hot.rowIndexMapper
+      .observeMapChange(this.rowHeightsMap, () => {
+        this.hot.view?.invalidateRowHeightCache();
+      });
+
     addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.enablePlugin();
@@ -317,6 +327,11 @@ export class AutoRowSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (this.#disposeMapObserver) {
+      this.#disposeMapObserver();
+      this.#disposeMapObserver = null;
+    }
+
     this.headerHeight = null;
 
     removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
@@ -749,7 +764,14 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const sheetId = formulasPlugin?.sheetId;
+
     const changedRows = changes.reduce((acc, change) => {
+      if (sheetId !== null && sheetId !== undefined && change.address?.sheet !== sheetId) {
+        return acc;
+      }
+
       const physicalRow = change.address?.row;
 
       if (Number.isInteger(physicalRow)) {

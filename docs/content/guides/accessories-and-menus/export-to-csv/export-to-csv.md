@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 51aacis1
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
@@ -16,10 +17,8 @@ angular:
   metaTitle: Export to CSV - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
-
-# Export to CSV
-
 Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 
 [[toc]]
@@ -173,19 +172,20 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 The plugin exposes the following methods to export data.
 
-- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable file directly in the browser. Synchronous; supports text-based formats only (e.g. CSV). For XLSX, use [`downloadFileAsync`](@/api/exportFile.md#downloadfileasync).
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable file and returns a `Promise`. Supports all formats including XLSX.
 - [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string. Supports text-based formats only (e.g. CSV).
 
-Each method takes two parameters. The first, `format`, is required; the only supported value is `'csv'`. The second, `options`, is an optional object that overrides or extends the default CSV configuration. The table below lists all supported options.
+Each method takes two parameters. The first, `format`, is required. The second, `options`, is an optional object that overrides or extends the default export configuration. The table below lists all supported options for CSV export.
 
 ## Available options in the export configuration
 
 | Property               | Type / Default                          | Description |
 | ---------------------- | --------------------------------------- | ----------- |
 | `bom`                  | `Boolean`, default `true`               | Prepend output with BOM (UTF-8). Browser uses _EF BB BF_. |
+| `colHeaders`           | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `columnDelimiter`      | `String`, default `','`                | Column delimiter. |
-| `columnHeaders`        | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `exportHiddenColumns`  | `Boolean`, default `false`              | Include hidden columns. |
 | `exportHiddenRows`    | `Boolean`, default `false`              | Include hidden rows. |
 | `fileExtension`       | `String`, default `'csv'`               | File extension. Used by `downloadFile()`. |
@@ -196,7 +196,20 @@ Each method takes two parameters. The first, `format`, is required; the only sup
 | `rowHeaders`           | `Boolean`, default `false`              | Include row headers. |
 | `sanitizeValues`       | `Boolean` \| `RegExp` \| `Function`, default `false` | Value sanitization. `true` = [OWASP CSV injection](https://owasp.org/www-community/attacks/CSV_Injection) rules; `RegExp` = escape matching values; `Function` = replace with return value. |
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+</div>
+
 ## Related API reference
 
-- Plugins:
-  - [`ExportFile`](@/api/exportFile.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>

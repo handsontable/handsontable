@@ -49,7 +49,7 @@ describe('TimeEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });

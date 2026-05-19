@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 5l7bspro
 title: Migrating from 9.0 to 10.0
 metaTitle: Migrate from 9.0 to 10.0 - JavaScript Data Grid | Handsontable
@@ -15,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 9.0 to 10.0
-
 Migrate from Handsontable 9.0 to Handsontable 10.0, released on September 29, 2021.
 
 More information about this release can be found in the [`10.0.0` release blog post](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency).<br/>
@@ -42,13 +40,13 @@ There are still Handsontable hooks that are named [`beforeRender`](@/api/hooks.m
 
 ## Step 2: Adapt to the HyperFormula dependency update
 
-In Handsontable 10.0.0, we updated the optional HyperFormula dependency from `0.6.2` to `^1.1.0` ([#8669](https://github.com/handsontable/handsontable/pull/8669)).
+In Handsontable 10.0.0, Handsontable updates the optional HyperFormula dependency from `0.6.2` to `^1.1.0` ([#8669](https://github.com/handsontable/handsontable/pull/8669)).
 
 For more details on the breaking changes between HyperFormula 0.6.x and HyperFormula 1.0.x, see the [migration guide](https://handsontable.github.io/hyperformula/guide/migration-from-0.6-to-1.0.html).
 
 ## Step 3: Adapt to the configuration options' new default values
 
-In Handsontable 10.0.0, we changed the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
+In Handsontable 10.0.0, Handsontable changes the default values of the [`autoWrapCol`](@/api/options.md#autowrapcol) and [`autoWrapRow`](@/api/options.md#autowraprow) [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), from `true` to `false` ([#8662](https://github.com/handsontable/handsontable/pull/8662)):
 
 ::: only-for javascript
 
@@ -90,7 +88,7 @@ We also changed the default values for the [`rowsLimit`](@/api/copyPaste.md#rows
 
 ## Step 4: Adapt to the Handsontable hooks changes
 
-In Handsontable 10.0, we unified the naming of an argument used by the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) Handsontable hooks ([#8591](https://github.com/handsontable/handsontable/pull/8591)):
+In Handsontable 10.0, Handsontable unifies the naming of an argument used by the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and [`beforeOnCellMouseOver`](@/api/hooks.md#beforeoncellmouseover) Handsontable hooks ([#8591](https://github.com/handsontable/handsontable/pull/8591)):
 
 | Handsontable hook                                               | Before              | After        |
 | --------------------------------------------------------------- | ------------------- | ------------ |
@@ -114,4 +112,8 @@ For more details, see [this PR](https://github.com/handsontable/handsontable/pul
 
 ## Step 5: Adapt to the font changes
 
-To make Handsontable look good right out of the box, we added default `font-family`, `font size`, `font weight`, and `color` properties for all elements within the `.handsontable` CSS class ([#8681](https://github.com/handsontable/handsontable/pull/8681)). If you're not overwriting these properties in your app, this change will affect your grid's font.
+To make Handsontable look good right out of the box, Handsontable 10.0 adds default `font-family`, `font size`, `font weight`, and `color` properties for all elements within the `.handsontable` CSS class ([#8681](https://github.com/handsontable/handsontable/pull/8681)). If you do not overwrite these properties in your app, this change will affect your grid's font.
+
+## Result
+
+Your application now runs on Handsontable 10.0.

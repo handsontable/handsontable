@@ -1,4 +1,5 @@
 ---
+type: reference
 id: zzjh2u93
 title: Supported browsers
 metaTitle: Supported browsers - JavaScript Data Grid | Handsontable
@@ -16,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Supported browsers
-
 Handsontable supports all the most popular desktop and mobile browsers.
 
 [[toc]]

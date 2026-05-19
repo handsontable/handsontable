@@ -199,6 +199,8 @@ describe('settings', () => {
     });
 
     it('should not render column header with doubled border after inserting a new row (#7065)', async() => {
+      const layout = getThemeLayout();
+
       handsontable({
         data: createSpreadsheetData(0, 0),
         colHeaders: true,
@@ -208,50 +210,20 @@ describe('settings', () => {
 
       await alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53); // 26px corner + 27px added row
-        main.toBe(59);
-        horizon.toBe(75);
-      });
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
-      });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
-      });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(53);
-        main.toBe(59);
-        horizon.toBe(75);
-      });
+      // header + 1 data row
+      expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 2 }));
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 2 }));
+      expect(getTopInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 2 }));
+      expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 2 }));
       expect(getBottomClone().height()).toBe(0);
 
       await alter('insert_row_above', 0);
 
-      expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
-      expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
-      expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
-      expect(getInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(79);
-        main.toBe(88);
-        horizon.toBe(112);
-      });
+      // header + 2 data rows
+      expect(getMaster().height()).toBe(layout.overlayHeight({ rows: 3 }));
+      expect(getTopClone().height()).toBe(layout.overlayHeight({ rows: 3 }));
+      expect(getTopInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 3 }));
+      expect(getInlineStartClone().height()).toBe(layout.overlayHeight({ rows: 3 }));
       expect(getBottomClone().height()).toBe(0);
     });
   });

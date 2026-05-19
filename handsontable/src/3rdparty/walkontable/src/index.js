@@ -1,8 +1,9 @@
 import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
-  DEFAULT_COLUMN_WIDTH,
 } from './calculator';
+
+import { DEFAULT_COLUMN_WIDTH } from './constants';
 
 import CellCoords from './cell/coords';
 import CellRange from './cell/range';

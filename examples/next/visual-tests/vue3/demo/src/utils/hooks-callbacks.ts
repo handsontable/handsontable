@@ -1,7 +1,6 @@
 import Handsontable from "handsontable";
 import {
-  SELECTED_CLASS,
-  ODD_ROW_CLASS
+  SELECTED_CLASS
 } from "./constants";
 
 type AddClassesToRows = (
@@ -37,13 +36,6 @@ export const addClassesToRows: AddClassesToRows = (
     Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
   } else {
     Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
-  }
-
-  // Add class to odd TRs
-  if (row % 2 === 0) {
-    Handsontable.dom.addClass(parentElement, ODD_ROW_CLASS);
-  } else {
-    Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
   }
 };
 

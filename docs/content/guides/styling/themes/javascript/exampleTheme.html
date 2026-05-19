@@ -1,20 +1,42 @@
-<div class="theme-examples-controls">
-  <div class="example-container">
-    <label class="color-select">
-      <select id="themeSelect">
-        <option value="main-light">Main Light</option>
-        <option value="main-dark">Main Dark</option>
-        <option value="horizon-light">Horizon Light</option>
-        <option value="horizon-dark">Horizon Dark</option>
-        <option value="classic-light">Classic Light</option>
-        <option value="classic-dark">Classic Dark</option>
-      </select>
-      <div id="colorBox" class="color-box">
-        <span class="color" style="background: var(--ht-foreground-color);"></span>
-        <span class="color" style="background: var(--ht-background-color);"></span>
-        <span class="color" style="background: var(--ht-accent-color);"></span>
-      </div>
-    </label>
+<div class="example-controls-container">
+  <div class="controls">
+    <div class="theme-dropdown" id="themeDropdown">
+      <button class="theme-dropdown-trigger" id="themeTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span class="theme-dropdown-colors" id="triggerColors">
+          <span class="color"></span>
+          <span class="color"></span>
+          <span class="color"></span>
+        </span>
+        <span class="theme-dropdown-label" id="triggerLabel">Horizon Light</span>
+        <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+      </button>
+      <ul class="theme-dropdown-menu" id="themeMenu" role="listbox" hidden>
+        <li role="option" data-value="main-light">
+          <span class="theme-dropdown-colors ht-theme-main"><span class="color" style="background: var(--ht-foreground-color);"></span><span class="color" style="background: var(--ht-background-color);"></span><span class="color" style="background: var(--ht-accent-color);"></span></span>
+          Main Light
+        </li>
+        <li role="option" data-value="main-dark">
+          <span class="theme-dropdown-colors ht-theme-main-dark"><span class="color" style="background: var(--ht-foreground-color);"></span><span class="color" style="background: var(--ht-background-color);"></span><span class="color" style="background: var(--ht-accent-color);"></span></span>
+          Main Dark
+        </li>
+        <li role="option" data-value="horizon-light">
+          <span class="theme-dropdown-colors ht-theme-horizon"><span class="color" style="background: var(--ht-foreground-color);"></span><span class="color" style="background: var(--ht-background-color);"></span><span class="color" style="background: var(--ht-accent-color);"></span></span>
+          Horizon Light
+        </li>
+        <li role="option" data-value="horizon-dark">
+          <span class="theme-dropdown-colors ht-theme-horizon-dark"><span class="color" style="background: var(--ht-foreground-color);"></span><span class="color" style="background: var(--ht-background-color);"></span><span class="color" style="background: var(--ht-accent-color);"></span></span>
+          Horizon Dark
+        </li>
+        <li role="option" data-value="classic-light">
+          <span class="theme-dropdown-colors ht-theme-classic"><span class="color" style="background: var(--ht-foreground-color);"></span><span class="color" style="background: var(--ht-background-color);"></span><span class="color" style="background: var(--ht-accent-color);"></span></span>
+          Classic Light
+        </li>
+        <li role="option" data-value="classic-dark">
+          <span class="theme-dropdown-colors ht-theme-classic-dark"><span class="color" style="background: var(--ht-foreground-color);"></span><span class="color" style="background: var(--ht-background-color);"></span><span class="color" style="background: var(--ht-accent-color);"></span></span>
+          Classic Dark
+        </li>
+      </ul>
+    </div>
   </div>
 </div>
 

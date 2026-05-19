@@ -863,13 +863,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
 
@@ -903,13 +903,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
 
@@ -944,13 +944,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
   });
@@ -976,13 +976,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
   });
@@ -1014,14 +1014,14 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
   });
@@ -1047,13 +1047,13 @@ describe('AutoFill', () => {
 
     expect(countRows()).toBe(4);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(5);
 
     spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(5);
   });
@@ -1084,14 +1084,14 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
   });
@@ -1165,7 +1165,7 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(3) td:eq(2)').simulate('mouseover');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
 
@@ -1174,7 +1174,7 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(4) td:eq(3)').simulate('mouseover');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(4);
 
@@ -1183,7 +1183,7 @@ describe('AutoFill', () => {
     spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
     spec().$container.find('tr:nth-child(4) td:eq(1)').simulate('mouseover');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(countRows()).toBe(4);
   });
@@ -1214,14 +1214,14 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(5);
 
     ev.clientY = $lastRow.offset().top + 150;
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(6);
   });
@@ -1253,7 +1253,7 @@ describe('AutoFill', () => {
 
     $(document.documentElement).simulate('mousemove', ev);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(countRows()).toBe(4);
   });
@@ -1647,6 +1647,51 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
+  it('should not overwrite extra visible columns when dragging across hidden columns without Formulas', async() => {
+    handsontable({
+      data: [
+        ['A', null, null, null, null, null],
+      ],
+      hiddenColumns: {
+        copyPasteEnabled: false,
+        columns: [1, 2],
+      },
+    });
+
+    await selectCell(0, 0);
+
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    $(getCell(0, 3, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(0, 3)).toEqual('A');
+    expect(getDataAtCell(0, 4)).toBe(null);
+    expect(getDataAtCell(0, 5)).toBe(null);
+  });
+
+  it('should not overwrite extra visible rows when dragging across hidden rows without Formulas', async() => {
+    handsontable({
+      data: [
+        ['A'],
+        [null],
+        [null],
+        [null],
+        [null],
+      ],
+      hiddenRows: {
+        copyPasteEnabled: false,
+        rows: [1, 2],
+      },
+    });
+
+    await selectCell(0, 0);
+
+    spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
+    $(getCell(3, 0, true)).simulate('mouseover').simulate('mouseup');
+
+    expect(getDataAtCell(3, 0)).toEqual('A');
+    expect(getDataAtCell(4, 0)).toBe(null);
+  });
+
   describe('should works properly when two or more instances of Handsontable was initialized with ' +
            'other settings (#3257)', () => {
     let getData;
@@ -1844,7 +1889,7 @@ describe('AutoFill', () => {
       '.ht_master tbody tr:nth-child(3) td:nth-of-type(2)'
     ).simulate('mouseover').simulate('mouseup');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect(errorSpy.test).not.toHaveBeenCalled();
 
@@ -2276,10 +2321,6 @@ describe('AutoFill', () => {
     });
 
     it('should render corner hit area with a proper size', async() => {
-      if (getLoadedTheme() === 'classic') {
-        return;
-      }
-
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2298,10 +2339,6 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
-      if (getLoadedTheme() === 'classic') {
-        return;
-      }
-
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2318,10 +2355,6 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the right side of the table when the last column is selected', async() => {
-      if (getLoadedTheme() === 'classic') {
-        return;
-      }
-
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2339,10 +2372,6 @@ describe('AutoFill', () => {
   });
 
   it('should be possible to change the hit area size', async() => {
-    if (getLoadedTheme() === 'classic') {
-      return;
-    }
-
     const style = document.createElement('style');
     const styleText = `
       .handsontable {

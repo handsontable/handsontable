@@ -29,6 +29,10 @@ export const CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS = `${CM_ALIAS}.cop
 export const CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY = `${CM_ALIAS}.copyHeadersOnly`;
 export const CONTEXTMENU_ITEMS_CUT = `${CM_ALIAS}.cut`;
 
+export const CONTEXTMENU_ITEMS_EXPORT = `${CM_ALIAS}.export`;
+export const CONTEXTMENU_ITEMS_EXPORT_FILE_CSV = `${CM_ALIAS}.exportFileCsv`;
+export const CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX = `${CM_ALIAS}.exportFileXlsx`;
+
 export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CM_ALIAS}.freezeColumn`;
 export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CM_ALIAS}.unfreezeColumn`;
 
@@ -124,9 +128,25 @@ export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
 
+export const NOTIFICATION_NAMESPACE = 'Notification:';
+export const NOTIFICATION_BUTTONS_CLOSE = `${NOTIFICATION_NAMESPACE}buttons.close`;
+
+export const EXPORT_FILE_NAMESPACE = 'ExportFile:';
+export const EXPORT_FILE_DIALOG_TITLE = `${EXPORT_FILE_NAMESPACE}dialog.title`;
+
 export const EMPTY_DATA_STATE_NAMESPACE = 'EmptyDataState:';
 export const EMPTY_DATA_STATE_TITLE = `${EMPTY_DATA_STATE_NAMESPACE}title`;
 export const EMPTY_DATA_STATE_DESCRIPTION = `${EMPTY_DATA_STATE_NAMESPACE}description`;
 export const EMPTY_DATA_STATE_TITLE_FILTERS = `${EMPTY_DATA_STATE_NAMESPACE}title.filters`;
 export const EMPTY_DATA_STATE_DESCRIPTION_FILTERS = `${EMPTY_DATA_STATE_NAMESPACE}description.filters`;
 export const EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET = `${EMPTY_DATA_STATE_NAMESPACE}buttons.filters.reset`;
+export const EMPTY_DATA_STATE_TITLE_LOADING = `${EMPTY_DATA_STATE_NAMESPACE}title.loading`;
+export const EMPTY_DATA_STATE_DESCRIPTION_LOADING = `${EMPTY_DATA_STATE_NAMESPACE}description.loading`;
+
+export const DATA_PROVIDER_NAMESPACE = 'DataProvider:';
+export const DATA_PROVIDER_ERRORS_FETCH = `${DATA_PROVIDER_NAMESPACE}errors.fetch`;
+export const DATA_PROVIDER_ERRORS_CREATE = `${DATA_PROVIDER_NAMESPACE}errors.create`;
+export const DATA_PROVIDER_ERRORS_UPDATE = `${DATA_PROVIDER_NAMESPACE}errors.update`;
+export const DATA_PROVIDER_ERRORS_REMOVE = `${DATA_PROVIDER_NAMESPACE}errors.remove`;
+export const DATA_PROVIDER_ERRORS_REQUEST_FAILED = `${DATA_PROVIDER_NAMESPACE}errors.requestFailed`;
+export const DATA_PROVIDER_BUTTONS_REFETCH = `${DATA_PROVIDER_NAMESPACE}buttons.refetch`;

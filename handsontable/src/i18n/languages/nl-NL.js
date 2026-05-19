@@ -60,6 +60,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['Kopiëren koptekst', 'Kopiëren kopteksten'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Knippen',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporteren',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Naar CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Naar Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exporteren…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Geneste rij invoegen',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Geneste rij ontkoppelen',
 
@@ -118,12 +123,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 
   [C.LOADING_TITLE]: 'Laden...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Sluiten',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Geen gegevens beschikbaar',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Er is nog niets te tonen.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Geen resultaten gevonden',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Het lijkt erop dat uw huidige filters alle resultaten verbergen.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Filters resetten',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Gegevens laden',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Even geduld.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Gegevens konden niet worden geladen',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Rijen konden niet worden aangemaakt',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Rijen konden niet worden bijgewerkt',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Rijen konden niet worden verwijderd',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Verzoek mislukt',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Opnieuw laden',
 };
 
 export default dictionary;

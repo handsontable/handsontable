@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
+import { isBottomMostColumnHeader } from '../../helpers/dom/element';
 import { isEmpty } from '../../helpers/mixed';
 import { parseToLocalDate, parseToLocalTime } from '../../helpers/dateTime';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from './sortService';
@@ -82,18 +83,11 @@ export function getHeaderSpanElement(TH) {
  * @returns {boolean}
  */
 export function isFirstLevelColumnHeader(column, TH) {
-  if (column < 0 || !TH.parentNode) {
+  if (column < 0) {
     return false;
   }
 
-  const TRs = TH.parentNode.parentNode.childNodes;
-  const headerLevel = Array.from(TRs).indexOf(TH.parentNode) - TRs.length;
-
-  if (headerLevel !== -1) {
-    return false;
-  }
-
-  return true;
+  return isBottomMostColumnHeader(TH);
 }
 
 /**
@@ -105,7 +99,17 @@ export function isFirstLevelColumnHeader(column, TH) {
  * @returns {boolean}
  */
 export function wasHeaderClickedProperly(row, column, clickEvent) {
-  return row === -1 && column >= 0 && isRightClick(clickEvent) === false;
+  if (column < 0 || row >= 0 || isRightClick(clickEvent)) {
+    return false;
+  }
+
+  if (row === -1) {
+    return true;
+  }
+
+  const targetHeader = typeof clickEvent.target.closest === 'function' ? clickEvent.target.closest('th') : null;
+
+  return isBottomMostColumnHeader(targetHeader);
 }
 
 /**

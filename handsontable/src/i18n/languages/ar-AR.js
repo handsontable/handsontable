@@ -56,6 +56,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'نسخ',
   [C.CONTEXTMENU_ITEMS_CUT]: 'قص',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'تصدير',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'إلى CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'إلى Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'جارٍ التصدير…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'أدخل صفاً فرعياً',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'افصل عن الصف الأصلي',
 
@@ -114,12 +119,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
 
   [C.LOADING_TITLE]: 'جاري التحميل...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'إغلاق',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'لا توجد بيانات متاحة',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'لا يوجد شيء للعرض بعد.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'لم يتم العثور على نتائج',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'يبدو أن المرشحات الحالية تخفي جميع النتائج.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'إعادة تعيين المرشحات',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'جارٍ تحميل البيانات',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'يرجى الانتظار.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'تعذر تحميل البيانات',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'تعذر إنشاء الصفوف',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'تعذر تحديث الصفوف',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'تعذر إزالة الصفوف',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'فشل الطلب',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'إعادة التحميل',
 };
 
 export default dictionary;

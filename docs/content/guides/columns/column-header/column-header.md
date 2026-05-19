@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: qiasr3y1
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column headers
-
 Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 
 [[toc]]
@@ -218,31 +216,60 @@ More complex data structures can be displayed with multiple headers, each repres
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Column groups](@/guides/columns/column-groups/column-groups.md)
 
 </div>
 
-### Related API reference
+**Related blog articles**
 
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`colHeaders`](@/api/options.md#colheaders)
-  - [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`nestedHeaders`](@/api/options.md#nestedheaders)
-  - [`title`](@/api/options.md#title)
-- Core methods:
-  - [`getColHeader()`](@/api/core.md#getcolheader)
-  - [`hasColHeaders()`](@/api/core.md#hascolheaders)
-- Hooks:
-  - [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader)
-  - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
-  - [`modifyColumnHeaderHeight`](@/api/hooks.md#modifycolumnheaderheight)
-- Plugins:
-  - [`NestedHeaders`](@/api/nestedHeaders.md)
+<div class="boxes-list">
+
+- [Handsontable 14.5.0: Improved performance and flexible column header class](https://handsontable.com/blog/handsontable-14.5.0-improved-performance-and-flexible-column-header-class)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [colHeaders](@/api/options.md#colheaders)
+- [columnHeaderHeight](@/api/options.md#columnheaderheight)
+- [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [nestedHeaders](@/api/options.md#nestedheaders)
+- [title](@/api/options.md#title)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getColHeader()](@/api/core.md#getcolheader)
+- [hasColHeaders()](@/api/core.md#hascolheaders)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetColHeader](@/api/hooks.md#aftergetcolheader)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [beforeHighlightingColumnHeader](@/api/hooks.md#beforehighlightingcolumnheader)
+- [modifyColHeader](@/api/hooks.md#modifycolheader)
+- [modifyColumnHeaderHeight](@/api/hooks.md#modifycolumnheaderheight)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [NestedHeaders](@/api/nestedHeaders.md)
+
+</div>

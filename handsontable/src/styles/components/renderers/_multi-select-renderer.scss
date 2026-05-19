@@ -73,7 +73,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 0 calc(var(--ht-gap-size) * 2);
+      padding: var(--ht-chip-vertical-padding) var(--ht-chip-horizontal-padding);
       background: var(--ht-chip-background);
       border-radius: var(--ht-chip-border-radius);
       color: var(--ht-foreground-color);

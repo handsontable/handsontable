@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: cf4e768b
 title: Numbro
 metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable
@@ -20,9 +21,39 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Numbro Cell Type - Step-by-Step Guide
+This tutorial shows you how to create a custom numeric cell type using the Numbro library for locale-aware number formatting.
 
-[[toc]]
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
+
+@[code](@/content/recipes/cell-types/numbro/javascript/example1.js)
+@[code](@/content/recipes/cell-types/numbro/javascript/example1.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --js 1 --ts 2 --deps numbro
+
+@[code](@/content/recipes/cell-types/numbro/react/example1.jsx)
+@[code](@/content/recipes/cell-types/numbro/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps numbro
+
+@[code](@/content/recipes/cell-types/numbro/angular/example1.ts)
+@[code](@/content/recipes/cell-types/numbro/angular/example1.html)
+
+:::
+
+:::
 
 ## Overview
 
@@ -31,15 +62,6 @@ This guide shows how to create a custom numbro cell type using the [Numbro](http
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 **Libraries:** `numbro`
-
-## Complete Example
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --deps numbro
-
-@[code](@/content/recipes/cell-types/numbro/javascript/example1.js)
-@[code](@/content/recipes/cell-types/numbro/javascript/example1.ts)
-
-:::
 
 ## What You'll Build
 
@@ -215,3 +237,13 @@ const hot = new Handsontable(container, hotOptions);
 3. **User enters number**: Input is validated against the numeric validator
 4. **Validation**: Non-numeric values are rejected; valid numbers are accepted
 5. **Save**: The value is stored as a raw number and re-rendered with Numbro formatting
+
+## What you learned
+
+You created a custom Numbro-based numeric cell type in Handsontable. You used `rendererFactory` to format numbers with Numbro before display, registered all Numbro language packs for locale support, and composed the cell type from a custom renderer with the built-in numeric validator and editor.
+
+## Next steps
+
+- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - A custom cell type using another third-party library for date formatting.
+- [Moment.js time](@/recipes/cell-types/moment-time/moment-time.md) - A custom cell type using Moment.js for time validation.
+- [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) - A date picker cell type using Pikaday and Moment.js.

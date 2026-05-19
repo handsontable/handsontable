@@ -1,8 +1,10 @@
 /* file: app.component.ts */
-import {Component, OnInit, TemplateRef, ViewChild} from '@angular/core';
-import {GridSettings} from '@handsontable/angular-wrapper';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example2',
   template: `
     <hot-table
@@ -13,10 +15,9 @@ import {GridSettings} from '@handsontable/angular-wrapper';
       <img [src]="value" (mousedown)="$event.preventDefault()"/>
     </ng-template>
   `,
-  standalone: false
 })
 export class AppComponent implements OnInit {
-  @ViewChild('myCellTpl', { static: true }) myCellTpl!: TemplateRef<any>;
+  @ViewChild('myCellTpl', { static: true }) myCellTpl!: TemplateRef<HTMLInputElement>;
 
   readonly hotData = [
     {
@@ -25,21 +26,21 @@ export class AppComponent implements OnInit {
       description:
         'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
       cover:
-        '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
+        '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
     },
     {
       title:
         '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
       description:
         'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
-      cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg',
+      cover: '/docs/img/examples/javascript-the-good-parts.jpg',
     },
     {
       title:
         '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
       description:
         '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
-      cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg',
+      cover: '/docs/img/examples/javascript-the-definitive-guide.jpg',
     },
   ];
 
@@ -63,38 +64,22 @@ export class AppComponent implements OnInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

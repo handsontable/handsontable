@@ -11,36 +11,34 @@ describe('MergeCells scrolling', () => {
   });
 
   it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked', async() => {
+    // Size the container tall enough to fully show the 2-row merged cell regardless of theme
+    // row height, plus some rows above and below so clicking does not trigger extra scrolling.
     handsontable({
       data: createSpreadsheetObjectData(10, 5),
       mergeCells: [
         { row: 5, col: 0, rowspan: 2, colspan: 2 }
       ],
-      height: 100,
+      height: containerHeightForRows(4, 0),
       width: 400
     });
 
-    await scrollViewportVertically(130);
+    // Scroll so that the merged cell's first row (5) sits exactly at the top of the viewport.
+    // This makes the merged cell fully visible, so clicking it should NOT shift the scroll.
+    const scrollPos = 5 * getDefaultRowHeight();
+
+    await scrollViewportVertically(scrollPos);
     await render();
     await simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(130);
-      main.toBe(130);
-      horizon.toBe(160);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(scrollPos);
 
     await scrollViewportVertically(0);
     await render();
-    await scrollViewportVertically(130);
+    await scrollViewportVertically(scrollPos);
     await render();
     await simulateClick(getCell(5, 2));
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(130);
-      main.toBe(130);
-      horizon.toBe(130);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(scrollPos);
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked', async() => {
@@ -85,11 +83,7 @@ describe('MergeCells scrolling', () => {
     await render();
     await simulateClick(getCell(5, 0));
 
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(131);
-      main.toBe(146);
-      horizon.toBe(186);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(getThemeLayout().overlayHeight({ rows: 5 }));
   });
 
   it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked (virtualized is on)', async() => {

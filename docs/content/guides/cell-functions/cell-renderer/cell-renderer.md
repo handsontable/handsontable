@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: ohjf69hj
 title: Cell renderer
 metaTitle: Cell renderer - JavaScript Data Grid | Handsontable
@@ -13,216 +14,11 @@ angular:
   metaTitle: Cell renderer - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
-menuTag: updated
 ---
 
-# Cell renderer
-
-Create a custom cell renderer function, to have full control over how a cell looks.
+A cell renderer is a function that controls how cell content is displayed in the DOM. Override a built-in renderer or write your own to customize the visual output.
 
 [[toc]]
-
-## Overview
-
-A renderer is a function that determines how a cell looks. It's responsible for the complete cell rendering process, including DOM structure creation, content insertion, applying CSS classes, setting accessibility attributes, and managing all visual aspects of the cell.
-
-::: tip
-
-If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead. It's more performant and simpler for value-only transformations. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts. See the [`renderer` vs `valueFormatter`](#renderer-vs-valueformatter) section for a detailed comparison.
-
-:::
-
-### Built-in renderers
-
-Handsontable provides 10 built-in renderers that you can use by their alias names. Each renderer is designed for a specific use case:
-
-| Alias | What the renderer does |
-|-------|------------------------|
-| `autocomplete` | Renders autocomplete cells with suggestions |
-| `checkbox` | Renders checkbox cells for boolean values or values defined by [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) options |
-| `date` | Renders date values with date formatting |
-| `dropdown` | Renders dropdown cells with select options |
-| `html` | Renders HTML content in cells (allows raw HTML) |
-| `numeric` | Renders numeric values with number formatting |
-| `password` | Renders password fields (masks the displayed value) |
-| `text` | Renders plain text (default renderer) |
-| `time` | Renders time values with time formatting |
-
-Using aliases provides a convenient way to specify which renderer should be used without needing to reference the full renderer function. You can change the renderer function associated with an alias without modifying the code that uses it.
-
-## `renderer` vs `valueFormatter`
-
-As mentioned in the [Overview](#overview), Handsontable provides two distinct options for controlling how cell values are displayed: [`valueFormatter`](@/api/options.md#valueformatter) and [`renderer`](@/api/options.md#renderer). This section provides a detailed comparison to help you choose the right tool for your use case.
-
-### What is `renderer`?
-
-The `renderer` option is a function responsible for the complete cell rendering process. It handles DOM structure creation, content insertion (via `innerText` or `innerHTML`), applying CSS classes, setting accessibility attributes, and managing all visual aspects of the cell.
-
-**Function signature:**
-```js
-renderer(hotInstance, td, row, col, prop, value, cellProperties)
-```
-
-**When to use `renderer`:**
-- Modify DOM structure (add icons, custom HTML elements, complex layouts)
-- Apply custom styling or CSS classes dynamically
-- Handle accessibility attributes
-- Create interactive elements within cells
-- When you need full control over the cell's HTML structure
-
-**Example:**
-
-```js
-function customRenderer(hotInstance, td, row, col, prop, value, cellProperties) {
-  // Create custom DOM structure
-  td.innerHTML = `
-    <div class="custom-wrapper">
-      <span class="icon">📊</span>
-      <span class="value">${value}</span>
-    </div>
-  `;
-}
-```
-
-### What is `valueFormatter`?
-
-The `valueFormatter` option (available since v17.0.0) is a function that transforms cell values before they are displayed. It focuses solely on value transformation and is called by the rendering engine right before the renderer function executes.
-
-**Function signature:**
-```js
-valueFormatter(value, cellProperties) => formattedValue
-```
-
-**When to use `valueFormatter`:**
-- Transform displayed values (add prefix, suffix, units)
-- Format dates, numbers, or text in a custom way
-- Apply simple text transformations
-- When you only need to change what is displayed, not how it's rendered
-
-**Example:**
-
-::: only-for javascript
-
-```js
-columns: [
-  {
-    data: 'price',
-    valueFormatter(value) {
-      return value ? `$${value.toFixed(2)}` : '';
-    }
-  },
-  {
-    data: 'weight',
-    valueFormatter(value) {
-      return value ? `${value} kg` : '';
-    }
-  }
-]
-```
-
-:::
-
-::: only-for react
-
-```jsx
-columns={[{
-  data: 'price',
-  valueFormatter(value) {
-    return value ? `$${value.toFixed(2)}` : '';
-  }
-}]}
-```
-
-:::
-
-::: only-for angular
-
-```ts
-settings = {
-  columns: [
-    {
-      data: 'price',
-      valueFormatter(value) {
-        return value ? `$${value.toFixed(2)}` : '';
-      }
-    }
-  ]
-};
-```
-
-:::
-
-### Key differences
-
-| Aspect | `valueFormatter` | `renderer` |
-|--------|------------------|------------|
-| **Purpose** | Transform the value | Complete cell rendering |
-| **Scope** | Value transformation only | DOM structure, styling, accessibility |
-| **Performance** | Faster (called before renderer) | More overhead (full DOM manipulation) |
-| **Use case** | Simple formatting (units, prefixes) | Complex layouts, custom HTML |
-| **Returns** | Formatted value | Nothing (modifies DOM directly) |
-
-### Using `renderer` and `valueFormatter` together
-
-Using both `renderer` and `valueFormatter` together is recommended when you need both value formatting and custom DOM structure. This approach separates concerns: `valueFormatter` handles value transformation, while `renderer` focuses on DOM manipulation. This separation improves maintainability and code clarity. The `valueFormatter` executes first, transforming the value, and then the `renderer` receives the formatted value:
-
-::: only-for javascript
-
-```js
-columns: [
-  {
-    data: 'amount',
-    // First, format the value
-    valueFormatter(value) {
-      return `$${value.toFixed(2)}`;
-    },
-    // Then, render it with custom DOM structure
-    renderer(hotInstance, td, row, col, prop, value, cellProperties) {
-      TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
-    }
-  }
-]
-```
-
-:::
-
-::: only-for react
-
-```jsx
-columns={[{
-  data: 'amount',
-  valueFormatter(value) {
-    return `$${value.toFixed(2)}`;
-  },
-  renderer(hotInstance, TD, row, col, prop, value, cellProperties) {
-    TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
-  }
-}]}
-```
-
-:::
-
-::: only-for angular
-
-```ts
-settings = {
-  columns: [
-    {
-      data: 'amount',
-      valueFormatter(value) {
-        return `$${value.toFixed(2)}`;
-      },
-      renderer(hotInstance, td, row, col, prop, value, cellProperties) {
-        TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
-      }
-    }
-  ]
-};
-```
-
-:::
-
-In this example, `valueFormatter` adds the currency symbol and formatting, while `renderer` wraps it in a custom DOM structure with additional styling.
 
 ## Use a cell renderer
 
@@ -612,13 +408,217 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
 
-## Related articles
+## Related API
+
+### Overview
+
+A renderer is a function that determines how a cell looks. It's responsible for the complete cell rendering process, including DOM structure creation, content insertion, applying CSS classes, setting accessibility attributes, and managing all visual aspects of the cell.
+
+::: tip
+
+If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead. It's more performant and simpler for value-only transformations. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts. See the [`renderer` vs `valueFormatter`](#renderer-vs-valueformatter) section for a detailed comparison.
+
+:::
+
+### Built-in renderers
+
+Handsontable provides 10 built-in renderers that you can use by their alias names. Each renderer is designed for a specific use case:
+
+| Alias | What the renderer does |
+|-------|------------------------|
+| `autocomplete` | Renders autocomplete cells with suggestions |
+| `checkbox` | Renders checkbox cells for boolean values or values defined by [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate) options |
+| `date` | Renders date values with date formatting |
+| `dropdown` | Renders dropdown cells with select options |
+| `html` | Renders HTML content in cells (allows raw HTML) |
+| `numeric` | Renders numeric values with number formatting |
+| `password` | Renders password fields (masks the displayed value) |
+| `text` | Renders plain text (default renderer) |
+| `time` | Renders time values with time formatting |
+
+Using aliases provides a convenient way to specify which renderer should be used without needing to reference the full renderer function. You can change the renderer function associated with an alias without modifying the code that uses it.
+
+### `renderer` vs `valueFormatter`
+
+Handsontable provides two distinct options for controlling how cell values are displayed: [`valueFormatter`](@/api/options.md#valueformatter) and [`renderer`](@/api/options.md#renderer). This section provides a detailed comparison to help you choose the right tool for your use case.
+
+#### What is `renderer`?
+
+The `renderer` option is a function responsible for the complete cell rendering process. It handles DOM structure creation, content insertion (via `innerText` or `innerHTML`), applying CSS classes, setting accessibility attributes, and managing all visual aspects of the cell.
+
+**Function signature:**
+```js
+renderer(hotInstance, td, row, col, prop, value, cellProperties)
+```
+
+**When to use `renderer`:**
+- Modify DOM structure (add icons, custom HTML elements, complex layouts)
+- Apply custom styling or CSS classes dynamically
+- Handle accessibility attributes
+- Create interactive elements within cells
+- When you need full control over the cell's HTML structure
+
+**Example:**
+
+```js
+function customRenderer(hotInstance, td, row, col, prop, value, cellProperties) {
+  // Create custom DOM structure
+  td.innerHTML = `
+    <div class="custom-wrapper">
+      <span class="icon">📊</span>
+      <span class="value">${value}</span>
+    </div>
+  `;
+}
+```
+
+#### What is `valueFormatter`?
+
+The `valueFormatter` option (available since v17.0.0) is a function that transforms cell values before they are displayed. It focuses solely on value transformation and is called by the rendering engine right before the renderer function executes.
+
+**Function signature:**
+```js
+valueFormatter(value, cellProperties) => formattedValue
+```
+
+**When to use `valueFormatter`:**
+- Transform displayed values (add prefix, suffix, units)
+- Format dates, numbers, or text in a custom way
+- Apply simple text transformations
+- When you only need to change what is displayed, not how it's rendered
+
+**Example:**
 
 ::: only-for javascript
 
-### Related guides
+```js
+columns: [
+  {
+    data: 'price',
+    valueFormatter(value) {
+      return value ? `$${value.toFixed(2)}` : '';
+    }
+  },
+  {
+    data: 'weight',
+    valueFormatter(value) {
+      return value ? `${value} kg` : '';
+    }
+  }
+]
+```
 
-<div class="boxes-list gray">
+:::
+
+::: only-for react
+
+```jsx
+columns={[{
+  data: 'price',
+  valueFormatter(value) {
+    return value ? `$${value.toFixed(2)}` : '';
+  }
+}]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      data: 'price',
+      valueFormatter(value) {
+        return value ? `$${value.toFixed(2)}` : '';
+      }
+    }
+  ]
+};
+```
+
+:::
+
+#### Key differences
+
+| Aspect | `valueFormatter` | `renderer` |
+|--------|------------------|------------|
+| **Purpose** | Transform the value | Complete cell rendering |
+| **Scope** | Value transformation only | DOM structure, styling, accessibility |
+| **Performance** | Faster (called before renderer) | More overhead (full DOM manipulation) |
+| **Use case** | Simple formatting (units, prefixes) | Complex layouts, custom HTML |
+| **Returns** | Formatted value | Nothing (modifies DOM directly) |
+
+#### Using `renderer` and `valueFormatter` together
+
+Using both `renderer` and `valueFormatter` together is recommended when you need both value formatting and custom DOM structure. This approach separates concerns: `valueFormatter` handles value transformation, while `renderer` focuses on DOM manipulation. This separation improves maintainability and code clarity. The `valueFormatter` executes first, transforming the value, and then the `renderer` receives the formatted value:
+
+::: only-for javascript
+
+```js
+columns: [
+  {
+    data: 'amount',
+    // First, format the value
+    valueFormatter(value) {
+      return `$${value.toFixed(2)}`;
+    },
+    // Then, render it with custom DOM structure
+    renderer(hotInstance, td, row, col, prop, value, cellProperties) {
+      TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
+    }
+  }
+]
+```
+
+:::
+
+::: only-for react
+
+```jsx
+columns={[{
+  data: 'amount',
+  valueFormatter(value) {
+    return `$${value.toFixed(2)}`;
+  },
+  renderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+    TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
+  }
+}]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      data: 'amount',
+      valueFormatter(value) {
+        return `$${value.toFixed(2)}`;
+      },
+      renderer(hotInstance, td, row, col, prop, value, cellProperties) {
+        TD.innerHTML = `<div class="amount-cell"><span class="currency">${value}</span></div>`;
+      }
+    }
+  ]
+};
+```
+
+:::
+
+In this example, `valueFormatter` adds the currency symbol and formatting, while `renderer` wraps it in a custom DOM structure with additional styling.
+
+### Configuration options and API
+
+::: only-for javascript
+
+**Related guides**
+
+<div class="boxes-list">
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
@@ -629,26 +629,51 @@ If you only need to format the displayed value (e.g., add units, format dates, o
 
 :::
 
-### Related API reference
+**APIs**
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`renderer`](@/api/options.md#renderer)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-  - [`sanitizer`](@/api/options.md#sanitizer)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [renderer](@/api/options.md#renderer)
+- [valueFormatter](@/api/options.md#valueformatter)
+- [sanitizer](@/api/options.md#sanitizer)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellRenderer()](@/api/core.md#getcellrenderer)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [afterRenderer](@/api/hooks.md#afterrenderer)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeRenderer](@/api/hooks.md#beforerenderer)
+
+</div>
+
+## Result
+
+You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.

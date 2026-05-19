@@ -29,13 +29,15 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button id="copy" onMouseDown={() => copyBtnMousedownCallback()} onClick={() => copyBtnClickCallback()}>
-          Select and copy cell B2
-        </button>
-        <button id="cut" onMouseDown={() => cutBtnMousedownCallback()} onClick={() => cutBtnClickCallback()}>
-          Select and cut cell B2
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="copy" onMouseDown={() => copyBtnMousedownCallback()} onClick={() => copyBtnClickCallback()}>
+            Select and copy cell B2
+          </button>
+          <button id="cut" onMouseDown={() => cutBtnMousedownCallback()} onClick={() => cutBtnClickCallback()}>
+            Select and cut cell B2
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

@@ -7,7 +7,7 @@ import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.compo
 @Component({
   selector: 'hot-mock-custom-editor',
   template: '<input />',
-  standalone: false,
+  standalone: true,
 })
 class CustomEditorComponent extends HotCellEditorAdvancedComponent<number> {
   onFocus(): void {}

@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: rgajvjfa
 title: Introduction
 metaTitle: JavaScript Data Grid - Documentation | Handsontable
@@ -14,12 +15,7 @@ angular:
 searchCategory: Guides
 category: Getting started
 ---
-
-# Introduction
-
-Handsontable is a popular JavaScript data grid component that brings the well-known look and feel of spreadsheets to your application.
-
-You can use Handsontable for all types of data-rich, accessible applications, empowering users to enter, edit, validate, and process data from various sources, including remote sources like databases and APIs, as well as HTML documents, Excel files, Google Sheets, and manual input.
+Handsontable is a JavaScript data grid component. This page explains what it does, who uses it, and when it is the right tool for your project.
 
 [[toc]]
 
@@ -31,34 +27,34 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 - <i class="ico i-react"></i>
 [React](@/react/guides/getting-started/installation/installation.md)
-- <i class="ico i-javascript"></i> 
+- <i class="ico i-javascript"></i>
 [JavaScript](@/javascript/guides/getting-started/installation/installation.md)
 - <i class="ico i-angular"></i>
 [Angular](@/angular/guides/getting-started/installation/installation.md)
-- <i class="ico i-vue"></i> 
+- <i class="ico i-vue"></i>
 [Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 </div>
 
-## Examples 
+## Examples
 
 <div class="boxes-list gray">
 
 - [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})
-- [Vanilla JS](https://handsontable.com/codesandbox-browser?example-dir=javascript&handsontable-version={{$currentVersion}})
-- [React TS](https://handsontable.com/codesandbox-browser?example-dir=react&handsontable-version={{$currentVersion}})
-- [React JS](https://handsontable.com/codesandbox-browser?example-dir=react-js&handsontable-version={{$currentVersion}})
-- [TypeScript](https://handsontable.com/codesandbox-browser?example-dir=typescript&handsontable-version={{$currentVersion}})
+- [Vanilla JS](https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox-vm?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [TypeScript](https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version={{$currentVersion}})
 - [Vue 3](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version={{$currentVersion}})
 
 </div>
 
-Examples with SSR (Server Side Rendering): 
+Examples with SSR (Server Side Rendering):
 
 <div class="boxes-list gray">
 
 - [Next.js](https://handsontable.com/codesandbox-vm?example-dir=next.js&handsontable-version={{$currentVersion}})
-- [Astro](https://handsontable.com/codesandbox-vm?example-dir=astro&handsontable-version={{$currentVersion}}) 
+- [Astro](https://handsontable.com/codesandbox-vm?example-dir=astro&handsontable-version={{$currentVersion}})
 - [Remix](https://handsontable.com/codesandbox-vm?example-dir=remix&handsontable-version={{$currentVersion}})
 - [Nuxt](https://handsontable.com/codesandbox-vm?example-dir=nuxt&handsontable-version={{$currentVersion}})
 
@@ -96,10 +92,11 @@ Handsontable's built-in features make it a perfect fit for applications across d
 
 You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
 
-- [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
+<div class="boxes-list">
+
 - [Developers' forum](https://forum.handsontable.com/)
-- [X](https://x.com/handsontable)
-- [Stack Overflow](https://stackoverflow.com/tags/handsontable)
+
+</div>
 
 ## Technical support
 
@@ -107,7 +104,16 @@ Implementing Handsontable requires a certain level of front-end development skil
 
 ## Stay in the loop
 
-- [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md)
+<div class="boxes-list">
+
+- [Changelog](@/guides/upgrade-and-migration/changelog-17/changelog-17.md)
 - [Blog](https://handsontable.com/blog)
 - [X](https://x.com/handsontable)
 - [LinkedIn](https://linkedin.com/company/handsontable)
+
+</div>
+
+## Related
+
+- [Installation](@/guides/getting-started/installation/installation.md) -- add Handsontable to your project using a package manager or CDN.
+- [Demo](@/guides/getting-started/demo/demo.md) -- try out the grid's core features interactively before you build.

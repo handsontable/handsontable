@@ -21,6 +21,7 @@
     margin: 0;
     padding: 0;
     border: 0;
+    outline: 0;
     opacity: 0;
     z-index: -1;
   }
@@ -346,20 +347,18 @@
           }
 
           .relative {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
             padding: var(--ht-cell-vertical-padding) var(--ht-cell-horizontal-padding);
+            gap: 2px;
 
             .colHeader {
+              flex: 1 1 auto;
+              min-width: 0;
               text-overflow: ellipsis;
               overflow: hidden;
               vertical-align: top;
-              max-width: calc(100% + 1px);
-            }
-
-            // compensates the icon + gap + 1px border size
-            &:has(.collapsibleIndicator, .changeType) {
-              .colHeader {
-                max-width: calc(100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px);
-              }
             }
           }
         }
@@ -549,6 +548,11 @@
     // Visual fixes
     // It removes double right border from first column header when row headers are disabled
     .ht_clone_top th:nth-child(2) {
+      border-inline-start-width: 0;
+      border-inline-end-width: 1px;
+    }
+
+    .ht_clone_top_inline_start_corner th:nth-child(2) {
       border-inline-start-width: 0;
       border-inline-end-width: 1px;
     }

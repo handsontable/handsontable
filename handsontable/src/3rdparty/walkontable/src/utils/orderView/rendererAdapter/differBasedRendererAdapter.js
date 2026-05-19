@@ -1,3 +1,11 @@
+import {
+  CMD_PREPEND,
+  CMD_APPEND,
+  CMD_INSERT_BEFORE,
+  CMD_REPLACE,
+  CMD_REMOVE,
+} from '../constants';
+
 /**
  * Differ based renderer adapter that uses ViewDiffer for efficient DOM manipulation.
  * This is the default implementation for most browsers.
@@ -9,10 +17,10 @@ export class DifferBasedRendererAdapter {
    * The list of render commands to execute. The command is an array with the following
    * structure: [
    *   [
-   *     'prepend' | 'append' | 'insert_before' | 'replace' | 'remove', // command name
+   *     CMD_PREPEND | CMD_APPEND | CMD_INSERT_BEFORE | CMD_REPLACE | CMD_REMOVE, // command type
    *     10, // processed node index
-   *     9,  // previous node index (only for 'insert_before' and 'replace' commands)
-   *     8   // node index to remove (only for 'insert_before' command)
+   *     9,  // previous node index (only for CMD_INSERT_BEFORE and CMD_REPLACE commands)
+   *     8   // node index to remove (only for CMD_INSERT_BEFORE command)
    *   ],
    *   ...
    * ].
@@ -20,6 +28,13 @@ export class DifferBasedRendererAdapter {
    * @type {Array[]}
    */
   leads = [];
+  /**
+   * Current position within the leads array. Used instead of Array.shift()
+   * to avoid O(n) per-call overhead.
+   *
+   * @type {number}
+   */
+  leadIndex = 0;
 
   /**
    * @param {OrderView} orderView The OrderView instance.
@@ -41,21 +56,21 @@ export class DifferBasedRendererAdapter {
     this.orderView.collectedNodes.push(node);
 
     switch (name) {
-      case 'prepend':
+      case CMD_PREPEND:
         rootNode.insertBefore(node, rootNode.firstChild);
         break;
-      case 'append':
+      case CMD_APPEND:
         rootNode.appendChild(node);
         break;
-      case 'insert_before':
+      case CMD_INSERT_BEFORE:
         rootNode.insertBefore(node, this.orderView.nodesPool(nodePrevIndex));
         // To keep the constant length of child nodes (after inserting a node) remove the last child.
         rootNode.removeChild(this.orderView.nodesPool(nodeIndexToRemove));
         break;
-      case 'replace':
+      case CMD_REPLACE:
         rootNode.replaceChild(node, this.orderView.nodesPool(nodePrevIndex));
         break;
-      case 'remove':
+      case CMD_REMOVE:
         rootNode.removeChild(node);
         break;
       default:
@@ -70,6 +85,7 @@ export class DifferBasedRendererAdapter {
   start() {
     this.orderView.collectedNodes.length = 0;
     this.leads = this.orderView.viewDiffer.diff();
+    this.leadIndex = 0;
   }
 
   /**
@@ -77,8 +93,9 @@ export class DifferBasedRendererAdapter {
    * This method has to be called as many times as the size count is met (to cover all previously rendered DOM elements).
    */
   render() {
-    if (this.leads.length > 0) {
-      this.applyCommand(this.leads.shift());
+    if (this.leadIndex < this.leads.length) {
+      this.applyCommand(this.leads[this.leadIndex]);
+      this.leadIndex += 1;
     }
   }
 
@@ -87,9 +104,11 @@ export class DifferBasedRendererAdapter {
    * This method has to be called only once (at the end) for the render cycle.
    */
   end() {
-    while (this.leads.length > 0) {
-      this.applyCommand(this.leads.shift());
+    const { leads } = this;
+
+    while (this.leadIndex < leads.length) {
+      this.applyCommand(leads[this.leadIndex]);
+      this.leadIndex += 1;
     }
   }
 }
-

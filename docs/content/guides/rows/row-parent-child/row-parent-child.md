@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
@@ -23,9 +24,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row parent-child
-
 Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
 buttons or an extended context menu.
 
@@ -141,7 +139,13 @@ The context menu has been extended with a few Nested Rows related options, such 
 
 The “Insert row above” and “Insert row below” options were modified to work properly with the nested data structure.
 
-## Known limitations
+## Result
+
+After completing this guide, your grid displays rows in a parent-child hierarchy with collapse and expand toggle buttons in row headers and context menu options for inserting and detaching child rows.
+
+## Notes
+
+### Known limitations
 
 When you use the parent-child row structure, the following Handsontable features are not supported:
 
@@ -149,7 +153,7 @@ When you use the parent-child row structure, the following Handsontable features
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
 
-## Related keyboard shortcuts
+### Keyboard shortcuts
 
 | Windows              | macOS                | Action                           |  Excel  | Sheets  |
 | -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
@@ -157,29 +161,50 @@ When you use the parent-child row structure, the following Handsontable features
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Row header](@/guides/rows/row-header/row-header.md)
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`bindRowsWithHeaders`](@/api/options.md#bindrowswithheaders)
-  - [`contextMenu`](@/api/options.md#contextmenu)
-  - [`nestedRows`](@/api/options.md#nestedrows)
-  - [`rowHeaders`](@/api/options.md#rowheaders)
-- Core methods:
-  - [`getRowHeader()`](@/api/core.md#getrowheader)
-- Hooks:
-  - [`afterAddChild`](@/api/hooks.md#afteraddchild)
-  - [`afterDetachChild`](@/api/hooks.md#afterdetachchild)
-  - [`beforeAddChild`](@/api/hooks.md#beforeaddchild)
-  - [`beforeDetachChild`](@/api/hooks.md#beforedetachchild)
-- Plugins:
-  - [`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)
-  - [`ContextMenu`](@/api/contextMenu.md)
-  - [`NestedRows`](@/api/nestedRows.md)
+<div class="boxes-list">
+
+- [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
+- [contextMenu](@/api/options.md#contextmenu)
+- [nestedRows](@/api/options.md#nestedrows)
+- [rowHeaders](@/api/options.md#rowheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getRowHeader()](@/api/core.md#getrowheader)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterAddChild](@/api/hooks.md#afteraddchild)
+- [afterDetachChild](@/api/hooks.md#afterdetachchild)
+- [beforeAddChild](@/api/hooks.md#beforeaddchild)
+- [beforeDetachChild](@/api/hooks.md#beforedetachchild)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [BindRowsWithHeaders](@/api/bindRowsWithHeaders.md)
+- [ContextMenu](@/api/contextMenu.md)
+- [NestedRows](@/api/nestedRows.md)
+
+</div>

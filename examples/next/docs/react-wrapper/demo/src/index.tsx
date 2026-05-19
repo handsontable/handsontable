@@ -5,7 +5,6 @@ import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react-wrapper";
 import { data } from "./constants";
-import { addClassesToRows } from "./hooksCallbacks";
 
 const App = () => {
   return (
@@ -31,7 +30,7 @@ const App = () => {
       filters={true}
       rowHeaders={true}
       headerClassName="htLeft"
-      beforeRenderer={addClassesToRows}
+
       manualRowMove={true}
       autoWrapRow={true}
       navigableHeaders={true}

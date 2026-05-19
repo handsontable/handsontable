@@ -38,9 +38,7 @@ describe('Core_init', () => {
     doc.write(`
       <!doctype html>
       <head>
-        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
-        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
+        ${getE2eThemeStylesheetLinkTagsHtml()}
       </head>`);
     doc.close();
 
@@ -86,7 +84,7 @@ describe('Core_init', () => {
 
     spec().$container.css('display', initialDisplayValue);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
@@ -124,7 +122,7 @@ describe('Core_init', () => {
 
     $testParentContainer.css('display', 'block');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
@@ -160,7 +158,7 @@ describe('Core_init', () => {
 
     spec().$container.css('display', 'block');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));
@@ -199,7 +197,7 @@ describe('Core_init', () => {
 
     $testParentContainer.css('display', 'block');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     const $topHolderElement = getTopClone().find('.wtHolder');
     const $testTopHeader = $(hot.getCell(-1, 0, true));

@@ -73,5 +73,29 @@ describe('NestedHeaders', () => {
 
       expect(getPlugin('dropdownMenu').menu.container.style.display).not.toBe('block');
     });
+
+    it('should not throw after sorting when current highlight is disabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 11),
+        colHeaders: true,
+        rowHeaders: true,
+        columnSorting: true,
+        navigableHeaders: true,
+        disableVisualSelection: 'current',
+        nestedHeaders: [
+          ['A', { label: 'B', colspan: 8 }, 'C'],
+        ],
+      });
+
+      const $headerWithSortAction = spec().$container.find(
+        '.ht_master table.htCore thead tr:last-of-type th:nth-of-type(2) span.columnSorting'
+      );
+
+      $headerWithSortAction.simulate('mousedown');
+      $headerWithSortAction.simulate('mouseup');
+      $headerWithSortAction.simulate('click');
+
+      expect(getPlugin('columnSorting').isSorted()).toBe(true);
+    });
   });
 });

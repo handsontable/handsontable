@@ -1,28 +1,50 @@
-const fs = require('fs');
-const path = require('path');
-
-const apiHighLevelPages = [
-  'introduction',
-  'core',
-  'hooks',
-  'options'
-];
-
-const plugins = fs.readdirSync(path.join(__dirname, './'))
-  .filter((fileName) => {
-    const file = fs.readFileSync(path.resolve(__dirname, fileName));
-
-    return file.includes('hotPlugin: true\n');
-  }).map(fileName => fileName.split('.').shift());
-
 module.exports = {
   sidebar: [
-    ...apiHighLevelPages,
     {
-      title: 'Plugins',
-      path: 'plugins',
-      collapsable: false,
-      children: plugins
+      title: 'Core API',
+      children: ['introduction', 'core', 'hooks', 'options'],
     },
-  ]
+    {
+      title: 'Columns',
+      children: [
+        'autoColumnSize', 'collapsibleColumns', 'columnSorting', 'columnSummary',
+        'hiddenColumns', 'manualColumnFreeze', 'manualColumnMove',
+        'manualColumnResize', 'multiColumnSorting', 'nestedHeaders', 'stretchColumns',
+      ],
+    },
+    {
+      title: 'Rows',
+      children: [
+        'autoRowSize', 'bindRowsWithHeaders', 'hiddenRows',
+        'manualRowMove', 'manualRowResize', 'nestedRows', 'trimRows',
+      ],
+    },
+    {
+      title: 'Cells',
+      children: ['autofill', 'comments', 'customBorders', 'formulas', 'mergeCells'],
+    },
+    {
+      title: 'Menus & UI',
+      children: [
+        'contextMenu', 'dropdownMenu', 'dialog', 'dragToScroll',
+        'emptyDataState', 'loading',
+      ],
+    },
+    {
+      title: 'Data & tools',
+      children: ['copyPaste', 'exportFile', 'filters', 'pagination', 'search', 'undoRedo'],
+    },
+    {
+      title: 'Classes & utilities',
+      children: [
+        'baseEditor', 'basePlugin', 'cellCoords', 'cellRange',
+        'changesObserver', 'dataMap', 'eventManager', 'ghostTable', 'samplesGenerator',
+        'shortcutManager', 'shortcutContext', 'focusScopeManager',
+        'createShortcutManager', 'createFocusScopeManager',
+        'indexMapper', 'indexMap', 'indexesSequence',
+        'hidingMap', 'trimmingMap',
+        'physicalIndexToValueMap', 'linkedPhysicalIndexToValueMap',
+      ],
+    },
+  ],
 };

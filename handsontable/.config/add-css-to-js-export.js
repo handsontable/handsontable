@@ -1,5 +1,5 @@
 const path = require('path');
-const cssToJsExportPlugin = require('./plugin/webpack/css-to-js-export-plugin');
+const cssToJsExportPlugin = require('./plugin/rspack/css-to-js-export-plugin');
 
 /**
  * Adds cssToJsExportPlugin to each webpack config. Use in styles-development and styles-production

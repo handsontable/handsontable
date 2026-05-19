@@ -54,6 +54,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copier',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Couper',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exporter',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'En CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'En Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exportation…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Insérer une sous-ligne',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Détacher de la ligne précédente',
 
@@ -112,12 +117,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Aller à la dernière page',
 
   [C.LOADING_TITLE]: 'Chargement...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fermer',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Aucune donnée disponible',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Il n\'y a rien à afficher pour le moment.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Aucun résultat trouvé',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Il semble que vos filtres actuels masquent tous les résultats.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Réinitialiser les filtres',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Chargement des données',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Veuillez patienter.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Impossible de charger les données',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Impossible de créer les lignes',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Impossible de mettre à jour les lignes',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Impossible de supprimer les lignes',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'La requête a échoué',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recharger',
 };
 
 export default dictionary;

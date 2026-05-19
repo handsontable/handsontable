@@ -82,7 +82,7 @@ export class PartiallyVisibleColumnsCalculationType {
       zeroBasedScrollOffset,
       totalColumns,
       needReverse,
-      startPositions,
+      positionCache,
       columnWidth,
     } = viewportCalculator;
 
@@ -92,9 +92,9 @@ export class PartiallyVisibleColumnsCalculationType {
       this.startColumn = this.endColumn;
 
       while (this.startColumn > 0) {
-        const calculatedViewportWidth = startPositions[this.endColumn] +
+        const calculatedViewportWidth = positionCache.getOffset(this.endColumn) +
           columnWidth -
-          startPositions[this.startColumn - 1];
+          positionCache.getOffset(this.startColumn - 1);
 
         this.startColumn -= 1;
 
@@ -104,7 +104,7 @@ export class PartiallyVisibleColumnsCalculationType {
       }
     }
 
-    this.startPosition = startPositions[this.startColumn] ?? null;
+    this.startPosition = this.startColumn !== null ? positionCache.getOffset(this.startColumn) : null;
 
     const compensatedViewportWidth = zeroBasedScrollOffset > 0 ? viewportWidth + 1 : viewportWidth;
     const mostRightScrollOffset = scrollOffset + viewportWidth - compensatedViewportWidth;
@@ -113,7 +113,7 @@ export class PartiallyVisibleColumnsCalculationType {
       // the table is to the left of the viewport
       (
         mostRightScrollOffset < (-1) * inlineStartOffset ||
-        scrollOffset > startPositions.at(-1) + columnWidth
+        scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex) + columnWidth
       ) ||
       // the table is to the right of the viewport
       (((-1) * scrollOffset) - viewportWidth > 0)

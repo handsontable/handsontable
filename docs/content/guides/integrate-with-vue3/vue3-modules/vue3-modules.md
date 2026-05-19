@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 0xtliaah
 title: Modules in Vue 3
 metaTitle: Modules - Vue 3 Data Grid | Handsontable
@@ -14,10 +15,7 @@ angular:
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Modules in Vue 3
-
-Reduce the size of your Vue 3 app by importing only the modules that you need and use.
+Import only the Handsontable modules you need to reduce your Vue 3 application bundle size.
 
 [[toc]]
 
@@ -94,6 +92,10 @@ registerPlugin(UndoRedo);
 
 createApp(App).use(router).mount('#app');
 ```
+
+## Result
+
+Your Vue 3 application's bundle includes only the Handsontable base module plus the specific cell types and plugins you registered, which reduces the final bundle size compared to importing the full Handsontable package.
 
 ## Related guides
 

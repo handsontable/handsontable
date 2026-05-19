@@ -252,12 +252,16 @@ beforeEach(function() {
     toBeVisibleInViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
-          const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight;
-          const horizontalPosition = actual.offsetLeft - viewport.scrollLeft + scrollbarWidth + actual.clientWidth;
+          let pass = false;
 
-          const pass = verticalPosition < viewport.offsetHeight && verticalPosition > 0
-            && horizontalPosition < viewport.offsetWidth && horizontalPosition > 0;
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+            const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight;
+            const horizontalPosition = actual.offsetLeft - viewport.scrollLeft + scrollbarWidth + actual.clientWidth;
+
+            pass = verticalPosition < viewport.offsetHeight && verticalPosition > 0
+              && horizontalPosition < viewport.offsetWidth && horizontalPosition > 0;
+          }
 
           return {
             pass,
@@ -274,11 +278,17 @@ beforeEach(function() {
     toBeVisibleAtTopOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
-          const verticalPosition = actual.offsetTop - viewport.scrollTop - 1;
+          let pass = false;
+
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+            const verticalPosition = actual.offsetTop - viewport.scrollTop - 1;
+
+            pass = verticalPosition === 0;
+          }
 
           return {
-            pass: verticalPosition === 0,
+            pass,
             message: 'Expected the element to be scrolled to the top of the Handsontable viewport'
           };
         }
@@ -292,11 +302,17 @@ beforeEach(function() {
     toBeVisibleAtBottomOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
-          const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight + 1;
+          let pass = false;
+
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+            const verticalPosition = actual.offsetTop - viewport.scrollTop + scrollbarWidth + actual.clientHeight + 1;
+
+            pass = verticalPosition === viewport.offsetHeight;
+          }
 
           return {
-            pass: verticalPosition === viewport.offsetHeight,
+            pass,
             message: 'Expected the element to be scrolled to the bottom of the Handsontable viewport'
           };
         }
@@ -310,10 +326,16 @@ beforeEach(function() {
     toBeVisibleAtLeftOfViewport() {
       return {
         compare(actual) {
-          const viewport = hot().view._wt.wtTable.holder;
+          let pass = false;
+
+          if (actual) {
+            const viewport = hot().view._wt.wtTable.holder;
+
+            pass = viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x;
+          }
 
           return {
-            pass: viewport.getBoundingClientRect().x === actual.getBoundingClientRect().x,
+            pass,
             message: 'Expected the element to be scrolled to the left of the Handsontable viewport'
           };
         }
@@ -472,68 +494,6 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
             message,
           };
         }
-      };
-    },
-    forThemes(matchersUtil) {
-      const currentTheme = getLoadedTheme();
-      const createThemeHelper = (theme, expectationMatchers) => {
-        return new Proxy({}, {
-          get(_, matcher) {
-            return (...args) => {
-              if (currentTheme === theme) {
-                expectationMatchers.push([matcher, ...args]);
-              }
-            };
-          }
-        });
-      };
-      const camelCaseToSpaced = (camelCaseString) => {
-        return camelCaseString.replace(/([A-Z])/g, ' $1').toLowerCase();
-      };
-
-      return {
-        compare(actualValue, callback) {
-          const expectationMatchers = [];
-
-          callback({
-            classic: createThemeHelper('classic', expectationMatchers),
-            horizon: createThemeHelper('horizon', expectationMatchers),
-            main: createThemeHelper('main', expectationMatchers),
-          });
-
-          if (expectationMatchers.length > 1) {
-            return {
-              pass: false,
-              message: 'More than one expectation per-theme was provided. ' +
-                'Please provide only one expectation per theme.',
-            };
-          }
-
-          // If no expectation for the current theme was provided, skip the test.
-          if (expectationMatchers.length === 0) {
-            return {
-              pass: true,
-              message: 'No expectation provided for the current theme.',
-            };
-          }
-
-          const [matcherName, ...matcherArgs] = expectationMatchers.pop();
-
-          const expectationResult = (
-            jasmine.matchers[matcherName] || matchersUtil.customMatchers[matcherName]
-          )(matchersUtil).compare(
-            actualValue,
-            ...matcherArgs,
-          );
-
-          return {
-            pass: expectationResult.pass,
-            // Fallback for matchers that don't provide the `message` prop (like `toBe`).
-            message:
-              expectationResult.message ||
-              `Expected ${actualValue} ${camelCaseToSpaced(matcherName)} ${matcherArgs[0]}`,
-          };
-        },
       };
     },
     toThrowWithCause(/* received, expectedMessage, expectedCause */) {

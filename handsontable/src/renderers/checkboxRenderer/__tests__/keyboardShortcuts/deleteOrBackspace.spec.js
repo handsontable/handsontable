@@ -179,6 +179,37 @@ describe('CheckboxRenderer', () => {
       expect(getData()).toEqual([[null, false], [null, false]]);
     });
 
+    it('should set checkbox cells to uncheckedTemplate when deleting mixed multi-layer selection', async() => {
+      handsontable({
+        data: [
+          { car: 'Nissan', year: 2016, available: false },
+          { car: 'Volvo', year: 2019, available: true },
+          { car: 'Chrysler', year: 2020, available: false },
+        ],
+        columns: [
+          { data: 'car', type: 'text' },
+          { data: 'year', type: 'numeric' },
+          { data: 'available', type: 'checkbox' },
+        ],
+        colHeaders: true,
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp(['control/meta', 'a']);
+      await keyDown('control/meta');
+      await mouseDown(getCell(1, 1));
+      await mouseUp(getCell(1, 1));
+      await keyUp('control/meta');
+      await keyDownUp(key);
+
+      expect(getData()).toEqual([
+        [null, null, false],
+        [null, null, false],
+        [null, null, false],
+      ]);
+      expect(getCell(0, 2).querySelector('input[type=checkbox]').classList.contains('noValue')).toBe(false);
+    });
+
     it('should not steal the event when the column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],

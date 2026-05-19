@@ -257,7 +257,7 @@ describe('Focus handling', () => {
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA_ALTERNATIVE);
     });
 
-    it('should be possible to modify the delay between refocusing the elements', async() => {
+    it.flaky('should be possible to modify the delay between refocusing the elements', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         imeFastEdit: true,

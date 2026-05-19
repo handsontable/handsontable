@@ -54,6 +54,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Copiar',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Recortar',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Exportar',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Para CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Para Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Exportando…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Inserir linha filha',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Desanexar da linha pai',
 
@@ -112,12 +117,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Ir para a última página',
 
   [C.LOADING_TITLE]: 'Carregando...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Fechar',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nenhum dado disponível',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Não há nada para exibir ainda.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nenhum resultado encontrado',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Parece que seus filtros atuais estão ocultando todos os resultados.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Redefinir filtros',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Carregando dados',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Aguarde.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Não foi possível carregar os dados',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Não foi possível criar as linhas',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Não foi possível atualizar as linhas',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Não foi possível remover as linhas',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Falha na solicitação',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Recarregar',
 };
 
 export default dictionary;

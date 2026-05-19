@@ -63,7 +63,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       await selectCell(1, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const cellFrom = $(getCell(1, 1));
       const cellTo = spec().$container.find('tbody tr:eq(1) td:eq(3)');
@@ -75,7 +75,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       await triggerTouchEvent('touchmove', cellTo[0]);
       await triggerTouchEvent('touchend', cellTo[0]);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const topSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:last-child .topSelectionHandle');
@@ -111,7 +111,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
 
       await selectCell(1, 1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const cellFrom = $(getCell(1, 1));
       const cellTo = spec().$container.find('tbody tr:eq(3) td:eq(1)');
@@ -123,7 +123,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       await triggerTouchEvent('touchmove', cellTo[0]);
       await triggerTouchEvent('touchend', cellTo[0]);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       const topSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:last-child .topSelectionHandle');

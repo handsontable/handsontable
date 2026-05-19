@@ -32,10 +32,12 @@ describe('Core_reCreate', () => {
     // div.relative adds 4px of vertical padding
     // div.relative has 35px in Chrome and 35.95px (rounded to 36px) in Firefox and IE
     // th adds 1px of top border
-    expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(46);
-      main.toEqual(48);
-      horizon.toEqual(56);
-    });
+    const layout = getThemeLayout();
+    // Two-line <br>-wrapped column header: 2 * lineHeight + 2 * cellVerticalPadding +
+    // cellBorderWidth. Browser rounding may differ by +/- 1px.
+    const twoLineHeaderHeight = layout.defaultColumnHeaderHeight + layout.lineHeight
+      + layout.cellBorderWidth;
+
+    expect(getTopInlineStartClone().height()).toBeAroundValue(twoLineHeaderHeight);
   });
 });

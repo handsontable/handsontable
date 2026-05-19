@@ -8,7 +8,6 @@ import debounce from 'lodash.debounce';
 const argv = yargs(hideBin(process.argv))
   .array('cmdToListen')
   .string('runnerFile')
-  .demandOption(['runnerFile'])
   .argv;
 
 const PUPPETEER_CMD = 'node test/scripts/run-puppeteer.mjs';
@@ -16,9 +15,16 @@ const PUPPETEER_KILL_TIMEOUT = 2000;
 const writableStream = new Writable();
 let targetProcess = null;
 
+// Only forward `--runnerFile` when the caller gave one (e.g. the Walkontable
+// watch script that targets a fixed `SpecRunner.html`). When it's omitted,
+// let `run-puppeteer.mjs` resolve its own per-run HTML from
+// `--testPathPattern` + `--theme`, so two parallel `test:e2e.watch`
+// invocations don't both open the same shared `test/E2ERunner.html`.
+const puppeteerArgs = argv.runnerFile ? ` ${argv.runnerFile}` : '';
+
 const spawnPuppeteer = debounce(() => {
-  console.log(`${PUPPETEER_CMD} ${argv.runnerFile}`);
-  targetProcess = execaCommand(`${PUPPETEER_CMD} ${argv.runnerFile}`, {
+  console.log(`${PUPPETEER_CMD}${puppeteerArgs}`);
+  targetProcess = execaCommand(`${PUPPETEER_CMD}${puppeteerArgs}`, {
     stdin: 'ignore',
   });
 

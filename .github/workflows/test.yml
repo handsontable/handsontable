@@ -52,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         if: ${{ inputs['test-all'] != true }}
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # https://github.com/dorny/paths-filter/releases/tag/v3.0.2
+      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # https://github.com/dorny/paths-filter/releases/tag/v4.0.1
         id: path-filter
         if: ${{ inputs['test-all'] != true }}
         with:
@@ -125,7 +125,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -162,7 +162,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -201,7 +201,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -228,7 +228,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -255,7 +255,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -280,7 +280,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -300,7 +300,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
+          npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer --theme=main
 
   test-handsontable-e2e-horizon:
     name: "[TEST] Handsontable: UMD (theme: horizon)"
@@ -312,7 +312,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -332,7 +332,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump --theme=horizon && npm run test:e2e.puppeteer
+          npm run test:e2e.dump --theme=horizon && npm run test:e2e.puppeteer --theme=horizon
 
   test-handsontable-e2e-min-main:
     name: "[TEST] Handsontable: UMD.min (theme: main)"
@@ -344,7 +344,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -364,7 +364,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:production.dump --theme=main && npm run test:e2e.puppeteer
+          npm run test:production.dump --theme=main && npm run test:e2e.puppeteer --theme=main
 
   test-handsontable-e2e-min-horizon:
     name: "[TEST] Handsontable: UMD.min (theme: horizon)"
@@ -376,7 +376,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -396,7 +396,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:production.dump --theme=horizon && npm run test:e2e.puppeteer
+          npm run test:production.dump --theme=horizon && npm run test:e2e.puppeteer --theme=horizon
 
   test-handsontable-e2e-classic:
     name: "[TEST] Handsontable: UMD (theme: classic)"
@@ -408,7 +408,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -428,7 +428,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump --theme=classic && npm run test:e2e.puppeteer
+          npm run test:e2e.dump --theme=classic && npm run test:e2e.puppeteer --theme=classic
 
   test-handsontable-e2e-min-classic:
     name: "[TEST] Handsontable: UMD.min (theme: classic)"
@@ -440,7 +440,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -460,7 +460,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:production.dump --theme=classic && npm run test:e2e.puppeteer
+          npm run test:production.dump --theme=classic && npm run test:e2e.puppeteer --theme=classic
 
   test-handsontable-esm-e2e:
     name: "[TEST] Handsontable: ESM"
@@ -470,7 +470,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -501,7 +501,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer --theme=main
 
   test-handsontable-cjs-e2e:
     name: "[TEST] Handsontable: CJS"
@@ -511,7 +511,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -543,7 +543,7 @@ jobs:
       - name: Test
         run: |
           cd handsontable
-          npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer
+          npm run test:e2e.dump.esm-cjs && npm run test:e2e.dump --theme=main && npm run test:e2e.puppeteer --theme=main
 
   test-angular-wrapper:
     name: "[TEST] Wrapper: Angular (modern)"
@@ -555,7 +555,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -593,7 +593,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -630,7 +630,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -681,7 +681,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -821,7 +821,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -954,7 +954,7 @@ jobs:
           fetch-depth: 0 # fetch all history to get the latest changes needed for Argos CI
           filter: blob:none # blobless clone: full commit graph without downloading file contents
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js

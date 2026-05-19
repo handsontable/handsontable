@@ -24,40 +24,19 @@ describe('Core.await refreshDimensions()', () => {
 
     await refreshDimensions();
 
-    expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
-      classic.toHaveBeenCalledOnceWith(
-        { width: 1265, height: 0 },
-        { width: 1265, height: 131 },
-        true,
-      );
-      main.toHaveBeenCalledOnceWith(
-        { width: 1265, height: 0 },
-        { width: 1265, height: 146 },
-        true,
-      );
-      horizon.toHaveBeenCalledOnceWith(
-        { width: 1265, height: 0 },
-        { width: 1265, height: 186 },
-        true,
-      );
-    });
-    expect(afterRefreshDimensions).forThemes(({ classic, main, horizon }) => {
-      classic.toHaveBeenCalledOnceWith(
-        { width: 1265, height: 0 },
-        { width: 1265, height: 131 },
-        true,
-      );
-      main.toHaveBeenCalledOnceWith(
-        { width: 1265, height: 0 },
-        { width: 1265, height: 146 },
-        true,
-      );
-      horizon.toHaveBeenCalledOnceWith(
-        { width: 1265, height: 0 },
-        { width: 1265, height: 186 },
-        true,
-      );
-    });
+    const layout = getThemeLayout();
+    const expectedHeight = layout.overlayHeight({ rows: 5 });
+
+    expect(beforeRefreshDimensions).toHaveBeenCalledOnceWith(
+      { width: 1265, height: 0 },
+      { width: 1265, height: expectedHeight },
+      true,
+    );
+    expect(afterRefreshDimensions).toHaveBeenCalledOnceWith(
+      { width: 1265, height: 0 },
+      { width: 1265, height: expectedHeight },
+      true,
+    );
   });
 
   it('should trigger `render` and `adjustElementsSize` methods internally if the root element size is changed between calls', async() => {

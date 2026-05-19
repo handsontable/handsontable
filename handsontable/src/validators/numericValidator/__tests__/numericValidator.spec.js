@@ -41,7 +41,7 @@ describe('numericValidator', () => {
     });
 
     await setDataAtCell(2, 0, '');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id');
   });
@@ -60,7 +60,7 @@ describe('numericValidator', () => {
     });
 
     await setDataAtCell(2, 0, 'test');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
   });
@@ -79,7 +79,7 @@ describe('numericValidator', () => {
     });
 
     await setDataAtCell(2, 0, '123');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
   });
@@ -98,7 +98,7 @@ describe('numericValidator', () => {
     });
 
     await setDataAtCell(2, 0, '-123');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id');
   });
@@ -117,7 +117,7 @@ describe('numericValidator', () => {
     });
 
     await setDataAtCell(2, 0, '1e+23');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id');
   });
@@ -136,7 +136,7 @@ describe('numericValidator', () => {
     });
 
     await setDataAtCell(2, 0, '1e-23');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id');
   });
@@ -156,7 +156,7 @@ describe('numericValidator', () => {
       });
 
       await setDataAtCell(2, 0, '');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id');
     });
@@ -175,7 +175,7 @@ describe('numericValidator', () => {
       });
 
       await setDataAtCell(2, 0, null);
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id');
     });
@@ -194,7 +194,7 @@ describe('numericValidator', () => {
       });
 
       await setDataAtCell(2, 0);
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 2, 'id');
     });
@@ -213,7 +213,7 @@ describe('numericValidator', () => {
       });
 
       await setDataAtCell(2, 0, 0);
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id');
     });
@@ -233,13 +233,13 @@ describe('numericValidator', () => {
       });
 
       await validateCells();
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect($(getCell(1, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(2, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
       await setDataAtCell(2, 2, 8000);
-      await sleep(200);
+      await waitForNextAnimationFrames(2);
 
       expect($(getCell(2, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
     });

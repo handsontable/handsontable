@@ -44,21 +44,9 @@ describe('Core.getRowHeight', () => {
 
     expect(getRowHeight(0)).toBe(0);
     expect(getRowHeight(1)).toBe(0);
-    expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
-      main.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
-      horizon.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
-    });
-    expect(getRowHeight(3)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultRowHeight() + cellLineHeight);
-      main.toBe(getDefaultRowHeight() + cellLineHeight);
-      horizon.toBe(getDefaultRowHeight() + cellLineHeight);
-    });
-    expect(getRowHeight(4)).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(getDefaultRowHeight() + cellLineHeight);
-      main.toBe(getDefaultRowHeight() + cellLineHeight);
-      horizon.toBe(getDefaultRowHeight() + cellLineHeight);
-    });
+    expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
+    expect(getRowHeight(3)).toBe(getDefaultRowHeight() + cellLineHeight);
+    expect(getRowHeight(4)).toBe(getDefaultRowHeight() + cellLineHeight);
   });
 
   describe('using `rowHeights`', () => {
@@ -148,12 +136,7 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toBe(50);
-          main.toBe(50);
-          horizon.toBe(50);
-        });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).toBe(50);
       expect(getRowHeight(1)).toBe(60);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(60);
       expect(getRowHeight(2)).toBe(70);
@@ -173,12 +156,7 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toBe(50);
-          main.toBe(50);
-          horizon.toBe(50);
-        });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).toBe(50);
       expect(getRowHeight(1)).toBe(100);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(100);
       expect(getRowHeight(2)).toBe(150);
@@ -277,12 +255,7 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toBe(50);
-          main.toBe(50);
-          horizon.toBe(50);
-        });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).toBe(50);
       expect(getRowHeight(1)).toBe(60);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(60);
       expect(getRowHeight(2)).toBe(70);
@@ -302,12 +275,7 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
-        ({ classic, main, horizon }) => {
-          classic.toBe(50);
-          main.toBe(50);
-          horizon.toBe(50);
-        });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).toBe(50);
       expect(getRowHeight(1)).toBe(100);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(100);
       expect(getRowHeight(2)).toBe(150);

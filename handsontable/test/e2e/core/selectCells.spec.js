@@ -53,6 +53,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[15, 'prop0']]);
@@ -65,6 +67,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[5, 15]]);
@@ -77,6 +81,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[5, 'prop15']]);
@@ -89,6 +95,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(5, 15); // Scroll to the right of the table.
@@ -102,6 +110,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(5, 15); // Scroll to the right of the table.
@@ -115,6 +125,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(19, 0); // Scroll to the bottom of the table.
@@ -128,6 +140,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(19, 0); // Scroll to the bottom of the table.
@@ -136,35 +150,17 @@ describe('Core.selectCells', () => {
     expect(getCell(1, 0)).toBeVisibleAtTopOfViewport();
   });
 
-  it.forTheme('classic')('should not the scroll the viewport when `false` argument is passed', async() => {
+  it('should not the scroll the viewport when `false` argument is passed', async() => {
+    // Use a height that shows fewer than 15 rows so row 15 is outside the initial viewport
+    const layout = getThemeLayout();
+    const height = layout.overlayHeight({ rows: 12 });
+
     handsontable({
       data: createSpreadsheetObjectData(20, 20),
-      height: 300,
+      height,
       width: 300,
-    });
-
-    await selectCells([[15, 0]], false);
-
-    expect(getCell(15, 0)).not.toBeVisibleInViewport();
-  });
-
-  it.forTheme('main')('should not the scroll the viewport when `false` argument is passed', async() => {
-    handsontable({
-      data: createSpreadsheetObjectData(20, 20),
-      height: 378,
-      width: 300,
-    });
-
-    await selectCells([[15, 0]], false);
-
-    expect(getCell(15, 0)).not.toBeVisibleInViewport();
-  });
-
-  it.forTheme('horizon')('should not the scroll the viewport when `false` argument is passed', async() => {
-    handsontable({
-      data: createSpreadsheetObjectData(20, 20),
-      height: 482,
-      width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCells([[15, 0]], false);
@@ -179,6 +175,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
       afterListen,
     });
 
@@ -194,6 +192,8 @@ describe('Core.selectCells', () => {
       data: createSpreadsheetObjectData(20, 20),
       height: 300,
       width: 300,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
       afterListen,
     });
 

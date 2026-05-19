@@ -1,0 +1,444 @@
+/* -------------------------------------------------------------------------
+ * Code block enhancements
+ * ------------------------------------------------------------------------- */
+
+/* Override Expressive Code variables — Ion-inspired dark theme */
+.expressive-code {
+  /* Code block background & text */
+  --ec-codeBg: var(--sl-color-block-bg);
+  --ec-codeFg: #e1e4e8;
+  --ec-codeSelBg: #3392ff44;
+  /* Frame backgrounds */
+  --ec-frm-edBg: var(--sl-color-block-bg);
+  --ec-frm-termBg: var(--sl-color-block-bg);
+  --ec-frm-trmTtbBg: var(--sl-color-block-bg);
+  --ec-frm-trmTtbBrdBtmCol: #1b1f23;
+  /* Border */
+  --ec-brdCol: var(--sl-color-gray-5);
+  --ec-brdWd: 1px;
+  --ec-brdRad: 0;
+  /* Tab bar */
+  --ec-frm-edTabBarBg: #262626;
+  --ec-frm-edActTabBg: var(--sl-color-block-bg);
+  --ec-frm-edTabBarBrdCol: #1b1f23;
+  --ec-frm-edTabBarBrdBtmCol: #1b1f23;
+  --ec-frm-edActTabIndHt: 1px;
+  --ec-frm-edActTabIndTopCol: #f9826c;
+  --ec-frm-edActTabIndBtmCol: var(--sl-color-block-bg);
+  --ec-frm-edTabBrdRad: 0px;
+  /* Gutter / line numbers */
+  --ec-gtrFg: #616970;
+  --ec-gtrBrdCol: #61697033;
+  --ec-gtrBrdWd: 1.5px;
+  --ec-gtrHlFg: #e1e4e88b;
+  /* Scrollbar */
+  --ec-sbThumbCol: #6a737d33;
+  --ec-sbThumbHoverCol: #6a737db1;
+  /* UI selection */
+  --ec-uiSelBg: #39414a;
+  --ec-uiSelFg: #e1e4e8;
+  /* Inline buttons (copy, etc.) */
+  --ec-frm-inlBtnFg: var(--sl-color-gray-3);
+  --ec-frm-inlBtnBg: var(--sl-color-gray-3);
+  --ec-frm-inlBtnBrd: var(--sl-color-gray-3);
+  --ec-frm-inlBtnBrdOpa: 0.4;
+  /* Shadow */
+  --ec-frm-shdCol: #0000005b;
+  --ec-frm-frameBoxShdCssVal: 0.1rem 0.1rem 0.2rem #0000005b;
+  /* Diff markers */
+  --ec-tm-markBg: #174a9099;
+  --ec-tm-markBrdCol: #4d70bcd0;
+  --ec-tm-insBg: #1e571599;
+  --ec-tm-insBrdCol: #487f3bd0;
+  --ec-tm-delBg: #862d2799;
+  --ec-tm-delBrdCol: #b4554bd0;
+}
+
+.expressive-code figure.frame {
+  border-radius: 0;
+  border: 1px solid #1b1f23;
+}
+
+:root[data-theme='light'] .expressive-code figure.frame {
+  border-color: var(--sl-color-gray-5);
+  box-shadow: none;
+}
+
+:root[data-theme='light'] .expressive-code {
+  --ec-frm-shdCol: transparent;
+  --ec-frm-frameBoxShdCssVal: none;
+  --ec-frm-trmTtbBrdBtmCol: var(--sl-color-gray-5);
+  /* Base .expressive-code sets dark-theme fg; block bg is light -- line numbers and code must use dark ink */
+  --ec-codeFg: var(--sl-color-white);
+  --ec-gtrFg: var(--sl-color-gray-2);
+  --ec-gtrHlFg: rgba(36, 41, 47, 0.55);
+  --ec-codeSelBg: rgba(51, 146, 255, 0.28);
+  --ec-uiSelBg: var(--sl-color-gray-5);
+  --ec-uiSelFg: var(--sl-color-white);
+  /* Line / inline "mark" highlights: same RGB as .expressive-code defaults, lower alpha for light */
+  --ec-tm-markBg: #174a9028;
+  --ec-tm-markBrdCol: #4d70bc55;
+}
+
+:root[data-theme='light'] .expressive-code .copy button {
+  background-color: var(--sl-color-gray-6);
+}
+
+.expressive-code .ec-line .gutter {
+  width: 56px;
+}
+
+.sl-markdown-content pre {
+  border-radius: 0;
+  background-color: var(--sl-color-block-bg) !important;
+  border: none;
+}
+
+.expressive-code pre > code {
+  font-size: var(--sl-text-xs);
+}
+
+/* Terminal code block header — remove background and border */
+.expressive-code .frame.is-terminal .header {
+  background: none;
+  border: none;
+}
+
+/* Copy button in code blocks — match the "Copy Markdown" action button style */
+.expressive-code .copy button {
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.expressive-code figure:hover .copy button {
+  opacity: 1;
+}
+
+.expressive-code .copy button div {
+  background: none;
+  opacity: 0;
+}
+
+.expressive-code .copy button::before {
+  border: none;
+}
+
+.expressive-code .copy button:hover {
+  border-color: var(--sl-color-gray-5);
+}
+
+/* Hide EC's "Copied!" text feedback */
+.expressive-code .copy .feedback {
+  display: none !important;
+}
+
+/* Swap copy icon → checkmark after clicking */
+.expressive-code .copy button.copied::after {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  background-color: #41a167;
+}
+
+/* Keep copied button visible even without hover */
+.expressive-code .copy button.copied {
+  opacity: 1;
+}
+
+/* Expressive Code ins (inserted) line highlight — subtle green from badge color */
+.expressive-code .ec-line.ins {
+  background-color: rgba(65, 161, 103, 0.15) !important;
+  border-inline-start-color: #41a167 !important;
+}
+
+/* Expressive Code del (deleted) line highlight — light theme only; matches ins subtlety */
+:root[data-theme='light'] .expressive-code .ec-line.del {
+  background-color: rgba(134, 45, 39, 0.15) !important;
+  border-inline-start-color: #862d27 !important;
+}
+
+/* -------------------------------------------------------------------------
+ * FileTree — unscoped replica of Starlight's FileTree.astro CSS.
+ * The built-in component CSS is scoped with :where(.astro-*) and won't
+ * match elements produced by our rehype plugin. Including the same rules
+ * in @layer starlight.components keeps the correct cascade order so the
+ * starlight-theme-rapide overrides still win.
+ * ------------------------------------------------------------------------- */
+@layer starlight.components {
+  starlight-file-tree {
+    --x-space: 1.5rem;
+    --y-space: 0.125rem;
+    --y-pad: 0;
+    display: block;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    padding: 1rem;
+    background-color: var(--sl-color-gray-6);
+    font-size: var(--sl-text-xs);
+    font-family: var(--__sl-font-mono);
+    overflow-x: auto;
+  }
+
+  starlight-file-tree .directory > details {
+    border: 0;
+    padding: 0;
+    padding-inline-start: var(--x-space);
+    background: transparent;
+  }
+
+  starlight-file-tree .directory > details > summary {
+    margin-inline-start: calc(-1 * var(--x-space));
+    border: 0;
+    padding: var(--y-pad) 0.625rem;
+    font-weight: normal;
+    color: var(--sl-color-white);
+    max-width: 100%;
+    list-style: none;
+  }
+
+  starlight-file-tree .directory > details > summary::marker,
+  starlight-file-tree .directory > details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  starlight-file-tree .directory > details > summary::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid var(--sl-color-gray-3);
+    border-bottom: 2px solid var(--sl-color-gray-3);
+    transform: rotate(-45deg);
+    transition: transform 0.15s;
+    flex-shrink: 0;
+    margin-right: 0.25rem;
+  }
+
+  starlight-file-tree .directory > details[open] > summary::before {
+    transform: rotate(45deg);
+  }
+
+  starlight-file-tree .directory > details > summary:hover,
+  starlight-file-tree .directory > details > summary:hover .tree-icon {
+    cursor: pointer;
+    color: var(--sl-color-text-accent);
+    fill: currentColor;
+  }
+
+  starlight-file-tree .directory > details > summary:hover ~ ul {
+    border-color: var(--sl-color-accent);
+  }
+
+  starlight-file-tree ul {
+    margin-inline-start: -0.625rem;
+    border-inline-start: 1px solid var(--sl-color-gray-5);
+    padding: 0;
+    padding-inline-start: 0.125rem;
+    list-style: none;
+  }
+
+  starlight-file-tree > ul {
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  starlight-file-tree li {
+    margin: var(--y-space) 0;
+    padding: var(--y-pad) 0;
+  }
+
+  starlight-file-tree .file {
+    margin-inline-start: calc(var(--x-space) - 0.125rem);
+    color: var(--sl-color-white);
+  }
+
+  starlight-file-tree .tree-entry {
+    display: inline-flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    max-width: calc(100% - 1rem);
+    padding-left: 0.5rem;
+  }
+
+  @media (min-width: 30em) {
+    starlight-file-tree .tree-entry {
+      flex-wrap: nowrap;
+    }
+  }
+
+  starlight-file-tree .tree-entry > :first-child {
+    flex-shrink: 0;
+  }
+
+  starlight-file-tree .empty {
+    color: var(--sl-color-gray-3);
+    padding-inline-start: 0.375rem;
+  }
+
+  starlight-file-tree .highlight {
+    display: inline-block;
+    border-radius: 0.25rem;
+    padding-inline-end: 0.5rem;
+    color: var(--sl-color-text-invert);
+    background-color: var(--sl-color-text-accent);
+  }
+
+  starlight-file-tree svg {
+    display: inline;
+    fill: var(--sl-color-gray-3);
+    vertical-align: middle;
+    margin-inline: 0.25rem 0.375rem;
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  starlight-file-tree .highlight svg.tree-icon {
+    fill: currentColor;
+  }
+
+  starlight-file-tree .comment {
+    color: var(--sl-color-gray-3);
+    padding-inline-start: 1.625rem;
+    max-width: 24rem;
+    min-width: 12rem;
+  }
+}
+
+/* File-tree overrides — must be OUTSIDE @layer to beat the unlayered
+ * `* { margin: 0 }` reset and the rapide theme layer. */
+starlight-file-tree {
+  border-radius: 0;
+  padding: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+starlight-file-tree .directory > details > summary {
+  margin-inline-start: calc(-1 * var(--x-space));
+}
+
+starlight-file-tree ul {
+  margin-inline-start: -0.625rem;
+}
+
+starlight-file-tree > ul {
+  margin: 0;
+}
+
+starlight-file-tree li {
+  margin: var(--y-space) 0;
+}
+
+starlight-file-tree .file {
+  margin-inline-start: calc(var(--x-space) - 0.125rem);
+}
+
+starlight-file-tree .directory > details > summary {
+  list-style: none;
+}
+
+starlight-file-tree .directory > details > summary::marker,
+starlight-file-tree .directory > details > summary::-webkit-details-marker {
+  display: none;
+}
+
+starlight-file-tree .directory > details > summary::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--sl-color-gray-3);
+  border-bottom: 2px solid var(--sl-color-gray-3);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+}
+
+starlight-file-tree .directory > details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+starlight-file-tree .directory > details > summary:hover ~ ul {
+  border-color: var(--sl-color-accent);
+}
+
+/* -------------------------------------------------------------------------
+ * Code group tabs (npm / Yarn / pnpm)
+ *
+ * Built at runtime by example-tabs.js from .code-group-start markers.
+ * Wraps consecutive Expressive Code blocks in a tabbed container.
+ * ------------------------------------------------------------------------- */
+.code-group {
+  margin-block: 1.5rem;
+  border-radius: 0;
+  border: 1px solid var(--sl-color-gray-5);
+  overflow: hidden;
+}
+
+.code-group-tabbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: none;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0 0.75rem;
+}
+
+.code-group-tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--sl-color-gray-2);
+  cursor: pointer;
+  font-family: var(--sl-font);
+  font-size: 0.8125rem;
+  line-height: 1;
+  margin: 0;
+  padding: 0.75rem 0.75rem;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.code-group-tab:hover {
+  color: var(--sl-color-white);
+}
+
+.code-group-tab.is-active {
+  color: var(--sl-color-white);
+  border-bottom: 1px solid var(--sl-color-accent);
+}
+
+/* Hide Expressive Code's own frame header inside grouped blocks */
+.code-group .expressive-code .header {
+  display: none;
+}
+
+.code-group .expressive-code .copy {
+  top: 0.5rem;
+}
+
+/* Remove individual block margins and border-radius inside the group */
+.code-group .expressive-code {
+  margin: 0;
+}
+
+.code-group .expressive-code figure.frame {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.code-group .expressive-code pre {
+  border-radius: 0;
+  border: none;
+  margin: 0;
+}
+
+/* Hide marker elements before JS runs */
+.code-group-start,
+.code-group-end {
+  display: none;
+}

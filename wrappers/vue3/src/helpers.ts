@@ -99,6 +99,8 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
   const assignedProps: VueProps<HotTableProps> = filterPassedProps(props);
   const hotSettingsInProps: Handsontable.GridSettings = props.settings ? props.settings : assignedProps;
   const additionalHotSettingsInProps: Handsontable.GridSettings = props.settings ? assignedProps : null;
+  const initOnlySettingKeys: string[] =
+    (currentSettings as any)?._initOnlySettings || [];
   const newSettings: Handsontable.GridSettings = {};
 
   // eslint-disable-next-line no-restricted-syntax
@@ -106,6 +108,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
     if (
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== void 0 &&
+      !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data') ? !simpleEqual(currentSettings[key], hotSettingsInProps[key]) : true)
     ) {
       newSettings[key] = hotSettingsInProps[key];
@@ -119,6 +122,7 @@ export function prepareSettings(props: HotTableProps, currentSettings?: Handsont
       key !== 'id' &&
       key !== 'settings' &&
       additionalHotSettingsInProps[key] !== void 0 &&
+      !initOnlySettingKeys.includes(key) &&
       ((currentSettings && key !== 'data')
         ? !simpleEqual(currentSettings[key], additionalHotSettingsInProps[key]) : true)
     ) {

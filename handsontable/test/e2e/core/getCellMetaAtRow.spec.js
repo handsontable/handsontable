@@ -34,4 +34,25 @@ describe('Core.getCellMetaAtRow', () => {
     expect(rowOfMeta[3].prop).toBe(3);
     expect(rowOfMeta[4].prop).toBe(4);
   });
+
+  it('should return meta sorted by physical/visual column index regardless of internal storage order', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      cell: [
+        { row: 0, col: 1, myId: 1 },
+        { row: 1, col: 1, myId: 2 },
+        { row: 2, col: 1, myId: 3 },
+        { row: 3, col: 1, myId: 4 },
+        { row: 4, col: 1, myId: 5 },
+      ],
+    });
+
+    await spliceCellsMeta(3, 1);
+
+    const rowOfMeta = getCellMetaAtRow(2);
+
+    expect(rowOfMeta.map(meta => meta.col)).toEqual([0, 1, 2, 3, 4]);
+    expect(rowOfMeta.map(meta => meta.visualCol)).toEqual([0, 1, 2, 3, 4]);
+    expect(rowOfMeta.find(meta => meta.col === 1).myId).toBe(3);
+  });
 });

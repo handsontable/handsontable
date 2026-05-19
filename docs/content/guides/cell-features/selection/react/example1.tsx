@@ -1,36 +1,82 @@
-import { useRef, ChangeEvent } from 'react';
-import Handsontable from 'handsontable/base';
-import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
+import { useRef, useState, useEffect } from 'react';
+import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
+const options: { value: string; label: string }[] = [
+  { value: 'single', label: 'Single selection' },
+  { value: 'range', label: 'Range selection' },
+  { value: 'multiple', label: 'Multiple ranges selection' },
+];
+
 const ExampleComponent = () => {
-  const hotRef = useRef<HotTableRef>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState('multiple');
 
-  const selectOptionChangeCallback = (event: ChangeEvent<HTMLSelectElement>) => {
-    const hot = hotRef.current?.hotInstance;
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
 
-    const value = (event.target as HTMLSelectElement).value;
-    const first = value.split(' ')[0].toLowerCase();
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
 
-    hot?.updateSettings({ selectionMode: first } as Handsontable.GridSettings);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const handleSelect = (value: string) => {
+    setSelected(value);
+    setIsOpen(false);
   };
+
+  const selectedLabel = options.find((o) => o.value === selected)?.label;
 
   return (
     <>
-      <div className="controls">
-        <label>
-          <select id="selectOption" onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
-            <option value="single">Single selection</option>
-            <option value="range">Range selection</option>
-            <option value="multiple">Multiple ranges selection</option>
-          </select>
-        </label>
+      <div className="example-controls-container">
+        <div className="controls">
+          <div className="theme-dropdown" ref={dropdownRef}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <span>{selectedLabel}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            {isOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {options.map((opt) => (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={selected === opt.value}
+                    onClick={() => handleSelect(opt.value)}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
       <HotTable
-        ref={hotRef}
         data={[
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
@@ -47,7 +93,7 @@ const ExampleComponent = () => {
         colWidths={100}
         rowHeaders={true}
         colHeaders={true}
-        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        selectionMode={selected as 'single' | 'range' | 'multiple'}
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

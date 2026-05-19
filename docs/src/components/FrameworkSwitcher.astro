@@ -1,0 +1,146 @@
+---
+/**
+ * Framework switcher for the site header.
+ *
+ * Renders three segmented tabs (JS / React / Angular) styled like the
+ * spreadsheet-cell nav-link row. The active framework gets an Excel-style
+ * blue border, mirroring `.nav-link--active` in Header.astro.
+ *
+ * The legacy classes `nav-frameworks`, `dropdown-title`, and `title` are
+ * preserved for backward compatibility with the Algolia crawler config that
+ * targets `.nav-frameworks .dropdown-title .title`.
+ */
+const pathname = Astro.url.pathname;
+
+const currentPrefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : 'javascript-data-grid';
+
+const frameworks = [
+  { id: 'javascript-data-grid', label: 'JS', fullName: 'JavaScript', icon: 'i-javascript' },
+  { id: 'react-data-grid', label: 'React', fullName: 'React', icon: 'i-react' },
+  { id: 'angular-data-grid', label: 'Angular', fullName: 'Angular', icon: 'i-angular' },
+];
+
+const current = frameworks.find((f) => f.id === currentPrefix)!;
+
+const items = frameworks.map((fw) => ({
+  ...fw,
+  href: pathname.replace(currentPrefix, fw.id),
+  isCurrent: fw.id === currentPrefix,
+}));
+---
+
+<div class="fw-tabs nav-frameworks" role="group" aria-label="Framework">
+  {/* Hidden span keeps the legacy .nav-frameworks .dropdown-title .title selector
+      alive for the Algolia crawler. Offscreen positioning (not display:none) so
+      innerText-based extraction still picks it up. */}
+  <span class="dropdown-title" aria-hidden="true">
+    <span class="title">{current.fullName}</span>
+  </span>
+  {items.map(({ label, fullName, href, isCurrent, icon }) => (
+    <a
+      href={href}
+      class:list={['fw-tab', { 'fw-tab--current': isCurrent }]}
+      aria-current={isCurrent ? 'page' : undefined}
+      aria-label={`Switch to ${fullName}`}
+    >
+      <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
+      <span class="fw-tab-label">{label}</span>
+    </a>
+  ))}
+</div>
+
+<style>
+  .fw-tabs {
+    display: inline-flex;
+    align-items: stretch;
+    position: relative;
+  }
+
+  .dropdown-title {
+    position: absolute;
+    left: -9999px;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .fw-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    border-top-color: var(--sl-color-gray-5);
+    border-right-color: var(--sl-color-gray-5);
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .fw-tab:first-of-type {
+    border-left-color: var(--sl-color-gray-5);
+  }
+
+  .fw-tab:hover {
+    color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  /* Below 920px the header runs out of room — show icons only. */
+  @media (max-width: 57.49rem) {
+    .fw-tab {
+      gap: 0;
+      padding: 0.5rem 0.6rem;
+    }
+
+    .fw-tab-label {
+      display: none;
+    }
+  }
+
+  /* Active = Excel-style blue selection border, matching .nav-link--active */
+  .fw-tab--current,
+  .fw-tab--current:first-of-type {
+    color: var(--sl-color-white);
+    font-weight: 600;
+    border-color: var(--sl-color-accent);
+    z-index: 1;
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  /* Framework icons */
+  .fw-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    background-color: currentColor;
+    display: inline-block;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  .i-javascript {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4l-2 14.5l-6 2l-6 -2l-2 -14.5l16 0'/%3E%3Cpath d='M7.5 8h3v8l-2 -1'/%3E%3Cpath d='M16.5 8h-2.5a.5 .5 0 0 0 -.5 .5v3a.5 .5 0 0 0 .5 .5h1.423a.5 .5 0 0 1 .495 .57l-.418 2.93l-2 .5'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4l-2 14.5l-6 2l-6 -2l-2 -14.5l16 0'/%3E%3Cpath d='M7.5 8h3v8l-2 -1'/%3E%3Cpath d='M16.5 8h-2.5a.5 .5 0 0 0 -.5 .5v3a.5 .5 0 0 0 .5 .5h1.423a.5 .5 0 0 1 .495 .57l-.418 2.93l-2 .5'/%3E%3C/svg%3E");
+  }
+
+  .i-react {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M6.306 8.711c-2.602 .723 -4.306 1.926 -4.306 3.289c0 2.21 4.477 4 10 4c.773 0 1.526 -.035 2.248 -.102'/%3E%3Cpath d='M17.692 15.289c2.603 -.722 4.308 -1.926 4.308 -3.289c0 -2.21 -4.477 -4 -10 -4c-.773 0 -1.526 .035 -2.25 .102'/%3E%3Cpath d='M6.305 15.287c-.676 2.615 -.485 4.693 .695 5.373c1.913 1.105 5.703 -1.877 8.464 -6.66c.387 -.67 .733 -1.339 1.036 -2'/%3E%3Cpath d='M17.694 8.716c.677 -2.616 .487 -4.696 -.694 -5.376c-1.913 -1.105 -5.703 1.877 -8.464 6.66c-.387 .67 -.733 1.34 -1.037 2'/%3E%3Cpath d='M12 5.424c-1.925 -1.892 -3.82 -2.766 -5 -2.084c-1.913 1.104 -1.226 5.877 1.536 10.66c.386 .67 .793 1.304 1.212 1.896'/%3E%3Cpath d='M12 18.574c1.926 1.893 3.821 2.768 5 2.086c1.913 -1.104 1.226 -5.877 -1.536 -10.66c-.375 -.65 -.78 -1.283 -1.212 -1.897'/%3E%3Cpath d='M11.5 12.866a1 1 0 1 0 1 -1.732a1 1 0 0 0 -1 1.732'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M6.306 8.711c-2.602 .723 -4.306 1.926 -4.306 3.289c0 2.21 4.477 4 10 4c.773 0 1.526 -.035 2.248 -.102'/%3E%3Cpath d='M17.692 15.289c2.603 -.722 4.308 -1.926 4.308 -3.289c0 -2.21 -4.477 -4 -10 -4c-.773 0 -1.526 .035 -2.25 .102'/%3E%3Cpath d='M6.305 15.287c-.676 2.615 -.485 4.693 .695 5.373c1.913 1.105 5.703 -1.877 8.464 -6.66c.387 -.67 .733 -1.339 1.036 -2'/%3E%3Cpath d='M17.694 8.716c.677 -2.616 .487 -4.696 -.694 -5.376c-1.913 -1.105 -5.703 1.877 -8.464 6.66c-.387 .67 -.733 1.34 -1.037 2'/%3E%3Cpath d='M12 5.424c-1.925 -1.892 -3.82 -2.766 -5 -2.084c-1.913 1.104 -1.226 5.877 1.536 10.66c.386 .67 .793 1.304 1.212 1.896'/%3E%3Cpath d='M12 18.574c1.926 1.893 3.821 2.768 5 2.086c1.913 -1.104 1.226 -5.877 -1.536 -10.66c-.375 -.65 -.78 -1.283 -1.212 -1.897'/%3E%3Cpath d='M11.5 12.866a1 1 0 1 0 1 -1.732a1 1 0 0 0 -1 1.732'/%3E%3C/svg%3E");
+  }
+
+  .i-angular {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E");
+  }
+</style>

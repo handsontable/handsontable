@@ -79,7 +79,7 @@ export class PartiallyVisibleRowsCalculationType {
       horizontalScrollbarHeight,
       totalRows,
       needReverse,
-      startPositions,
+      positionCache,
       rowHeight,
     } = viewportCalculator;
 
@@ -89,9 +89,9 @@ export class PartiallyVisibleRowsCalculationType {
       this.startRow = this.endRow;
 
       while (this.startRow > 0) {
-        const calculatedViewportHeight = startPositions[this.endRow] +
+        const calculatedViewportHeight = positionCache.getOffset(this.endRow) +
           rowHeight -
-          startPositions[this.startRow - 1];
+          positionCache.getOffset(this.startRow - 1);
 
         this.startRow -= 1;
 
@@ -101,11 +101,14 @@ export class PartiallyVisibleRowsCalculationType {
       }
     }
 
-    this.startPosition = startPositions[this.startRow] ?? null;
+    this.startPosition = this.startRow !== null ? positionCache.getOffset(this.startRow) : null;
 
     const mostBottomScrollOffset = scrollOffset + viewportHeight - horizontalScrollbarHeight;
 
-    if (mostBottomScrollOffset < 0 || scrollOffset > startPositions.at(-1) + rowHeight) {
+    if (
+      mostBottomScrollOffset < 0 ||
+      scrollOffset > positionCache.getOffset(viewportCalculator.lastProcessedIndex) + rowHeight
+    ) {
       this.isVisibleInTrimmingContainer = false;
     } else {
       this.isVisibleInTrimmingContainer = true;

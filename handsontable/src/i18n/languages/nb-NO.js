@@ -54,6 +54,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY]: 'Kopier',
   [C.CONTEXTMENU_ITEMS_CUT]: 'Klipp ut',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Eksporter',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Til CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Til Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Eksporterer…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Sett inn underrad',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Frigi fra gruppe',
 
@@ -112,12 +117,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 
   [C.LOADING_TITLE]: 'Laster...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Lukk',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Ingen data tilgjengelig',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Det er ingenting å vise ennå.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Ingen resultater funnet',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Det ser ut til at dine nåværende filtre skjuler alle resultater.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Tilbakestill filtre',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Laster inn data',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Vennligst vent.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Kunne ikke laste inn data',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Kunne ikke opprette rader',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Kunne ikke oppdatere rader',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Kunne ikke fjerne rader',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Forespørselen mislyktes',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Hent på nytt',
 };
 
 export default dictionary;

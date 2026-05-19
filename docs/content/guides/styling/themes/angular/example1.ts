@@ -1,9 +1,8 @@
 /* file: app.component.ts */
-import {AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE} from '@handsontable/angular-wrapper';
+import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE, HotTableModule} from '@handsontable/angular-wrapper';
 import {PredefinedMenuItemKey} from 'handsontable/plugins/contextMenu';
-import {FormControl} from '@angular/forms';
-import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme} from 'handsontable/themes';
+import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme, ThemeColorScheme} from 'handsontable/themes';
 
 registerTheme(mainTheme);
 registerTheme(horizonTheme);
@@ -16,7 +15,7 @@ export const data = [
     'Tagcat',
     'United Kingdom',
     'Classic Vest',
-    '11/10/2025',
+    '2025-10-11',
     '01-2331942',
     true,
     '172',
@@ -28,7 +27,7 @@ export const data = [
     'Zoomzone',
     'Indonesia',
     'Cycling Cap',
-    '03/05/2025',
+    '2025-05-03',
     '88-2768633',
     true,
     '188',
@@ -40,7 +39,7 @@ export const data = [
     'Meeveo',
     'United States',
     'Full-Finger Gloves',
-    '27/03/2025',
+    '2025-03-27',
     '51-6775945',
     true,
     '162',
@@ -52,7 +51,7 @@ export const data = [
     'Buzzdog',
     'Philippines',
     'HL Mountain Frame',
-    '29/08/2025',
+    '2025-08-29',
     '44-4028109',
     true,
     '133',
@@ -64,7 +63,7 @@ export const data = [
     'Katz',
     'India',
     'Half-Finger Gloves',
-    '02/10/2025',
+    '2025-10-02',
     '08-2758492',
     true,
     '87',
@@ -76,7 +75,7 @@ export const data = [
     'Jaxbean',
     'China',
     'HL Road Frame',
-    '28/09/2025',
+    '2025-09-28',
     '84-3557705',
     false,
     '26',
@@ -88,7 +87,7 @@ export const data = [
     'Wikido',
     'Brazil',
     'HL Touring Frame',
-    '24/06/2025',
+    '2025-06-24',
     '20-9397637',
     false,
     '110',
@@ -100,7 +99,7 @@ export const data = [
     'Browsedrive',
     'United States',
     'LL Mountain Frame',
-    '13/03/2025',
+    '2025-03-13',
     '36-0079556',
     true,
     '50',
@@ -112,7 +111,7 @@ export const data = [
     'Twinder',
     'United Kingdom',
     'LL Road Frame',
-    '06/04/2025',
+    '2025-04-06',
     '41-1489542',
     false,
     '160',
@@ -124,7 +123,7 @@ export const data = [
     'Jetwire',
     'China',
     'LL Touring Frame',
-    '01/02/2025',
+    '2025-02-01',
     '37-1531629',
     true,
     '30',
@@ -136,7 +135,7 @@ export const data = [
     'Chatterpoint',
     'China',
     'Long-Sleeve Logo Jersey',
-    '14/07/2025',
+    '2025-07-14',
     '25-5083429',
     true,
     '39',
@@ -148,7 +147,7 @@ export const data = [
     'Twinder',
     'Egypt',
     "Men's Bib-Shorts",
-    '31/08/2025',
+    '2025-08-31',
     '04-4281278',
     false,
     '96',
@@ -160,7 +159,7 @@ export const data = [
     'Midel',
     'United States',
     "Men's Sports Shorts",
-    '27/06/2025',
+    '2025-06-27',
     '55-1711908',
     true,
     '108',
@@ -172,7 +171,7 @@ export const data = [
     'Yodo',
     'India',
     'ML Mountain Frame',
-    '16/03/2025',
+    '2025-03-16',
     '58-8360815',
     false,
     '46',
@@ -184,7 +183,7 @@ export const data = [
     'Camido',
     'Russia',
     'ML Mountain Frame-W',
-    '13/09/2025',
+    '2025-09-13',
     '10-3786104',
     true,
     '97',
@@ -196,7 +195,7 @@ export const data = [
     'Eire',
     'Thailand',
     'ML Road Frame',
-    '10/04/2025',
+    '2025-04-10',
     '45-1186054',
     true,
     '161',
@@ -208,7 +207,7 @@ export const data = [
     'Vinte',
     'United Kingdom',
     'ML Road Frame-W',
-    '22/01/2025',
+    '2025-01-22',
     '62-6202742',
     true,
     '58',
@@ -220,7 +219,7 @@ export const data = [
     'Twitterlist',
     'China',
     'Mountain Bike Socks',
-    '09/11/2025',
+    '2025-11-09',
     '88-9646223',
     true,
     '92',
@@ -232,7 +231,7 @@ export const data = [
     'Eidel',
     'Bangladesh',
     'Mountain-100',
-    '19/09/2025',
+    '2025-09-19',
     '45-5588112',
     true,
     '5',
@@ -244,7 +243,7 @@ export const data = [
     'Trunyx',
     'Nigeria',
     'Mountain-200',
-    '09/03/2025',
+    '2025-03-09',
     '66-6271819',
     true,
     '158',
@@ -256,7 +255,7 @@ export const data = [
     'Katz',
     'Turkey',
     'Mountain-300',
-    '05/03/2025',
+    '2025-03-05',
     '38-9245023',
     false,
     '121',
@@ -268,7 +267,7 @@ export const data = [
     'Kaymbo',
     'United States',
     'Mountain-400-W',
-    '24/12/2025',
+    '2025-12-24',
     '44-5916927',
     false,
     '61',
@@ -280,7 +279,7 @@ export const data = [
     'Ozu',
     'Pakistan',
     'Mountain-500',
-    '13/06/2025',
+    '2025-06-13',
     '31-5449914',
     true,
     '155',
@@ -292,7 +291,7 @@ export const data = [
     'Rhynyx',
     'India',
     'Racing Socks',
-    '05/12/2025',
+    '2025-12-05',
     '19-9413869',
     true,
     '162',
@@ -304,7 +303,7 @@ export const data = [
     'Flashset',
     'Iran',
     'Road-150',
-    '14/12/2025',
+    '2025-12-14',
     '25-9807605',
     false,
     '46',
@@ -316,7 +315,7 @@ export const data = [
     'Yata',
     'Congo (Kinshasa)',
     'Road-250',
-    '12/06/2025',
+    '2025-06-12',
     '74-4291983',
     true,
     '47',
@@ -328,7 +327,7 @@ export const data = [
     'Brainlounge',
     'Vietnam',
     'Road-350-W',
-    '10/03/2025',
+    '2025-03-10',
     '83-0980643',
     true,
     '104',
@@ -340,7 +339,7 @@ export const data = [
     'Babblestorm',
     'United States',
     'Road-450',
-    '10/10/2025',
+    '2025-10-10',
     '19-2878430',
     true,
     '101',
@@ -352,7 +351,7 @@ export const data = [
     'Youspan',
     'Brazil',
     'Road-550-W',
-    '16/12/2025',
+    '2025-12-16',
     '19-1838230',
     true,
     '150',
@@ -364,7 +363,7 @@ export const data = [
     'Nlounge',
     'China',
     'Road-650',
-    '31/10/2025',
+    '2025-10-31',
     '32-2267938',
     true,
     '42',
@@ -376,7 +375,7 @@ export const data = [
     'Twinte',
     'India',
     'Road-750',
-    '17/08/2025',
+    '2025-08-17',
     '79-2821972',
     true,
     '144',
@@ -388,7 +387,7 @@ export const data = [
     'Oyonder',
     'United Kingdom',
     'Short-Sleeve Classic Jersey',
-    '04/12/2025',
+    '2025-12-04',
     '46-6597557',
     true,
     '195',
@@ -400,7 +399,7 @@ export const data = [
     'Gigabox',
     'Pakistan',
     'Sport-100',
-    '03/02/2025',
+    '2025-02-03',
     '15-1793960',
     true,
     '199',
@@ -412,7 +411,7 @@ export const data = [
     'Livetube',
     'France',
     'Touring-1000',
-    '16/05/2025',
+    '2025-05-16',
     '86-0811003',
     true,
     '110',
@@ -424,7 +423,7 @@ export const data = [
     'Voomm',
     'United Kingdom',
     'Touring-2000',
-    '15/07/2025',
+    '2025-07-15',
     '95-3068680',
     true,
     '51',
@@ -436,7 +435,7 @@ export const data = [
     'Voonyx',
     'China',
     'Touring-3000',
-    '27/11/2025',
+    '2025-11-27',
     '35-3085360',
     false,
     '69',
@@ -448,7 +447,7 @@ export const data = [
     'Zoombeat',
     'United States',
     "Women's Mountain Shorts",
-    '03/11/2025',
+    '2025-11-03',
     '56-8673088',
     false,
     '53',
@@ -460,7 +459,7 @@ export const data = [
     'Roomm',
     'China',
     "Women's Tights",
-    '16/03/2025',
+    '2025-03-16',
     '76-0085918',
     true,
     '168',
@@ -472,7 +471,7 @@ export const data = [
     'Leenti',
     'China',
     'Mountain-400',
-    '16/05/2025',
+    '2025-05-16',
     '03-0893276',
     false,
     '58',
@@ -484,7 +483,7 @@ export const data = [
     'Jetpulse',
     'United States',
     'Road-550',
-    '08/02/2025',
+    '2025-02-08',
     '79-9013306',
     true,
     '152',
@@ -496,7 +495,7 @@ export const data = [
     'Katz',
     'Peru',
     'Road-350',
-    '15/02/2025',
+    '2025-02-15',
     '55-7799920',
     true,
     '66',
@@ -508,7 +507,7 @@ export const data = [
     'Cogidoo',
     'India',
     'LL Mountain Front Wheel',
-    '04/06/2025',
+    '2025-06-04',
     '07-0881122',
     false,
     '112',
@@ -520,7 +519,7 @@ export const data = [
     'Divavu',
     'Colombia',
     'Touring Rear Wheel',
-    '24/02/2025',
+    '2025-02-24',
     '58-6157387',
     true,
     '50',
@@ -532,7 +531,7 @@ export const data = [
     'Mydeo',
     'China',
     'Touring Front Wheel',
-    '07/12/2025',
+    '2025-12-07',
     '12-2810010',
     false,
     '31',
@@ -544,7 +543,7 @@ export const data = [
     'Browsebug',
     'Japan',
     'ML Mountain Front Wheel',
-    '14/01/2025',
+    '2025-01-14',
     '64-9249984',
     true,
     '132',
@@ -556,7 +555,7 @@ export const data = [
     'Layo',
     'China',
     'HL Mountain Front Wheel',
-    '24/04/2025',
+    '2025-04-24',
     '45-0739652',
     true,
     '45',
@@ -568,7 +567,7 @@ export const data = [
     'Snaptags',
     'United Kingdom',
     'LL Touring Handlebars',
-    '06/08/2025',
+    '2025-08-06',
     '09-5712761',
     true,
     '197',
@@ -580,7 +579,7 @@ export const data = [
     'Cogilith',
     'China',
     'HL Touring Handlebars',
-    '31/05/2025',
+    '2025-05-31',
     '01-7345008',
     true,
     '190',
@@ -592,7 +591,7 @@ export const data = [
     'Reallinks',
     'United Kingdom',
     'LL Road Front Wheel',
-    '14/05/2025',
+    '2025-05-14',
     '62-1065350',
     true,
     '184',
@@ -604,7 +603,7 @@ export const data = [
     'Quaxo',
     'United States',
     'ML Road Front Wheel',
-    '23/03/2025',
+    '2025-03-23',
     '44-7241323',
     true,
     '169',
@@ -616,7 +615,7 @@ export const data = [
     'Devify',
     'China',
     'HL Road Front Wheel',
-    '12/12/2025',
+    '2025-12-12',
     '52-0295699',
     false,
     '152',
@@ -628,7 +627,7 @@ export const data = [
     'Youopia',
     'Angola',
     'LL Mountain Handlebars',
-    '01/04/2025',
+    '2025-04-01',
     '52-2650922',
     false,
     '182',
@@ -640,7 +639,7 @@ export const data = [
     'Ainyx',
     'China',
     'Touring Pedal',
-    '27/02/2025',
+    '2025-02-27',
     '48-3618525',
     true,
     '141',
@@ -652,7 +651,7 @@ export const data = [
     'Browsetype',
     'Malaysia',
     'ML Mountain Handlebars',
-    '28/04/2025',
+    '2025-04-28',
     '51-8893923',
     true,
     '169',
@@ -664,7 +663,7 @@ export const data = [
     'Muxo',
     'China',
     'HL Mountain Handlebars',
-    '22/08/2025',
+    '2025-08-22',
     '68-5911361',
     false,
     '39',
@@ -676,7 +675,7 @@ export const data = [
     'Bubbletube',
     'China',
     'LL Road Handlebars',
-    '04/10/2025',
+    '2025-10-04',
     '41-5880042',
     true,
     '71',
@@ -688,7 +687,7 @@ export const data = [
     'Fadeo',
     'Vietnam',
     'ML Road Handlebars',
-    '23/04/2025',
+    '2025-04-23',
     '90-5913983',
     true,
     '148',
@@ -700,7 +699,7 @@ export const data = [
     'Yadel',
     'United Kingdom',
     'HL Road Handlebars',
-    '18/04/2025',
+    '2025-04-18',
     '92-0960699',
     true,
     '116',
@@ -712,7 +711,7 @@ export const data = [
     'Blognation',
     'China',
     'LL Headset',
-    '10/01/2025',
+    '2025-01-10',
     '06-9493898',
     true,
     '96',
@@ -724,7 +723,7 @@ export const data = [
     'Devpoint',
     'China',
     'ML Headset',
-    '25/12/2025',
+    '2025-12-25',
     '69-5878565',
     true,
     '35',
@@ -736,7 +735,7 @@ export const data = [
     'Aibox',
     'United Kingdom',
     'HL Headset',
-    '18/03/2025',
+    '2025-03-18',
     '13-1133017',
     true,
     '16',
@@ -748,7 +747,7 @@ export const data = [
     'Brightdog',
     'China',
     'LL Mountain Pedal',
-    '11/09/2025',
+    '2025-09-11',
     '39-6530433',
     true,
     '194',
@@ -760,7 +759,7 @@ export const data = [
     'Gabcube',
     'Nigeria',
     'ML Mountain Pedal',
-    '22/04/2025',
+    '2025-04-22',
     '96-6860388',
     true,
     '24',
@@ -772,7 +771,7 @@ export const data = [
     'Muxo',
     'China',
     'HL Mountain Pedal',
-    '05/06/2025',
+    '2025-06-05',
     '30-0356137',
     true,
     '170',
@@ -784,7 +783,7 @@ export const data = [
     'Tambee',
     'China',
     'ML Touring Seat/Saddle',
-    '22/02/2025',
+    '2025-02-22',
     '93-9058255',
     true,
     '184',
@@ -796,7 +795,7 @@ export const data = [
     'Cogilith',
     'India',
     'LL Touring Seat/Saddle',
-    '06/04/2025',
+    '2025-04-06',
     '82-9268909',
     false,
     '153',
@@ -808,7 +807,7 @@ export const data = [
     'Dynabox',
     'Hong Kong',
     'HL Touring Seat/Saddle',
-    '10/01/2025',
+    '2025-01-10',
     '20-6913815',
     false,
     '88',
@@ -820,7 +819,7 @@ export const data = [
     'Shuffledrive',
     'Sudan',
     'LL Road Pedal',
-    '16/09/2025',
+    '2025-09-16',
     '08-8238817',
     true,
     '57',
@@ -832,7 +831,7 @@ export const data = [
     'Fivechat',
     'China',
     'ML Road Pedal',
-    '26/08/2025',
+    '2025-08-26',
     '44-7370350',
     false,
     '62',
@@ -844,7 +843,7 @@ export const data = [
     'Meembee',
     'United States',
     'HL Road Pedal',
-    '27/12/2025',
+    '2025-12-27',
     '01-3525949',
     true,
     '123',
@@ -856,7 +855,7 @@ export const data = [
     'Dynazzy',
     'United Kingdom',
     'LL Mountain Seat/Saddle 1',
-    '15/12/2025',
+    '2025-12-15',
     '04-2414623',
     true,
     '77',
@@ -868,7 +867,7 @@ export const data = [
     'Eare',
     'China',
     'ML Mountain Seat/Saddle 1',
-    '04/04/2025',
+    '2025-04-04',
     '15-1917509',
     false,
     '199',
@@ -880,7 +879,7 @@ export const data = [
     'Yozio',
     'China',
     'HL Mountain Seat/Saddle 1',
-    '15/03/2025',
+    '2025-03-15',
     '06-2526845',
     true,
     '149',
@@ -892,7 +891,7 @@ export const data = [
     'Quinu',
     "Xi'an",
     '425-777-7829',
-    '22/02/2025',
+    '2025-02-22',
     '83-1713558',
     false,
     '191',
@@ -904,7 +903,7 @@ export const data = [
     'Jazzy',
     'United Kingdom',
     'ML Road Seat/Saddle 1',
-    '07/08/2025',
+    '2025-08-07',
     '00-8892524',
     true,
     '150',
@@ -916,7 +915,7 @@ export const data = [
     'Thoughtsphere',
     'China',
     'HL Road Seat/Saddle 1',
-    '28/11/2025',
+    '2025-11-28',
     '39-5538991',
     true,
     '130',
@@ -928,7 +927,7 @@ export const data = [
     'Leenti',
     'China',
     'ML Road Rear Wheel',
-    '29/12/2025',
+    '2025-12-29',
     '06-9002973',
     true,
     '179',
@@ -940,7 +939,7 @@ export const data = [
     'Quaxo',
     'United Kingdom',
     'HL Road Rear Wheel',
-    '06/09/2025',
+    '2025-09-06',
     '73-6104901',
     true,
     '98',
@@ -952,7 +951,7 @@ export const data = [
     'Tanoodle',
     'Chile',
     'LL Mountain Seat/Saddle 2',
-    '24/05/2025',
+    '2025-05-24',
     '68-7384479',
     true,
     '175',
@@ -964,7 +963,7 @@ export const data = [
     'Feednation',
     'China',
     'ML Mountain Seat/Saddle 2',
-    '21/11/2025',
+    '2025-11-21',
     '26-7757763',
     true,
     '11',
@@ -976,7 +975,7 @@ export const data = [
     'Kayveo',
     'China',
     'HL Mountain Seat/Saddle 2',
-    '21/06/2025',
+    '2025-06-21',
     '07-4873562',
     false,
     '184',
@@ -988,7 +987,7 @@ export const data = [
     'Meevee',
     'Saudi Arabia',
     'LL Road Seat/Saddle 1',
-    '16/11/2025',
+    '2025-11-16',
     '46-5819554',
     false,
     '27',
@@ -1000,7 +999,7 @@ export const data = [
     'Twitterworks',
     'China',
     'ML Road Seat/Saddle 2',
-    '19/04/2025',
+    '2025-04-19',
     '01-2666826',
     true,
     '186',
@@ -1012,7 +1011,7 @@ export const data = [
     'Wikizz',
     'Tanzania',
     'HL Road Seat/Saddle 2',
-    '08/03/2025',
+    '2025-03-08',
     '54-7090503',
     true,
     '20',
@@ -1024,7 +1023,7 @@ export const data = [
     'Yoveo',
     'United States',
     'LL Mountain Tire',
-    '14/10/2025',
+    '2025-10-14',
     '78-7658520',
     false,
     '153',
@@ -1036,7 +1035,7 @@ export const data = [
     'Yakidoo',
     'China',
     'ML Mountain Tire',
-    '12/10/2025',
+    '2025-10-12',
     '23-9926318',
     true,
     '161',
@@ -1048,7 +1047,7 @@ export const data = [
     'Oyope',
     'China',
     'HL Mountain Tire',
-    '20/09/2025',
+    '2025-09-20',
     '20-0179517',
     true,
     '98',
@@ -1060,7 +1059,7 @@ export const data = [
     'Skipstorm',
     'United States',
     'LL Road Tire',
-    '01/10/2025',
+    '2025-10-01',
     '02-9543343',
     true,
     '30',
@@ -1072,7 +1071,7 @@ export const data = [
     'Minyx',
     'United States',
     'ML Road Tire',
-    '07/07/2025',
+    '2025-07-07',
     '98-3938169',
     true,
     '73',
@@ -1084,7 +1083,7 @@ export const data = [
     'Miboo',
     'China',
     'HL Road Tire',
-    '25/07/2025',
+    '2025-07-25',
     '68-5197934',
     true,
     '158',
@@ -1096,7 +1095,7 @@ export const data = [
     'Realfire',
     'United States',
     'Touring Tire',
-    '27/08/2025',
+    '2025-08-27',
     '39-8260460',
     true,
     '122',
@@ -1108,7 +1107,7 @@ export const data = [
     'Shufflester',
     'China',
     'Mountain Tire Tube',
-    '08/06/2025',
+    '2025-06-08',
     '45-9776170',
     true,
     '33',
@@ -1120,7 +1119,7 @@ export const data = [
     'Ntag',
     'China',
     'Road Tire Tube',
-    '06/12/2025',
+    '2025-12-06',
     '45-0858451',
     true,
     '107',
@@ -1132,7 +1131,7 @@ export const data = [
     'Jabberbean',
     'United States',
     'Touring Tire Tube',
-    '26/04/2025',
+    '2025-04-26',
     '15-4247305',
     true,
     '15',
@@ -1144,7 +1143,7 @@ export const data = [
     'Thoughtblab',
     'China',
     'LL Bottom Bracket',
-    '21/05/2025',
+    '2025-05-21',
     '15-8534931',
     true,
     '168',
@@ -1156,7 +1155,7 @@ export const data = [
     'Jabbertype',
     'China',
     'Classic Vest',
-    '25/07/2025',
+    '2025-07-25',
     '23-1251557',
     true,
     '135',
@@ -1168,7 +1167,7 @@ export const data = [
     'Buzzshare',
     'United Kingdom',
     'Cycling Cap',
-    '07/07/2025',
+    '2025-07-07',
     '86-5920601',
     true,
     '11',
@@ -1180,7 +1179,7 @@ export const data = [
     'Roodel',
     'United States',
     'Full-Finger Gloves',
-    '13/01/2025',
+    '2025-01-13',
     '48-1055459',
     true,
     '41',
@@ -1192,7 +1191,7 @@ export const data = [
     'Zoovu',
     'China',
     'Half-Finger Gloves',
-    '03/06/2025',
+    '2025-06-03',
     '12-7842022',
     true,
     '144',
@@ -1204,7 +1203,7 @@ export const data = [
     'Photofeed',
     'China',
     'HL Mountain Frame',
-    '14/07/2025',
+    '2025-07-14',
     '94-5088099',
     true,
     '106',
@@ -1214,103 +1213,72 @@ export const data = [
 ];
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example1',
-  styles: `
-  .theme-examples-controls .example-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  
-  .theme-examples-controls .color-select {
-    position: relative;
-    display: inline-flex;
-    gap: 10px;
-  }
-  
-  .theme-examples-controls .color-select:after {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%) rotate(45deg);
-    right: 20px;
-  }
-  
-  .theme-examples-controls .color-select select {
-    padding: 8px 70px 8px 16px;
-    border-radius: 8px;
-    appearance: none;
-  }
-  
-  .theme-examples-controls .color-box {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    right: 10px;
-    border-radius: 12px;
-    background: grey;
-    padding: 5px;
-    pointer-events: none;
-  }
-  
-  .theme-examples-controls .color-box .color {
-    width: 10px;
-    height: 10px;
-    background-color: grey;
-    border-radius: 50%;
-    border: 1px solid grey;
-  }
-  `,
   template: `
-    <div class="theme-examples-controls">
-      <div class="example-container">
-        <label class="color-select">
-          <select [formControl]="themeControl" id="themeSelect">
-            <option *ngFor="let option of themeOptions" [value]="option.value">
-              {{option.label}}
-            </option>
-          </select>
-          <div #colorBox id="colorBox" class="color-box">
-            <span class="color" style="background: var(--ht-foreground-color);"></span>
-            <span class="color" style="background: var(--ht-background-color);"></span>
-            <span class="color" style="background: var(--ht-accent-color);"></span>
-          </div>
-        </label>
+    <div class="example-controls-container">
+      <div class="controls">
+        <div class="theme-dropdown" (click)="$event.stopPropagation()">
+          <button class="theme-dropdown-trigger" type="button" aria-haspopup="listbox" [attr.aria-expanded]="menuOpen" (click)="menuOpen = !menuOpen">
+            <span class="theme-dropdown-colors">
+              <span class="color" [style.background]="triggerColors.fg"></span>
+              <span class="color" [style.background]="triggerColors.bg"></span>
+              <span class="color" [style.background]="triggerColors.accent"></span>
+            </span>
+            <span class="theme-dropdown-label">{{currentThemeLabel}}</span>
+            <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+          </button>
+          @if (menuOpen) {
+            <ul class="theme-dropdown-menu" role="listbox">
+              @for (option of themeOptions; track option.value) {
+                <li role="option" [attr.aria-selected]="option.value === selectedTheme" (click)="selectTheme(option.value)">
+                  <span [class]="'theme-dropdown-colors ' + option.themeClass">
+                    <span class="color" style="background: var(--ht-foreground-color);"></span>
+                    <span class="color" style="background: var(--ht-background-color);"></span>
+                    <span class="color" style="background: var(--ht-accent-color);"></span>
+                  </span>
+                  {{option.label}}
+                </li>
+              }
+            </ul>
+          }
+        </div>
       </div>
     </div>
-
     <hot-table
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
   encapsulation: ViewEncapsulation.None,
-  standalone: false
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
-  @ViewChild('colorBox', {static: true}) colorBox!: ElementRef;
 
   readonly hotData = data;
 
   hotSettings!: GridSettings;
 
-  themeControl = new FormControl('main');
+  menuOpen = false;
+  selectedTheme = 'horizon-light';
+  triggerColors: {fg: string; bg: string; accent: string} = {fg: '', bg: '', accent: ''};
 
-  themeOptions: Array<{value: string; label: string}> = [
-    { value: 'main-light', label: 'Main Light' },
-    { value: 'main-dark', label: 'Main Dark' },
-    { value: 'horizon-light', label: 'Horizon Light' },
-    { value: 'horizon-dark', label: 'Horizon Dark' },
-    { value: 'classic-light', label: 'Classic Light' },
-    { value: 'classic-dark', label: 'Classic Dark' }
+  themeOptions: Array<{value: string; label: string; themeClass: string}> = [
+    { value: 'main-light', label: 'Main Light', themeClass: 'ht-theme-main' },
+    { value: 'main-dark', label: 'Main Dark', themeClass: 'ht-theme-main-dark' },
+    { value: 'horizon-light', label: 'Horizon Light', themeClass: 'ht-theme-horizon' },
+    { value: 'horizon-dark', label: 'Horizon Dark', themeClass: 'ht-theme-horizon-dark' },
+    { value: 'classic-light', label: 'Classic Light', themeClass: 'ht-theme-classic' },
+    { value: 'classic-dark', label: 'Classic Dark', themeClass: 'ht-theme-classic-dark' }
   ];
+
+  get currentThemeLabel(): string {
+    return this.themeOptions.find(o => o.value === this.selectedTheme)?.label ?? '';
+  }
 
   ngOnInit() {
     this.hotSettings = {
-      theme: getTheme('main'),
+      theme: getTheme('main') ?? mainTheme,
       height: 450,
       colWidths: [180, 220, 140, 120, 120, 120, 140],
       colHeaders: [
@@ -1347,8 +1315,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         },
         {
           data: 4,
-          type: 'date',
-          dateFormat: 'DD/MM/YYYY',
+          type: 'intl-date',
+          locale: 'en-GB',
+          dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
           headerClassName: 'htLeft',
         },
         {
@@ -1398,59 +1367,71 @@ export class AppComponent implements OnInit, AfterViewInit {
       ? 'horizon-dark'
       : 'horizon-light';
 
-    this.themeControl.setValue(currentTheme);
+    this.selectedTheme = currentTheme;
     this.setTheme(currentTheme);
+  }
 
-    this.themeControl.valueChanges.subscribe(themeName => {
-      this.setTheme(themeName!);
-    });
+  selectTheme(value: string): void {
+    this.selectedTheme = value;
+    this.menuOpen = false;
+    this.setTheme(value);
   }
 
   setTheme = (theme: string) => {
     const [themeName, colorScheme] = theme.split('-');
+    const scheme: ThemeColorScheme = (colorScheme as ThemeColorScheme) ?? 'auto';
 
-    this.colorBox.nativeElement.classList.value = `color-box ht-theme-${themeName}`;
     this.hotTable.hotInstance?.updateSettings({
-      theme: getTheme(themeName).setColorScheme(colorScheme || 'auto')
+      theme: getTheme(themeName)?.setColorScheme(scheme)
     });
+
+    const gridEl = this.hotTable.hotInstance?.rootElement;
+
+    if (gridEl) {
+      const helper = document.createElement('div');
+
+      helper.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+      gridEl.appendChild(helper);
+
+      const resolve = (varName: string) => {
+        helper.style.color = `var(${varName})`;
+
+        return getComputedStyle(helper).color;
+      };
+
+      this.triggerColors = {
+        fg: resolve('--ht-foreground-color'),
+        bg: resolve('--ht-background-color'),
+        accent: resolve('--ht-accent-color'),
+      };
+
+      gridEl.removeChild(helper);
+
+      const container = gridEl.closest('.disable-auto-theme') as HTMLElement | null;
+
+      if (container) container.dataset['colorScheme'] = colorScheme ?? 'auto';
+    }
   };
 }
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 
-/* start:skip-in-compilation */
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule, ReactiveFormsModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

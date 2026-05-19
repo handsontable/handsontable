@@ -14,12 +14,24 @@ module.exports = function(content, sourceMap) {
   if (!alreadyExported[moduleName]) {
     alreadyExported[moduleName] = true;
 
-    const exports = `
+    const isDefault = query.globals.defaultExport;
+    let exportCode;
+
+    if (isDefault) {
+      exportCode = `
+      import __exportDefault__ from '${moduleName}';
+
+      window['${moduleToExport}'] = __exportDefault__;
+      `;
+    } else {
+      exportCode = `
       import { ${moduleToExport} as moduleToExport } from '${moduleName}';
 
       window['${moduleToExport}'] = moduleToExport;
-    `;
-    content += `\n\n${FOOTER}${exports}`;
+      `;
+    }
+
+    content += `\n\n${FOOTER}${exportCode}`;
   }
 
   return content;

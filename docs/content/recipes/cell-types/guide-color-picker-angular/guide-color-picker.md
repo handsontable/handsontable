@@ -1,10 +1,11 @@
 ---
+type: how-to
 id: 7wh7yk48
 title: Color picker
 metaTitle: Color Picker Cell - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom color picker cell in Angular using the native HTML5 color input, with live preview and hex validation.
-permalink: /recipes/color-picker-angular
-canonicalUrl: /recipes/color-picker-angular
+permalink: /recipes/cell-types/color-picker-angular
+canonicalUrl: /recipes/cell-types/color-picker-angular
 tags:
   - guides
   - tutorial
@@ -19,19 +20,7 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell - Step-by-Step Guide
-
-[[toc]]
-
-## Overview
-
-This guide shows how to create a custom color picker cell in Angular using the native HTML5 color input. Users can click a cell to open a color picker, select a color, and see it rendered with a colored circle swatch. No external libraries are required.
-
-**Difficulty:** Beginner
-**Time:** ~15 minutes
-**Libraries:** None (uses native HTML5 `<input type="color">`)
-
-## Complete Example
+This tutorial shows you how to build a color picker cell in Angular using the native HTML5 color input, with a custom renderer component and hex validation.
 
 ::: only-for angular
 
@@ -43,6 +32,14 @@ This guide shows how to create a custom color picker cell in Angular using the n
 :::
 
 :::
+
+## Overview
+
+This guide shows how to create a custom color picker cell in Angular using the native HTML5 color input. Users can click a cell to open a color picker, select a color, and see it rendered with a colored circle swatch. No external libraries are required.
+
+**Difficulty:** Beginner
+**Time:** ~15 minutes
+**Libraries:** None (uses native HTML5 `<input type="color">`)
 
 ## What You'll Build
 
@@ -71,7 +68,7 @@ import {
 } from '@handsontable/angular-wrapper';
 ```
 
-- Handsontable's modules are registered in the Angular module (see Step 5) via `registerAllModules()`.
+- Handsontable's modules are registered in `app.config.ts` (see Step 5) via `registerAllModules()`.
 
 ## Step 2: Create the Renderer Component
 
@@ -111,7 +108,8 @@ The renderer component controls how the cell looks when not being edited. It dis
     outline: none;
   }
   `,
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class ColorRendererComponent extends HotCellRendererAdvancedComponent<string> {}
 ```
@@ -136,7 +134,8 @@ The editor component uses the native HTML5 color input. When the user selects a 
     />
   `,
   styleUrls: ['./example1.css'],
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class ColorPickerEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override afterClose(): void {
@@ -176,7 +175,7 @@ const colorValidator = (value: string): boolean => {
 
 **What's happening:**
 
-- Simple function returning `boolean` - this is Angular's `CustomValidatorFn<string>` type
+- Returns `boolean` - this is Angular's `CustomValidatorFn<string>` type
 - Uses regex to validate hex color format: `#` followed by 6 hex characters
 - Returns `true` for valid colors like "#FF0000", "#00ff00"
 - Returns `false` for invalid formats
@@ -194,28 +193,21 @@ const flexibleValidator = (value: string): boolean =>
   /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(value);
 ```
 
-## Step 5: Register Components in Module
+## Step 5: Configure app.config.ts
 
-Register the custom components in your Angular module.
+Configure Handsontable globally in `app.config.ts`. With standalone components, no `@NgModule` is needed.
 
 ```typescript
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import {
-  Example1GuideColorPickerAngularComponent,
-  ColorPickerEditorComponent,
-  ColorRendererComponent,
-} from './app.component';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // Register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -224,28 +216,19 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1GuideColorPickerAngularComponent, ColorPickerEditorComponent, ColorRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1GuideColorPickerAngularComponent],
-})
-export class AppModule {}
 ```
 
 **What's happening:**
 
-- Import `HotTableModule` for Handsontable Angular integration
-- Declare custom components and the root example component in `declarations`
 - Call `registerAllModules()` to enable all Handsontable features
 - Configure global Handsontable settings via `HOT_GLOBAL_CONFIG`
 - Set license (e.g. `NON_COMMERCIAL_LICENSE`)
+- `provideZoneChangeDetection` improves Angular change detection performance
 
 **Key points:**
 
-- Custom editor and renderer must be declared in the same module
-- `HotTableModule` provides the `<hot-table>` component
+- Each standalone component declares its own `imports` array -- no shared `declarations`
+- `HotTableModule` is imported directly in the component that uses `<hot-table>`
 - Global config applies to all Handsontable instances in the app
 
 ## Step 6: Configure Handsontable
@@ -254,13 +237,14 @@ Use the custom components in your Handsontable column configuration. The example
 
 ```typescript
 @Component({
-  selector: 'example1-guide-color-picker-angular',
-  standalone: false,
+  selector: 'app-root',
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1GuideColorPickerAngularComponent {
+export class AppComponent {
   readonly data = inputData.map((el) => ({
     ...el,
     color: `#${
@@ -360,7 +344,8 @@ Provide preset color options using a custom dropdown:
       </div>
     </div>
   `,
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class ColorPickerEditorEnhancedComponent extends HotCellEditorAdvancedComponent<string> {
   presetColors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"];
@@ -498,4 +483,14 @@ export class ColorRendererConfigurableComponent extends HotCellRendererAdvancedC
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](/recipes/cell-types/color-picker).
+**Congratulations!** You've created a fully functional color picker cell in Angular using the native HTML5 color input, with a circle swatch renderer and hex validation. For a Pickr-based color picker (button + nano theme), see the [JavaScript Color Picker recipe](@/javascript/recipes/cell-types/color-picker/color-picker.md).
+
+## What you learned
+
+You built a custom color picker cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`. You used the native HTML5 `<input type="color">` for the editor and displayed the selected color as a circle swatch in the renderer.
+
+## Next steps
+
+- [Color Picker (JavaScript)](@/javascript/recipes/cell-types/color-picker/color-picker.md) - The same concept using `editorFactory` and the Pickr library.
+- [Colorful Picker (React)](@/react/recipes/cell-types/colorful-picker/colorful-picker.md) - The React version using `EditorComponent` and `react-colorful`.
+- [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - Another Angular custom cell built with `HotCellEditorAdvancedComponent`.

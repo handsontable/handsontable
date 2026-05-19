@@ -253,6 +253,30 @@ export function overlayContainsElement(overlayType, element, root) {
 }
 
 /**
+ * Checks whether the provided TH belongs to the bottom-most visual layer of column headers.
+ * The function treats headers that use `rowspan` and reach the last header row as bottom-most.
+ *
+ * @param {HTMLTableCellElement} TH The TH element to check.
+ * @returns {boolean}
+ */
+export function isBottomMostColumnHeader(TH) {
+  if (!TH || !TH.classList || !TH.parentNode || !TH.parentNode.parentNode) {
+    return false;
+  }
+
+  if (TH.classList.contains('hiddenHeader') || TH.style.display === 'none') {
+    return false;
+  }
+
+  const headerRow = TH.parentNode;
+  const headerRows = Array.from(headerRow.parentNode.childNodes);
+  const headerLevel = headerRows.indexOf(headerRow);
+  const rowspan = Number.parseInt(TH.getAttribute('rowspan'), 10) || 1;
+
+  return headerLevel + rowspan >= headerRows.length;
+}
+
+/**
  * @param {string[]} classNames The element "class" attribute string.
  * @returns {string[]}
  */
@@ -1205,13 +1229,11 @@ export function isDetached(element) {
 export function observeVisibilityChangeOnce(elementToBeObserved, callback) {
   const visibilityObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting && elementToBeObserved.offsetParent !== null) {
+      if (entry.isIntersecting) {
         callback();
-        observer.unobserve(elementToBeObserved);
+        observer.disconnect();
       }
     });
-  }, {
-    root: elementToBeObserved.ownerDocument.body
   });
 
   visibilityObserver.observe(elementToBeObserved);

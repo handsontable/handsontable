@@ -1,15 +1,17 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import 'handsontable/styles/ht-theme-main.css';
 
 @Component({
   selector: 'example1-demo',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1DemoComponent {
+export class AppComponent {
   readonly data: Array<Array<string | number>> = [
     ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
     ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
@@ -19,6 +21,7 @@ export class Example1DemoComponent {
   ];
 
   readonly gridSettings: GridSettings = {
+    theme: 'ht-theme-main',
     colHeaders: ['Name', 'Email', 'City', 'Age', 'Position'],
     columns: [
       { data: 0, type: 'text' },
@@ -30,45 +33,27 @@ export class Example1DemoComponent {
     rowHeaders: true,
     width: '100%',
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation'
   };
 }
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1DemoComponent } from './app.component';
-/* end:skip-in-compilation */
-import 'handsontable/styles/ht-theme-main.css';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        theme: 'ht-theme-main',
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1DemoComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1DemoComponent ]
-})
-
-export class AppModule { }
 /* end-file */

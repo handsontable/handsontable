@@ -58,6 +58,23 @@ describe('Core.themeManager', () => {
       expect(hot.themeManager.getClassName()).toBe('ht-theme-plain-config-theme');
     });
 
+    it('should not warn for unknown token keys on initialization', async() => {
+      // eslint-disable-next-line no-console
+      spyOn(console, 'warn');
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        theme: createValidThemeConfig({ name: 'plain-hit-area-theme' }),
+      }, true);
+
+      // eslint-disable-next-line no-console
+      const unknownTokenWarnings = console.warn.calls.allArgs()
+        .map(([message]) => message)
+        .filter(message => message.startsWith('[ThemeBuilder] Unknown token key:'));
+
+      expect(unknownTokenWarnings).toEqual([]);
+    });
+
     it('should set the correct theme class when passing a plain theme config object', async() => {
       const plainThemeConfig = createValidThemeConfig({ name: 'plain-class-theme' });
 

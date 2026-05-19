@@ -36,7 +36,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(0, 0, '');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
   });
@@ -54,7 +54,7 @@ describe('dateValidator', () => {
     });
 
     await setDataAtCell(1, 0, '2016-03-18');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date');
     expect(getDataAtCell(1, 0)).toEqual('03/18/2016');
@@ -75,7 +75,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(0, 0, 'wat');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'wat', 0, 'date');
   });
@@ -93,7 +93,7 @@ describe('dateValidator', () => {
     });
 
     await setDataAtCell(0, 0, '01/01/2015 ops');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date');
     expect(getDataAtCell(0, 0)).toEqual('01/01/2015');
@@ -114,7 +114,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(0, 0, '33/01/2014');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '33/01/2014', 0, 'date');
   });
@@ -134,7 +134,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '01/01/15');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/15', 1, 'date');
   });
@@ -154,7 +154,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '01/01/2015');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015', 1, 'date');
   });
@@ -174,7 +174,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '01/01/2015');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '01/01/2015', 1, 'date');
   });
@@ -194,7 +194,7 @@ describe('dateValidator', () => {
 
     await setDataAtCell(1, 0, '23/03/15');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '23/03/15', 1, 'date');
   });
@@ -215,7 +215,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date');
     });
@@ -235,7 +235,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, null);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date');
     });
@@ -255,7 +255,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 1, 'date');
     });
@@ -277,7 +277,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '11/23/2013');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date');
     });
@@ -297,7 +297,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '11/23/2013');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '11/23/2013', 1, 'date');
     });
@@ -316,11 +316,11 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '1/10/15');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '1/10/15', 1, 'date');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('01/10/2015');
     });
@@ -339,11 +339,11 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, '5.3.2016');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, '5.3.2016', 1, 'date');
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       expect(getDataAtCell(1, 0)).toEqual('05.03.2016');
     });
@@ -363,7 +363,7 @@ describe('dateValidator', () => {
 
       await setDataAtCell(1, 0, 'test non-date string');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-date string', 1, 'date');
     });
@@ -384,7 +384,7 @@ describe('dateValidator', () => {
         [5, 0, '1/11/2015'],
       ]);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(countRows()).toBe(6);
     });
@@ -419,7 +419,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(isValid, value, 0, 0);
         });
@@ -453,7 +453,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });
@@ -496,7 +496,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(true, value, 0, 0);
         });
@@ -522,7 +522,7 @@ describe('dateValidator', () => {
 
           await setDataAtCell(0, 0, value);
 
-          await sleep(50);
+          await waitForNextAnimationFrames(2);
 
           expect(onAfterValidateSpy).toHaveBeenCalledWith(false, value, 0, 0);
         });

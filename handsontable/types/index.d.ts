@@ -171,6 +171,23 @@ import {
   BorderOptions,
 } from './plugins/customBorders';
 import {
+  DataProvider as _DataProvider,
+  Settings as DataProviderSettings,
+  DataProviderBeforeFetchParameters,
+  DataProviderQueryParameters,
+  DataProviderFetchDataOverrides,
+  DataProviderFetchResult,
+  DataProviderFetchOptions,
+  DataProviderOptions,
+  DataProviderConfig,
+  RowsCreatePayload,
+  RowUpdatePayload,
+  RowMutationPayload,
+  RowMutationCreatePayload,
+  RowMutationUpdatePayload,
+  RowMutationRemovePayload,
+} from './plugins/dataProvider';
+import {
   DragToScroll as _DragToScroll,
   Settings as DragToScrollSettings,
 } from './plugins/dragToScroll';
@@ -451,6 +468,7 @@ declare namespace Handsontable {
     export class ContextMenu extends _ContextMenu {}
     export class CopyPaste extends _CopyPaste {}
     export class CustomBorders extends _CustomBorders {}
+    export class DataProvider extends _DataProvider {}
     export class DragToScroll extends _DragToScroll {}
     export class DropdownMenu extends _DropdownMenu {}
     export class ExportFile extends _ExportFile {}
@@ -531,6 +549,23 @@ declare namespace Handsontable {
       export { CustomBordersSettings as Settings };
       export { BorderOptions };
       export { BorderRange };
+    }
+
+    export namespace DataProvider {
+      export { DataProviderSettings as Settings };
+      export { DataProviderQueryParameters as QueryParameters };
+      export { DataProviderBeforeFetchParameters as BeforeFetchParameters };
+      export { DataProviderFetchDataOverrides as FetchDataOverrides };
+      export { DataProviderFetchResult as FetchResult };
+      export { DataProviderFetchOptions as FetchOptions };
+      export { DataProviderOptions as Options };
+      export { DataProviderConfig as Config };
+      export { RowsCreatePayload };
+      export { RowUpdatePayload };
+      export { RowMutationPayload };
+      export { RowMutationCreatePayload };
+      export { RowMutationUpdatePayload };
+      export { RowMutationRemovePayload };
     }
 
     export namespace DragToScroll {

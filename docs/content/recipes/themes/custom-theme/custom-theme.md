@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 8f3c91ab
 title: Handsontable with shadcn/ui
 metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
@@ -26,9 +27,11 @@ searchCategory: Recipes
 category: Themes
 ---
 
-# Handsontable with shadcn/ui
+This tutorial shows you how to integrate Handsontable into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
 
-[[toc]]
+<iframe src="https://4y8dv9-3000.csb.app/" title="Handsontable with shadcn/ui demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+
+[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/next-shadcn.js)
 
 ## Overview
 
@@ -37,12 +40,6 @@ This recipe shows how to integrate Handsontable into a Next.js that uses [shadcn
 **Difficulty:** Beginner  
 **Time:** ~15 minutes  
 **Stack:** Next.js, shadcn/ui (Tailwind CSS), Handsontable, `@handsontable/react-wrapper`
-
-## Complete Example
-
-<iframe src="https://4y8dv9-3000.csb.app/" title="Handsontable with shadcn/ui demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px;"></iframe>
-
-[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/next-shadcn.js)
 
 ## What You'll Get
 
@@ -327,9 +324,11 @@ const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
 });
 ```
 
-Use the grid in your page (e.g. **`app/page.tsx`**): `import DataGrid from "@/components/DataGrid"` and render `<DataGrid />`. The full example exports a `DataGridWrapper` that wires the grid ref to URL search params for filtering (see Complete example below).
+Use the grid in your page (e.g. **`app/page.tsx`**): `import DataGrid from "@/components/DataGrid"` and render `<DataGrid />`.
 
 ## Complete example (minimal single-file shape)
+
+The complete example adds a `DataGridWrapper` that wires the grid ref to URL search params for filtering. It uses the same `DataGrid` component from Step 5, wrapped with `memo` and `forwardRef`.
 
 ```tsx
 "use client";
@@ -338,127 +337,26 @@ import { useSearchParams } from "next/navigation";
 import { HotTable, HotColumn, HotTableRef } from "@handsontable/react-wrapper";
 import { registerTheme } from "handsontable/themes";
 import { registerAllModules } from "handsontable/registry";
-
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
-
 import { colorsShadcn } from "@/lib/theme/colorsShadcn";
 import { iconsShadcn } from "@/lib/theme/iconsShadcn";
 import { data, config } from "@/lib/helpers";
 
 registerAllModules();
 
+// Theme registration and DataGrid component (same as Step 5)
 const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   icons: iconsShadcn,
   colors: colorsShadcn,
   tokens: tokensHorizon,
-}).params({
-  tokens: {
-    wrapperBorderRadius: "var(--radius)",
-  },
-})
+}).params({ tokens: { wrapperBorderRadius: "var(--radius)" } });
 
 const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
-  return (<HotTable
-    ref={ref}
-    theme={shadcnDataGridTheme}
-    data={data}
-    {...config}
-  >
-    <HotColumn data="name" width={160} />
-    <HotColumn data="age" type="numeric" width={100} />
-    <HotColumn
-      data="country"
-      type="autocomplete"
-      source={[
-        "Germany",
-        "China",
-        "France",
-        "Netherlands",
-        "Switzerland",
-        "USA",
-        "Canada",
-        "UK",
-        "Australia",
-        "Spain",
-        "Japan",
-        "Brazil",
-        "South Korea",
-        "Mexico",
-      ]}
-      strict={true}
-      allowInvalid={true}
-      width={160}
-    />
-    <HotColumn
-      data="city"
-      type="dropdown"
-      source={[
-        "Walldorf",
-        "Shenzhen",
-        "Lyon",
-        "Amsterdam",
-        "Zurich",
-        "New York",
-        "Toronto",
-        "London",
-        "Sydney",
-        "Los Angeles",
-        "Barcelona",
-        "Tokyo",
-        "Manchester",
-        "Sao Paulo",
-        "Miami",
-        "Madrid",
-        "Seoul",
-        "Vancouver",
-        "Valencia",
-        "Chicago",
-        "Mexico City",
-        "Houston",
-      ]}
-      width={160}
-    />
-    <HotColumn
-      data="isActive"
-      type="checkbox"
-      className="htCenter"
-      width={120}
-    />
-    <HotColumn
-      data="interest"
-      type="dropdown"
-      source={[
-        "Electronics",
-        "Fashion",
-        "Tech Gadgets",
-        "Home Decor",
-        "Sports & Fitness",
-        "Books & Literature",
-        "Beauty & Personal Care",
-        "Food & Cooking",
-        "Travel & Adventure",
-        "Art & Collectibles",
-      ]}
-      width={220}
-    />
-    <HotColumn data="favoriteProduct" width={220} />
-    <HotColumn
-      data="lastLoginDate"
-      type="date"
-      className="htRight"
-      correctFormat={true}
-      dateFormat="MMM DD, YYYY"
-      width={180}
-    />
-    <HotColumn
-      data="lastLoginTime"
-      type="time"
-      className="htRight"
-      correctFormat={true}
-      timeFormat="HH:mm"
-      width={180}
-    />
-  </HotTable>);
+  return (
+    <HotTable ref={ref} theme={shadcnDataGridTheme} data={data} {...config}>
+      {/* HotColumn definitions (see Step 5) */}
+    </HotTable>
+  );
 });
 
 const MemoizedDataGrid = memo(DataGrid);
@@ -477,9 +375,9 @@ function DataGridWrapper() {
       if (filtersPlugin) {
         filtersPlugin.clearConditions();
 
-        if (params.q) filtersPlugin.addCondition(0, 'begins_with', [params.q]); // Name
-        if (params.country) filtersPlugin.addCondition(2, 'contains', [params.country]); // Country
-        if (params.status) filtersPlugin.addCondition(4, 'eq', [params.status === 'active']); // Active (checkbox)
+        if (params.q) filtersPlugin.addCondition(0, 'begins_with', [params.q]);
+        if (params.country) filtersPlugin.addCondition(2, 'contains', [params.country]);
+        if (params.status) filtersPlugin.addCondition(4, 'eq', [params.status === 'active']);
 
         filtersPlugin.filter();
         hot?.render();
@@ -487,18 +385,29 @@ function DataGridWrapper() {
     }
   }, [searchParams]);
 
-  return (
-    <MemoizedDataGrid ref={hotTableRef} />
-  );
+  return <MemoizedDataGrid ref={hotTableRef} />;
 }
 
 export default DataGridWrapper;
 ```
 
-**Congratulations!** You've integrated Handsontable with your shadcn/ui design system using a custom theme, CSS variables, and a filterable data grid that matches your app's look and feel!
+
+## What you learned
+
+You registered a custom Handsontable theme that maps shadcn CSS variables to Handsontable colors. You used Lucide-style SVG data URIs for icons, Horizon tokens as the base token set, and `.params()` overrides to apply your `--radius` variable to the grid wrapper.
+
+## Next steps
+
+- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object.
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.
 
 ## Related
 
-- [Themes](/themes) – Built-in themes and Theme API
-- [Theme customization](/theme-customization) – Theme API parameters and CSS variable reference
-- [Design system (Figma)](/handsontable-design-system) – Figma kit and design tokens
+<div class="boxes-list">
+
+- [Themes](@/guides/styling/themes/themes.md)
+- [Theme customization](@/guides/styling/theme-customization/theme-customization.md)
+- [Design system](@/guides/styling/design-system/design-system.md)
+
+</div>

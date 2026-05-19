@@ -33,11 +33,7 @@ describe('Vertical scroll', () => {
     await selectCell(8, 0);
 
     // expect that the viewport is scrolled to the beginning of the `9` row
-    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(195);
-      main.toBe(195);
-      horizon.toBe(195);
-    });
+    expect(topOverlay().getScrollPosition()).toBe(195);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(8, 0, true));
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({
       block: 'nearest',

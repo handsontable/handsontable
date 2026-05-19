@@ -49,6 +49,30 @@ describe('Core.setSourceDataAtCell', () => {
     expect(getSourceData()[2].lorem).toBe('amet');
   });
 
+  it('should set a child row value when nested rows plugin is enabled', async() => {
+    const sourceData = [
+      {
+        artist: 'Parent',
+        __children: [
+          { artist: 'Child' },
+        ],
+      },
+      {
+        artist: 'Second parent',
+      },
+    ];
+
+    handsontable({
+      data: sourceData,
+      nestedRows: true,
+    });
+
+    await setSourceDataAtCell(1, 'artist', 'Updated child');
+
+    expect(sourceData[0].__children[0].artist).toBe('Updated child');
+    expect(sourceData[1].artist).toBe('Second parent');
+  });
+
   it('should trigger table render cycle after changing the data', async() => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],

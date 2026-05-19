@@ -1,0 +1,124 @@
+---
+name: writing-docs-pages
+description: Use when creating or editing documentation pages in docs/content/guides/ - covers YAML frontmatter, page structure, framework-specific example embedding, writing style, and sidebar registration
+---
+
+# Writing Documentation Pages
+
+This skill covers how to create and edit guide pages in `docs/content/guides/`.
+
+## 1. Frontmatter (required)
+
+Every `.md` file starts with YAML frontmatter. Generate unique 8-character alphanumeric IDs for new pages (never change existing IDs). Each framework variant needs its own ID.
+
+```yaml
+---
+id: abc12345              # 8 random alphanumeric chars (never change existing)
+title: Feature Name
+metaTitle: Feature Name - JavaScript Data Grid | Handsontable
+description: Short SEO description under 160 characters.
+permalink: /feature-name
+canonicalUrl: /feature-name
+tags:
+  - keyword1
+  - keyword2
+react:
+  id: def67890            # Different ID for React variant
+  metaTitle: Feature Name - React Data Grid | Handsontable
+searchCategory: Guides
+category: Cell features    # Must match a sidebar category exactly
+---
+```
+
+## 2. Page Structure
+
+Follow this order consistently:
+
+1. **No H1 in the Markdown body** - Starlight renders the page heading from the `title` frontmatter field. Do not add `# Title` (or any other H1) after the frontmatter, or the title appears twice on the page.
+2. **Overview** - start with 1-2 sentences describing what the feature does and why it matters (first content after `---`).
+3. **`[[toc]]`** - auto-generates a table of contents from headings.
+4. **Progressive sections** - use `##` and below only, ordered from basic to advanced: Enable the feature, Basic usage, Configuration options, Advanced usage, Keyboard shortcuts, Known limitations, API reference links.
+
+## 3. Framework-Specific Content
+
+Wrap content that applies to only one framework:
+
+```markdown
+::: only-for javascript
+
+JavaScript-only content here.
+
+:::
+
+::: only-for react
+
+React-only content here.
+
+:::
+```
+
+**Important:** The `:::` markers must be on their own lines with blank lines before and after the content block.
+
+## 4. Example Embedding
+
+Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set tab order.
+
+```markdown
+::: only-for javascript
+
+::: example #example1 --js 1 --ts 2
+@[code](@/content/guides/category/feature/javascript/example1.js)
+@[code](@/content/guides/category/feature/javascript/example1.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react --tsx 1 --jsx 2
+@[code](@/content/guides/category/feature/react/example1.tsx)
+@[code](@/content/guides/category/feature/react/example1.jsx)
+:::
+
+:::
+```
+
+For Vue examples, use `:vue3` with `--html 1 --js 2`. For Angular, use `:angular` with `--ts 1 --html 2`.
+
+## 5. Writing Style
+
+- Active voice, American English, short sentences.
+- Address the reader as "you", never "we". Use the Oxford comma.
+- No evaluative adjectives ("easy", "simple", "obvious").
+- Use en dashes (-) to separate clauses, not hyphens.
+- Bold for UI elements: **Add comment**. Inline code for API names: `comments`.
+- Internal links: `[text](@/path/to/file.md#anchor)` syntax.
+- End every sentence with a full stop, including in lists.
+
+## 6. Trademark Rules
+
+Pages mentioning "Excel" must include the Microsoft/Excel trademark disclaimer at the bottom. Pages that also mention "Google Sheets" use the expanded disclaimer covering both trademarks.
+
+## 7. Sidebar Registration
+
+After creating a new page, add it to `docs/content/guides/sidebar.js`. Find the correct category array and insert an entry:
+
+```js
+{ path: 'guides/category/feature-name/feature-name' }
+```
+
+Use `onlyFor: ['react']` or `onlyFor: ['angular']` if the page is framework-specific.
+
+## 8. Code Example Generation
+
+Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant from the `docs/` directory:
+
+```bash
+cd docs && npm run docs:code-examples:generate-js -- <path-to-ts-file>
+```
+
+Use a path relative to `docs/` (for example `content/recipes/foo/javascript/example1.ts`).
+
+## Reference
+
+See `docs/README-EDITING.md` for the complete editing rules, including all frontmatter tags, container syntax, and content formatting details.

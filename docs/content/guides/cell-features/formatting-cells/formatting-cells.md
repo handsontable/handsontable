@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
@@ -14,12 +15,11 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Formatting cells
-
 Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 
 [[toc]]
+
+Format cells using CSS classes, inline styles, or the renderer API. Choose the approach that fits your use case.
 
 ## Overview
 
@@ -162,25 +162,42 @@ The example below demonstrates different border styles applied to various cell r
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Conditional formatting](@/guides/cell-features/conditional-formatting/conditional-formatting.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`className`](@/api/options.md#classname)
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`currentColClassName`](@/api/options.md#currentcolclassname)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`currentRowClassName`](@/api/options.md#currentrowclassname)
-  - [`customBorders`](@/api/options.md#customborders)
-  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
-  - [`noWordWrapClassName`](@/api/options.md#nowordwrapclassname)
-  - [`placeholder`](@/api/options.md#placeholder)
-  - [`placeholderCellClassName`](@/api/options.md#placeholdercellclassname)
-  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
-  - [`tableClassName`](@/api/options.md#tableclassname)
-- Plugins:
-  - [`CustomBorders`](@/api/customBorders.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [className](@/api/options.md#classname)
+- [commentedCellClassName](@/api/options.md#commentedcellclassname)
+- [currentColClassName](@/api/options.md#currentcolclassname)
+- [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [currentRowClassName](@/api/options.md#currentrowclassname)
+- [customBorders](@/api/options.md#customborders)
+- [invalidCellClassName](@/api/options.md#invalidcellclassname)
+- [noWordWrapClassName](@/api/options.md#nowordwrapclassname)
+- [placeholder](@/api/options.md#placeholder)
+- [placeholderCellClassName](@/api/options.md#placeholdercellclassname)
+- [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+- [tableClassName](@/api/options.md#tableclassname)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CustomBorders](@/api/customBorders.md)
+
+</div>
+
+## Result
+
+Cells display the configured CSS classes, inline styles, or custom borders. The appearance updates each time the grid renders, keeping styles in sync with your configuration.

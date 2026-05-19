@@ -719,4 +719,78 @@ describe('TableView', () => {
       expect(tableView()._wt.draw).toHaveBeenCalledWith(false);
     });
   });
+
+  describe('synthetic mouse event handling after touch', () => {
+    it('should not deselect the cell when a synthetic mousedown fires after a touch interaction', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      const cell = getCell(0, 0);
+
+      await triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchend', cell);
+
+      // Simulate synthetic mousedown that Android fires after touchend.
+      $(document.documentElement).simulate('mousedown');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should not deselect the cell when a synthetic mouseup fires after a touch interaction', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      await selectCell(0, 0);
+
+      const cell = getCell(0, 0);
+
+      await triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchend', cell);
+
+      // Simulate synthetic mouseup that Android fires after touchend.
+      $(document.documentElement).simulate('mouseup');
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should not trigger selectionMouseDown when a synthetic mousedown fires on rootElement after touch', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      const cell = getCell(0, 0);
+
+      await triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchend', cell);
+
+      // Simulate synthetic mousedown on a cell (inside rootElement).
+      $(cell).simulate('mousedown');
+
+      // The selection should be set by touch, not disrupted by synthetic mousedown.
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+    });
+
+    it('should handle real mouse events normally after the synthetic event window expires', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        outsideClickDeselects: true,
+      });
+
+      await selectCell(0, 0);
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+
+      // Wait for the synthetic event window to expire.
+      await sleep(500);
+
+      // A real mousedown outside the table should deselect.
+      $(document.documentElement).simulate('mousedown');
+
+      expect(getSelected()).toBeUndefined();
+    });
+  });
 });

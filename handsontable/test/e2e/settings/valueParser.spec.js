@@ -55,7 +55,7 @@ describe('Core.valueParser', () => {
     keyProxy().val('123');
 
     await keyDownUp('enter');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     await selectCell(1, 1);
     await keyDownUp('enter');
@@ -63,7 +63,7 @@ describe('Core.valueParser', () => {
     keyProxy().val('222');
 
     await keyDownUp('enter');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([
       [246, 'B1'],

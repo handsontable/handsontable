@@ -1,0 +1,267 @@
+---
+/**
+ * PageSidebar override.
+ *
+ * Renders the default ToC (mobile + desktop) and appends page-action links
+ * (Copy Markdown, Open in…) below the table of contents as tertiary buttons.
+ */
+import MobileTableOfContents from 'virtual:starlight/components/MobileTableOfContents';
+import TableOfContents from 'virtual:starlight/components/TableOfContents';
+import { Icon } from '@astrojs/starlight/components';
+import config from 'virtual:config';
+
+const currentPath = Astro.url.pathname.replace(/\/$/, '');
+const currentUrl  = Astro.url.href;
+const pageTitle   = Astro.locals.starlightRoute.entry.data.title;
+const mdSlug      = currentPath.replace(/^\/docs\//, '');
+const mdPath      = `/docs/_md/${mdSlug}.md`;
+
+const { actions, prompt: userPrompt } = config;
+const { pageActions } = (Astro.locals as any).starlightRoute.entry.data;
+const showActions = pageActions || typeof pageActions === 'undefined';
+
+const prompt = userPrompt?.includes('{url}')
+  ? userPrompt?.replace('{url}', currentUrl)
+  : `${userPrompt} ${currentUrl}`;
+const encodedPrompt = encodeURIComponent(prompt as string);
+
+interface ActionLink {
+  label: string;
+  href?: string;
+  id: string;
+  icon: string;
+  isButton?: boolean;
+  hasStates?: boolean;
+  customIcon?: boolean;
+}
+
+const actionLinks: ActionLink[] = [];
+
+// Copy Markdown — a button (no href)
+actionLinks.push({
+  label: 'Copy Markdown',
+  id: 'copy-markdown',
+  icon: 'mdx',
+  isButton: true,
+  hasStates: true,
+});
+
+// Ask AI about this page — opens the docs assistant panel
+actionLinks.push({
+  label: 'Ask AI about this page',
+  id: 'toc-assistant-btn',
+  icon: 'chatbot',
+  isButton: true,
+  customIcon: true,
+});
+
+// Print this page — browser-native print dialog
+actionLinks.push({
+  label: 'Print this page',
+  id: 'print-page',
+  icon: 'document',
+  isButton: true,
+});
+
+// Open in… links
+if (actions?.chatgpt) {
+  actionLinks.push({
+    label: 'Open in ChatGPT',
+    href: `https://chatgpt.com/?q=${encodedPrompt}`,
+    id: 'chatgpt',
+    icon: 'external',
+  });
+}
+if (actions?.claude) {
+  actionLinks.push({
+    label: 'Open in Claude',
+    href: `https://claude.ai/new?q=${encodedPrompt}`,
+    id: 'claude',
+    icon: 'external',
+  });
+}
+---
+
+{Astro.locals.starlightRoute.toc && (
+  <>
+    <div class="lg:sl-hidden">
+      <MobileTableOfContents />
+    </div>
+    <div class="right-sidebar-panel sl-hidden lg:sl-block">
+      <div class="sl-container">
+        <TableOfContents />
+
+        {showActions && actionLinks.length > 0 && (
+          <div class="toc-actions">
+            {actionLinks.map((action) =>
+              action.isButton ? (
+                <button
+                  class="toc-action-link"
+                  id={action.id}
+                  data-path={mdPath}
+                  data-page-title={action.id === 'toc-assistant-btn' ? pageTitle : undefined}
+                >
+                  {action.customIcon ? (
+                    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
+                  ) : (
+                    <Icon name={action.icon} size="0.875rem" class={action.hasStates ? 'icon-default' : undefined} />
+                  )}
+                  {action.hasStates && <Icon name="approve-check" size="0.875rem" class="icon-success" />}
+                  {action.hasStates && <Icon name="error" size="0.875rem" class="icon-error" />}
+                  <span>{action.label}</span>
+                </button>
+              ) : (
+                <a
+                  class="toc-action-link"
+                  href={action.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${action.label} (opens in new window)`}
+                >
+                  <Icon name={action.icon} size="0.875rem" />
+                  <span>{action.label}</span>
+                </a>
+              )
+            )}
+            <div id="copy-status" class="sr-only" aria-live="polite"></div>
+          </div>
+        )}
+      </div>
+    </div>
+  </>
+)}
+
+<script>
+  const copyButton = document.querySelector(
+    '#copy-markdown'
+  ) as HTMLButtonElement;
+  const copyStatus = document.getElementById('copy-status');
+
+  copyButton?.addEventListener('click', async () => {
+    let copyButtonClass: 'copied' | 'error' = 'copied';
+
+    try {
+      copyButton.disabled = true;
+
+      const mdPath = copyButton.dataset.path;
+
+      const res = await fetch(mdPath!);
+      const contentForClipboard = await res.text();
+
+      await navigator.clipboard.writeText(contentForClipboard);
+      if (copyStatus) copyStatus.textContent = 'Markdown copied to clipboard';
+    } catch (error) {
+      console.error(error);
+      copyButtonClass = 'error';
+      if (copyStatus) copyStatus.textContent = 'Failed to copy Markdown';
+    } finally {
+      copyButton.classList.add(copyButtonClass);
+      copyButton.disabled = false;
+
+      setTimeout(() => {
+        copyButton.classList.remove(copyButtonClass);
+        if (copyStatus) copyStatus.textContent = '';
+      }, 3000);
+    }
+  });
+</script>
+
+<script>
+  document.getElementById('print-page')?.addEventListener('click', () => {
+    window.print();
+  });
+</script>
+
+<style>
+  /* Inherit Starlight's right-sidebar-panel styles */
+  @layer starlight.core {
+    .right-sidebar-panel {
+      padding: 1rem var(--sl-sidebar-pad-x);
+    }
+    .sl-container {
+      width: calc(var(--sl-sidebar-width) - 2 * var(--sl-sidebar-pad-x));
+    }
+    .right-sidebar-panel :global(h2) {
+      color: var(--sl-color-white);
+      font-size: var(--sl-text-h5);
+      font-weight: 600;
+      line-height: var(--sl-line-height-headings);
+      margin-bottom: 0.5rem;
+    }
+    .right-sidebar-panel :global(:where(a)) {
+      display: block;
+      font-size: var(--sl-text-xs);
+      text-decoration: none;
+      color: var(--sl-color-gray-3);
+      overflow-wrap: anywhere;
+    }
+    .right-sidebar-panel :global(:where(a):hover) {
+      color: var(--sl-color-white);
+    }
+    @media (min-width: 72rem) {
+      .sl-container {
+        max-width: calc(
+          (
+            (
+                100vw - var(--sl-sidebar-width) - 2 * var(--sl-content-pad-x) - 2 *
+                  var(--sl-sidebar-pad-x)
+              ) * 0.25
+          )
+        );
+      }
+    }
+  }
+
+  /* ── Tertiary action links below ToC ─────────────────────────────── */
+  .toc-actions {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--sl-color-gray-5);
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .toc-action-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0;
+    background: none;
+    border: none;
+    color: var(--sl-color-gray-3);
+    font-family: var(--sl-font);
+    font-size: var(--sl-text-xs);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s;
+    line-height: 1.4;
+  }
+
+  .toc-action-link:hover {
+    color: var(--sl-color-white);
+  }
+
+  /* Copy button states */
+  #copy-markdown:disabled {
+    opacity: 0.7;
+  }
+
+  :global(.icon-success),
+  :global(.icon-error) {
+    display: none;
+  }
+
+  :global(#copy-markdown.copied .icon-default),
+  :global(#copy-markdown.error .icon-default) {
+    display: none;
+  }
+
+  :global(#copy-markdown.copied .icon-success) {
+    display: block;
+  }
+
+  :global(#copy-markdown.error .icon-error) {
+    display: block;
+  }
+</style>

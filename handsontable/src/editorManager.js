@@ -277,6 +277,10 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   moveSelectionAfterEnter(event) {
+    if (!this.hot.getSelected()) {
+      return;
+    }
+
     const enterMoves = { ...typeof this.tableMeta.enterMoves === 'function' ?
       this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 

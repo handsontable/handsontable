@@ -1,15 +1,17 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example3',
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <hot-table
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
-  standalone: false
 })
 export class AppComponent implements OnInit {
 
@@ -24,7 +26,6 @@ export class AppComponent implements OnInit {
 
   hotSettings!: GridSettings;
 
-
   ngOnInit() {
     const contextMenuSettings = {
       callback(key: string, selection: any, clickEvent: any) {
@@ -33,10 +34,9 @@ export class AppComponent implements OnInit {
       },
       items: {
         row_above: {
-          disabled(): boolean {
+          disabled(this: Handsontable): boolean {
             // `disabled` can be a boolean or a function
             // Disable option when first row was clicked
-            // @ts-ignore
             return this.getSelectedLast()?.[0] === 0; // `this` === hot
           },
         },
@@ -53,10 +53,9 @@ export class AppComponent implements OnInit {
             // `name` can be a string or a function
             return '<b>Custom option</b>'; // Name can contain HTML
           },
-          hidden(): boolean {
+          hidden(this: Handsontable): boolean {
             // `hidden` can be a boolean or a function
             // Hide the option when the first column was clicked
-            // @ts-ignore
             return this.getSelectedLast()?.[1] == 0; // `this` === hot
           },
           callback() {
@@ -107,49 +106,31 @@ export class AppComponent implements OnInit {
     this.hotSettings = {
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
       height: 'auto',
       contextMenu: contextMenuSettings,
       autoWrapRow: true,
       autoWrapCol: true,
-    }
+    };
   }
 }
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

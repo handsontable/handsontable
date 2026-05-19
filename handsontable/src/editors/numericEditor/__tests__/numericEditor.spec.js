@@ -55,7 +55,7 @@ describe('NumericEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -125,7 +125,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
@@ -137,38 +137,38 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
@@ -193,7 +193,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     await selectCell(0, 1);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
@@ -205,19 +205,19 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     await selectCell(0, 3);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     await selectCell(0, 4);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
@@ -253,7 +253,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
@@ -265,26 +265,26 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
@@ -314,7 +314,7 @@ describe('NumericEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
@@ -326,13 +326,13 @@ describe('NumericEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     await selectCell(0, 3);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     await selectCell(0, 4);
-    await sleep(100); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
@@ -368,7 +368,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(typeof getDataAtCell(2, 0)).toEqual('number');
     expect(getDataAtCell(2, 0)).toEqual(999);
@@ -392,7 +392,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(1, 1);
     await keyDownUp('enter');
@@ -401,7 +401,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(0, 2);
     await keyDownUp('enter');
@@ -410,7 +410,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(1, 2);
     await keyDownUp('enter');
@@ -419,7 +419,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(0, 3);
     await keyDownUp('enter');
@@ -428,7 +428,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(1, 3);
     await keyDownUp('enter');
@@ -437,7 +437,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 1)).toEqual('100.000,0');
     expect(getDataAtCell(1, 1)).toEqual('200,000.5');
@@ -464,7 +464,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(typeof getDataAtCell(2, 0)).toEqual('number');
     expect(getDataAtCell(2, 0)).toEqual(77.7);
@@ -487,7 +487,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(typeof getDataAtCell(2, 0)).toEqual('number');
     expect(getDataAtCell(2, 0)).toEqual(77.7);
@@ -510,7 +510,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(2, 0)).toEqual(0.74);
   });
@@ -526,7 +526,7 @@ describe('NumericEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('delete');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getActiveEditor().originalValue).toEqual(null);
   });
@@ -550,7 +550,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(1, 0);
     await keyDownUp('enter');
@@ -559,7 +559,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(2, 0);
     await keyDownUp('enter');
@@ -570,7 +570,7 @@ describe('NumericEditor', () => {
 
     // Column with specified formatting
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(0, 1);
     await keyDownUp('enter');
@@ -579,7 +579,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(1, 1);
     await keyDownUp('enter');
@@ -588,7 +588,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(2, 1);
     await keyDownUp('enter');
@@ -597,7 +597,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
     expect(getDataAtCell(0, 0)).toEqual('12aaa34');
@@ -636,7 +636,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
   });
@@ -659,7 +659,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
   });
@@ -685,7 +685,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
   });
@@ -720,7 +720,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
 
@@ -731,7 +731,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(2, 3).innerHTML).toEqual('$2,456.22');
   });
@@ -753,37 +753,37 @@ describe('NumericEditor', () => {
     await selectCell(0, 1);
     await keyDownUp('enter');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement.value).toEqual('222.5');
 
     // closing editor
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 1)).toEqual(222.5);
 
     await selectCell(0, 2);
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement.value).toEqual('1222.6');
 
     // closing editor
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 2)).toEqual(1222.6);
 
     await selectCell(0, 3);
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement.value).toEqual('1333.5');
 
     // closing editor
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 3)).toEqual(1333.5);
   });
@@ -803,35 +803,35 @@ describe('NumericEditor', () => {
     });
 
     await mouseDoubleClick(getCell(0, 1));
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement.value).toEqual('222.5');
 
     // closing editor
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 1)).toEqual(222.5);
 
     await mouseDoubleClick(getCell(0, 2));
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement.value).toEqual('1222.6');
 
     // closing editor
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 2)).toEqual(1222.6);
 
     await mouseDoubleClick(getCell(0, 3));
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement.value).toEqual('1333.5');
 
     // closing editor
     await keyDownUp('enter');
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 3)).toEqual(1333.5);
   });
@@ -848,7 +848,7 @@ describe('NumericEditor', () => {
 
     await setDataAtCell(0, 0, 'abc');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toEqual('abc');
     expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
@@ -878,7 +878,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(2, 0)).not.toEqual(99); // should be ignored
 
@@ -886,7 +886,7 @@ describe('NumericEditor', () => {
 
     destroyEditor();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(2, 0)).toEqual(999);
   });
@@ -906,7 +906,7 @@ describe('NumericEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNextAnimationFrames(2);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -918,7 +918,7 @@ describe('NumericEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -977,7 +977,7 @@ describe('NumericEditor', () => {
       await selectCell(moveFromRow, moveFromCol);
       await keyDownUp('enter');
       await selectCell(moveToRow, moveToCol);
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect($corner.css('display')).toEqual('block');
     };
@@ -1054,7 +1054,7 @@ describe('NumericEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

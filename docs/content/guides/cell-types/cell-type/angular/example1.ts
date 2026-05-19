@@ -1,16 +1,16 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable/base';
+import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 import { BaseRenderer } from 'handsontable/renderers';
 
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
 };
 
 const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
-  Handsontable.renderers.TextRenderer(instance, td, ...rest);
+  textRenderer(instance, td, ...rest);
 
   td.style.backgroundColor = 'green';
 };
@@ -28,12 +28,13 @@ const colors: string[] = [
 
 @Component({
   selector: 'example1-cell-type',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1CellTypeComponent {
+export class AppComponent {
 
   readonly data = [
     {
@@ -58,7 +59,7 @@ export class Example1CellTypeComponent {
       { data: 'name', renderer: yellowRenderer },
       // use default 'text' cell type but overwrite its renderer with yellowRenderer
       { data: 'isActive', type: 'checkbox' },
-      { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
+      { data: 'date', type: 'intl-date', locale: 'en-US', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
       { data: 'color', type: 'autocomplete', source: colors },
     ],
     cell: [{ row: 1, col: 0, renderer: greenRenderer }],
@@ -75,37 +76,22 @@ export class Example1CellTypeComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1CellTypeComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1CellTypeComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1CellTypeComponent ]
-})
-
-export class AppModule { }
 /* end-file */

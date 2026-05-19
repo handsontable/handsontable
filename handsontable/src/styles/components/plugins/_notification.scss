@@ -1,0 +1,205 @@
+@use "../../utils/mixins";
+
+// Notification (toast) plugin
+
+@mixin output {
+  .ht-notification {
+    position: absolute;
+    inset: 0;
+    z-index: 1070;
+    pointer-events: none;
+    overflow: visible;
+
+    &__stack {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: min(420px, calc(100% - 40px));
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      pointer-events: auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+      padding: 10px;
+
+      @include mixins.scrollbar-styles;
+
+      &--top-start {
+        top: 10px;
+        inset-inline-start: 10px;
+        align-items: flex-start;
+        max-height: calc(100% - 40px);
+      }
+
+      &--top-end {
+        top: 10px;
+        inset-inline-end: 10px;
+        align-items: flex-end;
+        max-height: calc(100% - 40px);
+      }
+
+      &--bottom-start {
+        bottom: 10px;
+        inset-inline-start: 10px;
+        align-items: flex-start;
+        max-height: calc(100% - 40px);
+      }
+
+      &--bottom-end {
+        bottom: 10px;
+        inset-inline-end: 10px;
+        align-items: flex-end;
+        max-height: calc(100% - 40px);
+      }
+    }
+
+    &__toast {
+      @include mixins.box-shadow;
+
+      position: relative;
+      display: flex;
+      flex-shrink: 0;
+      max-width: 100%;
+      pointer-events: auto;
+      color: var(--ht-notification-foreground-color, var(--ht-foreground-color));
+      background-color: var(--ht-notification-background-color, var(--ht-background-color));
+      // No-theme fallback: visible border. Bundled themes set --ht-notification-border-color (classic uses
+      // border tone; horizon/main match background for a borderless card look).
+      border: 1px solid var(--ht-notification-border-color, var(--ht-border-color));
+      border-radius: var(--ht-wrapper-border-radius, 4px);
+      font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
+      letter-spacing: var(--ht-letter-spacing);
+      outline: none;
+
+      &:focus-visible {
+        box-shadow: 0 0 0 1px var(--ht-accent-color);
+      }
+
+      &--animate {
+        opacity: 0;
+        transition:
+          opacity var(--ht-table-transition, 0.15s) ease-out,
+          transform var(--ht-table-transition, 0.15s) ease-out;
+      }
+
+      &--animate#{&}--stack-top:not(#{&}--visible) {
+        transform: translateY(-6px);
+      }
+
+      &--animate#{&}--stack-bottom:not(#{&}--visible) {
+        transform: translateY(6px);
+      }
+
+      &--visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      &--info {
+        .ht-notification__accent {
+          display: none;
+        }
+      }
+
+      &--success .ht-notification__accent {
+        // Fallbacks match theme token defaults (see tokens/*.js notification*Accent).
+        background-color: var(--ht-notification-success-accent, #37bc6c);
+      }
+
+      &--warning .ht-notification__accent {
+        background-color: var(--ht-notification-warning-accent, #fbe952);
+      }
+
+      &--error .ht-notification__accent {
+        background-color: var(--ht-notification-error-accent, #fa4d32);
+      }
+    }
+
+    &__toast-inner {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      width: 100%;
+      min-width: 0;
+      padding: 10px;
+      gap: 0;
+      direction: inherit;
+    }
+
+    &__accent {
+      box-sizing: border-box;
+      flex: 0 0 4px;
+      align-self: stretch;
+      border-radius: 4px;
+      margin-inline-end: 10px;
+    }
+
+    &__body {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    &__title {
+      margin: 0 0 var(--ht-gap-size);
+      font-size: var(--ht-font-size);
+      font-weight: var(--ht-font-weight, 600);
+    }
+
+    &__message {
+      margin: 0;
+      font-size: var(--ht-font-size-small);
+      word-break: break-word;
+    }
+
+    &__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ht-gap-size);
+      margin-top: var(--ht-gap-size);
+    }
+
+    &__close {
+      position: relative;
+      box-sizing: border-box;
+      flex: 0 0 auto;
+      align-self: flex-start;
+      margin-inline-start: 4px;
+      width: var(--ht-icon-button-hit-area-size);
+      height: var(--ht-icon-button-hit-area-size);
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--ht-icon-button-icon-color, inherit);
+      cursor: pointer;
+      border-radius: var(--ht-icon-button-border-radius, var(--ht-wrapper-border-radius, 4px));
+      flex-shrink: 0;
+      overflow: visible;
+
+      &::before {
+        @include mixins.pseudo;
+
+        position: absolute;
+        top: 50%;
+        inset-inline-start: 50%;
+        margin-top: calc(-0.5 * var(--ht-icon-size));
+        margin-inline-start: calc(-0.5 * var(--ht-icon-size));
+      }
+
+      &:hover {
+        color: var(--ht-icon-button-hover-icon-color, inherit);
+        background-color: var(
+          --ht-icon-button-hover-background-color,
+          color-mix(in srgb, var(--ht-foreground-color) 8%, transparent)
+        );
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--ht-accent-color);
+        outline-offset: 2px;
+      }
+    }
+  }
+}

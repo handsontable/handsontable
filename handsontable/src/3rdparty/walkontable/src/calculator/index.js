@@ -6,11 +6,10 @@ import { RenderedAllColumnsCalculationType } from './calculationType/renderedAll
 import { RenderedAllRowsCalculationType } from './calculationType/renderedAllRows';
 import { RenderedColumnsCalculationType } from './calculationType/renderedColumns';
 import { RenderedRowsCalculationType } from './calculationType/renderedRows';
-import { ViewportColumnsCalculator, DEFAULT_WIDTH } from './viewportColumns';
+import { ViewportColumnsCalculator } from './viewportColumns';
 import { ViewportRowsCalculator } from './viewportRows';
 
 export {
-  DEFAULT_WIDTH as DEFAULT_COLUMN_WIDTH,
   FullyVisibleColumnsCalculationType,
   FullyVisibleRowsCalculationType,
   PartiallyVisibleColumnsCalculationType,

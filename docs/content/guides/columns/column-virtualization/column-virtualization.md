@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: xv8sf6at
 title: Column virtualization
 metaTitle: Column virtualization - JavaScript Data Grid | Handsontable
@@ -18,9 +19,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column virtualization
-
 Render hundreds of columns without freezing the browser, using column virtualization.
 
 [[toc]]
@@ -93,13 +91,20 @@ Using column virtualization has the following side effects:
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset)
+- [renderAllColumns](@/api/options.md#renderallcolumns)
+
+</div>

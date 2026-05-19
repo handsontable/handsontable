@@ -1284,9 +1284,9 @@ export class MergeCells extends BasePlugin {
   /**
    * The `modifyAutofillRange` hook callback.
    *
-   * @param {Array} fullArea The drag + base area coordinates.
-   * @param {Array} baseArea The selection information.
-   * @returns {Array} The new drag area.
+   * @param {number[]} fullArea The drag + base area coordinates (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {number[]} baseArea The selection area coordinates (`[startRow, startColumn, endRow, endColumn]`).
+   * @returns {number[]} The new drag area (`[startRow, startColumn, endRow, endColumn]`).
    */
   #onModifyAutofillRange(fullArea, baseArea) {
     const dragDirection = this.autofillCalculations.getDirection(baseArea, fullArea);

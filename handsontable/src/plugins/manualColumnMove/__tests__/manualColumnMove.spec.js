@@ -12,8 +12,8 @@ describe('manualColumnMove', () => {
     }
   });
 
-  it.forTheme('classic')('should retain the cell border on the first rendered column ' +
-    'with `autoRowSize` enabled (dev-2512)', () => {
+  it('should retain the cell border on the first rendered column ' +
+    'with `autoRowSize` enabled (dev-2512)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,
@@ -1343,11 +1343,13 @@ describe('manualColumnMove', () => {
           manualColumnMove: true,
           width: 600,
           height: 600,
-          rowHeights: 47
+          rowHeights: 47,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         await selectCell(19, 0);
-        await sleep(50);
+        await waitForNextAnimationFrames(2);
 
         expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
@@ -1360,7 +1362,7 @@ describe('manualColumnMove', () => {
         $rowsHeaders.eq(8).simulate('mousemove');
         $rowsHeaders.eq(8).simulate('mouseup');
 
-        await sleep(100);
+        await waitForNextAnimationFrames(2);
 
         expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
       });

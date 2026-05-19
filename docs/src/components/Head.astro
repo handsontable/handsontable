@@ -1,0 +1,88 @@
+---
+/**
+ * Starlight Head component override.
+ *
+ * Imports the example runner script, which scans each page for
+ * [data-example-js] / [data-example-jsx] elements and dynamically loads
+ * the matching Handsontable example modules.
+ */
+import Default from '@astrojs/starlight/components/Head.astro';
+---
+
+<Default {...Astro.props} />
+
+<link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
+<link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
+
+<script is:inline>
+  // Remove Starlight's default favicon in favor of light/dark media-query versions above.
+  document.querySelector('link[rel="shortcut icon"]')?.remove();
+</script>
+
+<script>
+  import Handsontable from 'handsontable/base';
+
+  (window as any).HandsontableVersion = Handsontable.version;
+  (window as any).HandsontableBuildDate = Handsontable.buildDate;
+</script>
+
+<script>
+  import '../scripts/example-runner';
+</script>
+
+<script>
+  import '../scripts/docs-assistant-bootstrap';
+</script>
+
+<script>
+  import '../scripts/minesweeper-404';
+</script>
+
+<script>
+  // Code block copy button: swap icon to checkmark after copying (matches Copy Markdown UX).
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.expressive-code .copy button');
+    if (!btn) return;
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 3000);
+  });
+</script>
+
+<script>
+  // Group .source-code-link and .ask-about-api-btn elements into an
+  // .api-member-actions container inside their preceding heading.
+  // The preprocessor emits them as standalone elements (wrapped in <p> by Astro),
+  // so we scan each heading for consecutive action-element paragraphs and
+  // move them into a flex container for side-by-side layout.
+  document.querySelectorAll<HTMLElement>('.sl-markdown-content :is(h2, h3, h4)').forEach((heading) => {
+    const actions: HTMLElement[] = [];
+    const parasToRemove: HTMLElement[] = [];
+
+    let next = heading.nextElementSibling as HTMLElement | null;
+    while (next && next.tagName === 'P') {
+      const actionEl = next.querySelector<HTMLElement>('.source-code-link, .ask-about-api-btn');
+      if (!actionEl) break;
+      actions.push(actionEl);
+      parasToRemove.push(next);
+      next = next.nextElementSibling as HTMLElement | null;
+    }
+
+    if (actions.length === 0) return;
+
+    const container = document.createElement('div');
+    container.className = 'api-member-actions';
+    actions.forEach((el) => container.appendChild(el));
+    heading.appendChild(container);
+    parasToRemove.forEach((p) => p.remove());
+  });
+
+  // Wire up ask-about-api buttons to dispatch the docs-assistant:ask event.
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLElement>('.ask-about-api-btn');
+    if (!btn) return;
+    const option = btn.dataset.option ?? '';
+    const plugin = btn.dataset.plugin ?? 'Handsontable';
+    const question = `Tell me what ${option} in ${plugin} is responsible for and give me an example use case.`;
+    window.dispatchEvent(new CustomEvent('docs-assistant:ask', { detail: { question } }));
+  });
+</script>

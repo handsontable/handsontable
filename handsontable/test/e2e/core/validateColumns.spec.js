@@ -22,7 +22,7 @@ describe('Core.validateColumns', () => {
 
     await validateColumns([0, 1], onValidate);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(2); // wait for async validation
 
     expect(onValidate).toHaveBeenCalledWith(true);
   });
@@ -41,7 +41,7 @@ describe('Core.validateColumns', () => {
 
     await validateColumns([0, 1], onValidate);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(2); // wait for async validation
 
     expect(onValidate).toHaveBeenCalledWith(false);
   });

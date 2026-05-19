@@ -28,7 +28,7 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
     const {
       overrideFn,
       totalColumns,
-      startPositions,
+      positionCache,
     } = viewportCalculator;
 
     if (this.startColumn !== null && typeof overrideFn === 'function') {
@@ -45,7 +45,7 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
       this.startColumn = 0;
     }
 
-    this.startPosition = startPositions[this.startColumn] ?? null;
+    this.startPosition = this.startColumn !== null ? positionCache.getOffset(this.startColumn) : null;
 
     if (totalColumns < this.endColumn) {
       this.endColumn = totalColumns - 1;

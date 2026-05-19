@@ -1,0 +1,14 @@
+/* -------------------------------------------------------------------------
+ * Mobile sidebar pane offset — account for sub-bar height
+ * ------------------------------------------------------------------------- */
+@media (max-width: 49.99rem) {
+  .sidebar-pane {
+    top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height)) !important;
+    height: calc(100vh - var(--sl-nav-height) - var(--sl-mobile-subheader-height)) !important;
+  }
+
+  /* Hide Starlight's default GH icon + theme toggle from mobile sidebar bottom */
+  .sidebar-pane .mobile-preferences {
+    display: none !important;
+  }
+}

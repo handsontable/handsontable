@@ -45,3 +45,4 @@ export const A11Y_RELEVANT = val => ['aria-relevant', val];
 export const A11Y_SETSIZE = val => ['aria-setsize', val];
 export const A11Y_POSINSET = val => ['aria-posinset', val];
 export const A11Y_MODAL = () => ['aria-modal', 'true'];
+export const A11Y_BUSY = () => ['aria-busy', 'true'];

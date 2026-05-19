@@ -1,8 +1,2 @@
 node_modules
-!.vuepress
-.vuepress/public/handsontable
-.vuepress/public/@handsontable
-.vuepress/public/scripts/hot-versions.js
-.vuepress/dist
-
 netlify/docs

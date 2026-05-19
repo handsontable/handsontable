@@ -188,68 +188,68 @@ export const REGISTERED_HOOKS = [
   'afterChange',
 
   /**
-   * Fired each time user opens {@link ContextMenu} and after setting up the Context Menu's default options. These options are a collection
+   * Fired each time user opens {@link ContextMenu} and after setting up the context menu's default options. These options are a collection
    * which user can select by setting an array of keys or an array of objects in {@link Options#contextMenu} option.
    *
    * @event Hooks#afterContextMenuDefaultOptions
-   * @param {Array} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
+   * @param {Array} predefinedItems An array of objects containing information about the pre-defined context menu items.
    */
   'afterContextMenuDefaultOptions',
 
   /**
-   * Fired each time user opens {@link ContextMenu} plugin before setting up the Context Menu's items but after filtering these options by
+   * Fired each time user opens {@link ContextMenu} plugin before setting up the context menu's items but after filtering these options by
    * user ([`contextMenu`](@/api/options.md#contextmenu) option). This hook can by helpful to determine if user use specified menu item or to set up
    * one of the menu item to by always visible.
    *
    * @event Hooks#beforeContextMenuSetItems
-   * @param {object[]} menuItems An array of objects containing information about to generated Context Menu items.
+   * @param {object[]} menuItems An array of objects containing information about to generated context menu items.
    */
   'beforeContextMenuSetItems',
 
   /**
-   * Fired by {@link DropdownMenu} plugin after setting up the Dropdown Menu's default options. These options are a
+   * Fired by {@link DropdownMenu} plugin after setting up the dropdown menu's default options. These options are a
    * collection which user can select by setting an array of keys or an array of objects in {@link Options#dropdownMenu}
    * option.
    *
    * @event Hooks#afterDropdownMenuDefaultOptions
-   * @param {object[]} predefinedItems An array of objects containing information about the pre-defined Context Menu items.
+   * @param {object[]} predefinedItems An array of objects containing information about the pre-defined dropdown menu items.
    */
   'afterDropdownMenuDefaultOptions',
 
   /**
-   * Fired by {@link DropdownMenu} plugin before setting up the Dropdown Menu's items but after filtering these options
+   * Fired by {@link DropdownMenu} plugin before setting up the dropdown menu's items but after filtering these options
    * by user ([`dropdownMenu`](@/api/options.md#dropdownmenu) option). This hook can by helpful to determine if user use specified menu item or to set
    * up one of the menu item to by always visible.
    *
    * @event Hooks#beforeDropdownMenuSetItems
-   * @param {object[]} menuItems An array of objects containing information about to generated Dropdown Menu items.
+   * @param {object[]} menuItems An array of objects containing information about to generated dropdown menu items.
    */
   'beforeDropdownMenuSetItems',
 
   /**
-   * Fired by {@link ContextMenu} plugin after hiding the Context Menu. This hook is fired when {@link Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after hiding the context menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuHide
-   * @param {object} context The Context Menu plugin instance.
+   * @param {object} context The {@link ContextMenu} plugin instance.
    */
   'afterContextMenuHide',
 
   /**
-   * Fired by {@link ContextMenu} plugin before opening the Context Menu. This hook is fired when {@link Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin before opening the context menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#beforeContextMenuShow
-   * @param {object} context The Context Menu instance.
+   * @param {object} context The {@link ContextMenu} instance.
    */
   'beforeContextMenuShow',
 
   /**
-   * Fired by {@link ContextMenu} plugin after opening the Context Menu. This hook is fired when {@link Options#contextMenu}
+   * Fired by {@link ContextMenu} plugin after opening the context menu. This hook is fired when {@link Options#contextMenu}
    * option is enabled.
    *
    * @event Hooks#afterContextMenuShow
-   * @param {object} context The Context Menu plugin instance.
+   * @param {object} context The {@link ContextMenu} plugin instance.
    */
   'afterContextMenuShow',
 
@@ -368,6 +368,22 @@ export const REGISTERED_HOOKS = [
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'afterCreateRow',
+
+  /**
+   * Fired before an alter action is applied (e.g. `insert_row_above`, `insert_row_below`, `remove_row`).
+   * Return `false` to cancel the default alter behavior (e.g. so a plugin can handle it via server-side CRUD).
+   *
+   * @event Hooks#beforeAlter
+   * @since 17.1.0
+   * @param {string} action The alter action: `'insert_row_above'`, `'insert_row_below'`, `'remove_row'`,
+   *                        `'insert_col_start'`, `'insert_col_end'`, `'remove_col'`.
+   * @param {number|Array} index Visual row/column index, or for remove actions an array of `[[index, amount], ...]`.
+   * @param {number} amount Number of rows/columns to insert or remove (default 1).
+   * @param {string} [source] Source of the alter call (e.g. `'ContextMenu.rowAbove'`).
+   * @param {boolean} [keepEmptyRows] Whether to keep empty rows (remove_row only).
+   * @returns {*|boolean} Return `false` to cancel the alter; the table will not be modified locally.
+   */
+  'beforeAlter',
 
   /**
    * Fired after all selected cells are deselected.
@@ -494,6 +510,78 @@ export const REGISTERED_HOOKS = [
   'afterUpdateData',
 
   /**
+   * Fired after the dataProvider has fetched and loaded data.
+   *
+   * @event Hooks#afterDataProviderFetch
+   * @since 17.1.0
+   * @param {object} result Result object: `{ rows, totalRows, queryParameters, columnSortConfig, filtersConditionsStack }`.
+   */
+  'afterDataProviderFetch',
+
+  /**
+   * Fired when the dataProvider fetch throws an error (e.g. network error).
+   *
+   * @event Hooks#afterDataProviderFetchError
+   * @since 17.1.0
+   * @param {Error} error The thrown error.
+   * @param {object} queryParameters The query parameters that were used for the request.
+   */
+  'afterDataProviderFetchError',
+
+  /**
+   * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
+   * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
+   *
+   * @event Hooks#afterDataProviderFetchAbort
+   * @since 17.1.0
+   * @param {object} queryParameters The query parameters that were used for the aborted request.
+   * @param {Error|undefined} reason Abort reason when available (e.g. `AbortError`).
+   */
+  'afterDataProviderFetchAbort',
+
+  /**
+   * Queried to determine if the instance uses an external data source (complete [[Options#dataProvider]] configuration).
+   * When the DataProvider plugin is enabled, it adds an instance handler in `enablePlugin()`. Callbacks may return
+   * `true`, `false`, or `undefined`; the value propagates through the hook chain like other [[Hooks#run]] hooks.
+   *
+   * @event Hooks#hasExternalDataSource
+   * @since 17.1.0
+   * @returns {boolean|void}
+   */
+  'hasExternalDataSource',
+
+  /**
+   * Fired before rows mutation (create, update, remove) is sent to the server. Return `false` to cancel.
+   *
+   * @event Hooks#beforeRowsMutation
+   * @since 17.1.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {object} payload Operation-specific payload (`{ rowsCreate }`, `{ rows: [...] }`, or `{ rowsRemove: [...] }`).
+   */
+  'beforeRowsMutation',
+
+  /**
+   * Fired after rows mutation (create, update, remove) succeeds on the server.
+   *
+   * @event Hooks#afterRowsMutation
+   * @since 17.1.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {object} payload Operation-specific payload.
+   */
+  'afterRowsMutation',
+
+  /**
+   * Fired when rows mutation (create, update, remove) fails on the server.
+   *
+   * @event Hooks#afterRowsMutationError
+   * @since 17.1.0
+   * @param {string} operation One of `'create'`, `'update'`, `'remove'`.
+   * @param {Error} error The thrown error.
+   * @param {object} payload Operation-specific payload.
+   */
+  'afterRowsMutationError',
+
+  /**
    * Fired after a scroll event, which is identified as a momentum scroll (e.g. on an iPad).
    *
    * @event Hooks#afterMomentumScroll
@@ -585,6 +673,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after one or more columns are removed.
    *
+   * When consecutive columns are removed, this hook is fired once with the `amount` reflecting
+   * the total number of removed columns. When non-consecutive columns are removed (for example,
+   * by selecting columns with Ctrl/Cmd held), this hook is fired separately for each removed
+   * column, with `amount` equal to `1` each time. This is by design.
+   *
    * @event Hooks#afterRemoveCol
    * @param {number} index Visual index of starter column.
    * @param {number} amount An amount of removed columns.
@@ -596,6 +689,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after one or more rows are removed.
+   *
+   * When consecutive rows are removed, this hook is fired once with the `amount` reflecting
+   * the total number of removed rows. When non-consecutive rows are removed (for example,
+   * by selecting rows with Ctrl/Cmd held), this hook is fired separately for each removed
+   * row, with `amount` equal to `1` each time. This is by design.
    *
    * @event Hooks#afterRemoveRow
    * @param {number} index Visual index of starter row.
@@ -930,7 +1028,7 @@ export const REGISTERED_HOOKS = [
   'afterSelectionFocusSet',
 
   /**
-   * Fired before one or more columns are selected (e.g. During mouse header click or {@link Core#selectColumns} API call).
+   * Fired before one or more columns are selected (e.g. during mouse header click or {@link Core#selectColumns} API call).
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectColumns
@@ -1490,6 +1588,17 @@ export const REGISTERED_HOOKS = [
   'beforeUpdateData',
 
   /**
+   * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * @event Hooks#beforeDataProviderFetch
+   * @since 17.1.0
+   * @param {object} queryParameters Current query parameters: `{ page, pageSize, sort, filters }`. May include
+   * `skipLoading` when the fetch was triggered internally (for example after column sort or CRUD); not sent to `fetchRows`.
+   * @returns {*|boolean} Return `false` to cancel the fetch; otherwise the fetch proceeds.
+   */
+  'beforeDataProviderFetch',
+
+  /**
    * Hook fired before `keydown` event is handled. It can be used to stop default key bindings.
    *
    * __Note__: To prevent default behavior you need to call `false` in your `beforeKeyDown` handler.
@@ -1505,7 +1614,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseDown
    * @param {Event} event The `mousedown` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
@@ -1517,7 +1626,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseUp
    * @param {Event} event The `mouseup` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellMouseUp',
 
@@ -1528,7 +1637,7 @@ export const REGISTERED_HOOKS = [
    * @since 4.1.0
    * @param {Event} event The `contextmenu` event object.
    * @param {CellCoords} coords Cell coords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellContextMenu',
 
@@ -1538,7 +1647,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseOver
    * @param {Event} event The `mouseover` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the clicked cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    * @param {object} controller An object with properties `row`, `column` and `cell`. Each property contains
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
@@ -1550,7 +1659,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeOnCellMouseOut
    * @param {Event} event The `mouseout` event object.
    * @param {CellCoords} coords CellCoords object containing the visual coordinates of the leaved cell.
-   * @param {HTMLTableCellElement} TD TD element.
+   * @param {HTMLTableCellElement} TD Cell's TD (or TH) element.
    */
   'beforeOnCellMouseOut',
 
@@ -1715,7 +1824,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
    * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
-   * The behavior of Shift+Tab differs from Arrow Left when there's no further movement possible.
+   * The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←**</kbd> when there's no further movement possible.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -1965,12 +2074,13 @@ export const REGISTERED_HOOKS = [
   'afterColumnSort',
 
   /**
-   * Fired by {@link Autofill} plugin after setting range of autofill. This hook is fired when {@link Options#fillHandle}
+   * Fired by {@link Autofill} plugin to allow modifying the autofill range. This hook is fired when {@link Options#fillHandle}
    * option is enabled.
    *
    * @event Hooks#modifyAutofillRange
-   * @param {Array} startArea Array of visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
-   * @param {Array} entireArea Array of visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {number[]} entireArea Visual coordinates of the entire area of the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @param {number[]} startArea Visual coordinates of the starting point for the drag-down operation (`[startRow, startColumn, endRow, endColumn]`).
+   * @returns {number[]} The modified autofill range (`[startRow, startColumn, endRow, endColumn]`).
    */
   'modifyAutofillRange',
 
@@ -2432,6 +2542,34 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after getting the column header renderers.
    *
+   * The `renderers` array initially contains one renderer function when [`colHeaders`](@/api/options.md#colheaders)
+   * is enabled, or zero functions when it is disabled. Each function in the array renders one layer of
+   * column headers above the grid. By pushing additional renderer functions to the array, you can display
+   * more than one layer of column headers simultaneously.
+   *
+   * Each renderer function receives the following arguments:
+   *
+   * | Argument               | Type                    | Description                                |
+   * | ---------------------- | ----------------------- | ------------------------------------------ |
+   * | `renderedColumnIndex`  | `number`                | The renderable index of the column.        |
+   * | `TH`                   | `HTMLTableCellElement`  | The `<th>` element to modify.              |
+   *
+   * ```js
+   * new Handsontable(container, {
+   *   colHeaders: true,
+   *   afterGetColumnHeaderRenderers(renderers) {
+   *     // Add a second layer of column headers above the default one.
+   *     renderers.push((renderedColumnIndex, TH) => {
+   *       TH.innerText = `Extra: ${renderedColumnIndex}`;
+   *     });
+   *   },
+   * });
+   * ```
+   *
+   * Read more:
+   * - [Options: `colHeaders`](@/api/options.md#colheaders)
+   * - [Guides: Column header](@/guides/columns/column-header/column-header.md)
+   *
    * @event Hooks#afterGetColumnHeaderRenderers
    * @param {Function[]} renderers An array of the column header renderers.
    */
@@ -2439,6 +2577,34 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after getting the row header renderers.
+   *
+   * The `renderers` array initially contains one renderer function when [`rowHeaders`](@/api/options.md#rowheaders)
+   * is enabled, or zero functions when it is disabled. Each function in the array renders one layer of
+   * row headers to the left of the grid. By pushing additional renderer functions to the array, you can display
+   * more than one layer of row headers simultaneously.
+   *
+   * Each renderer function receives the following arguments:
+   *
+   * | Argument              | Type                    | Description                             |
+   * | --------------------- | ----------------------- | --------------------------------------- |
+   * | `renderableRowIndex`  | `number`                | The renderable index of the row.        |
+   * | `TH`                  | `HTMLTableCellElement`  | The `<th>` element to modify.           |
+   *
+   * ```js
+   * new Handsontable(container, {
+   *   rowHeaders: true,
+   *   afterGetRowHeaderRenderers(renderers) {
+   *     // Add a second layer of row headers next to the default one.
+   *     renderers.push((renderableRowIndex, TH) => {
+   *       TH.innerText = `Extra: ${renderableRowIndex}`;
+   *     });
+   *   },
+   * });
+   * ```
+   *
+   * Read more:
+   * - [Options: `rowHeaders`](@/api/options.md#rowheaders)
+   * - [Guides: Row header](@/guides/rows/row-header/row-header.md)
    *
    * @event Hooks#afterGetRowHeaderRenderers
    * @param {Function[]} renderers An array of the row header renderers.
@@ -2578,7 +2744,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
-   * {@link Options#pagination} option is enabled.
+   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * handles paging, {@link DataProvider} loads the requested page via `fetchRows`. {@link Pagination} then aligns its
+   * UI from [[Hooks#afterDataProviderFetch]].
    *
    * @since 16.1.0
    * @event Hooks#afterPageChange
@@ -2601,7 +2769,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
-   * {@link Options#pagination} option is enabled.
+   * {@link Options#pagination} option is enabled. When a complete [[Options#dataProvider]] configuration
+   * handles paging, {@link DataProvider} loads page 1 for the new size via `fetchRows`. {@link Pagination} then aligns
+   * its UI from [[Hooks#afterDataProviderFetch]].
    *
    * @since 16.1.0
    * @event Hooks#afterPageSizeChange
@@ -2660,7 +2830,7 @@ export const REGISTERED_HOOKS = [
   'afterFormulasValuesUpdate',
 
   /**
-   * Fired when a named expression is added to the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a named expression is added to the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -2670,7 +2840,7 @@ export const REGISTERED_HOOKS = [
   'afterNamedExpressionAdded',
 
   /**
-   * Fired when a named expression is removed from the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a named expression is removed from the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -2680,7 +2850,7 @@ export const REGISTERED_HOOKS = [
   'afterNamedExpressionRemoved',
 
   /**
-   * Fired when a new sheet is added to the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a new sheet is added to the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -2689,7 +2859,7 @@ export const REGISTERED_HOOKS = [
   'afterSheetAdded',
 
   /**
-   * Fired when a sheet in the Formulas' engine instance is renamed.
+   * Fired by the {@link Formulas} plugin when a sheet in the engine instance is renamed.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -2699,7 +2869,7 @@ export const REGISTERED_HOOKS = [
   'afterSheetRenamed',
 
   /**
-   * Fired when a sheet is removed from the Formulas' engine instance.
+   * Fired by the {@link Formulas} plugin when a sheet is removed from the engine instance.
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved
@@ -3054,7 +3224,7 @@ export const REGISTERED_HOOKS = [
   'beforeDropdownMenuShow',
 
   /**
-   * Fired by {@link DropdownMenu} plugin after opening the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after opening the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuShow
@@ -3063,7 +3233,7 @@ export const REGISTERED_HOOKS = [
   'afterDropdownMenuShow',
 
   /**
-   * Fired by {@link DropdownMenu} plugin after hiding the Dropdown Menu. This hook is fired when {@link Options#dropdownMenu}
+   * Fired by {@link DropdownMenu} plugin after hiding the dropdown menu. This hook is fired when {@link Options#dropdownMenu}
    * option is enabled.
    *
    * @event Hooks#afterDropdownMenuHide
@@ -3126,9 +3296,9 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} fullEditMode `true` if the editor is opened in full edit mode, `false` otherwise.
    * Editor opened in full edit mode does not close after pressing Arrow keys.
    * @returns {boolean | undefined} If the callback returns `false,` the editor won't be opened after
-   * the mouse double click or after pressing the Enter key. Returning `undefined` (or other value
+   * the mouse double click or after pressing the <kbd>**Enter**</kbd> key. Returning `undefined` (or other value
    * than boolean) will result in default behavior, which disallows opening an editor for non-contiguous
-   * selection (while pressing Ctrl/Cmd) and for multiple selected cells (while pressing SHIFT).
+   * selection (while pressing <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) and for multiple selected cells (while pressing <kbd>**Shift**</kbd>).
    * Returning `true` removes those restrictions.
    */
   'beforeBeginEditing',
@@ -3270,6 +3440,49 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterEmptyDataStateHide
    */
   'afterEmptyDataStateHide',
+
+  /**
+   * Fired by {@link Notification} plugin before a toast is shown or enqueued. This hook is fired when {@link Options#notification}
+   * option is enabled. Return `false` to cancel {@link Notification#showMessage} (no id returned, nothing enqueued).
+   * Queued toasts already passed this hook once when {@link Notification#showMessage} ran; it is not fired again when a slot opens.
+   *
+   * @since 17.1.0
+   * @event Hooks#beforeNotificationShow
+   * @param {object} options Normalized toast options including `id`, `variant`, `message`, `duration`, `position`, `closable`, and `actions`.
+   * @returns {boolean | undefined} If returns `false`, the toast is not shown and not queued.
+   */
+  'beforeNotificationShow',
+
+  /**
+   * Fired by {@link Notification} plugin after a toast is shown.
+   *
+   * @since 17.1.0
+   * @event Hooks#afterNotificationShow
+   * @param {string} id Toast id.
+   * @param {object} options Normalized toast options.
+   */
+  'afterNotificationShow',
+
+  /**
+   * Fired by {@link Notification} plugin before a toast is hidden. Return `false` to keep it visible.
+   * Timed toasts keep their auto-dismiss countdown; if the hide was triggered because the countdown
+   * reached zero, the countdown restarts from the configured duration.
+   *
+   * @since 17.1.0
+   * @event Hooks#beforeNotificationHide
+   * @param {string} id Toast id.
+   * @returns {boolean | undefined} If returns `false`, the toast stays visible.
+   */
+  'beforeNotificationHide',
+
+  /**
+   * Fired by {@link Notification} plugin after a toast is hidden.
+   *
+   * @since 17.1.0
+   * @event Hooks#afterNotificationHide
+   * @param {string} id Toast id.
+   */
+  'afterNotificationHide',
 
   /**
    * Fired after the editor is opened and rendered.

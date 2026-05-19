@@ -1,0 +1,75 @@
+.row-validation-demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ht-gap, 12px);
+  width: 100%;
+}
+
+.row-validation-demo__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ht-gap, 8px);
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.row-validation-demo__toolbar button {
+  border: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-bg-nav);
+  color: var(--sl-color-text);
+  font-size: var(--sl-text-sm);
+  line-height: 1.2;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.row-validation-demo__toolbar button:not(:disabled):hover {
+  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6);
+}
+
+.row-validation-demo__toolbar button:focus-visible {
+  outline: 1px solid var(--sl-color-accent);
+  outline-offset: 1px;
+}
+
+.row-validation-demo__toolbar button:disabled {
+  color: var(--sl-color-gray-3);
+  border-color: var(--sl-color-gray-5);
+  background: var(--sl-color-gray-7);
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.row-validation-demo__summary {
+  border: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem 1rem;
+  background: var(--sl-color-bg-nav);
+}
+
+.row-validation-demo__summary-title {
+  margin: 0 0 0.5rem;
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  color: var(--sl-color-text);
+}
+
+.row-validation-demo__summary-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-text);
+}
+
+.row-validation-demo__summary-list:empty::before {
+  content: 'No issues. Click Submit orders to validate.';
+  display: block;
+  margin-left: -1.25rem;
+  color: var(--sl-color-gray-3);
+}
+
+.row-validation-demo #example1 .handsontable td.htInvalid {
+  background-color: var(--ht-cell-error-background-color, #ffe4e4) !important;
+}

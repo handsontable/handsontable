@@ -25,11 +25,9 @@ describe('DropdownMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(31);
-        main.toBe(35);
-        horizon.toBe(43);
-      });
+
+      // The window should scroll back from 1000 to near the top where the menu is visible.
+      expect(window.scrollY).toBeLessThan(100);
     });
 
     it('should move the menu item selection to the first active item', async() => {

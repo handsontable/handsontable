@@ -248,14 +248,12 @@ export class AutoColumnSize extends BasePlugin {
    * @type {PhysicalIndexToValueMap}
    */
   columnWidthsMap = new IndexToValueMap();
-
   /**
    * `true` value indicates that the #onInit() function has been already called.
    *
    * @type {boolean}
    */
   #isInitialized = false;
-
   /**
    * Cached column header names. It is used to diff current column headers with previous state and detect which
    * columns width should be updated.
@@ -269,6 +267,12 @@ export class AutoColumnSize extends BasePlugin {
    * @type {number[]}
    */
   #visualColumnsToRefresh = [];
+  /**
+   * Disposer function for the column widths map observer. Called on disable to clean up.
+   *
+   * @type {Function|null}
+   */
+  #disposeMapObserver = null;
 
   constructor(hotInstance) {
     super(hotInstance);
@@ -314,6 +318,11 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('modifyColWidth', (width, col) => this.getColumnWidth(col, width));
     this.addHook('init', () => this.#onInit());
 
+    this.#disposeMapObserver = this.hot.columnIndexMapper
+      .observeMapChange(this.columnWidthsMap, () => {
+        this.hot.view?.invalidateColumnWidthCache();
+      });
+
     super.enablePlugin();
   }
 
@@ -329,6 +338,11 @@ export class AutoColumnSize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (this.#disposeMapObserver) {
+      this.#disposeMapObserver();
+      this.#disposeMapObserver = null;
+    }
+
     super.disablePlugin();
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
@@ -718,7 +732,14 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
+    const formulasPlugin = this.hot.getPlugin('formulas');
+    const sheetId = formulasPlugin?.sheetId;
+
     const changedColumns = changes.reduce((acc, change) => {
+      if (sheetId !== null && sheetId !== undefined && change.address?.sheet !== sheetId) {
+        return acc;
+      }
+
       const physicalColumn = change.address?.col;
 
       if (Number.isInteger(physicalColumn)) {

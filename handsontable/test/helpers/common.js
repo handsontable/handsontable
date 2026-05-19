@@ -1,4 +1,5 @@
 import { waitOnScroll } from './utils';
+import { E2E_REGISTERED_THEME_KEYS, themeLayoutFromTokens } from './themeLayoutFromTokens';
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
  * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
@@ -71,6 +72,97 @@ export function sleep(delay = 100) {
 }
 
 /**
+ * Wait for up to the next 2 animation frames.
+ *
+ * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @returns {Promise<void>}
+ */
+export function waitForNextAnimationFrames(framesToWait = 1) {
+  const requestedFramesToWait = normalizeLegacyFrameCount(framesToWait);
+  const totalFramesToWait = normalizeFrameCount(framesToWait);
+  const minimumElapsedTime = requestedFramesToWait * 16;
+  const startTime = Date.now();
+
+  return new Promise((resolve) => {
+    const finishWaiting = () => {
+      const elapsedTime = Date.now() - startTime;
+      const missingTime = minimumElapsedTime - elapsedTime;
+
+      if (missingTime > 0) {
+        sleep(missingTime).then(resolve);
+
+        return;
+      }
+
+      resolve();
+    };
+
+    if (totalFramesToWait === 0) {
+      finishWaiting();
+
+      return;
+    }
+
+    let waitedFrames = 0;
+    const requestFrame = window.requestAnimationFrame ?? (callback => window.setTimeout(callback, 16));
+
+    const waitForNextFrame = () => {
+      waitedFrames += 1;
+
+      if (waitedFrames >= totalFramesToWait) {
+        finishWaiting();
+
+        return;
+      }
+
+      requestFrame(waitForNextFrame);
+    };
+
+    requestFrame(waitForNextFrame);
+  });
+}
+
+/**
+ * Wait for the next animation frames.
+ *
+ * @param {number} [framesToWait=1] The number of animation frames to wait for.
+ * @returns {Promise<void>}
+ *
+ * @deprecated Use waitForNextAnimationFrames instead.
+ */
+export async function waitForNameAnimationFrames(framesToWait = 1) {
+  await waitForNextAnimationFrames(framesToWait);
+}
+
+/**
+ * Normalize frame count input.
+ *
+ * @param {number} framesToWait The number of frames to normalize.
+ * @returns {number}
+ */
+function normalizeFrameCount(framesToWait) {
+  if (!Number.isFinite(framesToWait)) {
+    return 1;
+  }
+
+  return Math.min(2, Math.max(0, Math.ceil(framesToWait)));
+}
+
+/**
+ * Normalize frame count input for backward-compatible helper.
+ *
+ * @param {number} framesToWait The number of frames to normalize.
+ * @returns {number}
+ */
+function normalizeLegacyFrameCount(framesToWait) {
+  if (!Number.isFinite(framesToWait)) {
+    return 1;
+  }
+
+  return Math.max(0, Math.ceil(framesToWait));
+}
+
+/**
  * @param {Function} fn The function to convert to Promise.
  * @returns {Promise}
  */
@@ -85,6 +177,82 @@ export function promisfy(fn) {
  */
 export function getLoadedTheme() {
   return __ENV_ARGS__.HOT_THEME;
+}
+
+// Module-level cache so specs that call getThemeLayout() hundreds of times per suite
+// do not re-run the full token-resolution pipeline on every call.
+// The cache is busted whenever the loaded theme name changes (e.g. between theme matrix runs).
+let _cachedThemeLayout = null;
+let _cachedThemeName = null;
+
+/**
+ * Returns the resolved theme layout metrics for the currently loaded theme.
+ * Use this in specs to get data-driven expected values instead of hard-coding per-theme numbers.
+ * The result is memoized per theme name -- switching themes (e.g. in matrix runs) busts the cache.
+ *
+ * @returns {object} Layout metrics from themeLayoutFromTokens.
+ */
+export function getThemeLayout() {
+  const currentTheme = getLoadedTheme();
+
+  if (_cachedThemeLayout === null || _cachedThemeName !== currentTheme) {
+    _cachedThemeLayout = themeLayoutFromTokens(currentTheme);
+    _cachedThemeName = currentTheme;
+  }
+
+  return _cachedThemeLayout;
+}
+
+export { E2E_REGISTERED_THEME_KEYS };
+
+/**
+ * Absolute URL for `lib/normalize.css` (E2E iframe `doc.write` shells; `about:blank` needs this).
+ *
+ * @returns {string}
+ */
+export function getE2eNormalizeStylesheetHref() {
+  return new URL('lib/normalize.css', window.location.href).href;
+}
+
+/**
+ * `<link>` tag string for normalize.css (iframes).
+ *
+ * @returns {string}
+ */
+export function getE2eNormalizeStylesheetLinkTagHtml() {
+  return `<link type="text/css" rel="stylesheet" href="${getE2eNormalizeStylesheetHref()}">`;
+}
+
+/**
+ * Absolute URL for `styles/ht-theme-{themeKey}.css` (E2E iframe shells).
+ *
+ * @param {string} themeKey Key from {@link E2E_REGISTERED_THEME_KEYS}.
+ * @returns {string}
+ */
+export function getE2eThemeStylesheetHref(themeKey) {
+  return new URL(`../styles/ht-theme-${themeKey}.css`, window.location.href).href;
+}
+
+/**
+ * Concatenated `<link>` tags for every registered theme, in {@link E2E_REGISTERED_THEME_KEYS} order.
+ *
+ * @returns {string}
+ */
+export function getE2eThemeStylesheetLinkTagsHtml() {
+  return E2E_REGISTERED_THEME_KEYS.map(
+    key => `<link type="text/css" rel="stylesheet" href="${getE2eThemeStylesheetHref(key)}">`
+  ).join('');
+}
+
+/**
+ * Single theme `<link>` tag (iframes that load one theme only).
+ *
+ * @param {string} [themeKey=getLoadedTheme()] Key from {@link E2E_REGISTERED_THEME_KEYS}.
+ *   Defaults to the theme currently loaded by the E2E runner.
+ * @returns {string}
+ */
+export function getE2eThemeStylesheetLinkTagHtml(themeKey = getLoadedTheme()) {
+  return `<link type="text/css" rel="stylesheet" href="${getE2eThemeStylesheetHref(themeKey)}">`;
 }
 
 /**
@@ -255,66 +423,147 @@ export const validateRows = handsontableMethodFactory('validateRows');
  * @returns {number} Returns the default row height based on the current theme.
  */
 export function getDefaultRowHeight() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-      return 26;
-    case 'horizon':
-      return 37;
-    case 'main':
-    default:
-      return 29; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultDataRowHeight;
 }
 
 /**
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
-  return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+  return getThemeLayout().firstRenderedRowDefaultHeight;
 }
 
 /**
- * @returns {number} Returns the default row height based on the current theme.
+ * @returns {number} Returns the default column width based on the current theme.
  */
 export function getDefaultColumnWidth() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-    case 'main':
-    case 'horizon':
-      return 50;
-    default:
-      return 50; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultColumnWidth;
 }
 
 /**
  * @returns {number} Returns the default column header height based on the current theme.
  */
 export function getDefaultColumnHeaderHeight() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-      return 25;
-    case 'horizon':
-      return 36;
-    case 'main':
-    default:
-      return 28; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultColumnHeaderHeight;
 }
 
 /**
- * @returns {number} Returns the default column header height based on the current theme.
+ * @returns {number} Returns the default row header width based on the current theme.
  */
 export function getDefaultRowHeaderWidth() {
-  switch (getLoadedTheme()) {
-    case 'classic':
-      return 50;
-    case 'horizon':
-      return 49;
-    case 'main':
-    default:
-      return 49; // default theme is 'main' when HOT_THEME is falsy
-  }
+  return getThemeLayout().defaultRowHeaderWidth;
+}
+
+/**
+ * Compute the number of fully visible data rows for a given container height.
+ * Use this instead of hardcoding row counts in assertions -- works for any theme.
+ *
+ * @param {number} containerHeight Total container height in px.
+ * @param {number} [colHeaderRows=1] Number of column header rows.
+ * @returns {number}
+ */
+export function expectedVisibleRows(containerHeight, colHeaderRows = 1) {
+  const layout = getThemeLayout();
+  const headerHeight = colHeaderRows * (layout.defaultColumnHeaderHeight + layout.cellBorderWidth);
+  const dataAreaHeight = containerHeight - headerHeight;
+
+  return Math.floor(dataAreaHeight / layout.defaultDataRowHeight);
+}
+
+/**
+ * Compute the 0-based index of the last fully visible data row for a given container height.
+ *
+ * @param {number} containerHeight Total container height in px.
+ * @param {number} [colHeaderRows=1] Number of column header rows.
+ * @returns {number}
+ */
+export function expectedLastFullyVisibleRow(containerHeight, colHeaderRows = 1) {
+  return expectedVisibleRows(containerHeight, colHeaderRows) - 1;
+}
+
+/**
+ * Compute a container height that guarantees exactly `rowCount` fully visible data rows.
+ * Use this to set `height:` in test config instead of hardcoding pixel values.
+ *
+ * Accounts for the first-row border compensation (the first rendered data row is 1px taller
+ * than subsequent rows due to collapsed border seam with the header or container top).
+ *
+ * @param {number} rowCount Desired number of fully visible data rows.
+ * @param {number} [colHeaderRows=1] Number of column header rows.
+ * @returns {number}
+ */
+export function containerHeightForRows(rowCount, colHeaderRows = 1) {
+  const layout = getThemeLayout();
+  const headerHeight = colHeaderRows * (layout.defaultColumnHeaderHeight + layout.cellBorderWidth);
+  const firstRowCompensation = rowCount > 0 ? layout.cellBorderWidth : 0;
+
+  return headerHeight + (rowCount * layout.defaultDataRowHeight) + firstRowCompensation;
+}
+
+/**
+ * Scale a pixel height designed for the main theme so that the same fractional
+ * number of rows is visible in any theme. Use this for tests where exact rendered row counts
+ * determine selection patterns or scroll behavior.
+ *
+ * @param {number} mainThemeHeight The original height value designed for the main theme.
+ * @returns {number} Scaled height for the current theme.
+ */
+export function scaleHeight(mainThemeHeight) {
+  const mainRowHeight = themeLayoutFromTokens('main').defaultDataRowHeight;
+
+  return Math.round(mainThemeHeight * getDefaultRowHeight() / mainRowHeight);
+}
+
+/**
+ * Like {@link scaleHeight}, but for containers where a horizontal scrollbar consumes part of the
+ * height. The scrollbar width is OS-dependent (not theme-dependent), so the data area and the
+ * scrollbar region are scaled independently.
+ *
+ * @param {number} mainThemeHeight The original height value designed for the main theme (including scrollbar space).
+ * @returns {number} Scaled height for the current theme.
+ */
+export function scaleHeightWithScrollbar(mainThemeHeight) {
+  const mainRowHeight = themeLayoutFromTokens('main').defaultDataRowHeight;
+  const scrollbarWidth = Handsontable.dom.getScrollbarWidth(document);
+  const mainDataArea = mainThemeHeight - scrollbarWidth;
+
+  return Math.round(mainDataArea * getDefaultRowHeight() / mainRowHeight) + scrollbarWidth;
+}
+
+/**
+ * Snapshot of `document.documentElement` for `themeLayoutFromTokens` `e2eGcr_*` helpers that must stay
+ * free of direct DOM reads (E2E browser context only).
+ *
+ * @returns {{ scrollLeft: number, offsetHeight: number, clientWidth: number, clientHeight: number }}
+ */
+export function getE2eDocumentViewport() {
+  const de = document.documentElement;
+
+  return {
+    scrollLeft: de.scrollLeft,
+    offsetHeight: de.offsetHeight,
+    clientWidth: de.clientWidth,
+    clientHeight: de.clientHeight,
+  };
+}
+
+/**
+ * Returns the inner Handsontable instance (dropdown / handsontable / autocomplete editor list) client box
+ * and the corresponding `getSettings()` width/height so specs can assert inline.
+ *
+ * @returns {{ clientWidth: number, clientHeight: number, settingsWidth: number, settingsHeight: number }}
+ */
+export function getInnerEditorListBox() {
+  const editor = getActiveEditor();
+  const inner = editor.htEditor;
+  const root = editor.htContainer;
+
+  return {
+    clientWidth: root.clientWidth,
+    clientHeight: root.clientHeight,
+    settingsWidth: inner.getSettings().width,
+    settingsHeight: inner.getSettings().height,
+  };
 }
 
 /**

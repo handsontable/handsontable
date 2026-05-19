@@ -31,10 +31,12 @@ const ExampleComponent = () => {
 
   return (
     <HighlightContext.Provider value={darkMode}>
-      <div className="controls">
-        <label>
-          <input type="checkbox" onClick={toggleDarkMode} /> Dark mode
-        </label>
+      <div className="example-controls-container">
+        <div className="controls">
+          <label>
+            <input type="checkbox" onClick={toggleDarkMode} /> Dark mode
+          </label>
+        </div>
       </div>
       <HotTable
         data={[['A1'], ['A2'], ['A3'], ['A4'], ['A5'], ['A6'], ['A7'], ['A8'], ['A9'], ['A10']]}

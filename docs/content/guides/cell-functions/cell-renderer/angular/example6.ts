@@ -1,9 +1,12 @@
 /* file: app.component.ts */
-import {AfterViewInit, Component, ViewChild} from '@angular/core';
-import {GridSettings, HotTableComponent} from '@handsontable/angular-wrapper';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example6',
   template: `
 
@@ -11,12 +14,11 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
       id="exampleContainer5"
       (mouseup)="exampleContainerMouseupCallback($event)"
     >
-      <hot-table *ngIf="!!hotSettings"
-                 [settings]="hotSettings!">
-      </hot-table>
+      @if (hotSettings) {
+        <hot-table [settings]="hotSettings!"></hot-table>
+      }
     </div>
   `,
-  standalone: false
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
@@ -28,8 +30,8 @@ export class AppComponent implements AfterViewInit {
   ngAfterViewInit() {
     const componentThis = this;
 
-    function customRenderer(_instance, td) {
-      textRenderer.apply(componentThis, arguments);
+    function customRenderer(_instance: Handsontable, td: HTMLTableCellElement) {
+      textRenderer.apply(componentThis, arguments as unknown as Parameters<typeof textRenderer>);
 
       if (componentThis.isChecked) {
         td.style.backgroundColor = 'yellow';
@@ -53,14 +55,12 @@ export class AppComponent implements AfterViewInit {
     };
   }
 
-  exampleContainerMouseupCallback = (event) => {
+  exampleContainerMouseupCallback = (event: MouseEvent) => {
     const hot = this.hotTable.hotInstance!;
+    const target = event.target as HTMLInputElement | null;
 
-    if (
-      event.target?.nodeName == 'INPUT' &&
-      event.target.className == 'checker'
-    ) {
-      this.isChecked = !event.target.checked;
+    if (target?.nodeName == 'INPUT' && target.className == 'checker') {
+      this.isChecked = !target.checked;
       hot?.render();
     }
   };
@@ -68,38 +68,22 @@ export class AppComponent implements AfterViewInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent  ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: 4055bdfa
 title: Long Term Support (LTS)
 metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Long Term Support (LTS)
-
 LTS (Long-Term Support) versions are Handsontable release lines that are maintained and supported for an extended period. 
 
 [[toc]]
@@ -33,7 +31,7 @@ Major releases occur once every 6 months. Even-numbered releases (`16.0.0`, `18.
 
 Each LTS release line begins as the **Current** release for the first 6 months to allow for stabilization. After 6 months, when the next major version ships, it transitions to **Active LTS** status. This ensures thoroughly tested code enters long-term support, providing enterprise users with maximum stability.
 
-::: tip
+::: note
 
 Dates below are offered as general guidance and are subject to change.
 
@@ -41,13 +39,13 @@ Dates below are offered as general guidance and are subject to change.
 
 <span class="img-light">
 
-![design_system_light]({{$basePath}}/img/lts-light.svg)
+![LTS release schedule](/img/lts-light.svg)
 
 </span>
 
 <span class="img-dark">
 
-![design_system_dark]({{$basePath}}/img/lts-dark.svg)
+![LTS release schedule](/img/lts-dark.svg)
 
 </span>
 
@@ -97,10 +95,10 @@ The following matrix defines which types of fixes are backported to each support
 | Issue Type | Current | Active LTS | Maintenance LTS |
 | ---| ---| --- | --- |
 | Security vulnerability | ✅  | ✅  | ✅  |
-| Critical bug | ✅ | ✅ | ❌ |
-| Major/Minor bug | ✅ | ❌ | ❌ |
-| Performance | ✅ | ❌ | ❌ |
-| Feature | ✅ | ❌ | ❌ |
+| Critical bug | ✅ | ✅ | - |
+| Major/Minor bug | ✅ | - | - |
+| Performance | ✅ | - | - |
+| Feature | ✅ | - | - |
 
 *   **Security vulnerabilities** receive immediate attention across all supported versions, including those in Maintenance LTS. These fixes are prioritized and released as quickly as possible to protect production deployments.
 *   **Critical bugs** that significantly impact functionality are backported to Active LTS releases in the next patch version. These fixes undergo thorough testing to ensure they don't introduce new issues.

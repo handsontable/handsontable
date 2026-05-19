@@ -1,8 +1,17 @@
 import { BasePlugin } from '../base';
-import { addClass, closest, hasClass, removeClass, outerWidth, isDetached } from '../../helpers/dom/element';
+import {
+  addClass,
+  closest,
+  hasClass,
+  removeClass,
+  outerHeight,
+  outerWidth,
+  isDetached
+} from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { getElementScaleFactor, normalizeVisualDelta } from '../manualResize/utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
@@ -64,6 +73,10 @@ export class ManualRowResize extends BasePlugin {
    */
   #startOffset = null;
   /**
+   * @type {number}
+   */
+  #verticalScaleFactor = 1;
+  /**
    * @type {HTMLElement}
    */
   #handle = this.hot.rootDocument.createElement('DIV');
@@ -93,6 +106,12 @@ export class ManualRowResize extends BasePlugin {
    * @type {PhysicalIndexToValueMap}
    */
   #rowHeightsMap;
+  /**
+   * Disposer function for the row heights map observer. Called on disable to clean up.
+   *
+   * @type {Function|null}
+   */
+  #disposeMapObserver = null;
   /**
    * Private pool to save configuration from updateSettings.
    *
@@ -137,6 +156,11 @@ export class ManualRowResize extends BasePlugin {
     this.#rowHeightsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName, this.#rowHeightsMap);
 
+    this.#disposeMapObserver = this.hot.rowIndexMapper
+      .observeMapChange(this.#rowHeightsMap, () => {
+        this.hot.view?.invalidateRowHeightCache();
+      });
+
     this.addHook('modifyRowHeight', (height, row) => this.#onModifyRowHeight(height, row));
 
     this.bindEvents();
@@ -161,6 +185,11 @@ export class ManualRowResize extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    if (this.#disposeMapObserver) {
+      this.#disposeMapObserver();
+      this.#disposeMapObserver = null;
+    }
+
     this.#config = this.#rowHeightsMap.getValues();
 
     this.hot.rowIndexMapper.unregisterMap(this.pluginName);
@@ -199,7 +228,7 @@ export class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
-    if (this.#dblclick > 1) {
+    if (!TH.parentNode || this.#dblclick > 1) {
       return;
     }
 
@@ -216,7 +245,6 @@ export class ManualRowResize extends BasePlugin {
     }
 
     const headerWidth = outerWidth(this.#currentTH);
-    const box = this.#currentTH.getBoundingClientRect();
     // Read "fixedRowsTop" and "fixedRowsBottom" through the Walkontable as in that context, the fixed
     // rows are modified (reduced by the number of hidden rows) by TableView module.
     const fixedRowTop = row < wt.getSetting('fixedRowsTop');
@@ -272,7 +300,8 @@ export class ManualRowResize extends BasePlugin {
     }
 
     this.#startOffset = relativeHeaderPosition.top - 6;
-    this.#startHeight = parseInt(box.height, 10);
+    this.#startHeight = outerHeight(this.#currentTH);
+    this.#verticalScaleFactor = getElementScaleFactor(this.#currentTH, 'vertical');
 
     this.#handle.style.top = `${this.#startOffset + this.#startHeight}px`;
     this.#handle.style[this.inlineDir] = `${relativeHeaderPosition.start}px`;
@@ -468,15 +497,17 @@ export class ManualRowResize extends BasePlugin {
    * @param {MouseEvent} event The mouse event.
    */
   #onMouseDown(event) {
+    if (event.target.parentNode !== this.hot.rootElement) {
+      return;
+    }
+
     if (hasClass(event.target, 'manualRowResizer')) {
       this.setupHandlePosition(this.#currentTH);
       this.setupGuidePosition();
       this.#pressed = true;
 
       if (this.#autoresizeTimeout === null) {
-        this.#autoresizeTimeout = setTimeout(() => this.afterMouseDownTimeout(), 500);
-
-        this.hot._registerTimeout(this.#autoresizeTimeout);
+        this.#autoresizeTimeout = this.hot._registerTimeout(() => this.afterMouseDownTimeout(), 500);
       }
 
       this.#dblclick += 1;
@@ -492,7 +523,10 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMouseMove(event) {
     if (this.#pressed) {
-      this.#currentHeight = this.#startHeight + (event.pageY - this.#startY);
+      const visualChange = event.pageY - this.#startY;
+      const change = normalizeVisualDelta(visualChange, this.#verticalScaleFactor);
+
+      this.#currentHeight = this.#startHeight + change;
 
       arrayEach(this.#selectedRows, (selectedRow) => {
         this.#newSize = this.setManualSize(selectedRow, this.#currentHeight);

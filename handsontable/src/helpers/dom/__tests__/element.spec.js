@@ -15,11 +15,111 @@ describe('DOM helpers', () => {
       element.style.display = 'none';
       element.style.display = 'block';
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(callbackSpy).toHaveBeenCalledTimes(1);
 
       document.body.removeChild(element);
+    });
+
+    it('should fully disconnect the observer after the element becomes visible', async() => {
+      const observeVisibilityChangeOnce = Handsontable.dom.observeVisibilityChangeOnce;
+      const NativeIntersectionObserver = window.IntersectionObserver;
+      const disconnectSpy = jasmine.createSpy('disconnect');
+      const unobserveSpy = jasmine.createSpy('unobserve');
+
+      window.IntersectionObserver = function(callback, options) {
+        const observer = new NativeIntersectionObserver(callback, options);
+        const originalDisconnect = observer.disconnect.bind(observer);
+        const originalUnobserve = observer.unobserve.bind(observer);
+
+        observer.disconnect = (...args) => {
+          disconnectSpy(...args);
+          originalDisconnect(...args);
+        };
+        observer.unobserve = (...args) => {
+          unobserveSpy(...args);
+          originalUnobserve(...args);
+        };
+
+        return observer;
+      };
+
+      const element = document.createElement('div');
+      const callbackSpy = jasmine.createSpy('callbackSpy');
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      observeVisibilityChangeOnce(element, callbackSpy);
+
+      element.style.display = 'block';
+
+      await waitForNextAnimationFrames(2);
+
+      expect(callbackSpy).toHaveBeenCalledTimes(1);
+      expect(disconnectSpy).toHaveBeenCalledTimes(1);
+      expect(unobserveSpy).not.toHaveBeenCalled();
+
+      document.body.removeChild(element);
+      window.IntersectionObserver = NativeIntersectionObserver;
+    });
+
+    it('should not leak observers when document.body has zero height', async() => {
+      const observeVisibilityChangeOnce = Handsontable.dom.observeVisibilityChangeOnce;
+      const NativeIntersectionObserver = window.IntersectionObserver;
+      let activeObservers = 0;
+
+      window.IntersectionObserver = function(callback, options) {
+        const observer = new NativeIntersectionObserver(callback, options);
+        const originalDisconnect = observer.disconnect.bind(observer);
+
+        activeObservers += 1;
+        observer.disconnect = (...args) => {
+          activeObservers -= 1;
+          originalDisconnect(...args);
+        };
+
+        return observer;
+      };
+
+      const originalBodyHeight = document.body.style.height;
+      const originalBodyOverflow = document.body.style.overflow;
+
+      document.body.style.height = '0px';
+      document.body.style.overflow = 'hidden';
+
+      const elements = [];
+      const callbackSpies = [];
+
+      for (let i = 0; i < 5; i++) {
+        const element = document.createElement('div');
+        const callbackSpy = jasmine.createSpy(`callbackSpy_${i}`);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        elements.push(element);
+        callbackSpies.push(callbackSpy);
+
+        observeVisibilityChangeOnce(element, callbackSpy);
+      }
+
+      elements.forEach((element) => {
+        element.style.display = 'block';
+      });
+
+      await waitForNextAnimationFrames(3);
+
+      callbackSpies.forEach((spy) => {
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+      expect(activeObservers).toBe(0);
+
+      elements.forEach(element => document.body.removeChild(element));
+      document.body.style.height = originalBodyHeight;
+      document.body.style.overflow = originalBodyOverflow;
+      window.IntersectionObserver = NativeIntersectionObserver;
     });
   });
 

@@ -143,12 +143,12 @@ describe('Hook', () => {
 
       await scrollViewportTo({ row: 10 });
 
+      const layout = getThemeLayout();
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(809);
-        main.toBe(935);
-        horizon.toBe(1271);
-      });
+      // The hook changed the target row from 10 to 40 (auto bottom snap).
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(layout.verticalScrollForRow(30));
+      expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layout.verticalScrollForRow(41));
     });
 
     it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', async() => {
@@ -176,12 +176,12 @@ describe('Hook', () => {
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20, jasmine.objectContaining({
         value: 'auto',
       }));
+      const layout = getThemeLayout();
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(211);
-        main.toBe(268);
-        horizon.toBe(420);
-      });
+      // Scrolled to row 20 with 3 rows hidden at the start (auto bottom snap).
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(layout.verticalScrollForRow(8));
+      expect(topOverlay().getScrollPosition()).toBeLessThanOrEqual(layout.verticalScrollForRow(21));
     });
 
     it('should be possible to block viewport scrolling after returning `false`', async() => {

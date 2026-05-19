@@ -127,6 +127,10 @@ ${prefix}.ht-multi-select-chip-remove::before {
   ${icon(icons, "chipClose")}
 }
 
+${prefix}.ht-notification__close::before {
+  ${icon(icons, "chipClose")}
+}
+
 ${prefix}.ht-multi-select-editor-search-icon {
   ${icon(icons, "search")}
 }

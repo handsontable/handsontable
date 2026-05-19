@@ -2,10 +2,27 @@ import {
   ViewportColumnsCalculator,
   RenderedAllColumnsCalculationType,
 } from '../../../src/calculator';
+import { PositionCache } from '../../../src/utils/positionCache';
 
 function createViewportColumnsCalculator(options) {
+  const {
+    totalColumns = 0,
+    columnWidthFn = () => NaN,
+    ...rest
+  } = options;
+
+  const cache = new PositionCache({
+    totalItemsFn: () => totalColumns,
+    sizeFn: columnWidthFn,
+    defaultSizeFn: () => 0,
+  });
+
+  cache.build();
+
   return new ViewportColumnsCalculator({
-    ...options,
+    ...rest,
+    totalColumns,
+    columnWidthCache: cache,
     calculationTypes: [
       ['rendered', new RenderedAllColumnsCalculationType()],
     ],

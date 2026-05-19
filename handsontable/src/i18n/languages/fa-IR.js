@@ -58,6 +58,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['فقط کپی سرستون', 'فقط کپی سرستون ها'],
   [C.CONTEXTMENU_ITEMS_CUT]: 'بریدن',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'خروجی',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'به CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'به Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'در حال صدور…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'درج زیر ردیف',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'جدا کردن از سرردیف',
 
@@ -119,12 +124,22 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
 
   [C.LOADING_TITLE]: 'در حال بارگذاری...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'بستن',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'هیچ داده‌ای در دسترس نیست',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'هنوز چیزی برای نمایش وجود ندارد.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'هیچ نتیجه‌ای یافت نشد',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'به نظر می‌رسد فیلترهای فعلی شما همه نتایج را پنهان می‌کنند.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'بازنشانی فیلترها',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'در حال بارگذاری داده‌ها',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'لطفاً صبر کنید.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'بارگذاری داده‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'ایجاد ردیف‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'به‌روزرسانی ردیف‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'حذف ردیف‌ها ناموفق بود',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'درخواست ناموفق بود',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'بارگذاری مجدد',
 };
 
 export default dictionary;

@@ -7,6 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
+  height: 'auto',
   data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],

@@ -2,6 +2,36 @@
 
 @mixin output {
   .handsontable {
+    thead th.htRowspanHeader + th {
+      border-inline-start-width: 0;
+    }
+
+    thead th.htRowspanHeader {
+      height: auto;
+      vertical-align: bottom;
+      overflow: visible;
+
+      &.ht__active_highlight {
+        border-inline-start-color: var(--ht-header-active-border-color);
+        z-index: 1;
+      }
+    }
+
+    &.htRowHeaders.htHasRowspanHeaders thead tr:last-child th:first-child {
+      border-end-start-radius: 0;
+    }
+
+    &.htHasRowspanHeaders .ht_clone_inline_start .htCore tbody tr:first-child th:first-child {
+      border-start-start-radius: 0;
+    }
+
+    .ht_master:not(.innerBorderTop):not(.innerBorderBottom) {
+      thead th.htRowspanBottomLevel,
+      & ~ .handsontable thead th.htRowspanBottomLevel {
+        border-bottom-width: 0;
+      }
+    }
+
     thead th.hiddenHeader:not(:first-of-type) {
       display: none;
     }

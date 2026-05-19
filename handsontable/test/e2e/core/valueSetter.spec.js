@@ -131,4 +131,22 @@ describe('valueSetter', () => {
     await loadData([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']]);
     expect(valueSetterSpy.calls.count()).toBe(0);
   });
+
+  it('should parse comma-grouped integers in numeric columns with dot-decimal formats', async() => {
+    handsontable({
+      data: [[null]],
+      columns: [{
+        type: 'numeric',
+        numericFormat: {
+          pattern: '0,0.00',
+          culture: 'en-US',
+        },
+      }],
+    });
+
+    await setDataAtCell(0, 0, '100,000');
+
+    expect(getDataAtCell(0, 0)).toBe(100000);
+    expect(getSourceDataAtCell(0, 0)).toBe(100000);
+  });
 });

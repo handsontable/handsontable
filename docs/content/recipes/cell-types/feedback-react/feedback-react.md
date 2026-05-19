@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: e107bb0d
 title: Feedback
 metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
@@ -19,9 +20,19 @@ searchCategory: Recipes
 category: Cell Types
 ---
 
-# Feedback Cell Type - Step-by-Step Guide (React)
+This tutorial shows you how to build an emoji feedback cell in React using Handsontable's `EditorComponent`, with per-column configuration and keyboard navigation.
 
-[[toc]]
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.css)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.jsx)
+@[code](@/content/recipes/cell-types/feedback-react/react/example1.tsx)
+
+:::
+
+:::
 
 ## Overview
 
@@ -40,20 +51,6 @@ A cell that:
 - Provides click-to-select and closes the editor on choice
 - Uses React's `EditorComponent` with render prop and external CSS (e.g. `feedback-editor` class)
 - Reads per-column options from `cellProperties.config` in `onPrepare`
-
-## Complete Example
-
-::: only-for react
-
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3
-
-@[code](@/content/recipes/cell-types/feedback-react/react/example1.css)
-@[code](@/content/recipes/cell-types/feedback-react/react/example1.jsx)
-@[code](@/content/recipes/cell-types/feedback-react/react/example1.tsx)
-
-:::
-
-:::
 
 ## Prerequisites
 
@@ -570,7 +567,7 @@ Enhanced button appearance with CSS:
 
 ### 4. Dynamic Config from Cell Properties
 
-The `onPrepare` hook already handles this! Just pass different configs:
+The `onPrepare` hook already handles this -- pass different configs:
 
 ```tsx
 <HotColumn
@@ -764,10 +761,19 @@ For number-based feedback:
 1. **Use `onPrepare` for per-cell configuration** - Access `cellProperties` to read custom options
 2. **Handle keyboard events properly** - Use shortcuts for navigation
 3. **Call `finishEditing()` appropriately** - When user confirms changes (Enter, blur, button click)
-4. **Keep render prop function simple** - Extract complex logic into separate components or hooks
+4. **Keep render prop function focused** - Extract complex logic into separate components or hooks
 5. **Use `useCallback` for helper functions** - Prevents unnecessary re-renders
 6. **Update shortcuts in `useEffect`** - Ensures shortcuts match current config
 
 ---
 
-**Congratulations!** You've created a simple feedback editor with emoji buttons using React's `EditorComponent`, perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor in React using Handsontable's `EditorComponent`. You used the render prop pattern to render configurable option buttons, `onPrepare` to read per-column configuration from `cellProperties`, and the `shortcuts` prop for keyboard navigation.
+
+## Next steps
+
+- [Feedback (JavaScript)](@/javascript/recipes/cell-types/feedback/feedback.md) - The same pattern using `editorFactory` with Handsontable CSS tokens.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - Another React editor using `EditorComponent` for numeric selection.

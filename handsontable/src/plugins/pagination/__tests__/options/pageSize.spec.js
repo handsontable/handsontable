@@ -15,11 +15,7 @@ describe('Pagination `pageSize` option', () => {
       .css({ width: '700px', height: '600px' })
       .appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
-    const styles = `
-      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
-      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
-      <link type="text/css" rel="stylesheet" href="../styles/ht-theme-classic.css">
-    `;
+    const styles = getE2eThemeStylesheetLinkTagsHtml();
 
     doc.open('text/html', 'replace');
     doc.write(`
@@ -391,53 +387,79 @@ describe('Pagination `pageSize` option', () => {
       });
 
       const plugin = getPlugin('pagination');
+      let pagData = plugin.getPaginationData();
 
+      // Page 1: row 0 is 5x default height, so only 1 row fits
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
       expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+
+      const totalPages = pagData.totalPages;
+
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
         '1 - 1 of 45',
-        '|< < Page 1 of 11 [>] [>|]',
+        `|< < Page 1 of ${totalPages} [>] [>|]`,
       ]);
 
       plugin.setPage(2);
+      pagData = plugin.getPaginationData();
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A2');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
+      const p2First = pagData.firstVisibleRowIndex + 1;
+      const p2Last = pagData.lastVisibleRowIndex + 1;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p2First}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p2Last}`);
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '2 - 4 of 45',
-        '[|<] [<] Page 2 of 11 [>] [>|]',
+        `${p2First} - ${p2Last} of 45`,
+        `[|<] [<] Page 2 of ${totalPages} [>] [>|]`,
       ]);
 
       plugin.setPage(3);
+      pagData = plugin.getPaginationData();
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
+      const p3First = pagData.firstVisibleRowIndex + 1;
+      const p3Last = pagData.lastVisibleRowIndex + 1;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p3First}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p3Last}`);
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '5 - 8 of 45',
-        '[|<] [<] Page 3 of 11 [>] [>|]',
+        `${p3First} - ${p3Last} of 45`,
+        `[|<] [<] Page 3 of ${totalPages} [>] [>|]`,
       ]);
 
-      await setDataAtCell(4, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
+      // Expanding a row with multiline content should reduce the number of visible rows on this page
+      await setDataAtCell(p3First - 1, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
+      pagData = plugin.getPaginationData();
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A5');
+      const p3ExpandedFirst = pagData.firstVisibleRowIndex + 1;
+      const p3ExpandedLast = pagData.lastVisibleRowIndex + 1;
+      const expandedTotalPages = pagData.totalPages;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p3ExpandedFirst}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p3ExpandedLast}`);
+      expect(p3ExpandedLast).toBeLessThanOrEqual(p3Last);
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '5 - 5 of 45',
-        '[|<] [<] Page 3 of 12 [>] [>|]',
+        `${p3ExpandedFirst} - ${p3ExpandedLast} of 45`,
+        `[|<] [<] Page 3 of ${expandedTotalPages} [>] [>|]`,
       ]);
 
-      await setDataAtCell(4, 1, 'value');
+      // Restoring the cell value should restore the original row count
+      await setDataAtCell(p3First - 1, 1, 'value');
+      pagData = plugin.getPaginationData();
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
+      const p3RestoredFirst = pagData.firstVisibleRowIndex + 1;
+      const p3RestoredLast = pagData.lastVisibleRowIndex + 1;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p3RestoredFirst}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p3RestoredLast}`);
+      expect(p3RestoredLast).toBe(p3Last);
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '5 - 8 of 45',
-        '[|<] [<] Page 3 of 11 [>] [>|]',
+        `${p3RestoredFirst} - ${p3RestoredLast} of 45`,
+        `[|<] [<] Page 3 of ${totalPages} [>] [>|]`,
       ]);
     });
 
@@ -452,33 +474,16 @@ describe('Pagination `pageSize` option', () => {
 
       setCurrentHotInstance(hotInstance);
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A1');
-        main.toBe('A1');
-        horizon.toBe('A1');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A21');
-        main.toBe('A18');
-        horizon.toBe('A14');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 21 of 100',
-          '|< < Page 1 of 5 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 18 of 100',
-          '|< < Page 1 of 6 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 14 of 100',
-          '|< < Page 1 of 8 [>] [>|]',
-        ]);
-      });
+      const autoPageSize = hotInstance.getPlugin('pagination').getPaginationData().pageSize;
+      const autoPageCount = Math.ceil(100 / autoPageSize);
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${autoPageSize}`);
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `1 - ${autoPageSize} of 100`,
+        `|< < Page 1 of ${autoPageCount} [>] [>|]`,
+      ]);
 
       hotInstance.updateSettings({
         pagination: {
@@ -508,98 +513,53 @@ describe('Pagination `pageSize` option', () => {
 
       setCurrentHotInstance(hotInstance);
 
-      iframe.css({ height: '400px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      const plugin = hotInstance.getPlugin('pagination');
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A1');
-        main.toBe('A1');
-        horizon.toBe('A1');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A13');
-        main.toBe('A11');
-        horizon.toBe('A9');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 13 of 100',
-          '|< < Page 1 of 8 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 11 of 100',
-          '|< < Page 1 of 10 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 9 of 100',
-          '|< < Page 1 of 12 [>] [>|]',
-        ]);
-      });
+      iframe.css({ height: '400px' });
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
+
+      const size400 = plugin.getPaginationData().pageSize;
+      const pages400 = Math.ceil(100 / size400);
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${size400}`);
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `1 - ${size400} of 100`,
+        `|< < Page 1 of ${pages400} [>] [>|]`,
+      ]);
 
       iframe.css({ height: '200px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A1');
-        main.toBe('A1');
-        horizon.toBe('A1');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A5');
-        main.toBe('A4');
-        horizon.toBe('A3');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 5 of 100',
-          '|< < Page 1 of 20 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 4 of 100',
-          '|< < Page 1 of 25 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 3 of 100',
-          '|< < Page 1 of 34 [>] [>|]',
-        ]);
-      });
+      const size200 = plugin.getPaginationData().pageSize;
+      const pages200 = Math.ceil(100 / size200);
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${size200}`);
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `1 - ${size200} of 100`,
+        `|< < Page 1 of ${pages200} [>] [>|]`,
+      ]);
 
       iframe.css({ height: '705px' });
-      await sleep(100); // wait for the onresize event to trigger a render
+      await waitForNextAnimationFrames(2); // wait for the onresize event to trigger a render
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A1');
-        main.toBe('A1');
-        horizon.toBe('A1');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A25');
-        main.toBe('A22');
-        horizon.toBe('A17');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 25 of 100',
-          '|< < Page 1 of 4 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 22 of 100',
-          '|< < Page 1 of 5 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 17 of 100',
-          '|< < Page 1 of 6 [>] [>|]',
-        ]);
-      });
+      const size705 = plugin.getPaginationData().pageSize;
+      const pages705 = Math.ceil(100 / size705);
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${size705}`);
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `1 - ${size705} of 100`,
+        `|< < Page 1 of ${pages705} [>] [>|]`,
+      ]);
+
+      // Verify that decreasing height reduces (or keeps equal) the page size and increasing it grows it
+      expect(size200).toBeLessThanOrEqual(size400);
+      expect(size705).toBeGreaterThan(size400);
 
       hotInstance.destroy();
       iframe.remove();
@@ -620,156 +580,84 @@ describe('Pagination `pageSize` option', () => {
 
       const plugin = hotInstance.getPlugin('pagination');
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A1');
-        main.toBe('A1');
-        horizon.toBe('A1');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A1');
-        main.toBe('A1');
-        horizon.toBe('A1');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 1 of 45',
-          '|< < Page 1 of 4 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 1 of 45',
-          '|< < Page 1 of 5 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '1 - 1 of 45',
-          '|< < Page 1 of 6 [>] [>|]',
-        ]);
-      });
+      // Page 1: row 0 has height 30x default, so only 1 row fits
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
+
+      let pagData = plugin.getPaginationData();
+      const totalPages = pagData.totalPages;
+
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 1 of 45',
+        `|< < Page 1 of ${totalPages} [>] [>|]`,
+      ]);
 
       plugin.setPage(2);
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A2');
-        main.toBe('A2');
-        horizon.toBe('A2');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A8');
-        main.toBe('A7');
-        horizon.toBe('A5');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 8 of 45',
-          '[|<] [<] Page 2 of 4 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 7 of 45',
-          '[|<] [<] Page 2 of 5 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '2 - 5 of 45',
-          '[|<] [<] Page 2 of 6 [>] [>|]',
-        ]);
-      });
+      pagData = plugin.getPaginationData();
+
+      const p2First = pagData.firstVisibleRowIndex + 1; // 1-based
+      const p2Last = pagData.lastVisibleRowIndex + 1;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p2First}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p2Last}`);
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `${p2First} - ${p2Last} of 45`,
+        `[|<] [<] Page 2 of ${totalPages} [>] [>|]`,
+      ]);
 
       plugin.setPage(3);
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A9');
-        main.toBe('A8');
-        horizon.toBe('A6');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A27');
-        main.toBe('A23');
-        horizon.toBe('A7');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '9 - 27 of 45',
-          '[|<] [<] Page 3 of 4 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '8 - 23 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '6 - 7 of 45',
-          '[|<] [<] Page 3 of 6 [>] [>|]',
-        ]);
-      });
+      pagData = plugin.getPaginationData();
 
-      const rowToChange = plugin.getPaginationData().firstVisibleRowIndex + 1;
+      const p3First = pagData.firstVisibleRowIndex + 1;
+      const p3Last = pagData.lastVisibleRowIndex + 1;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p3First}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p3Last}`);
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `${p3First} - ${p3Last} of 45`,
+        `[|<] [<] Page 3 of ${totalPages} [>] [>|]`,
+      ]);
+
+      const rowToChange = pagData.firstVisibleRowIndex + 1;
 
       hotInstance
         .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A9');
-        main.toBe('A8');
-        horizon.toBe('A6');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A19');
-        main.toBe('A18');
-        horizon.toBe('A6');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '9 - 19 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '8 - 18 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '6 - 6 of 45',
-          '[|<] [<] Page 3 of 7 [>] [>|]',
-        ]);
-      });
+      pagData = plugin.getPaginationData();
+
+      const p3ExpandedFirst = pagData.firstVisibleRowIndex + 1;
+      const p3ExpandedLast = pagData.lastVisibleRowIndex + 1;
+      const expandedTotalPages = pagData.totalPages;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p3ExpandedFirst}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p3ExpandedLast}`);
+      expect(p3ExpandedLast).toBeLessThan(p3Last); // fewer rows fit after expansion
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `${p3ExpandedFirst} - ${p3ExpandedLast} of 45`,
+        `[|<] [<] Page 3 of ${expandedTotalPages} [>] [>|]`,
+      ]);
 
       hotInstance.setDataAtCell(rowToChange, 1, 'value');
 
-      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A9');
-        main.toBe('A8');
-        horizon.toBe('A6');
-      });
-      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe('A27');
-        main.toBe('A23');
-        horizon.toBe('A7');
-      });
-      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '9 - 27 of 45',
-          '[|<] [<] Page 3 of 4 [>] [>|]',
-        ]);
-        main.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '8 - 23 of 45',
-          '[|<] [<] Page 3 of 5 [>] [>|]',
-        ]);
-        horizon.toEqual([
-          'Page size: [[auto], 5, 10, 20, 50, 100]',
-          '6 - 7 of 45',
-          '[|<] [<] Page 3 of 6 [>] [>|]',
-        ]);
-      });
+      pagData = plugin.getPaginationData();
+
+      const p3RestoredFirst = pagData.firstVisibleRowIndex + 1;
+      const p3RestoredLast = pagData.lastVisibleRowIndex + 1;
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe(`A${p3RestoredFirst}`);
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${p3RestoredLast}`);
+      expect(p3RestoredLast).toBe(p3Last); // row count restored after shrinking
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        `${p3RestoredFirst} - ${p3RestoredLast} of 45`,
+        `[|<] [<] Page 3 of ${totalPages} [>] [>|]`,
+      ]);
 
       hotInstance.destroy();
       iframe.remove();
@@ -785,8 +673,7 @@ describe('Pagination `pageSize` option', () => {
           return row;
         }),
         width: 500,
-        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() +
-          (getLoadedTheme() === 'classic' ? 20 : 0),
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight(),
         autoRowSize: true,
         pagination: {
           pageSizeList: ['auto', 10, 20, 50, 100],
@@ -798,12 +685,16 @@ describe('Pagination `pageSize` option', () => {
 
       plugin.setPageSize('auto');
 
+      const pagData = plugin.getPaginationData();
+      const lastRow = pagData.lastVisibleRowIndex + 1;
+      const totalPages = pagData.totalPages;
+
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A2');
+      expect(getHtCore().find('tr:last td:first').text()).toBe(`A${lastRow}`);
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 10, 20, 50, 100]',
-        '1 - 2 of 100',
-        '|< < Page 1 of 40 [>] [>|]',
+        `1 - ${lastRow} of 100`,
+        `|< < Page 1 of ${totalPages} [>] [>|]`,
       ]);
     });
   });

@@ -144,6 +144,24 @@ export class FocusGridManager {
   }
 
   /**
+   * Moves the browser focus to a connected `HTMLElement`. Plugins should call this instead of
+   * `element.focus()` so programmatic focus stays in the focus manager layer.
+   *
+   * @param {HTMLElement} element The element to focus.
+   * @param {FocusOptions} [focusOptions] Optional arguments for the native `focus()` call.
+   * @returns {boolean} `true` if `focus()` was called, `false` if `element` is not a connected `HTMLElement`.
+   */
+  focusElement(element, focusOptions) {
+    if (!isHTMLElement(element) || !element.isConnected) {
+      return false;
+    }
+
+    element.focus(focusOptions);
+
+    return true;
+  }
+
+  /**
    * Set the browser's focus to the highlighted cell of the last selection.
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
@@ -168,9 +186,7 @@ export class FocusGridManager {
         elementToBeFocused &&
         !this.#hot.getActiveEditor()?.isOpened()
       ) {
-        elementToBeFocused.focus({
-          preventScroll: true
-        });
+        this.focusElement(elementToBeFocused, { preventScroll: true });
       }
     };
 

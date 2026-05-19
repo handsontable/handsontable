@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "clickup": {
+      "type": "http",
+      "url": "https://mcp.clickup.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${CLICKUP_API_TOKEN}"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+    "filesystem_workspace": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]
+    },
+    "filesystem_docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./docs/content"]
+    },
+    "code-review-graph": {
+      "command": "pipx",
+      "args": [
+        "run",
+        "code-review-graph==2.3.2",
+        "serve"
+      ],
+      "type": "stdio"
+    }
+  }
+}

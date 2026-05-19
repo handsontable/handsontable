@@ -41,6 +41,13 @@ export class ThemeManager {
   themeConfig;
 
   /**
+   * Unsubscribes from the theme object's change notifications.
+   *
+   * @type {Function|null}
+   */
+  #unsubscribeTheme = null;
+
+  /**
    * The theme manager constructor.
    *
    * @param {object} options - The options object.
@@ -70,7 +77,6 @@ export class ThemeManager {
     }
 
     this.themeStyles.textContent = `:where(.${this.themeClassName}) {\n`;
-    this.themeStyles.textContent += `color-scheme: ${colorScheme};\n`;
 
     if (this.themeConfig.sizing) {
       this.themeStyles.textContent += flattenCssVariables(this.themeConfig.sizing, 'sizing');
@@ -100,7 +106,11 @@ export class ThemeManager {
       this.themeStyles.textContent += iconsMap(this.themeConfig.icons);
     }
 
-    this.themeStyles.textContent += '}';
+    this.themeStyles.textContent += '}\n';
+    // Separate rule with class-level specificity (0,1,0) so this <style> (injected into <body>)
+    // wins over same-specificity color-scheme declarations in static ht-theme-*.css files via
+    // source order, while keeping all other tokens at :where() specificity for easy overrides.
+    this.themeStyles.textContent += `.${this.themeClassName} {\ncolor-scheme: ${colorScheme};\n}`;
 
     if (this.hot.rootWrapperElement && this.hot.rootWrapperElement.querySelector('style')) {
       this.hot.rootWrapperElement.querySelector('style').textContent = this.themeStyles.textContent;
@@ -136,7 +146,8 @@ export class ThemeManager {
     this.themeClassName = `${THEME_PREFIX}${this.themeConfig.name}`;
 
     if (typeof themeObject.subscribe === 'function') {
-      themeObject.subscribe((config) => {
+      this.#unsubscribeTheme?.();
+      this.#unsubscribeTheme = themeObject.subscribe((config) => {
         if (!this.hot?.stylesHandler) {
           return;
         }
@@ -173,6 +184,7 @@ export class ThemeManager {
    * Destroys the theme manager.
    */
   destroy() {
+    this.#unsubscribeTheme?.();
     this.unmount();
     this.hot.themeManager = null;
   }

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - JavaScript Data Grid | Handsontable
@@ -16,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column hiding
-
 Hide individual columns to reduce screen clutter and improve the grid's performance.
 
 [[toc]]
@@ -389,12 +387,29 @@ hot.render();
 
 ## Related API reference
 
-- Configuration options:
-  - [`hiddenColumns`](@/api/options.md#hiddencolumns)
-- Hooks:
-  - [`afterHideColumns`](@/api/hooks.md#afterhidecolumns)
-  - [`afterUnhideColumns`](@/api/hooks.md#afterunhidecolumns)
-  - [`beforeHideColumns`](@/api/hooks.md#beforehidecolumns)
-  - [`beforeUnhideColumns`](@/api/hooks.md#beforeunhidecolumns)
-- Plugins:
-  - [`HiddenColumns`](@/api/hiddenColumns.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [hiddenColumns](@/api/options.md#hiddencolumns)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterHideColumns](@/api/hooks.md#afterhidecolumns)
+- [afterUnhideColumns](@/api/hooks.md#afterunhidecolumns)
+- [beforeHideColumns](@/api/hooks.md#beforehidecolumns)
+- [beforeUnhideColumns](@/api/hooks.md#beforeunhidecolumns)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [HiddenColumns](@/api/hiddenColumns.md)
+
+</div>

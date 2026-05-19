@@ -1,0 +1,60 @@
+/* On mobile: two-row header (main bar + sub-bar) */
+/* Tablet (50–72rem): subheader visible, collapsible sidebar */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  :root {
+    --sl-mobile-subheader-height: 2.75rem;
+  }
+
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height)) !important;
+  }
+
+  /* Subheader starts after the left sidebar */
+  .mobile-subheader {
+    left: var(--sl-sidebar-width, 18.75rem);
+    transition: left 0.2s ease;
+  }
+
+  /* Sidebar collapses when body has data attribute */
+  body[data-sidebar-collapsed] .sidebar-pane {
+    transform: translateX(-100%);
+  }
+
+  body[data-sidebar-collapsed] .mobile-subheader {
+    left: 0;
+  }
+
+  body[data-sidebar-collapsed] .main-frame {
+    padding-inline-start: 0 !important;
+    transition: padding-inline-start 0.2s ease;
+  }
+
+  /* Remove max-width constraint on tablet — content should use full available space */
+  .sl-container {
+    max-width: none !important;
+  }
+
+  .main-frame {
+    transition: padding-inline-start 0.2s ease;
+  }
+
+  .sidebar-pane {
+    transition: transform 0.2s ease;
+  }
+}
+
+@media (max-width: 49.99rem) {
+  :root {
+    --sl-nav-height: 3.25rem;
+    --sl-mobile-subheader-height: 2.75rem;
+  }
+
+  .main-frame {
+    padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height)) !important;
+  }
+
+  /* Remove Starlight's extra header padding for the mobile menu button (we use our own sub-bar) */
+  [data-has-sidebar] .header {
+    padding-inline-end: 0.25rem !important;
+  }
+}

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 2yi2yfl5
 title: Loading
 metaTitle: Loading - JavaScript Data Grid | Handsontable
@@ -21,9 +22,6 @@ angular:
 searchCategory: Guides
 category: Dialog
 ---
-
-# Loading
-
 Display loading indicators and progress feedback in your data grid application using the Loading plugin.
 
 [[toc]]
@@ -42,8 +40,8 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 
 ::: example #example1 --js 1 --ts 2
 
-@[code](@/content/guides/dialog/loading/javascript/example1.js)
-@[code](@/content/guides/dialog/loading/javascript/example1.ts)
+@[code collapse={7-28,35-84}](@/content/guides/dialog/loading/javascript/example1.js)
+@[code collapse={7-28,36-85}](@/content/guides/dialog/loading/javascript/example1.ts)
 
 :::
 
@@ -53,8 +51,8 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/dialog/loading/react/example1.jsx)
-@[code](@/content/guides/dialog/loading/react/example1.tsx)
+@[code collapse={8-29,60-90}](@/content/guides/dialog/loading/react/example1.jsx)
+@[code collapse={8-29,60-88}](@/content/guides/dialog/loading/react/example1.tsx)
 
 :::
 
@@ -64,7 +62,7 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/dialog/loading/angular/example1.ts)
+@[code collapse={20-41,44-94}](@/content/guides/dialog/loading/angular/example1.ts)
 @[code](@/content/guides/dialog/loading/angular/example1.html)
 
 :::
@@ -79,8 +77,8 @@ The loading dialog supports customization of the icon, title, and description.
 
 ::: example #example2 --js 1 --ts 2
 
-@[code](@/content/guides/dialog/loading/javascript/example2.js)
-@[code](@/content/guides/dialog/loading/javascript/example2.ts)
+@[code collapse={7-28,35-84}](@/content/guides/dialog/loading/javascript/example2.js)
+@[code collapse={7-28,36-85}](@/content/guides/dialog/loading/javascript/example2.ts)
 
 :::
 
@@ -90,8 +88,8 @@ The loading dialog supports customization of the icon, title, and description.
 
 ::: example #example2 :react --js 1 --ts 2
 
-@[code](@/content/guides/dialog/loading/react/example2.jsx)
-@[code](@/content/guides/dialog/loading/react/example2.tsx)
+@[code collapse={8-29,64-94}](@/content/guides/dialog/loading/react/example2.jsx)
+@[code collapse={8-29,64-92}](@/content/guides/dialog/loading/react/example2.tsx)
 
 :::
 
@@ -101,7 +99,7 @@ The loading dialog supports customization of the icon, title, and description.
 
 ::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/dialog/loading/angular/example2.ts)
+@[code collapse={20-41,44-94}](@/content/guides/dialog/loading/angular/example2.ts)
 @[code](@/content/guides/dialog/loading/angular/example2.html)
 
 :::
@@ -117,8 +115,8 @@ Here are some common scenarios where the loading dialog is useful:
 ::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/dialog/loading/javascript/example3.html)
-@[code](@/content/guides/dialog/loading/javascript/example3.js)
-@[code](@/content/guides/dialog/loading/javascript/example3.ts)
+@[code collapse={12-61,84-95}](@/content/guides/dialog/loading/javascript/example3.js)
+@[code collapse={13-62,86-97}](@/content/guides/dialog/loading/javascript/example3.ts)
 
 :::
 
@@ -128,8 +126,8 @@ Here are some common scenarios where the loading dialog is useful:
 
 ::: example #example3 :react --js 1 --ts 2
 
-@[code](@/content/guides/dialog/loading/react/example3.jsx)
-@[code](@/content/guides/dialog/loading/react/example3.tsx)
+@[code collapse={26-56,84-95}](@/content/guides/dialog/loading/react/example3.jsx)
+@[code collapse={26-54,85-96}](@/content/guides/dialog/loading/react/example3.tsx)
 
 :::
 
@@ -139,7 +137,7 @@ Here are some common scenarios where the loading dialog is useful:
 
 ::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/dialog/loading/angular/example3.ts)
+@[code collapse={32-81,118-129}](@/content/guides/dialog/loading/angular/example3.ts)
 @[code](@/content/guides/dialog/loading/angular/example3.html)
 
 :::
@@ -156,8 +154,8 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 @[code](@/content/guides/dialog/loading/javascript/example4.html)
 @[code](@/content/guides/dialog/loading/javascript/example4.css)
-@[code](@/content/guides/dialog/loading/javascript/example4.js)
-@[code](@/content/guides/dialog/loading/javascript/example4.ts)
+@[code collapse={13-62,96-125}](@/content/guides/dialog/loading/javascript/example4.js)
+@[code collapse={14-63,98-127}](@/content/guides/dialog/loading/javascript/example4.ts)
 
 :::
 
@@ -167,8 +165,8 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 ::: example #example4 :react --js 1 --ts 2 --css 3
 
-@[code](@/content/guides/dialog/loading/react/example4.jsx)
-@[code](@/content/guides/dialog/loading/react/example4.tsx)
+@[code collapse={26-56,108-137}](@/content/guides/dialog/loading/react/example4.jsx)
+@[code collapse={26-54,108-137}](@/content/guides/dialog/loading/react/example4.tsx)
 @[code](@/content/guides/dialog/loading/react/example4.css)
 
 :::
@@ -179,7 +177,7 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 ::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/dialog/loading/angular/example4.ts)
+@[code collapse={55-104,162-191}](@/content/guides/dialog/loading/angular/example4.ts)
 @[code](@/content/guides/dialog/loading/angular/example4.html)
 
 :::
@@ -194,9 +192,22 @@ Translate default loading dialog labels using the global translations mechanism.
 
 To learn more about the translation mechanism, see the [Languages guide](@/guides/internationalization/language/language.md).
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 16.2.0: Simplified theming and advanced user notifications](https://handsontable.com/blog/handsontable-16.2.0-simplified-theming-and-advanced-user-notifications)
+- [Handsontable 16.1: Row Pagination, Loading Plugin, and Long-Term Support Policy](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
+
+</div>
+
 ## Related API reference
+
+<div class="boxes-list">
 
 - [Options: `loading`](@/api/options.md#loading)
 - [Options: `dialog`](@/api/options.md#dialog)
 - [Plugins: `Loading`](@/api/loading.md)
 - [Plugins: `Dialog`](@/api/dialog.md)
+
+</div>

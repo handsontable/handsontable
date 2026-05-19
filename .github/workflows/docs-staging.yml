@@ -7,8 +7,11 @@ on:
     branches-ignore:
       - 'prod-docs/**'
       - 'master'
+    # Trigger on docs changes (all branches) and on handsontable/package.json
+    # changes (so RC version bumps on release/* branches trigger a rebuild).
     paths:
       - 'docs/**'
+      - 'handsontable/package.json'
   workflow_dispatch:
 
 concurrency:
@@ -28,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
         name: Install pnpm
 
       - name: Use Node.js
@@ -36,24 +39,78 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Detect release branch
+        id: release-info
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const ref = context.ref || '';
+            // Match release/x.y.z branches (RC builds)
+            const releaseMatch = ref.match(/^refs\/heads\/release\/(\d+\.\d+\.\d+)$/);
+            const isReleaseBranch = !!releaseMatch;
+            const targetVersion = releaseMatch ? releaseMatch[1] : '';
+
+            core.setOutput('is_release', String(isReleaseBranch));
+            core.setOutput('target_version', targetVersion);
+
+            if (isReleaseBranch) {
+              console.log(`Release branch detected: ${ref}`);
+              console.log(`Target version: ${targetVersion}`);
+              console.log('Will build docs in production mode (GTM/HotJar, no dev badge).');
+            }
 
       - name: Find PR
         uses: jwalton/gh-find-current-pr@89ee5799558265a1e0e31fab792ebb4ee91c016b # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.3
         id: pr-finder
 
+      - name: Resolve PR number
+        id: resolve-pr
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            // For pull_request events the number is in the event payload directly.
+            let prNumber = context.payload.pull_request?.number;
+
+            if (!prNumber && context.eventName === 'push') {
+              // For push events, look up the PR by head branch name.
+              // This is more reliable than the commit-SHA lookup used by gh-find-current-pr,
+              // which can miss brand-new PRs due to GitHub API eventual consistency.
+              const branchName = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: `${context.repo.owner}:${branchName}`,
+                state: 'open'
+              });
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+                console.log(`Found PR #${prNumber} for branch ${branchName}`);
+              }
+            }
+
+            // Fall back to the gh-find-current-pr output if the above did not resolve a number.
+            if (!prNumber) {
+              const fallback = '${{ steps.pr-finder.outputs.pr }}';
+              prNumber = fallback ? Number(fallback) : undefined;
+            }
+
+            core.setOutput('number', prNumber ? String(prNumber) : '');
+
       - name: Get PR details
         id: get-pr
-        if: ${{ steps.pr-finder.outputs.pr }}
+        if: ${{ steps.resolve-pr.outputs.number }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
             const { data: pullRequest } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
+              pull_number: Number('${{ steps.resolve-pr.outputs.number }}')
             });
 
-            console.log(`PR #${context.issue.number} details fetched`);
+            console.log(`PR #${{ steps.resolve-pr.outputs.number }} details fetched`);
             console.log(`Source branch: ${pullRequest.head.ref}`);
             console.log(`Target branch: ${pullRequest.base.ref}`);
 
@@ -80,71 +137,52 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_ACCOUNT_SLUG: ${{ secrets.NETLIFY_ACCOUNT_SLUG }}
-          BRANCH_NAME_PREFIX: dev-handsontable-
-          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch || github.ref_name }}
+          BRANCH_NAME_PREFIX: ${{ steps.release-info.outputs.is_release == 'true' && 'rc-handsontable-' || 'dev-handsontable-' }}
+          BRANCH_NAME: ${{ steps.release-info.outputs.is_release == 'true' && steps.release-info.outputs.target_version || github.head_ref || steps.get-pr.outputs.source_branch || github.ref_name }}
 
       - name: Publish sticky comment in PR. Docs are being built
-        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.9.4
-        if: ${{ steps.pr-finder.outputs.pr }}
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        if: ${{ steps.resolve-pr.outputs.number }}
         with:
-          number: ${{ steps.pr-finder.outputs.pr }}
+          number: ${{ steps.resolve-pr.outputs.number }}
           message: |
             🏗️ Preview documentation is being built/rebuilt.
             Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
-      - name: Install the documentation dependencies
+      - name: Install the monorepo dependencies (including docs) and build the packages
+        working-directory: .
         run: |
-          npm ci
-
-      - name: Install the monorepo dependencies and build the packages
-        run: |
-          cd ..
           pnpm install
           npm run all build -- --e examples visual-tests
 
-          mkdir -p docs/.vuepress/public/@handsontable
-
-          # cp -r ./wrappers/angular-wrapper docs/.vuepress/public/@handsontable
-          # cp -r ./wrappers/react-wrapper docs/.vuepress/public/@handsontable
-          # cp -r ./wrappers/vue3 docs/.vuepress/public/@handsontable
-
-          cp -r ./wrappers/angular-wrapper/dist/hot-table docs/.vuepress/public/@handsontable/
-          mv docs/.vuepress/public/@handsontable/hot-table docs/.vuepress/public/@handsontable/angular-wrapper
-
-          ls -la  docs/.vuepress/public/@handsontable/angular-wrapper
-
-      - name: Generate API references
+      # RC release branches: measure module sizes (same as production workflow).
+      - name: Update module size measurements
+        if: ${{ steps.release-info.outputs.is_release == 'true' }}
+        working-directory: .
         run: |
-          npm run docs:api
+          npm run measure:module-sizes --prefix handsontable
 
       - name: Build docs (for staging preview)
         run: |
-          npm run docs:build:preview
+          npm run build
+        env:
+          # RC release branches build in production mode to mimic the final
+          # production deployment (GTM/HotJar injected, dev badge hidden).
+          BUILD_MODE: ${{ steps.release-info.outputs.is_release == 'true' && 'production' || '' }}
 
       - name: Build and deploy the preview to Netlify
         run: |
           cd netlify
-          mkdir -p docs/docs
+          mkdir -p deploy/docs
 
-          mv ../.vuepress/dist/docs docs
+          cp -r ../dist/. deploy/docs/
 
-          ./build_previous_versions.sh
-          echo "Building the documentation..." >> docs/index.html
-          cp _dev_headers docs/_headers
-          cp _redirects docs/_redirects
-          cp docs/docs/404.html docs/404.html
+          # Place 404.html at the publish root so Netlify serves it
+          # automatically for all unmatched routes (no redirect rule needed).
+          cp ../dist/404.html deploy/404.html
 
-          rm -rf ../../handsontable/node_modules
-          rm -rf ../../handsontable/tmp
-          cp -r ../../handsontable docs/docs
-
-          mkdir -p docs/docs/@handsontable
-          #rm -rf ../../@handsontable/angular-wrapper/node_modules
-          rm -rf ../../@handsontable/react-wrapper/node_modules
-          rm -rf ../../@handsontable/vue3/node_modules
-          #cp -r ../../wrappers/angular-wrapper docs/docs/@handsontable/
-          cp -r ../../wrappers/react-wrapper docs/docs/@handsontable/
-          cp -r ../../wrappers/vue3 docs/docs/@handsontable/
+          cp _dev_headers deploy/_headers
+          cp _redirects deploy/_redirects
 
       - name: Publish preview to Netlify
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
@@ -153,18 +191,30 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: |
-            cd docs
-            cd netlify
-            netlify deploy --prod --build --context production
+            cd docs/netlify
+            netlify deploy --prod --dir deploy
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
 
       - name: Publish sticky comment in PR
-        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.9.4
-        if: ${{ steps.pr-finder.outputs.pr }}
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        if: ${{ steps.resolve-pr.outputs.number }}
         with:
-          number: ${{ steps.pr-finder.outputs.pr }}
+          number: ${{ steps.resolve-pr.outputs.number }}
           message: |
             ✅ Preview documentation is is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+
+      - name: Post RC staging summary
+        if: ${{ steps.release-info.outputs.is_release == 'true' }}
+        run: |
+          echo "## 🧪 RC Docs Staging Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target version:** ${{ steps.release-info.outputs.target_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Build mode:** production" >> $GITHUB_STEP_SUMMARY
+          echo "**Preview URL:** ${{ env.NETLIFY_SITE_URL }}/docs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This staging build uses production docs settings (BUILD_MODE=production) for release branch \`${{ steps.release-info.outputs.target_version }}\`." >> $GITHUB_STEP_SUMMARY
+          echo "The published \`handsontable\` version from package.json (including any RC tag) is used in examples and CodeSandbox links." >> $GITHUB_STEP_SUMMARY
+          echo "Use it to verify the docs before the final release." >> $GITHUB_STEP_SUMMARY

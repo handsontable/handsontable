@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 85u4f81b
 title: Rows pagination
 metaTitle: Rows pagination - JavaScript Data Grid | Handsontable
@@ -28,22 +29,9 @@ searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-
-# Rows pagination
-
-The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
+Split large data sets into pages to improve usability and rendering performance. Pagination operates fully on the client side and automatically recomputes the total page count whenever rows are added, removed, filtered, or otherwise modified.
 
 [[toc]]
-
-## Overview
-
-With pagination, large data sets are divided into smaller pages, significantly improving usability and rendering performance. Users can navigate pages using built-in UI controls such as page navigation buttons, a page size selector, and a page counter, or you can manage pages programmatically via Handsontable's API.
-
-Pagination operates fully on the client side, requiring all data to be loaded into Handsontable.
-
-Whenever rows are added, removed, hidden, unhidden, filtered, or otherwise modified, pagination automatically recomputes total pages and adjusts the currently visible slice of data.
-
-By default, the plugin does not override core data access methods (e.g., `getData`, `getData*`, `getSourceData`, `getSourceData*`, `countRows`). Instead, a developer must explicitly call the pagination [`getCurrentPageData`](@/api/pagination.md#getcurrentpagedata) method or [`getPaginationData`](@/api/pagination.md#getpaginationdata) method conjunction with core methods (e.g., `getData`) to interact with paged data.
 
 ## Pagination demo
 
@@ -52,8 +40,8 @@ Use the controls below the grid to switch between pages.
 ::: only-for javascript
 ::: example #example1 --js 1 --ts 2
 
-@[code](@/content/guides/rows/rows-pagination/javascript/example1.js)
-@[code](@/content/guides/rows/rows-pagination/javascript/example1.ts)
+@[code collapse={8-107, 117-162}](@/content/guides/rows/rows-pagination/javascript/example1.js)
+@[code collapse={8-107, 117-162}](@/content/guides/rows/rows-pagination/javascript/example1.ts)
 
 :::
 :::
@@ -61,8 +49,8 @@ Use the controls below the grid to switch between pages.
 ::: only-for react
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/rows/rows-pagination/react/example1.jsx)
-@[code](@/content/guides/rows/rows-pagination/react/example1.tsx)
+@[code collapse={8-107, 126-156}](@/content/guides/rows/rows-pagination/react/example1.jsx)
+@[code collapse={8-107, 126-156}](@/content/guides/rows/rows-pagination/react/example1.tsx)
 
 :::
 :::
@@ -70,7 +58,7 @@ Use the controls below the grid to switch between pages.
 ::: only-for angular
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-pagination/angular/example1.ts)
+@[code collapse={16-115, 122-168}](@/content/guides/rows/rows-pagination/angular/example1.ts)
 @[code](@/content/guides/rows/rows-pagination/angular/example1.html)
 
 :::
@@ -139,8 +127,8 @@ In the data grid below, several pagination options are applied to provide a cust
 ::: example #example2 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-pagination/javascript/example2.html)
-@[code](@/content/guides/rows/rows-pagination/javascript/example2.js)
-@[code](@/content/guides/rows/rows-pagination/javascript/example2.ts)
+@[code collapse={8-107, 124-169}](@/content/guides/rows/rows-pagination/javascript/example2.js)
+@[code collapse={8-107, 124-169}](@/content/guides/rows/rows-pagination/javascript/example2.ts)
 
 :::
 :::
@@ -148,9 +136,9 @@ In the data grid below, several pagination options are applied to provide a cust
 ::: only-for react
 ::: example #example2 :react --js 1 --css 2 --ts 3
 
-@[code](@/content/guides/rows/rows-pagination/react/example2.jsx)
+@[code collapse={8-107, 137-167}](@/content/guides/rows/rows-pagination/react/example2.jsx)
 @[code](@/content/guides/rows/rows-pagination/react/example2.css)
-@[code](@/content/guides/rows/rows-pagination/react/example2.tsx)
+@[code collapse={8-107, 137-167}](@/content/guides/rows/rows-pagination/react/example2.tsx)
 
 :::
 :::
@@ -158,7 +146,7 @@ In the data grid below, several pagination options are applied to provide a cust
 ::: only-for angular
 ::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-pagination/angular/example2.ts)
+@[code collapse={16-115, 142-188}](@/content/guides/rows/rows-pagination/angular/example2.ts)
 @[code](@/content/guides/rows/rows-pagination/angular/example2.html)
 
 :::
@@ -172,18 +160,17 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 ::: example #example3 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-pagination/javascript/example3.html)
-@[code](@/content/guides/rows/rows-pagination/javascript/example3.js)
-@[code](@/content/guides/rows/rows-pagination/javascript/example3.ts)
+@[code collapse={8-107, 122-167}](@/content/guides/rows/rows-pagination/javascript/example3.js)
+@[code collapse={8-107, 123-168}](@/content/guides/rows/rows-pagination/javascript/example3.ts)
 
 :::
 :::
 
 ::: only-for react
-::: example #example3 :react --js 1 --css 2 --ts 3
+::: example #example3 :react --js 1 --ts 2
 
-@[code](@/content/guides/rows/rows-pagination/react/example3.jsx)
-@[code](@/content/guides/rows/rows-pagination/react/example3.css)
-@[code](@/content/guides/rows/rows-pagination/react/example3.tsx)
+@[code collapse={8-107, 200-230}](@/content/guides/rows/rows-pagination/react/example3.jsx)
+@[code collapse={8-107, 200-230}](@/content/guides/rows/rows-pagination/react/example3.tsx)
 
 :::
 :::
@@ -191,7 +178,7 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 ::: only-for angular
 ::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-pagination/angular/example3.ts)
+@[code collapse={42-141, 154-200}](@/content/guides/rows/rows-pagination/angular/example3.ts)
 @[code](@/content/guides/rows/rows-pagination/angular/example3.html)
 
 :::
@@ -205,8 +192,8 @@ By default, the pagination UI is displayed at the bottom of the grid. You can ch
 ::: example #example4 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-pagination/javascript/example4.html)
-@[code](@/content/guides/rows/rows-pagination/javascript/example4.js)
-@[code](@/content/guides/rows/rows-pagination/javascript/example4.ts)
+@[code collapse={8-107, 119-164}](@/content/guides/rows/rows-pagination/javascript/example4.js)
+@[code collapse={8-107, 119-164}](@/content/guides/rows/rows-pagination/javascript/example4.ts)
 
 :::
 :::
@@ -214,9 +201,9 @@ By default, the pagination UI is displayed at the bottom of the grid. You can ch
 ::: only-for react
 ::: example #example4 :react --js 1 --css 2 --ts 3
 
-@[code](@/content/guides/rows/rows-pagination/react/example4.jsx)
+@[code collapse={8-107, 140-170}](@/content/guides/rows/rows-pagination/react/example4.jsx)
 @[code](@/content/guides/rows/rows-pagination/react/example4.css)
-@[code](@/content/guides/rows/rows-pagination/react/example4.tsx)
+@[code collapse={8-107, 140-170}](@/content/guides/rows/rows-pagination/react/example4.tsx)
 
 :::
 :::
@@ -224,7 +211,7 @@ By default, the pagination UI is displayed at the bottom of the grid. You can ch
 ::: only-for angular
 ::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-pagination/angular/example4.ts)
+@[code collapse={16-115, 144-190}](@/content/guides/rows/rows-pagination/angular/example4.ts)
 @[code](@/content/guides/rows/rows-pagination/angular/example4.html)
 
 :::
@@ -238,18 +225,17 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 ::: example #example5 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/rows/rows-pagination/javascript/example5.html)
-@[code](@/content/guides/rows/rows-pagination/javascript/example5.js)
-@[code](@/content/guides/rows/rows-pagination/javascript/example5.ts)
+@[code collapse={8-107, 116-161}](@/content/guides/rows/rows-pagination/javascript/example5.js)
+@[code collapse={8-107, 117-162}](@/content/guides/rows/rows-pagination/javascript/example5.ts)
 
 :::
 :::
 
 ::: only-for react
-::: example #example5 :react --js 1 --css 2 --ts 3
+::: example #example5 :react --js 1 --ts 2
 
-@[code](@/content/guides/rows/rows-pagination/react/example5.jsx)
-@[code](@/content/guides/rows/rows-pagination/react/example5.css)
-@[code](@/content/guides/rows/rows-pagination/react/example5.tsx)
+@[code collapse={8-107, 158-188}](@/content/guides/rows/rows-pagination/react/example5.jsx)
+@[code collapse={8-107, 159-189}](@/content/guides/rows/rows-pagination/react/example5.tsx)
 
 :::
 :::
@@ -257,7 +243,7 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 ::: only-for angular
 ::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-pagination/angular/example5.ts)
+@[code collapse={25-124, 131-177}](@/content/guides/rows/rows-pagination/angular/example5.ts)
 @[code](@/content/guides/rows/rows-pagination/angular/example5.html)
 
 :::
@@ -333,8 +319,8 @@ The example below demonstrates how to customize the translation of the paginatio
 ::: only-for javascript
 ::: example #example6 --js 1 --ts 2
 
-@[code](@/content/guides/rows/rows-pagination/javascript/example6.js)
-@[code](@/content/guides/rows/rows-pagination/javascript/example6.ts)
+@[code collapse={8-107, 129-174}](@/content/guides/rows/rows-pagination/javascript/example6.js)
+@[code collapse={8-107, 129-174}](@/content/guides/rows/rows-pagination/javascript/example6.ts)
 
 :::
 :::
@@ -342,8 +328,8 @@ The example below demonstrates how to customize the translation of the paginatio
 ::: only-for react
 ::: example #example6 :react --js 1 --ts 2
 
-@[code](@/content/guides/rows/rows-pagination/react/example6.jsx)
-@[code](@/content/guides/rows/rows-pagination/react/example6.tsx)
+@[code collapse={8-107, 139-169}](@/content/guides/rows/rows-pagination/react/example6.jsx)
+@[code collapse={8-107, 139-169}](@/content/guides/rows/rows-pagination/react/example6.tsx)
 
 :::
 :::
@@ -351,7 +337,7 @@ The example below demonstrates how to customize the translation of the paginatio
 ::: only-for angular
 ::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-pagination/angular/example6.ts)
+@[code collapse={16-115, 139-185}](@/content/guides/rows/rows-pagination/angular/example6.ts)
 @[code](@/content/guides/rows/rows-pagination/angular/example6.html)
 
 :::
@@ -397,34 +383,62 @@ When pagination is enabled:
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 16.1: Row Pagination, Loading Plugin, and Long-Term Support Policy](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy)
+
+</div>
+
 ## Related API reference
 
-- Configuration options:
-  - [`pagination`](@/api/options.md#pagination)
-  - [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)
-  - [`fixedRowsTop`](@/api/options.md#fixedrowstop)
-- Hooks:
-  - [`beforePageChange()`](@/api/hooks.md#beforepagechange)
-  - [`afterPageChange()`](@/api/hooks.md#afterpagechange)
-  - [`beforePageSizeChange()`](@/api/hooks.md#beforepagesizechange)
-  - [`afterPageSizeChange()`](@/api/hooks.md#afterpagesizechange)
-  - [`afterPageSizeVisibilityChange()`](@/api/hooks.md#afterpagesizevisibilitychange)
-  - [`afterPageCounterVisibilityChange()`](@/api/hooks.md#afterpagecountervisibilitychange)
-  - [`afterPageNavigationVisibilityChange()`](@/api/hooks.md#afterpagenavigationvisibilitychange)
-- Plugins:
-  - [`Pagination`](@/api/pagination.md)
-  - [`NestedRows`](@/api/nestedRows.md)
-  - [`MergeCells`](@/api/mergeCells.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [pagination](@/api/options.md#pagination)
+- [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
+- [fixedRowsTop](@/api/options.md#fixedrowstop)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforePageChange()](@/api/hooks.md#beforepagechange)
+- [afterPageChange()](@/api/hooks.md#afterpagechange)
+- [beforePageSizeChange()](@/api/hooks.md#beforepagesizechange)
+- [afterPageSizeChange()](@/api/hooks.md#afterpagesizechange)
+- [afterPageSizeVisibilityChange()](@/api/hooks.md#afterpagesizevisibilitychange)
+- [afterPageCounterVisibilityChange()](@/api/hooks.md#afterpagecountervisibilitychange)
+- [afterPageNavigationVisibilityChange()](@/api/hooks.md#afterpagenavigationvisibilitychange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Pagination](@/api/pagination.md)
+- [NestedRows](@/api/nestedRows.md)
+- [MergeCells](@/api/mergeCells.md)
+
+</div>
+
+## Result
+
+After completing this guide, your grid divides rows into pages with built-in navigation controls. You can configure the page size, customize the UI position, control pagination programmatically, and react to page changes using hooks.
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Pagination) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 

@@ -35,11 +35,11 @@ describe('Core.spliceCellsMeta', () => {
 
     let metaAtRow = getCellMetaAtRow(2);
 
-    expect(metaAtRow[0].myId).toBe(3);
+    expect(metaAtRow.find(meta => meta.col === 1).myId).toBe(3);
 
     metaAtRow = getCellMetaAtRow(3);
 
-    expect(metaAtRow[0].myId).toBe(5);
+    expect(metaAtRow.find(meta => meta.col === 1).myId).toBe(5);
   });
 
   it('should remove cell meta objects from the collection', async() => {

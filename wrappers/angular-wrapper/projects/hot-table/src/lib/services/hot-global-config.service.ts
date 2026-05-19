@@ -83,9 +83,7 @@ export class HotGlobalConfigService {
    * @private
    * @type {HotGlobalConfig}
    */
-  private defaultConfig: HotGlobalConfig = {
-    license: undefined,
-  };
+  private defaultConfig: HotGlobalConfig = {};
 
   /**
    * A BehaviorSubject that holds the current Handsontable configuration.

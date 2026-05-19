@@ -22,7 +22,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1234.567');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1,234.567');
     });
@@ -36,7 +36,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '0.75');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('75%');
     });
@@ -52,7 +52,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '0.7534');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('75.34%');
     });
@@ -70,7 +70,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('$1,000.00');
     });
@@ -87,7 +87,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('$1,000.00');
     });
@@ -103,7 +103,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('USD\u00A01,000.00');
     });
@@ -119,7 +119,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1,000.00 US dollars');
     });
@@ -137,7 +137,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '-1000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('-$1,000.00');
     });
@@ -153,7 +153,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '-1000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('($1,000.00)');
     });
@@ -171,7 +171,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('100 m');
     });
@@ -187,7 +187,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('100m');
     });
@@ -203,7 +203,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('100 meters');
     });
@@ -219,7 +219,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '123456');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('123,456');
     });
@@ -233,7 +233,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '123456');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1.235E5');
     });
@@ -247,7 +247,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '123456');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('123.456E3');
     });
@@ -262,7 +262,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1500000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1.5M');
     });
@@ -277,7 +277,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1500000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1.5 million');
     });
@@ -294,7 +294,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '100');
       await setDataAtCell(0, 1, '-100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('100');
       expect(getCell(0, 1).innerText).toEqual('-100');
@@ -310,7 +310,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '100');
       await setDataAtCell(0, 1, '-100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('+100');
       expect(getCell(0, 1).innerText).toEqual('-100');
@@ -326,7 +326,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '100');
       await setDataAtCell(0, 1, '-100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('100');
       expect(getCell(0, 1).innerText).toEqual('100');
@@ -343,7 +343,7 @@ describe('NumericRenderer numericFormat options', () => {
       await setDataAtCell(0, 0, '100');
       await setDataAtCell(0, 1, '0');
       await setDataAtCell(0, 2, '-100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('+100');
       expect(getCell(0, 1).innerText).toEqual('0');
@@ -360,7 +360,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '100');
       await setDataAtCell(0, 1, '-100');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('100');
       expect(getCell(0, 1).innerText).toEqual('-100');
@@ -377,7 +377,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1234567');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1,234,567');
     });
@@ -391,7 +391,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1234567');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('1234567');
     });
@@ -407,7 +407,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '42');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('00,042');
     });
@@ -421,7 +421,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '42.5');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('42.500');
     });
@@ -435,7 +435,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '42.56789');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('42.57');
     });
@@ -449,7 +449,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '42');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('42.00');
     });
@@ -463,7 +463,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '12345');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('12,300');
     });
@@ -481,7 +481,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '2.25');
       await setDataAtCell(0, 1, '2.35');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('2.3');
       expect(getCell(0, 1).innerText).toEqual('2.4');
@@ -498,7 +498,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '2.21');
       await setDataAtCell(0, 1, '-2.21');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('2.3');
       expect(getCell(0, 1).innerText).toEqual('-2.2');
@@ -515,7 +515,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '2.29');
       await setDataAtCell(0, 1, '-2.21');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('2.2');
       expect(getCell(0, 1).innerText).toEqual('-2.3');
@@ -532,7 +532,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '2.29');
       await setDataAtCell(0, 1, '-2.29');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('2.2');
       expect(getCell(0, 1).innerText).toEqual('-2.2');
@@ -550,7 +550,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '5');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('5.00');
     });
@@ -566,7 +566,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '5');
       await setDataAtCell(0, 1, '5.5');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('5');
       expect(getCell(0, 1).innerText).toEqual('5.50');
@@ -586,7 +586,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '1500000');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('$1.5M');
     });
@@ -604,7 +604,7 @@ describe('NumericRenderer numericFormat options', () => {
 
       await setDataAtCell(0, 0, '0.125');
       await setDataAtCell(0, 1, '-0.05');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('+12.5%');
       expect(getCell(0, 1).innerText).toEqual('-5.0%');
@@ -622,7 +622,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(0, 0, '5');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getCell(0, 0).innerText).toEqual('5\u00A0kilogrammes');
     });
@@ -640,7 +640,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234567.89');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1.234.567,89');
       });
@@ -655,7 +655,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234567.89');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         // French uses narrow no-break space (U+202F) as grouping separator
         expect(getCell(0, 0).innerText).toEqual('1\u202F234\u202F567,89');
@@ -671,7 +671,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '12345678.9');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1,23,45,678.90');
       });
@@ -686,7 +686,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234.56');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('١٬٢٣٤٫٥٦');
       });
@@ -701,7 +701,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234567.89');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1,234,567.89');
       });
@@ -719,7 +719,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234.56');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('$1,234.56');
       });
@@ -735,7 +735,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234.56');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1\u202F234,56\u00A0€');
       });
@@ -751,7 +751,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234.56');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('£1,234.56');
       });
@@ -767,7 +767,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1234');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('￥1,234');
       });
@@ -785,7 +785,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '0.1234');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('12,34\u00A0%');
       });
@@ -801,7 +801,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '0.1234');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('12,34\u00A0%');
       });
@@ -816,7 +816,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '0.75');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('%75');
       });
@@ -835,7 +835,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '5');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('5 Kilometer');
       });
@@ -852,7 +852,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '25');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('25 grados Celsius');
       });
@@ -869,7 +869,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '120');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('120 km/h');
       });
@@ -887,7 +887,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1500000');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1,5 Millionen');
       });
@@ -903,7 +903,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '1500000');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1,5 million');
       });
@@ -919,7 +919,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '15000000');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1500万');
       });
@@ -935,7 +935,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '10000');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('1万');
       });
@@ -952,7 +952,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '0123456789');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('١٢٣٬٤٥٦٬٧٨٩');
       });
@@ -968,7 +968,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '12345');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('१२,३४५');
       });
@@ -984,7 +984,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '12345');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('๑๒,๓๔๕');
       });
@@ -1000,7 +1000,7 @@ describe('NumericRenderer numericFormat options', () => {
         });
 
         await setDataAtCell(0, 0, '12345');
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getCell(0, 0).innerText).toEqual('১২,৩৪৫');
       });
@@ -1019,7 +1019,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(2, 2, '1000.234');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(2, 2).innerText).toEqual('$1,000.23');
     });
@@ -1035,7 +1035,7 @@ describe('NumericRenderer numericFormat options', () => {
       });
 
       await setDataAtCell(2, 2, '-1000.234');
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getCell(2, 2).innerText).toEqual('-$1,000.23');
     });

@@ -10,7 +10,7 @@ import { isVisible } from '../helpers/dom/element';
  * @property {function(): string | null} getActiveScopeId Returns the ID of the active scope.
  * @property {function(string, HTMLElement, object): void} registerScope Registers a new focus scope.
  * @property {function(string): void} unregisterScope Unregisters a scope by its ID.
- * @property {function(string): void} activateScope Activates a focus scope by its ID.
+ * @property {function(string, ('unknown' | 'click' | 'tab_from_above' | 'tab_from_below')?): void} activateScope Activates a focus scope by its ID.
  * @property {function(string): void} deactivateScope Deactivates a scope by its ID.
  * @property {function(): void} destroy Destroys the focus scope manager.
  */
@@ -135,13 +135,16 @@ export function createFocusScopeManager(hotInstance) {
    * @memberof FocusScopeManager#
    * @alias FocusScopeManager#activateScope
    * @param {string} scopeId The ID of the scope to activate.
+   * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} [focusSource='unknown'] Passed to the scope's `onActivate` callback (same values as document `htFocusSource`).
    */
-  function activateScopeById(scopeId) {
+  function activateScopeById(scopeId, focusSource = FOCUS_SOURCES.UNKNOWN) {
     if (!SCOPES.hasItem(scopeId)) {
       throwWithCause(`Scope with id "${scopeId}" not found`);
     }
 
-    activateScope(SCOPES.getItem(scopeId));
+    const resolvedSource = focusSource ?? FOCUS_SOURCES.UNKNOWN;
+
+    activateScope(SCOPES.getItem(scopeId), resolvedSource);
   }
 
   /**
@@ -285,7 +288,7 @@ export function createFocusScopeManager(hotInstance) {
     getActiveScopeId,
     registerScope,
     unregisterScope,
-    activateScope: scopeId => activateScopeById(scopeId),
+    activateScope: (scopeId, focusSource) => activateScopeById(scopeId, focusSource),
     deactivateScope: scopeId => deactivateScopeById(scopeId),
     destroy: () => eventListener.unmount(),
   };

@@ -65,7 +65,7 @@ export function cleanNodeModules() {
       try {
         console.log(`- Removing the ${printRelative(pnpmLockfileLocation)} file.`);
 
-        rimraf.sync(lockfileLocation);
+        rimraf.sync(pnpmLockfileLocation);
 
       } catch (error) {
         console.error(`Error deleting ${printRelative(pnpmLockfileLocation)} - ${error}`);

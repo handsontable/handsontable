@@ -1,0 +1,153 @@
+import type { SVGProps } from 'react';
+
+export const LoaderBoxes = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="24" height="24" viewBox="0 0 36 36" aria-hidden="true" {...props}>
+    <style>{`
+      .lb{fill:currentColor;transform-origin:50% 50%}
+      @keyframes lb1{9.09%{transform:translate(-12px,0)}18.18%{transform:translate(0,0)}27.27%{transform:translate(0,0)}36.36%{transform:translate(12px,0)}45.45%{transform:translate(12px,12px)}54.55%{transform:translate(12px,12px)}63.64%{transform:translate(12px,12px)}72.73%{transform:translate(12px,0)}81.82%{transform:translate(0,0)}90.91%{transform:translate(-12px,0)}100%{transform:translate(0,0)}}
+      @keyframes lb2{9.09%{transform:translate(0,0)}18.18%{transform:translate(12px,0)}27.27%{transform:translate(0,0)}36.36%{transform:translate(12px,0)}45.45%{transform:translate(12px,12px)}54.55%{transform:translate(12px,12px)}63.64%{transform:translate(12px,12px)}72.73%{transform:translate(12px,12px)}81.82%{transform:translate(0,12px)}90.91%{transform:translate(0,12px)}100%{transform:translate(0,0)}}
+      @keyframes lb3{9.09%{transform:translate(-12px,0)}18.18%{transform:translate(-12px,0)}27.27%{transform:translate(0,0)}36.36%{transform:translate(-12px,0)}45.45%{transform:translate(-12px,0)}54.55%{transform:translate(-12px,0)}63.64%{transform:translate(-12px,0)}72.73%{transform:translate(-12px,0)}81.82%{transform:translate(-12px,-12px)}90.91%{transform:translate(0,-12px)}100%{transform:translate(0,0)}}
+      @keyframes lb4{9.09%{transform:translate(-12px,0)}18.18%{transform:translate(-12px,0)}27.27%{transform:translate(-12px,-12px)}36.36%{transform:translate(0,-12px)}45.45%{transform:translate(0,0)}54.55%{transform:translate(0,-12px)}63.64%{transform:translate(0,-12px)}72.73%{transform:translate(0,-12px)}81.82%{transform:translate(-12px,-12px)}90.91%{transform:translate(-12px,0)}100%{transform:translate(0,0)}}
+      @keyframes lb5{9.09%{transform:translate(0,0)}18.18%{transform:translate(0,0)}27.27%{transform:translate(0,0)}36.36%{transform:translate(12px,0)}45.45%{transform:translate(12px,0)}54.55%{transform:translate(12px,0)}63.64%{transform:translate(12px,0)}72.73%{transform:translate(12px,0)}81.82%{transform:translate(12px,-12px)}90.91%{transform:translate(0,-12px)}100%{transform:translate(0,0)}}
+      @keyframes lb6{9.09%{transform:translate(0,0)}18.18%{transform:translate(-12px,0)}27.27%{transform:translate(-12px,0)}36.36%{transform:translate(0,0)}45.45%{transform:translate(0,0)}54.55%{transform:translate(0,0)}63.64%{transform:translate(0,0)}72.73%{transform:translate(0,12px)}81.82%{transform:translate(-12px,12px)}90.91%{transform:translate(-12px,0)}100%{transform:translate(0,0)}}
+      @keyframes lb7{9.09%{transform:translate(12px,0)}18.18%{transform:translate(12px,0)}27.27%{transform:translate(12px,0)}36.36%{transform:translate(0,0)}45.45%{transform:translate(0,-12px)}54.55%{transform:translate(12px,-12px)}63.64%{transform:translate(0,-12px)}72.73%{transform:translate(0,-12px)}81.82%{transform:translate(0,0)}90.91%{transform:translate(12px,0)}100%{transform:translate(0,0)}}
+      @keyframes lb8{9.09%{transform:translate(0,0)}18.18%{transform:translate(-12px,0)}27.27%{transform:translate(-12px,-12px)}36.36%{transform:translate(0,-12px)}45.45%{transform:translate(0,-12px)}54.55%{transform:translate(0,-12px)}63.64%{transform:translate(0,-12px)}72.73%{transform:translate(0,-12px)}81.82%{transform:translate(12px,-12px)}90.91%{transform:translate(12px,0)}100%{transform:translate(0,0)}}
+      @keyframes lb9{9.09%{transform:translate(-12px,0)}18.18%{transform:translate(-12px,0)}27.27%{transform:translate(0,0)}36.36%{transform:translate(-12px,0)}45.45%{transform:translate(0,0)}54.55%{transform:translate(0,0)}63.64%{transform:translate(-12px,0)}72.73%{transform:translate(-12px,0)}81.82%{transform:translate(-24px,0)}90.91%{transform:translate(-12px,0)}100%{transform:translate(0,0)}}
+      .lb:nth-child(1){animation:lb1 4s infinite}
+      .lb:nth-child(2){animation:lb2 4s infinite}
+      .lb:nth-child(3){animation:lb3 4s infinite}
+      .lb:nth-child(4){animation:lb4 4s infinite}
+      .lb:nth-child(5){animation:lb5 4s infinite}
+      .lb:nth-child(6){animation:lb6 4s infinite}
+      .lb:nth-child(7){animation:lb7 4s infinite}
+      .lb:nth-child(8){animation:lb8 4s infinite}
+      .lb:nth-child(9){animation:lb9 4s infinite}
+    `}</style>
+    <g>
+      <rect className="lb" x="13" y="1" rx="1" width="10" height="10" />
+      <rect className="lb" x="13" y="1" rx="1" width="10" height="10" />
+      <rect className="lb" x="25" y="25" rx="1" width="10" height="10" />
+      <rect className="lb" x="13" y="13" rx="1" width="10" height="10" />
+      <rect className="lb" x="13" y="13" rx="1" width="10" height="10" />
+      <rect className="lb" x="25" y="13" rx="1" width="10" height="10" />
+      <rect className="lb" x="1" y="25" rx="1" width="10" height="10" />
+      <rect className="lb" x="13" y="25" rx="1" width="10" height="10" />
+      <rect className="lb" x="25" y="25" rx="1" width="10" height="10" />
+    </g>
+  </svg>
+);
+
+export const LogoMark = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="28" height="28" viewBox="0 0 100 100" fill="none" aria-hidden="true" {...props}>
+    <rect width="100" height="100" rx="12" fill="#185CCC" />
+    <rect x="20" y="18" width="16" height="64" rx="2" fill="white" />
+    <rect x="36" y="38" width="18" height="16" rx="2" fill="white" />
+    <rect x="54" y="18" width="16" height="64" rx="2" fill="white" />
+    <rect x="76" y="72" width="10" height="10" rx="2" fill="white" />
+  </svg>
+);
+
+export const IconChat = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+export const IconChatbot = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" />
+    <path d="M9.5 9h.01" />
+    <path d="M14.5 9h.01" />
+    <path d="M9.5 13a3.5 3.5 0 0 0 5 0" />
+  </svg>
+);
+
+export const IconClose = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+export const IconNew = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4z" />
+  </svg>
+);
+
+export const IconTrash = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M4 7l16 0" />
+    <path d="M10 11l0 6" />
+    <path d="M14 11l0 6" />
+    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12" />
+    <path d="M9 7v-3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+  </svg>
+);
+
+export const IconSend = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M12 5l0 14" />
+    <path d="M18 11l-6-6" />
+    <path d="M6 11l6-6" />
+  </svg>
+);
+
+export const IconStop = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+    <rect x="5" y="5" width="14" height="14" rx="2" />
+  </svg>
+);
+
+export const IconCopy = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <rect x="9" y="9" width="13" height="13" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+export const IconCheck = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+export const IconThumbUp = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9A2 2 0 0 0 19.66 9H14z" />
+    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+  </svg>
+);
+
+export const IconThumbDown = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9A2 2 0 0 0 4.34 15H10z" />
+    <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
+  </svg>
+);
+
+export const IconRetry = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <polyline points="1 4 1 10 7 10" />
+    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+  </svg>
+);
+
+export const IllustrationWelcome = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="75" height="86" viewBox="0 0 75 86" fill="none" aria-hidden="true" {...props}>
+    <path opacity="0.5" fillRule="evenodd" clipRule="evenodd" d="M32.1668 78.3137L51.9024 72.2744L69.4126 79.7387L50.0318 85.7779L32.1668 78.3137Z" fill="black"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M74.8301 55.6135L69.4129 79.6377L49.6448 83.4109L32.1669 71.6729L37.5843 47.4871L57.3199 43.6816L74.8301 55.6135Z" fill="#D0D0D0"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M49.6443 83.4111L32.1664 71.673L37.5838 47.4873L55.4487 59.4191L49.6443 83.4111Z" fill="white"/>
+    <path d="M41.3826 57.5358C43.2315 58.5923 42.7032 62.8182 42.3731 63.9738C41.9235 63.0343 40.4357 61.1248 38.0811 61.0024C38.3012 59.9569 39.5338 56.4794 41.3826 57.5358Z" stroke="black" strokeWidth="0.893522" strokeLinecap="round"/>
+    <path d="M42.4014 59.529C43.1935 60.1598 42.7309 63.131 42.5895 63.8209C42.3969 63.26 41.4293 62.2433 40.4205 62.1702C40.5148 61.546 41.6092 58.8982 42.4014 59.529Z" fill="black"/>
+    <path d="M47.3538 61.7072C49.2027 62.7637 48.6744 66.9896 48.3443 68.1452C47.8947 67.2057 46.4069 65.2962 44.0523 65.1738C44.2724 64.1283 45.505 60.6507 47.3538 61.7072Z" stroke="black" strokeWidth="0.893522" strokeLinecap="round"/>
+    <path d="M48.3721 63.7004C49.1642 64.3312 48.7016 67.3024 48.5602 67.9923C48.3676 67.4314 47.4 66.4147 46.3912 66.3416C46.4855 65.7173 47.5799 63.0696 48.3721 63.7004Z" fill="black"/>
+    <path d="M40.3784 71.3053C39.1681 70.3767 38.9587 69.1286 39.1748 68.1129L44.0524 71.4504C43.9083 72.3694 41.5886 72.234 40.3784 71.3053Z" fill="black" stroke="black" strokeWidth="0.893522" strokeLinecap="round"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M37.5843 47.4871L57.3199 43.6816L74.8301 55.6135L55.4493 59.4189L37.5843 47.4871Z" fill="#E7E7E7"/>
+    <path d="M5.43567 0L46.4631 24.3345L41.0243 27.3531L0 3.01943L5.43567 0Z" fill="#59595C"/>
+    <path d="M46.4628 53.0241L41.0239 56.0412V27.3531L46.4628 24.3345V53.0241Z" fill="black"/>
+    <path d="M0 3.01953L41.0243 27.3532V56.0413L35.7523 52.9147V62.9936L26.2299 47.2685L0 31.7076V3.01953Z" fill="#2C2C2C"/>
+    <path d="M3.77123 17.9305L2.73534 17.309L4.35353 12.9902L5.32199 13.5713L6.93406 19.8282L5.87978 19.1956L5.56105 17.8893L4.09609 17.0103L3.77123 17.9305ZM4.70904 15.2765L4.38418 16.211L5.27909 16.748L4.95422 15.4236C4.92971 15.3184 4.90519 15.2107 4.88067 15.1007C4.85615 14.9907 4.83981 14.9023 4.83163 14.8354C4.82346 14.8925 4.80712 14.9613 4.7826 15.0419C4.76217 15.1202 4.73765 15.1984 4.70904 15.2765ZM7.21065 16.2414C7.21065 15.9221 7.28216 15.6838 7.42518 15.5266C7.5682 15.3646 7.76435 15.2893 8.01362 15.3007C8.26697 15.3097 8.55506 15.4111 8.87788 15.6048C9.20478 15.8009 9.48674 16.0368 9.72375 16.3124C9.96076 16.5881 10.1426 16.8854 10.2693 17.2045C10.4 17.526 10.4654 17.8535 10.4654 18.1871L9.47857 17.595C9.47857 17.4091 9.4234 17.2307 9.31307 17.0596C9.20274 16.8838 9.05359 16.7395 8.86562 16.6268C8.66539 16.5066 8.50398 16.4598 8.38139 16.4863C8.26288 16.5153 8.20363 16.6179 8.20363 16.7943C8.20363 16.9563 8.24041 17.1023 8.31396 17.2322C8.38752 17.3621 8.50398 17.4939 8.66334 17.6277L9.34372 18.2003C9.74827 18.5383 10.0486 18.8853 10.2448 19.2413C10.4409 19.5925 10.539 19.9778 10.539 20.3971C10.539 20.7355 10.4675 20.9904 10.3244 21.1619C10.1814 21.3287 9.97915 21.4027 9.71762 21.384C9.46018 21.3677 9.15779 21.2554 8.81045 21.047C8.47537 20.8459 8.18116 20.6027 7.9278 20.3172C7.67854 20.0342 7.48443 19.7295 7.3455 19.4031C7.21065 19.0744 7.14323 18.7457 7.14323 18.4169L8.13008 19.009C8.13008 19.1996 8.18933 19.3829 8.30783 19.5588C8.42634 19.7347 8.59592 19.8889 8.81658 20.0213C9.04133 20.1562 9.21909 20.2152 9.34985 20.1983C9.48061 20.1767 9.54599 20.0825 9.54599 19.9157C9.54599 19.768 9.5133 19.634 9.44792 19.5137C9.38663 19.396 9.28038 19.275 9.12919 19.1509L8.43655 18.571C8.032 18.2329 7.72553 17.8679 7.51713 17.476C7.31281 17.0866 7.21065 16.675 7.21065 16.2414ZM14.9974 19.3766L11.9388 22.202V20.4579L13.8267 18.6741L14.9974 19.3766ZM12.1901 17.6922V22.9818L11.1971 22.3861V17.0964L12.1901 17.6922ZM12.8337 21.2593L13.465 20.6231L15.0097 24.6736L13.8635 23.9859L12.8337 21.2593ZM18.1274 26.5442L17.165 25.9668V20.6771L18.1274 21.2545L19.4758 26.0094L20.8305 22.8764L21.8051 23.4612V28.7508L20.8427 28.1734V27.0654C20.8427 26.7795 20.8427 26.5436 20.8427 26.3578C20.8427 26.1719 20.8448 26.0183 20.8489 25.8968C20.8529 25.7754 20.857 25.6706 20.8611 25.5825C20.8693 25.4921 20.8795 25.4005 20.8918 25.3078L19.9294 27.6254L19.0223 27.0811L18.0661 23.6124C18.0947 23.8249 18.111 24.0468 18.1151 24.278C18.1233 24.5117 18.1274 24.7738 18.1274 25.0645V26.5442ZM25.6307 31.0462L22.7498 29.3177V24.028L25.6307 25.7565V26.8288L23.467 25.5305L23.7428 25.3958V26.7325L25.4162 27.7365V28.7516L23.7428 27.7476V29.1415L23.467 28.6757L25.6307 29.974V31.0462ZM3.77123 26.9305L2.73534 26.309L4.35353 21.9902L5.32199 22.5713L6.93406 28.8282L5.87978 28.1956L5.56105 26.8893L4.09609 26.0103L3.77123 26.9305ZM4.70904 24.2765L4.38418 25.211L5.27909 25.748L4.95422 24.4236C4.92971 24.3184 4.90519 24.2107 4.88067 24.1007C4.85615 23.9907 4.83981 23.9023 4.83163 23.8354C4.82346 23.8925 4.80712 23.9613 4.7826 24.0419C4.76217 24.1202 4.73765 24.1984 4.70904 24.2765ZM8.44268 29.7334L7.46196 29.1449V23.8553L8.44268 24.4437L10.6616 29.678L10.3551 29.4941V25.5912L11.3358 26.1796V31.4693L10.3551 30.8808L8.13621 25.6537L8.44268 25.8376V29.7334ZM13.4023 30.7005L11.8699 26.5001L12.9793 27.1657L13.7394 29.3373C13.7762 29.4404 13.8068 29.535 13.8313 29.6212C13.8599 29.7051 13.8865 29.7878 13.911 29.8692C13.9315 29.8386 13.9498 29.8067 13.9662 29.7736C13.9825 29.7358 14.0009 29.6992 14.0213 29.6638C14.0418 29.6236 14.0643 29.5823 14.0888 29.5398L14.8488 28.2874L15.9276 28.9347L14.3952 31.2963V33.3049L13.4023 32.7091V30.7005ZM18.4493 31.0053V35.7374L17.4564 35.1416V30.4095L18.4493 31.0053ZM16.1692 30.1519V29.0796L19.7365 31.2201V32.2923L16.1692 30.1519ZM21.3245 37.4625L20.3315 36.8667V31.577L21.3245 32.1728V34.2601L23.0776 35.3119V33.2247L24.0705 33.8204V39.1101L23.0776 38.5143V36.3842L21.3245 35.3323V37.4625ZM26.0055 34.9814V40.271L25.0125 39.6753V34.3856L26.0055 34.9814ZM27.9326 41.4273L26.9519 40.8389V35.5493L27.9326 36.1377L30.1515 41.3719L29.845 41.188V37.2851L30.8257 37.8736V43.1632L29.845 42.5748L27.6261 37.3477L27.9326 37.5316V41.4273ZM33.8116 40.6658C33.5378 40.5016 33.309 40.4358 33.1251 40.4684C32.9412 40.4963 32.8023 40.6083 32.7083 40.8044C32.6143 41.0006 32.5673 41.2703 32.5673 41.6134C32.5673 41.966 32.6205 42.2934 32.7267 42.5954C32.8329 42.8974 32.978 43.1631 33.1619 43.3926C33.3499 43.6198 33.5644 43.8057 33.8055 43.9503C34.0098 44.0729 34.1835 44.1461 34.3265 44.17C34.4695 44.1939 34.5839 44.1767 34.6698 44.1186C34.7597 44.063 34.825 43.9783 34.8659 43.8646C34.9108 43.7534 34.9333 43.6239 34.9333 43.4762V43.0544L35.4053 43.888L33.7258 42.8803V41.8653L35.8589 43.1451V46.1831L35.0069 45.6719L34.9272 44.9021L35.0375 45.0755C34.9721 45.1745 34.87 45.2347 34.731 45.2562C34.5962 45.2801 34.4368 45.2655 34.2529 45.2124C34.0731 45.1617 33.8811 45.0751 33.6768 44.9525C33.2559 44.6999 32.882 44.3636 32.5551 43.9435C32.2323 43.521 31.9789 43.0521 31.795 42.5367C31.6111 42.0213 31.5192 41.492 31.5192 40.9488C31.5192 40.415 31.6152 40.0009 31.8073 39.7063C31.9993 39.4069 32.269 39.2447 32.6164 39.2196C32.9637 39.1897 33.3703 39.3145 33.8361 39.594C34.1998 39.8122 34.5267 40.087 34.8169 40.4184C35.1111 40.7474 35.3501 41.11 35.534 41.5063C35.7179 41.8978 35.8262 42.2939 35.8589 42.6948L34.8169 42.0696C34.7597 41.7541 34.6371 41.478 34.4491 41.2413C34.2611 40.9999 34.0486 40.808 33.8116 40.6658Z" fill="white"/>
+  </svg>
+);

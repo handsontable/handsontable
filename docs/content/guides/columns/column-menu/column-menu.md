@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 25b7vhfs
 title: Column menu
 metaTitle: Column menu - JavaScript Data Grid | Handsontable
@@ -16,9 +17,6 @@ angular:
 searchCategory: Guides
 category: Columns
 ---
-
-# Column menu
-
 Display a configurable dropdown menu, triggered by clicking on a button in a column header.
 
 [[toc]]
@@ -106,24 +104,43 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
-| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`dropdownMenu`](@/api/options.md#dropdownmenu)
-- Hooks:
-  - [`afterDropdownMenuDefaultOptions`](@/api/hooks.md#afterdropdownmenudefaultoptions)
-  - [`afterDropdownMenuHide`](@/api/hooks.md#afterdropdownmenuhide)
-  - [`afterDropdownMenuShow`](@/api/hooks.md#afterdropdownmenushow)
-  - [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems)
-  - [`beforeDropdownMenuShow`](@/api/hooks.md#beforedropdownmenushow)
-- Plugins:
-  - [`DropdownMenu`](@/api/dropdownMenu.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [dropdownMenu](@/api/options.md#dropdownmenu)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDropdownMenuDefaultOptions](@/api/hooks.md#afterdropdownmenudefaultoptions)
+- [afterDropdownMenuHide](@/api/hooks.md#afterdropdownmenuhide)
+- [afterDropdownMenuShow](@/api/hooks.md#afterdropdownmenushow)
+- [beforeDropdownMenuSetItems](@/api/hooks.md#beforedropdownmenusetitems)
+- [beforeDropdownMenuShow](@/api/hooks.md#beforedropdownmenushow)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>

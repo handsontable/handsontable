@@ -169,7 +169,7 @@ describe('DateEditor', () => {
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
 
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + editorElement.outerHeight(),
@@ -179,7 +179,7 @@ describe('DateEditor', () => {
 
     await scrollViewportVertically(130);
 
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + editorElement.outerHeight(),
@@ -336,7 +336,7 @@ describe('DateEditor', () => {
     });
 
     await selectCell(20, 6);
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
     const cellElement = $(getActiveEditor().TD);

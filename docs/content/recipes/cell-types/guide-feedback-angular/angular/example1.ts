@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, ChangeDetectorRef, inject } from '@angular/core';
-import { GridSettings, HotCellEditorAdvancedComponent, KeyboardShortcutConfig } from '@handsontable/angular-wrapper';
+import { GridSettings, HotCellEditorAdvancedComponent, HotTableModule, KeyboardShortcutConfig } from '@handsontable/angular-wrapper';
 
 export const inputData = [
   { feature: 'Dark Mode', category: 'UI', priority: 'High', feedback: '👍', votes: 124, status: 'Planned' },
@@ -11,7 +11,8 @@ export const inputData = [
 
 @Component({
   selector: 'example1-feedback-angular',
-  standalone: false,
+  standalone: true,
+  imports: [],
   template: `
     <div class="feedback-editor">
       @for (option of config; track option) {
@@ -61,13 +62,14 @@ export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<stri
 }
 
 @Component({
-  selector: 'example1-guide-feedback-angular',
-  standalone: false,
+  selector: 'app-root',
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1GuideFeedbackAngularComponent {
+export class AppComponent {
   readonly data = inputData;
 
   readonly gridSettings: GridSettings = {
@@ -95,22 +97,16 @@ export class Example1GuideFeedbackAngularComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1GuideFeedbackAngularComponent, FeedbackEditorComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -119,12 +115,4 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule],
-  declarations: [Example1GuideFeedbackAngularComponent, FeedbackEditorComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1GuideFeedbackAngularComponent],
-})
-export class AppModule {}
 /* end-file */

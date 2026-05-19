@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: d2in9k81
 title: Row moving
 metaTitle: Row moving - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Rows
 ---
-
-# Row moving
-
 Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
 [[toc]]
@@ -60,7 +58,26 @@ A draggable move handle appears above the selected row header. You can click and
 
 :::
 
-## Drag and move actions of `manualRowMove` plugin
+## Set a pre-defined row order
+
+Instead of setting [`manualRowMove`](@/api/options.md#manualrowmove) to `true`, you can pass an **array of physical row indexes** to define the initial visual order of rows on render.
+
+Each position in the array corresponds to a visual (display) position, and the value at that position is the physical (source data) row index. For example:
+
+```js
+manualRowMove: [2, 0, 1]
+```
+
+This renders the rows in the following order:
+- Visual position 0 → physical row `2`
+- Visual position 1 → physical row `0`
+- Visual position 2 → physical row `1`
+
+The array must contain all physical row indexes (its length must equal the total number of rows). After the initial render, users can still drag rows to change the order further.
+
+## API reference
+
+### dragRows vs moveRows
 
 There are significant differences between the plugin's [`dragRows`](@/api/manualRowMove.md#dragrows) and [`moveRows`](@/api/manualRowMove.md#moverows) API functions. Both of them change the order of rows, but they rely on different kinds of indexes. The differences between them are shown in the diagrams below.
 
@@ -70,7 +87,7 @@ The [`dragRows`](@/api/manualRowMove.md#dragrows) method has a `dropIndex` param
 
 <span class="img-invert">
 
-![dragRows method]({{$basePath}}/img/drag_action.svg)
+![dragRows method](/img/drag_action.svg)
 
 </span>
 
@@ -79,20 +96,47 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 
 <span class="img-invert">
 
-![moveRows method]({{$basePath}}/img/move_action.svg)
+![moveRows method](/img/move_action.svg)
 
 </span>
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
 
-## Related API reference
+### Related API reference
 
-- Options:
-  - [`manualRowMove`](@/api/options.md#manualrowmove)
-- Core methods:
-  - [`toVisualRow`](@/api/core.md#tovisualrow)
-- Hooks:
-  - [`afterRowMove`](@/api/hooks.md#afterrowmove)
-  - [`beforeRowMove`](@/api/hooks.md#beforerowmove)
-- Plugins:
-  - [`ManualRowMove`](@/api/manualRowMove.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [manualRowMove](@/api/options.md#manualrowmove)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [toVisualRow](@/api/core.md#tovisualrow)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRowMove](@/api/hooks.md#afterrowmove)
+- [beforeRowMove](@/api/hooks.md#beforerowmove)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ManualRowMove](@/api/manualRowMove.md)
+
+</div>
+
+## Result
+
+After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.

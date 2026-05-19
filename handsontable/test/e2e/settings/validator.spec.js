@@ -38,7 +38,7 @@ describe('Core.validator', () => {
     });
 
     await validateCells();
-    await sleep(100);
+    await waitForNextAnimationFrames(7);
 
     destroy();
     spec().$container.remove();
@@ -65,7 +65,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(2, 0, 123);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
   });
@@ -100,7 +100,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(2, 0, 123);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
   });
@@ -120,7 +120,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(2, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
   });
@@ -150,7 +150,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(2, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
   });
@@ -177,7 +177,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(2, 0, 123);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(result.instance).toEqual(getInstance());
   });
@@ -214,7 +214,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(2, 0, 123);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(result.instance).toEqual(getInstance());
   });
@@ -236,7 +236,7 @@ describe('Core.validator', () => {
 
     await validateCells(() => {});
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(4);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(0);
@@ -245,7 +245,7 @@ describe('Core.validator', () => {
     onAfterValidate.calls.reset();
 
     await validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(3);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(1);
@@ -268,7 +268,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
@@ -292,7 +292,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(500);
+    await waitForNextAnimationFrames(32);
 
     // establishing that validation was not called
     expect(onAfterValidate).not.toHaveBeenCalled();
@@ -322,7 +322,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(500);
+    await waitForNextAnimationFrames(32);
 
     // establishing that validation was called and the cell was set to invalid
     expect(onAfterValidate).toHaveBeenCalled();
@@ -335,7 +335,7 @@ describe('Core.validator', () => {
     allowChange = false;
     await setDataAtCell(0, 0, 'test2');
 
-    await sleep(500);
+    await waitForNextAnimationFrames(32);
 
     // establishing that the value was rejected
     expect(getDataAtCell(0, 0)).toEqual('test');
@@ -367,7 +367,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 123);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validator.calls.count()).toEqual(1);
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
@@ -376,7 +376,7 @@ describe('Core.validator', () => {
     onAfterValidate.calls.reset();
     await setDataAtCell(0, 0, 124);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
@@ -392,7 +392,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
 
@@ -410,7 +410,7 @@ describe('Core.validator', () => {
 
     await validateCells(() => {});
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
@@ -426,7 +426,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
 
@@ -444,7 +444,7 @@ describe('Core.validator', () => {
 
     await validateRows([0], () => {});
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
@@ -460,7 +460,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
 
@@ -478,7 +478,7 @@ describe('Core.validator', () => {
 
     await validateColumns([0], () => {});
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
@@ -504,14 +504,14 @@ describe('Core.validator', () => {
       render();
     });
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
     onAfterValidate.calls.reset();
     await setDataAtCell(0, 0, 'test');
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
@@ -528,7 +528,7 @@ describe('Core.validator', () => {
     // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateCells(resolve));
     await setDataAtCell(0, 0, 'test');
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(getCellMeta(0, 0).valid).toBe(true);
   });
@@ -561,7 +561,7 @@ describe('Core.validator', () => {
       ['A3-new']
     ]);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validatedChanges.length).toEqual(2);
     expect(validatedChanges[0]).toEqual([0, 0, 'A1', 'A1-new']);
@@ -591,7 +591,7 @@ describe('Core.validator', () => {
     expect(onBeforeChange.calls.count()).toEqual(0);
 
     await setDataAtCell(0, 0, 10);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onBeforeChange.calls.count()).toEqual(1);
   });
@@ -615,7 +615,7 @@ describe('Core.validator', () => {
     expect(onBeforeChange.calls.count()).toEqual(0);
 
     await setDataAtCell(0, 0, 10);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onBeforeChange.calls.count()).toEqual(1);
   });
@@ -637,7 +637,7 @@ describe('Core.validator', () => {
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
 
     await setDataAtCell(0, 0, 10);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onAfterChange.calls.count()).toEqual(2);
   });
@@ -661,7 +661,7 @@ describe('Core.validator', () => {
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
 
     await setDataAtCell(0, 0, 10);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(onAfterChange.calls.count()).toEqual(2);
   });
@@ -703,7 +703,7 @@ describe('Core.validator', () => {
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(isEditorVisibleBeforeChange).toBe(true);
     expect(isEditorVisibleAfterChange).toBe(false);
@@ -747,7 +747,7 @@ describe('Core.validator', () => {
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(isEditorVisibleBeforeChange).toBe(true);
     expect(isEditorVisibleAfterChange).toBe(false);
@@ -774,7 +774,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await selectCell(0, 1);
-    await sleep(150);
+    await waitForNextAnimationFrames(10);
 
     expect(validatedValue).toEqual('Ted');
   });
@@ -799,7 +799,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await keyDownUp('enter');
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validationResult).toBe(false);
     expect(document.activeElement.value).toEqual('Ted');
@@ -823,7 +823,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await keyDownUp('enter');
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validationResult).toBe(false);
     expect(document.activeElement.value).toEqual('Ted');
@@ -849,7 +849,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await selectCell(1, 0);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validationResult).toBe(false);
     expect(document.activeElement.value).toEqual('Ted');
@@ -873,7 +873,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await selectCell(1, 0);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validationResult).toBe(false);
     expect(document.activeElement.value).toEqual('Ted');
@@ -900,7 +900,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await keyDownUp('enter');
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     const $cell = $(getCell(0, 0));
 
@@ -929,7 +929,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await selectCell(19, 0);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     const $cell = $(getCell(0, 0));
 
@@ -956,7 +956,7 @@ describe('Core.validator', () => {
     document.activeElement.value = 'Ted';
 
     await selectCell(1, 0);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validationResult).toBe(false);
     expect(getDataAtCell(0, 0)).toEqual('Ted');
@@ -990,7 +990,7 @@ describe('Core.validator', () => {
     const cell = $(getCell(1, 0));
 
     await mouseDoubleClick(cell);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(validationResult).toBe(true);
@@ -1021,7 +1021,7 @@ describe('Core.validator', () => {
     const cell = $(getCell(1, 0));
 
     await mouseDoubleClick(cell);
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(validationResult).toBe(false);
     expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1055,7 +1055,7 @@ describe('Core.validator', () => {
     onAfterValidate.calls.reset();
 
     await keyDownUp('enter'); // should be ignored
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(isEditorVisible()).toBe(true);
     document.activeElement.value = '999';
@@ -1063,7 +1063,7 @@ describe('Core.validator', () => {
     onAfterValidate.calls.reset();
 
     await keyDownUp('enter'); // should be accepted
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
@@ -1108,7 +1108,7 @@ describe('Core.validator', () => {
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]); // only enterMove and first arrow_down is performed
@@ -1149,7 +1149,7 @@ describe('Core.validator', () => {
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -1190,7 +1190,7 @@ describe('Core.validator', () => {
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
@@ -1231,7 +1231,7 @@ describe('Core.validator', () => {
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    await sleep(100); // wait for async validation
+    await waitForNextAnimationFrames(7); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
@@ -1253,7 +1253,7 @@ describe('Core.validator', () => {
     await selectCell(0, 0);
     await keyDownUp('enter'); // open editor
     await keyDownUp('escape'); // cancel editing
-    await sleep(100);
+    await waitForNextAnimationFrames(7);
 
     expect(onAfterValidate).not.toHaveBeenCalled();
   });
@@ -1285,7 +1285,7 @@ describe('Core.validator', () => {
     await selectCell(0, 0);
     await keyDownUp('enter'); // open editor
     await keyDownUp('escape'); // cancel editing
-    await sleep(100);
+    await waitForNextAnimationFrames(7);
 
     expect(onAfterValidate).not.toHaveBeenCalled();
   });
@@ -1308,7 +1308,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'foo');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(7);
 
     expect(getCellMeta(0, 0).valid).toBe(false);
 
@@ -1349,7 +1349,7 @@ describe('Core.validator', () => {
 
     await setDataAtCell(0, 0, 'foo');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(7);
 
     expect(getCellMeta(0, 0).valid).toBe(false);
 
@@ -1392,7 +1392,7 @@ describe('Core.validator', () => {
     activeEditor.setValue('foo');
 
     await keyDownUp('enter'); // save changes, close editor
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     onAfterValidate.calls.reset();
     activeEditor = getActiveEditor();
@@ -1404,7 +1404,7 @@ describe('Core.validator', () => {
     activeEditor.setValue(2);
 
     await keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     await keyDownUp('enter'); // open editor
 
@@ -1457,7 +1457,7 @@ describe('Core.validator', () => {
     activeEditor.setValue('foo');
 
     await keyDownUp('enter'); // save changes, close editor
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     onAfterValidate.calls.reset();
     activeEditor = getActiveEditor();
@@ -1469,7 +1469,7 @@ describe('Core.validator', () => {
     activeEditor.setValue(2);
 
     await keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     await keyDownUp('enter'); // open editor
 

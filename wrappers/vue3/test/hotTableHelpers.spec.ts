@@ -72,4 +72,42 @@ describe('prepareSettings', () => {
     expect(preparedSettings.mergeCells).toBe(undefined);
     expect(Object.keys(preparedSettings).length).toBe(0);
   });
+
+  it('should skip init-only settings when current settings contain _initOnlySettings', () => {
+    const currentSettings = {
+      renderAllRows: false,
+      renderAllColumns: false,
+      layoutDirection: 'ltr' as const,
+      ariaTags: true,
+      width: 300,
+      _initOnlySettings: ['renderAllRows', 'renderAllColumns', 'layoutDirection', 'ariaTags'],
+    } as GridSettings;
+    const propsMock = {
+      renderAllRows: true,
+      renderAllColumns: true,
+      layoutDirection: 'rtl' as const,
+      ariaTags: false,
+      width: 500,
+    };
+
+    const preparedSettings = prepareSettings(propsMock, currentSettings);
+
+    expect(preparedSettings.renderAllRows).toBe(void 0);
+    expect(preparedSettings.renderAllColumns).toBe(void 0);
+    expect(preparedSettings.layoutDirection).toBe(void 0);
+    expect(preparedSettings.ariaTags).toBe(void 0);
+    expect(preparedSettings.width).toBe(500);
+  });
+
+  it('should include init-only settings during initial call (no currentSettings)', () => {
+    const propsMock = {
+      renderAllRows: true,
+      width: 300,
+    };
+
+    const preparedSettings = prepareSettings(propsMock);
+
+    expect(preparedSettings.renderAllRows).toBe(true);
+    expect(preparedSettings.width).toBe(300);
+  });
 });

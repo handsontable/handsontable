@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: tpa768pc
 title: Migrating from 11.1 to 12.0
 metaTitle: Migrate from 11.1 to 12.0 - JavaScript Data Grid | Handsontable
@@ -15,9 +16,6 @@ angular:
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 11.1 to 12.0
-
 Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
 
 More information about this release can be found in the [`12.0.0` release blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api).<br/>
@@ -105,7 +103,7 @@ Read more on referencing the Handsontable instance:
 
 Handsontable 12.0.0 changes how the [`updatePlugin()`](@/api/autoColumnSize.md#updateplugin) method reacts to [`updateSettings()`](@/api/core.md#updatesettings) calls.
 
-This change might affect your custom plugins.
+This change may affect your custom plugins.
 
 #### Before
 
@@ -193,21 +191,21 @@ We took this opportunity to improve the behavior of Handsontable's default keybo
 - Improve the consistency of keyboard navigation
 - Create a more intuitive user experience
 
-#### <kbd>**Ctrl**</kbd> vs <kbd>**Cmd**</kbd>
+#### <kbd>**Ctrl**</kbd> vs <kbd>⌘</kbd>
 
-Handsontable 12.0 splits a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>) into two separate keys.
-Now, the <kbd>**Cmd**</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows.
+Handsontable 12.0 splits a cross-platform modifier key (<kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>) into two separate keys.
+Now, the <kbd>⌘</kbd> key triggers actions on macOS where the <kbd>**Ctrl**</kbd> key triggers actions on Windows.
 
-For example, the table below shows how this change affects the <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**A**</kbd> shortcut:
+For example, the table below shows how this change affects the <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**A**</kbd> shortcut:
 
 |         | Before                                                                                      | After                                             |
 | ------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| Windows | <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd>+<kbd>**A**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> works |
-| macOS   | <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> works<br><kbd>**Cmd**</kbd>+<kbd>**A**</kbd> works | Only <kbd>**Cmd**</kbd>+<kbd>**A**</kbd> works  |
+| Windows | <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> works<br><kbd>⌘</kbd>+<kbd>**A**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> works |
+| macOS   | <kbd>⌃</kbd>+<kbd>**A**</kbd> works<br><kbd>⌘</kbd>+<kbd>**A**</kbd> works | Only <kbd>⌘</kbd>+<kbd>**A**</kbd> works  |
 
 ::: tip
 
-The default keyboard shortcut for [merging cells](#keyboard-shortcuts-changes-cell-merging) is an exception: <kbd>**Cmd**</kbd>+<kbd>**M**</kbd> doesn't work anymore, as it conflicted with macOS's shortcut for window minimizing.
+The default keyboard shortcut for [merging cells](#keyboard-shortcuts-changes-cell-merging) is an exception: <kbd>⌘</kbd>+<kbd>**M**</kbd> doesn't work anymore, as it conflicted with macOS's shortcut for window minimizing.
 
 :::
 
@@ -217,14 +215,14 @@ The table below summarizes default keyboard shortcuts changes related to navigat
 
 | Windows                                   | macOS                                    | Before                                        | After                                                            |
 | ----------------------------------------- | ---------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**↑**</kbd>    | Extend the selection by one cell up           | Move to the first cell of the current column                     |
-| <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**↓**</kbd>    | Extend the selection by one cell down         | Move to the last cell of the current column                      |
-| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**←**</kbd>    | Extend the selection by one cell to the left  | Move to the leftmost cell of the current row                     |
-| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**→**</kbd>    | Extend the selection by one cell to the right | Move to the rightmost cell of the current row                    |
+| <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd>    | <kbd>⌘</kbd>+<kbd>**↑**</kbd>    | Extend the selection by one cell up           | Move to the first cell of the current column                     |
+| <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>    | <kbd>⌘</kbd>+<kbd>**↓**</kbd>    | Extend the selection by one cell down         | Move to the last cell of the current column                      |
+| <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>    | <kbd>⌘</kbd>+<kbd>**←**</kbd>    | Extend the selection by one cell to the left  | Move to the leftmost cell of the current row                     |
+| <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd>    | <kbd>⌘</kbd>+<kbd>**→**</kbd>    | Extend the selection by one cell to the right | Move to the rightmost cell of the current row                    |
 | <kbd>**Home**</kbd>                       | <kbd>**Home**</kbd>                      | Move to the first cell of the current row     | Move to the first non-frozen cell of the current row<sup>*</sup> |
-| <kbd>**Ctrl**</kbd>+<kbd>**Home**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Home**</kbd> | Move to the first cell of the current column  | Move to the first non-frozen cell of the grid<sup>*</sup>        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Home**</kbd> | <kbd>⌘</kbd>+<kbd>**Home**</kbd> | Move to the first cell of the current column  | Move to the first non-frozen cell of the grid<sup>*</sup>        |
 | <kbd>**End**</kbd>                        | <kbd>**End**</kbd>                       | Move to the last cell of the current row      | Move to the last non-frozen cell of the current row<sup>*</sup>  |
-| <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd>  | <kbd>**Cmd**</kbd>+<kbd>**End**</kbd>  | Move to the last cell of the current column   | Move to the last non-frozen cell of the grid<sup>*</sup>         |
+| <kbd>**Ctrl**</kbd>+<kbd>**End**</kbd>  | <kbd>⌘</kbd>+<kbd>**End**</kbd>  | Move to the last cell of the current column   | Move to the last non-frozen cell of the grid<sup>*</sup>         |
 
 <sup>*</sup> This action depends on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md).
 
@@ -234,15 +232,15 @@ The table below summarizes default keyboard shortcuts changes related to selecti
 
 | Windows                                                          | macOS                                                           | Before                                                       | After                                                                                                               |
 | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>    | Extend the selection by one cell up                          | Extend the selection to the first cell of the current column<sup>**</sup>                                           |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>    | Extend the selection by one cell down                        | Extend the selection to the last cell of the current column<sup>**</sup>                                            |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd>    | Extend the selection by one cell to the left                 | Extend the selection to the leftmost cell of the current row<sup>**</sup>                                           |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd>    | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd>    | Extend the selection by one cell to the right                | Extend the selection to the rightmost cell of the current row<sup>**</sup>                                          |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Home**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Home**</kbd> | Extend the selection to the first cell of the current column | Doesn't work anymore (replaced by <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>) |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**End**</kbd>  | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**End**</kbd>  | Extend the selection to the last cell of the current column  | Doesn't work anymore (replaced by <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>) |
-| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                    | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                   | Move one screen up                                           | Extend the selection by one screen up                                                                               |
-| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                  | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                 | Move one screen down                                         | Extend the selection by one screen down                                                                             |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                       | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                       | Enter the editing mode of the active cell                    | Fill the selected range of cells with the value of the active cell                                                  |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>    | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**↑**</kbd>    | Extend the selection by one cell up                          | Extend the selection to the first cell of the current column<sup>**</sup>                                           |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>    | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**↓**</kbd>    | Extend the selection by one cell down                        | Extend the selection to the last cell of the current column<sup>**</sup>                                            |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd>    | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**←**</kbd>    | Extend the selection by one cell to the left                 | Extend the selection to the leftmost cell of the current row<sup>**</sup>                                           |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd>    | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**→**</kbd>    | Extend the selection by one cell to the right                | Extend the selection to the rightmost cell of the current row<sup>**</sup>                                          |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Home**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Home**</kbd> | Extend the selection to the first cell of the current column | Doesn't work anymore (replaced by <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>) |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**End**</kbd>  | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**End**</kbd>  | Extend the selection to the last cell of the current column  | Doesn't work anymore (replaced by <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>) |
+| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                    | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                   | Move one screen up                                           | Extend the selection by one screen up                                                                               |
+| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                  | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>                 | Move one screen down                                         | Extend the selection by one screen down                                                                             |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                       | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                       | Enter the editing mode of the active cell                    | Fill the selected range of cells with the value of the active cell                                                  |
 
 <sup>**</sup> In case of multiple selection layers, only the last selection layer gets extended.
 
@@ -254,10 +252,10 @@ The table below summarizes default keyboard shortcuts changes related to edition
 | ------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------- | -------------------------------------------------------- |
 | <kbd>**Home**</kbd>                                           | <kbd>**Home**</kbd>                                          | Native browser behavior for the entire window | Move the cursor to the beginning of the text<sup>*</sup> |
 | <kbd>**End**</kbd>                                            | <kbd>**End**</kbd>                                           | Native browser behavior for the entire window | Move the cursor to the end of the text<sup>*</sup>       |
-| <kbd>**Ctrl**</kbd>+<kbd>**Z**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**Z**</kbd>                        | Undo the last action                          | Undo the last action in the cell editor                  |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | Redo the last action                          | Redo the last action in the cell editor                  |
-| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                | Move one screen up                            | Doesn't work when editing a cell                         |
-| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>               | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>              | Move one screen down                          | Doesn't work when editing a cell                         |
+| <kbd>**Ctrl**</kbd>+<kbd>**Z**</kbd>                        | <kbd>⌘</kbd>+<kbd>**Z**</kbd>                        | Undo the last action                          | Undo the last action in the cell editor                  |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Z**</kbd> | Redo the last action                          | Redo the last action in the cell editor                  |
+| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                 | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                | Move one screen up                            | Doesn't work when editing a cell                         |
+| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>               | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>              | Move one screen down                          | Doesn't work when editing a cell                         |
 
 <sup>*</sup> This action depends on your layout direction.
 
@@ -267,8 +265,8 @@ The table below summarizes default keyboard shortcuts changes related to cell me
 
 |         | Before                                                                                   | After                                                                                                                                               |
 | ------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Windows | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works <kbd>**Cmd**</kbd>+<kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works                                                                                                   |
-| macOS   | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works <kbd>**Cmd**</kbd>+<kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works<br>(<kbd>**Cmd**</kbd>+<kbd>**M**</kbd> conflicted with macOS's shortcut for window minimizing) |
+| Windows | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works <kbd>⌘</kbd>+<kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works                                                                                                   |
+| macOS   | <kbd>⌃</kbd>+<kbd>**M**</kbd> works <kbd>⌘</kbd>+<kbd>**M**</kbd> works | Only <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> works<br>(<kbd>⌘</kbd>+<kbd>**M**</kbd> conflicted with macOS's shortcut for window minimizing) |
 
 #### Migrating to Handsontable 12.0
 
@@ -282,7 +280,7 @@ To keep the previous (pre-12.0) behavior of a default keyboard shortcut, use the
 
 Handsontable 12.0.0 makes it clear that Handsontable's rendering engine (`_wt`, internally referred to as "Walkontable") is not a part of Handsontable's public API.
 
-To emphasize this, we changed the following property name:
+To emphasize this, Handsontable 12.0 changes the following property name:
 
 | Before                         | After                           |
 | ------------------------------ | ------------------------------- |
@@ -302,3 +300,7 @@ If your custom editor needs to know the size and position of the edited cell,
 now you can get them without referring to `_wt`. Instead, use the new [`getEditedCellRect()`](@/api/baseEditor.md#geteditedcellrect) method.
 
 :::
+
+## Result
+
+Your application now runs on Handsontable 12.0.

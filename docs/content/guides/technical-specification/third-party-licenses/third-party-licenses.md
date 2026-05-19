@@ -1,4 +1,5 @@
 ---
+type: reference
 id: rck7asx7
 title: Third-party licenses
 metaTitle: Third-party licenses - JavaScript Data Grid | Handsontable
@@ -13,10 +14,7 @@ angular:
   metaTitle: Third-party licenses - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
-menuTag: updated
 ---
-
-# Third-party licenses
 
 Learn about the licensing terms of Handsontable's software dependencies.
 
@@ -24,64 +22,62 @@ Learn about the licensing terms of Handsontable's software dependencies.
 
 ## Open-source software components
 
-<div class="boxes-list gray">
-
-- **numbro.js** (handles numeric data)<br>
-    Author: Benjamin Van Ryseghem<br>
-    License: Open source (MIT)<br>
-    [http://numbrojs.com/](http://numbrojs.com/)
-
-- **Pikaday** (displays a date picker)<br>
-    Author: David Bushell<br>
-    License: Open source (MIT)<br>
-    [https://github.com/handsontable/pikaday](https://github.com/handsontable/pikaday)
-
-- **moment.js** (parses, validates and displays dates)<br>
-    Author: Tim Wood, Tskren Chernev, Moment.js contributors<br>
-    License: Open source (MIT)<br>
-    [http://momentjs.com](http://momentjs.com)
-
-- **javascript-algorithms** (implementation of linked list and merge sort)<br>
-    Author: Minko Gechev<br>
-    License: Open source (MIT)<br>
-    [https://github.com/mgechev/javascript-algorithms](https://github.com/mgechev/javascript-algorithms)
-
-- **DOMPurify** (an XSS sanitizer for HTML)<br>
-    Author: Mario Heiderich<br>
-    License: Open source (Apache 2.0)<br>
-    [https://github.com/cure53/DOMPurify](https://github.com/cure53/DOMPurify)
-
+<div class="ht-card-grid">
+  <div class="ht-info-card">
+    <p class="name"><strong>numbro.js</strong> <span class="desc">(handles numeric data)</span></p>
+    <p class="meta">Author: Benjamin Van Ryseghem<br>License: Open source (MIT)</p>
+    <p class="url"><a href="http://numbrojs.com/" target="_blank" rel="noopener noreferrer">http://numbrojs.com/</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>Pikaday</strong> <span class="desc">(displays a date picker)</span></p>
+    <p class="meta">Author: David Bushell<br>License: Open source (MIT)</p>
+    <p class="url"><a href="https://github.com/handsontable/pikaday" target="_blank" rel="noopener noreferrer">https://github.com/handsontable/pikaday</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>moment.js</strong> <span class="desc">(parses, validates and displays dates)</span></p>
+    <p class="meta">Author: Tim Wood, Tskren Chernev, Moment.js contributors<br>License: Open source (MIT)</p>
+    <p class="url"><a href="http://momentjs.com" target="_blank" rel="noopener noreferrer">http://momentjs.com</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>javascript-algorithms</strong> <span class="desc">(implementation of linked list and merge sort)</span></p>
+    <p class="meta">Author: Minko Gechev<br>License: Open source (MIT)</p>
+    <p class="url"><a href="https://github.com/mgechev/javascript-algorithms" target="_blank" rel="noopener noreferrer">https://github.com/mgechev/javascript-algorithms</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>DOMPurify</strong> <span class="desc">(an XSS sanitizer for HTML)</span></p>
+    <p class="meta">Author: Mario Heiderich<br>License: Open source (Apache 2.0)</p>
+    <p class="url"><a href="https://github.com/cure53/DOMPurify" target="_blank" rel="noopener noreferrer">https://github.com/cure53/DOMPurify</a></p>
+  </div>
 </div>
 
 ### Dependencies of the [`Formulas`](@/api/formulas.md) plugin
 
 The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md) [calculation plugin](@/guides/formulas/formula-calculation/formula-calculation.md):
 
-<div class="boxes-list gray">
-
-- **bessel**<br>
-    Author: SheetJS<br>
-    License: Apache v2.0<br>
-    [https://github.com/SheetJS/bessel](https://github.com/SheetJS/bessel)
-
-- **Chevrotain**<br>
-    Author: SAP SE or an SAP affiliate company<br>
-    License: Apache v2.0<br>
-    [https://github.com/SAP/chevrotain](https://github.com/SAP/chevrotain)
-
-- **jStat**<br>
-    Author: jStat<br>
-    License: Open source (MIT)<br>
-    [https://github.com/jstat/jstat](https://github.com/jstat/jstat)
-
-- **tiny-emitter**<br>
-    Author: Scott Corgan<br>
-    License: Open source (MIT)<br>
-    [https://github.com/scottcorgan/tiny-emitter](https://github.com/scottcorgan/tiny-emitter)
-
-- **unorm**<br>
-    Author: Matsuza, Bjarke Walling<br>
-    License: Open source (MIT)<br>
-    [https://github.com/walling/unorm](https://github.com/walling/unorm)
-
+<div class="ht-card-grid">
+  <div class="ht-info-card">
+    <p class="name"><strong>bessel</strong></p>
+    <p class="meta">Author: SheetJS<br>License: Apache v2.0</p>
+    <p class="url"><a href="https://github.com/SheetJS/bessel" target="_blank" rel="noopener noreferrer">https://github.com/SheetJS/bessel</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>Chevrotain</strong></p>
+    <p class="meta">Author: SAP SE or an SAP affiliate company<br>License: Apache v2.0</p>
+    <p class="url"><a href="https://github.com/SAP/chevrotain" target="_blank" rel="noopener noreferrer">https://github.com/SAP/chevrotain</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>jStat</strong></p>
+    <p class="meta">Author: jStat<br>License: Open source (MIT)</p>
+    <p class="url"><a href="https://github.com/jstat/jstat" target="_blank" rel="noopener noreferrer">https://github.com/jstat/jstat</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>tiny-emitter</strong></p>
+    <p class="meta">Author: Scott Corgan<br>License: Open source (MIT)</p>
+    <p class="url"><a href="https://github.com/scottcorgan/tiny-emitter" target="_blank" rel="noopener noreferrer">https://github.com/scottcorgan/tiny-emitter</a></p>
+  </div>
+  <div class="ht-info-card">
+    <p class="name"><strong>unorm</strong></p>
+    <p class="meta">Author: Matsuza, Bjarke Walling<br>License: Open source (MIT)</p>
+    <p class="url"><a href="https://github.com/walling/unorm" target="_blank" rel="noopener noreferrer">https://github.com/walling/unorm</a></p>
+  </div>
 </div>

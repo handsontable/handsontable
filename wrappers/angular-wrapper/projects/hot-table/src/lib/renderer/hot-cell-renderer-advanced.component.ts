@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable/base';
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 
 /**
  * Abstract base component for creating advanced custom cell renderer components for Handsontable.
@@ -12,6 +12,8 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'hot-cell-renderer-advanced',
   template: `<!-- This is an abstract component. Extend this component and provide your own template. -->`,
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export abstract class HotCellRendererAdvancedComponent<
   TValue extends string |

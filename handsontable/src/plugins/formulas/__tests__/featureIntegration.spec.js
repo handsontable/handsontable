@@ -152,19 +152,19 @@ describe('Formulas: Integration with other features', () => {
 
       expect(countRows()).toBe(4);
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       expect(countRows()).toBe(5);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       expect(countRows()).toBe(6);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       expect(getData()).toEqual([
         ['test', 2, 'TEST', 4, 5, 6],
@@ -221,7 +221,7 @@ describe('Formulas: Integration with other features', () => {
 
       const formulasPlugin = getPlugin('formulas');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       expect(getData()).toEqual([
         [null, null, null, null, null],
@@ -520,6 +520,61 @@ describe('Formulas: Integration with other features', () => {
       });
 
       expect(getDataAtCell(0, 2)).toEqual('Los Angeles International AirportJohn F. Kennedy International Airport');
+      expect(errorSpy.test).not.toHaveBeenCalled();
+
+      window.onerror = prevError;
+    });
+  });
+
+  describe('Integration with the MultiSelect cell type', () => {
+    it('should keep array source values and pass them to the formulas engine as strings', async() => {
+      const errorSpy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+
+      window.onerror = errorSpy.test;
+
+      handsontable({
+        data: [
+          [['A', 'B'], 2, '=SUM(B1:B2)', '=A1'],
+          [['C'], 3, '=A2', null],
+        ],
+        rowHeaders: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        columns: [
+          {
+            type: 'multiselect',
+            source: ['A', 'B', 'C', 'D'],
+          },
+          {
+            type: 'numeric',
+          },
+          {
+            type: 'text',
+          },
+          {
+            type: 'text',
+          }
+        ],
+      });
+
+      await render();
+
+      expect(getDataAtCell(0, 2)).toEqual(5);
+      expect(getDataAtCell(0, 3)).toEqual('A, B');
+      expect(getDataAtCell(1, 2)).toEqual('C');
+      expect(getSourceDataAtCell(0, 0)).toEqual(['A', 'B']);
+      expect(getSourceDataAtCell(1, 0)).toEqual(['C']);
+      expect(errorSpy.test).not.toHaveBeenCalled();
+
+      await setDataAtCell(1, 0, ['A', 'C']);
+
+      expect(getDataAtCell(0, 2)).toEqual(5);
+      expect(getDataAtCell(1, 2)).toEqual('A, C');
+      expect(getSourceDataAtCell(1, 0)).toEqual(['A', 'C']);
       expect(errorSpy.test).not.toHaveBeenCalled();
 
       window.onerror = prevError;

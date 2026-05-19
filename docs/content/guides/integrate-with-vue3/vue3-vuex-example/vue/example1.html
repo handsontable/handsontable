@@ -1,13 +1,12 @@
-<div id="example1" class="dump-example-container">
-  <div id="example-preview">
-    <div id="toggle-boxes" class="controls">
-      <input v-on:click="toggleReadOnly" checked id="readOnlyCheck" type="checkbox"/>
-      <label for="readOnlyCheck"> Toggle <code>readOnly</code> for the entire table</label>
+<div id="example1">
+  <div class="example-controls-container">
+    <div class="controls">
+      <label><input v-on:click="toggleReadOnly" checked id="readOnlyCheck" type="checkbox" /> Toggle <code>readOnly</code> for the entire table</label>
     </div>
-    <hot-table ref="wrapper" :settings="hotSettings"></hot-table>
   </div>
+  <hot-table ref="wrapper" :settings="hotSettings"></hot-table>
   <div id="vuex-preview">
-    <h4>Vuex store dump:</h4>
+    <strong>Vuex store dump:</strong>
     <pre></pre>
   </div>
 </div>

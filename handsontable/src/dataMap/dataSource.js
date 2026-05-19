@@ -212,11 +212,13 @@ class DataSource {
       return;
     }
 
+    const dataRow = this.modifyRowData(row);
+
     if (!Number.isInteger(column)) {
       // column argument is the prop name
-      setProperty(this.data[row], column, value);
+      setProperty(dataRow, column, value);
     } else {
-      this.data[row][column] = value;
+      dataRow[column] = value;
     }
   }
 

@@ -1,4 +1,5 @@
 ---
+type: reference
 id: 4ca0c70r
 title: Conditional formatting
 metaTitle: Conditional formatting - JavaScript Data Grid | Handsontable
@@ -14,12 +15,11 @@ angular:
 searchCategory: Guides
 category: Cell features
 ---
-
-# Conditional formatting
-
 Format specified cells, based on dynamic conditions.
 
 [[toc]]
+
+Conditional formatting lets you apply custom styles to cells based on their values. Use it to highlight outliers, flag errors, or visualize data ranges.
 
 ## Overview
 
@@ -71,25 +71,42 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Formatting cells](@/guides/cell-features/formatting-cells/formatting-cells.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`className`](@/api/options.md#classname)
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`currentColClassName`](@/api/options.md#currentcolclassname)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`currentRowClassName`](@/api/options.md#currentrowclassname)
-  - [`customBorders`](@/api/options.md#customborders)
-  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
-  - [`noWordWrapClassName`](@/api/options.md#nowordwrapclassname)
-  - [`placeholder`](@/api/options.md#placeholder)
-  - [`placeholderCellClassName`](@/api/options.md#placeholdercellclassname)
-  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
-  - [`tableClassName`](@/api/options.md#tableclassname)
-- Plugins:
-  - [`CustomBorders`](@/api/customBorders.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [className](@/api/options.md#classname)
+- [commentedCellClassName](@/api/options.md#commentedcellclassname)
+- [currentColClassName](@/api/options.md#currentcolclassname)
+- [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [currentRowClassName](@/api/options.md#currentrowclassname)
+- [customBorders](@/api/options.md#customborders)
+- [invalidCellClassName](@/api/options.md#invalidcellclassname)
+- [noWordWrapClassName](@/api/options.md#nowordwrapclassname)
+- [placeholder](@/api/options.md#placeholder)
+- [placeholderCellClassName](@/api/options.md#placeholdercellclassname)
+- [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+- [tableClassName](@/api/options.md#tableclassname)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CustomBorders](@/api/customBorders.md)
+
+</div>
+
+## Result
+
+Cells that match the defined conditions display the configured styles -- colors, fonts, or borders -- automatically updating as data changes.

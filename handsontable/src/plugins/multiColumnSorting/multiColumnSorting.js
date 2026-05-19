@@ -2,7 +2,7 @@ import {
   APPEND_COLUMN_CONFIG_STRATEGY,
   ColumnSorting
 } from '../columnSorting';
-import { registerRootComparator } from '../columnSorting/sortService';
+import { registerRootComparator } from '../columnSorting/sortService/registry';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
@@ -76,6 +76,10 @@ export class MultiColumnSorting extends ColumnSorting {
     return PLUGIN_PRIORITY;
   }
 
+  static get SETTING_KEYS() {
+    return [PLUGIN_KEY];
+  }
+
   /**
    * Main settings key designed for the plugin.
    *
@@ -87,17 +91,22 @@ export class MultiColumnSorting extends ColumnSorting {
   /**
    * Checks if the plugin is enabled in the Handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MultiColumnSorting#enablePlugin} method is called.
+   * When [[Options#dataProvider]] is a complete server-backed configuration, the DataProvider plugin blocks this plugin from enabling.
    *
    * @returns {boolean}
    */
   isEnabled() {
-    return !!(this.hot.getSettings()[this.pluginKey]);
+    return !!this.hot.getSettings()[this.pluginKey];
   }
 
   /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    if (this.enabled) {
+      return;
+    }
+
     super.enablePlugin();
   }
 
@@ -224,7 +233,7 @@ export class MultiColumnSorting extends ColumnSorting {
    *
    *   // const newData = ... // Calculated data set, ie. from an AJAX call.
    *
-   *   this.loadData(newData); // Load new data set and re-render the table.
+   *   this.updateData(newData); // Update data set and re-render the table.
    *
    *   return false; // The blockade for the default sort action.
    * }

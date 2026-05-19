@@ -76,149 +76,16 @@ describe('TextEditor (RTL mode)', () => {
       expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
     });
 
-    it.forTheme('classic')('should render an editor in specified position while opening an editor ' +
-      'from top to bottom when top and bottom overlays are enabled', async() => {
-      handsontable({
-        layoutDirection,
-        data: createSpreadsheetData(8, 2),
-        rowHeaders: true,
-        colHeaders: true,
-        fixedRowsTop: 3,
-        fixedRowsBottom: 3,
-        columns: [
-          {
-            type: 'text',
-          },
-          {},
-        ],
-      });
+    it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays', async() => {
+      // Keep the container sized to fit the same number of data rows across themes (matches
+      // the original main-theme 240px configuration). This guarantees that 3 top + 3 bottom
+      // overlay rows plus the scrollable middle region remain within the viewport on horizon,
+      // where the row height is larger than on main.
+      const overlayHeightPx = containerHeightForRows(7, 1);
+      const overlayWidthPx = 200;
 
-      await selectCell(0, 0);
-
-      const editor = $(getActiveEditor().TEXTAREA_PARENT);
-
-      await keyDown('enter');
-
-      expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      // Cells that do not touch the edges of the table have an additional top border.
-      const editorOffset = () => ({
-        top: editor.offset().top + 1,
-        left: editor.offset().left,
-      });
-
-      expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-      expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
-    });
-
-    it.forTheme('main')('should render an editor in specified position while opening an editor ' +
-      'from top to bottom when top and bottom overlays are enabled', async() => {
-      spec().$container[0].style.height = '240px';
-      spec().$container[0].style.width = '200px';
-
-      handsontable({
-        layoutDirection,
-        data: createSpreadsheetData(8, 2),
-        rowHeaders: true,
-        colHeaders: true,
-        fixedRowsTop: 3,
-        fixedRowsBottom: 3,
-        columns: [
-          {
-            type: 'text',
-          },
-          {},
-        ],
-      });
-
-      await selectCell(0, 0);
-
-      const editor = $(getActiveEditor().TEXTAREA_PARENT);
-
-      await keyDown('enter');
-
-      expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      // Cells that do not touch the edges of the table have an additional top border.
-      const editorOffset = () => ({
-        top: editor.offset().top + 1,
-        left: editor.offset().left,
-      });
-
-      expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-      expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
-
-      await keyDown('enter');
-      await keyDown('enter');
-
-      expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
-    });
-
-    it.forTheme('horizon')('should render an editor in specified position while opening an editor ' +
-      'from top to bottom when top and bottom overlays are enabled', async() => {
-      spec().$container[0].style.height = '306px';
-      spec().$container[0].style.width = '200px';
+      spec().$container[0].style.height = `${overlayHeightPx}px`;
+      spec().$container[0].style.width = `${overlayWidthPx}px`;
 
       handsontable({
         layoutDirection,
@@ -332,203 +199,76 @@ describe('TextEditor (RTL mode)', () => {
       expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
     });
 
-    it.forTheme('classic')(
-      'should render an editor in specified position while opening an editor from top to bottom when ' +
-      'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(8, 2),
-          rowHeaders: true,
-          colHeaders: true,
-          fixedRowsTop: 3,
-          fixedRowsBottom: 3,
-          hiddenRows: {
-            indicators: true,
-            rows: [0, 5],
+    it('should render the editor in the expected position when stepping top-to-bottom with top and bottom overlays ' +
+      'and the first row of each overlay is hidden', async() => {
+      // 2 rows hidden out of 8, so 6 visible rows. Match sizing across themes with
+      // `containerHeightForRows(6, 1)` so horizon's taller rows still fit.
+      const overlayHeightPx = containerHeightForRows(6, 1);
+      const overlayWidthPx = 200;
+
+      spec().$container[0].style.height = `${overlayHeightPx}px`;
+      spec().$container[0].style.width = `${overlayWidthPx}px`;
+
+      handsontable({
+        layoutDirection,
+        data: createSpreadsheetData(8, 2),
+        rowHeaders: true,
+        colHeaders: true,
+        fixedRowsTop: 3,
+        fixedRowsBottom: 3,
+        hiddenRows: {
+          indicators: true,
+          rows: [0, 5],
+        },
+        columns: [
+          {
+            type: 'text',
           },
-          columns: [
-            {
-              type: 'text',
-            },
-            {},
-          ],
-        });
-
-        await selectCell(1, 0);
-
-        const editor = $(getActiveEditor().TEXTAREA_PARENT);
-
-        await keyDown('enter');
-
-        // First renderable row index.
-        expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        // Cells that do not touch the edges of the table have an additional top border.
-        const editorOffset = () => ({
-          top: editor.offset().top + 1,
-          left: editor.offset().left,
-        });
-
-        expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-        expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+          {},
+        ],
       });
 
-    it.forTheme('main')(
-      'should render an editor in specified position while opening an editor from top to bottom when ' +
-      'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
-        spec().$container[0].style.height = '240px';
-        spec().$container[0].style.width = '200px';
+      await selectCell(1, 0);
 
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(8, 2),
-          rowHeaders: true,
-          colHeaders: true,
-          fixedRowsTop: 3,
-          fixedRowsBottom: 3,
-          hiddenRows: {
-            indicators: true,
-            rows: [0, 5],
-          },
-          columns: [
-            {
-              type: 'text',
-            },
-            {},
-          ],
-        });
+      const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-        await selectCell(1, 0);
+      await keyDown('enter');
 
-        const editor = $(getActiveEditor().TEXTAREA_PARENT);
+      // First renderable row index.
+      expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-        await keyDown('enter');
+      await keyDown('enter');
+      await keyDown('enter');
 
-        // First renderable row index.
-        expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        // Cells that do not touch the edges of the table have an additional top border.
-        const editorOffset = () => ({
-          top: editor.offset().top + 1,
-          left: editor.offset().left,
-        });
-
-        expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-        expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+      // Cells that do not touch the edges of the table have an additional top border.
+      const editorOffset = () => ({
+        top: editor.offset().top + 1,
+        left: editor.offset().left,
       });
 
-    it.forTheme('horizon')(
-      'should render an editor in specified position while opening an editor from top to bottom when ' +
-      'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
-        spec().$container[0].style.height = '306px';
-        spec().$container[0].style.width = '200px';
+      expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(8, 2),
-          rowHeaders: true,
-          colHeaders: true,
-          fixedRowsTop: 3,
-          fixedRowsBottom: 3,
-          hiddenRows: {
-            indicators: true,
-            rows: [0, 5],
-          },
-          columns: [
-            {
-              type: 'text',
-            },
-            {},
-          ],
-        });
+      await keyDown('enter');
+      await keyDown('enter');
 
-        await selectCell(1, 0);
+      expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-        const editor = $(getActiveEditor().TEXTAREA_PARENT);
+      await keyDown('enter');
+      await keyDown('enter');
 
-        await keyDown('enter');
+      expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-        // First renderable row index.
-        expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
+      await keyDown('enter');
+      await keyDown('enter');
 
-        await keyDown('enter');
-        await keyDown('enter');
+      // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
+      expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-        // Cells that do not touch the edges of the table have an additional top border.
-        const editorOffset = () => ({
-          top: editor.offset().top + 1,
-          left: editor.offset().left,
-        });
+      await keyDown('enter');
+      await keyDown('enter');
 
-        expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
-        expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
-
-        await keyDown('enter');
-        await keyDown('enter');
-
-        expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
-      });
+      expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
+    });
 
     it('should render an editor in specified position while opening an editor from left to right when ' +
       'right overlay is enabled and the first column of the overlay is hidden', async() => {

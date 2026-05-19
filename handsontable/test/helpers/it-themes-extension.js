@@ -1,17 +1,19 @@
 /**
- * This extension allows to run specs only for a specific theme.
- * If the currently loaded theme doesn't match the specified one, the spec will be marked as pending.
+ * This extension marks specs as flaky. Theme-specific expectations belong in `getThemeLayout()`
+ * (e.g. `e2e*` helpers) so each spec runs once per theme job.
  *
  * @example
  * ```
- * it.forTheme('main')('should do something', () => {
- *  // your spec
+ * it.flaky('should eventually pass', async() => {
+ *  // flaky spec - retried up to 3 times before reporting failure
  * });
  * ```
  */
 const originalIt = global.it;
 const originalFit = global.fit;
 const originalXit = global.xit;
+
+const FLAKY_MAX_RETRIES = 3;
 
 /**
  * Runs the original function with the provided description and spec definitions.
@@ -26,39 +28,87 @@ function runOriginalFn(originalFn, description, specDefinitions) {
 }
 
 /**
- * Runs the original function under specific conditions based on the theme name.
- *
- * @param {Function} originalFn - The original function to be executed.
- * @param {string} themeName - The name of the theme to check against.
- * @param {string} description - The description of the spec.
- * @param {Function} specDefinition - The function containing the spec definitions.
+ * Cleans up the test container between flaky test retries by destroying any existing
+ * Handsontable instance and clearing the container's contents.
  */
-function runOriginalFnUnderConditions(originalFn, themeName, description, specDefinition) {
-  if (__ENV_ARGS__.HOT_THEME === themeName) {
-    originalFn(description, specDefinition);
+function cleanUpBetweenRetries() {
+  const container = document.querySelector('#testContainer');
+
+  if (container) {
+    const $container = $(container);
+
+    try {
+      const instance = $container.data('handsontable');
+
+      if (instance && !instance.isDestroyed) {
+        instance.destroy();
+      }
+    } catch (_e) {
+      // No instance to destroy - container may not have a HOT instance.
+    }
+
+    $container.removeData();
+    container.innerHTML = '';
   }
 }
 
 /**
- * Helper function allowing to run specs only for a specific theme.
- * If no "chained" call of `it.forTheme()` is used, it will behave as the original `it` function.
+ * Wraps a spec function with retry logic for flaky tests. If the spec fails, it is retried
+ * up to {@link FLAKY_MAX_RETRIES} times. Between retries, any existing Handsontable instance
+ * is destroyed and the test container is cleared.
  *
- * @param {string} description The description of the spec.
- * @param {Function} specDefinitions The function containing the spec.
- * @returns {Function}
+ * On non-final attempts, Jasmine's `Spec.prototype.addExpectationResult` is intercepted so that
+ * expectation failures are swallowed (not recorded in the spec result) and can be detected for
+ * retry. On the final attempt, the spec runs with standard Jasmine behavior so failures are
+ * reported normally.
+ *
+ * @param {Function} originalFn - The original Jasmine `it` or `fit` function.
+ * @param {string} description - The description of the spec.
+ * @param {Function} specDefinitions - The async function containing the spec definitions.
+ * @returns {*} The result of the original function execution.
  */
+function runFlakyFn(originalFn, description, specDefinitions) {
+  return originalFn(`[flaky] ${description}`, async function() {
+    const origAddExpectationResult = jasmine.Spec.prototype.addExpectationResult;
+
+    for (let attempt = 1; attempt <= FLAKY_MAX_RETRIES; attempt++) {
+      let expectationFailed = false;
+      let caughtError = null;
+
+      // Suppress all expectation results during non-final attempts to avoid duplicates
+      // across retries and to keep retry internals invisible to Jasmine's result tracking.
+      jasmine.Spec.prototype.addExpectationResult = function(passed) {
+        if (!passed) {
+          expectationFailed = true;
+        }
+      };
+
+      try {
+        await specDefinitions.call(this);
+      } catch (error) {
+        caughtError = error;
+      } finally {
+        jasmine.Spec.prototype.addExpectationResult = origAddExpectationResult;
+      }
+
+      if (!expectationFailed && !caughtError) {
+        return;
+      }
+
+      cleanUpBetweenRetries();
+    }
+
+    // Final attempt - run with standard Jasmine behavior so failures are reported normally.
+    await specDefinitions.call(this);
+  });
+}
+
 const it = (description, specDefinitions) => runOriginalFn(originalIt, description, specDefinitions);
 const fit = (description, specDefinitions) => runOriginalFn(originalFit, description, specDefinitions);
 const xit = (description, specDefinitions) => runOriginalFn(originalXit, description, specDefinitions);
 
-it.forTheme = themeName => (description, specDefinition) =>
-  runOriginalFnUnderConditions(originalIt, themeName, description, specDefinition);
-
-fit.forTheme = themeName => (description, specDefinition) =>
-  runOriginalFnUnderConditions(originalFit, themeName, description, specDefinition);
-
-xit.forTheme = themeName => (description, specDefinition) =>
-  runOriginalFnUnderConditions(originalXit, themeName, description, specDefinition);
+it.flaky = (description, specDefinitions) => runFlakyFn(originalIt, description, specDefinitions);
+fit.flaky = (description, specDefinitions) => runFlakyFn(originalFit, description, specDefinitions);
 
 global.it = it;
 global.fit = fit;

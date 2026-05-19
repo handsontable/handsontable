@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: de2hxgso
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Cell types
 ---
-
-# Cell type
-
 Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 
 [[toc]]
@@ -108,70 +106,6 @@ settings = {
       editor: Handsontable.editors.PasswordEditor
       renderer: Handsontable.renderers.PasswordRenderer,
       copyable: false,
-    },
-  ],
-};
-```
-
-## Available cell types
-
-Handsontable comes with nine types:
-
-- ["autocomplete"](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or `Handsontable.cellTypes.autocomplete`
-- ["checkbox"](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) or `Handsontable.cellTypes.checkbox`
-- ["date"](@/guides/cell-types/date-cell-type/date-cell-type.md) or `Handsontable.cellTypes.date`
-- ["dropdown"](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) or `Handsontable.cellTypes.dropdown`
-- ["handsontable"](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) or `Handsontable.cellTypes.handsontable`
-- ["numeric"](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) or `Handsontable.cellTypes.numeric`
-- ["password"](@/guides/cell-types/password-cell-type/password-cell-type.md) or `Handsontable.cellTypes.password`
-- ["select"](@/guides/cell-types/select-cell-type/select-cell-type.md) or `Handsontable.cellTypes.select`
-- ["time"](@/guides/cell-types/time-cell-type/time-cell-type.md) or `Handsontable.cellTypes.time`
-- "text" or `Handsontable.cellTypes.text`
-
-The `text` cell type is the default type.
-
-## Anatomy of a cell type
-
-A cell type is a predefined set of cell properties. Cell type defines which [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) should be used for a cell. They can also define any different cell property that will be assumed for each matching cell:
-
-```js
-Handsontable.cellTypes.registerCellType('custom', {
-  renderer: Handsontable.renderers.TextRenderer,
-  className: 'my-cell',
-  readOnly: true,
-  myCustomProperty: 'foo'
-});
-```
-
-When used in Handsontable settings:
-
-::: only-for javascript
-
-```js
-columns: [{
-  type: 'custom'
-}]
-```
-
-:::
-
-::: only-for react
-
-```jsx
-columns={[{
-  type: 'custom'
-}]}
-```
-
-:::
-
-::: only-for angular
-
-```ts
-settings = {
-  columns: [
-    {
-      type: "custom",
     },
   ],
 };
@@ -672,11 +606,28 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 Empty cells may be treated differently in different contexts, for example, the [`ColumnSorting`](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
 
+## Related
+
+<div class="boxes-list">
+
+- [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
+- [Checkbox cell type](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md)
+- [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
+- [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
+- [Handsontable cell type](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md)
+- [MultiSelect cell type](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md)
+- [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
+- [Password cell type](@/guides/cell-types/password-cell-type/password-cell-type.md)
+- [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
+- [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
+
+</div>
+
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Cell function](@/guides/cell-functions/cell-function/cell-function.md)
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
@@ -685,33 +636,48 @@ Empty cells may be treated differently in different contexts, for example, the [
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`editor`](@/api/options.md#editor)
-  - [`renderer`](@/api/options.md#renderer)
-  - [`type`](@/api/options.md#type)
-  - [`validator`](@/api/options.md#validator)
-- Core methods:
-  - [`getCellEditor()`](@/api/core.md#getcelleditor)
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellRenderer()`](@/api/core.md#getcellrenderer)
-  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterBeginEditing`](@/api/hooks.md#afterbeginediting)
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`afterGetRowHeaderRenderers`](@/api/hooks.md#aftergetrowheaderrenderers)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`afterValidate`](@/api/hooks.md#aftervalidate)
-  - [`afterRenderer`](@/api/hooks.md#afterrenderer)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeRenderer`](@/api/hooks.md#beforerenderer)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
-  - [`beforeValidate`](@/api/hooks.md#beforevalidate)
+<div class="boxes-list">
+
+- [editor](@/api/options.md#editor)
+- [renderer](@/api/options.md#renderer)
+- [type](@/api/options.md#type)
+- [validator](@/api/options.md#validator)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellEditor()](@/api/core.md#getcelleditor)
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellRenderer()](@/api/core.md#getcellrenderer)
+- [getCellValidator()](@/api/core.md#getcellvalidator)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterBeginEditing](@/api/hooks.md#afterbeginediting)
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [afterGetRowHeaderRenderers](@/api/hooks.md#aftergetrowheaderrenderers)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [afterValidate](@/api/hooks.md#aftervalidate)
+- [afterRenderer](@/api/hooks.md#afterrenderer)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeRenderer](@/api/hooks.md#beforerenderer)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+- [beforeValidate](@/api/hooks.md#beforevalidate)
+
+</div>

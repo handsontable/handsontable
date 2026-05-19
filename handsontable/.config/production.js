@@ -3,11 +3,13 @@
  *  - handsontable.min.js
  *  - handsontable.full.min.js
  */
-const TerserPlugin = require('terser-webpack-plugin');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const rspack = require('@rspack/core');
 const configFactory = require('./development');
 const { getClosest } = require('./helper/path');
+const { getLicenseBody } = require('./helper/license');
+const postBuildBanner = require('./plugin/rspack/post-build-banner');
+
+const licenseBody = getLicenseBody();
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -22,75 +24,109 @@ module.exports.create = function create(envArgs) {
     c.optimization = {
       minimize: true,
       minimizer: [
-        new TerserPlugin({
+        new rspack.SwcJsMinimizerRspackPlugin({
           extractComments: false,
+          minimizerOptions: {
+            format: {
+              comments: false,
+            },
+          },
         }),
-        new CssMinimizerPlugin(),
       ],
     };
 
+    // Remove the dev BannerPlugin (runs before minimization, gets corrupted by SWC)
+    // and add a post-build banner that writes to the file after all processing.
+    c.plugins = c.plugins.filter(p => !(p instanceof rspack.BannerPlugin));
+    c.plugins.push(postBuildBanner(licenseBody, /handsontable\.(full\.)?min\.js$/));
+
     if (isFullBuild) {
       c.plugins.push(
-        new CopyWebpackPlugin({
+        new rspack.CopyRspackPlugin({
           patterns: [
             { // moment
-              from: `${getClosest('node_modules/moment/')}@(moment.js|LICENSE)`,
-              to: 'moment/[name].[ext]',
+              from: `${getClosest('node_modules/moment/')}moment.js`,
+              to: 'moment/[name][ext]',
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/moment/')}LICENSE`,
+              to: 'moment/[name][ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/moment/')}locale/*.js`,
-              to: 'moment/locale/[name].[ext]',
+              to: 'moment/locale/[name][ext]',
               force: true,
             },
             { // numbro
-              from: `${getClosest('node_modules/numbro/')}@(LICENSE-Numeraljs|LICENSE)`,
-              to: 'numbro/[name].[ext]',
+              from: `${getClosest('node_modules/numbro/')}LICENSE-Numeraljs`,
+              to: 'numbro/[name][ext]',
               force: true,
             },
             {
-              from: `${getClosest('node_modules/numbro/')}dist/@(numbro.js|languages.min.js)`,
-              to: 'numbro/[name].[ext]',
+              from: `${getClosest('node_modules/numbro/')}LICENSE`,
+              to: 'numbro/[name][ext]',
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/numbro/')}dist/numbro.js`,
+              to: 'numbro/[name][ext]',
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/numbro/')}dist/languages.min.js`,
+              to: 'numbro/[name][ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/numbro/')}dist/languages/*.js`,
-              to: 'numbro/languages/[name].[ext]',
+              to: 'numbro/languages/[name][ext]',
               force: true,
             },
             { // pikaday
-              from: `${getClosest('node_modules/@handsontable/pikaday/')}@(LICENSE|pikaday.js)`,
-              to: 'pikaday/[name].[ext]',
+              from: `${getClosest('node_modules/@handsontable/pikaday/')}LICENSE`,
+              to: 'pikaday/[name][ext]',
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/@handsontable/pikaday/')}pikaday.js`,
+              to: 'pikaday/[name][ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/@handsontable/pikaday/')}css/pikaday.css`,
-              to: 'pikaday/[name].[ext]',
+              to: 'pikaday/[name][ext]',
               force: true,
             },
             { // dompurify
-              from: `${getClosest('node_modules/dompurify/')}@(LICENSE)`,
-              to: 'dompurify/[name].[ext]',
+              from: `${getClosest('node_modules/dompurify/')}LICENSE`,
+              to: 'dompurify/[name][ext]',
               force: true,
             },
             {
-              from: `${getClosest('node_modules/dompurify/')}dist/@(purify.js|purify.js.map)`,
-              to: 'dompurify/[name].[ext]',
+              from: `${getClosest('node_modules/dompurify/')}dist/purify.js`,
+              to: 'dompurify/[name][ext]',
+              force: true,
+            },
+            {
+              from: `${getClosest('node_modules/dompurify/')}dist/purify.js.map`,
+              to: 'dompurify/[name][ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/hyperformula/')}dist/hyperformula.full.min.js`,
-              to: 'hyperformula/[name].[ext]',
+              to: 'hyperformula/[name][ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/hyperformula/')}dist/languages/*.js`,
-              to: 'hyperformula/languages/[name].[ext]',
+              to: 'hyperformula/languages/[name][ext]',
               force: true,
             },
             {
               from: `${getClosest('node_modules/hyperformula/')}LICENSE.txt`,
-              to: 'hyperformula/[name].[ext]',
+              to: 'hyperformula/[name][ext]',
               force: true,
             },
           ]

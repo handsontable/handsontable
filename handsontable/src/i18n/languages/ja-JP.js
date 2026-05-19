@@ -60,6 +60,11 @@ const dictionary = {
   [C.CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY]: ['ヘッダのみコピー', 'ヘッダのみコピー'],
   [C.CONTEXTMENU_ITEMS_CUT]: '切り取り',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'エクスポート',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'CSVへ',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Excelへ',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'エクスポート中…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: '子の行を挿入',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: '親の行と切り離す',
 
@@ -118,12 +123,22 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
 
   [C.LOADING_TITLE]: '読み込み中...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: '閉じる',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'データがありません',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: '表示するデータがまだありません。',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '結果が見つかりません',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '現在のフィルターがすべての結果を非表示にしているようです。',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'フィルターをリセット',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'データを読み込み中',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'お待ちください。',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'データを読み込めませんでした',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: '行を作成できませんでした',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: '行を更新できませんでした',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: '行を削除できませんでした',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'リクエストに失敗しました',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: '再読み込み',
 };
 
 export default dictionary;

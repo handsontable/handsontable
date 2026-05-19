@@ -33,7 +33,7 @@ describe('Date Editor', () => {
     await triggerTouchEvent('touchstart', cell);
     await triggerTouchEvent('touchend', cell);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
@@ -42,7 +42,7 @@ describe('Date Editor', () => {
     await triggerTouchEvent('touchstart', datePickerFirstButton);
     await triggerTouchEvent('touchend', datePickerFirstButton);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect($('.pika-single').is(':visible')).toBe(false);
 
@@ -74,7 +74,7 @@ describe('Date Editor', () => {
     await triggerTouchEvent('touchstart', datePickerFirstButton);
     await triggerTouchEvent('touchend', datePickerFirstButton);
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
   });

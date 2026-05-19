@@ -164,6 +164,21 @@ export class IndexMapper {
    * @type {Map}
    */
   fromVisualToRenderableIndexesCache = new Map();
+  /**
+   * Map of observed IndexMap instances to their registered callback sets.
+   * Used by {@link IndexMapper#observeMapChange} to track which maps are being
+   * observed and deliver coalesced change notifications during batch operations.
+   *
+   * @type {WeakMap<IndexMap, Set<Function>>}
+   */
+  #mapObservers = new WeakMap();
+  /**
+   * Set of observed maps that have changed during the current batch operation.
+   * Drained and notifications fired when {@link IndexMapper#resumeOperations} is called.
+   *
+   * @type {Set<IndexMap>}
+   */
+  #dirtyObservedMaps = new Set();
 
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
@@ -171,7 +186,6 @@ export class IndexMapper {
 
       // Sequence of stored indexes might change.
       this.updateCache();
-
       this.runLocalHooks('indexesSequenceChange', this.indexesChangeSource);
       this.runLocalHooks('change', this.indexesSequence, null);
     });
@@ -181,7 +195,6 @@ export class IndexMapper {
 
       // Number of trimmed indexes might change.
       this.updateCache();
-
       this.runLocalHooks('change', changedMap, this.trimmingMapsCollection);
     });
 
@@ -190,11 +203,11 @@ export class IndexMapper {
 
       // Number of hidden indexes might change.
       this.updateCache();
-
       this.runLocalHooks('change', changedMap, this.hidingMapsCollection);
     });
 
     this.variousMapsCollection.addLocalHook('change', (changedMap) => {
+      this.#handleObservedMapChange(changedMap);
       this.runLocalHooks('change', changedMap, this.variousMapsCollection);
     });
   }
@@ -215,6 +228,7 @@ export class IndexMapper {
   resumeOperations() {
     this.isBatched = false;
     this.updateCache();
+    this.#flushDirtyObservedMaps();
   }
 
   /**
@@ -701,6 +715,81 @@ export class IndexMapper {
   }
 
   /**
+   * Registers an observer for batched changes on a specific index map. During batched
+   * operations ({@link IndexMapper#suspendOperations}/{@link IndexMapper#resumeOperations}),
+   * changes are coalesced and the callback fires once when the batch completes. Outside of
+   * batching, the callback fires immediately on each change.
+   *
+   * Works with maps registered in the various maps collection.
+   *
+   * @param {IndexMap} map The map instance to observe.
+   * @param {Function} callback Called when the observed map's values change (coalesced during batches).
+   * @returns {Function} Disposer function that removes the observer.
+   */
+  observeMapChange(map, callback) {
+    if (map instanceof TrimmingMap || map instanceof HidingMap) {
+      throwWithCause('The "observeMapChange" method does not support trimming or hiding maps.');
+    }
+
+    if (!this.#mapObservers.has(map)) {
+      this.#mapObservers.set(map, new Set());
+    }
+
+    this.#mapObservers.get(map).add(callback);
+
+    return () => {
+      const callbacks = this.#mapObservers.get(map);
+
+      if (callbacks) {
+        callbacks.delete(callback);
+
+        if (callbacks.size === 0) {
+          this.#mapObservers.delete(map);
+        }
+      }
+    };
+  }
+
+  /**
+   * Handles a change event from a map. If the map is observed, either queues it
+   * for batch flush (when batched) or notifies observers immediately.
+   *
+   * @param {IndexMap} changedMap The map that changed.
+   */
+  #handleObservedMapChange(changedMap) {
+    if (this.#mapObservers.has(changedMap)) {
+      if (this.isBatched) {
+        this.#dirtyObservedMaps.add(changedMap);
+      } else {
+        this.#notifyMapObservers(changedMap);
+      }
+    }
+  }
+
+  /**
+   * Notifies all observers registered for a specific map.
+   *
+   * @param {IndexMap} map The map whose observers to notify.
+   */
+  #notifyMapObservers(map) {
+    const callbacks = this.#mapObservers.get(map);
+
+    if (callbacks) {
+      callbacks.forEach(cb => cb(map));
+    }
+  }
+
+  /**
+   * Flushes all dirty observed maps collected during a batch, notifying their observers.
+   */
+  #flushDirtyObservedMaps() {
+    if (this.#dirtyObservedMaps.size > 0) {
+      this.#dirtyObservedMaps.forEach(map => this.#notifyMapObservers(map));
+      this.#dirtyObservedMaps.clear();
+    }
+  }
+
+  /**
    * Rebuild cache for some indexes. Every action on indexes sequence or indexes skipped in the process of rendering
    * by default reset cache, thus batching some index maps actions is recommended.
    *
@@ -773,6 +862,15 @@ export class IndexMapper {
 
       this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
     }
+  }
+  /**
+   * Destroys the IndexMapper instance. Clears all registered map observers
+   * and unregisters all maps from all collections.
+   */
+  destroy() {
+    this.#mapObservers = new WeakMap();
+    this.#dirtyObservedMaps.clear();
+    this.unregisterAll();
   }
 }
 

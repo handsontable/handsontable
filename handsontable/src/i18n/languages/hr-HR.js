@@ -67,6 +67,11 @@ const dictionary = {
   ],
   [C.CONTEXTMENU_ITEMS_CUT]: 'Izreži',
 
+  [C.CONTEXTMENU_ITEMS_EXPORT]: 'Izvezi',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_CSV]: 'Kao CSV',
+  [C.CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX]: 'Kao Excel',
+  [C.EXPORT_FILE_DIALOG_TITLE]: 'Izvoz…',
+
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD]: 'Umetni ugniježđeni redak',
   [C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD]: 'Odvoji ugniježđeni redak',
 
@@ -128,12 +133,22 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
 
   [C.LOADING_TITLE]: 'Učitavanje...',
+  [C.NOTIFICATION_BUTTONS_CLOSE]: 'Zatvori',
 
   [C.EMPTY_DATA_STATE_TITLE]: 'Nema dostupnih podataka',
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Još nema ništa za prikaz.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nema pronađenih rezultata',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Čini se da vaši trenutni filtri skrivaju sve rezultate.',
   [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetiraj filtre',
+  [C.EMPTY_DATA_STATE_TITLE_LOADING]: 'Učitavanje podataka',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_LOADING]: 'Pričekajte.',
+
+  [C.DATA_PROVIDER_ERRORS_FETCH]: 'Nije moguće učitati podatke',
+  [C.DATA_PROVIDER_ERRORS_CREATE]: 'Nije moguće stvoriti retke',
+  [C.DATA_PROVIDER_ERRORS_UPDATE]: 'Nije moguće ažurirati retke',
+  [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti retke',
+  [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtjev nije uspio',
+  [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovno učitaj',
 };
 
 export default dictionary;

@@ -27,7 +27,7 @@ new Handsontable(container, {
   height: 'auto',
   contextMenu: true,
   manualRowMove: true,
-  bindRowsWithHeaders: 'strict',
+  bindRowsWithHeaders: true,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

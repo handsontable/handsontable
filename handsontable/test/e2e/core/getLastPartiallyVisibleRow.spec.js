@@ -10,53 +10,20 @@ describe('Core.getLastPartiallyVisibleRow', () => {
     }
   });
 
-  it.forTheme('classic')('should return last partially visible row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 200,
-    });
-
-    expect(getLastPartiallyVisibleRow()).toBe(7);
-  });
-
-  it.forTheme('main')('should return last partially visible row index', async() => {
+  it('should return last partially visible row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 255,
     });
 
-    expect(getLastPartiallyVisibleRow()).toBe(8);
+    // last partially visible = last fully visible + 1 (the next row is partially clipped)
+    expect(getLastPartiallyVisibleRow()).toBe(expectedLastFullyVisibleRow(255, 0) + 1);
   });
 
-  it.forTheme('horizon')('should return last partially visible row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 325,
-    });
+  it('should return last partially visible and not hidden row index', async() => {
+    const hiddenCount = 2;
 
-    expect(getLastPartiallyVisibleRow()).toBe(8);
-  });
-
-  it.forTheme('classic')('should return last partially visible and not hidden row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 200,
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    await render();
-
-    expect(getLastPartiallyVisibleRow()).toBe(9);
-  });
-
-  it.forTheme('main')('should return last partially visible and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -69,61 +36,20 @@ describe('Core.getLastPartiallyVisibleRow', () => {
     rowMapper.setValueAtIndex(1, true);
     await render();
 
-    expect(getLastPartiallyVisibleRow()).toBe(10);
+    expect(getLastPartiallyVisibleRow()).toBe(expectedLastFullyVisibleRow(255, 0) + hiddenCount + 1);
   });
 
-  it.forTheme('horizon')('should return last partially visible and not hidden row index', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 325,
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    await render();
-
-    expect(getLastPartiallyVisibleRow()).toBe(10);
-  });
-
-  it.forTheme('classic')('should return last partially visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 200,
-    });
-
-    await scrollViewportVertically(355); // row 23 (A24) is partially visible
-    await render();
-
-    expect(getLastPartiallyVisibleRow()).toBe(20);
-  });
-
-  it.forTheme('main')('should return last partially visible row index (scrolled viewport)', async() => {
+  it('should return last partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 255,
     });
 
-    await scrollViewportVertically(447); // row 23 (A24) is partially visible
+    // scroll so that row 15 is at the top of the viewport
+    await scrollViewportTo({ row: 15, col: 0, verticalSnap: 'top', horizontalSnap: 'start' });
     await render();
 
-    expect(getLastPartiallyVisibleRow()).toBe(23);
-  });
-
-  it.forTheme('horizon')('should return last partially visible row index (scrolled viewport)', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 325,
-    });
-
-    await scrollViewportVertically(570); // row 23 (A24) is partially visible
-    await render();
-
-    expect(getLastPartiallyVisibleRow()).toBe(23);
+    expect(getLastPartiallyVisibleRow()).toBe(15 + expectedLastFullyVisibleRow(255, 0) + 1);
   });
 });

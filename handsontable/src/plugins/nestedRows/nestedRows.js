@@ -3,8 +3,8 @@ import DataManager from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
 import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
+import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
-import { isArrayOfObjects } from '../../helpers/data';
 import { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcutContexts';
 import RowMoveController from './utils/rowMoveController';
@@ -490,7 +490,7 @@ export class NestedRows extends BasePlugin {
    * @param {Array} data The source data.
    */
   #onBeforeLoadData(data) {
-    if (!isArrayOfObjects(data)) {
+    if (!isValidDataSource(data)) {
       error(WRONG_DATA_TYPE_ERROR);
 
       this.hot.getSettings()[PLUGIN_KEY] = false;

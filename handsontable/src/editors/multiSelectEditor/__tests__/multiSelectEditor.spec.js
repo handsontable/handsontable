@@ -1101,12 +1101,15 @@ describe('MultiSelectEditor', () => {
         const $dropdown = $('.ht-multi-select-editor');
         const dropdownWidth = $dropdown.outerWidth();
 
-        expect(dropdownWidth).toEqual(
+        const expectedWidth =
           $dropdown.find('li:first-child label').outerWidth() +
           $dropdown.find('li:first-child input').outerWidth() +
           (hot().stylesHandler.getCSSVariableValue('menu-item-horizontal-padding') * 2) +
-          (hot().stylesHandler.getCSSVariableValue('menu-border-width') * 2)
-        );
+          (hot().stylesHandler.getCSSVariableValue('menu-border-width') * 2);
+
+        // Allow 1px tolerance for subpixel rounding differences across themes
+        // (e.g. non-zero letter-spacing produces fractional text widths).
+        expect(Math.abs(dropdownWidth - expectedWidth)).toBeLessThanOrEqual(1);
       });
     });
 

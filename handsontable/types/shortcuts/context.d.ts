@@ -12,6 +12,7 @@ interface Shortcut {
 }
 
 export interface Context {
+  readonly scope: 'table' | 'global';
   addShortcut(shortcut: Shortcut): void;
   addShortcuts(shortcuts: Shortcut[]): void;
   getShortcuts(keys: string[]): Shortcut[];

@@ -10,6 +10,7 @@ import { Comments } from './comments';
 import { ContextMenu } from './contextMenu';
 import { CopyPaste } from './copyPaste';
 import { CustomBorders } from './customBorders';
+import { DataProvider } from './dataProvider';
 import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
@@ -35,6 +36,7 @@ import { TrimRows } from './trimRows';
 import { Dialog } from './dialog';
 import { EmptyDataState } from './emptyDataState';
 import { Loading } from './loading';
+import { Notification } from './notification';
 import { UndoRedo } from './undoRedo';
 
 export interface Plugins {
@@ -50,6 +52,7 @@ export interface Plugins {
   contextMenu: ContextMenu;
   copyPaste: CopyPaste;
   customBorders: CustomBorders;
+  dataProvider: DataProvider;
   dragToScroll: DragToScroll;
   dropdownMenu: DropdownMenu;
   exportFile: ExportFile;
@@ -75,6 +78,7 @@ export interface Plugins {
   dialog: Dialog;
   emptyDataState: EmptyDataState;
   loading: Loading;
+  notification: Notification;
   undoRedo: UndoRedo;
 }
 
@@ -94,6 +98,7 @@ export {
   ContextMenu,
   CopyPaste,
   CustomBorders,
+  DataProvider,
   DragToScroll,
   DropdownMenu,
   ExportFile,
@@ -119,5 +124,6 @@ export {
   Dialog,
   EmptyDataState,
   Loading,
+  Notification,
   UndoRedo
 };

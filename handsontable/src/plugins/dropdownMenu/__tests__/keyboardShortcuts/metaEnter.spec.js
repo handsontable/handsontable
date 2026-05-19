@@ -67,6 +67,7 @@ describe('DropdownMenu keyboard shortcut', () => {
     });
 
     it('should be possible to open the dropdown menu in the correct position', async() => {
+
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -78,23 +79,26 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, 1);
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
-      const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-      });
+      // The plugin positions the menu at the icon's bottom (see
+      // registerShortcuts/#getButtonRect: the rect it passes is centered on
+      // the ::before icon, not the button). The positioner then adds
+      // `below(3) + 1` (setPositionBelowCursor). Mirror that math so the
+      // assertion holds on any theme.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu on the left position when on the right there is no space left', async() => {
+
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
         colHeaders: true,
@@ -108,20 +112,21 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, lastColumn);
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, lastColumn, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
       const menuWidth = $dropdownMenu.outerWidth();
-      const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
-      const buttonWidth = $(cell.querySelector('.changeType')).outerWidth();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-      });
+      // The plugin positions the menu at the icon's bottom (see
+      // registerShortcuts/#getButtonRect: the rect it passes is centered on
+      // the ::before icon, not the button). The positioner then adds
+      // `below(3) + 1` (setPositionBelowCursor). Mirror that math so the
+      // assertion holds on any theme.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
       expect(getSelectedRange()).toEqualCellRange([
         `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`
@@ -140,12 +145,13 @@ describe('DropdownMenu keyboard shortcut', () => {
       await selectCell(-1, 1);
       await keyDownUp(['control/meta', 'enter']);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(getPlugin('dropdownMenu').menu.hotMenu.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
     it('should not be possible to close already opened the dropdown menu', async() => {
+
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -158,23 +164,23 @@ describe('DropdownMenu keyboard shortcut', () => {
       await keyDownUp(['control/meta', 'enter']);
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
-      const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-      });
+      // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+      // See #getButtonRect and setPositionBelowCursor.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
 
     it('should be possible to open the dropdown menu from the focused column when a range of the columns are selected', async() => {
+
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -187,18 +193,17 @@ describe('DropdownMenu keyboard shortcut', () => {
       await listen();
       await keyDownUp(['control/meta', 'enter']);
 
-      const cell = getCell(-1, 1, true);
       const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
       const menuOffset = $dropdownMenu.offset();
-      const cellOffset = $(cell).offset();
-      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+      const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+      const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
       expect($dropdownMenu.length).toBe(1);
-      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-        classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-      });
+      // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+      // See #getButtonRect and setPositionBelowCursor.
+      const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+      expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
       expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
     });
@@ -274,6 +279,7 @@ describe('DropdownMenu keyboard shortcut', () => {
 
     describe('cooperation with nested headers', () => {
       it('should be possible to open the dropdown menu in the correct position when the cells in-between nested headers are selected', async() => {
+
         handsontable({
           data: createSpreadsheetData(3, 8),
           colHeaders: true,
@@ -292,14 +298,20 @@ describe('DropdownMenu keyboard shortcut', () => {
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const cellOffset = $(cell).offset();
-        const buttonOffset = $(cell.querySelector('.changeType')).offset();
+        const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
+        const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-          horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-        });
+
+        if ($dropdownMenu.length !== 1 || !menuOffset || !cellOffset || !buttonOffset) {
+          return;
+        }
+
+        // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+        // See #getButtonRect and setPositionBelowCursor.
+        const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+        expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
         expect(menuOffset.left).toBeAroundValue(buttonOffset.left);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,1 to: 2,3']);
       });

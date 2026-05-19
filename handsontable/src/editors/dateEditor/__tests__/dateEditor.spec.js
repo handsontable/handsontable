@@ -51,7 +51,7 @@ describe('DateEditor', () => {
 
     editor.finishEditing();
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -108,7 +108,7 @@ describe('DateEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
@@ -120,38 +120,38 @@ describe('DateEditor', () => {
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
@@ -176,7 +176,7 @@ describe('DateEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
     await selectCell(0, 1);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
@@ -188,19 +188,19 @@ describe('DateEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     await selectCell(0, 3);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     await selectCell(0, 4);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
@@ -231,7 +231,7 @@ describe('DateEditor', () => {
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
@@ -243,26 +243,26 @@ describe('DateEditor', () => {
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
     await keyDownUp('enter');
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
@@ -291,7 +291,7 @@ describe('DateEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
     await selectCell(0, 2);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
@@ -303,13 +303,13 @@ describe('DateEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
     await selectCell(0, 3);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
     await selectCell(0, 4);
-    await sleep(200); // Caused by async DateEditor close.
+    await waitForNextAnimationFrames(2); // Caused by async DateEditor close.
     await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
@@ -473,7 +473,7 @@ describe('DateEditor', () => {
     await keyDownUp('enter');
     await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
   });
@@ -496,7 +496,7 @@ describe('DateEditor', () => {
     await keyDownUp('enter');
     await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
     expect($('.htBorders .current.corner').is(':visible')).toBe(true);
@@ -529,7 +529,7 @@ describe('DateEditor', () => {
 
     await keyDownUp('enter');
 
-    await sleep(150);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
   });
@@ -551,7 +551,7 @@ describe('DateEditor', () => {
     await keyDownUp('enter');
     await keyDownUp('enter');
 
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toBe('2000-01-01');
   });
@@ -603,7 +603,7 @@ describe('DateEditor', () => {
 
     editor.finishEditing();
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getDataAtCell(0, 0)).toEqual('foo');
   });
@@ -633,7 +633,7 @@ describe('DateEditor', () => {
 
     editor.finishEditing();
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(true);
     expect(editor.getValue()).toEqual('foo');
@@ -658,7 +658,7 @@ describe('DateEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNextAnimationFrames(2);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -670,7 +670,7 @@ describe('DateEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -734,7 +734,7 @@ describe('DateEditor', () => {
 
     await setDataAtCell(4, 1, '15-11-11');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(5, 1);
     await keyDownUp('enter');
@@ -743,7 +743,7 @@ describe('DateEditor', () => {
 
     await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
 
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
     const resultDate = getDataAtCell(5, 1);
 
     expect(moment(resultDate).year()).toEqual(moment().year());
@@ -796,25 +796,25 @@ describe('DateEditor', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect($('.pika-lendar').length).toEqual(1);
 
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(0, 1);
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect($('.pika-lendar').length).toEqual(3);
 
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(200);
+    await waitForNextAnimationFrames(2);
 
     expect($('.pika-lendar').length).toEqual(1);
   });
@@ -944,7 +944,7 @@ describe('DateEditor', () => {
 
       await selectCell(0, 0, 0, 0, true, false);
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

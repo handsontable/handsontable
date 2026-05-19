@@ -3,6 +3,31 @@
 /docs/:version/redirect pageId=:pageId /docs/:version
 /docs/redirect pageId=:pageId /docs 301
 
+# Angular dedicated docs are available from 16.0+ only.
+# Versions 12.1-15.3 had the Angular package but no dedicated docs pages - redirect to latest Angular docs.
+/docs/15.3/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/15.2/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/15.1/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/15.0/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.6/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.5/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.4/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.3/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.2/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.1/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/14.0/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/13.1/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/13.0/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/12.4/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/12.3/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/12.2/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/12.1/angular-data-grid/* /docs/angular-data-grid/ 301
+/docs/12.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/11.1/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/11.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/10.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+/docs/9.0/angular-data-grid/* /docs/javascript-data-grid/ 301
+
 /docs/ActionBarComponent.html /docs/javascript-data-grid/api/action-bar-component/
 /docs/AlterManager.html /docs/javascript-data-grid/api/alter-manager/
 /docs/AutoColumnSize.html /docs/javascript-data-grid/api/auto-column-size/
@@ -210,5 +235,54 @@
 /docs/javascript-data-grid/angular-custom-renderer-example/ /docs/angular-data-grid/cell-renderer/
 /docs/javascript-data-grid/angular-language-change-example/ /docs/angular-data-grid/language/
 /docs/javascript-data-grid/angular-hot-reference/ /docs/angular-data-grid/api/core/
+
+# Cell-type recipe URL fixes - old flat Angular paths redirect to correct /cell-types/ structure
+/docs/angular-data-grid/recipes/color-picker-angular/ /docs/angular-data-grid/recipes/cell-types/color-picker/ 301
+/docs/angular-data-grid/recipes/feedback-angular/ /docs/angular-data-grid/recipes/cell-types/feedback/ 301
+/docs/angular-data-grid/recipes/stars-rating-angular/ /docs/angular-data-grid/recipes/cell-types/rating/ 301
+/docs/angular-data-grid/recipes/datepicker-angular/ /docs/angular-data-grid/recipes/cell-types/datepicker/ 301
+
+# Angular guide file unique slugs redirect to main pages (forced: framework-loader builds all 3 framework variants)
+/docs/angular-data-grid/recipes/cell-types/color-picker-angular/ /docs/angular-data-grid/recipes/cell-types/color-picker/ 301!
+/docs/javascript-data-grid/recipes/cell-types/color-picker-angular/ /docs/javascript-data-grid/recipes/cell-types/color-picker/ 301!
+/docs/react-data-grid/recipes/cell-types/color-picker-angular/ /docs/react-data-grid/recipes/cell-types/colorful-picker/ 301!
+/docs/angular-data-grid/recipes/cell-types/feedback-angular/ /docs/angular-data-grid/recipes/cell-types/feedback/ 301!
+/docs/javascript-data-grid/recipes/cell-types/feedback-angular/ /docs/javascript-data-grid/recipes/cell-types/feedback/ 301!
+/docs/react-data-grid/recipes/cell-types/feedback-angular/ /docs/react-data-grid/recipes/cell-types/feedback-react/ 301!
+/docs/angular-data-grid/recipes/cell-types/rating-angular/ /docs/angular-data-grid/recipes/cell-types/rating/ 301!
+/docs/javascript-data-grid/recipes/cell-types/rating-angular/ /docs/javascript-data-grid/recipes/cell-types/rating/ 301!
+/docs/react-data-grid/recipes/cell-types/rating-angular/ /docs/react-data-grid/recipes/cell-types/react-rating/ 301!
+/docs/angular-data-grid/recipes/cell-types/datepicker-angular/ /docs/angular-data-grid/recipes/cell-types/datepicker/ 301!
+
+# JS->React: slug mismatches when framework switcher substitutes prefix (forced: pages exist for all frameworks)
+/docs/react-data-grid/recipes/cell-types/color-picker/ /docs/react-data-grid/recipes/cell-types/colorful-picker/ 301!
+/docs/react-data-grid/recipes/cell-types/feedback/ /docs/react-data-grid/recipes/cell-types/feedback-react/ 301!
+/docs/react-data-grid/recipes/cell-types/rating/ /docs/react-data-grid/recipes/cell-types/react-rating/ 301!
+
+# React->JS: slug mismatches when framework switcher substitutes prefix (forced: pages exist for all frameworks)
+/docs/javascript-data-grid/recipes/cell-types/colorful-picker/ /docs/javascript-data-grid/recipes/cell-types/color-picker/ 301!
+/docs/javascript-data-grid/recipes/cell-types/feedback-react/ /docs/javascript-data-grid/recipes/cell-types/feedback/ 301!
+/docs/javascript-data-grid/recipes/cell-types/react-rating/ /docs/javascript-data-grid/recipes/cell-types/rating/ 301!
+
+# React->Angular: slug mismatches when framework switcher substitutes prefix (forced: pages exist for all frameworks)
+/docs/angular-data-grid/recipes/cell-types/colorful-picker/ /docs/angular-data-grid/recipes/cell-types/color-picker/ 301!
+/docs/angular-data-grid/recipes/cell-types/feedback-react/ /docs/angular-data-grid/recipes/cell-types/feedback/ 301!
+/docs/angular-data-grid/recipes/cell-types/react-rating/ /docs/angular-data-grid/recipes/cell-types/rating/ 301!
+
+# JS-only cell-type recipes: redirect React/Angular versions to cell-types overview (forced: framework-loader builds all variants)
+/docs/react-data-grid/recipes/cell-types/flatpickr/ /docs/react-data-grid/recipes/cell-types/ 301!
+/docs/angular-data-grid/recipes/cell-types/flatpickr/ /docs/angular-data-grid/recipes/cell-types/ 301!
+/docs/react-data-grid/recipes/cell-types/pikaday/ /docs/react-data-grid/recipes/cell-types/ 301!
+/docs/angular-data-grid/recipes/cell-types/pikaday/ /docs/angular-data-grid/recipes/cell-types/ 301!
+/docs/react-data-grid/recipes/cell-types/numbro/ /docs/react-data-grid/recipes/cell-types/ 301!
+/docs/angular-data-grid/recipes/cell-types/numbro/ /docs/angular-data-grid/recipes/cell-types/ 301!
+/docs/react-data-grid/recipes/cell-types/moment-date/ /docs/react-data-grid/recipes/cell-types/ 301!
+/docs/angular-data-grid/recipes/cell-types/moment-date/ /docs/angular-data-grid/recipes/cell-types/ 301!
+/docs/react-data-grid/recipes/cell-types/moment-time/ /docs/react-data-grid/recipes/cell-types/ 301!
+/docs/angular-data-grid/recipes/cell-types/moment-time/ /docs/angular-data-grid/recipes/cell-types/ 301!
+
+# Angular-only datepicker: redirect JS/React versions to cell-types overview (forced: framework-loader builds all variants)
+/docs/javascript-data-grid/recipes/cell-types/datepicker/ /docs/javascript-data-grid/recipes/cell-types/ 301!
+/docs/react-data-grid/recipes/cell-types/datepicker/ /docs/react-data-grid/recipes/cell-types/ 301!
 
 /docs/next/:splat /docs/:splat

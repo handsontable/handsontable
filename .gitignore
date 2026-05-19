@@ -3,8 +3,13 @@
 .idea
 .vscode
 .cache
-.cursor
-.claude
+.cursor/*
+!.cursor/settings.json
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/settings.json
+.playwright-mcp
 dev*.html
 dev*.js
 npm-debug.log
@@ -20,3 +25,9 @@ docs/.env
 .netlify
 
 *.nupkg
+
+# Playwright screenshots (created by Claude Code sessions)
+/*.png
+/docs/*.png
+# Added by code-review-graph
+.code-review-graph/

@@ -1,13 +1,24 @@
 /**
  * The view order is a list of indexes that represent the order of the rendered elements.
+ * Uses a Set alongside the array for O(1) membership checks.
  *
  * @class {ViewOrder}
  */
 export class ViewOrder {
   order = [];
+  #indexSet = new Set();
 
   constructor(viewOffset, viewSize) {
-    this.order = [...Array(viewSize).keys()].map(i => viewOffset + i);
+    const order = new Array(viewSize);
+    const indexSet = this.#indexSet;
+
+    for (let i = 0; i < viewSize; i++) {
+      const value = viewOffset + i;
+
+      order[i] = value;
+      indexSet.add(value);
+    }
+    this.order = order;
   }
 
   /**
@@ -26,7 +37,7 @@ export class ViewOrder {
    * @returns {boolean}
    */
   has(offsetIndex) {
-    return this.order.indexOf(offsetIndex) > -1;
+    return this.#indexSet.has(offsetIndex);
   }
 
   /**
@@ -46,7 +57,12 @@ export class ViewOrder {
    * @param {number} offsetIndex The offset index.
    */
   remove(offsetIndex) {
-    this.order.splice(this.order.indexOf(offsetIndex), 1);
+    const idx = this.order.indexOf(offsetIndex);
+
+    if (idx > -1) {
+      this.order.splice(idx, 1);
+      this.#indexSet.delete(offsetIndex);
+    }
   }
 
   /**
@@ -58,7 +74,12 @@ export class ViewOrder {
    */
   prepend(offsetIndex) {
     this.order.unshift(offsetIndex);
+    this.#indexSet.add(offsetIndex);
 
-    return this.order.pop();
+    const removed = this.order.pop();
+
+    this.#indexSet.delete(removed);
+
+    return removed;
   }
 }

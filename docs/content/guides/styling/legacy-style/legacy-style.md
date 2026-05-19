@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: yfus6qpz
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
@@ -20,11 +21,7 @@ angular:
   metaTitle: Legacy Style - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
-menuTag: updated
 ---
-
-# Legacy Style
-
 Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 
 [[toc]]
@@ -157,10 +154,15 @@ The Classic theme provides the same visual appearance as the legacy style, but w
 - **Better maintainability**: The theming system is designed for long-term support
 - **Consistency**: Works seamlessly with the new Design System
 
-For more detailed migration instructions, see:
+**Related guides**
+
+<div class="boxes-list">
 
 - [Migrate from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)
-
-For more information about the theming system, see:
-
 - [Themes](@/guides/styling/themes/themes.md)
+
+</div>
+
+## Result
+
+Your grid now uses the legacy stylesheet. The visual style matches pre-14.0 Handsontable.

@@ -22,6 +22,7 @@ const colors: string[] = [
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],

@@ -11,18 +11,26 @@ import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanc
 import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
 import { TextEditor } from 'handsontable/editors';
 
-@Component({})
+@Component({
+  standalone: true,
+})
 class TestRendererComponent extends HotCellRendererComponent {}
 
-@Component({})
+@Component({
+  standalone: true,
+})
 class TestRendererAdvancedComponent extends HotCellRendererAdvancedComponent {}
 
-@Component({})
+@Component({
+  standalone: true,
+})
 class TestEditorComponent extends HotCellEditorComponent<number> {
   onFocus(): void {}
 }
 
-@Component({})
+@Component({
+  standalone: true,
+})
 class TestEditorAdvancedComponent extends HotCellEditorAdvancedComponent<number> {}
 
 class TestClaseBasedEditor extends TextEditor {}
@@ -60,7 +68,7 @@ describe('HotSettingsResolver', () => {
         } as ColumnSettings,
       ],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
     expect(dynamicComponentService.createRendererFromComponent).toHaveBeenCalled();
   });
 
@@ -74,7 +82,7 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     expect(dynamicComponentService.createRendererWithFactory).toHaveBeenCalledWith(TestRendererAdvancedComponent, { prop: 'value' });
     expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
@@ -90,7 +98,7 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     expect(dynamicComponentService.createRendererFromComponent).toHaveBeenCalledWith(TestRendererComponent, { prop: 'value' });
     expect(dynamicComponentService.createRendererWithFactory).not.toHaveBeenCalled();
@@ -100,7 +108,7 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{} as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
   });
@@ -113,7 +121,7 @@ describe('HotSettingsResolver', () => {
         } as ColumnSettings,
       ],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
     expect(mergedSettings.columns[0].renderer).toBe('numeric');
@@ -127,7 +135,7 @@ describe('HotSettingsResolver', () => {
         } as ColumnSettings,
       ],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
   });
@@ -141,7 +149,7 @@ describe('HotSettingsResolver', () => {
       ],
     };
     const envInjector = TestBed.inject(EnvironmentInjector);
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
@@ -158,7 +166,7 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
@@ -177,7 +185,7 @@ describe('HotSettingsResolver', () => {
     };
     const envInjector = TestBed.inject(EnvironmentInjector);
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
@@ -190,7 +198,7 @@ describe('HotSettingsResolver', () => {
       columns: [{ editor: 'text' } as ColumnSettings],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBe('text');
@@ -203,7 +211,7 @@ describe('HotSettingsResolver', () => {
       columns: [{ editor: TestClaseBasedEditor } as ColumnSettings],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBe(TestClaseBasedEditor);
@@ -215,7 +223,7 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{ validator: (value: any) => true } as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
     expect(mergedSettings.columns[0].validator).toBeDefined();
     expect(mergedSettings.columns[0].validator.length).toBe(2);
   });
@@ -224,7 +232,7 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{ validator: 'numeric' } as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
     expect(mergedSettings.columns[0].validator).toBe('numeric');
   });
 
@@ -232,7 +240,7 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{ validator: /^abc/ } as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
     expect(mergedSettings.columns[0].validator).toEqual(/^abc/);
   });
 
@@ -244,7 +252,7 @@ describe('HotSettingsResolver', () => {
         } as ColumnSettings,
       ],
     };
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
     expect(mergedSettings.columns[0].validator.length).toBe(2);
   });
 
@@ -263,7 +271,7 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     expect(dynamicComponentService.createRendererWithFactory).toHaveBeenCalledTimes(1);
     expect(dynamicComponentService.createRendererFromComponent).toHaveBeenCalledTimes(2);
@@ -284,7 +292,7 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings, undefined);
+    service.applyCustomSettings(mergedSettings);
 
     const settings0 = mergedSettings.columns[0] as ColumnSettingsInternal;
     const settings1 = mergedSettings.columns[1] as ColumnSettingsInternal;

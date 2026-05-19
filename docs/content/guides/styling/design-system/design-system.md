@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: xfus5qpz
 title: Design System
 metaTitle: Design System / UI Kit - JavaScript Data Grid | Handsontable
@@ -24,12 +25,8 @@ angular:
   metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
-menuTag: updated
 ---
-
-# Handsontable Design System
-
-Design, prototype, and customize your data grid with the Design System for Figma.
+The Handsontable design system defines the tokens, themes, and components that control the grid visual appearance. Read this to understand how themes and CSS variables relate.
 
 [[toc]]
 
@@ -39,9 +36,9 @@ The Handsontable Design System is a complete toolkit for building, prototyping, 
 
 ## Live preview
 
-<iframe class="iframe-responsive" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
+<iframe style="width:100%;height:360px;border:0" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
 
-[Open the Design System in Figma](https://www.figma.com/community/file/1487445656371116081)
+<a href="https://www.figma.com/community/file/1487445656371116081" target="_blank" rel="noopener noreferrer">Open the Design System in Figma <svg aria-hidden="true" style="display:inline;vertical-align:middle;margin-left:2px" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg></a>
 
 ## Use tokens to generate a theme
 
@@ -53,13 +50,13 @@ After exporting, head over to our [Theme Generator on GitHub](https://github.com
 
 <span class="img-light">
 
-![design_system_light]({{$basePath}}/img/design_system_light.png)
+![design_system_light](/img/design_system_light.png)
 
 </span>
 
 <span class="img-dark">
 
-![design_system_dark]({{$basePath}}/img/design_system_dark.png)
+![design_system_dark](/img/design_system_dark.png)
 
 </span>
 
@@ -72,12 +69,32 @@ The design system is our primary reference when planning new features or redesig
 
 - The legacy style is not part of the design system. Starting from version 17.0.0, legacy styles are no longer supported and you need to migrate to the Classic theme.
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [From components to tables: Designing a data table component in your design system](https://handsontable.com/blog/from-components-to-tables-designing-a-data-table-component-in-your-design-system)
+
+</div>
+
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list">
+
 - [View related topics](https://github.com/handsontable/handsontable/issues/) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Themes](@/guides/styling/themes/themes.md)
+- [Legacy Style](@/guides/styling/legacy-style/legacy-style.md)
+
+</div>

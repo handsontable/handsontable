@@ -40,7 +40,7 @@ describe('PasswordEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -359,13 +359,10 @@ describe('PasswordEditor', () => {
     editor.value = 'wwwwwwwwwwwwwwwwww'; // "w" is wider than password dots
 
     await keyDownUp('w'); // trigger editor autoresize
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
-    expect(editor.style.width).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('97px');
-      main.toBe('107px');
-      horizon.toBe('115px');
-    });
+    // The editor should have expanded beyond the default column width to fit password dots.
+    expect(parseInt(editor.style.width, 10)).toBeGreaterThan(getDefaultColumnWidth());
   });
 
   it('should set passwordEditor using \'password\' alias', async() => {
@@ -474,7 +471,7 @@ describe('PasswordEditor', () => {
     await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
-    await sleep(55);
+    await waitForNextAnimationFrames(4);
 
     const activeElement = getActiveEditor().TEXTAREA;
 
@@ -486,7 +483,7 @@ describe('PasswordEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -545,7 +542,7 @@ describe('PasswordEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(4);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });

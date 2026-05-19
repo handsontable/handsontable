@@ -27,7 +27,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, '');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(true, '', 0, 0);
     });
@@ -47,7 +47,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, '');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(true, '', 0, 0);
     });
@@ -67,7 +67,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, '');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, '', 0, 0);
     });
@@ -101,7 +101,7 @@ describe('multiSelectValidator', () => {
       await setDataAtCell(0, 1, '');
       await setDataAtCell(0, 2, '');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate.calls.argsFor(0)).toEqual([true, '', 0, 0]);
       expect(afterValidate.calls.argsFor(1)).toEqual([false, '', 0, 1]);
@@ -137,7 +137,7 @@ describe('multiSelectValidator', () => {
       await setDataAtCell(0, 1);
       await setDataAtCell(0, 2, '');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate.calls.argsFor(0)).toEqual([false, null, 0, 0]);
       expect(afterValidate.calls.argsFor(1)).toEqual([false, undefined, 0, 1]);
@@ -160,7 +160,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, ['yellow', 'red']);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(true, ['yellow', 'red'], 0, 0);
     });
@@ -188,7 +188,7 @@ describe('multiSelectValidator', () => {
         { key: 'red', value: 'red' }
       ]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(true, [
         { key: 'yel', value: 'yellow' },
@@ -210,7 +210,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, []);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(true, [], 0, 0);
     });
@@ -229,7 +229,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, ['yellow', 'blue']);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, ['yellow', 'blue'], 0, 0);
     });
@@ -257,7 +257,7 @@ describe('multiSelectValidator', () => {
         { key: 'blu', value: 'blue' }
       ]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, [
         { key: 'yel', value: 'yellow' },
@@ -281,7 +281,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, 'yellow');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, 'yellow', 0, 0);
     });
@@ -306,7 +306,7 @@ describe('multiSelectValidator', () => {
 
       await setDataAtCell(0, 0, ['yellow', 'red']);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, ['yellow', 'red'], 0, 0);
     });
@@ -328,7 +328,7 @@ describe('multiSelectValidator', () => {
         { key: 'red', value: 'red' }
       ]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, [
         { key: 'yel', value: 'yellow' },
@@ -359,7 +359,7 @@ describe('multiSelectValidator', () => {
         'red'
       ]);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
 
       expect(afterValidate).toHaveBeenCalledWith(false, [
         { key: 'yel', value: 'yellow' },

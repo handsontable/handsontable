@@ -819,7 +819,7 @@ describe('manualRowMove', () => {
 
         await selectCell(19, 0);
 
-        await sleep(50);
+        await waitForNextAnimationFrames(2);
 
         expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 

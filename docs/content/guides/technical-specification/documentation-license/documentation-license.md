@@ -1,4 +1,5 @@
 ---
+type: reference
 id: hpr42b2a
 title: Documentation license
 metaTitle: Documentation license - JavaScript Data Grid | Handsontable
@@ -14,9 +15,6 @@ angular:
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Documentation license
-
 Learn about the licensing terms of Handsontable's documentation.
 
 [[toc]]

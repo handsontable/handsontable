@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { registerRenderer, textRenderer } from 'handsontable/renderers';
 
 registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
@@ -13,19 +13,20 @@ registerRenderer('customStylesRenderer', (hotInstance, TD, ...rest) => {
 
 @Component({
   selector: 'example3-formatting-cells',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example3FormattingCellsComponent {
+export class AppComponent {
 
   readonly data = [
-    ['A1', 'B1', 'C1', 'D1', 'E1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3'],
-    ['A4', 'B4', 'C4', 'D4', 'E4'],
-    ['A5', 'B5', 'C5', 'D5', 'E5'],
+    ['SKU-4821', 'Laptop Pro 15',    'Electronics', 149900,  42],
+    ['SKU-0093', 'Wireless Mouse',   'Peripherals',   2999, 218],
+    ['SKU-7712', 'USB-C Hub 7-port', 'Peripherals',   5499,   0],
+    ['SKU-3305', 'Mech. Keyboard',   'Peripherals',   8999,  67],
+    ['SKU-9140', '4K Monitor 27"',   'Electronics',  34999,  15],
   ];
 
   readonly gridSettings: GridSettings = {
@@ -84,37 +85,21 @@ export class Example3FormattingCellsComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example3FormattingCellsComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example3FormattingCellsComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example3FormattingCellsComponent ]
-})
-
-export class AppModule { }
 /* end-file */

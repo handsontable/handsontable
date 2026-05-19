@@ -71,7 +71,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await sleep(400);
+      await waitForNextAnimationFrames(25);
 
       expect(editor.parentNode.style.display).toEqual('block');
     });
@@ -135,11 +135,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - 1, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
       it('should display the comment editor on the right of the cell when the viewport is scrolled (the Window object is a scrollable element)', async() => {
@@ -171,20 +167,18 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - 1, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
-      it.forTheme('classic')('should display the comment editor on the right of the cell when the ' +
+      it('should display the comment editor on the right of the cell when the ' +
         'viewport is not scrolled (the Window object is not a scrollable element)', async() => {
+        const width = 500;
+
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(30, 20),
           comments: true,
-          width: 300,
+          width,
           height: 200,
         });
 
@@ -200,58 +194,18 @@ describe('Comments', () => {
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
 
-      it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
-        'viewport is not scrolled (the Window object is not a scrollable element)', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(30, 20),
-          comments: true,
-          width: 500,
-          height: 200,
-        });
-
-        const plugin = getPlugin('comments');
-        const $editor = $(plugin.getEditorInputElement());
-
-        plugin.showAtCell(0, 1);
-
-        const cellOffset = $(getCell(0, 2)).offset();
-        const editorOffset = $editor.offset();
-
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
-      });
-
-      it.forTheme('horizon')('should display the comment editor on the right of the cell when the ' +
-        'viewport is not scrolled (the Window object is not a scrollable element)', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(30, 20),
-          comments: true,
-          width: 500,
-          height: 200,
-        });
-
-        const plugin = getPlugin('comments');
-        const $editor = $(plugin.getEditorInputElement());
-
-        plugin.showAtCell(0, 1);
-
-        const cellOffset = $(getCell(0, 2)).offset();
-        const editorOffset = $editor.offset();
-
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-      });
-
-      it.forTheme('classic')('should display the comment editor on the right of the cell when the ' +
+      it('should display the comment editor on the right of the cell when the ' +
         'viewport is scrolled (the Window object is not a scrollable element)', async() => {
+        const width = 500;
+        const height = 250;
+        const colFromEnd = 8;
+
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(30, 20),
           comments: true,
-          width: 300,
-          height: 200,
+          width,
+          height,
         });
 
         await scrollViewportTo({
@@ -264,71 +218,13 @@ describe('Comments', () => {
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
 
-        plugin.showAtCell(countRows() - 2, countCols() - 5);
+        plugin.showAtCell(countRows() - 2, countCols() - colFromEnd);
 
-        const cellOffset = $(getCell(countRows() - 2, countCols() - 4)).offset();
+        const cellOffset = $(getCell(countRows() - 2, countCols() - (colFromEnd - 1))).offset();
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
         expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
-      });
-
-      it.forTheme('main')('should display the comment editor on the right of the cell when the ' +
-        'viewport is scrolled (the Window object is not a scrollable element)', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(30, 20),
-          comments: true,
-          width: 500,
-          height: 250,
-        });
-
-        await scrollViewportTo({
-          row: countRows() - 1,
-          col: countCols() - 1,
-          verticalSnap: 'top',
-          horizontalSnap: 'start',
-        });
-
-        const plugin = getPlugin('comments');
-        const $editor = $(plugin.getEditorInputElement());
-
-        plugin.showAtCell(countRows() - 2, countCols() - 8);
-
-        const cellOffset = $(getCell(countRows() - 2, countCols() - 7)).offset();
-        const editorOffset = $editor.offset();
-
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
-      });
-
-      it.forTheme('horizon')('should display the comment editor on the right of the cell when the ' +
-        'viewport is scrolled (the Window object is not a scrollable element)', async() => {
-        handsontable({
-          layoutDirection,
-          data: createSpreadsheetData(30, 20),
-          comments: true,
-          width: 500,
-          height: 250,
-        });
-
-        await scrollViewportTo({
-          row: countRows() - 1,
-          col: countCols() - 1,
-          verticalSnap: 'top',
-          horizontalSnap: 'start',
-        });
-
-        const plugin = getPlugin('comments');
-        const $editor = $(plugin.getEditorInputElement());
-
-        plugin.showAtCell(countRows() - 2, countCols() - 8);
-
-        const cellOffset = $(getCell(countRows() - 2, countCols() - 7)).offset();
-        const editorOffset = $editor.offset();
-
-        expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
       });
 
       it('should display the comment editor on the left of the cell when there is not enough space left on the right', async() => {
@@ -361,11 +257,7 @@ describe('Comments', () => {
         const editorWidth = $editor.outerWidth();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
       });
 
       it('should display the comment editor on the top-left of the cell when there is not enough space of the' +
@@ -404,11 +296,7 @@ describe('Comments', () => {
         let editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0); // border compensation?
-          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
 
         // Set the comment editor height/width to 2 rows/columns + 5px, which should overlap the scrollbar by `5px`.
         // If the editor overlaps the scrollbar, it should be flipped.
@@ -427,11 +315,7 @@ describe('Comments', () => {
         editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-          main.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-          horizon.toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - editorWidth - 2, 0);
       });
 
       it('should display the comment editor on the top-left of the cell when there is not enough space of the' +
@@ -479,11 +363,7 @@ describe('Comments', () => {
         const editorOffset = $editor.offset();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
-          main.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left + cellWidth - 1, 0);
       });
 
       it('should display the comment editor on the top-right of the cell when on the bottom there is no left space', async() => {
@@ -518,11 +398,7 @@ describe('Comments', () => {
         const editorHeight = $editor.outerHeight();
 
         expect(editorOffset.top).toBeCloseTo(cellOffset.top - editorHeight + cellHeight - 1, 0);
-        expect(editorOffset.left).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.left - 1, 0);
-          main.toBeCloseTo(cellOffset.left - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - 1, 0); // border compensation?
-        });
+        expect(editorOffset.left).toBeCloseTo(cellOffset.left - 1, 0);
       });
     });
   });
@@ -549,7 +425,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       const editor = getPlugin('comments').getEditorInputElement();
 
@@ -579,13 +455,13 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       const editorStyle = document.querySelector('.htComments').style;
 
       expect(editorStyle.display).toBe('none');
 
-      await sleep(150);
+      await waitForNextAnimationFrames(10);
 
       expect(editorStyle.display).toBe('block');
     });
@@ -624,26 +500,16 @@ describe('Comments', () => {
         clientY: cell.offset().top + 5,
       });
 
-      await sleep(30);
+      await waitForNextAnimationFrames(2);
 
       const commentEditorOffset = $(hot.getPlugin('comments').getEditorInputElement()).offset();
 
       expect({
         top: commentEditorOffset.top,
         left: commentEditorOffset.left - cell.outerWidth(),
-      }).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({
-          top: cell.offset().top,
-          left: cell.offset().left - 1, // border compensation?
-        });
-        main.toEqual({
-          top: cell.offset().top,
-          left: cell.offset().left - 1, // border compensation?
-        });
-        horizon.toEqual({
-          top: cell.offset().top,
-          left: cell.offset().left - 1, // border compensation?
-        });
+      }).toEqual({
+        top: cell.offset().top,
+        left: cell.offset().left - 1, // border compensation?
       });
 
       hot.destroy();
@@ -913,7 +779,7 @@ describe('Comments', () => {
 
     const editor = getPlugin('comments').getEditorInputElement();
 
-    await sleep(400);
+    await waitForNextAnimationFrames(25);
 
     expect(editor.parentNode.style.display).toBe('block');
   });
@@ -934,7 +800,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
     });
 
-    await sleep(400);
+    await waitForNextAnimationFrames(25);
 
     $(getPlugin('comments').getEditorInputElement())
       .simulate('mousedown')
@@ -942,7 +808,7 @@ describe('Comments', () => {
       .simulate('click');
     getPlugin('comments').getEditorInputElement().focus();
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     expect(isListening()).toBe(true);
     expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
@@ -967,7 +833,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
     });
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     await keyDownUp(['m']); // typing printable characters should trigger cell editor
 
@@ -993,7 +859,7 @@ describe('Comments', () => {
       clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
     });
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     $(getPlugin('comments').getEditorInputElement())
       .simulate('mousedown')
@@ -1001,7 +867,7 @@ describe('Comments', () => {
       .simulate('click');
     getPlugin('comments').getEditorInputElement().focus();
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
@@ -1108,7 +974,7 @@ describe('Comments', () => {
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
-      await sleep(550);
+      await waitForNextAnimationFrames(35);
 
       expect(editor.readOnly).toBe(true);
     });
@@ -1192,23 +1058,15 @@ describe('Comments', () => {
       await contextMenu();
       await selectContextMenuOption('Edit comment');
 
-      await sleep(50);
+      await waitForNextAnimationFrames(4);
 
       $('.htCommentTextArea').width(300).height(50);
 
-      await sleep(50);
+      await waitForNextAnimationFrames(4);
 
-      expect(afterSetCellMeta).forThemes(({ classic, main, horizon }) => {
-        classic.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
-          style: { width: 314, height: 56 }
-        }));
-        main.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
-          style: { width: 318, height: 60 }
-        }));
-        horizon.toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
-          style: { width: 326, height: 68 }
-        }));
-      });
+      expect(afterSetCellMeta).toHaveBeenCalledWith(1, 1, 'comment', jasmine.objectContaining({
+        style: getThemeLayout().e2eCommentTextareaStyleWithSize(300, 50),
+      }));
     });
 
     it('should trigger `afterSetCellMeta` callback after deleting comment by context menu', async() => {
@@ -1293,13 +1151,13 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await sleep(1000);
+      await waitForNextAnimationFrames(63);
 
       expect(afterSetCellMeta).toHaveBeenCalledWith(0, 0, 'comment', { value: 'Edited comment' });
     });
@@ -1330,15 +1188,36 @@ describe('Comments', () => {
       textarea.focus();
       textarea.value = 'Edited comment';
 
-      await sleep(100);
+      await waitForNextAnimationFrames(7);
 
       $('body').simulate('mousedown');
       $('body').simulate('mouseup');
       textarea.blur();
 
-      await sleep(400);
+      await waitForNextAnimationFrames(25);
 
       expect(getCellMeta(0, 0).comment.value).toEqual('test');
+    });
+  });
+
+  describe('merge cells integration', () => {
+    it('should display the comment editor at the merged cell border', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        comments: true,
+        mergeCells: [
+          { row: 1, col: 1, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      const plugin = getPlugin('comments');
+      const $editor = $(plugin.getEditorInputElement().parentNode);
+      const $mergedCell = $(getCell(1, 1));
+
+      plugin.showAtCell(1, 1);
+
+      expect($editor.offset().top).toBeCloseTo($mergedCell.offset().top, 0);
+      expect($editor.offset().left).toBeCloseTo($mergedCell.offset().left + $mergedCell.outerWidth() - 1, 0);
     });
   });
 
@@ -1528,7 +1407,7 @@ describe('Comments', () => {
     await selectCell(1, 1);
     await keyDownUp(['control', 'alt', 'm']);
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     const plugin = getPlugin('comments');
     const event = new CompositionEvent('compositionstart', {

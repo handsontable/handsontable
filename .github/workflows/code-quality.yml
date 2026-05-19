@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # https://github.com/SonarSource/sonarqube-scan-action/releases/tag/v7.0.0
+        uses: SonarSource/sonarqube-scan-action@299e4b793aaa83bf2aba7c9c14bedbb485688ec4 # https://github.com/SonarSource/sonarqube-scan-action/releases/tag/v7.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -64,6 +64,6 @@ jobs:
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        - uses: fossas/fossa-action@c414b9ad82eaad041e47a7cf62a4f02411f427a0 # https://github.com/fossas/fossa-action/releases/tag/v1.8.0
+        - uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # https://github.com/fossas/fossa-action/releases/tag/v1.9.0
           with:
             api-key: ${{secrets.FOSSA_API_KEY}}

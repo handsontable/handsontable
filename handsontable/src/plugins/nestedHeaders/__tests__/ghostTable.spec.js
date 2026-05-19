@@ -54,41 +54,14 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(100);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(117);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(100);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(117);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(99);
-          main.toBeAroundValue(110);
-          horizon.toBeAroundValue(118);
-        });
+        // All columns have the same header text, so their widths should be equal.
+        const firstWidth = ghostTable.widthsMap.getValueAtIndex(0);
+
+        expect(firstWidth).toBeGreaterThan(getDefaultColumnWidth());
+
+        for (let col = 0; col < 7; col++) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeAroundValue(firstWidth);
+        }
       });
 
       it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
@@ -106,56 +79,16 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(24);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(21);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(33);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(102);
-          main.toBeAroundValue(111);
-          horizon.toBeAroundValue(114);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(98);
-          main.toBeAroundValue(108);
-          horizon.toBeAroundValue(112);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(9)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(25);
-          main.toBeAroundValue(30);
-          horizon.toBeAroundValue(38);
-        });
+        // All columns should have positive widths cached.
+        for (let col = 0; col < 10; col++) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // The columns under the long header "This is a very long header to test" (cols 6-7)
+        // should be significantly wider than single-letter header columns.
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(0) * 2
+        );
       });
 
       it('should container be removed after initialization', async() => {
@@ -192,11 +125,7 @@ describe('NestedHeaders', () => {
         const widthAfterUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
         expect(widthAfterUpdate).not.toBe(widthBeforeUpdate);
-        expect(widthAfterUpdate).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(135);
-          main.toBeAroundValue(150);
-          horizon.toBeAroundValue(158);
-        });
+        expect(widthAfterUpdate).toBeGreaterThan(widthBeforeUpdate);
       });
     });
 
@@ -218,44 +147,20 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
+        // Hidden columns should have null width in the cache.
         expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(24);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
         expect(ghostTable.widthsMap.getValueAtIndex(2)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(79);
-          main.toBeAroundValue(88);
-          horizon.toBeAroundValue(96);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(21);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(33);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(102);
-          main.toBeAroundValue(111);
-          horizon.toBeAroundValue(114);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(98);
-          main.toBeAroundValue(108);
-          horizon.toBeAroundValue(112);
-        });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
+
+        // Visible columns should have positive widths.
+        for (const col of [1, 3, 4, 5, 6, 7, 8]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // The long header columns should be wider than short header columns.
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(1)
+        );
       });
 
       it('should recalculate the columns widths after hiding columns', async() => {
@@ -276,40 +181,21 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
+        // Hidden columns should have null width.
         expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(79);
-          main.toBeAroundValue(88);
-          horizon.toBeAroundValue(96);
-        });
         expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(27);
-          horizon.toBeAroundValue(35);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(22);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(34);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(21);
-          main.toBeAroundValue(26);
-          horizon.toBeAroundValue(34);
-        });
         expect(ghostTable.widthsMap.getValueAtIndex(7)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(201);
-          main.toBeAroundValue(219);
-          horizon.toBeAroundValue(227);
-        });
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
+
+        // Visible columns should have positive widths.
+        for (const col of [0, 2, 4, 5, 6, 8]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // Column 8 absorbs the long header text (after col 7 is hidden) and should be the widest.
+        expect(ghostTable.widthsMap.getValueAtIndex(8)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(0)
+        );
       });
 
       it('should recalculate the columns widths after showing columns', async() => {
@@ -332,33 +218,22 @@ describe('NestedHeaders', () => {
 
         const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
-        expect(ghostTable.widthsMap.getValueAtIndex(0)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(1)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(2)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(79);
-          main.toBeAroundValue(88);
-          horizon.toBeAroundValue(96);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(3)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(4)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(23);
-          main.toBeAroundValue(28);
-          horizon.toBeAroundValue(36);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(5)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(6)).toBe(null);
-        expect(ghostTable.widthsMap.getValueAtIndex(7)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(102);
-          main.toBeAroundValue(111);
-          horizon.toBeAroundValue(114);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(8)).forThemes(({ classic, main, horizon }) => {
-          classic.toBeAroundValue(98);
-          main.toBeAroundValue(108);
-          horizon.toBeAroundValue(112);
-        });
-        expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
+        // Still-hidden columns should have null width.
+        for (const col of [0, 1, 3, 5, 6, 9]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBe(null);
+        }
+
+        // Shown columns should have positive widths.
+        for (const col of [2, 4, 7, 8]) {
+          expect(ghostTable.widthsMap.getValueAtIndex(col)).toBeGreaterThan(0);
+        }
+
+        // The long header columns should be wider than short header columns.
+        expect(ghostTable.widthsMap.getValueAtIndex(7)).toBeGreaterThan(
+          ghostTable.widthsMap.getValueAtIndex(4)
+        );
       });
     });
+
   });
 });

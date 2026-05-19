@@ -28,11 +28,11 @@ describe('UndoRedo', () => {
 
       await alter('remove_row', 1);
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       getPlugin('undoRedo').undo();
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(beforeUndoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
@@ -149,12 +149,12 @@ describe('UndoRedo', () => {
 
       await alter('remove_row', 1);
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       getPlugin('undoRedo').undo();
       getPlugin('undoRedo').redo();
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(beforeRedoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);
@@ -176,12 +176,12 @@ describe('UndoRedo', () => {
 
       await alter('remove_row', 1);
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       getPlugin('undoRedo').undo();
       getPlugin('undoRedo').redo();
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(afterRedoSpy.calls.count()).toEqual(1);
       expect(hookData).not.toBe(null);

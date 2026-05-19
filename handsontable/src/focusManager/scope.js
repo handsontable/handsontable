@@ -36,6 +36,8 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  *   - `click`: The scope is activated by a click event.<br/>
  *   - `tab_from_above`: The scope is activated by a tab key press.<br/>
  *   - `tab_from_below`: The scope is activated by a shift+tab key press.
+ * @param {boolean} [options.enableFocusCatchers=true] When `false`, tab traps are not installed around the container
+ * (for example use an F6 shortcut instead of sequential Tab into the scope).
  * @param {function(): void} [options.onDeactivate] Callback function to be called when the scope is deactivated.
  * @returns {FocusScope} Focus scope object with methods.
  */
@@ -45,10 +47,13 @@ export function createFocusScope(hotInstance, container, options = {}) {
     type: SCOPE_TYPES.INLINE,
     contains: target => target === container || container.contains(target),
     runOnlyIf: () => true,
+    enableFocusCatchers: true,
     ...options,
   };
 
-  const focusCatchers = installFocusDetector(hotInstance, container);
+  const focusCatchers = mergedOptions.enableFocusCatchers === false ?
+    null :
+    installFocusDetector(hotInstance, container);
 
   /**
    * Checks if the target element is within the scope boundaries.
