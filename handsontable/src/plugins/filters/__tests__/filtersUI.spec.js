@@ -214,6 +214,77 @@ describe('Filters UI', () => {
     expect(checkboxes.length).toBe(2);
   });
 
+  it('should refresh the "Filter by value" list to include newly added values after `updateData` ' +
+    'is called while a `by_value` filter is active #9259', async() => {
+    handsontable({
+      data: [['Adam']],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [['Adam']]);
+    plugin.filter();
+
+    await updateData([['Adam'], ['John'], ['Tim']]);
+
+    await dropdownMenu(0);
+    await sleep(112);
+
+    const items = byValueMultipleSelect().getItems();
+    const values = items.map(item => item.value);
+    const checked = items.map(item => item.checked);
+
+    expect(values).toEqual(['Adam', 'John', 'Tim']);
+    expect(checked).toEqual([true, false, false]);
+  });
+
+  it('should refresh the "Filter by value" list on every filtered column after `updateData` #9259', async() => {
+    handsontable({
+      data: [['Adam', 'NY']],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [['Adam']]);
+    plugin.addCondition(1, 'by_value', [['NY']]);
+    plugin.filter();
+
+    await updateData([
+      ['Adam', 'NY'],
+      ['Adam', 'LA'],
+      ['John', 'SF'],
+    ]);
+
+    await dropdownMenu(0);
+    await sleep(112);
+
+    const col0Items = byValueMultipleSelect().getItems();
+
+    expect(col0Items.map(i => i.value)).toEqual(['Adam', 'John']);
+    expect(col0Items.map(i => i.checked)).toEqual([true, false]);
+
+    await dropdownMenu(1);
+    await sleep(112);
+
+    // The "Filter by value" picker for column 1 lists values from source rows that pass
+    // all preceding columns' conditions (standard pivot behavior). Column 0 keeps `by_value=[Adam]`,
+    // so only rows with `Adam` contribute: values `NY` and `LA`.
+    const col1Items = byValueMultipleSelect().getItems();
+
+    expect(col1Items.map(i => i.value)).toEqual(['LA', 'NY']);
+    expect(col1Items.map(i => i.checked)).toEqual([false, true]);
+  });
+
   it('should restore correct components\' state after altering columns', async() => {
     handsontable({
       data: [
