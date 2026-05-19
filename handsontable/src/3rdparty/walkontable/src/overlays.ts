@@ -511,13 +511,13 @@ class Overlays {
     }
 
     const isScrollOnWindow = this.scrollableElement === rootWindow;
-    const preventWheel = this.wtSettings.getSetting('preventWheel');
+    const preventWheel = this.wtSettings.getSetting<boolean>('preventWheel');
     const wheelEventOptions = { passive: isScrollOnWindow };
 
     this.eventManager.addEventListener(
       this.wtTable.wtRootElement,
       'wheel',
-      (event: WheelEvent) => this.onCloneWheel(event, preventWheel as boolean),
+      (event: WheelEvent) => this.onCloneWheel(event, preventWheel),
       wheelEventOptions
     );
 
@@ -533,7 +533,7 @@ class Overlays {
       this.eventManager.addEventListener(
         overlay.clone.wtTable.holder,
         'wheel',
-        (event: WheelEvent) => this.onCloneWheel(event, preventWheel as boolean),
+        (event: WheelEvent) => this.onCloneWheel(event, preventWheel),
         wheelEventOptions
       );
     });

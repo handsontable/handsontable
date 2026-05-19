@@ -566,9 +566,7 @@ export class MergeCells extends BasePlugin {
 
     this.hot.runHooks('beforeUnmergeCells', cellRange, auto);
 
-    arrayEach(mergedCells, (currentCollectionUnknown: unknown) => {
-      const currentCollection = currentCollectionUnknown as MergedCellCoords;
-
+    arrayEach(mergedCells, (currentCollection: MergedCellCoords) => {
       this.mergedCellsCollection.remove(currentCollection.row, currentCollection.col);
 
       rangeEach(0, currentCollection.rowspan - 1, (i) => {
@@ -1270,9 +1268,9 @@ export class MergeCells extends BasePlugin {
    * @param {number} rowspan Rowspan.
    * @param {number} parentColumn Visual column index.
    * @param {number} colspan Colspan.
-   * @returns {number[]}
+   * @returns {[number, number]}
    */
-  translateMergedCellToRenderable(parentRow: number, rowspan: number, parentColumn: number, colspan: number) {
+  translateMergedCellToRenderable(parentRow: number, rowspan: number, parentColumn: number, colspan: number): [number, number] {
     const { rowIndexMapper: rowMapper, columnIndexMapper: columnMapper } = this.hot;
     let firstNonHiddenRow;
     let firstNonHiddenColumn;
@@ -1294,7 +1292,7 @@ export class MergeCells extends BasePlugin {
     const renderableColumn = parentColumn >= 0 ?
       columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) : parentColumn;
 
-    return [renderableRow, renderableColumn] as [number, number];
+    return [renderableRow, renderableColumn];
   }
 
   /**
@@ -1521,9 +1519,7 @@ export class MergeCells extends BasePlugin {
       const selectedRange = this.hot.getSelectedRangeActive();
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
-      arrayEach(mergedCellsWithinRange, (mc: unknown) => {
-        const mergedCell = mc as MergedCellCoords;
-
+      arrayEach(mergedCellsWithinRange, (mergedCell: MergedCellCoords) => {
         if (selectedRange.getBottomEndCorner().row === mergedCell.getLastRow() &&
           selectedRange.getBottomEndCorner().col === mergedCell.getLastColumn()) {
           corners[2] = mergedCell.row;

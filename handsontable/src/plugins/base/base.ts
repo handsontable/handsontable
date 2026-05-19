@@ -34,6 +34,7 @@ let initializedPlugins: string[] | null = null;
 export class BasePlugin {
   declare hot: HotInstance;
   declare t: Record<string, Function> | undefined;
+  declare ['constructor']: typeof BasePlugin;
 
   // Allow child classes to define isEnabled
   isEnabled?(): boolean;
@@ -43,11 +44,11 @@ export class BasePlugin {
   }
 
   /**
-   * The `SETTING_KEYS` getter defines the keys that, when present in the config object, trigger the plugin update
-   * after the `updateSettings` calls.
-   * - When it returns `true`, the plugin updates after all `updateSettings` calls, regardless of the contents of the
+   * The SETTING_KEYS getter defines the keys that, when present in the config object, trigger the plugin update
+   * after the updateSettings calls.
+   * - When it returns true, the plugin updates after all updateSettings calls, regardless of the contents of the
    * config object.
-   * - When it returns `false`, the plugin never updates on `updateSettings` calls.
+   * - When it returns false, the plugin never updates on updateSettings calls.
    *
    * @returns {string[] | boolean}
    */
@@ -58,11 +59,11 @@ export class BasePlugin {
   }
 
   /**
-   * The `DEFAULT_SETTINGS` getter defines the plugin default settings.
+   * The DEFAULT_SETTINGS getter defines the plugin default settings.
    *
    * @returns {object}
    */
-  static get DEFAULT_SETTINGS() {
+  static get DEFAULT_SETTINGS(): Record<string, unknown> {
     return {};
   }
 
@@ -76,13 +77,21 @@ export class BasePlugin {
   }
 
   /**
+   * Optional list of plugin dependencies in the format 'type:ModuleName'.
+   *
+   * @type {string[] | undefined}
+   */
+  static PLUGIN_DEPS?: string[];
+
+  /**
    * Plugin settings.
    *
    * @type {object|null}
    */
-  #pluginSettings: unknown = null;
+  #pluginSettings: Record<string, unknown> | unknown[] | boolean | string | number | null = null;
+
   /**
-   * The instance of the {@link EventManager} class.
+   * The instance of the EventManager class.
    *
    * @type {EventManager}
    */
@@ -94,7 +103,7 @@ export class BasePlugin {
   /**
    * @type {Function[]}
    */
-  pluginsInitializedCallbacks: Function[] = [];
+  pluginsInitializedCallbacks: (() => void)[] = [];
   /**
    * @type {boolean}
    */
@@ -136,9 +145,9 @@ export class BasePlugin {
 
   init(): void {
     this.pluginName = this.hot.getPluginName(this);
-    this.updatePluginSettings(this.hot.getSettings()[(this.constructor as typeof BasePlugin).PLUGIN_KEY]);
+    this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
 
-    const pluginDeps = (this.constructor as typeof BasePlugin & { PLUGIN_DEPS?: string[] }).PLUGIN_DEPS;
+    const pluginDeps = this.constructor.PLUGIN_DEPS;
     const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
 
     if (deps.length > 0) {
@@ -177,7 +186,7 @@ export class BasePlugin {
     this.hot.addHookOnce('afterPluginsInitialized', () => {
       if (this.isEnabled && this.isEnabled()) {
         if (this.isHardConflictBlocked()) {
-          this.hot.getSettings()[(this.constructor as typeof BasePlugin).PLUGIN_KEY] = false;
+          this.hot.getSettings()[this.constructor.PLUGIN_KEY] = false;
 
           return;
         }
@@ -207,12 +216,12 @@ export class BasePlugin {
 
   /**
    * Whether this plugin is blocked by a registered hard conflict (another top-level setting is truthy; for example
-   * `nestedRows` blocks `pagination`, or `manualRowMove` blocks `dataProvider`). Emits a console warning when blocked.
+   * nestedRows blocks pagination, or manualRowMove blocks dataProvider). Emits a console warning when blocked.
    *
-   * @returns {boolean} `true` if the plugin must not enable.
+   * @returns {boolean} true if the plugin must not enable.
    */
   isHardConflictBlocked() {
-    const pluginKey = (this.constructor as typeof BasePlugin).PLUGIN_KEY;
+    const pluginKey = this.constructor.PLUGIN_KEY;
     const conflict = getHardConflict(this.hot.getSettings(), pluginKey);
 
     if (conflict) {
@@ -252,8 +261,8 @@ export class BasePlugin {
    * @returns {T}
    */
   getSetting<T = unknown>(settingName?: string): T {
-    const defaultSettings = (this.constructor as typeof BasePlugin).DEFAULT_SETTINGS as Record<string, unknown>;
-    const settingsValidators = (this.constructor as typeof BasePlugin).SETTINGS_VALIDATORS;
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
 
     if (settingName === undefined) {
       if (isObject(this.#pluginSettings)) {
@@ -294,7 +303,7 @@ export class BasePlugin {
     }
 
     if (typeof settingValue === 'function' && settingsValidators && typeof settingsValidators === 'object') {
-      const validator = (settingsValidators as Record<string, Function>)[settingName];
+      const validator = settingsValidators[settingName];
 
       if (validator && typeof validator === 'function') {
         return ((...args: unknown[]) => {
@@ -326,13 +335,13 @@ export class BasePlugin {
    * @returns {object} Updated settings object.
    */
   updatePluginSettings(newSettings: unknown) {
-    const settingsValidators = (this.constructor as typeof BasePlugin).SETTINGS_VALIDATORS;
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
 
     if (settingsValidators &&
       typeof settingsValidators === 'function' &&
       typeof newSettings !== 'object'
     ) {
-      const isValid = (settingsValidators as (settings: unknown) => boolean)(newSettings);
+      const isValid = (settingsValidators as (value: unknown) => boolean)(newSettings);
 
       if (isValid === false) {
         warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);
@@ -340,7 +349,7 @@ export class BasePlugin {
         return;
       }
 
-      this.#pluginSettings = newSettings;
+      this.#pluginSettings = newSettings as Record<string, unknown> | boolean | string | number | null;
 
       return this.#pluginSettings;
     }
@@ -350,15 +359,15 @@ export class BasePlugin {
        typeof newSettings === 'object'
     ) {
       if (this.#pluginSettings === null || typeof this.#pluginSettings !== 'object') {
-        this.#pluginSettings = { ...(this.constructor as typeof BasePlugin).DEFAULT_SETTINGS };
+        this.#pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
       }
 
-      Object.keys(settingsValidators as Record<string, Function>).forEach((key) => {
+      Object.keys(settingsValidators).forEach((key) => {
         if (!(key in (newSettings as Record<string, unknown>))) {
           return;
         }
 
-        const validator = (settingsValidators as Record<string, Function>)[key];
+        const validator = settingsValidators[key];
         const isValid = validator ? validator((newSettings as Record<string, unknown>)[key]) : true;
 
         if (isValid === false) {
@@ -373,7 +382,7 @@ export class BasePlugin {
       return this.#pluginSettings;
     }
 
-    this.#pluginSettings = newSettings;
+    this.#pluginSettings = newSettings as Record<string, unknown> | unknown[] | boolean | string | number | null;
 
     return newSettings;
   }
@@ -422,7 +431,7 @@ export class BasePlugin {
   /**
    * Register function which will be immediately called after all plugins initialized.
    *
-   * @param {Function} callback The listener function to call.
+   * @param {Function} callback The listener function to add.
    */
   callOnPluginsReady(callback: () => void): void {
     if (this.isPluginsReady) {
@@ -433,12 +442,12 @@ export class BasePlugin {
   }
 
   /**
-   * Check if any of the keys defined in `SETTING_KEYS` configuration of the plugin is present in the provided
-   * config object, or if the `SETTING_KEYS` configuration states that the plugin is relevant to the config object
+   * Check if any of the keys defined in SETTING_KEYS configuration of the plugin is present in the provided
+   * config object, or if the SETTING_KEYS configuration states that the plugin is relevant to the config object
    * regardless of its contents.
    *
    * @private
-   * @param {Handsontable.DefaultSettings} settings The config object passed to `updateSettings`.
+   * @param {Handsontable.DefaultSettings} settings The config object passed to updateSettings.
    * @returns {boolean}
    */
   #isRelevantToSettings(settings: Record<string, unknown>) {
@@ -446,7 +455,7 @@ export class BasePlugin {
       return false;
     }
 
-    const settingKeys = (this.constructor as typeof BasePlugin).SETTING_KEYS;
+    const settingKeys = this.constructor.SETTING_KEYS;
 
     // If SETTING_KEYS is declared as `true` -> update the plugin regardless of the settings declared in
     // `updateSettings`.
@@ -471,18 +480,18 @@ export class BasePlugin {
    * @private
    */
   onAfterPluginsInitialized() {
-    arrayEach(this.pluginsInitializedCallbacks, (callback: Function) => (callback as () => void)());
+    arrayEach(this.pluginsInitializedCallbacks, (callback) => callback());
     this.pluginsInitializedCallbacks.length = 0;
     this.isPluginsReady = true;
   }
 
   /**
    * On update settings listener. Re-applies hard conflict rules when settings change so a plugin that is already
-   * enabled disables if a conflicting top-level setting becomes truthy, even when this plugin's `SETTING_KEYS` do not
-   * overlap the `updateSettings` payload.
+   * enabled disables if a conflicting top-level setting becomes truthy, even when this plugin's SETTING_KEYS do not
+   * overlap the updateSettings payload.
    *
    * @private
-   * @param {object} newSettings New set of settings passed to the `updateSettings` method.
+   * @param {object} newSettings New set of settings passed to the updateSettings method.
    */
   onUpdateSettings(newSettings: Record<string, unknown>) {
     if (!this.isEnabled) {
@@ -517,7 +526,7 @@ export class BasePlugin {
       this.isEnabled() &&
       relevantToSettings
     ) {
-      this.updatePluginSettings(newSettings[(this.constructor as typeof BasePlugin).PLUGIN_KEY]);
+      this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
       this.updatePlugin(newSettings);
     }
   }

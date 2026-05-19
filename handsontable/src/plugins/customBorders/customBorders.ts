@@ -140,7 +140,7 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @type {Array}
    */
-  savedBorders: Record<string, unknown>[] = [];
+  savedBorders: BorderObject[] = [];
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -283,7 +283,7 @@ export class CustomBorders extends BasePlugin {
 
     arrayEach(selectionRanges, (selection: unknown) => {
       selectionSchemaNormalizer(selection).forAll((row: number, col: number) => {
-        arrayEach(this.savedBorders as BorderObject[], (border) => {
+        arrayEach(this.savedBorders, (border) => {
           if (border.row === row && border.col === col) {
             selectedBorders.push(denormalizeBorder(border));
           }
@@ -318,7 +318,7 @@ export class CustomBorders extends BasePlugin {
       this.setBorders(selectionRanges);
 
     } else {
-      arrayEach(this.savedBorders as BorderObject[], (border) => {
+      arrayEach(this.savedBorders, (border) => {
         this.clearBordersFromSelectionSettings(border.id);
         this.clearNullCellRange();
         this.hot.removeCellMeta(border.row, border.col, 'borders');
@@ -337,15 +337,15 @@ export class CustomBorders extends BasePlugin {
    */
   insertBorderIntoSettings(border: Record<string, any>, place: string | undefined) {
     const typedBorder = border as BorderObject;
-    const hasSavedBorders = this.checkSavedBorders(border);
+    const hasSavedBorders = this.checkSavedBorders(typedBorder);
 
     if (!hasSavedBorders) {
-      this.savedBorders.push(border);
+      this.savedBorders.push(typedBorder);
     }
 
     const borderCoords = this.hot._createCellCoords(typedBorder.row, typedBorder.col);
     const visualCellRange = this.hot._createCellRange(borderCoords, borderCoords, borderCoords);
-    const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
+    const hasCustomSelections = this.checkCustomSelections(typedBorder, visualCellRange, place);
 
     if (!hasCustomSelections) {
       this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
@@ -410,7 +410,7 @@ export class CustomBorders extends BasePlugin {
 
     rangeEach(range.from.row, lastRowIndex, (rowIndex: number) => {
       rangeEach(range.from.col, lastColumnIndex, (colIndex: number) => {
-        const border: Record<string, any> = createEmptyBorders(rowIndex, colIndex);
+        const border = createEmptyBorders(rowIndex, colIndex) as BorderObject;
         let add = 0;
 
         if (rowIndex === range.from.row) {
@@ -482,12 +482,12 @@ export class CustomBorders extends BasePlugin {
    */
   setBorder(row: number, column: number, place: string, remove: boolean) {
     const meta = this.hot.getCellMeta(row, column).borders;
-    let bordersMeta: Record<string, any>;
+    let bordersMeta: BorderObject;
 
-    if (!isRecord(meta) || (meta as BorderObject).border === undefined) {
-      bordersMeta = createEmptyBorders(row, column);
+    if (!isRecord(meta) || !('border' in meta) || meta.border === undefined) {
+      bordersMeta = createEmptyBorders(row, column) as BorderObject;
     } else {
-      bordersMeta = normalizeBorder(meta);
+      bordersMeta = normalizeBorder(meta) as BorderObject;
     }
 
     if (remove) {
@@ -587,16 +587,16 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @param {Array} customBorders Object with `row` and `col`, `start`, `end`, `top` and `bottom` properties.
    */
-  createCustomBorders(customBorders: Record<string, any>[]) {
-    arrayEach(customBorders, (customBorder: Record<string, any>) => {
+  createCustomBorders(customBorders: Record<string, unknown>[]) {
+    arrayEach(customBorders, (customBorder: Record<string, unknown>) => {
       const normCustomBorder = normalizeBorder(customBorder);
 
       if (customBorder.range) {
-        this.prepareBorderFromCustomAddedRange(customBorder.range, normCustomBorder);
+        this.prepareBorderFromCustomAddedRange(customBorder.range as Record<string, unknown>, normCustomBorder);
 
       } else {
         this.prepareBorderFromCustomAdded(
-          customBorder.row, customBorder.col, normCustomBorder, undefined);
+          customBorder.row as number, customBorder.col as number, normCustomBorder, undefined);
       }
     });
   }
@@ -609,14 +609,9 @@ export class CustomBorders extends BasePlugin {
    *                        `border` ({Object} with `color`, `width` and `cornerVisible` property) properties.
    * @returns {number}
    */
-  countHide(border: Record<string, unknown>) {
+  countHide(border: BorderObject) {
     const { top, bottom, start, end } = border;
-    const values: (Record<string, unknown> | null | undefined)[] = [
-      top as Record<string, unknown> | null | undefined,
-      bottom as Record<string, unknown> | null | undefined,
-      start as Record<string, unknown> | null | undefined,
-      end as Record<string, unknown> | null | undefined,
-    ];
+    const values: (BorderSettings | undefined)[] = [top, bottom, start, end];
 
     return arrayReduce(values, (accumulator: number, value) => {
       let result = accumulator;
@@ -668,7 +663,7 @@ export class CustomBorders extends BasePlugin {
    * @private
    */
   hideBorders() {
-    arrayEach(this.savedBorders as BorderObject[], (border) => {
+    arrayEach(this.savedBorders, (border) => {
       this.clearBordersFromSelectionSettings(border.id);
       this.clearNullCellRange();
     });
@@ -681,7 +676,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   spliceBorder(borderId: string) {
-    const index = arrayMap(this.savedBorders as BorderObject[], border => border.id).indexOf(borderId);
+    const index = arrayMap(this.savedBorders, border => border.id).indexOf(borderId);
 
     if (index > -1) {
       this.savedBorders.splice(index, 1);
@@ -697,7 +692,7 @@ export class CustomBorders extends BasePlugin {
    *
    * @returns {boolean}
    */
-  checkSavedBorders(border: Record<string, any>) {
+  checkSavedBorders(border: BorderObject) {
     let check = false;
 
     const hideCount = this.countHide(border);
@@ -707,7 +702,7 @@ export class CustomBorders extends BasePlugin {
       check = true;
 
     } else {
-      arrayEach(this.savedBorders as BorderObject[], (savedBorder, index) => {
+      arrayEach(this.savedBorders, (savedBorder, index) => {
         if (border.id === savedBorder.id) {
           this.savedBorders[index] = border;
           check = true;
@@ -737,10 +732,10 @@ export class CustomBorders extends BasePlugin {
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
       if (border.id === customSelection.settings.id) {
         const borders = this.hot.view._wt.selectionManager
-          .getBorderInstances(customSelection as unknown as Selection);
+          .getBorderInstances(customSelection);
 
         arrayEach(borders, (borderObject: Record<string, unknown>) => {
-          (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove); // TODO bad?
+          (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove);
         });
 
         check = true;
@@ -762,7 +757,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    * @returns {boolean}
    */
-  checkCustomSelections(border: Record<string, any>, cellRange: object, place: string | undefined) {
+  checkCustomSelections(border: BorderObject, cellRange: object, place: string | undefined) {
     const hideCount = this.countHide(border);
     let check = false;
 
@@ -778,7 +773,7 @@ export class CustomBorders extends BasePlugin {
 
           if (place) {
             const borders = this.hot.view._wt.selectionManager
-              .getBorderInstances(customSelection as unknown as Selection);
+              .getBorderInstances(customSelection);
 
             arrayEach(borders, (borderObject: Record<string, unknown>) => {
               (borderObject.changeBorderStyle as (place: string, b: Record<string, unknown>) => void)(place, border);
@@ -804,18 +799,18 @@ export class CustomBorders extends BasePlugin {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
-      const bordersClone = deepClone(customBorders) as Record<string, any>[];
+      const bordersClone = deepClone(customBorders as Record<string, unknown>[]);
 
       this.checkSettingsCohesion(bordersClone);
 
       if (!bordersClone.length) {
-        this.savedBorders = bordersClone;
+        this.savedBorders = [];
       }
 
       this.createCustomBorders(bordersClone);
 
     } else if (customBorders !== undefined) {
-      this.createCustomBorders(this.savedBorders as Record<string, any>[]);
+      this.createCustomBorders(this.savedBorders);
     }
   }
 

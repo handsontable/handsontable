@@ -62,7 +62,7 @@ interface HandsontableFactory {
   new(rootElement: HTMLElement, userSettings?: GridSettingsType): HotInstance;
   Core: new (rootElement: HTMLElement, userSettings?: GridSettingsType) => HotInstance;
   DefaultSettings: Record<string, unknown>;
-  hooks: HooksRegistry;
+  hooks: Hooks;
   CellCoords: typeof CellCoords;
   CellRange: typeof CellRange;
   packageName: string;
@@ -274,7 +274,7 @@ Handsontable.Core = function(
   return new CoreClass(rootElement, userSettings, rootInstanceSymbol);
 } as unknown as HandsontableFactory['Core'];
 Handsontable.DefaultSettings = metaSchemaFactory();
-Handsontable.hooks = Hooks.getSingleton() as unknown as HooksRegistry;
+Handsontable.hooks = Hooks.getSingleton();
 Handsontable.CellCoords = CellCoords;
 Handsontable.CellRange = CellRange;
 Handsontable.packageName = 'handsontable';

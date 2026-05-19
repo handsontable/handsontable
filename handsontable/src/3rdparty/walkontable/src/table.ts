@@ -382,8 +382,8 @@ class Table {
       const startRow = Math.max(this.getFirstRenderedRow(), 0);
       const startColumn = Math.max(this.getFirstRenderedColumn(), 0);
 
-      this.rowFilter = new RowFilter(startRow, totalRows as number, columnHeadersCount);
-      this.columnFilter = new ColumnFilter(startColumn, totalColumns as number, rowHeadersCount);
+      this.rowFilter = new RowFilter(startRow, wtSettings.getSetting<number>('totalRows'), columnHeadersCount);
+      this.columnFilter = new ColumnFilter(startColumn, wtSettings.getSetting<number>('totalColumns'), rowHeadersCount);
 
       let performRedraw = true;
 
@@ -521,8 +521,8 @@ class Table {
           this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
-      } else if (!isNaN(columnHeaderHeightSetting as number)) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting as number;
+      } else if (!isNaN(columnHeaderHeightSetting)) {
+        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
 
       const headerHeightAtLevel: number = Array.isArray(columnHeaderHeightSetting) // eslint-disable-line max-len
@@ -549,9 +549,11 @@ class Table {
         if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
-        const firstChild = children[i].childNodes[0] as HTMLElement;
+        const firstChild = children[i].childNodes[0];
 
-        firstChild.style.height = `${oversizedColumnHeaders[i]}px`;
+        if (firstChild instanceof HTMLElement) {
+          firstChild.style.height = `${oversizedColumnHeaders[i]}px`;
+        }
       }
     }
   }
@@ -567,7 +569,7 @@ class Table {
     const { wtSettings } = this;
     const children = this.THEAD.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
-    const columnHeaders = wtSettings.getSetting('columnHeaders') as unknown[];
+    const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
     const borderCompensation = 1;
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
@@ -575,7 +577,8 @@ class Table {
         continue;
       }
 
-      const actualRowHeight = innerHeight(children[i] as HTMLElement);
+      const child = children[i];
+      const actualRowHeight = child instanceof HTMLElement ? innerHeight(child) : 0;
 
       if (actualRowHeight > oversizedColumnHeaders[i] + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;
@@ -667,7 +670,7 @@ class Table {
       throwWithCause('TD or TH was expected to be rendered but is not');
     }
 
-    return TD as HTMLElement;
+    return TD as HTMLElement; // ChildNode narrowed to HTMLElement (TD/TH element)
   }
 
   /**
@@ -677,7 +680,7 @@ class Table {
    * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
    * index doesn't exist.
    */
-  getRow(rowIndex: number) {
+  getRow(rowIndex: number): HTMLTableRowElement | false {
     let renderedRowIndex = null;
     let parentElement = null;
 
@@ -695,7 +698,7 @@ class Table {
         return false;
 
       } else {
-        return parentElement.childNodes[renderedRowIndex];
+        return parentElement.childNodes[renderedRowIndex] as HTMLTableRowElement;
       }
     }
 
@@ -806,7 +809,7 @@ class Table {
     }
 
     const CONTAINER = TR.parentNode;
-    let row = index(TR as Element);
+    let row = TR instanceof Element ? index(TR) : 0;
     let col = (cellElement as HTMLTableCellElement).cellIndex;
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
@@ -817,7 +820,7 @@ class Table {
 
     } else if (overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
-      const totalRows = this.wtSettings.getSetting('totalRows') as number;
+      const totalRows = this.wtSettings.getSetting<number>('totalRows');
 
       row = totalRows - CONTAINER.childNodes.length + row;
 
@@ -881,7 +884,7 @@ class Table {
       sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
       previousRowHeight = this.getRowHeight(sourceRowIndex);
       currentTr = this.getTrForRow(sourceRowIndex);
-      rowHeader = (currentTr as HTMLTableRowElement).querySelector('th');
+      rowHeader = currentTr.querySelector('th');
 
       // Use the rendered row index (rowCount === 0 is always the first <tr> in this tbody),
       // not the source row index (which would be wrong for clones whose first rendered row
@@ -893,7 +896,7 @@ class Table {
         rowCurrentHeight = rowHeightFn(rowHeader);
 
       } else {
-        rowCurrentHeight = rowHeightFn(currentTr as HTMLElement) - borderCompensation;
+        rowCurrentHeight = rowHeightFn(currentTr) - borderCompensation;
       }
 
       if (
@@ -917,10 +920,10 @@ class Table {
 
   /**
    * @param {number} row The visual row index.
-   * @returns {HTMLTableElement}
+   * @returns {HTMLTableRowElement}
    */
-  getTrForRow(row: number) {
-    return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+  getTrForRow(row: number): HTMLTableRowElement {
+    return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)] as HTMLTableRowElement;
   }
 
   /**

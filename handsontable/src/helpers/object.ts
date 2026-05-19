@@ -490,7 +490,10 @@ export function assignObjectDefaults(target: Record<string, unknown>, defaults: 
     const targetValue = target[key];
 
     if (isPlainObject(defaultValue)) {
-      result[key] = assignObjectDefaults(targetValue as Record<string, unknown>, defaultValue);
+      result[key] = assignObjectDefaults(
+        isPlainObject(targetValue) ? targetValue : {},
+        defaultValue
+      );
     } else {
       result[key] = hasOwnProperty(target, key) && targetValue !== undefined
         ? targetValue

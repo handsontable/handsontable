@@ -1,6 +1,7 @@
 import { isObject } from '../../../helpers/object';
 import { warn } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
+import type { ThemeColorScheme, DensityType } from '../../types';
 
 /**
  * Valid parameters keys.
@@ -402,16 +403,16 @@ function validateName(name: string, context: string): string {
  *
  * @param {string} mode The color scheme to validate.
  * @throws {Error} If the color scheme is invalid.
- * @returns {string} The validated color scheme.
+ * @returns {ThemeColorScheme} The validated color scheme.
  */
-export function validateColorScheme(mode: string): string {
+export function validateColorScheme(mode: string): ThemeColorScheme {
   if (!VALID_COLOR_SCHEMES.has(mode)) {
     const validModes = [...VALID_COLOR_SCHEMES].join(', ');
 
     throwWithCause(`[ThemeBuilder] Invalid color scheme: "${mode}". Must be one of: ${validModes}.`);
   }
 
-  return mode;
+  return mode as ThemeColorScheme;
 }
 
 /**
@@ -419,9 +420,9 @@ export function validateColorScheme(mode: string): string {
  *
  * @param {string} type The density type to validate.
  * @throws {Error} If the density type is invalid.
- * @returns {string} The validated density type.
+ * @returns {DensityType} The validated density type.
  */
-export function validateDensityType(type: string): string {
+export function validateDensityType(type: string): DensityType {
   if (!VALID_DENSITY_TYPES.has(type)) {
     const validTypes = [...VALID_DENSITY_TYPES].join(', ');
 
@@ -430,7 +431,7 @@ export function validateDensityType(type: string): string {
     );
   }
 
-  return type;
+  return type as DensityType;
 }
 
 /**

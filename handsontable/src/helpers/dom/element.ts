@@ -109,7 +109,8 @@ export function closest(
   while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
 
-    if (nodeType === ELEMENT_NODE && (nodes.includes(nodeName) || nodes.includes(elementToCheck as HTMLElement))) {
+    if (nodeType === ELEMENT_NODE &&
+        (nodes.includes(nodeName) || (elementToCheck instanceof HTMLElement && nodes.includes(elementToCheck)))) {
       return elementToCheck as HTMLElement;
     }
 
@@ -203,14 +204,14 @@ export function findFirstParentWithClass(element: HTMLElement, className: string
  * @returns {boolean}
  */
 export function isChildOf(child: HTMLElement | Document, parent: HTMLElement | Document | string): boolean {
-  let node: Node | null = (child as Node).parentNode;
+  let node: Node | null = child.parentNode;
   let queriedParents: Node[] = [];
 
   if (typeof parent === 'string') {
-    if ((child as Document).defaultView) {
-      queriedParents = Array.prototype.slice.call((child as Document).querySelectorAll(parent), 0);
+    if (child instanceof Document) {
+      queriedParents = Array.prototype.slice.call(child.querySelectorAll(parent), 0);
     } else {
-      queriedParents = Array.prototype.slice.call((child as HTMLElement).ownerDocument.querySelectorAll(parent), 0);
+      queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
     }
   } else {
     queriedParents.push(parent);
@@ -280,8 +281,8 @@ export function isBottomMostColumnHeader(TH: HTMLTableCellElement) {
   }
 
   const headerRow = TH.parentNode;
-  const headerRows = Array.from(headerRow.parentNode.childNodes);
-  const headerLevel = headerRows.indexOf(headerRow as unknown as ChildNode);
+  const headerRows: Node[] = Array.from(headerRow.parentNode.childNodes);
+  const headerLevel = headerRows.indexOf(headerRow);
   const rowspan = Number.parseInt(TH.getAttribute('rowspan'), 10) || 1;
 
   return headerLevel + rowspan >= headerRows.length;
@@ -464,9 +465,9 @@ export function removeAttribute(
 }
 
 /**
- * @param {HTMLElement} element An element from the text is removed.
+ * @param {Node} element An element from the text is removed.
  */
-export function removeTextNodes(element: HTMLElement): void {
+export function removeTextNodes(element: Node): void {
   if (element.nodeType === 3) {
     element.parentNode.removeChild(element); // bye text nodes!
 
@@ -474,7 +475,7 @@ export function removeTextNodes(element: HTMLElement): void {
     const childs = element.childNodes;
 
     for (let i = childs.length - 1; i >= 0; i--) {
-      removeTextNodes(childs[i] as HTMLElement);
+      removeTextNodes(childs[i]);
     }
   }
 }
@@ -593,7 +594,7 @@ export function isVisible(element: HTMLElement): boolean {
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       return false; // this is a node detached from document in IE8
 
-    } else if (windowElement.getComputedStyle(next as HTMLElement).display === 'none') {
+    } else if (next instanceof HTMLElement && windowElement.getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -707,11 +708,11 @@ export function getWindowScrollLeft(rootWindow: Window = window): number {
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollTop(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element === rootWindow) {
+  if (element instanceof Window) {
     return getWindowScrollTop(rootWindow);
   }
 
-  return (element as HTMLElement).scrollTop;
+  return element.scrollTop;
 }
 
 /**
@@ -723,11 +724,11 @@ export function getScrollTop(element: HTMLElement | Window, rootWindow: Window =
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollLeft(element: HTMLElement | Window, rootWindow: Window = window): number {
-  if (element === rootWindow) {
+  if (element instanceof Window) {
     return getWindowScrollLeft(rootWindow);
   }
 
-  return (element as HTMLElement).scrollLeft;
+  return element.scrollLeft;
 }
 
 /**
@@ -956,14 +957,12 @@ export function removeEvent(element: HTMLElement, event: string, callback: () =>
  * Returns caret position in text input.
  *
  * @author https://stackoverflow.com/questions/263743/how-to-get-caret-position-in-textarea
- * @param {HTMLElement} el An element to check.
+ * @param {HTMLInputElement|HTMLTextAreaElement} el An element to check.
  * @returns {number}
  */
-export function getCaretPosition(el: HTMLElement): number {
-  const input = el as HTMLInputElement | HTMLTextAreaElement;
-
-  if (input.selectionStart) {
-    return input.selectionStart;
+export function getCaretPosition(el: HTMLInputElement | HTMLTextAreaElement): number {
+  if (el.selectionStart) {
+    return el.selectionStart;
   }
 
   return 0;
@@ -972,14 +971,12 @@ export function getCaretPosition(el: HTMLElement): number {
 /**
  * Returns end of the selection in text input.
  *
- * @param {HTMLElement} el An element to check.
+ * @param {HTMLInputElement|HTMLTextAreaElement} el An element to check.
  * @returns {number}
  */
-export function getSelectionEndPosition(el: HTMLElement): number {
-  const input = el as HTMLInputElement | HTMLTextAreaElement;
-
-  if (input.selectionEnd) {
-    return input.selectionEnd;
+export function getSelectionEndPosition(el: HTMLInputElement | HTMLTextAreaElement): number {
+  if (el.selectionEnd) {
+    return el.selectionEnd;
   }
 
   return 0;
@@ -1032,27 +1029,26 @@ export function clearTextSelection(rootWindow: Window = window): void {
  * Sets caret position in text input.
  *
  * @author http://blog.vishalon.net/index.php/javascript-getting-and-setting-caret-position-in-textarea/
- * @param {Element} element An element to process.
+ * @param {HTMLInputElement|HTMLTextAreaElement} element An element to process.
  * @param {number} pos The selection start position.
  * @param {number} endPos The selection end position.
  */
-export function setCaretPosition(element: Element, pos: number, endPos: number): void {
+export function setCaretPosition(element: HTMLInputElement | HTMLTextAreaElement, pos: number, endPos: number): void {
   if (endPos === undefined) {
     endPos = pos;
   }
-  const el = element as HTMLInputElement;
 
-  if (el.setSelectionRange) {
-    el.focus();
+  if (element.setSelectionRange) {
+    element.focus();
 
     try {
-      el.setSelectionRange(pos, endPos);
+      element.setSelectionRange(pos, endPos);
     } catch (err) {
-      const elementParent = el.parentNode as HTMLElement;
+      const elementParent = element.parentNode as HTMLElement;
       const parentDisplayValue = elementParent.style.display;
 
       elementParent.style.display = 'block';
-      el.setSelectionRange(pos, endPos);
+      element.setSelectionRange(pos, endPos);
       elementParent.style.display = parentDisplayValue;
     }
   }
@@ -1254,8 +1250,9 @@ export function isOutsideInput(element: HTMLElement): boolean {
 export function selectElementIfAllowed(element: HTMLElement): void {
   const activeElement = element.ownerDocument.activeElement;
 
-  if (isHTMLElement(activeElement) && !isOutsideInput(activeElement)) {
-    (element as HTMLInputElement | HTMLTextAreaElement).select();
+  if (isHTMLElement(activeElement) && !isOutsideInput(activeElement) &&
+      (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+    element.select();
   }
 }
 

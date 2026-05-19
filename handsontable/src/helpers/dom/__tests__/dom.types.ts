@@ -62,6 +62,7 @@ import {
 } from 'handsontable/helpers/dom/event';
 
 const domElement = new HTMLElement();
+const inputElement = new HTMLInputElement();
 const domEvent = new Event('foo');
 const cssRule = new CSSRule();
 
@@ -78,7 +79,7 @@ closestDown(domElement, [domElement], domElement);
 empty(domElement);
 fastInnerHTML(domElement, 'foo');
 fastInnerText(domElement, 'foo');
-getCaretPosition(domElement);
+getCaretPosition(inputElement);
 getCssTransform(domElement);
 getFrameElement(window);
 getParent(domElement, 1);
@@ -92,7 +93,7 @@ getFractionalScalingCompensation();
 getFractionalScalingCompensation(document);
 getScrollbarWidth();
 getScrollbarWidth(document);
-getSelectionEndPosition(domElement);
+getSelectionEndPosition(inputElement);
 getSelectionText();
 getSelectionText(window);
 getStyle(domElement, 'foo');
@@ -129,7 +130,7 @@ removeClass(domElement, ['foo', 'bar']);
 removeEvent(domElement, 'foo', () => {});
 removeTextNodes(domElement);
 resetCssTransform(domElement);
-setCaretPosition(domElement, 0, 0);
+setCaretPosition(inputElement, 0, 0);
 setOverlayPosition(domElement, 0, 0);
 selectElementIfAllowed(domElement);
 stopImmediatePropagation(domEvent);

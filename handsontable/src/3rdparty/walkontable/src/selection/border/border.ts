@@ -180,31 +180,33 @@ class Border {
    *
    * @param {object} settings The border settings.
    */
-  createBorders(settings: Record<string, unknown>) {
+  createBorders(settings: BorderInstanceSettings) {
     const { rootDocument } = this.wot;
 
     this.main = rootDocument.createElement('div');
 
-    const borderDivs = ['top', 'start', 'bottom', 'end', 'corner'];
+    const borderDivs = ['top', 'start', 'bottom', 'end', 'corner'] as const;
     let style = this.main.style;
 
     style.position = 'absolute';
     style.top = '0';
     style.left = '0';
 
+    const createdDivs: HTMLDivElement[] = [];
+
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
       const getSettingsProperty = (property: string) => {
-        const posRec = this.settings[position] as Record<string, unknown>;
+        const posSettings = this.settings[position];
 
-        return (this.settings[position] && posRec[property])
-          ? posRec[property] : (settings.border as Record<string, unknown>)[property];
+        return (posSettings && posSettings[property])
+          ? posSettings[property] : settings.border?.[property];
       };
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
-      if (this.settings[position] && (this.settings[position] as Record<string, unknown>).hide) {
+      if (this.settings[position]?.hide) {
         div.className += ' hidden';
       }
 
@@ -229,19 +231,20 @@ class Border {
       style.height = `${getSettingsProperty('width')}px`;
       style.width = `${getSettingsProperty('width')}px`;
 
+      createdDivs.push(div);
       this.main.appendChild(div);
     }
-    this.top = this.main.childNodes[0] as HTMLElement;
-    this.start = this.main.childNodes[1] as HTMLElement;
-    this.bottom = this.main.childNodes[2] as HTMLElement;
-    this.end = this.main.childNodes[3] as HTMLElement;
+    this.top = createdDivs[0];
+    this.start = createdDivs[1];
+    this.bottom = createdDivs[2];
+    this.end = createdDivs[3];
 
     this.topStyle = this.top.style;
     this.startStyle = this.start.style;
     this.bottomStyle = this.bottom.style;
     this.endStyle = this.end.style;
 
-    this.corner = this.main.childNodes[4] as HTMLElement;
+    this.corner = createdDivs[4];
     this.corner.className += ' corner';
     this.cornerStyle = this.corner.style;
     this.cornerStyle.width = `${this.cornerDefaultStyle.width}px`;
@@ -284,10 +287,10 @@ class Border {
     const cellMobileHandleBorderColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-color');
 
     this.selectionHandles = {
-      top: rootDocument.createElement('DIV') as HTMLDivElement,
-      topHitArea: rootDocument.createElement('DIV') as HTMLDivElement,
-      bottom: rootDocument.createElement('DIV') as HTMLDivElement,
-      bottomHitArea: rootDocument.createElement('DIV') as HTMLDivElement,
+      top: rootDocument.createElement('div'),
+      topHitArea: rootDocument.createElement('div'),
+      bottom: rootDocument.createElement('div'),
+      bottomHitArea: rootDocument.createElement('div'),
       styles: {} as SelectionHandles['styles'],
     };
     const hitAreaWidth = 40;
@@ -413,9 +416,9 @@ class Border {
     bottomStyles.top = `${bottomHandlerTop}px`;
     bottomHitAreaStyles.top = `${bottomHandlerAreaTop}px`;
 
-    type CornerVisibleFn = (...args: unknown[]) => boolean;
+    const { cornerVisible } = this.settings.border;
 
-    if (this.settings.border.cornerVisible && (this.settings.border.cornerVisible as CornerVisibleFn)()) {
+    if (cornerVisible && typeof cornerVisible === 'function' && cornerVisible()) {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
@@ -494,6 +497,12 @@ class Border {
       }
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
+
+      if (!isHTMLElement(fromTD)) {
+        this.disappear();
+
+        return;
+      }
     } else {
 
       fromTD = wtTable.getCell(this.wot.createCellCoords(fromRow, fromColumn));
@@ -506,8 +515,8 @@ class Border {
     }
 
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
-    const fromTDEl = fromTD as HTMLElement;
-    const toTDEl = toTD as HTMLElement;
+    const fromTDEl = fromTD;
+    const toTDEl = isHTMLElement(toTD) ? toTD : fromTDEl;
     const fromOffset = offset(fromTDEl);
     const toOffset = isMultiple ? offset(toTDEl) : fromOffset;
     const containerOffset = offset(wtTable.TABLE);
@@ -537,7 +546,7 @@ class Border {
       let fromTH = null;
 
       if (modifiedValues) {
-        [fromTH, inlineStartPos, width] = modifiedValues as [HTMLElement, number, number];
+        [fromTH, inlineStartPos, width] = modifiedValues;
       }
 
       if (fromTH) {
@@ -554,7 +563,7 @@ class Border {
       let fromTH = null;
 
       if (modifiedValues) {
-        [fromTH, top, height] = modifiedValues as [HTMLElement, number, number];
+        [fromTH, top, height] = modifiedValues;
       }
 
       if (fromTH) {
@@ -732,7 +741,7 @@ class Border {
    */
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
-    containerOffset: { top: number; left: number }) {
+    containerOffset: { top: number; left: number }): false | [HTMLElement, number, number] {
     const { wtTable } = this.wot;
     const rootHotElement = wtTable.wtRootElement.parentNode as HTMLElement;
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
@@ -740,7 +749,7 @@ class Border {
     let entireSelectionClassname: string | null = null;
     let index: number | null = null;
     let dimension: number | null = null;
-    let dimensionProperty: string | null = null;
+    let dimensionProperty: 'top' | 'left' | null = null;
     let startHeader: HTMLElement | undefined | null = null;
     let endHeader: HTMLElement | undefined | null = null;
 
@@ -775,15 +784,12 @@ class Border {
 
       const startHeaderOffset = offset(startHeader);
       const endOffset = offset(endHeader);
+      const startOff = startHeaderOffset[dimensionProperty];
+      const endOff = endOffset[dimensionProperty];
+      const contOff = containerOffset[dimensionProperty];
 
-      if (startHeader && endHeader) {
-        const startOff = (startHeaderOffset as Record<string, number>)[dimensionProperty];
-        const endOff = (endOffset as Record<string, number>)[dimensionProperty];
-        const contOff = (containerOffset as Record<string, number>)[dimensionProperty];
-
-        index = startOff - contOff - 1;
-        dimension = endOff + dimensionFn(endHeader) - startOff;
-      }
+      index = startOff - contOff - 1;
+      dimension = endOff + dimensionFn(endHeader) - startOff;
 
       return [startHeader, index, dimension];
     }
@@ -798,17 +804,17 @@ class Border {
    * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {object} border The border object descriptor.
    */
-  changeBorderStyle(borderElement: string, border: Record<string, unknown>) {
-    const self = this as unknown as Record<string, HTMLElement>;
-    const style = self[borderElement].style;
+  changeBorderStyle(borderElement: 'top' | 'bottom' | 'start' | 'end', border: Record<string, unknown>) {
+    const element = this[borderElement];
+    const style = element.style;
     const borderStyle = border[borderElement] as Record<string, unknown>;
 
     if (!borderStyle || borderStyle.hide) {
-      addClass(self[borderElement], 'hidden');
+      addClass(element, 'hidden');
 
     } else {
-      if (hasClass(self[borderElement], 'hidden')) {
-        removeClass(self[borderElement], 'hidden');
+      if (hasClass(element, 'hidden')) {
+        removeClass(element, 'hidden');
       }
 
       style.backgroundColor = String(borderStyle.color ?? '');
@@ -829,12 +835,12 @@ class Border {
    * @private
    * @param {string} position The position type ("top", "bottom", "start", "end") to change.
    */
-  changeBorderToDefaultStyle(position: string) {
+  changeBorderToDefaultStyle(position: 'top' | 'bottom' | 'start' | 'end') {
     const defaultBorder = {
       width: 1,
       color: '#000',
     };
-    const style = (this as unknown as Record<string, HTMLElement>)[position].style;
+    const style = this[position].style;
 
     style.backgroundColor = defaultBorder.color;
     style.width = `${defaultBorder.width}px`;
@@ -848,15 +854,15 @@ class Border {
    * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
    * @param {boolean} [remove] Defines type of the action to perform.
    */
-  toggleHiddenClass(borderElement: string, remove: boolean) {
+  toggleHiddenClass(borderElement: 'top' | 'bottom' | 'start' | 'end', remove: boolean) {
     this.changeBorderToDefaultStyle(borderElement);
 
-    const self = this as unknown as Record<string, HTMLElement>;
+    const element = this[borderElement];
 
     if (remove) {
-      addClass(self[borderElement], 'hidden');
+      addClass(element, 'hidden');
     } else {
-      removeClass(self[borderElement], 'hidden');
+      removeClass(element, 'hidden');
     }
   }
 

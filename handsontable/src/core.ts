@@ -1881,10 +1881,10 @@ export default function Core(
    * @returns {Array}
    */
   function setDataInputToArray(
-    row: number | Array<Array<unknown>>, propOrCol: string | number, value: unknown
+    row: number | Array<[number, string | number, unknown]>, propOrCol: string | number, value: unknown
   ): Array<[number, string | number, unknown]> {
     if (Array.isArray(row)) { // it's an array of changes
-      return row as Array<[number, string | number, unknown]>;
+      return row;
     }
 
     return [[row, propOrCol, value]];
@@ -1941,7 +1941,7 @@ export default function Core(
    * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    */
   this.setDataAtCell = function(
-    row: number | Array<Array<unknown>>, column: number | string, value: string, source?: string
+    row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
   ) {
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
@@ -1951,7 +1951,7 @@ export default function Core(
     let prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
-      const [visualRow, visualColumn, newValue] = input[i] as [number, string | number, unknown];
+      const [visualRow, visualColumn, newValue] = input[i];
 
       if (typeof input[i] !== 'object') {
         throwWithCause('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
@@ -2005,7 +2005,7 @@ export default function Core(
    * @param {string} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
    */
   this.setDataAtRowProp = function(
-    row: number | Array<Array<unknown>>, prop: string | number, value: string, source?: string
+    row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
   ) {
     const input = setDataInputToArray(row, prop, value);
     const changes: CellChange[] = [];
@@ -2993,7 +2993,7 @@ export default function Core(
         const hook = settings[i];
 
         if (isFunction(hook)) {
-          Hooks.getSingleton().addAsFixed(i, hook as HookCallback, instance);
+          Hooks.getSingleton().addAsFixed(i, hook, instance);
           tableMeta[i] = hook;
 
         } else if (Array.isArray(hook)) {
@@ -3135,7 +3135,7 @@ export default function Core(
         if (columnSetting) {
           const column = isFunction(columnSetting)
             ? (columnSetting as (i: number) => Record<string, unknown>)(i)
-            : (columnSetting as Record<string, unknown>[])[j];
+            : columnSetting[j];
 
           if (column) {
             metaManager.updateColumnMeta(j, column);
@@ -3147,7 +3147,7 @@ export default function Core(
     }
 
     if (isDefined(settings.cell)) {
-      objectEach(settings.cell as unknown as Record<string, unknown>, (cell: Record<string, unknown>) => {
+      objectEach(settings.cell, (cell: Record<string, unknown>) => {
         instance.setCellMetaObject(cell.row, cell.col, cell);
       });
     }
@@ -3690,7 +3690,7 @@ export default function Core(
    */
   /* eslint-enable jsdoc/require-param */
   this.setSourceDataAtCell = function(
-    row: number | Array<Array<unknown>>, column: number | string, value: unknown, source: string
+    row: number | Array<[number, string | number, unknown]>, column: number | string, value: unknown, source: string
   ) {
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
@@ -4414,9 +4414,9 @@ export default function Core(
                (columns(prop) as Record<string, unknown>).title) {
       result = (columns(prop) as Record<string, unknown>).title;
 
-    } else if (columns && !isFunction(columns) && (columns as Record<string, unknown>[])[physicalColumn] &&
-               (columns as Record<string, unknown>[])[physicalColumn].title) {
-      result = (columns as Record<string, unknown>[])[physicalColumn].title;
+    } else if (columns && !isFunction(columns) && columns[physicalColumn] &&
+               columns[physicalColumn].title) {
+      result = columns[physicalColumn].title;
 
     } else if (Array.isArray(tableMeta.colHeaders) && tableMeta.colHeaders[physicalColumn] !== undefined) {
       result = tableMeta.colHeaders[physicalColumn];
