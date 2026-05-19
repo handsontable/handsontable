@@ -232,6 +232,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('modifyFocusedElement', (...args) => this.#onModifyFocusedElement(...args));
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdated);
 
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
@@ -277,26 +278,28 @@ export class NestedHeaders extends BasePlugin {
       // This line covers the case when a developer uses the external hiding maps to manipulate
       // the columns' visibility. The tree state built from the settings - which is always built
       // as if all the columns are visible, needs to be modified to be in sync with a dataset.
-      this.hot.columnIndexMapper
-        .hidingMapsCollection
-        .getMergedValues()
-        .forEach((isColumnHidden, physicalColumnIndex) => {
-          const actionName = isColumnHidden === true ? 'hide-column' : 'show-column';
-
-          this.#stateManager.triggerColumnModification(actionName, physicalColumnIndex);
-        });
+      this.#syncHiddenColumnsFromMapper();
     }
 
     if (!this.#hidingIndexMapObserver && this.enabled) {
       this.#hidingIndexMapObserver = this.hot.columnIndexMapper
         .createChangesObserver('hiding')
         .subscribe((changes) => {
-          changes.forEach(({ op, index: columnIndex, newValue }) => {
-            if (op === 'replace') {
-              const actionName = newValue === true ? 'hide-column' : 'show-column';
-
-              this.#stateManager.triggerColumnModification(actionName, columnIndex);
+          changes.forEach(({ op, index: physicalColumnIndex, newValue }) => {
+            if (op !== 'replace') {
+              return;
             }
+
+            const visualColumnIndex = this.hot.columnIndexMapper
+              .getVisualFromPhysicalIndex(physicalColumnIndex);
+
+            if (visualColumnIndex === null) {
+              return;
+            }
+
+            const actionName = newValue === true ? 'hide-column' : 'show-column';
+
+            this.#stateManager.triggerColumnModification(actionName, visualColumnIndex);
           });
 
           this.ghostTable.buildWidthsMap();
@@ -316,6 +319,8 @@ export class NestedHeaders extends BasePlugin {
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.columnIndexMapper
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
+    this.hot.columnIndexMapper
+      .removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdated);
 
     this.clearColspans();
     this.#stateManager.clear();
@@ -1340,6 +1345,51 @@ export class NestedHeaders extends BasePlugin {
       return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true);
     }
   }
+
+  /**
+   * Synchronizes the nested-headers tree hide state with the column index mapper.
+   * The hiding map is indexed by physical column; the state manager operates on
+   * visual column indexes. The mapping between the two can change at runtime when
+   * columns are moved, so this method walks all currently-known physical indexes,
+   * translates each to its visual position, and applies the matching hide/show
+   * action on the tree.
+   */
+  #syncHiddenColumnsFromMapper() {
+    const { columnIndexMapper } = this.hot;
+
+    columnIndexMapper
+      .hidingMapsCollection
+      .getMergedValues()
+      .forEach((isColumnHidden, physicalColumnIndex) => {
+        const visualColumnIndex = columnIndexMapper.getVisualFromPhysicalIndex(physicalColumnIndex);
+
+        if (visualColumnIndex === null) {
+          return;
+        }
+
+        const actionName = isColumnHidden === true ? 'hide-column' : 'show-column';
+
+        this.#stateManager.triggerColumnModification(actionName, visualColumnIndex);
+      });
+  }
+
+  /**
+   * Re-syncs the nested-headers hide state when the column index mapper reports
+   * a sequence change (for example, after `manualColumnMove`). The "hiding" change
+   * observer only fires on hidden/visible value changes, so a move that does not
+   * change which physical columns are hidden would otherwise leave the tree state
+   * pointing at stale visual indexes.
+   *
+   * @param {object} payload The `cacheUpdated` payload.
+   * @param {boolean} payload.indexesSequenceChanged True when the column order changed.
+   */
+  #onColumnIndexMapperCacheUpdated = ({ indexesSequenceChanged }) => {
+    if (!indexesSequenceChanged) {
+      return;
+    }
+
+    this.#syncHiddenColumnsFromMapper();
+  };
 
   /**
    * Updates the plugin state after HoT initialization.
