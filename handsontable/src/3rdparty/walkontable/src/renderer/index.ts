@@ -30,7 +30,9 @@ interface RendererOptions {
 class Renderer {
   declare renderer: TableRenderer;
 
-  constructor({ TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler }: RendererOptions = {}) {
+  constructor({
+    TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler
+  }: RendererOptions = {}) {
     /**
      * General renderer class used to render Walkontable content on screen.
      *
