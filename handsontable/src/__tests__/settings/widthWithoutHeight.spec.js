@@ -110,6 +110,76 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
       expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
     });
+
+    it('should not leave a stale overflowX:clip after partial width update on a height-set table followed by height removal and width auto', async() => {
+      // Regression guard: partial `updateSettings({ width })` when height is already set must
+      // not add an explicit `overflow-x: clip` that outlives the height. If it does, the clip
+      // persists even after height is removed and width becomes `auto`.
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 200,
+        height: 300,
+      });
+
+      await updateSettings({ width: 400 }); // partial: only width, height stays in HOT settings
+      await updateSettings({ height: null }); // remove height
+      await updateSettings({ width: 'auto' }); // auto width → no constrained boundary
+
+      expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+    });
+
+    it('should clip when `height` is reset via partial `updateSettings` without changing `width`', async() => {
+      const hot = handsontable({
+        data: createSpreadsheetData(100, 30),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 200,
+        height: 300,
+      });
+
+      await updateSettings({ height: null });
+
+      expect($(hot.rootElement).width()).toBeAroundValue(200, 1);
+      expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+    });
+
+    it('should clear clip when `width` changes to `auto` on a table without height', async() => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 200,
+      });
+
+      expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+
+      await updateSettings({ width: 'auto' });
+
+      expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+    });
+
+    it('should keep overflowX:clip through a width-only → height-added → height-removed cycle', async() => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        width: 200,
+      });
+
+      // State C: width set, no height → clip must be active
+      expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+
+      // State A: add height → height block sets `overflow: clip` shorthand; our code must
+      // not break that shorthand by unconditionally clearing overflow-x
+      await updateSettings({ height: 300 });
+      expect(hot.rootElement.style.overflow).toBe('clip');
+
+      // State C again: remove height → overflowX:clip must be restored
+      await updateSettings({ height: null });
+      expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+    });
   });
 });
 
