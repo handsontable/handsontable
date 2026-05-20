@@ -29,8 +29,8 @@ This tutorial shows how to wire Handsontable's `dataProvider` plugin to a [Ruby 
   View full example on GitHub
 </a>
 
-**Difficulty:** Intermediate  
-**Time:** ~30 minutes  
+**Difficulty:** Intermediate
+**Time:** ~30 minutes
 **Backend:** Ruby 3.2+, Rails 7.1+, `kaminari` for pagination, `rack-cors` for CORS
 
 ## What you'll build
@@ -362,10 +362,18 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
   }
 
   if (filters?.length) {
-    filters.forEach(({ prop, value, condition }, i) => {
-      params.set(`filters[${i}][prop]`, prop);
-      params.set(`filters[${i}][value]`, value);
-      params.set(`filters[${i}][condition]`, condition);
+    filters.forEach((filter, i) => {
+      const condition = filter.conditions[0];
+
+      params.set(`filters[${i}][prop]`, filter.prop);
+
+      if (condition?.name) {
+        params.set(`filters[${i}][condition]`, condition.name);
+      }
+
+      if (condition?.args?.[0] != null) {
+        params.set(`filters[${i}][value]`, String(condition.args[0]));
+      }
     });
   }
 
@@ -377,79 +385,44 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
 
 - `pageSize` is converted to `page_size` because Rails and kaminari use snake_case parameter names.
 - `sort` is split into two flat params, `sort_prop` and `sort_order`. The controller's `apply_sort` reads them directly.
-- Each filter condition becomes a `filters[N][prop]`, `filters[N][value]`, `filters[N][condition]` triplet. Rails converts the bracket notation to a nested hash automatically.
+- Each active filter column becomes a `filters[N][prop]`, `filters[N][condition]`, and `filters[N][value]` triplet. `dataProvider` passes `conditions[0].name` and `conditions[0].args[0]` from the Filters plugin; map those to the flat params Rails expects. Rails converts the bracket notation to a nested hash automatically.
 
-## Step 10 -- Initialize Handsontable
+## Step 10 -- Wire up Handsontable
 
-Wire everything into `dataProvider`:
+With the server running (`rails server`) and the database seeded, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
 
-```javascript
-const hot = new Handsontable(container, {
-  dataProvider: {
-    rowId: 'id',
+::: only-for javascript vue
 
-    fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
-      const url = buildUrl('http://localhost:3000/api/orders', {
-        page, pageSize, sort, filters,
-      });
-      const res = await fetch(url, { signal });
+::: example #example1 :hot-recipe --js 1 --ts 2
 
-      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+@[code collapse={14-109}](@/content/recipes/data-management/server-side-rails/javascript/example1.js)
+@[code collapse={14-137}](@/content/recipes/data-management/server-side-rails/javascript/example1.ts)
 
-      const json = await res.json();
+:::
 
-      // Rails returns snake_case; dataProvider expects camelCase for totalRows.
-      return { rows: json.rows, totalRows: json.total_rows };
-    },
+:::
 
-    onRowsCreate: async (rows) => {
-      const res = await fetch('http://localhost:3000/api/orders/create_rows', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows }),
-      });
-      const json = await res.json();
+::: only-for react
 
-      return json.rows; // dataProvider updates its row map with server-assigned ids
-    },
+::: example #example1 :react-advanced --js 1 --ts 2
 
-    onRowsUpdate: async (rows) => {
-      await fetch('http://localhost:3000/api/orders/update_rows', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rows: rows.map((r) => ({ id: r.id, changes: r })) }),
-      });
-    },
+@[code collapse={14-135}](@/content/recipes/data-management/server-side-rails/react/example1.jsx)
+@[code collapse={14-149}](@/content/recipes/data-management/server-side-rails/react/example1.tsx)
 
-    onRowsRemove: async (rowIds) => {
-      await fetch('http://localhost:3000/api/orders/remove_rows', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ row_ids: rowIds }),
-      });
-    },
-  },
+:::
 
-  pagination:     { pageSize: 10 },
-  columnSorting:  true,
-  filters:        true,
-  dropdownMenu:   ['filter_by_condition', 'filter_action_bar'],
-  emptyDataState: true,
-  notification:   true,
+:::
 
-  colHeaders: ['Order #', 'Customer', 'Status', 'Total', 'Created'],
-  columns: [
-    { data: 'order_number', type: 'text' },
-    { data: 'customer',     type: 'text' },
-    { data: 'status',       type: 'text' },
-    { data: 'total',        type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
-    { data: 'created_at',   type: 'date', dateFormat: 'YYYY-MM-DD', readOnly: true },
-  ],
+::: only-for angular
 
-  rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
+::: example #example1 :angular --ts 1 --html 2
+
+@[code collapse={7-152}](@/content/recipes/data-management/server-side-rails/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-rails/angular/example1.html)
+
+:::
+
+:::
 
 **Key options explained:**
 
