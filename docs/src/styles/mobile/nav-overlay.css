@@ -49,13 +49,14 @@
 }
 
 .mobile-nav-link:hover {
-  color: var(--sl-color-white);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  color: var(--sl-color-text);
+  background: var(--sl-color-accent-low, var(--sl-color-gray-6));
 }
 
-.mobile-nav-link--active {
-  color: var(--sl-color-white);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+.mobile-nav-link--active,
+.mobile-nav-link--active:hover {
+  color: var(--sl-color-text);
+  background: transparent;
   border-inline-start: 2px solid var(--sl-color-accent);
 }
 
@@ -106,12 +107,13 @@
 }
 
 .mobile-nav-fw:hover {
-  color: var(--sl-color-white);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  color: var(--sl-color-text);
+  background: var(--sl-color-accent-low, var(--sl-color-gray-6));
 }
 
-.mobile-nav-fw--active {
-  color: var(--sl-color-white);
+.mobile-nav-fw--active,
+.mobile-nav-fw--active:hover {
+  color: var(--sl-color-text);
   border-bottom-color: var(--sl-color-accent);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  background: transparent;
 }

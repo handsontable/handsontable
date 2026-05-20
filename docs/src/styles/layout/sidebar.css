@@ -76,10 +76,13 @@
 /* -------------------------------------------------------------------------
  * Active sidebar link & TOC link — accent text + blue accent bar
  * ------------------------------------------------------------------------- */
-.sidebar-pane a[aria-current='page'] {
-  color: var(--sl-color-white) !important;
-  border-color: var(--sl-color-accent) !important;
-  font-weight: 400 !important;
+.sidebar-pane a[aria-current='page'],
+.sidebar-pane a[aria-current='page']:hover,
+.sidebar-pane a[aria-current='page']:focus {
+  color: var(--sl-color-text) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  font-weight: 600 !important;
 }
 
 /* Main nav active link — no bold */
@@ -107,8 +110,11 @@ nav[aria-label="Main navigation"] a[aria-current='page'] {
   line-height: 20px;
 }
 
-starlight-toc a[aria-current='true'] {
-  color: var(--sl-color-white) !important;
+starlight-toc a[aria-current='true'],
+starlight-toc a[aria-current='true']:hover,
+starlight-toc a[aria-current='true']:focus {
+  color: var(--sl-color-text) !important;
+  background-color: transparent !important;
   border-color: var(--sl-color-accent) !important;
 }
 
