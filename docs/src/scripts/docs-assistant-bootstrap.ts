@@ -29,7 +29,10 @@ async function ensureMounted(): Promise<void> {
   mountInFlight = (async () => {
     let container = document.getElementById(CONTAINER_ID);
     if (!container || !document.body.contains(container)) {
-      root = null;
+      if (root) {
+        root.unmount();
+        root = null;
+      }
       container = document.createElement('div');
       container.id = CONTAINER_ID;
       document.body.appendChild(container);
@@ -47,7 +50,10 @@ async function ensureMounted(): Promise<void> {
     }
   })()
     .catch((err) => {
-      root = null;
+      if (root) {
+        root.unmount();
+        root = null;
+      }
       console.error('docs-assistant: failed to mount', err);
     })
     .finally(() => {
