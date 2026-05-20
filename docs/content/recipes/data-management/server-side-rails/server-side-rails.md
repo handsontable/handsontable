@@ -58,7 +58,7 @@ Install the JavaScript dependency:
 npm install handsontable
 ```
 
-## Step 1 -- Add the Ruby gems
+## Step 1: Add the Ruby gems
 
 Add `kaminari` (pagination) and `rack-cors` (cross-origin requests) to the `Gemfile`:
 
@@ -79,7 +79,7 @@ bundle install
 - `kaminari` gives you a `.page(n).per(size)` query method on any ActiveRecord relation. It also exposes `total_count`, which you return to Handsontable as `totalRows`.
 - `rack-cors` lets the Rails API accept requests from a different origin than the frontend dev server. Without it, the browser blocks the requests before Rails sees them.
 
-## Step 2 -- Generate the `Order` model
+## Step 2: Generate the `Order` model
 
 Use the generator to create the model, the migration, and a matching controller file:
 
@@ -98,7 +98,7 @@ The generated migration adds `id` and `created_at` / `updated_at` columns automa
 
 See `server/order.rb` for a minimal model with validations and a `status` enum.
 
-## Step 3 -- Seed the database
+## Step 3: Seed the database
 
 Add realistic seed data in `db/seeds.rb` (see `server/seeds.rb` in this recipe), then run:
 
@@ -108,7 +108,7 @@ rails db:seed
 
 The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `cancelled`). It checks whether data already exists, so running it twice does not duplicate rows.
 
-## Step 4 -- Configure the routes
+## Step 4: Configure the routes
 
 Open `config/routes.rb` and register the orders resource inside an `api` namespace:
 
@@ -141,7 +141,7 @@ The three resulting routes are:
 | `PATCH` | `/api/orders/update_rows` | `update_rows` |
 | `DELETE` | `/api/orders/remove_rows` | `remove_rows` |
 
-## Step 5 -- Configure CORS
+## Step 5: Configure CORS
 
 Create `config/initializers/cors.rb`:
 
@@ -168,7 +168,7 @@ end
 
 **Production note:** Never use `origins "*"` in production. Pin the list to the exact domains that own your Handsontable deployment.
 
-## Step 6 -- Decide on the case convention
+## Step 6: Decide on the case convention
 
 Rails emits snake_case JSON by default (`order_number`, `created_at`). Handsontable's column `data` keys must match whatever the server returns.
 
@@ -193,7 +193,7 @@ Then use `data: 'orderNumber'` on the frontend and also translate the `sort_prop
 
 The rest of this recipe uses Option A (snake_case everywhere).
 
-## Step 7 -- Build the controller
+## Step 7: Build the controller
 
 Create `app/controllers/api/orders_controller.rb`. This single file implements paginated `index`, server-side sort and filter, and the three batch CRUD actions.
 
@@ -334,7 +334,7 @@ end
 
 The full controller file lives at `server/orders_controller.rb`.
 
-## Step 8 -- CSRF in API mode
+## Step 8: CSRF in API mode
 
 `ApplicationController` in API mode inherits from `ActionController::API`, which does not include `RequestForgeryProtection`. That means CSRF verification is **off by default** for this project, and `fetch()` requests from the browser do not need an `X-CSRF-Token` header.
 
@@ -345,7 +345,7 @@ The full controller file lives at `server/orders_controller.rb`.
 
 This recipe assumes a stateless API and an `Authorization` header (or no auth) in production. Add `protect_from_forgery with: :null_session` inside the controller only if you re-enable session-based auth.
 
-## Step 9 -- Build the request URL on the frontend
+## Step 9: Build the request URL on the frontend
 
 Handsontable's `dataProvider` calls `fetchRows` with `{ page, pageSize, sort, filters }`. Map those to the Rails parameter names:
 
@@ -387,7 +387,7 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
 - `sort` is split into two flat params, `sort_prop` and `sort_order`. The controller's `apply_sort` reads them directly.
 - Each active filter column becomes a `filters[N][prop]`, `filters[N][condition]`, and `filters[N][value]` triplet. `dataProvider` passes `conditions[0].name` and `conditions[0].args[0]` from the Filters plugin; map those to the flat params Rails expects. Rails converts the bracket notation to a nested hash automatically.
 
-## Step 10 -- Wire up Handsontable
+## Step 10: Wire up Handsontable
 
 With the server running (`rails server`) and the database seeded, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
 
