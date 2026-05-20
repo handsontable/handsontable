@@ -44,23 +44,18 @@ const USERS_QUERY = `
   imports: [HotTableModule],
   selector: 'example2-load-data-graphql',
   template: `
-    <div>
-      <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
-        <p
-          style="margin: 0; font-family: Arial, sans-serif; font-size: 14px;"
-          [style.color]="hasError ? '#c62828' : '#202124'"
-        >
-          {{ status }}
-        </p>
+    <div class="example-controls-container">
+      <div class="controls">
         @if (showRefresh && !hasError) {
-          <button type="button" (click)="refreshUsers()" style="margin-bottom: 0">Refresh</button>
+          <button type="button" (click)="refreshUsers()">Refresh</button>
         }
         @if (hasError) {
-          <button type="button" (click)="initialLoad()" style="margin-bottom: 0">Retry</button>
+          <button type="button" (click)="initialLoad()">Retry</button>
         }
       </div>
-      <hot-table [settings]="gridSettings"></hot-table>
+      <output [class.is-error]="hasError">{{ status }}</output>
     </div>
+    <hot-table [settings]="gridSettings"></hot-table>
   `,
 })
 export class AppComponent implements AfterViewInit {
