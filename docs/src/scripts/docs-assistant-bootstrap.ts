@@ -2,29 +2,77 @@
  * Docs assistant bootstrap: mounts the React chat widget into a single
  * container appended to document.body. Lives on every docs page via the
  * Head.astro override.
+ *
+ * Re-mounts after Astro client navigations (astro:page-load) when the
+ * container is missing from the swapped document.
  */
+
+import type { Root } from 'react-dom/client';
 
 const CONTAINER_ID = 'docs-assistant-root';
 
-async function mount() {
+let root: Root | null = null;
+let mountInFlight: Promise<void> | null = null;
+
+async function ensureMounted(): Promise<void> {
   if (typeof document === 'undefined') return;
-  if (document.getElementById(CONTAINER_ID)) return;
 
-  const container = document.createElement('div');
-  container.id = CONTAINER_ID;
-  document.body.appendChild(container);
+  const existing = document.getElementById(CONTAINER_ID);
+  if (root && existing && document.body.contains(existing)) {
+    return;
+  }
 
-  const [{ createRoot }, { createElement }, { DocsAssistantWidget }] = await Promise.all([
-    import('react-dom/client'),
-    import('react'),
-    import('../components/DocsAssistant/DocsAssistantWidget'),
-  ]);
+  if (mountInFlight) {
+    return mountInFlight;
+  }
 
-  createRoot(container).render(createElement(DocsAssistantWidget));
+  mountInFlight = (async () => {
+    let container = document.getElementById(CONTAINER_ID);
+    if (!container || !document.body.contains(container)) {
+      root = null;
+      container = document.createElement('div');
+      container.id = CONTAINER_ID;
+      document.body.appendChild(container);
+    }
+
+    const [{ createRoot }, { createElement }, { DocsAssistantWidget }] = await Promise.all([
+      import('react-dom/client'),
+      import('react'),
+      import('../components/DocsAssistant/DocsAssistantWidget'),
+    ]);
+
+    if (!root) {
+      root = createRoot(container);
+      root.render(createElement(DocsAssistantWidget));
+    }
+  })()
+    .catch((err) => {
+      root = null;
+      console.error('docs-assistant: failed to mount', err);
+    })
+    .finally(() => {
+      mountInFlight = null;
+    });
+
+  return mountInFlight;
 }
 
+declare global {
+  interface Window {
+    docsAssistantEnsureMounted?: () => Promise<void>;
+  }
+}
+
+window.docsAssistantEnsureMounted = ensureMounted;
+
+function onPageLoad() {
+  void ensureMounted();
+}
+
+document.addEventListener('astro:page-load', onPageLoad);
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mount, { once: true });
+  document.addEventListener('DOMContentLoaded', onPageLoad, { once: true });
 } else {
-  mount();
+  onPageLoad();
 }
