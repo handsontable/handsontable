@@ -29,8 +29,8 @@ This tutorial shows how to wire Handsontable's `dataProvider` plugin to a [Djang
   View full example on GitHub
 </a>
 
-**Difficulty:** Intermediate  
-**Time:** ~30 minutes  
+**Difficulty:** Intermediate
+**Time:** ~30 minutes
 **Backend:** Python 3.11+, Django 4+, Django REST Framework 3.14+
 
 ## What you'll build
@@ -57,7 +57,7 @@ Install the JavaScript dependency:
 npm install handsontable
 ```
 
-## Step 1 -- Set up the Django app
+## Step 1: Set up the Django app
 
 Create a Django project and a `employees` app:
 
@@ -66,7 +66,7 @@ django-admin startproject myproject .
 python manage.py startapp employees
 ```
 
-**Why a separate app?**  
+**Why a separate app?**
 Django apps are self-contained modules. Keeping the employee model, serializer, and views in one app makes the code easier to extend and test independently.
 
 Register the app and required packages in `settings.py`:
@@ -81,7 +81,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-## Step 2 -- Define the Employee model
+## Step 2: Define the Employee model
 
 Create the model in `employees/models.py`:
 
@@ -113,7 +113,7 @@ python manage.py makemigrations employees
 python manage.py migrate
 ```
 
-## Step 3 -- Seed the database
+## Step 3: Seed the database
 
 Create the seed command file at `employees/management/commands/seed.py` (see `server/seed_command.py` in this recipe) and run it:
 
@@ -123,7 +123,7 @@ python manage.py seed
 
 The command inserts 50 realistic employee records. It checks whether data already exists, so running it twice does not duplicate rows.
 
-## Step 4 -- Write the serializer
+## Step 4: Write the serializer
 
 Create `employees/serializers.py`:
 
@@ -145,7 +145,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 - `id` is read-only because the database assigns it -- the frontend never sends one for new rows.
 - The `fields` list controls which columns appear in the API response and therefore which columns Handsontable receives.
 
-## Step 5 -- Configure pagination
+## Step 5: Configure pagination
 
 Create `employees/pagination.py`:
 
@@ -174,7 +174,7 @@ DRF's default response shape is `{ count, next, previous, results }`. Handsontab
 
 Handsontable sends `?pageSize=10` automatically. DRF's default param name is `page_size`. Setting `page_size_query_param = 'pageSize'` lets DRF read Handsontable's value directly, so no URL translation is needed in `fetchRows`.
 
-## Step 6 -- Write the ViewSet
+## Step 6: Write the ViewSet
 
 Create `employees/views.py`. The key parts are the sort translation and the three batch CRUD actions.
 
@@ -291,7 +291,7 @@ def remove_rows(self, request):
 
 Deleting N rows individually requires N requests. A single batch request is faster and reduces network round trips.
 
-## Step 7 -- Register URLs
+## Step 7: Register URLs
 
 Create `employees/urls.py`:
 
@@ -321,7 +321,7 @@ urlpatterns = [
 
 `DefaultRouter` generates all standard and custom action URLs automatically. You can verify the registered routes by visiting `http://localhost:8000/api/` in a browser.
 
-## Step 8 -- Configure CORS
+## Step 8: Configure CORS
 
 The browser blocks cross-origin requests by default. Add `django-cors-headers` to allow requests from the frontend development server:
 
@@ -339,12 +339,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 ```
 
-**Why must `CorsMiddleware` come before `CommonMiddleware`?**  
+**Why must `CorsMiddleware` come before `CommonMiddleware`?**
 `CorsMiddleware` needs to intercept the preflight `OPTIONS` request before Django's routing logic handles it. Placing it after `CommonMiddleware` can result in missing CORS headers on preflight responses.
 
 **Production note:** Replace the dev server origins with your actual production domain. Never set `CORS_ALLOW_ALL_ORIGINS = True` in production.
 
-## Step 9 -- Handle CSRF in the frontend
+## Step 9: Handle CSRF in the frontend
 
 Django protects mutating endpoints with a CSRF token. It sets a `csrftoken` cookie on every response. Read it and include it in the `X-CSRFToken` header for every `POST`, `PATCH`, or `DELETE` request:
 
@@ -366,10 +366,10 @@ headers: {
 },
 ```
 
-**Why a cookie instead of a hidden form field?**  
+**Why a cookie instead of a hidden form field?**
 Handsontable uses `fetch()`, not HTML form submission. Reading the token from the cookie (SameSite + CSRF double-submit pattern) works with any JavaScript HTTP client without server-side template changes.
 
-## Step 10 -- Build the URL for fetchRows
+## Step 10: Build the URL for fetchRows
 
 Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, filters }` object. Translate these into query string parameters:
 
@@ -403,7 +403,7 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
 - `sort` is split into `sort[prop]` and `sort[order]`. The Django view reassembles them into DRF's `ordering` param (see Step 6).
 - Each filter condition becomes a `filters[N][prop]`, `filters[N][value]`, `filters[N][condition]` triplet. The Django view parses this indexed format in a loop.
 
-## Step 11 -- Initialize Handsontable
+## Step 11: Initialize Handsontable
 
 Wire everything together in the `dataProvider` configuration:
 
