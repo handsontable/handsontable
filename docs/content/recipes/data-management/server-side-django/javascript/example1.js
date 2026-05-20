@@ -1,24 +1,7 @@
 import Handsontable from 'handsontable/base';
-import {
-  registerPlugin,
-  DataProvider,
-  DropdownMenu,
-  Filters,
-  ColumnSorting,
-  Pagination,
-  EmptyDataState,
-  Notification,
-} from 'handsontable/plugins';
-import { registerAllCellTypes } from 'handsontable/cellTypes';
+import { registerAllModules } from 'handsontable/registry';
 
-registerPlugin(DataProvider);
-registerPlugin(DropdownMenu);
-registerPlugin(Filters);
-registerPlugin(ColumnSorting);
-registerPlugin(Pagination);
-registerPlugin(EmptyDataState);
-registerPlugin(Notification);
-registerAllCellTypes();
+registerAllModules();
 
 // ---------------------------------------------------------------------------
 // Step 1: Read Django's CSRF token from the cookie.
@@ -81,6 +64,10 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
 // the previous request completes.
 // ---------------------------------------------------------------------------
 const container = document.querySelector('#example1');
+
+if (!container) {
+  throw new Error('Missing #example1 element.');
+}
 
 const hot = new Handsontable(container, {
   dataProvider: {

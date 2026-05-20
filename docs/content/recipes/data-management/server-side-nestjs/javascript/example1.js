@@ -191,7 +191,7 @@ const hotOptions = {
   ],
 
   rowHeaders: true,
-  height: 'auto',
+  height: 360,
   width: '100%',
   autoWrapRow: true,
   licenseKey: 'non-commercial-and-evaluation',

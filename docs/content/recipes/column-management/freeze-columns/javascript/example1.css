@@ -1,8 +1,5 @@
-.freeze-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+.example-controls-container .controls + .controls {
+  margin-top: 0.5rem;
 }
 
 .freeze-controls__freeze-btns {

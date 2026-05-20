@@ -38,9 +38,6 @@ function readInitialWidth(): number {
   }
 }
 
-/** IDs of the header buttons rendered by Header.astro */
-const HEADER_BTN_IDS = ['header-assistant-btn', 'mobile-assistant-btn'];
-
 export function DocsAssistantWidget() {
   const [open, setOpen] = useState<boolean>(() => readInitialOpen());
   const [width, setWidth] = useState<number>(() => readInitialWidth());
@@ -65,28 +62,25 @@ export function DocsAssistantWidget() {
     }
   }, [width]);
 
-  // Listen for clicks on the header buttons (outside React tree)
+  // Header buttons dispatch `docs-assistant:toggle` from Header.astro (re-bound on
+  // astro:after-swap). ToC uses document delegation because PageSidebar can swap too.
   useEffect(() => {
-    const toggle = () => setOpen((v) => !v);
-    const btns = HEADER_BTN_IDS.map((id) => document.getElementById(id)).filter(Boolean);
-    btns.forEach((btn) => btn!.addEventListener('click', toggle));
-    return () => {
-      btns.forEach((btn) => btn!.removeEventListener('click', toggle));
-    };
+    const onToggle = () => setOpen((v) => !v);
+    window.addEventListener('docs-assistant:toggle', onToggle);
+    return () => window.removeEventListener('docs-assistant:toggle', onToggle);
   }, []);
 
-  // "Ask AI about this page" button in ToC — clears chat and pre-fills draft
   useEffect(() => {
-    const tocBtn = document.getElementById('toc-assistant-btn');
-    if (!tocBtn) return;
-    const handleAskAboutPage = () => {
+    const onClick = (e: MouseEvent) => {
+      const tocBtn = (e.target as HTMLElement).closest('#toc-assistant-btn');
+      if (!tocBtn) return;
       const pageTitle = tocBtn.getAttribute('data-page-title') || document.title;
       clear();
       setPendingDraft(`I have a question about the "${pageTitle}" page.\n`);
       setOpen(true);
     };
-    tocBtn.addEventListener('click', handleAskAboutPage);
-    return () => tocBtn.removeEventListener('click', handleAskAboutPage);
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
   }, [clear]);
 
   // "Ask AI about this API" buttons on API reference pages — opens assistant
