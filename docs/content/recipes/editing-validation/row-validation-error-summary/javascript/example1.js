@@ -25,14 +25,33 @@ const validationRules = {
         return !Number.isNaN(n) && n > 0 ? null : "Unit price must be greater than 0";
     },
 };
-const container = document.querySelector("#example1");
-const summaryList = document.querySelector("#validation-summary");
-const submitBtn = document.querySelector("#submit-orders");
 const invalidCells = new Set();
 let lastIssues = [];
 function cellKey(row, col) {
     return `${row}:${col}`;
 }
+const container = document.querySelector("#example1");
+const toolbar = document.createElement("div");
+toolbar.className = "example-controls-container";
+const controlsRow = document.createElement("div");
+controlsRow.className = "controls";
+const submitBtn = document.createElement("button");
+submitBtn.type = "button";
+submitBtn.textContent = "Submit orders";
+controlsRow.appendChild(submitBtn);
+toolbar.appendChild(controlsRow);
+container.before(toolbar);
+const summaryEl = document.createElement("div");
+summaryEl.className = "example-controls-container validation-summary";
+summaryEl.setAttribute("aria-live", "polite");
+const summaryTitle = document.createElement("p");
+summaryTitle.className = "validation-summary__title";
+summaryTitle.textContent = "Validation issues";
+const summaryList = document.createElement("ul");
+summaryList.className = "validation-summary__list";
+summaryEl.appendChild(summaryTitle);
+summaryEl.appendChild(summaryList);
+container.after(summaryEl);
 function renderSummary(issues) {
     summaryList.innerHTML = issues
         .map((issue) => `<li>Row ${issue.row + 1}, ${COLUMN_LABELS[issue.col]}: ${issue.message}</li>`)
