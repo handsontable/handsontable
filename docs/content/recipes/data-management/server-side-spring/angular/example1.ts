@@ -1,7 +1,19 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ViewEncapsulation,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
+import type {
+  DataProviderQueryParameters,
+  DataProviderFetchOptions,
+  RowsCreatePayload,
+  RowUpdatePayload,
+  RowMutationPayload,
+  RowMutationRemovePayload,
+} from 'handsontable/plugins/dataProvider';
 import type { SourceRowData } from 'handsontable/common';
 
 function buildUrl(base: string, params: Record<string, unknown>): string {
@@ -18,7 +30,9 @@ function buildUrl(base: string, params: Record<string, unknown>): string {
 
 @Component({
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [HotTableModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   selector: 'example1-server-side-spring',
   template: `
     <div>
@@ -29,6 +43,8 @@ function buildUrl(base: string, params: Record<string, unknown>): string {
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  private removeConfirmed = false;
+
   readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
@@ -38,6 +54,50 @@ export class AppComponent {
       onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
       onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
     },
+
+    // beforeRowsMutation is sync (checks for a strict `=== false` return), so
+    // we can't await an async prompt inline. Instead: cancel the original
+    // attempt, show a notification with Delete/Cancel actions, and on Delete
+    // re-issue the remove via the DataProvider API. The flag lets the second
+    // pass through without re-prompting.
+    beforeRowsMutation: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload): false | void => {
+      if (operation === 'remove' && !this.removeConfirmed) {
+        const { rowsRemove } = payload as RowMutationRemovePayload;
+        const hot = this.hotTable.hotInstance!;
+        const count = rowsRemove.length;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const notification = (hot.getPlugin('notification') as any);
+        const id = notification.showMessage({
+          variant: 'warning',
+          title: 'Delete rows',
+          message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+          duration: 0,
+          actions: [
+            {
+              label: 'Delete',
+              type: 'primary',
+              callback: () => {
+                notification.hide(id);
+                this.removeConfirmed = true;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (hot.getPlugin('dataProvider') as any)
+                  .removeRows(rowsRemove)
+                  .finally(() => {
+                    this.removeConfirmed = false;
+                  });
+              },
+            },
+            {
+              label: 'Cancel',
+              type: 'secondary',
+              callback: () => notification.hide(id),
+            },
+          ],
+        });
+        return false;
+      }
+    },
+
     columns: [
       { data: 'id', title: 'ID', readOnly: true, width: 60 },
       { data: 'name', title: 'Name', width: 200 },
@@ -59,6 +119,7 @@ export class AppComponent {
     columnSorting: true,
     filters: true,
     dropdownMenu: true,
+    contextMenu: true,
     pagination: { pageSize: 10 },
     emptyDataState: true,
     notification: true,
@@ -74,33 +135,49 @@ export class AppComponent {
     });
 
     const res = await fetch(url, { signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
 
     return { rows: json.rows, totalRows: json.totalRows };
   }
 
-  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
-    await fetch('/api/products/create-rows', {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<SourceRowData[]> {
+    const res = await fetch('/api/products/create-rows', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json() as Array<{ id: number }>;
+    const info = data.map((r: { id: number }) => `(id: ${r.id})`).join(', ');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.hotTable.hotInstance!.getPlugin('notification') as any).showMessage({
+      variant: 'success',
+      title: 'Row added',
+      message: `Created: ${info}`,
+      duration: 3000,
+    });
+    return data as SourceRowData[];
   }
 
   async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
-    await fetch('/api/products/update-rows', {
+    const res = await fetch('/api/products/update-rows', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rows),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 
   async onRowsRemove(rowIds: unknown[]): Promise<void> {
-    await fetch('/api/products/remove-rows', {
+    const res = await fetch('/api/products/remove-rows', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rowIds),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }
 }
 /* end-file */

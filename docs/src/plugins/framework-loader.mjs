@@ -74,6 +74,11 @@ const EXT_TO_LANG = {
   html: 'html',
   css: 'css',
   vue: 'vue',
+  php: 'php',
+  py: 'python',
+  rb: 'ruby',
+  java: 'java',
+  properties: 'properties',
 };
 
 const EXT_TO_LABEL = {
@@ -84,6 +89,11 @@ const EXT_TO_LABEL = {
   html: 'HTML',
   css: 'CSS',
   vue: 'Vue',
+  php: 'PHP',
+  py: 'Python',
+  rb: 'Ruby',
+  java: 'Java',
+  properties: 'Properties',
 };
 
 /**
@@ -118,7 +128,7 @@ function escapeHtml(str) {
  * @param {string} [extraClasses] - Space-separated CSS classes to add to the container div
  * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '') {
+function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '', codeOnly = false) {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -129,10 +139,11 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const isVueDir     = fileRefs.some(r => /\/vue(?:3)?\//i.test(r));
 
   // Find the primary executable file for live rendering.
-  const jsRef  = (!isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
-  const jsxRef = isReactDir ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
-  const tsRef  = isAngularDir ? fileRefs.find(r => r.endsWith('.ts')) : null;
-  const vueRef = isVueDir ? fileRefs.find(r => r.endsWith('.js')) : null;
+  // codeOnly suppresses live execution — files are rendered as static code blocks.
+  const jsRef  = (!codeOnly && !isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const jsxRef = (!codeOnly && isReactDir) ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
+  const tsRef  = (!codeOnly && isAngularDir) ? fileRefs.find(r => r.endsWith('.ts')) : null;
+  const vueRef = (!codeOnly && isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
 
   const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
@@ -185,6 +196,19 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
 
   if (cssRef) {
     exampleAttr += ` data-example-css="/content/${escapeHtml(cssRef)}"`;
+  }
+
+  // ── Server-side code display (no executable file) ─────────────────────────
+  // When there is no runnable entry point (PHP, Python, Ruby, etc.) render the
+  // code fences directly without the live preview container or toolbar.
+  if (!jsRef && !jsxRef && !tsRef && !vueRef) {
+    const serverFences = files.map((f) => {
+      const meta = fileMeta[f.ref] || '';
+
+      return `\`\`\`\`${f.lang} title="${f.label}"${meta ? ` ${meta}` : ''}\n${f.code}\n\`\`\`\``;
+    }).join('\n\n');
+
+    return serverFences;
   }
 
   // ── HTML preview content for JS examples ───────────────────────────────────
@@ -342,6 +366,9 @@ function processExampleBlocks(content, contentDir) {
       const idMatch = header.match(/#(\S+)/);
       const id = idMatch ? idMatch[1] : 'unknown';
 
+      // --code-only flag: render files as static code blocks, no live demo
+      const codeOnly = /--code-only/.test(header);
+
       // Extract CSS classes from the header (e.g. '.disable-auto-theme')
       const classMatches = [...header.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)];
       const extraClasses = classMatches.map(m => m[1]).join(' ');
@@ -386,7 +413,7 @@ function processExampleBlocks(content, contentDir) {
         }
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses, codeOnly));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);

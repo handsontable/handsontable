@@ -1,8 +1,16 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {
+  Component,
+  ViewChild,
+  ViewEncapsulation,
+  CUSTOM_ELEMENTS_SCHEMA,
+} from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
 import type { SourceRowData } from 'handsontable/common';
+
+// Vite proxies /api/* → http://localhost:8000, so we use a relative URL.
+const API_BASE = '/api/employees/';
 
 function getCsrfToken(): string {
   return (
@@ -13,7 +21,15 @@ function getCsrfToken(): string {
   );
 }
 
-function buildUrl(base: string, params: DataProviderQueryParameters): string {
+/**
+ * Converts Handsontable's DataProviderQueryParameters into a URL query string
+ * that Django REST Framework understands.
+ *
+ * filters is a DataProviderFilterColumn[] array -- pass it as a JSON string
+ * so Django can parse the full nested structure (prop, operation,
+ * conditions: [{ name, args }]) with a single json.loads() call.
+ */
+function buildUrl(params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();
 
   query.set('page', String(params.page));
@@ -25,28 +41,17 @@ function buildUrl(base: string, params: DataProviderQueryParameters): string {
   }
 
   if (params.filters?.length) {
-    params.filters.forEach(({ prop, operation, conditions }, i) => {
-      query.set(`filters[${i}][prop]`, prop);
-      query.set(`filters[${i}][operation]`, operation);
-      conditions.forEach((cond, j) => {
-        if (cond.name) {
-          query.set(`filters[${i}][conditions][${j}][name]`, cond.name);
-        }
-        cond.args.forEach((arg, k) => {
-          if (arg != null) {
-            query.set(`filters[${i}][conditions][${j}][args][${k}]`, String(arg));
-          }
-        });
-      });
-    });
+    query.set('filters', JSON.stringify(params.filters));
   }
 
-  return `${base}?${query.toString()}`;
+  return `${API_BASE}?${query.toString()}`;
 }
 
 @Component({
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [HotTableModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   selector: 'example1-server-side-django',
   template: `
     <div>
@@ -57,6 +62,8 @@ function buildUrl(base: string, params: DataProviderQueryParameters): string {
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  private removeConfirmed = false;
+
   readonly gridSettings: GridSettings = {
     dataProvider: {
       rowId: 'id',
@@ -66,29 +73,33 @@ export class AppComponent {
       onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
       onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
     },
+    beforeRowsMutation: (operation: string, payload: unknown) =>
+      this.beforeRowsMutation(operation, payload),
     pagination: { pageSize: 10 },
     columnSorting: true,
     filters: true,
     dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
+    contextMenu: true,
     emptyDataState: true,
     notification: true,
+    dialog: true,
     colHeaders: ['First Name', 'Last Name', 'Department', 'Role', 'Salary'],
     columns: [
       { data: 'first_name', type: 'text' },
-      { data: 'last_name', type: 'text' },
+      { data: 'last_name',  type: 'text' },
       { data: 'department', type: 'text' },
-      { data: 'role', type: 'text' },
-      { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
+      { data: 'role',       type: 'text' },
+      { data: 'salary',     type: 'numeric', numericFormat: { pattern: '$0,0' } },
     ],
     rowHeaders: true,
     height: 400,
     width: '100%',
     autoWrapRow: true,
+    licenseKey: 'non-commercial-and-evaluation',
   };
 
   async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
-    const url = buildUrl('http://localhost:8000/api/employees/', params);
-    const res = await fetch(url, { signal });
+    const res = await fetch(buildUrl(params), { signal });
 
     if (!res.ok) {
       throw new Error(`Fetch failed: ${res.status}`);
@@ -97,25 +108,38 @@ export class AppComponent {
     return res.json() as Promise<{ rows: SourceRowData[]; totalRows: number }>;
   }
 
-  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
-    const res = await fetch('http://localhost:8000/api/employees/create-rows/', {
+  // onRowsCreate receives { rowsAmount } -- the number of rows to add.
+  // POST that count; the server creates empty rows and returns them with ids.
+  async onRowsCreate({ rowsAmount }: RowsCreatePayload): Promise<SourceRowData[]> {
+    const res = await fetch(`${API_BASE}create-rows/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCsrfToken(),
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ rowsAmount }),
     });
 
     if (!res.ok) {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    await res.json();
+    const data = await res.json() as SourceRowData[];
+    const info = (data as Array<{ id: number }>).map(r => `(id: ${r.id})`).join(', ');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (this.hotTable.hotInstance!.getPlugin('notification') as any).showMessage({
+      variant: 'success',
+      title: 'Row added',
+      message: `Created: ${info}`,
+      duration: 3000,
+    });
+    return data;
   }
 
+  // onRowsUpdate receives [{ id, changes: { field: value } }, ...].
+  // Pass the array as-is; Django reads row['id'] and row['changes'].
   async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
-    const res = await fetch('http://localhost:8000/api/employees/update-rows/', {
+    const res = await fetch(`${API_BASE}update-rows/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -130,7 +154,7 @@ export class AppComponent {
   }
 
   async onRowsRemove(rowIds: unknown[]): Promise<void> {
-    const res = await fetch('http://localhost:8000/api/employees/remove-rows/', {
+    const res = await fetch(`${API_BASE}remove-rows/`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -142,6 +166,44 @@ export class AppComponent {
     if (!res.ok) {
       throw new Error(`Delete failed: ${res.status}`);
     }
+  }
+
+  beforeRowsMutation(operation: string, payload: unknown): boolean | void {
+    if (operation !== 'remove' || this.removeConfirmed) return;
+
+    const rowsRemove = (payload as { rowsRemove: unknown[] }).rowsRemove;
+    const count = rowsRemove.length;
+    const hot = this.hotTable?.hotInstance;
+    if (!hot) return false;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const notification = hot.getPlugin('notification') as any;
+    const id = notification.showMessage({
+      variant: 'warning',
+      title: 'Delete rows',
+      message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+      duration: 0,
+      actions: [
+        {
+          label: 'Delete',
+          type: 'primary',
+          callback: () => {
+            notification.hide(id);
+            this.removeConfirmed = true;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (hot.getPlugin('dataProvider') as any).removeRows(rowsRemove).finally(() => {
+              this.removeConfirmed = false;
+            });
+          },
+        },
+        {
+          label: 'Cancel',
+          type: 'secondary',
+          callback: () => notification.hide(id),
+        },
+      ],
+    });
+    return false;
   }
 }
 /* end-file */

@@ -4,34 +4,45 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
 import type { DataProviderQueryParameters, DataProviderFetchOptions, RowsCreatePayload, RowUpdatePayload } from 'handsontable/plugins/dataProvider';
 import type { SourceRowData } from 'handsontable/common';
 
-function buildUrl(base: string, params: DataProviderQueryParameters): string {
+/**
+ * Converts Handsontable's DataProviderQueryParameters into a URL query string
+ * that the NestJS backend can parse with @Query() and class-transformer.
+ *
+ * Each DataProviderFilterColumn can have multiple conditions (e.g. between),
+ * so we flatten them: one entry per condition, incrementing the index.
+ */
+function buildUrl(params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();
 
   query.set('page', String(params.page));
   query.set('pageSize', String(params.pageSize));
 
   if (params.sort) {
-    query.set('sort[prop]', params.sort.prop);
+    query.set('sort[column]', params.sort.prop);
     query.set('sort[order]', params.sort.order);
   }
 
   if (params.filters?.length) {
-    params.filters.forEach(({ prop, conditions }, i) => {
-      const cond = conditions[0];
+    let idx = 0;
 
-      query.set(`filters[${i}][prop]`, prop);
+    params.filters.forEach(({ prop, conditions }) => {
+      conditions.forEach((cond) => {
+        query.set(`filters[${idx}][prop]`, prop);
 
-      if (cond?.name) {
-        query.set(`filters[${i}][condition]`, cond.name);
-      }
+        if (cond?.name) {
+          query.set(`filters[${idx}][condition]`, cond.name);
+        }
 
-      cond?.args.forEach((v, j) => {
-        query.set(`filters[${i}][value][${j}]`, String(v));
+        cond?.args.forEach((v, j) => {
+          query.set(`filters[${idx}][value][${j}]`, String(v));
+        });
+
+        idx++;
       });
     });
   }
 
-  return `${base}?${query.toString()}`;
+  return `/tickets?${query.toString()}`;
 }
 
 @Component({
@@ -88,8 +99,7 @@ export class AppComponent {
   };
 
   async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
-    const url = buildUrl('http://localhost:3000/tickets', params);
-    const res = await fetch(url, { signal });
+    const res = await fetch(buildUrl(params), { signal });
 
     if (!res.ok) {
       throw new Error(`Server error ${res.status}`);
@@ -98,25 +108,34 @@ export class AppComponent {
     return res.json() as Promise<{ rows: SourceRowData[]; totalRows: number }>;
   }
 
-  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
-    const res = await fetch('http://localhost:3000/tickets', {
+  async onRowsCreate({ rowsAmount }: RowsCreatePayload): Promise<SourceRowData[]> {
+    const rows = Array.from({ length: rowsAmount }, () => ({
+      subject: '',
+      status: 'open',
+      priority: 'medium',
+      assignee: '',
+      createdAt: new Date().toISOString().slice(0, 10),
+    }));
+
+    const res = await fetch('/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(rows),
     });
 
     if (!res.ok) {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    await res.json();
+    return res.json() as Promise<SourceRowData[]>;
   }
 
   async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
-    const res = await fetch('http://localhost:3000/tickets', {
+    const payload = rows.map(({ id, changes }) => ({ id, ...changes }));
+    const res = await fetch('/tickets', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rows),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -125,7 +144,7 @@ export class AppComponent {
   }
 
   async onRowsRemove(rowIds: unknown[]): Promise<void> {
-    const res = await fetch('http://localhost:3000/tickets', {
+    const res = await fetch('/tickets', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rowIds),
