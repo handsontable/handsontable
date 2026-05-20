@@ -1,17 +1,17 @@
 .auto-save-backend-status {
-  font-size: var(--sl-text-xs);
+  font-size: var(--sl-text-xs, 0.75rem);
   font-weight: 600;
-  color: var(--sl-color-gray-3);
+  color: var(--sl-color-gray-3, #777777);
 }
 
 .auto-save-backend-status[data-state="saving"] {
-  color: var(--sl-color-blue);
+  color: var(--sl-color-blue, #2856ea);
 }
 
 .auto-save-backend-status[data-state="saved"] {
-  color: var(--sl-color-green);
+  color: var(--sl-color-green, #16a34a);
 }
 
 .auto-save-backend-status[data-state="error"] {
-  color: var(--sl-color-red);
+  color: var(--sl-color-red, #ef4444);
 }
