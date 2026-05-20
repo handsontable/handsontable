@@ -198,6 +198,8 @@ const ExampleComponent = () => {
           { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
           { data: 'stock', type: 'numeric' },
         ]}
+        height={360}
+        width="100%"
         licenseKey="non-commercial-and-evaluation"
       />
     </div>

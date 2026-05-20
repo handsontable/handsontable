@@ -84,6 +84,8 @@ export class AppComponent {
       { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
       { data: 'stock', type: 'numeric' },
     ],
+    height: 360,
+    width: '100%',
   };
 
   async fetchRows(params: DataProviderQueryParameters, signal: AbortSignal): Promise<{ rows: SourceRowData[]; totalRows: number }> {
