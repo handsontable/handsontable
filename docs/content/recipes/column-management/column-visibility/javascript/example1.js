@@ -56,6 +56,12 @@ function getVisibleHeaders() {
 
 const container = document.querySelector('#example1');
 
+const toolbar = document.createElement('div');
+
+toolbar.classList.add('example-controls-container');
+toolbar.innerHTML = '<div class="controls"></div>';
+container.before(toolbar);
+
 const hot = new Handsontable(container, {
   data,
   columns: getVisibleColumns(),
@@ -68,15 +74,10 @@ const hot = new Handsontable(container, {
 });
 
 // Build a checkbox for each column and attach toggle logic.
-const togglesContainer = document.querySelector('#column-toggles');
+const togglesContainer = toolbar.querySelector('.controls');
 
 allColumns.forEach((col, index) => {
   const label = document.createElement('label');
-  label.style.marginRight = '12px';
-  label.style.display = 'inline-flex';
-  label.style.alignItems = 'center';
-  label.style.gap = '4px';
-
   const checkbox = document.createElement('input');
 
   checkbox.type = 'checkbox';
