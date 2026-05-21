@@ -3603,5 +3603,68 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCell(4, 2)).toBe(999);
       expect(getDataAtCol(2).slice(0, 4)).toEqual([40, 30, 20, 10]);
     });
+
+    it('should not include `fixedRowsTop` rows when multi-sorting and use the secondary key for ties', async() => {
+      handsontable({
+        data: [
+          ['Header', 'Header', 0],
+          ['North', 'Banana', 20],
+          ['North', 'Apple', 10],
+          ['South', 'Cherry', 30],
+          ['South', 'Apple', 5],
+          ['South', 'Date', 40],
+        ],
+        colHeaders: ['Region', 'Product', 'Value'],
+        fixedRowsTop: 1,
+        multiColumnSorting: true,
+      });
+
+      getPlugin('multiColumnSorting').sort([
+        { column: 0, sortOrder: 'asc' },
+        { column: 1, sortOrder: 'asc' },
+      ]);
+
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getData().slice(1)).toEqual([
+        ['North', 'Apple', 10],
+        ['North', 'Banana', 20],
+        ['South', 'Apple', 5],
+        ['South', 'Cherry', 30],
+        ['South', 'Date', 40],
+      ]);
+    });
+
+    it('should respect both `fixedRowsTop` and `fixedRowsBottom` when multi-sorting', async() => {
+      handsontable({
+        data: [
+          ['Header', '', 0],
+          ['East', 'Banana', 22],
+          ['East', 'Apple', 11],
+          ['West', 'Cherry', 33],
+          ['West', 'Apple', 7],
+          ['Total', '', 999],
+        ],
+        colHeaders: ['Region', 'Product', 'Value'],
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        multiColumnSorting: true,
+      });
+
+      getPlugin('multiColumnSorting').sort([
+        { column: 0, sortOrder: 'desc' },
+        { column: 2, sortOrder: 'asc' },
+      ]);
+
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCell(5, 0)).toBe('Total');
+      expect(getDataAtCell(5, 2)).toBe(999);
+      // Region desc => West first, then East. Within each region, Value asc.
+      expect(getData().slice(1, 5)).toEqual([
+        ['West', 'Apple', 7],
+        ['West', 'Cherry', 33],
+        ['East', 'Apple', 11],
+        ['East', 'Banana', 22],
+      ]);
+    });
   });
 });
