@@ -3578,4 +3578,30 @@ describe('MultiColumnSorting', () => {
       ]);
     });
   });
+
+  describe('DEV-1713: fixed rows interaction (inherited from ColumnSorting)', () => {
+    it('should not include `fixedRowsBottom` rows when multi-sorting', async() => {
+      handsontable({
+        data: [
+          ['A', 'Z', 10],
+          ['B', 'Y', 20],
+          ['C', 'X', 30],
+          ['D', 'W', 40],
+          ['Total', '', 999],
+        ],
+        colHeaders: ['1', '2', '3'],
+        fixedRowsBottom: 1,
+        multiColumnSorting: true,
+      });
+
+      getPlugin('multiColumnSorting').sort([
+        { column: 2, sortOrder: 'desc' },
+        { column: 1, sortOrder: 'asc' },
+      ]);
+
+      expect(getDataAtCell(4, 0)).toBe('Total');
+      expect(getDataAtCell(4, 2)).toBe(999);
+      expect(getDataAtCol(2).slice(0, 4)).toEqual([40, 30, 20, 10]);
+    });
+  });
 });
