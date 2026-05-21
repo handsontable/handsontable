@@ -185,7 +185,7 @@ Decode and build a Django `Q` object. See `get_queryset` in `views.py` for the c
 - `json.loads(filters_json)` decodes the single `filters` param into a list of column filter objects.
 - Each column object contains `prop`, `operation` (`conjunction` = AND, `disjunction` = OR), and a `conditions` list.
 - Conditions within one column combine according to `operation`; columns always combine with AND.
-- `eq`/`not_eq` use `exact` for `salary` (DecimalField rejects `iexact`) and `iexact` for text fields.
+- `eq`/`neq` use `exact` for `salary` (DecimalField rejects `iexact`) and `iexact` for text fields.
 - `empty`/`not_empty` handle both null and blank-string cases for text fields.
 - `ALLOWED_ORDERING_FIELDS` whitelists the `prop` value to prevent ORM injection.
 
