@@ -583,13 +583,16 @@ export class ColumnSorting extends BasePlugin {
    */
   getNumberOfRowsToSort(numberOfRows) {
     const settings = this.hot.getSettings();
+    const fixedRowsBottom = settings.fixedRowsBottom || 0;
 
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
+    // `fixedRowsBottom` is excluded from the sort range so footer rows (e.g. SUM formulas)
+    // stay pinned and keep their absolute-address references intact.
     if (settings.maxRows <= numberOfRows) {
-      return settings.maxRows;
+      return Math.max(0, settings.maxRows - fixedRowsBottom);
     }
 
-    return numberOfRows - settings.minSpareRows;
+    return Math.max(0, numberOfRows - settings.minSpareRows - fixedRowsBottom);
   }
 
   /**
@@ -607,11 +610,14 @@ export class ColumnSorting extends BasePlugin {
 
     const indexesWithData = [];
     const numberOfRows = this.hot.countRows();
+    const settings = this.hot.getSettings();
+    const fixedRowsTop = settings.fixedRowsTop || 0;
+    const upperBound = this.getNumberOfRowsToSort(numberOfRows);
 
     const getDataForSortedColumns = visualRowIndex =>
       arrayMap(sortConfigs, sortConfig => this.hot.getDataAtCell(visualRowIndex, sortConfig.column));
 
-    for (let visualRowIndex = 0; visualRowIndex < this.getNumberOfRowsToSort(numberOfRows); visualRowIndex += 1) {
+    for (let visualRowIndex = fixedRowsTop; visualRowIndex < upperBound; visualRowIndex += 1) {
       indexesWithData.push([this.hot.toPhysicalRow(visualRowIndex)].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
@@ -624,8 +630,8 @@ export class ColumnSorting extends BasePlugin {
       arrayMap(sortConfigs, sortConfig => this.getFirstCellSettings(sortConfig.column))
     );
 
-    // Append spareRows
-    for (let visualRowIndex = indexesWithData.length; visualRowIndex < numberOfRows; visualRowIndex += 1) {
+    // Append fixedRowsBottom + spareRows (everything between upperBound and numberOfRows)
+    for (let visualRowIndex = upperBound; visualRowIndex < numberOfRows; visualRowIndex += 1) {
       indexesWithData.push([visualRowIndex].concat(getDataForSortedColumns(visualRowIndex)));
     }
 
