@@ -110,6 +110,25 @@ class AxisSyncer {
   }
 
   /**
+   * Gets corresponding visual index for a HyperFormula index. Inverse of {@link getHfIndexFromVisualIndex}.
+   * Returns -1 when the HF index points to a trimmed element (not visible to the user).
+   *
+   * @param {number} hfIndex HyperFormula index.
+   * @returns {number}
+   */
+  getVisualIndexFromHfIndex(hfIndex) {
+    const indexesSequence = this.#indexMapper.getIndexesSequence();
+    const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
+    const physicalIndex = indexesSequence[hfIndex];
+
+    if (physicalIndex === undefined) {
+      return -1;
+    }
+
+    return notTrimmedIndexes.indexOf(physicalIndex);
+  }
+
+  /**
    * Synchronizes moves done on HOT to HF engine (based on previously calculated positions).
    *
    * @private
