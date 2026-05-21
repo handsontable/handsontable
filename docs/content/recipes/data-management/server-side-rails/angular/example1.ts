@@ -5,25 +5,18 @@ import {
   ViewEncapsulation,
   CUSTOM_ELEMENTS_SCHEMA,
 } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { HotTableModule, HotTableComponent } from '@handsontable/angular-wrapper';
 import type {
   DataProviderQueryParameters,
-  DataProviderFetchOptions,
   RowsCreatePayload,
   RowUpdatePayload,
+  RowMutationPayload,
+  RowMutationRemovePayload,
 } from 'handsontable/plugins/dataProvider';
-import type { SourceRowData } from 'handsontable/common';
 
 const API_BASE = '/api/orders';
 
-// Serializes fetchRows query parameters into a URL the Rails controller understands.
-//
-// Handsontable sends:
-//   sort:    { prop: 'order_number', order: 'asc' }  or  null
-//   filters: [{ prop, conditions: [{ name, args }] }]  or  null
-//
-// Rails reads:
-//   page_size, sort_prop, sort_order, filters[N][prop/condition/value]
+// Rails reads: page_size, sort_prop, sort_order, filters[N][prop/condition/value]
 function buildUrl(base: string, params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();
 
@@ -61,30 +54,141 @@ function buildUrl(base: string, params: DataProviderQueryParameters): string {
   selector: 'example1-server-side-rails',
   template: `
     <div>
-      <hot-table [settings]="gridSettings"></hot-table>
+      <hot-table [settings]="settings"></hot-table>
     </div>
   `,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent) readonly hotRef!: HotTableComponent;
 
   private removeConfirmed = false;
 
-  readonly gridSettings: GridSettings = {
+  settings = {
     dataProvider: {
       rowId: 'id',
-      fetchRows: (params: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
-        this.fetchRows(params, options.signal),
-      onRowsCreate: (payload: RowsCreatePayload) => this.onRowsCreate(payload),
-      onRowsUpdate: (rows: RowUpdatePayload[]) => this.onRowsUpdate(rows),
-      onRowsRemove: (rowIds: unknown[]) => this.onRowsRemove(rowIds),
+
+      // Called on every page change, sort, and filter.
+      fetchRows: async (queryParameters: DataProviderQueryParameters, { signal }: { signal: AbortSignal }) => {
+        const url = buildUrl(API_BASE, queryParameters);
+        const res = await fetch(url, { signal });
+
+        if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+
+        // Rails returns: { rows: [...], total_rows: n }
+        const json = await res.json();
+        return { rows: json.rows, totalRows: json.total_rows };
+      },
+
+      // Fires when the user inserts rows via the context menu.
+      // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
+      onRowsCreate: async (payload: RowsCreatePayload) => {
+        const newRows = Array.from({ length: payload.rowsAmount }, () => ({
+          order_number: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+          customer: 'New Customer',
+          status: 'pending',
+          total: 0,
+        }));
+
+        const res = await fetch(`${API_BASE}/create_rows`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rows: newRows }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: string };
+          throw new Error(err.error ?? `Create failed: ${res.status}`);
+        }
+
+        const json = await res.json();
+        const info = json.rows.map((r: { order_number: string }) => `(order: ${r.order_number})`).join(', ');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this.hotRef.hotInstance!.getPlugin('notification') as any).showMessage({
+          variant: 'success',
+          title: 'Row added',
+          message: `Created: ${info}`,
+          duration: 3000,
+        });
+
+        return json.rows;
+      },
+
+      // Fires after a cell edit, paste, or autofill batch.
+      onRowsUpdate: async (rows: RowUpdatePayload[]) => {
+        const res = await fetch(`${API_BASE}/update_rows`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rows: rows.map((r) => ({ id: r.id, changes: r.changes })),
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: string };
+          throw new Error(err.error ?? `Update failed: ${res.status}`);
+        }
+      },
+
+      // Fires after the user confirms deletion.
+      onRowsRemove: async (rowIds: unknown[]) => {
+        const res = await fetch(`${API_BASE}/remove_rows`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ row_ids: rowIds }),
+        });
+
+        if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+      },
     },
-    beforeRowsMutation: (operation: string, payload: unknown) =>
-      this.beforeRowsMutation(operation, payload),
+
+    // beforeRowsMutation is sync (checks for a strict `=== false` return), so
+    // we can't await an async prompt inline. Instead: cancel the original
+    // attempt, show a notification with Delete/Cancel actions, and on Delete
+    // re-issue the remove via the DataProvider API. The flag lets the second
+    // pass through without re-prompting.
+    beforeRowsMutation: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload): false | void => {
+      if (operation === 'remove' && !this.removeConfirmed) {
+        const { rowsRemove } = payload as RowMutationRemovePayload;
+        const hot = this.hotRef.hotInstance!;
+        const count = rowsRemove.length;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const notification = (hot.getPlugin('notification') as any);
+        const id = notification.showMessage({
+          variant: 'warning',
+          title: 'Delete rows',
+          message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+          duration: 0,
+          actions: [
+            {
+              label: 'Delete',
+              type: 'primary',
+              callback: () => {
+                notification.hide(id);
+                this.removeConfirmed = true;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (hot.getPlugin('dataProvider') as any)
+                  .removeRows(rowsRemove)
+                  .finally(() => {
+                    this.removeConfirmed = false;
+                  });
+              },
+            },
+            {
+              label: 'Cancel',
+              type: 'secondary',
+              callback: () => notification.hide(id),
+            },
+          ],
+        });
+        return false;
+      }
+    },
+
     pagination:     { pageSize: 10 },
     columnSorting:  true,
     filters:        true,
-    dropdownMenu:   ['filter_by_condition', 'filter_action_bar'],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dropdownMenu:   ['filter_by_condition', 'filter_action_bar'] as any,
     contextMenu:    true,
     emptyDataState: true,
     notification:   true,
@@ -101,112 +205,6 @@ export class AppComponent {
     height:      'auto',
     licenseKey:  'non-commercial-and-evaluation',
   };
-
-  async fetchRows(
-    params: DataProviderQueryParameters,
-    signal: AbortSignal
-  ): Promise<{ rows: SourceRowData[]; totalRows: number }> {
-    const url = buildUrl(API_BASE, params);
-    const res = await fetch(url, { signal });
-
-    if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
-
-    // Rails returns: { rows: [...], total_rows: n }
-    const json = await res.json() as { rows: SourceRowData[]; total_rows: number };
-
-    return { rows: json.rows, totalRows: json.total_rows };
-  }
-
-  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
-    const newRows = Array.from({ length: payload.rowsAmount }, () => ({
-      order_number: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-      customer: 'New Customer',
-      status: 'pending',
-      total: 0,
-    }));
-
-    const res = await fetch(`${API_BASE}/create_rows`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rows: newRows }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { error?: string };
-      throw new Error(err.error ?? `Create failed: ${res.status}`);
-    }
-
-    const json = await res.json() as { rows: Array<{ order_number: string }> };
-    const info = json.rows.map(r => `(order: ${r.order_number})`).join(', ');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this.hotTable.hotInstance!.getPlugin('notification') as any).showMessage({
-      variant: 'success',
-      title: 'Row added',
-      message: `Created: ${info}`,
-      duration: 3000,
-    });
-  }
-
-  async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {
-    const res = await fetch(`${API_BASE}/update_rows`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        rows: rows.map((r) => ({ id: r.id, changes: r.changes })),
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { error?: string };
-      throw new Error(err.error ?? `Update failed: ${res.status}`);
-    }
-  }
-
-  async onRowsRemove(rowIds: unknown[]): Promise<void> {
-    const res = await fetch(`${API_BASE}/remove_rows`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ row_ids: rowIds }),
-    });
-
-    if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
-  }
-
-  beforeRowsMutation(operation: string, payload: unknown): boolean | void {
-    if (operation !== 'remove' || this.removeConfirmed) return;
-
-    const rowsRemove = (payload as { rowsRemove: unknown[] }).rowsRemove;
-    const count = rowsRemove.length;
-    const hot = this.hotTable?.hotInstance;
-    if (!hot) return false;
-
-    const notification = hot.getPlugin('notification');
-    const id = notification.showMessage({
-      variant: 'warning',
-      title: 'Delete rows',
-      message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
-      duration: 0,
-      actions: [
-        {
-          label: 'Delete',
-          type: 'primary',
-          callback: () => {
-            notification.hide(id);
-            this.removeConfirmed = true;
-            hot.getPlugin('dataProvider').removeRows(rowsRemove).finally(() => {
-              this.removeConfirmed = false;
-            });
-          },
-        },
-        {
-          label: 'Cancel',
-          type: 'secondary',
-          callback: () => notification.hide(id),
-        },
-      ],
-    });
-    return false;
-  }
 }
 /* end-file */
 
