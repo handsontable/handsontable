@@ -141,7 +141,7 @@ export class AppComponent {
     return { rows: json.rows, totalRows: json.totalRows };
   }
 
-  async onRowsCreate(payload: RowsCreatePayload): Promise<SourceRowData[]> {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
     const res = await fetch('/api/products/create-rows', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -159,7 +159,6 @@ export class AppComponent {
       message: `Created: ${info}`,
       duration: 3000,
     });
-    return data as SourceRowData[];
   }
 
   async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {

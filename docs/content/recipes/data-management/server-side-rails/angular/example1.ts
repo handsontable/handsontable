@@ -117,7 +117,7 @@ export class AppComponent {
     return { rows: json.rows, totalRows: json.total_rows };
   }
 
-  async onRowsCreate(payload: RowsCreatePayload): Promise<SourceRowData[]> {
+  async onRowsCreate(payload: RowsCreatePayload): Promise<void> {
     const newRows = Array.from({ length: payload.rowsAmount }, () => ({
       order_number: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
       customer: 'New Customer',
@@ -136,8 +136,8 @@ export class AppComponent {
       throw new Error(err.error ?? `Create failed: ${res.status}`);
     }
 
-    const json = await res.json() as { rows: SourceRowData[] };
-    const info = (json.rows as Array<{ order_number: string }>).map(r => `(order: ${r.order_number})`).join(', ');
+    const json = await res.json() as { rows: Array<{ order_number: string }> };
+    const info = json.rows.map(r => `(order: ${r.order_number})`).join(', ');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.hotTable.hotInstance!.getPlugin('notification') as any).showMessage({
       variant: 'success',
@@ -145,7 +145,6 @@ export class AppComponent {
       message: `Created: ${info}`,
       duration: 3000,
     });
-    return json.rows;
   }
 
   async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {

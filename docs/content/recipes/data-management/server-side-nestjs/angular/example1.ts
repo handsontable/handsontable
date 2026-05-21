@@ -108,7 +108,7 @@ export class AppComponent {
     return res.json() as Promise<{ rows: SourceRowData[]; totalRows: number }>;
   }
 
-  async onRowsCreate({ rowsAmount }: RowsCreatePayload): Promise<SourceRowData[]> {
+  async onRowsCreate({ rowsAmount }: RowsCreatePayload): Promise<void> {
     const rows = Array.from({ length: rowsAmount }, () => ({
       subject: '',
       status: 'open',
@@ -127,7 +127,7 @@ export class AppComponent {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    return res.json() as Promise<SourceRowData[]>;
+    await res.json();
   }
 
   async onRowsUpdate(rows: RowUpdatePayload[]): Promise<void> {

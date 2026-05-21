@@ -110,7 +110,7 @@ export class AppComponent {
 
   // onRowsCreate receives { rowsAmount } -- the number of rows to add.
   // POST that count; the server creates empty rows and returns them with ids.
-  async onRowsCreate({ rowsAmount }: RowsCreatePayload): Promise<SourceRowData[]> {
+  async onRowsCreate({ rowsAmount }: RowsCreatePayload): Promise<void> {
     const res = await fetch(`${API_BASE}create-rows/`, {
       method: 'POST',
       headers: {
@@ -124,8 +124,8 @@ export class AppComponent {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    const data = await res.json() as SourceRowData[];
-    const info = (data as Array<{ id: number }>).map(r => `(id: ${r.id})`).join(', ');
+    const data = await res.json() as Array<{ id: number }>;
+    const info = data.map(r => `(id: ${r.id})`).join(', ');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this.hotTable.hotInstance!.getPlugin('notification') as any).showMessage({
       variant: 'success',
@@ -133,7 +133,6 @@ export class AppComponent {
       message: `Created: ${info}`,
       duration: 3000,
     });
-    return data;
   }
 
   // onRowsUpdate receives [{ id, changes: { field: value } }, ...].
