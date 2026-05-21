@@ -12,12 +12,24 @@
 ## How to run
 
 ```bash
+# Step 1: Build the core library first (docs resolve handsontable/* from handsontable/tmp/)
+npm run build --prefix handsontable
+
+# Step 2: Install docs dependencies
 cd docs
 npm install
+
+# Step 3: Build for production (outputs to dist/)
 BUILD_MODE=production npm run build
+
+# Step 4: Preview the production build locally
 npm run preview
 # Opens at http://localhost:4321/docs/
 ```
+
+> **Important:** Skipping step 1 causes a Rollup build error:
+> `Failed to resolve import "handsontable/base"` because the Vite plugin resolves
+> all `handsontable/*` imports to `handsontable/tmp/`, which only exists after the core is built.
 
 > Use `npm run build -- --force` if content looks stale (busts Astro data store cache).
 
@@ -38,7 +50,7 @@ npm run preview
 
 | # | Check | Status | Notes |
 |---|-------|--------|-------|
-| 1.1 | `npm run build` completes with zero errors and zero warnings | TODO | Run `BUILD_MODE=production npm run build` and inspect terminal output |
+| 1.1 | `npm run build` completes with zero errors and zero warnings | TODO | **Prerequisite:** run `npm run build --prefix handsontable` first (populates `handsontable/tmp/`). Then run `BUILD_MODE=production npm run build` in `docs/` and inspect terminal output |
 | 1.2 | `dist/` directory is populated with expected static HTML files | TODO | Verify `docs/dist/` exists and contains `.html` files after build |
 | 1.3 | No broken imports or missing asset references in build output | TODO | Check for any 404 errors in the Astro build log |
 
