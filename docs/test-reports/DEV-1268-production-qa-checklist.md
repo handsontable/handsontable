@@ -9,27 +9,41 @@
 
 ---
 
-## How to run
+## Prerequisites
+
+All four packages must be built before the docs build. Run these from the **repo root** in order:
 
 ```bash
-# Step 1: Build the core library first (docs resolve handsontable/* from handsontable/tmp/)
+# 1. Core (populates handsontable/tmp/ — required for all handsontable/* imports)
 npm run build --prefix handsontable
 
-# Step 2: Install docs dependencies
+# 2. React wrapper (populates wrappers/react-wrapper/es/)
+npm run build --prefix wrappers/react-wrapper
+
+# 3. Vue 3 wrapper (populates wrappers/vue3/es/)
+npm run build --prefix wrappers/vue3
+
+# 4. Angular wrapper (populates wrappers/angular-wrapper/dist/hot-table/ — takes ~5 min)
+npm run build --prefix wrappers/angular-wrapper
+```
+
+> **Why:** The Vite resolver in `docs/astro.config.mjs` maps framework package imports
+> directly to the built output directories. If any of those directories don't exist,
+> Rollup throws an `ENOENT` error and the docs build fails.
+
+## How to run the docs build
+
+```bash
 cd docs
 npm install
 
-# Step 3: Build for production (outputs to dist/)
+# Build for production (outputs to dist/)
 BUILD_MODE=production npm run build
 
-# Step 4: Preview the production build locally
+# Preview the production build locally
 npm run preview
 # Opens at http://localhost:4321/docs/
 ```
-
-> **Important:** Skipping step 1 causes a Rollup build error:
-> `Failed to resolve import "handsontable/base"` because the Vite plugin resolves
-> all `handsontable/*` imports to `handsontable/tmp/`, which only exists after the core is built.
 
 > Use `npm run build -- --force` if content looks stale (busts Astro data store cache).
 
@@ -50,7 +64,7 @@ npm run preview
 
 | # | Check | Status | Notes |
 |---|-------|--------|-------|
-| 1.1 | `npm run build` completes with zero errors and zero warnings | TODO | **Prerequisite:** run `npm run build --prefix handsontable` first (populates `handsontable/tmp/`). Then run `BUILD_MODE=production npm run build` in `docs/` and inspect terminal output |
+| 1.1 | `npm run build` completes with zero errors and zero warnings | TODO | **Prerequisite:** build core + all three wrappers first (see Prerequisites section above). Then run `BUILD_MODE=production npm run build` in `docs/` and inspect terminal output |
 | 1.2 | `dist/` directory is populated with expected static HTML files | TODO | Verify `docs/dist/` exists and contains `.html` files after build |
 | 1.3 | No broken imports or missing asset references in build output | TODO | Check for any 404 errors in the Astro build log |
 
