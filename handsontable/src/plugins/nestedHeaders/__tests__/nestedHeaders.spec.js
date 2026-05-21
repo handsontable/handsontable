@@ -66,6 +66,46 @@ describe('NestedHeaders', () => {
       expect(getColWidth(2)).toBe(50);
       expect(getColWidth(3)).toBe(50);
     });
+
+    it('should re-expand columns to content width after `updateSettings({ colWidths: undefined })` when `nestedHeaders` is enabled (#7604)', async() => {
+      const longContent = 'this is a very long cell content that should expand the column';
+
+      handsontable({
+        data: [
+          [longContent, 'b', 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        colHeaders: true,
+        colWidths: 100,
+        nestedHeaders: [
+          [{ label: 'h', colspan: 2 }, 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+
+      expect(getColWidth(0)).toBe(100);
+
+      await updateSettings({ colWidths: undefined });
+
+      expect(getColWidth(0)).toBeGreaterThan(200);
+    });
+
+    it('should not override a programmatically narrowed column width when `nestedHeaders` and `manualColumnResize` are enabled', async() => {
+      handsontable({
+        data: [
+          ['this is a very long cell content', 'b', 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        colHeaders: true,
+        manualColumnResize: [30, 50, 50, 50, 50],
+        nestedHeaders: [
+          [{ label: 'h', colspan: 2 }, 'c', 'd', 'e'],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+      });
+
+      expect(getColWidth(0)).toBe(30);
+    });
   });
 
   describe('cooperation with drop-down menu element', () => {
