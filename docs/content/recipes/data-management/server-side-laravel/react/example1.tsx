@@ -90,13 +90,16 @@ const ExampleComponent = () => {
 
         const data = await res.json();
         const row = data[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (hotRef.current!.hotInstance!.getPlugin('notification') as any).showMessage({
-          variant: 'success',
-          title: 'Row added',
-          message: `Created: ${row.sku} (id: ${row.id})`,
-          duration: 3000,
-        });
+        const hot = hotRef.current?.hotInstance;
+        if (hot) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (hot.getPlugin('notification') as any).showMessage({
+            variant: 'success',
+            title: 'Row added',
+            message: `Created: ${row.sku} (id: ${row.id})`,
+            duration: 3000,
+          });
+        }
         return data;
       },
 
@@ -121,13 +124,16 @@ const ExampleComponent = () => {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (hotRef.current!.hotInstance!.getPlugin('notification') as any).showMessage({
-          variant: 'success',
-          title: 'Rows deleted',
-          message: `Deleted ${rowIds.length} row${rowIds.length !== 1 ? 's' : ''}`,
-          duration: 3000,
-        });
+        const hot = hotRef.current?.hotInstance;
+        if (hot) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (hot.getPlugin('notification') as any).showMessage({
+            variant: 'success',
+            title: 'Rows deleted',
+            message: `Deleted ${rowIds.length} row${rowIds.length !== 1 ? 's' : ''}`,
+            duration: 3000,
+          });
+        }
       },
     },
 
@@ -139,7 +145,8 @@ const ExampleComponent = () => {
     beforeRowsMutation: (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload): false | void => {
       if (operation === 'remove' && !removeConfirmedRef.current) {
         const { rowsRemove } = payload as RowMutationRemovePayload;
-        const hot = hotRef.current!.hotInstance!;
+        const hot = hotRef.current?.hotInstance;
+        if (!hot) return false;
         const count = rowsRemove.length;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const notification = (hot.getPlugin('notification') as any);
