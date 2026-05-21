@@ -3,7 +3,7 @@ type: how-to
 id: a3f82c91
 title: Server-side Data with NestJS
 metaTitle: Server-side Data with NestJS - JavaScript Data Grid | Handsontable
-description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations using an in-memory store.
+description: Wire Handsontable's dataProvider plugin to a NestJS 10 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM.
 permalink: /recipes/data-management/server-side-nestjs
 canonicalUrl: /recipes/data-management/server-side-nestjs
 tags:
@@ -35,40 +35,39 @@ Handsontable is a proud sponsor of NestJS. You can support the project on [Open 
   View full example on GitHub
 </a>
 
-This recipe shows how to connect Handsontable's `dataProvider` plugin to a NestJS 10 backend. You will build a support-tickets grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to an in-memory store.
+This recipe shows how to connect Handsontable's `dataProvider` plugin to a NestJS 10 backend. You will build a support-tickets grid that loads data from a REST API with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a PostgreSQL database via TypeORM.
 
 **Difficulty:** Intermediate
 **Time:** ~40 minutes
-**Stack:** NestJS 10, TypeScript, `class-validator`, `class-transformer`, Handsontable `dataProvider`
+**Stack:** NestJS 10, TypeScript, TypeORM 0.3, PostgreSQL 16, `class-validator`, `class-transformer`, Handsontable `dataProvider`
 
 ## What You'll Build
 
 A support-tickets data grid that:
 - Fetches paginated rows from a NestJS REST API on every page, sort, or filter change
-- Applies filters on the server using an in-memory array predicate -- the browser never loads the full dataset
+- Applies filters on the server using TypeORM QueryBuilder predicates -- the browser never loads the full dataset
 - Creates, updates, and deletes rows via dedicated endpoints
 - Serializes Handsontable's sort and filter objects as bracket-notation query parameters -- decoded in NestJS with `@Query()` and `class-transformer`
 - Seeds the database with 12 realistic support tickets via a migration
 
 ## Before you begin
 
-- Node.js 18 or later installed
-- NestJS CLI installed: `npm install -g @nestjs/cli`
+- Docker and Docker Compose installed
+- Node.js 18 or later and npm installed
 - Basic familiarity with NestJS modules, controllers, and services
-- A Handsontable project with the `dataProvider` plugin available
 
-## Step 1: Scaffold the NestJS project
+## Step 1: Start the project
 
-Create a new NestJS application and install the validation libraries:
+Run the one-command bootstrap script, which starts PostgreSQL, runs TypeORM migrations, seeds 12 sample tickets, starts the NestJS backend, and opens the Vite dev server:
 
 ```shell
-nest new tickets-api --package-manager npm
-cd tickets-api
-npm install class-validator class-transformer
+bash setup.sh
+# or: make setup
 ```
 
+The project uses `class-validator` and `class-transformer` for request validation:
+
 **What's happening:**
-- `nest new` scaffolds a complete NestJS project with `AppModule`, `AppController`, and `AppService`. You will replace the default controller and service with a `TicketsController` and `TicketsService`.
 - `class-transformer` converts query-string values -- which are always strings -- into the TypeScript types declared in your DTO. For example, `page=2` in the query string becomes the number `2`.
 - `class-validator` then validates those typed values against constraints such as `@IsInt()` and `@Min(1)`, and rejects invalid requests with a `400` response before they reach your service.
 
@@ -238,7 +237,7 @@ Copy `tickets.controller.ts` into `src/tickets/`:
 
 ## Step 7: Wire up Handsontable
 
-With the server running on `http://localhost:3000`, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is below.
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The NestJS API runs on `http://localhost:3000`; Vite proxies all `/tickets` requests to it. The complete frontend code is below.
 
 ::: only-for javascript
 
@@ -344,7 +343,7 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 
 ## Next steps
 
-- Replace the in-memory store with TypeORM + SQLite (zero extra config) or PostgreSQL.
+- Swap PostgreSQL for a different database by updating the TypeORM `DataSource` config and the Flyway-equivalent migration file.
 - Add authentication -- pass a `Bearer` token in the `fetchRows` fetch headers and protect mutation endpoints with a NestJS `AuthGuard`.
 - Share the DTO types between the NestJS backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
 - Compare with the [Spring Boot recipe](@/recipes/data-management/server-side-spring/server-side-spring.md) to see the same Handsontable frontend wired to a Java backend using the same endpoint shapes.

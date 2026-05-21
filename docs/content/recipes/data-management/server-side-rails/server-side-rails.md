@@ -45,18 +45,10 @@ An Order Management grid that:
 
 ## Before you begin
 
-Install Ruby and Rails (see the [Rails installation guide](https://guides.rubyonrails.org/getting_started.html)), then generate a new API-only project:
+- Docker and Docker Compose installed
+- Node.js 18 or later and npm installed
 
-```shell
-rails new orders-api --api
-cd orders-api
-```
-
-Install the JavaScript dependency:
-
-```shell
-npm install handsontable
-```
+No local Ruby or Rails installation is required — the backend runs inside Docker.
 
 ## Step 1 -- Add the Ruby gems
 
@@ -283,7 +275,7 @@ Handsontable's `dataProvider` calls `fetchRows` with `{ page, pageSize, sort, fi
 
 ## Step 10 -- Initialize Handsontable
 
-With the server running (`rails server`), configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Rails API runs on `http://localhost:3000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
 ::: only-for javascript
 

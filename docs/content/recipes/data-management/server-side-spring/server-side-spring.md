@@ -31,7 +31,7 @@ This tutorial shows how to connect Handsontable's `dataProvider` plugin to a Spr
 
 **Difficulty:** Intermediate
 **Time:** ~45 minutes
-**Stack:** Spring Boot 3, Spring Data JPA, H2 (in-memory), Handsontable `dataProvider`
+**Stack:** Spring Boot 3.3, Spring Data JPA, PostgreSQL 16, Flyway, Handsontable `dataProvider`
 
 ## What You'll Build
 
@@ -41,11 +41,12 @@ A product catalog data grid that:
 - Creates, updates, and deletes rows via dedicated endpoints
 - Converts Handsontable's 1-based page index to Spring Data's 0-based `PageRequest`
 - Maps Spring Data's `Page` response to the `{ rows, totalRows }` shape Handsontable expects
-- Seeds an H2 in-memory database with 55 product rows on startup
+- Seeds a PostgreSQL database with 55 product rows on startup
 
 ## Before you begin
 
-- Java 17 or later and Maven or Gradle installed
+- Docker and Docker Compose installed
+- Node.js 18 or later and npm 9 or later installed
 - Basic familiarity with Spring Boot and JPA
 - A Handsontable project with the `dataProvider` plugin available
 
@@ -55,10 +56,11 @@ Use Spring Initializr to generate a new project with the required dependencies:
 
 ```shell
 curl https://start.spring.io/starter.zip \
-  -d dependencies=web,data-jpa,h2,validation \
+  -d dependencies=web,data-jpa,flyway,postgresql \
   -d type=maven-project \
   -d language=java \
-  -d bootVersion=3.2.0 \
+  -d bootVersion=3.3.5 \
+  -d javaVersion=21 \
   -d groupId=com.example \
   -d artifactId=products \
   -d name=products \
@@ -81,17 +83,21 @@ Or add the following to an existing `pom.xml`:
     <artifactId>spring-boot-starter-data-jpa</artifactId>
   </dependency>
 
-  <!-- H2 in-memory database -- zero setup, no installation needed -->
+  <!-- PostgreSQL JDBC driver -->
   <dependency>
-    <groupId>com.h2database</groupId>
-    <artifactId>h2</artifactId>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
     <scope>runtime</scope>
   </dependency>
 
-  <!-- Bean Validation for request DTOs -->
+  <!-- Flyway -- manages schema migrations -->
   <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-validation</artifactId>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-core</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-database-postgresql</artifactId>
   </dependency>
 </dependencies>
 ```
@@ -99,10 +105,10 @@ Or add the following to an existing `pom.xml`:
 **What's happening:**
 - `spring-boot-starter-web` provides the embedded Tomcat server and `@RestController` support.
 - `spring-boot-starter-data-jpa` brings in Hibernate and the Spring Data repository abstraction.
-- `h2` is scoped to `runtime` so it is available during development but excluded from production builds.
-- `spring-boot-starter-validation` enables `@Valid` and `@RequestBody` validation annotations on DTOs.
+- `postgresql` is scoped to `runtime` — it provides the JDBC driver but is not needed at compile time.
+- `flyway-core` and `flyway-database-postgresql` manage schema creation via versioned SQL migration files instead of Hibernate's `ddl-auto`.
 
-## Step 2: Configure the H2 database
+## Step 2: Configure the database
 
 Create or update `src/main/resources/application.properties`:
 
@@ -113,10 +119,9 @@ Create or update `src/main/resources/application.properties`:
 :::
 
 **What's happening:**
-- `jdbc:h2:mem:products` creates an in-memory database named `products`. The data exists only while the application is running.
-- `DB_CLOSE_DELAY=-1` keeps the database open for the lifetime of the JVM. Without it, H2 closes the connection pool after the first connection is released.
-- `ddl-auto=create-drop` tells Hibernate to generate the schema from your entities on startup and drop it on shutdown. This is appropriate for a recipe but you should switch to `validate` or `none` in production.
-- `h2.console.enabled=true` exposes the H2 web console at `http://localhost:8080/h2-console` so you can inspect the data during development.
+- The datasource URL, username, and password are read from environment variables (`DATABASE_URL`, `DB_USERNAME`, `DB_PASSWORD`) with sensible local defaults. In the Docker Compose setup these are injected automatically.
+- `ddl-auto=validate` tells Hibernate to verify that the schema matches the entity mapping on startup, but to never modify the database. Flyway owns all DDL changes.
+- `flyway.enabled=true` tells Spring Boot to run pending migrations from `src/main/resources/db/migration` before the application context finishes starting. The migration `V1__create_products_table.sql` creates the `products` table on the first run.
 
 ## Step 3: Create the Product entity
 
@@ -257,7 +262,7 @@ The class-level `@Transactional` annotation wraps every public method in a singl
 
 ## Step 9: Wire up Handsontable
 
-With the server running on `http://localhost:8080`, configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The backend runs on `http://localhost:8080` inside Docker; Vite proxies all `/api/*` requests to it so no CORS configuration is needed in the browser. The complete frontend code is in the files below.
 
 ::: only-for javascript
 

@@ -45,26 +45,16 @@ An employee directory grid that:
 
 ## Before you begin
 
-Install the Python dependencies:
+- Docker and Docker Compose installed
+- Node.js and npm installed
 
-```shell
-pip install django djangorestframework django-cors-headers
-```
-
-Install the JavaScript dependency:
-
-```shell
-npm install handsontable
-```
+No local Python installation is required — the Django backend and PostgreSQL database run inside Docker.
 
 ## Step 1 -- Set up the Django app
 
-Create a Django project and a `employees` app:
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`). The script builds and starts PostgreSQL + Django via Docker Compose, runs migrations, seeds 50 employee records, and opens the Vite dev server at `http://localhost:5173`.
 
-```shell
-django-admin startproject myproject .
-python manage.py startapp employees
-```
+The Django project uses a `employees` app:
 
 **Why a separate app?**  
 Django apps are self-contained modules. Keeping the employee model, serializer, and views in one app makes the code easier to extend and test independently.
@@ -271,7 +261,7 @@ Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, 
 
 ## Step 11 -- Initialize Handsontable
 
-With the server running (`python manage.py runserver`), configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+With the backend and Vite dev server running (`bash setup.sh`), open `http://localhost:5173` to see the grid. The Django API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
 ::: only-for javascript
 

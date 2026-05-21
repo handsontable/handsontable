@@ -60,7 +60,6 @@ Install the required Symfony packages:
 
 ```shell
 composer require symfony/framework-bundle symfony/routing
-composer require nelmio/cors-bundle
 ```
 
 Create the entity, repository, controller, and seed command:
@@ -233,32 +232,31 @@ Verify the routes are registered:
 php bin/console debug:router | grep products
 ```
 
-## Step 7: Configure CORS
+## Step 7: Set up the Vite dev server
 
-Browsers block cross-origin requests unless the server sends the correct headers.
+Create a `vite.config.js` at the root of your frontend project and configure a proxy so requests go to Vite (`:5173`) and are forwarded to Symfony without triggering CORS:
 
-Open `config/packages/nelmio_cors.yaml` and allow your frontend origin:
+```js
+import { defineConfig } from 'vite';
 
-```yaml
-nelmio_cors:
-  defaults:
-    origin_regex: true
-    allow_origin: ['http://localhost:5173']  # Vite dev server
-    allow_methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS']
-    allow_headers: ['Content-Type']
-    max_age: 3600
-  paths:
-    '^/api/': ~
+export default defineConfig({
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': 'http://localhost:8000',
+    },
+  },
+});
 ```
 
 **What's happening:**
-- `nelmio/cors-bundle` reads this configuration and injects CORS headers on every response matching `^/api/`.
-- In production replace `http://localhost:5173` with the exact frontend origin. Using `['.*']` is acceptable during local development but exposes your API to any origin.
+- The Vite dev server forwards every `/api/*` request to the Symfony server running on port 8000. Because both the HTML page and the API requests share the same origin (`localhost:5173`), the browser never sees a cross-origin request — no CORS headers are needed on the backend.
+- In production, deploy the frontend and backend behind the same reverse proxy (nginx or Apache), or configure CORS headers on the Symfony server for your production origin.
 - No CSRF token is needed for this stateless JSON API. Symfony's CSRF protection applies to form-based flows, not `Content-Type: application/json` requests from a browser frontend.
 
 ## Step 8: Wire up Handsontable
 
-With the server running (`symfony server:start` or `php -S localhost:8000 -t public/`), configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+With the Symfony server running (`symfony server:start` or `php -S localhost:8000 -t public/`) and the Vite dev server running (`npm run dev`), open `http://localhost:5173` to see the grid. The complete frontend code is in the files below.
 
 ::: only-for javascript
 
@@ -380,13 +378,21 @@ The frontend replaces the per-endpoint `fetch()` calls with a single `gql()` hel
 
 ::: only-for javascript
 
-@[code js](@/recipes/data-management/server-side-symfony/javascript/graphql.js)
+::: example #javascript-graphql-symfony --code-only
+
+@[code js](@/content/recipes/data-management/server-side-symfony/javascript/graphql.js)
+
+:::
 
 :::
 
 ::: only-for typescript
 
-@[code ts](@/recipes/data-management/server-side-symfony/javascript/graphql.ts)
+::: example #typescript-graphql-symfony --code-only
+
+@[code ts](@/content/recipes/data-management/server-side-symfony/javascript/graphql.ts)
+
+:::
 
 :::
 
@@ -429,7 +435,7 @@ Handsontable sends filters as `[{ prop, conditions: [{ name, args }] }]`. `mapFi
 - Why `sortOrder` is needed: the primary key reflects insertion order, but rows inserted via the context menu need an independent ordering column to preserve their display position.
 - How Doctrine maps `decimal` columns to PHP strings and why the controller must cast them to `float` before serializing the JSON response.
 - How to validate column names against `ALLOWED_COLUMNS` before interpolating them into DQL expressions to prevent injection.
-- Why no CSRF token is needed for a stateless JSON API and how to configure CORS with `nelmio/cors-bundle`.
+- Why no CSRF token is needed for a stateless JSON API and how to avoid CORS entirely by proxying API requests through the Vite dev server.
 - How `notification: true` provides error toasts and a Refetch action with no extra code.
 - How `beforeRowsMutation` intercepts operations before they reach the server.
 

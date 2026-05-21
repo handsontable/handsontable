@@ -45,10 +45,10 @@ A product inventory data grid that:
 
 ## Before you begin
 
-- PHP 8.2+ and Composer installed
-- A Laravel 11 project created (`composer create-project laravel/laravel inventory`)
-- A configured database (SQLite works for local development)
-- Node.js 22 and Handsontable installed (`npm install handsontable`)
+- Docker and Docker Compose installed
+- Node.js 18 or later and npm 9 or later installed
+
+No local PHP or Composer installation is required — the Laravel backend and MySQL 8 database run inside Docker.
 
 ## Step 1: Scaffold the backend
 
@@ -209,23 +209,33 @@ Verify the routes are registered:
 php artisan route:list --path=api/products
 ```
 
-## Step 7: Configure CORS
+## Step 7: Set up the Vite dev server
 
-Browsers block cross-origin requests unless the server sends the correct headers.
+Create a `vite.config.js` at the root of your frontend project and configure a proxy so requests go to Vite (`:5173`) and are forwarded to Laravel without triggering CORS:
 
-Open `config/cors.php` and allow your frontend origin:
+```js
+import { defineConfig } from 'vite';
 
-```php
-'allowed_origins' => ['http://localhost:5173'], // Vite dev server
+export default defineConfig({
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+});
 ```
 
 **What's happening:**
-- The CORS middleware registers automatically in Laravel 11 via `bootstrap/app.php`. No extra configuration is needed beyond the `allowed_origins` list.
-- In production replace `'http://localhost:5173'` with the exact frontend origin. Using `['*']` is acceptable during local development but exposes your API to any origin.
+- The Vite dev server forwards every `/api/*` request to the Laravel server running on port 8000. Because both the HTML page and the API requests share the same origin (`localhost:5173`), the browser never sees a cross-origin request — no CORS headers are needed on the backend.
+- In production, deploy the frontend and backend behind the same reverse proxy (nginx or Apache), or configure CORS headers in `config/cors.php` for your production origin.
 
 ## Step 8: Wire up Handsontable
 
-With the server running (`php artisan serve`), configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Laravel API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
 ::: only-for javascript
 
@@ -262,7 +272,6 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 ::: example #angular-laravel --code-only
 
 @[code](@/content/recipes/data-management/server-side-laravel/angular/example1.ts)
-@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.html)
 
 :::
 
