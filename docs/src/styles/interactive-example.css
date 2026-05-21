@@ -155,7 +155,7 @@
   display: none !important;
 }
 
-.example-controls-container .controls:not(:has(button:not([hidden]))) {
+.example-controls-container .controls:not(:has(button:not([hidden]))):not(:has(input:not([hidden]))) {
   display: none;
 }
 

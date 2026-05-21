@@ -7,8 +7,9 @@ type ColumnConfig = {
   title: string;
   type: string;
   width: number;
-  numericFormat?: { pattern: string; culture: string };
-  dateFormat?: string;
+  locale?: string;
+  numericFormat?: Intl.NumberFormatOptions;
+  dateFormat?: Intl.DateTimeFormatOptions;
   source?: string[];
 };
 
@@ -20,17 +21,18 @@ const allColumns: ColumnConfig[] = [
     data: 'salary',
     title: 'Salary',
     type: 'numeric',
-    numericFormat: { pattern: '$0,0', culture: 'en-US' },
+    locale: 'en-US',
+    numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
     width: 110,
   },
-  { data: 'startDate', title: 'Start Date', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
-  { data: 'location', title: 'Location', type: 'text', width: 110 },
+  { data: 'startDate', title: 'Start Date', type: 'intl-date', locale: 'en-CA', dateFormat: { dateStyle: 'short' }, width: 120 },
+  { data: 'location', title: 'Location', type: 'text', width: 120 },
   {
     data: 'status',
     title: 'Status',
     type: 'dropdown',
     source: ['Active', 'On Leave', 'Inactive'],
-    width: 100,
+    width: 120,
   },
 ];
 
