@@ -7,6 +7,7 @@ import {
   getDateInHotFormat,
   getDateInHfFormat,
   getDateFromExcelDate,
+  getTimeFromHfTimeFraction,
   normalizeValueForFormulaEngine,
 } from '../utils';
 
@@ -95,6 +96,21 @@ describe('Formulas utils', () => {
       expect(getDateFromExcelDate(366, 'DD/MM/YYYY')).toEqual('31/12/1900');
       // Values are the same for GS, Excel and HF.
       expect(getDateFromExcelDate(366, 'YYYY-MM-DD')).toEqual('1900-12-31');
+    });
+  });
+
+  describe('getTimeFromHfTimeFraction', () => {
+    it('should format a day-fraction time as a string in the provided time format', () => {
+      expect(getTimeFromHfTimeFraction(0, 'HH:mm')).toBe('00:00');
+      expect(getTimeFromHfTimeFraction(0.25, 'HH:mm')).toBe('06:00');
+      expect(getTimeFromHfTimeFraction(0.5, 'HH:mm')).toBe('12:00');
+      expect(getTimeFromHfTimeFraction(0.75, 'HH:mm')).toBe('18:00');
+      expect(getTimeFromHfTimeFraction(0.5, 'h:mm:ss a')).toBe('12:00:00 pm');
+    });
+
+    it('should ignore the integer day part and only format the fractional time part', () => {
+      expect(getTimeFromHfTimeFraction(1.5, 'HH:mm')).toBe('12:00');
+      expect(getTimeFromHfTimeFraction(43891.75, 'HH:mm')).toBe('18:00');
     });
   });
 

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where minSpareRows and minSpareCols kept adding rows/columns when dataSchema defined non-null default values (e.g. false for checkbox columns).",
-  "type": "fixed",
-  "issueOrPR": 2409,
-  "breaking": false,
-  "framework": "none"
-}

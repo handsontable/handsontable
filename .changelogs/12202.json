@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed selected fixed-column header alignment with data cells for fixedColumnsStart",
-  "type": "fixed",
-  "issueOrPR": 12202,
-  "breaking": false,
-  "framework": "none"
-}

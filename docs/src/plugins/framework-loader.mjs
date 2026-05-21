@@ -81,6 +81,16 @@ const EXT_TO_LANG = {
   properties: 'properties',
 };
 
+/** Language tags that may appear as the first token in @[code LANG ...](...) meta. */
+const META_LANG = {
+  php: 'php',
+  java: 'java',
+  typescript: 'typescript',
+  ts: 'typescript',
+  js: 'javascript',
+  properties: 'properties',
+};
+
 const EXT_TO_LABEL = {
   js: 'JavaScript',
   ts: 'TypeScript',
@@ -340,6 +350,57 @@ ${fences}
 }
 
 /**
+ * Converts standalone @[code](@/content/...) directives to markdown fenced code
+ * blocks (Expressive Code). Must run after processExampleBlocks so directives
+ * inside ::: example containers are not converted twice.
+ *
+ * @param {string} content - Markdown body (after example block processing)
+ * @param {string} contentDir - Absolute path to docs/content/
+ * @returns {string}
+ */
+function processCodeEmbedDirectives(content, contentDir) {
+  const lineRe = /^@\[code(?:\s+([^\]]*))?\]\(@\/content\/(.+)\)\s*$/;
+  const lines = content.split('\n');
+  const result = [];
+
+  for (const line of lines) {
+    const m = line.match(lineRe);
+
+    if (!m) {
+      result.push(line);
+      continue;
+    }
+
+    const meta = (m[1] || '').trim();
+    const relPath = m[2].trim();
+    const absPath = join(contentDir, relPath);
+    let code = '';
+
+    try {
+      code = readFileSync(absPath, 'utf-8').trimEnd();
+      code = code.replace(/\{\{\s*\$basePath\s*\}\}/g, '/docs');
+    } catch {
+      result.push('```text');
+      result.push(`// File not found: ${relPath}`);
+      result.push('```');
+      continue;
+    }
+
+    const ext = relPath.split('.').pop().toLowerCase();
+    const metaFirst = meta.split(/\s+/).filter(Boolean)[0];
+    let lang = (metaFirst && META_LANG[metaFirst]) || EXT_TO_LANG[ext] || 'text';
+    const collapsePart = meta.match(/collapse=\{[^}]+\}/);
+    const fenceLang = collapsePart ? `${lang} ${collapsePart[0]}` : lang;
+
+    result.push(`\`\`\`${fenceLang}`);
+    result.push(code);
+    result.push('```');
+  }
+
+  return result.join('\n');
+}
+
+/**
  * Processes ::: example and ::: example-without-tabs blocks in the markdown body.
  * Replaces them with HTML + markdown code fences (rendered by Expressive Code).
  * Must be called AFTER filterOnlyFor so only the current framework's blocks remain.
@@ -434,7 +495,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v34';
+const LOADER_VERSION = 'v35';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -1277,7 +1338,9 @@ export function frameworkLoader({ contentDir }) {
         // Root content/index.md: framework-agnostic splash — emit once as bare "index".
         if (relPath === 'index.md') {
           const exampleProcessedBody = await processExampleBlocks(body, contentDir);
-          const processedBody = applyVuepressPreprocessing(exampleProcessedBody);
+          const processedBody = applyVuepressPreprocessing(
+            processCodeEmbedDirectives(exampleProcessedBody, contentDir)
+          );
           const digest = generateDigest(raw + LOADER_VERSION);
           let data;
 
@@ -1337,8 +1400,11 @@ export function frameworkLoader({ contentDir }) {
           // 2. Process ::: example blocks into Shiki-highlighted HTML tabs
           const exampleProcessedBody = await processExampleBlocks(filteredBody, contentDir);
 
-          // 3. Apply remaining VuePress preprocessing
-          const processedBody = applyVuepressPreprocessing(exampleProcessedBody, prefix, contentDir);
+          // 3. Convert remaining standalone @[code] embeds to fenced code blocks
+          const codeEmbeddedBody = processCodeEmbedDirectives(exampleProcessedBody, contentDir);
+
+          // 4. Apply remaining VuePress preprocessing
+          const processedBody = applyVuepressPreprocessing(codeEmbeddedBody, prefix, contentDir);
 
           // Make each framework entry unique; include LOADER_VERSION to bust
           // Astro's data store cache when the loader logic changes.

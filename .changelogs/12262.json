@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added build weight comparison tables to the Modules guide, showing the minified and gzip size added by each optional module when imported on top of `handsontable/base`.",
-  "type": "added",
-  "issueOrPR": 12262,
-  "breaking": false,
-  "framework": "none"
-}

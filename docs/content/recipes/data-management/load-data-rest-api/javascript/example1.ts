@@ -18,27 +18,24 @@ const STATUS_ERROR = 'Failed to load users. Try again.';
 
 const rootContainer = document.querySelector('#example1') as HTMLDivElement;
 
-const statusBar = document.createElement('div');
-const statusLabel = document.createElement('p');
+const controlsContainer = document.createElement('div');
+const controls = document.createElement('div');
+const statusOutput = document.createElement('output');
 const retryButton = document.createElement('button');
 const gridContainer = document.createElement('div');
 
-statusBar.style.display = 'flex';
-statusBar.style.gap = '12px';
-statusBar.style.alignItems = 'center';
-statusBar.style.marginBottom = '8px';
-
-statusLabel.style.margin = '0';
-statusLabel.style.fontFamily = 'Arial, sans-serif';
-statusLabel.style.fontSize = '14px';
+controlsContainer.className = 'example-controls-container';
+controls.className = 'controls';
+statusOutput.id = 'example1-status';
 
 retryButton.type = 'button';
 retryButton.textContent = 'Retry';
 retryButton.hidden = true;
 
-rootContainer.appendChild(statusBar);
-statusBar.appendChild(statusLabel);
-statusBar.appendChild(retryButton);
+controls.appendChild(retryButton);
+controlsContainer.appendChild(controls);
+controlsContainer.appendChild(statusOutput);
+rootContainer.appendChild(controlsContainer);
 rootContainer.appendChild(gridContainer);
 
 const hot = new Handsontable(gridContainer, {
@@ -69,10 +66,8 @@ function setUiState({
   hasError?: boolean;
   message?: string;
 }) {
-  statusLabel.textContent = message;
-  statusLabel.style.color = hasError
-    ? 'var(--ht-cell-error-foreground-color, #c62828)'
-    : 'var(--ht-foreground-color, #202124)';
+  statusOutput.textContent = message;
+  statusOutput.classList.toggle('is-error', hasError);
   retryButton.hidden = !hasError;
   retryButton.disabled = loading;
 }

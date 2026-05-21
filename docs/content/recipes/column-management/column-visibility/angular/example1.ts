@@ -50,18 +50,20 @@ const data = [
   imports: [HotTableModule],
   selector: 'example1-column-visibility',
   template: `
-    <div style="margin-bottom: 10px;">
-      @for (col of allColumns; track col.data; let i = $index) {
-        <label style="margin-right: 12px; display: inline-flex; align-items: center; gap: 4px;">
-          <input
-            type="checkbox"
-            [checked]="visibleIndices.has(i)"
-            [disabled]="visibleIndices.size === 1 && visibleIndices.has(i)"
-            (change)="toggleColumn(i, $event)"
-          />
-          {{ col.title }}
-        </label>
-      }
+    <div class="example-controls-container">
+      <div class="controls">
+        @for (col of allColumns; track col.data; let i = $index) {
+          <label>
+            <input
+              type="checkbox"
+              [checked]="visibleIndices.has(i)"
+              [disabled]="visibleIndices.size === 1 && visibleIndices.has(i)"
+              (change)="toggleColumn(i, $event)"
+            />
+            {{ col.title }}
+          </label>
+        }
+      </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,

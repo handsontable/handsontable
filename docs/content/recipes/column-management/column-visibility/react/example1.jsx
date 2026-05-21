@@ -77,24 +77,21 @@ const ExampleComponent = () => {
   );
 
   return (
-    <div>
-      <div id="column-toggles" style={{ marginBottom: '10px' }}>
-        {allColumns.map((col, index) => (
-          <label
-            key={col.data}
-            style={{ marginRight: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >
-            <input
-              type="checkbox"
-              checked={visibleIndices.has(index)}
-              // When only one column remains visible, disable its checkbox so the user
-              // cannot produce an empty grid.
-              disabled={visibleIndices.size === 1 && visibleIndices.has(index)}
-              onChange={() => handleToggle(index)}
-            />
-            {col.title}
-          </label>
-        ))}
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
+          {allColumns.map((col, index) => (
+            <label key={col.data}>
+              <input
+                type="checkbox"
+                checked={visibleIndices.has(index)}
+                disabled={visibleIndices.size === 1 && visibleIndices.has(index)}
+                onChange={() => handleToggle(index)}
+              />
+              {col.title}
+            </label>
+          ))}
+        </div>
       </div>
       <HotTable
         data={data}
@@ -106,7 +103,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         licenseKey="non-commercial-and-evaluation"
       />
-    </div>
+    </>
   );
 };
 

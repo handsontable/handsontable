@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a stack overflow error when pasting large datasets (50,000+ rows) by optimizing array operations in the HTML table parser.",
-  "type": "fixed",
-  "issueOrPR": 11784,
-  "breaking": false,
-  "framework": "none"
-}

@@ -922,4 +922,39 @@ describe('Filters', () => {
       expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
     });
   });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should keep dependent column by_value selection in cached state after editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: ['ID', 'Country', 'Company'],
+          dropdownMenu: true,
+          filters: true,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        const valueComponentState = filters.components.get('filter_by_value').state.getValueAtIndex(2);
+
+        expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
+      });
+  });
 });

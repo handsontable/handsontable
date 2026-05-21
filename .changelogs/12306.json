@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added long-press gesture detection on touch devices to open the context menu.",
-  "type": "added",
-  "issueOrPR": 12306,
-  "breaking": false,
-  "framework": "none"
-}

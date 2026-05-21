@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed multiple Handsontable tables with shared HyperFormula engine and auto-sizing becoming unresponsive due to cross-table formula update interference.",
-  "type": "fixed",
-  "issueOrPR": 12305,
-  "breaking": false,
-  "framework": "none"
-}

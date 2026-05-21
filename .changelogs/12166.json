@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added XLSX export support to the ExportFile plugin",
-  "type": "added",
-  "issueOrPR": 12166,
-  "breaking": false,
-  "framework": "none"
-}

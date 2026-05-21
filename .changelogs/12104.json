@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed filter by value input performance degradation when searchMode: apply option is enabled.",
-  "type": "fixed",
-  "issueOrPR": 12104,
-  "breaking": false,
-  "framework": "none"
-}
