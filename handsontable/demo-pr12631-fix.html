@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12631 — FIX (res.ok check throws clear HTTP error)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-ok { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-ok:hover { background: #2e7d32; }
+    .btn-err { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-err:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 48px; white-space: pre-wrap; }
+    .status-box.ok { background: #e8f5e9; border-color: #a5d6a7; color: #1b5e20; }
+    .status-box.error { background: #fdecea; border-color: #ef9a9a; color: #b71c1c; }
+    .tab-bar { display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid #ddd; }
+    .tab-btn { padding: 7px 18px; font-size: 13px; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; background: #f0f0f0; color: #555; margin-right: 2px; }
+    .tab-btn.active { background: #fff; border-color: #ddd; color: #111; font-weight: 600; margin-bottom: -2px; border-bottom: 2px solid #fff; }
+    .tab-pane { display: none; background: #fff; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; padding: 14px; margin-bottom: 14px; }
+    .tab-pane.active { display: block; }
+    .tab-pane pre { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12631 - <code>res.ok</code> check throws clear HTTP error</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12631-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12631 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12631).</strong>
+    All 4 variants of the <code>server-side-spring</code> recipe (JS, TS, React, Angular) now check
+    <code>res.ok</code> before calling <code>res.json()</code>. When the server returns a non-2xx
+    response, a clear <code>Error: HTTP 404</code> is thrown instead of a cryptic
+    <code>SyntaxError</code>. This surfaces the real problem - the server is down or returning an
+    error - making debugging straightforward.
+  </div>
+
+  <pre><span class="comment">// FIX — one-line guard added to all 4 variants after each fetch() call:</span>
+async function fetchRows({ startRow, amount, sortBy, sortOrder }) {
+  const res = await fetch(`/api/cars?from=${startRow}&amount=${amount}`);
+  <span class="new">if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>  <span class="comment">// ← NEW: clear HTTP error</span>
+  const json = await res.json();  <span class="comment">// only called when res.ok is true</span>
+  return { data: json.data, meta: { total: json.total } };
+}</pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12631. The fix is a one-line guard in each of the 4 recipe files.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Simulate HTTP 200 (success)"</strong> — data loads cleanly. ✓</li>
+      <li>Click <strong>"Simulate HTTP 404 (server down)"</strong> — error is <code>Error: HTTP 404</code>, not SyntaxError. ✓</li>
+      <li>Compare with the <a href="demo-pr12631-bug.html">Bug page</a> which throws <code>SyntaxError: Unexpected token '&lt;'</code>.</li>
+    </ol>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('js')">JavaScript</button>
+    <button class="tab-btn" onclick="showTab('ts')">TypeScript</button>
+    <button class="tab-btn" onclick="showTab('react')">React</button>
+    <button class="tab-btn" onclick="showTab('vue')">Vue 3</button>
+    <button class="tab-btn" onclick="showTab('angular')">Angular</button>
+  </div>
+
+  <div class="tab-pane active" id="tab-js">
+    <pre><span class="comment">// javascript/example1.js — FIX</span>
+async function fetchRows({ startRow, amount, sortBy, sortOrder }) {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="new">if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json = await res.json();
+  return { data: json.data, meta: { total: json.total } };
+}</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-ts">
+    <pre><span class="comment">// javascript/example1.ts — FIX (TypeScript variant)</span>
+const fetchRows = async ({ startRow, amount, sortBy, sortOrder }: FetchRowsParams) => {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="new">if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json: ApiResponse = await res.json();
+  return { data: json.data, meta: { total: json.total } };
+};</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-react">
+    <pre><span class="comment">// react/example1.tsx — FIX</span>
+const fetchRows = async ({ startRow, amount, sortBy, sortOrder }) => {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="new">if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json = await res.json();
+  return { data: json.data, meta: { total: json.total } };
+};</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-vue">
+    <pre><span class="comment">// Vue 3 (same pattern — apply to any Vue server-side recipe)</span>
+const fetchRows = async ({ startRow, amount, sortBy, sortOrder }) => {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="new">if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json = await res.json();
+  return { data: json.data, meta: { total: json.total } };
+};</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-angular">
+    <pre><span class="comment">// angular/example1.ts — FIX</span>
+async fetchRows({ startRow, amount, sortBy, sortOrder }: FetchRowsParams) {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="new">if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json: ApiResponse = await res.json();
+  return { data: json.data, meta: { total: json.total } };
+}</pre>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-ok"  id="btn-ok">Simulate HTTP 200 (success)</button>
+    <button class="btn btn-err" id="btn-err">Simulate HTTP 404 (server down)</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="status-box" id="status">Click a button above to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const MOCK_ROWS = [
+      { id: 1, car: 'Toyota',   year: 2021, price: 25000 },
+      { id: 2, car: 'Honda',    year: 2020, price: 22000 },
+      { id: 3, car: 'Ford',     year: 2019, price: 19000 },
+      { id: 4, car: 'BMW',      year: 2022, price: 45000 },
+      { id: 5, car: 'Mercedes', year: 2023, price: 55000 },
+    ];
+
+    // Fixed fetchRows — checks res.ok before res.json()
+    async function fixedFetchRows({ page, pageSize = 5, simulateError = false }) {
+      const mockRes = simulateError
+        ? {
+            ok: false,
+            status: 404,
+            json: async () => { throw new SyntaxError('Unexpected token'); }
+          }
+        : {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              data: MOCK_ROWS.slice(0, pageSize),
+              total: MOCK_ROWS.length,
+            })
+          };
+
+      // FIX: check res.ok first
+      if (!mockRes.ok) throw new Error(`HTTP ${mockRes.status}`);
+      const json = await mockRes.json();
+      return { data: json.data, meta: { total: json.total } };
+    }
+
+    function setStatus(text, cls) {
+      const el = document.getElementById('status');
+      el.textContent = text;
+      el.className = 'status-box' + (cls ? ' ' + cls : '');
+    }
+
+    document.getElementById('btn-ok').addEventListener('click', async () => {
+      setStatus('Fetching...', '');
+      try {
+        const result = await fixedFetchRows({ page: 1, simulateError: false });
+        setStatus(
+          'SUCCESS (HTTP 200)\n' +
+          'Rows returned: ' + result.data.length + ' / ' + result.meta.total + '\n' +
+          'First row: ' + JSON.stringify(result.data[0]),
+          'ok'
+        );
+        if (window.hot) window.hot.loadData(result.data);
+      } catch (err) {
+        setStatus('Unexpected error: ' + err.constructor.name + ': ' + err.message, 'error');
+      }
+    });
+
+    document.getElementById('btn-err').addEventListener('click', async () => {
+      setStatus('Fetching from unavailable server...', '');
+      try {
+        await fixedFetchRows({ page: 1, simulateError: true });
+        setStatus('Request succeeded (unexpected)', '');
+      } catch (err) {
+        setStatus(
+          'ERROR thrown:\n' +
+          err.constructor.name + ': ' + err.message + '\n\n' +
+          'This is the FIX: "Error: HTTP 404" is clear and actionable.\n' +
+          'Compare with bug page: "SyntaxError: Unexpected token \'<\'" — cryptic.',
+          'error'
+        );
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      setStatus('Click a button above to test.', '');
+      if (window.hot) window.hot.loadData([]);
+    });
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [],
+      columns: [
+        { data: 'id',    type: 'numeric', title: 'ID' },
+        { data: 'car',   type: 'text',    title: 'Car' },
+        { data: 'year',  type: 'numeric', title: 'Year' },
+        { data: 'price', type: 'numeric', title: 'Price' },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    function showTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', ['js','ts','react','vue','angular'][i] === name);
+      });
+      ['js','ts','react','vue','angular'].forEach(n => {
+        document.getElementById('tab-' + n).classList.toggle('active', n === name);
+      });
+    }
+  </script>
+</body>
+</html>

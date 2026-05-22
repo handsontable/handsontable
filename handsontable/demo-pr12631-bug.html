@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12631 — BUG (missing res.ok check causes SyntaxError on HTTP error)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 48px; white-space: pre-wrap; }
+    .status-box.error { background: #fdecea; border-color: #ef9a9a; color: #b71c1c; }
+    .tab-bar { display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid #ddd; }
+    .tab-btn { padding: 7px 18px; font-size: 13px; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; background: #f0f0f0; color: #555; margin-right: 2px; }
+    .tab-btn.active { background: #fff; border-color: #ddd; color: #111; font-weight: 600; margin-bottom: -2px; border-bottom: 2px solid #fff; }
+    .tab-pane { display: none; background: #fff; border: 1px solid #ddd; border-top: none; border-radius: 0 0 6px 6px; padding: 14px; margin-bottom: 14px; }
+    .tab-pane.active { display: block; }
+    .tab-pane pre { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <h1>PR #12631 - Missing <code>res.ok</code> check causes SyntaxError</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12631-fix.html">PR #12631 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG (docs example — all 4 variants: JS, TS, React, Angular).</strong>
+    The <code>server-side-spring</code> recipe examples call <code>res.json()</code> directly without first
+    checking <code>res.ok</code>. When the backend is unreachable (404, 500, network error), the server
+    returns an HTML error page. Calling <code>res.json()</code> on HTML throws:<br>
+    <code style="color:#b71c1c;">SyntaxError: Unexpected token '&lt;', "&lt;!DOCTYPE..."</code><br>
+    instead of a meaningful HTTP error, making the failure invisible and hard to debug.
+  </div>
+
+  <pre><span class="comment">// BUG — all 4 variants (JS, TS, React, Angular) had this pattern:</span>
+async function fetchRows({ page, pageSize, sort }) {
+  const res = await fetch(`/api/cars?page=${page}&pageSize=${pageSize}`);
+  <span class="bad">// ← no res.ok check here!</span>
+  const json = await res.json(); <span class="bad">// throws SyntaxError when server returns HTML error page</span>
+  return { data: json.data, meta: { total: json.total } };
+}</pre>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"Simulate HTTP 404 (no res.ok check)"</strong>.</li>
+      <li>BUG: The error thrown is <code>SyntaxError: Unexpected token '&lt;'</code> — cryptic, not actionable.</li>
+      <li>Compare with the <a href="demo-pr12631-fix.html">Fix page</a> which shows <code>Error: HTTP 404</code>.</li>
+    </ol>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab('js')">JavaScript</button>
+    <button class="tab-btn" onclick="showTab('ts')">TypeScript</button>
+    <button class="tab-btn" onclick="showTab('react')">React</button>
+    <button class="tab-btn" onclick="showTab('vue')">Vue 3</button>
+    <button class="tab-btn" onclick="showTab('angular')">Angular</button>
+  </div>
+
+  <div class="tab-pane active" id="tab-js">
+    <pre><span class="comment">// javascript/example1.js — BUG (missing res.ok check)</span>
+async function fetchRows({ startRow, amount, sortBy, sortOrder }) {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="bad">// missing: if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json = await res.json(); <span class="bad">// SyntaxError if server returns HTML</span>
+  return { data: json.data, meta: { total: json.total } };
+}</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-ts">
+    <pre><span class="comment">// javascript/example1.ts — BUG (TypeScript variant)</span>
+const fetchRows = async ({ startRow, amount, sortBy, sortOrder }: FetchRowsParams) => {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="bad">// missing: if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json: ApiResponse = await res.json(); <span class="bad">// SyntaxError if server returns HTML</span>
+  return { data: json.data, meta: { total: json.total } };
+};</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-react">
+    <pre><span class="comment">// react/example1.tsx — BUG</span>
+const fetchRows = async ({ startRow, amount, sortBy, sortOrder }) => {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="bad">// missing: if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json = await res.json(); <span class="bad">// SyntaxError if server returns HTML</span>
+  return { data: json.data, meta: { total: json.total } };
+};</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-vue">
+    <pre><span class="comment">// Vue 3 (same pattern as JS — hypothetical equivalent)</span>
+const fetchRows = async ({ startRow, amount, sortBy, sortOrder }) => {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  <span class="bad">// missing: if (!res.ok) throw new Error(`HTTP ${res.status}`);</span>
+  const json = await res.json(); <span class="bad">// SyntaxError if server returns HTML</span>
+  return { data: json.data, meta: { total: json.total } };
+};</pre>
+  </div>
+
+  <div class="tab-pane" id="tab-angular">
+    <pre><span class="comment">// angular/example1.ts — BUG</span>
+async fetchRows({ startRow, amount, sortBy, sortOrder }: FetchRowsParams) {
+  const url = `/api/cars?from=${startRow}&amount=${amount}` +
+    (sortBy ? `&sortBy=${sortBy}&sortOrder=${sortOrder}` : '');
+  const res = await fetch(url);
+  // missing: if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json: ApiResponse = await res.json(); <span class="bad">// SyntaxError if server returns HTML</span>
+  return { data: json.data, meta: { total: json.total } };
+}</pre>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-simulate">Simulate HTTP 404 (no res.ok check)</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="status-box" id="status">Click "Simulate HTTP 404 (no res.ok check)" to see the bug.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const MOCK_DATA = [
+      { id: 1, car: 'Toyota', year: 2021, price: 25000 },
+      { id: 2, car: 'Honda',  year: 2020, price: 22000 },
+      { id: 3, car: 'Ford',   year: 2019, price: 19000 },
+    ];
+
+    // Simulates the buggy fetchRows — no res.ok check
+    async function buggyFetchRows({ page }) {
+      // Simulate the server returning a 404 HTML error page
+      const mockRes = {
+        ok: false,
+        status: 404,
+        json: async () => {
+          // Simulate JSON.parse failing on HTML content
+          const htmlBody = '<!DOCTYPE html><html><body>404 Not Found</body></html>';
+          throw new SyntaxError(`Unexpected token '<', "${htmlBody.slice(0, 20)}..." is not valid JSON`);
+        }
+      };
+      // BUG: no res.ok check before res.json()
+      const json = await mockRes.json();
+      return { data: json.data, meta: { total: json.total } };
+    }
+
+    function setStatus(text, isError) {
+      const el = document.getElementById('status');
+      el.textContent = text;
+      el.className = 'status-box' + (isError ? ' error' : '');
+    }
+
+    document.getElementById('btn-simulate').addEventListener('click', async () => {
+      setStatus('Simulating HTTP 404 response (no res.ok check)...', false);
+      try {
+        await buggyFetchRows({ page: 1 });
+        setStatus('Request succeeded (unexpected)', false);
+      } catch (err) {
+        setStatus(
+          'ERROR thrown:\n' +
+          err.constructor.name + ': ' + err.message + '\n\n' +
+          'This is the BUG: a SyntaxError is thrown instead of a clear HTTP error.\n' +
+          'The developer sees JSON parse noise instead of "HTTP 404".',
+          true
+        );
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      setStatus('Click "Simulate HTTP 404 (no res.ok check)" to see the bug.', false);
+    });
+
+    // Initialize a basic grid for context
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: MOCK_DATA,
+      columns: [
+        { data: 'id',    type: 'numeric', title: 'ID' },
+        { data: 'car',   type: 'text',    title: 'Car' },
+        { data: 'year',  type: 'numeric', title: 'Year' },
+        { data: 'price', type: 'numeric', title: 'Price' },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 160,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      readOnly: true,
+    });
+
+    function showTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', ['js','ts','react','vue','angular'][i] === name);
+      });
+      ['js','ts','react','vue','angular'].forEach(n => {
+        document.getElementById('tab-' + n).classList.toggle('active', n === name);
+      });
+    }
+  </script>
+</body>
+</html>
