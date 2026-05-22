@@ -237,7 +237,7 @@ export default defineConfig({
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Laravel API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
-::: only-for javascript
+::: only-for javascript vue
 
 ::: example #javascript-laravel --code-only
 

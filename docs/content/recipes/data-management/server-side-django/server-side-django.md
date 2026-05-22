@@ -263,7 +263,7 @@ Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, 
 
 With the backend and Vite dev server running (`bash setup.sh`), open `http://localhost:5173` to see the grid. The Django API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
-::: only-for javascript
+::: only-for javascript vue
 
 ::: example #javascript-django --code-only
 

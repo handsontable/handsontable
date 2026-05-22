@@ -178,6 +178,7 @@ const hotOptions: Handsontable.GridSettings = {
   columnSorting: true,
   filters: true,
   dropdownMenu: true,
+  contextMenu: true,
   emptyDataState: true,
   notification: true,
 

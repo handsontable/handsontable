@@ -177,6 +177,8 @@ const hotOptions = {
   /** filters sends an array of filter conditions in the fetchRows params. */
   filters: true,
   dropdownMenu: true,
+  // contextMenu exposes "Insert row above / below" and "Remove row".
+  contextMenu: true,
 
   /**
    * emptyDataState shows a loading overlay while fetchRows is in flight

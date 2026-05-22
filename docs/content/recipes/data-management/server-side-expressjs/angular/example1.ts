@@ -120,6 +120,7 @@ export class AppComponent {
     columnSorting: true,
     filters: true,
     dropdownMenu: true,
+    contextMenu: true,
     emptyDataState: true,
     notification: true,
     colHeaders: ['ID', 'Subject', 'Status', 'Priority', 'Assignee', 'Created'],

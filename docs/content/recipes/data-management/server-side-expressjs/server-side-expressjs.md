@@ -220,7 +220,7 @@ Copy `tickets.router.ts` into `src/`:
 
 Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Express API runs on `http://localhost:3000`; Vite proxies all `/tickets` requests to it. The complete frontend code is below.
 
-::: only-for javascript
+::: only-for javascript vue
 
 ::: example #javascript-expressjs --code-only
 
