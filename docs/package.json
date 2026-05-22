@@ -16,6 +16,7 @@
     "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
+    "docs:docker:build:production": "cross-env BUILD_MODE=production npm run build && docker build -f docker/Dockerfile -t docs-md:production .",
     "docs:visual-test": "npx playwright test",
     "docs:visual-test:update-screenshot": "npx playwright test -u"
   },
