@@ -45,10 +45,10 @@ A product inventory data grid that:
 
 ## Before you begin
 
-- PHP 8.2+ and Composer installed
-- A Laravel 11 project created (`composer create-project laravel/laravel inventory`)
-- A configured database (SQLite works for local development)
-- Node.js 22 and Handsontable installed (`npm install handsontable`)
+- Docker and Docker Compose installed
+- Node.js 18 or later and npm 9 or later installed
+
+No local PHP or Composer installation is required — the Laravel backend and MySQL 8 database run inside Docker.
 
 ## Step 1: Scaffold the backend
 
@@ -69,7 +69,11 @@ php artisan make:seeder ProductSeeder
 
 Replace the generated migration's `up()` method with the products schema:
 
+::: example #php-migration
+
 @[code php](@/content/recipes/data-management/server-side-laravel/server/migration.php)
+
+:::
 
 **What's happening:**
 - `id()` creates an auto-increment primary key. This is the value Handsontable uses as `rowId`.
@@ -87,7 +91,11 @@ php artisan migrate
 
 Open `app/Models/Product.php` and set `$fillable` and `$casts`:
 
+::: example #php-product
+
 @[code php](@/content/recipes/data-management/server-side-laravel/server/Product.php)
+
+:::
 
 **What's happening:**
 - `$fillable` lists the columns that `Product::create()` and `update()` may write to, protecting the `id` from mass-assignment.
@@ -97,7 +105,11 @@ Open `app/Models/Product.php` and set `$fillable` and `$casts`:
 
 Open `database/seeders/ProductSeeder.php` and add at least 50 rows so that pagination spans multiple pages:
 
+::: example #php-seeder
+
 @[code php](@/content/recipes/data-management/server-side-laravel/server/seeder.php)
+
+:::
 
 **What's happening:**
 - `Product::create($data)` inserts each row through Eloquent so the `$fillable` guard and timestamps apply.
@@ -113,7 +125,11 @@ php artisan db:seed --class=ProductSeeder
 
 `ProductController` handles all four HTTP verbs. Each method maps to one Handsontable `dataProvider` callback:
 
-@[code php collapse={12-150}](@/content/recipes/data-management/server-side-laravel/server/ProductController.php)
+::: example #php-product-controller
+
+@[code php](@/content/recipes/data-management/server-side-laravel/server/ProductController.php)
+
+:::
 
 **What's happening:**
 
@@ -151,7 +167,7 @@ When the user inserts rows from the context menu, `onRowsCreate` calls `POST /ap
 { "position": "above", "referenceRowId": 5, "rowsAmount": 1 }
 ```
 
-`store()` reads `rowsAmount` and creates that many blank rows. It returns HTTP 201.
+`store()` reads `position`, `referenceRowId`, and `rowsAmount`. It runs a `DB::transaction()` that calls `resolveInsertOrder()` to find the correct `sort_order` value, shifts existing rows to make room, and inserts the new blank rows. It returns the created rows as JSON with HTTP 201 so the frontend can show a success notification with the generated SKU.
 
 ### `batchUpdate()` -- update changed cells
 
@@ -177,7 +193,11 @@ After a cell edit, `onRowsUpdate` calls `PATCH /api/products` with:
 
 Open `routes/api.php` and add the four product routes:
 
+::: example #php-routes-api
+
 @[code php](@/content/recipes/data-management/server-side-laravel/server/routes-api.php)
+
+:::
 
 **What's happening:**
 - All four routes share the same `/api/products` path. Laravel matches them by HTTP method.
@@ -189,30 +209,49 @@ Verify the routes are registered:
 php artisan route:list --path=api/products
 ```
 
-## Step 7: Configure CORS
+## Step 7: Set up the Vite dev server
 
-Browsers block cross-origin requests unless the server sends the correct headers.
+Create a `vite.config.js` at the root of your frontend project and configure a proxy so requests go to Vite (`:5173`) and are forwarded to Laravel without triggering CORS:
 
-Open `config/cors.php` and allow your frontend origin:
+```js
+import { defineConfig } from 'vite';
 
-```php
-'allowed_origins' => ['http://localhost:5173'], // Vite dev server
+export default defineConfig({
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+});
 ```
 
 **What's happening:**
-- The CORS middleware registers automatically in Laravel 11 via `bootstrap/app.php`. No extra configuration is needed beyond the `allowed_origins` list.
-- In production replace `'http://localhost:5173'` with the exact frontend origin. Using `['*']` is acceptable during local development but exposes your API to any origin.
+- The Vite dev server forwards every `/api/*` request to the Laravel server running on port 8000. Because both the HTML page and the API requests share the same origin (`localhost:5173`), the browser never sees a cross-origin request — no CORS headers are needed on the backend.
+- In production, deploy the frontend and backend behind the same reverse proxy (nginx or Apache), or configure CORS headers in `config/cors.php` for your production origin.
 
 ## Step 8: Wire up Handsontable
 
-With the server running (`php artisan serve`), configure Handsontable to use the `dataProvider` plugin. The complete frontend code is in the files below.
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`), then open `http://localhost:5173`. The Laravel API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #javascript-laravel --code-only
 
-@[code collapse={16-140}](@/content/recipes/data-management/server-side-laravel/javascript/example1.js)
-@[code collapse={16-140}](@/content/recipes/data-management/server-side-laravel/javascript/example1.ts)
+@[code js](@/content/recipes/data-management/server-side-laravel/javascript/example1.js)
+
+:::
+
+:::
+
+::: only-for typescript
+
+::: example #typescript-laravel --code-only
+
+@[code ts](@/content/recipes/data-management/server-side-laravel/javascript/example1.ts)
 
 :::
 
@@ -220,10 +259,9 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 
 ::: only-for react
 
-::: example #example1 :react-advanced --js 1 --ts 2
+::: example #react-laravel --code-only
 
-@[code collapse={17-165}](@/content/recipes/data-management/server-side-laravel/react/example1.jsx)
-@[code collapse={17-165}](@/content/recipes/data-management/server-side-laravel/react/example1.tsx)
+@[code](@/content/recipes/data-management/server-side-laravel/react/example1.jsx)
 
 :::
 
@@ -231,10 +269,9 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #angular-laravel --code-only
 
-@[code collapse={7-120}](@/content/recipes/data-management/server-side-laravel/angular/example1.ts)
-@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.html)
+@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.ts)
 
 :::
 
@@ -244,147 +281,37 @@ With the server running (`php artisan serve`), configure Handsontable to use the
 
 ### `buildUrl` helper
 
-```javascript
-function buildUrl(base, { page, pageSize, sort, filters }) {
-  const params = new URLSearchParams({
-    page: String(page),
-    pageSize: String(pageSize),
-  });
-
-  if (sort) {
-    params.set('sort[prop]', sort.prop);
-    params.set('sort[order]', sort.order);
-  }
-
-  if (filters) {
-    filters.forEach((filter, i) => {
-      params.set(`filters[${i}][prop]`, filter.prop);
-      params.set(`filters[${i}][condition]`, filter.condition.name);
-      const args = filter.condition.args ?? [];
-      if (args[0] != null) params.set(`filters[${i}][value]`, String(args[0]));
-      if (args[1] != null) params.set(`filters[${i}][value2]`, String(args[1]));
-    });
-  }
-
-  return `${base}?${params}`;
-}
-```
-
-`buildUrl` serializes the `queryParameters` object that `fetchRows` receives into a URL query string that Laravel reads with `request()->input()`. It converts the Handsontable filter condition shape -- `{ prop, condition: { name, args } }` -- into the flat bracket-notation parameters Laravel parses automatically.
+`buildUrl` serializes the `queryParameters` object that `fetchRows` receives into a URL query string that Laravel reads with `request()->input()`. It converts the Handsontable filter shape -- `{ prop, conditions: [{ name, args }] }` (each filter can carry multiple conditions) -- into the flat bracket-notation parameters Laravel parses automatically.
 
 ### `csrfToken` helper
-
-```javascript
-function csrfToken() {
-  return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-}
-```
 
 Laravel requires a CSRF token on `POST`, `PATCH`, and `DELETE` requests. For Blade-rendered pages, inject the token via `<meta name="csrf-token" content="{{ csrf_token() }}">` in your layout. For a Sanctum SPA, call `GET /sanctum/csrf-cookie` once on startup and send the `X-XSRF-TOKEN` cookie value instead.
 
 ### `fetchRows`
 
-```javascript
-fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
-  const url = buildUrl('/api/products', { page, pageSize, sort, filters });
-  const res = await fetch(url, { signal });
-
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-  const json = await res.json();
-  return { rows: json.data, totalRows: json.total };
-},
-```
-
 `fetchRows` is called on every page change, sort, and filter. Passing `signal` to `fetch()` lets the browser cancel stale in-flight requests when the user sorts or pages quickly. Throwing on a non-ok response lets `notification: true` display an error toast automatically.
 
 ### `onRowsCreate`, `onRowsUpdate`, `onRowsRemove`
 
-```javascript
-onRowsCreate: async (payload) => {
-  // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
-  await fetch('/api/products', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-    body: JSON.stringify(payload),
-  });
-},
+`onRowsCreate` **must return** the array of rows created by the server (including server-assigned `id` values). Handsontable uses the returned rows to update its internal row map so that subsequent updates and deletes reference the correct primary keys.
 
-onRowsUpdate: async (rows) => {
-  // rows: [{ id, changes: { price: 149.99 }, rowData: {...} }, ...]
-  await fetch('/api/products', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-    body: JSON.stringify(rows),
-  });
-},
+`onRowsCreate` and `onRowsRemove` call `notification.showMessage()` with a `success` variant to confirm the operation to the user.
 
-onRowsRemove: async (rowIds) => {
-  // rowIds: [4, 7, 12]
-  await fetch('/api/products', {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken() },
-    body: JSON.stringify(rowIds),
-  });
-},
-```
-
-Cell edits appear in the grid immediately (optimistic update). If the server returns a non-2xx response or the callback throws, Handsontable rolls back the values and fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror).
+Cell edits via `onRowsUpdate` appear in the grid immediately (optimistic update). If the server returns a non-2xx response or any callback throws, Handsontable rolls back the values and fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror).
 
 ### `beforeRowsMutation`
 
-```javascript
-let removeConfirmed = false;
-
-// ...
-
-beforeRowsMutation(operation, payload) {
-  if (operation === 'remove' && !removeConfirmed) {
-    const count = payload.rowsRemove.length;
-    const notification = hot.getPlugin('notification');
-    const id = notification.showMessage({
-      variant: 'warning',
-      title: 'Delete rows',
-      message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
-      duration: 0,
-      actions: [
-        {
-          label: 'Delete',
-          type: 'primary',
-          callback: () => {
-            notification.hide(id);
-            removeConfirmed = true;
-            hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
-              removeConfirmed = false;
-            });
-          },
-        },
-        {
-          label: 'Cancel',
-          type: 'secondary',
-          callback: () => notification.hide(id),
-        },
-      ],
-    });
-    return false;
-  }
-},
-```
-
 `beforeRowsMutation` fires before any create, update, or remove operation. Returning `false` cancels the operation -- `onRowsRemove` is not called and no rows are deleted on the server.
 
-Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` return, you cannot use `window.confirm()` or other async dialogs. Instead, cancel the first attempt by returning `false`, show a notification with **Delete** and **Cancel** actions, and on **Delete** re-issue the remove via the DataProvider API. The `removeConfirmed` flag lets the second pass through without re-prompting.
+Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` return, you cannot use `window.confirm()` or any async dialog. Instead, use `notification.showMessage()` with `variant: 'warning'` and two action buttons. Cancel the first attempt by returning `false`, then on **Delete** re-issue the remove via `hot.getPlugin('dataProvider').removeRows(rowsRemove)`. The `removeConfirmed` flag lets the second pass through without re-prompting.
 
 ### `notification: true` and `emptyDataState: true`
-
-```javascript
-notification: true,
-emptyDataState: true,
-```
 
 `notification: true` enables the built-in error toast. When `fetchRows` or a mutation callback throws, Handsontable shows a translated error message. Fetch failures also add a **Refetch** action that retries the last request.
 
 `emptyDataState: true` shows a loading overlay while `fetchRows` is in flight and an empty-state message when the server returns zero rows.
+
+`contextMenu: true` enables the right-click context menu with "Insert row above / below" and "Remove row" items.
 
 ## How It Works -- Complete Flow
 
@@ -392,8 +319,8 @@ emptyDataState: true,
 2. **Sort**: The user clicks the **Price** header. `fetchRows` fires with `sort: { prop: 'price', order: 'asc' }`. Laravel applies `orderBy('price', 'asc')` and returns the first page sorted by price.
 3. **Filter**: The user opens the **Category** filter and types "Electronics". `fetchRows` fires with the filter condition. Laravel applies `WHERE LOWER(category) LIKE '%electronics%'` and returns the matching rows.
 4. **Edit**: The user changes a price cell. The new value appears immediately. `onRowsUpdate` fires with `[{ id: 4, changes: { price: 149.99 } }]`. Laravel updates the row. On success, Handsontable silently refetches the current page.
-5. **Insert**: The user right-clicks and selects **Insert row below**. `onRowsCreate` fires with `{ position: 'below', referenceRowId: 4, rowsAmount: 1 }`. Laravel creates a blank row and Handsontable refetches.
-6. **Delete**: The user selects two rows and chooses **Remove rows**. `beforeRowsMutation` shows a confirm dialog. On confirmation, `onRowsRemove` fires with `[4, 7]`. Laravel deletes both rows.
+5. **Insert**: The user right-clicks and selects **Insert row below**. `onRowsCreate` fires with `{ position: 'below', referenceRowId: 4, rowsAmount: 1 }`. Laravel creates a blank row and returns it. Handsontable refetches and shows a "Row added" success notification.
+6. **Delete**: The user selects two rows and chooses **Remove rows**. `beforeRowsMutation` intercepts the operation, returns `false`, and shows a warning notification with **Delete** and **Cancel** action buttons. On **Delete**, `onRowsRemove` fires with `[4, 7]`. Laravel deletes both rows and a "Rows deleted" success notification appears.
 7. **Error**: The server returns 500. `fetchRows` throws. Handsontable shows an error toast with a **Refetch** button.
 
 ## What you learned
@@ -413,3 +340,4 @@ emptyDataState: true,
 - [Server-side CRUD](@/guides/getting-started/server-side-data/server-side-data-crud.md) -- mutation lifecycle and hooks
 - [Fetching, hooks, and examples](@/guides/getting-started/server-side-data/server-side-data-fetching.md) -- error handling and loading UI
 - [Server-side data with Spring Boot](@/recipes/data-management/server-side-spring/server-side-spring.md) -- the same Handsontable frontend wired to a Java backend
+- [Server-side data with Symfony](@/recipes/data-management/server-side-symfony/server-side-symfony.md) -- the same Handsontable frontend wired to a Symfony backend

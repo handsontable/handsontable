@@ -8,7 +8,7 @@ registerAllModules();
 //
 // Handsontable sends:
 //   sort:    { prop: 'name', order: 'asc' }  or  null
-//   filters: [{ prop: 'price', condition: { name: 'gt', args: [100] } }]  or  null
+//   filters: [{ prop: 'price', conditions: [{ name: 'gt', args: [100] }] }]  or  null
 //
 // Laravel reads:
 //   sort[prop], sort[order]
@@ -24,24 +24,29 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
     params.set('sort[order]', sort.order);
   }
 
-  if (filters) {
-    filters.forEach((filter, i) => {
-      params.set(`filters[${i}][prop]`, filter.prop);
-      params.set(`filters[${i}][condition]`, filter.condition.name);
-      const args = filter.condition.args ?? [];
-      // Single-value conditions: contains, gt, eq, begins_with …
-      if (args[0] != null) params.set(`filters[${i}][value]`, String(args[0]));
-      // Range conditions: between, not_between
-      if (args[1] != null) params.set(`filters[${i}][value2]`, String(args[1]));
+  if (filters?.length) {
+    let idx = 0;
+    filters.forEach(({ prop, conditions }) => {
+      (conditions || []).forEach(({ name, args }) => {
+        if (!name) return;
+        params.set(`filters[${idx}][prop]`, prop);
+        params.set(`filters[${idx}][condition]`, name);
+        const a = args ?? [];
+        // Single-value conditions: contains, gt, eq, begins_with …
+        if (a[0] != null) params.set(`filters[${idx}][value]`, String(a[0]));
+        // Range conditions: between, not_between
+        if (a[1] != null) params.set(`filters[${idx}][value2]`, String(a[1]));
+        idx++;
+      });
     });
   }
 
   return `${base}?${params}`;
 }
 
-// Reads the CSRF token injected by Blade into <meta name="csrf-token">.
-// For SPA routes protected by Sanctum, use cookie-based auth instead
-// (see Step 9 in the recipe).
+// For Blade-rendered pages, inject via <meta name="csrf-token" content="{{ csrf_token() }}">.
+// For this standalone SPA the API routes are stateless so the header is a no-op,
+// but it's kept here so the code mirrors the recipe exactly.
 function csrfToken() {
   return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 }
@@ -82,6 +87,15 @@ const hot = new Handsontable(container, {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const row = data[0];
+      hot.getPlugin('notification').showMessage({
+        variant: 'success',
+        title: 'Row added',
+        message: `Created: ${row.sku} (id: ${row.id})`,
+        duration: 3000,
+      });
+      return data;
     },
 
     // onRowsUpdate fires after a cell edit, paste, or autofill batch.
@@ -106,6 +120,12 @@ const hot = new Handsontable(container, {
         body: JSON.stringify(rowIds),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      hot.getPlugin('notification').showMessage({
+        variant: 'success',
+        title: 'Rows deleted',
+        message: `Deleted ${rowIds.length} row${rowIds.length !== 1 ? 's' : ''}`,
+        duration: 3000,
+      });
     },
   },
 
@@ -185,10 +205,9 @@ const hot = new Handsontable(container, {
     { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
     { data: 'stock', type: 'numeric' },
   ],
-
-  // Fixed height keeps the docs preview compact when fetchRows fails (no local API).
-  height: 360,
   width: '100%',
-
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
 });
+
+export default hot;
