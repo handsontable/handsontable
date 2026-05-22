@@ -15,10 +15,10 @@
   align-items: center;
   gap: 0.5rem;
   background: none;
-  border: 1px solid var(--sl-color-gray-5);
-  color: var(--sl-color-gray-2);
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  color: var(--sl-color-gray-2, #555555);
   cursor: pointer;
-  font-size: var(--sl-text-sm);
+  font-size: var(--sl-text-sm, 0.875rem);
   font-weight: 500;
   padding: 0.4rem 0.625rem;
   transition: color 0.15s, background-color 0.15s;
@@ -27,8 +27,8 @@
 }
 
 .theme-dropdown-trigger:hover {
-  color: var(--sl-color-white);
-  background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  color: var(--sl-color-white, #333333);
+  background: var(--sl-color-gray-7, var(--sl-color-gray-6, #eeeeee));
 }
 
 .theme-dropdown-chevron {
@@ -42,8 +42,8 @@
 }
 
 .theme-dropdown-menu {
-  background: var(--sl-color-bg-nav);
-  border: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-bg-nav, #ffffff);
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
   border-radius: 0;
   box-shadow: none;
   inset-inline-start: 0;
@@ -63,13 +63,13 @@
 
 .theme-dropdown-menu li {
   align-items: center;
-  color: var(--sl-color-text);
+  color: var(--sl-color-text, #333333);
   display: flex;
-  font-size: var(--sl-text-sm);
+  font-size: var(--sl-text-sm, 0.875rem);
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  border-bottom: 1px solid var(--sl-color-gray-5);
+  border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
   transition: background 0.1s, color 0.1s;
   white-space: nowrap;
   list-style: none;
@@ -86,14 +86,14 @@
 
 .theme-dropdown-menu li:hover,
 .theme-dropdown-menu li:focus-visible {
-  background: var(--sl-color-gray-6);
-  color: var(--sl-color-white);
+  background: var(--sl-color-gray-6, #eeeeee);
+  color: var(--sl-color-white, #333333);
   outline: none;
 }
 
 .theme-dropdown-menu li[aria-selected='true'] {
-  color: var(--sl-color-white);
-  box-shadow: inset 0 0 0 1px var(--sl-color-accent);
+  color: var(--sl-color-white, #333333);
+  box-shadow: inset 0 0 0 1px var(--sl-color-accent, #1A42E8);
 }
 
 /* Color dots */
@@ -107,5 +107,5 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 1px solid var(--sl-color-gray-4);
+  border: 1px solid var(--sl-color-gray-4, #bbbbbb);
 }
