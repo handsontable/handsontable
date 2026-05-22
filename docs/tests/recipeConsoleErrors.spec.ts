@@ -18,6 +18,14 @@ const IGNORED_ERROR_PATTERNS: RegExp[] = [
   /AbortError/i,
   /NetworkError/i,
   /Load failed/i,
+  // Server-side recipe examples intentionally throw `new Error('HTTP 404')`
+  // when no backend is running. The dataProvider plugin catches these and
+  // shows a notification, but in a race with the test assertion they can
+  // appear as uncaught page errors. This pattern is expected no-backend
+  // behavior, not a Handsontable bug.
+  /^HTTP \d{3}$/,
+  // Vite dep-optimizer cache invalidation during dev-server warm-up.
+  /Outdated Optimize Dep/i,
 ];
 
 function shouldIgnoreError(message: string): boolean {
