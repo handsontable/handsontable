@@ -1,0 +1,24 @@
+{
+  "name": "handsontable-expressjs-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx ts-node server/main.ts",
+    "seed": "npx ts-node server/seed.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "reflect-metadata": "^0.2.1",
+    "typeorm": "^0.3.20",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

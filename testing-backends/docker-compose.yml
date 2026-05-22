@@ -1,0 +1,84 @@
+services:
+
+  # ── Express.js (TypeScript + TypeORM + PostgreSQL) ── port 3000 ──────────
+  expressjs:
+    build: ./expressjs
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: expressjs-db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: tickets
+    depends_on:
+      expressjs-db:
+        condition: service_healthy
+
+  expressjs-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tickets
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tickets"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Django (Python 3.12 + DRF + PostgreSQL) ── port 8000 ─────────────────
+  django:
+    build: ./django
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: django-db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: employees
+    depends_on:
+      django-db:
+        condition: service_healthy
+
+  django-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: employees
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d employees"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Laravel (PHP 8.3 + Eloquent + MySQL 8) ── port 8080 ──────────────────
+  laravel:
+    build: ./laravel
+    ports:
+      - "8080:8000"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: laravel-db
+      DB_PORT: "3306"
+      DB_DATABASE: products
+      DB_USERNAME: laravel
+      DB_PASSWORD: laravel
+    depends_on:
+      laravel-db:
+        condition: service_healthy
+
+  laravel-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: products
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+      MYSQL_ROOT_PASSWORD: rootpassword
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ularavel", "-plaravel"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
