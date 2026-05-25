@@ -124,8 +124,20 @@ export class Overlay {
     const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
       .getPropertyValue('overflow');
 
-    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
+    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+
+    if (preventOverflow === true) {
+      this.mainTableScrollableElement = rootWindow;
+
+    } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
+
+    } else if (
+      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START
+    ) {
+      this.mainTableScrollableElement = rootWindow;
+
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
     }
@@ -335,13 +347,17 @@ export class Overlay {
     const computedOverflow = rootWindow.getComputedStyle(tableParent)
       .getPropertyValue('overflow');
 
-    if (preventOverflow === true ||
-      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
-      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START) {
+    if (preventOverflow === true) {
       this.mainTableScrollableElement = rootWindow;
 
     } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = wtTable.holder;
+
+    } else if (
+      preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
+      preventOverflow === 'vertical' && this.type === CLONE_INLINE_START
+    ) {
+      this.mainTableScrollableElement = rootWindow;
 
     } else {
       this.mainTableScrollableElement = getScrollableElement(wtTable.TABLE);
