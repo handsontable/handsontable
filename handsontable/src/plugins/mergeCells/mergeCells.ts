@@ -1,5 +1,7 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { Overlay } from '../../3rdparty/walkontable/src/overlay/_base';
+import type { default as Table } from '../../3rdparty/walkontable/src/table';
 import { BasePlugin, defaultMainSettingSymbol } from '../base';
 import { Hooks } from '../../core/hooks';
 import MergedCellsCollection from './cellsCollection';
@@ -13,20 +15,9 @@ import { warn } from '../../helpers/console';
 import { rangeEach, clamp } from '../../helpers/number';
 import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
-import { FocusOrder } from './focusOrder';
+import { FocusOrder, type FocusNodeData } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
 import { sumCellsHeights } from './utils';
-
-/**
- * Data shape for focus order linked list nodes.
- */
-interface FocusNodeData {
-  selectionLayer: number;
-  colStart: number;
-  colEnd: number;
-  rowStart: number;
-  rowEnd: number;
-}
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -102,10 +93,12 @@ export class MergeCells extends BasePlugin {
   }
 
   static get DEFAULT_SETTINGS() {
+    const cells: { row: number; col: number; rowspan: number; colspan: number }[] = [];
+
     return {
       [defaultMainSettingSymbol]: 'cells',
       virtualized: false,
-      cells: [] as unknown[],
+      cells,
     };
   }
 
@@ -202,7 +195,7 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection = new MergedCellsCollection(this);
     this.autofillCalculations = new AutofillCalculations(this);
-    this.selectionCalculations = new SelectionCalculations(this as unknown as Record<string, unknown>);
+    this.selectionCalculations = new SelectionCalculations(this);
 
     this.addHook('afterInit', this.#onAfterInit);
     this.addHook('modifyTransformFocus', this.#onModifyTransformFocus);
@@ -311,12 +304,12 @@ export class MergeCells extends BasePlugin {
     rowIndexesToRefresh.forEach((rowIndex: number) => {
       const renderableRowIndex = this.hot.rowIndexMapper.getRenderableFromVisualIndex(rowIndex);
 
-      (this.hot.view._wt.wtOverlays.getOverlays(true) as unknown as Record<string, unknown>[]).map(
-        (overlay: Record<string, unknown>) => (overlay?.name === 'master'
-          ? overlay
-          : (overlay.clone as Record<string, unknown>).wtTable)
-      ).forEach((wtTableRef: Record<string, unknown>) => {
-        const rowToRefresh = (wtTableRef.getRow as (index: number) => HTMLElement | null)(renderableRowIndex);
+      this.hot.view._wt.wtOverlays.getOverlays(true).map(
+        (overlay: Overlay | Table) => ((overlay as Table).name === 'master'
+          ? (overlay as Table)
+          : (overlay as Overlay).clone!.wtTable)
+      ).forEach((wtTableRef: Table) => {
+        const rowToRefresh = wtTableRef.getRow(renderableRowIndex);
 
         if (rowToRefresh) {
           // Modify the TR's `background` property to later modify it asynchronously.
@@ -978,7 +971,7 @@ export class MergeCells extends BasePlugin {
       {
         name: '---------',
       },
-      toggleMergeItem(this as unknown as Record<string, unknown>)
+      toggleMergeItem(this)
     );
   }
 
@@ -1028,28 +1021,28 @@ export class MergeCells extends BasePlugin {
     let notHiddenColumnIndex = null;
 
     if (this.#lastFocusDelta.col < 0) {
-      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevHorizontalNode() as FocusNodeData;
+      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
       activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.col > 0) {
-      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextHorizontalNode() as FocusNodeData;
+      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
       activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.row < 0) {
-      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevVerticalNode() as FocusNodeData;
+      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
       activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.row > 0) {
-      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextVerticalNode() as FocusNodeData;
+      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
@@ -1626,16 +1619,12 @@ export class MergeCells extends BasePlugin {
 
     } else {
       const activeOverlay = this.hot.view.getOverlayByName(overlayType);
-
-      type OverlayWithClone = {
-        clone: { wtTable: { getFirstRenderedColumn(): number; getLastRenderedColumn(): number } };
-      };
-      const overlayClone = (activeOverlay as unknown as OverlayWithClone).clone;
+      const overlayWtTable = activeOverlay!.clone!.wtTable;
 
       firstColumn = this.hot.columnIndexMapper
-        .getVisualFromRenderableIndex(overlayClone.wtTable.getFirstRenderedColumn());
+        .getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
       lastColumn = this.hot.columnIndexMapper
-        .getVisualFromRenderableIndex(overlayClone.wtTable.getLastRenderedColumn());
+        .getVisualFromRenderableIndex(overlayWtTable.getLastRenderedColumn());
     }
 
     const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);

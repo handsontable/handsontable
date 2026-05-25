@@ -1,5 +1,6 @@
 import { isDefined } from '../../helpers/mixed';
 import { ASC_SORT_STATE, DESC_SORT_STATE } from './utils';
+import type { ColumnStatesManager } from './columnStatesManager';
 
 const HEADER_CLASS_ASC_SORT = 'ascending';
 const HEADER_CLASS_DESC_SORT = 'descending';
@@ -22,7 +23,7 @@ const orderToCssClass = new Map([
  * @returns {Array} Array of CSS classes.
  */
 export function getClassesToAdd(
-  columnStatesManager: Record<string, unknown>, column: number, showSortIndicator: boolean, headerAction: boolean
+  columnStatesManager: ColumnStatesManager, column: number, showSortIndicator: boolean, headerAction: boolean
 ) {
   const cssClasses = [HEADER_SORT_CLASS];
 
@@ -36,8 +37,7 @@ export function getClassesToAdd(
     return cssClasses;
   }
 
-  const columnOrder = (columnStatesManager as { getSortOrderOfColumn: (col: number) => string | undefined })
-    .getSortOrderOfColumn(column);
+  const columnOrder = columnStatesManager.getSortOrderOfColumn(column);
 
   if (isDefined(columnOrder)) {
     cssClasses.push(orderToCssClass.get(columnOrder));

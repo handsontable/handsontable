@@ -1,21 +1,30 @@
 import * as C from '../../../i18n/constants';
 import MergedCellCoords from '../cellCoords';
+import type MergedCellsCollection from '../cellsCollection';
+import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
+
+/**
+ * Minimal interface that toggleMergeItem requires from the MergeCells plugin.
+ */
+interface MergeCellsPluginRef {
+  mergedCellsCollection: MergedCellsCollection;
+  toggleMerge(cellRange: CellRange): void;
+}
 
 /**
  * @param {*} plugin The plugin instance.
  * @returns {object}
  */
-export default function toggleMergeItem(plugin: Record<string, unknown>) {
+export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
   return {
     key: 'mergeCells',
     name() {
       const selection = this.getSelectedActive();
 
       if (selection) {
-        const p = plugin as { mergedCellsCollection: { get: (...args: unknown[]) => Record<string, number> } };
-        const info = p.mergedCellsCollection.get(selection[0], selection[1]);
+        const info = plugin.mergedCellsCollection.get(selection[0], selection[1]);
 
-        if (info.row === selection[0] && info.col === selection[1] &&
+        if (info !== false && info.row === selection[0] && info.col === selection[1] &&
             info.row + info.rowspan - 1 === selection[2] && info.col + info.colspan - 1 === selection[3]) {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
         }
@@ -34,7 +43,7 @@ export default function toggleMergeItem(plugin: Record<string, unknown>) {
 
       const { from, to } = activeRange;
 
-      (plugin as { toggleMerge: Function }).toggleMerge(activeRange);
+      plugin.toggleMerge(activeRange);
       this.selectCell(from.row, from.col, to.row, to.col, false);
     },
     disabled() {

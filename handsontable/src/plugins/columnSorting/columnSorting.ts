@@ -7,7 +7,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { isUndefined, isDefined } from '../../helpers/mixed';
-import { isObject } from '../../helpers/object';
+import { isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
@@ -310,11 +310,11 @@ export class ColumnSorting extends BasePlugin {
    * @fires Hooks#beforeColumnSort
    * @fires Hooks#afterColumnSort
    */
-  sort(sortConfig?: Record<string, unknown> | Record<string, unknown>[]): void {
+  sort(sortConfig?: SortConfig | SortConfig[]): void {
     const currentSortConfig = this.columnStatesManager!.getSortStates();
 
     // We always pass configs defined as an array to `beforeColumnSort` and `afterColumnSort` hooks.
-    const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig) as unknown as SortConfig[];
+    const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     const sortPossible = this.areValidSortConfigs(destinationSortConfigs);
     const allowSort = this.hot.runHooks('beforeColumnSort', currentSortConfig, destinationSortConfigs, sortPossible);
@@ -366,7 +366,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {number} [column] Visual column index.
    * @returns {undefined|object|Array}
    */
-  getSortConfig(column?: number): Record<string, unknown> | Record<string, unknown>[] {
+  getSortConfig(column?: number): SortConfig | SortConfig[] | undefined {
     if (isDefined(column)) {
       return this.columnStatesManager.getColumnSortState(column);
     }
@@ -398,9 +398,9 @@ export class ColumnSorting extends BasePlugin {
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    */
-  setSortConfig(sortConfig?: Record<string, unknown> | Record<string, unknown>[]): void {
+  setSortConfig(sortConfig?: SortConfig | SortConfig[]): void {
     // We always set configs defined as an array.
-    const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig) as unknown as SortConfig[];
+    const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
       this.columnStatesManager.setSortStates(destinationSortConfigs);
@@ -416,7 +416,7 @@ export class ColumnSorting extends BasePlugin {
    * sort order (`asc` for ascending, `desc` for descending).
    * @returns {Array}
    */
-  getNormalizedSortConfigs(sortConfig: Record<string, unknown> | Record<string, unknown>[] = []) {
+  getNormalizedSortConfigs(sortConfig: SortConfig | SortConfig[] = []): SortConfig[] {
     if (Array.isArray(sortConfig)) {
       return sortConfig.slice(0, 1);
     }
@@ -465,18 +465,18 @@ export class ColumnSorting extends BasePlugin {
    *
    * @fires Hooks#persistentStateLoad
    */
-  getAllSavedSortSettings() {
+  getAllSavedSortSettings(): Record<string, unknown> | undefined {
     const storedAllSortSettings: Record<string, unknown> = {};
 
     this.hot.runHooks('persistentStateLoad', 'columnSorting', storedAllSortSettings);
 
     const { value } = storedAllSortSettings;
 
-    if (!isObject(value)) {
-      return value as Record<string, unknown> | undefined;
+    if (!isPlainObject(value)) {
+      return undefined;
     }
 
-    const allSortSettings = value as Record<string, unknown>;
+    const allSortSettings = value;
     const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }: SortConfig) =>
       ({ column: this.hot.toVisualColumn(physicalColumn), ...restOfProperties });
 
@@ -717,11 +717,11 @@ export class ColumnSorting extends BasePlugin {
     const storedAllSortSettings = this.getAllSavedSortSettings();
     const allSortSettings = this.hot.getSettings()[this.pluginKey];
 
-    if (isObject(storedAllSortSettings)) {
+    if (storedAllSortSettings !== undefined) {
       this.sortBySettings(storedAllSortSettings);
 
     } else {
-      this.sortBySettings(allSortSettings as Record<string, unknown>);
+      this.sortBySettings(allSortSettings);
     }
   };
 
@@ -732,14 +732,14 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} allSortSettings All sort config settings. Object may contain `initialConfig`, `indicator`,
    * `sortEmptyCells`, `headerAction` and `compareFunctionFactory` properties.
    */
-  sortBySettings(allSortSettings: Record<string, unknown>) {
-    if (isObject(allSortSettings)) {
+  sortBySettings(allSortSettings: unknown) {
+    if (isPlainObject(allSortSettings)) {
       this.columnStatesManager!.updateAllColumnsProperties(allSortSettings);
 
       const { initialConfig } = allSortSettings;
 
-      if (Array.isArray(initialConfig) || isObject(initialConfig)) {
-        this.sort(initialConfig as Record<string, unknown> | Record<string, unknown>[]);
+      if (Array.isArray(initialConfig) || isPlainObject(initialConfig)) {
+        this.sort(initialConfig as SortConfig | SortConfig[]);
       }
 
     } else {
@@ -787,11 +787,22 @@ export class ColumnSorting extends BasePlugin {
    * @param {HTMLElement} headerSpanElement Header span element.
    * @param {...*} args Extra arguments for helpers.
    */
-  updateHeaderClasses(headerSpanElement: HTMLElement, ...args: unknown[]) {
+  updateHeaderClasses(
+    headerSpanElement: HTMLElement,
+    columnStatesManager?: ColumnStatesManager,
+    column?: number,
+    showSortIndicator?: boolean,
+    headerActionEnabled?: boolean
+  ) {
     removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
-    if (this.enabled !== false) {
-      addClass(headerSpanElement, (getClassesToAdd as (...a: unknown[]) => string[])(...args));
+    if (this.enabled !== false && columnStatesManager !== undefined && column !== undefined) {
+      addClass(headerSpanElement, getClassesToAdd(
+        columnStatesManager,
+        column,
+        showSortIndicator ?? false,
+        headerActionEnabled ?? false
+      ));
     }
   }
 
@@ -813,7 +824,7 @@ export class ColumnSorting extends BasePlugin {
     const pluginSettings = newSettings[this.pluginKey];
 
     if (isDefined(pluginSettings)) {
-      this.sortBySettings(pluginSettings as Record<string, unknown>);
+      this.sortBySettings(pluginSettings);
     }
   }
 
@@ -899,7 +910,7 @@ export class ColumnSorting extends BasePlugin {
       }
 
       const activeEditor = this.hot.getActiveEditor();
-      const nextConfig = this.getColumnNextConfig(coords.col) as Record<string, unknown> | undefined;
+      const nextConfig = this.getColumnNextConfig(coords.col);
 
       if (
         activeEditor?.isOpened() &&

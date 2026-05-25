@@ -3,6 +3,17 @@ import type { IndexMapper } from '../../translations';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
 /**
+ * Data shape for focus order linked list nodes.
+ */
+export interface FocusNodeData {
+  selectionLayer: number;
+  colStart: number;
+  colEnd: number;
+  rowStart: number;
+  rowEnd: number;
+}
+
+/**
  * Class responsible for providing the correct focus order (vertical and horizontal) within a selection that
  * contains merged cells.
  *
@@ -69,19 +80,19 @@ export class FocusOrder {
   /**
    * Gets the next selected node data from the vertical focus order list.
    *
-   * @returns {NodeStructure}
+   * @returns {FocusNodeData}
    */
-  getNextVerticalNode() {
-    return this.#currentVerticalLinkedNode.next.data;
+  getNextVerticalNode(): FocusNodeData {
+    return this.#currentVerticalLinkedNode.next.data as FocusNodeData;
   }
 
   /**
    * Gets the previous selected node data from the vertical focus order list.
    *
-   * @returns {NodeStructure}
+   * @returns {FocusNodeData}
    */
-  getPrevVerticalNode() {
-    return this.#currentVerticalLinkedNode.prev.data;
+  getPrevVerticalNode(): FocusNodeData {
+    return this.#currentVerticalLinkedNode.prev.data as FocusNodeData;
   }
 
   /**
@@ -105,19 +116,19 @@ export class FocusOrder {
   /**
    * Gets the next selected node data from the horizontal focus order list.
    *
-   * @returns {NodeStructure}
+   * @returns {FocusNodeData}
    */
-  getNextHorizontalNode() {
-    return this.#currentHorizontalLinkedNode.next.data;
+  getNextHorizontalNode(): FocusNodeData {
+    return this.#currentHorizontalLinkedNode.next.data as FocusNodeData;
   }
 
   /**
    * Gets the previous selected node data from the horizontal focus order list.
    *
-   * @returns {NodeStructure}
+   * @returns {FocusNodeData}
    */
-  getPrevHorizontalNode() {
-    return this.#currentHorizontalLinkedNode.prev.data;
+  getPrevHorizontalNode(): FocusNodeData {
+    return this.#currentHorizontalLinkedNode.prev.data as FocusNodeData;
   }
 
   /**

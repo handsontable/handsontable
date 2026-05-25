@@ -7,6 +7,15 @@
 import type { HotInstance } from '../../../core/types';
 import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
 import type MergedCellCoords from '../cellCoords';
+import type MergedCellsCollection from '../cellsCollection';
+
+/**
+ * Minimal interface that SelectionCalculations requires from the MergeCells plugin.
+ */
+interface MergeCellsPluginRef {
+  hot: HotInstance;
+  mergedCellsCollection: MergedCellsCollection;
+}
 
 class SelectionCalculations {
   /**
@@ -14,7 +23,7 @@ class SelectionCalculations {
    *
    * @type {MergeCells}
    */
-  plugin;
+  plugin: MergeCellsPluginRef;
   /**
    * Reference to the Handsontable instance.
    *
@@ -28,9 +37,9 @@ class SelectionCalculations {
    */
   fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
 
-  constructor(plugin: Record<string, unknown>) {
+  constructor(plugin: MergeCellsPluginRef) {
     this.plugin = plugin;
-    this.hot = plugin.hot as HotInstance;
+    this.hot = plugin.hot;
   }
 
   /**
@@ -54,13 +63,7 @@ class SelectionCalculations {
       return;
     }
 
-    type PluginWithCollection = {
-      mergedCellsCollection: {
-        isFirstRenderableMergedCell(row: number, column: number): boolean;
-        get(row: number, column: number): MergedCellCoords | null;
-      };
-    };
-    const mergedCellsCollection = (this.plugin as PluginWithCollection).mergedCellsCollection;
+    const mergedCellsCollection = this.plugin.mergedCellsCollection;
     const isFirstRenderableMergedCell =
       mergedCellsCollection.isFirstRenderableMergedCell(currentRow, currentColumn);
 
