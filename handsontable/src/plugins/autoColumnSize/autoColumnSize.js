@@ -213,6 +213,11 @@ export class AutoColumnSize extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(row, column);
     let cellValue = '';
 
+    if (cellMeta.hidden) {
+      // do not generate samples for cells that are covered by merged cell (null values)
+      return false;
+    }
+
     if (!cellMeta.spanned) {
       cellValue = this.hot.getDataAtCell(row, column);
 

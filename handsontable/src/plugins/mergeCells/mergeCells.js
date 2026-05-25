@@ -1106,10 +1106,12 @@ export class MergeCells extends BasePlugin {
     if (mergeParent) {
       if (mergeParent.row !== row || mergeParent.col !== col) {
         cellProperties.copyable = false;
+        cellProperties.hidden = true;
 
       } else {
         cellProperties.rowspan = mergeParent.rowspan;
         cellProperties.colspan = mergeParent.colspan;
+        cellProperties.spanned = true;
       }
     }
   }
