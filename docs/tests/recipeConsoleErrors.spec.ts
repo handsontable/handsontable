@@ -82,8 +82,8 @@ const recipePages: RecipePage[] = [
   { path: 'recipes/data-management/server-side-django', framework: 'javascript-data-grid', hasExamples: false },
   { path: 'recipes/data-management/server-side-laravel', framework: 'javascript-data-grid', hasExamples: false },
   { path: 'recipes/data-management/server-side-nestjs', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/server-side-rails', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/data-management/server-side-spring', framework: 'javascript-data-grid', hasExamples: true },
+  { path: 'recipes/data-management/server-side-rails', framework: 'javascript-data-grid', hasExamples: false },
+  { path: 'recipes/data-management/server-side-spring', framework: 'javascript-data-grid', hasExamples: false },
   { path: 'recipes/data-management/sync-two-grids', framework: 'javascript-data-grid', hasExamples: true },
   { path: 'recipes/data-management/undo-redo-custom-ui', framework: 'javascript-data-grid', hasExamples: true },
 
