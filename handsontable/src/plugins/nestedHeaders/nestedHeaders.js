@@ -1287,19 +1287,8 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const cachedWidth = this.ghostTable.getWidth(column);
-    let floor = cachedWidth;
 
-    const autoColumnSize = this.hot.getPlugin('autoColumnSize');
-
-    if (autoColumnSize?.enabled) {
-      const contentWidth = autoColumnSize.getColumnWidth(column, undefined, false);
-
-      if (typeof contentWidth === 'number') {
-        floor = Math.max(floor, contentWidth);
-      }
-    }
-
-    return width > floor ? width : floor;
+    return width > cachedWidth ? width : cachedWidth;
   }
 
   /**
