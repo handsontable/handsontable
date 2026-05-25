@@ -215,6 +215,11 @@ export class AutoColumnSize extends BasePlugin {
     let cellValue = '';
     let seedValue: unknown = '';
 
+    if (cellMeta.hidden) {
+      // do not generate samples for cells that are covered by merged cell (null values)
+      return false;
+    }
+
     if (!cellMeta.spanned) {
       seedValue = this.hot.getDataAtCell(row, column);
       // Use the raw value for rendering (functions remain as functions for the renderer to call)

@@ -454,6 +454,50 @@ describe('MergeCells', () => {
     });
   });
 
+  describe('loadData', () => {
+    it('should preserve column widths after loadData when autoColumnSize and mergeCells are enabled (#8864)', async() => {
+      const data = [
+        ['', 'Group 2', 'Group 2', 'Group 2'],
+        ['', 'Col1', 'Group 1', 'Group 1'],
+        ['', 'Col1', 'Col2', 'Col3'],
+        ['Row1', '', '', ''],
+      ];
+
+      handsontable({
+        data: data.map(row => row.slice()),
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 3 },
+          { row: 1, col: 1, rowspan: 2, colspan: 1 },
+          { row: 1, col: 2, rowspan: 1, colspan: 2 },
+        ],
+        autoColumnSize: true,
+      });
+
+      const widthsBefore = [0, 1, 2, 3].map(col => getColWidth(col));
+
+      await loadData(data.map(row => row.slice()));
+
+      const widthsAfter = [0, 1, 2, 3].map(col => getColWidth(col));
+
+      expect(widthsAfter).toEqual(widthsBefore);
+    });
+
+    it('should restore `spanned` and `hidden` cell metas after loadData', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      await loadData(createSpreadsheetData(5, 5));
+
+      expect(getCellMeta(0, 1).spanned).toBe(true);
+      expect(getCellMeta(0, 2).hidden).toBe(true);
+      expect(getCellMeta(0, 3).hidden).toBe(true);
+    });
+  });
+
   describe('mergeCells copy', () => {
     it('should not copy text of cells that are merged into another cell', async() => {
       handsontable({
