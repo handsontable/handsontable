@@ -18,7 +18,7 @@ export function getParent(element: HTMLElement | Node, level: number = 0): HTMLE
 
   while (elementToCheck !== null) {
     if (iteration === level) {
-      parent = elementToCheck instanceof HTMLElement ? elementToCheck : null;
+      parent = isHTMLElement(elementToCheck) ? elementToCheck : null;
       break;
     }
 
@@ -112,7 +112,7 @@ export function closest(
   while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
 
-    if (nodeType === ELEMENT_NODE && elementToCheck instanceof HTMLElement &&
+    if (nodeType === ELEMENT_NODE && isHTMLElement(elementToCheck) &&
         (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
       return elementToCheck;
     }
@@ -139,7 +139,7 @@ export function closest(
 export function closestDown(
   element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement | null {
   const matched: HTMLElement[] = [];
-  let elementToCheck: HTMLElement | null = element instanceof HTMLElement ? element : null;
+  let elementToCheck: HTMLElement | null = isHTMLElement(element) ? element : null;
 
   while (elementToCheck) {
     elementToCheck = closest(elementToCheck, nodes, until);
@@ -152,7 +152,7 @@ export function closestDown(
     if (isShadowRoot(elementToCheck)) {
       const { host } = elementToCheck;
 
-      elementToCheck = host instanceof HTMLElement ? host : null;
+      elementToCheck = isHTMLElement(host) ? host : null;
 
     } else {
       elementToCheck = elementToCheck.parentElement;
@@ -592,7 +592,7 @@ export function isVisible(element: HTMLElement): boolean {
       // internal implementation node when Web Platform features were disabled. It is no longer present
       // in any supported browser, but we keep the fallback to avoid a silent regression on very old builds.
       interface ShadowHostWithImpl extends HTMLElement { impl?: HTMLElement }
-      const host: ShadowHostWithImpl = next.host;
+      const host = next.host as ShadowHostWithImpl;
 
       if (host.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
         return isVisible(host.impl);
@@ -604,7 +604,7 @@ export function isVisible(element: HTMLElement): boolean {
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       return false; // this is a node detached from document in IE8
 
-    } else if (next.nodeType === Node.ELEMENT_NODE && next instanceof HTMLElement &&
+    } else if (next.nodeType === Node.ELEMENT_NODE && isHTMLElement(next) &&
       windowElement.getComputedStyle(next).display === 'none') {
       return false;
     }
@@ -660,7 +660,7 @@ export function offset(element: HTMLElement): { left: number, top: number } {
   lastElem = elementToCheck;
 
   /* eslint-disable no-cond-assign */
-  while (elementToCheck = (elementToCheck.offsetParent instanceof HTMLElement ? elementToCheck.offsetParent : null)) {
+  while (elementToCheck = (isHTMLElement(elementToCheck.offsetParent) ? elementToCheck.offsetParent : null)) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
     if (elementToCheck === rootDocument.body) {
       break;
@@ -1010,7 +1010,7 @@ export function getSelectionText(rootWindow: Window = window): string {
     type DocWithSelection = Document & { selection?: { type: string; createRange(): { text: string } } };
 
     if ('selection' in rootDocument) {
-      const docWithSel: DocWithSelection = rootDocument;
+      const docWithSel = rootDocument as DocWithSelection;
 
       if (docWithSel.selection && docWithSel.selection.type !== 'Control') {
         text = docWithSel.selection.createRange().text;

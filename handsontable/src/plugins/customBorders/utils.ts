@@ -112,15 +112,17 @@ export function createDefaultHtBorder() {
  * @returns {object}
  */
 export function normalizeBorder<T extends Record<string, unknown>>(border: T): T {
-  if (isDefined(border.start) || isDefined(border.left)) {
-    border.start = border.start ?? border.left;
+  const b = border as Record<string, unknown>;
+
+  if (isDefined(b.start) || isDefined(b.left)) {
+    b.start = b.start ?? b.left;
   }
-  if (isDefined(border.end) || isDefined(border.right)) {
-    border.end = border.end ?? border.right;
+  if (isDefined(b.end) || isDefined(b.right)) {
+    b.end = b.end ?? b.right;
   }
 
-  delete border.left;
-  delete border.right;
+  delete b.left;
+  delete b.right;
 
   return border;
 }
@@ -134,11 +136,13 @@ export function normalizeBorder<T extends Record<string, unknown>>(border: T): T
  * @returns {object}
  */
 export function denormalizeBorder<T extends Record<string, unknown>>(border: T): T {
-  if (isDefined(border.start)) {
-    border.left = border.start;
+  const b = border as Record<string, unknown>;
+
+  if (isDefined(b.start)) {
+    b.left = b.start;
   }
-  if (isDefined(border.end)) {
-    border.right = border.end;
+  if (isDefined(b.end)) {
+    b.right = b.end;
   }
 
   return border;

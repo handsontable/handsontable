@@ -53,7 +53,7 @@ if (Array.isArray(sortConfigs)) {
   sortConfigs[0].sortOrder;
 }
 
-plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }] as Record<string, unknown>[]);
+plugin.setSortConfig([{ column: 0, sortOrder: 'asc' }]);
 plugin.setSortConfig([]);
 
 const isSorted: boolean = plugin.isSorted();

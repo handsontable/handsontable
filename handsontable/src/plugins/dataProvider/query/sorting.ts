@@ -224,7 +224,7 @@ export function handleBeforeColumnSortForServer(
 
   const columnSorting = hot.getPlugin(COLUMN_SORTING_PLUGIN_KEY);
 
-  columnSorting.setSortConfig(destinationSortConfigs as unknown as Record<string, unknown>[]);
+  columnSorting.setSortConfig(destinationSortConfigs as unknown as ColumnSortingConfig[]);
   applyQueryParametersFromPlugins();
   fetchData({ skipLoading: true });
 

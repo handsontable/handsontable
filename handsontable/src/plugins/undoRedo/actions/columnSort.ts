@@ -1,5 +1,6 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
+import type { SortConfig } from '../../columnSorting/columnSorting';
 import { BaseAction } from './_base';
 
 /**
@@ -47,7 +48,7 @@ export class ColumnSortAction extends BaseAction {
     const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
 
     if ((this.previousSortState as unknown[]).length) {
-      enabledSortPlugin.sort(this.previousSortState as Record<string, unknown> | Record<string, unknown>[]);
+      enabledSortPlugin.sort(this.previousSortState as SortConfig | SortConfig[]);
 
     } else {
       enabledSortPlugin.clearSort();
@@ -65,7 +66,7 @@ export class ColumnSortAction extends BaseAction {
     const multiSortPlugin = hot.getPlugin('multiColumnSorting');
     const enabledSortPlugin = multiSortPlugin.isEnabled() ? multiSortPlugin : sortPlugin;
 
-    enabledSortPlugin.sort(this.nextSortState as Record<string, unknown> | Record<string, unknown>[]);
+    enabledSortPlugin.sort(this.nextSortState as SortConfig | SortConfig[]);
 
     redoneCallback();
   }

@@ -2,6 +2,8 @@ import {
   APPEND_COLUMN_CONFIG_STRATEGY,
   ColumnSorting
 } from '../columnSorting';
+import type { SortConfig } from '../columnSorting/columnSorting';
+import type { ColumnStatesManager } from '../columnSorting/columnStatesManager';
 import { registerRootComparator } from '../columnSorting/sortService/registry';
 import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
@@ -134,7 +136,7 @@ export class MultiColumnSorting extends ColumnSorting {
           if (highlight.row === -1 && highlight.col >= 0) {
             const sortConfig = this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY);
 
-            this.sort(sortConfig as Record<string, unknown>[]);
+            this.sort(sortConfig as SortConfig[]);
           }
 
           // prevent default Enter behavior (move to the next row within a selection range)
@@ -189,7 +191,7 @@ export class MultiColumnSorting extends ColumnSorting {
    * @fires Hooks#beforeColumnSort
    * @fires Hooks#afterColumnSort
    */
-  sort(sortConfig: Record<string, unknown> | Record<string, unknown>[]) {
+  sort(sortConfig?: SortConfig | SortConfig[]) {
     super.sort(sortConfig);
   }
 
@@ -245,7 +247,7 @@ export class MultiColumnSorting extends ColumnSorting {
    * The configuration object contains `column` and `sortOrder` properties. First of them contains visual column index, the second one contains
    * sort order (`asc` for ascending, `desc` for descending).
    */
-  setSortConfig(sortConfig: Record<string, unknown>[]) {
+  setSortConfig(sortConfig?: SortConfig | SortConfig[]) {
     super.setSortConfig(sortConfig);
   }
 
@@ -258,12 +260,12 @@ export class MultiColumnSorting extends ColumnSorting {
    * sort order (`asc` for ascending, `desc` for descending).
    * @returns {Array}
    */
-  getNormalizedSortConfigs(sortConfig: Record<string, unknown>[] = []) {
+  getNormalizedSortConfigs(sortConfig?: SortConfig | SortConfig[]): SortConfig[] {
     if (Array.isArray(sortConfig)) {
       return sortConfig;
     }
 
-    return [sortConfig];
+    return sortConfig !== undefined ? [sortConfig] : [];
   }
 
   /**
@@ -273,13 +275,19 @@ export class MultiColumnSorting extends ColumnSorting {
    * @param {HTMLElement} headerSpanElement Header span element.
    * @param {...*} args Extra arguments for helpers.
    */
-  updateHeaderClasses(headerSpanElement: HTMLElement, ...args: unknown[]) {
-    super.updateHeaderClasses(headerSpanElement, ...args);
+  updateHeaderClasses(
+    headerSpanElement: HTMLElement,
+    columnStatesManager?: ColumnStatesManager,
+    column?: number,
+    showSortIndicator?: boolean,
+    headerActionEnabled?: boolean
+  ) {
+    super.updateHeaderClasses(headerSpanElement, columnStatesManager, column, showSortIndicator, headerActionEnabled);
 
     removeClass(headerSpanElement, getClassesToRemove(headerSpanElement));
 
-    if (this.enabled !== false) {
-      addClass(headerSpanElement, (getClassesToAdd as (...a: unknown[]) => string[])(...args));
+    if (this.enabled !== false && columnStatesManager !== undefined && column !== undefined) {
+      addClass(headerSpanElement, getClassesToAdd(columnStatesManager, column, showSortIndicator ?? false));
     }
   }
 
@@ -300,7 +308,7 @@ export class MultiColumnSorting extends ColumnSorting {
         this.hot.deselectCell();
         this.hot.selectColumns(coords.col);
 
-        this.sort(this.getNextSortConfig(coords.col, APPEND_COLUMN_CONFIG_STRATEGY) as Record<string, unknown>[]);
+        this.sort(this.getNextSortConfig(coords.col, APPEND_COLUMN_CONFIG_STRATEGY) as SortConfig[]);
 
       } else {
         this.sort(this.getColumnNextConfig(coords.col));

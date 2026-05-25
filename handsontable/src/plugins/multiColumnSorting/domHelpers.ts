@@ -1,3 +1,5 @@
+import type { ColumnStatesManager } from '../columnSorting/columnStatesManager';
+
 const COLUMN_ORDER_PREFIX = 'sort';
 
 /**
@@ -9,7 +11,7 @@ const COLUMN_ORDER_PREFIX = 'sort';
  * @returns {Array} Array of CSS classes.
  */
 export function getClassesToAdd(
-  columnStatesManager: Record<string, Function>, column: number, showSortIndicator: boolean
+  columnStatesManager: ColumnStatesManager, column: number, showSortIndicator: boolean
 ) {
   const cssClasses: string[] = [];
 

@@ -45,7 +45,7 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
 
-interface SortConfig {
+export interface SortConfig {
   column: number;
   sortOrder: string;
 }
@@ -371,7 +371,7 @@ export class ColumnSorting extends BasePlugin {
       return this.columnStatesManager.getColumnSortState(column);
     }
 
-    return this.columnStatesManager.getSortStates();
+    return this.columnStatesManager.getSortStates() as SortConfig[];
   }
 
   /**
@@ -849,7 +849,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} result [[Hooks#afterDataProviderFetch]] payload; reads `columnSortConfig` only.
    */
   readonly #onAfterDataProviderFetch = (result: { columnSortConfig?: Record<string, unknown>[] }) => {
-    this.setSortConfig(result?.columnSortConfig ?? []);
+    this.setSortConfig((result?.columnSortConfig ?? []) as unknown as SortConfig[]);
   };
 
   /**

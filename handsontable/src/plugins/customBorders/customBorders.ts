@@ -396,11 +396,13 @@ export class CustomBorders extends BasePlugin {
         if (border.id === settings.id) {
           Object.assign(settings, borderDescriptor);
 
-          border.id = settings.id;
-          border.top = settings.top;
-          border.bottom = settings.bottom;
-          border.start = settings.start;
-          border.end = settings.end;
+          const s = settings as unknown as BorderObject;
+
+          border.id = s.id;
+          border.top = s.top;
+          border.bottom = s.bottom;
+          border.start = s.start;
+          border.end = s.end;
 
           return false; // breaks forAll
         }

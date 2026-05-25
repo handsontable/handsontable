@@ -1618,8 +1618,8 @@ export class MergeCells extends BasePlugin {
       lastColumn = this.hot.getLastRenderedVisibleColumn();
 
     } else {
-      const activeOverlay = this.hot.view.getOverlayByName(overlayType);
-      const overlayWtTable = activeOverlay!.clone!.wtTable;
+      const activeOverlay = this.hot.view.getOverlayByName(overlayType) as unknown as Overlay | null;
+      const overlayWtTable = activeOverlay?.clone?.wtTable;
 
       firstColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
