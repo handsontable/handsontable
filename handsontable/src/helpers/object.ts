@@ -134,12 +134,12 @@ export function deepClone<T>(obj: T): T {
   if (typeof obj === 'object' && obj !== null) {
     const result: Record<string, unknown> = {};
 
-    for (const key of Object.keys(obj)) {
+    for (const [key, val] of Object.entries(obj)) {
       if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
         continue;
       }
 
-      result[key] = deepClone((obj as Record<string, unknown>)[key]);
+      result[key] = deepClone(val);
     }
 
     return result as T;
@@ -246,8 +246,8 @@ export function isObjectEqual(object1: object | unknown[], object2: object | unk
       return JSON.stringify(obj);
     }
     if (obj !== null && typeof obj === 'object') {
-      const pairs = Object.keys(obj).sort((a, b) => a.localeCompare(b))
-        .map(key => `${JSON.stringify(key)}:${stableStringify((obj as Record<string, unknown>)[key])}`);
+      const pairs = Object.entries(obj).sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, val]) => `${JSON.stringify(key)}:${stableStringify(val)}`);
 
       return `{${pairs.join(',')}}`;
     }
@@ -440,12 +440,13 @@ export interface ObjectPropListener extends Record<string, unknown> {
 export function createObjectPropListener(
   defaultValue?: unknown, propertyToListen: string = 'value'): ObjectPropListener {
   const privateProperty = `_${propertyToListen}`;
-  const holder: Record<string, unknown> = {
+  const holder: ObjectPropListener = {
     _touched: false,
     [privateProperty]: defaultValue,
     isTouched() {
-      return (this as Record<string, unknown>)._touched;
-    }
+      return Boolean(this._touched);
+    },
+    value: undefined,
   };
 
   Object.defineProperty(holder, propertyToListen, {
@@ -460,7 +461,7 @@ export function createObjectPropListener(
     configurable: true
   });
 
-  return holder as ObjectPropListener;
+  return holder;
 }
 
 /**
@@ -546,8 +547,8 @@ export function deepMerge(
     const sourceValue = source[key];
     const targetValue = result[key];
 
-    if (isObject(sourceValue) && isObject(targetValue)) {
-      result[key] = deepMerge(targetValue as Record<string, unknown>, sourceValue as Record<string, unknown>);
+    if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
+      result[key] = deepMerge(targetValue, sourceValue);
     } else {
       result[key] = sourceValue;
     }
