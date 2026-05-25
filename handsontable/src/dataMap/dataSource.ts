@@ -254,7 +254,7 @@ class DataSource {
     } else if (Array.isArray(dataRow)) {
       dataRow[column as number] = value;
     } else if (isObject(dataRow)) {
-      (dataRow as Record<string | number, unknown>)[column as number] = value;
+      setProperty(dataRow as Record<string, unknown>, String(column), value);
     }
   }
 
