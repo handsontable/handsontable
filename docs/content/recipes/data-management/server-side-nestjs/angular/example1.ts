@@ -72,7 +72,7 @@ export class AppComponent {
       // Fires when the user inserts rows via the context menu.
       // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
       onRowsCreate: async ({ rowsAmount }: RowsCreatePayload) => {
-        const rows = Array.from({ length: rowsAmount }, () => ({
+        const rows = Array.from({ length: rowsAmount ?? 0 }, () => ({
           subject: '',
           status: 'open',
           priority: 'medium',
@@ -93,7 +93,7 @@ export class AppComponent {
 
       // Fires after a cell edit, paste, or autofill batch.
       onRowsUpdate: async (rows: RowUpdatePayload[]) => {
-        const payload = rows.map(({ id, changes }) => ({ id, ...changes }));
+        const payload = rows.map(({ rowId, data }) => ({ id: rowId, ...data }));
         const res = await fetch('/tickets', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
