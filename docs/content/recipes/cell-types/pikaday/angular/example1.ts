@@ -6,7 +6,7 @@ import {
   GridSettings,
   HotTableModule
 } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 

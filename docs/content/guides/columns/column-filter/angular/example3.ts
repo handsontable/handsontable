@@ -114,28 +114,28 @@ export class AppComponent {
           // hide the 'Filter by value' list from all columns but the first one
           hidden(this: Handsontable) {
             const col = this.getSelectedRangeLast()?.to.col;
-            return col !== undefined && col > 0;
+            return col != null && col > 0;
           },
         },
         filter_action_bar: {
           // hide the 'OK' and 'Cancel' buttons from all columns but the first one
           hidden(this: Handsontable) {
             const col = this.getSelectedRangeLast()?.to.col;
-            return col !== undefined && col > 0;
+            return col != null && col > 0;
           },
         },
         clear_column: {
           // hide the 'Clear column' menu item from the first column
           hidden(this: Handsontable) {
             const col = this.getSelectedRangeLast()?.to.col;
-            return col !== undefined && col < 1;
+            return col != null && col < 1;
           },
         },
       },
     },
     // `afterGetColHeader()` is a Handsontable hook
     // it's fired after Handsontable appends information about a column header to the table header
-    afterGetColHeader(col, TH) {
+    afterGetColHeader(col: number, TH: HTMLElement) {
       // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
       if (col > 1) {
         const button = TH.querySelector('.changeType');

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "tmp"
+  },
+  "exclude": ["src/**/__tests__/**", "src/**/*.types.ts", "src/**/test/**", "src/3rdparty/**", "**/walkontable/**"]
+}

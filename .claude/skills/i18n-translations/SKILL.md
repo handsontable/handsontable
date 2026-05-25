@@ -9,13 +9,13 @@ description: Use when adding user-facing text to Handsontable, creating new lang
 
 ## Adding a new language constant
 
-1. **Define the constant** in `src/i18n/constants.js` using `UPPER_SNAKE_CASE`. Constants are built from a namespace prefix and a descriptive key:
+1. **Define the constant** in `src/i18n/constants.ts` using `UPPER_SNAKE_CASE`. Constants are built from a namespace prefix and a descriptive key:
 
 ```js
 export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 ```
 
-2. **Add the English text to every language file** in `src/i18n/languages/`. There are 20+ locale files (e.g., `en-US.js`, `de-DE.js`, `ja-JP.js`, `zh-CN.js`). Each file imports constants as `* as C` and maps them in a dictionary object:
+2. **Add the English text to every language file** in `src/i18n/languages/`. There are 20+ locale files (e.g., `en-US.ts`, `de-DE.ts`, `ja-JP.ts`, `zh-CN.ts`). Each file imports constants as `* as C` and maps them in a dictionary object:
 
 ```js
 [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
@@ -23,7 +23,7 @@ export const CONTEXTMENU_ITEMS_ROW_ABOVE = `${CM_ALIAS}.insertRowAbove`;
 
 For pluralizable strings, use an array: `['Remove row', 'Remove rows']`.
 
-3. **Do not forget the barrel export** in `src/i18n/languages/index.js` if adding a new language file.
+3. **Do not forget the barrel export** in `src/i18n/languages/index.ts` if adding a new language file.
 
 ## Consuming translations in plugins
 
@@ -46,7 +46,7 @@ The editor system handles IME composition events (`compositionstart`, `compositi
 
 ## Workflow checklist
 
-- [ ] Define constant in `src/i18n/constants.js`
+- [ ] Define constant in `src/i18n/constants.ts`
 - [ ] Add English text to **all** language files in `src/i18n/languages/`
 - [ ] Use `this.hot.getTranslatedPhrase(C.CONSTANT_NAME)` in source code
 - [ ] Test with RTL if adding directional UI elements
@@ -55,6 +55,6 @@ The editor system handles IME composition events (`compositionstart`, `compositi
 
 | File | Purpose |
 |---|---|
-| `src/i18n/constants.js` | All language constant definitions |
+| `src/i18n/constants.ts` | All language constant definitions |
 | `src/i18n/languages/` | Per-locale dictionary files (20+ locales) |
-| `src/i18n/languages/index.js` | Barrel export for language modules |
+| `src/i18n/languages/index.ts` | Barrel export for language modules |

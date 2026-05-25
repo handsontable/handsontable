@@ -1,9 +1,28 @@
 import Handsontable from 'handsontable';
+import {
+  autocompleteValidator,
+  dropdownValidator,
+  dateValidator,
+  numericValidator,
+  timeValidator,
+  registerValidator,
+  getValidator,
+} from 'handsontable/validators';
+
+interface CellProperties {
+  row: number;
+  col: number;
+  instance: unknown;
+  visualRow: number;
+  visualCol: number;
+  prop: string | number;
+  [key: string]: unknown;
+}
 
 const elem = document.createElement('div');
-const hot = new Handsontable(elem, {});
+const hot = Handsontable(elem, {});
 
-const cellProperties: Handsontable.CellProperties = {
+const cellProperties: CellProperties = {
   row: 0,
   col: 0,
   instance: hot,
@@ -13,12 +32,12 @@ const cellProperties: Handsontable.CellProperties = {
 };
 
 // Verify the built-in validators exist and have the correct signature
-Handsontable.validators.AutocompleteValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
-Handsontable.validators.DropdownValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
-Handsontable.validators.DateValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
-Handsontable.validators.NumericValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
-Handsontable.validators.TimeValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
+autocompleteValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
+dropdownValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
+dateValidator.apply(cellProperties as any, ['foo', (valid: boolean) => {}]);
+numericValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
+timeValidator.apply(cellProperties, ['foo', (valid: boolean) => {}]);
 
 // Verify top-level validators API
-Handsontable.validators.getValidator('foo').apply(cellProperties, ['value', (valid: boolean) => {}]);
-Handsontable.validators.registerValidator('foo', (value: any, callback: (valid: boolean) => void) => {});
+getValidator('foo').apply(cellProperties, ['value', (valid: boolean) => {}]);
+registerValidator('foo', (value: unknown, callback: (valid: boolean) => void) => {});

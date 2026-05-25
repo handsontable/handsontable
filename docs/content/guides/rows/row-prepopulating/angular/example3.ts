@@ -78,7 +78,7 @@ export class AppComponent implements AfterViewInit {
       cells() {
         return { renderer: defaultValueRenderer };
       },
-      beforeChange: (changes) => {
+      beforeChange: (changes: Handsontable.CellChange[] | null) => {
         const instance = this.hotTable.hotInstance!;
         const columns = instance.countCols();
         const rowColumnSeen: Record<string, boolean> = {};

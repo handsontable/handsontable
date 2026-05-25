@@ -82,7 +82,7 @@ export class AppComponent {
       // Fires when the user inserts rows via the context menu.
       // payload: { position: 'above'|'below', referenceRowId, rowsAmount }
       onRowsCreate: async (payload: RowsCreatePayload) => {
-        const newRows = Array.from({ length: payload.rowsAmount }, () => ({
+        const newRows = Array.from({ length: payload.rowsAmount ?? 0 }, () => ({
           order_number: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
           customer: 'New Customer',
           status: 'pending',
@@ -119,7 +119,7 @@ export class AppComponent {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            rows: rows.map((r) => ({ id: r.id, changes: r.changes })),
+            rows: rows.map((r) => ({ id: r.rowId, changes: r.data })),
           }),
         });
 

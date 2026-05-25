@@ -1,5 +1,4 @@
 import {
-  BaseValidator,
   autocompleteValidator,
   dateValidator,
   numericValidator,
@@ -16,12 +15,12 @@ registerValidator(autocompleteValidator);
 registerValidator(dateValidator);
 registerValidator(numericValidator);
 registerValidator(timeValidator);
-registerValidator('custom', (value, callback) => {
+registerValidator('custom', (value: unknown, callback: (valid: boolean) => void) => {
   callback(true);
 });
 
-const autocomplete: BaseValidator = getValidator('autocomplete');
-const date: BaseValidator = getValidator('date');
-const numeric: BaseValidator = getValidator('numeric');
-const time: BaseValidator = getValidator('time');
-const custom: BaseValidator = getValidator('custom');
+const autocomplete: Function = getValidator('autocomplete');
+const date: Function = getValidator('date');
+const numeric: Function = getValidator('numeric');
+const time: Function = getValidator('time');
+const custom: Function = getValidator('custom');

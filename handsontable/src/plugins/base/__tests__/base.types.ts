@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
 import { BasePlugin } from 'handsontable/plugins';
 
 const elem = document.createElement('div');
@@ -8,7 +9,7 @@ const pluginKey: string = BasePlugin.PLUGIN_KEY;
 const settingKeys: string[] | boolean = BasePlugin.SETTING_KEYS;
 
 const basePlugin = new BasePlugin(hot);
-const hotPlugin: Handsontable = basePlugin.hot;
+const hotPlugin: HotInstance = basePlugin.hot;
 
 basePlugin.init();
 basePlugin.enablePlugin();

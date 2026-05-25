@@ -84,10 +84,10 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 **Structure Examples:**
 ```
 src/dataMap/metaManager/metaLayers/
-├── cellMeta.js
-├── columnMeta.js
-├── globalMeta.js
-├── tableMeta.js
+├── cellMeta.ts
+├── columnMeta.ts
+├── globalMeta.ts
+├── tableMeta.ts
 └── __tests__/
     ├── cellMeta.unit.js
     ├── columnMeta.unit.js
@@ -97,9 +97,9 @@ src/dataMap/metaManager/metaLayers/
 
 ```
 src/plugins/filters/
-├── filters.js
-├── index.js
-├── conditionCollection.js
+├── filters.ts
+├── index.ts
+├── conditionCollection.ts
 └── __tests__/
     ├── filters.spec.js
     ├── filtersUI.spec.js
@@ -395,7 +395,7 @@ Theme-dependent expected values in E2E tests come from a single resolver:
 
 | File | Role |
 | --- | --- |
-| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …) plus scenario-specific `e2e*` regression helpers with descriptive names (e.g. `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`); auto-discovers themes from `src/themes/theme/index.js`; call via global `getThemeLayout()` in specs |
+| `test/helpers/themeLayoutFromTokens.js` | **Public entry point** -- token-backed primitives (`defaultDataRowHeight`, `overlayHeight`, …) plus scenario-specific `e2e*` regression helpers with descriptive names (e.g. `e2eGcrEditedCellOuterHeight`, `e2eManualRowResizerPositionFixedTopMasterFourthRow`); auto-discovers themes from `src/themes/theme/index.ts`; call via global `getThemeLayout()` in specs |
 
 ### Entry point
 
@@ -423,14 +423,14 @@ See the `handsontable-css-dev` skill for the full four-layer token process. The 
 3. Icons JS: `src/themes/static/variables/icons/<name>.js` -- icon definitions (or re-export an existing one if icons are shared).
 4. CSS source: `src/themes/static/css/theme/ht-theme-<name>.css` + `ht-theme-<name>-no-icons.css` -- declare all `--ht-*` variables for the new theme.
 5. Theme module: `src/themes/theme/<name>.js` -- exports `{ name, density, icons, colors, tokens }`.
-6. Re-export from `src/themes/theme/index.js` so auto-discovery picks it up.
-7. Validation allow-list: `src/themes/engine/utils/validation.js` (`VALID_TOKEN_KEYS` Set) -- add any new token keys introduced by the theme.
+6. Re-export from `src/themes/theme/index.ts` so auto-discovery picks it up.
+7. Validation allow-list: `src/themes/engine/utils/validation.ts` (`VALID_TOKEN_KEYS` Set) -- add any new token keys introduced by the theme.
 8. `TokenKey` union: `types/themes.d.ts` -- add any new token keys so TypeScript consumers get correct types.
 9. Add E2E matrix jobs in `.github/workflows/test.yml`.
 
 No edits needed to `themeLayoutFromTokens.js`, `common.js`, unit tests, or any spec file. Auto-discovery handles the rest.
 
-**Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml(key)` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. `E2E_REGISTERED_THEME_KEYS` is derived automatically from `src/themes/theme/index.js` -- no manual registration required.
+**Iframe `doc.write` shells** must use absolute stylesheet URLs (`about:blank` iframes). Use globals from `test/helpers/common.js`: `getE2eThemeStylesheetLinkTagsHtml()` (all themes in `E2E_REGISTERED_THEME_KEYS` order), `getE2eThemeStylesheetLinkTagHtml(key)` for a single theme, and `getE2eNormalizeStylesheetLinkTagHtml()` when tests need `lib/normalize.css`. `E2E_REGISTERED_THEME_KEYS` is derived automatically from `src/themes/theme/index.ts` -- no manual registration required.
 
 ### Usage in specs
 
@@ -520,7 +520,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 **Type Tests (`*.types.ts`):**
 - Tool: tsc (TypeScript compiler only)
 - Location: `test/types/`
-- Purpose: Verify TypeScript type definitions in `handsontable/types/`
+- Purpose: Verify TypeScript type definitions generated into `handsontable/tmp/` from the `.ts` sources
 
 **Walkontable Tests:**
 - Separate test pipeline (`npm run test:walkontable`)

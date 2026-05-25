@@ -17,6 +17,7 @@
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
+    "typecheck": "node scripts/run.mjs typecheck",
     "clean": "node scripts/run.mjs clean",
     "lint": "node scripts/run.mjs --parallel lint",
     "lint:fix": "node scripts/run.mjs --sequential lint:fix",
@@ -24,8 +25,6 @@
     "eslint:fix": "node scripts/run.mjs lint:eslint.fix",
     "stylelint": "node scripts/run.mjs lint:stylelint",
     "stylelint:fix": "node scripts/run.mjs lint:stylelint.fix",
-    "type-lint": "node scripts/run.mjs lint:types",
-    "type-lint:fix": "node scripts/run.mjs lint:types.fix",
     "measure:module-sizes": "node scripts/run.mjs measure:module-sizes",
     "test": "node scripts/run.mjs --sequential test",
     "test.random": "node scripts/run.mjs --sequential test -- --random",
@@ -65,6 +64,7 @@
     "build:themes-css.min": "node scripts/run.mjs build:themes-css.min",
     "build:themes-umd": "node scripts/run.mjs build:themes-umd",
     "build:themes-umd.min": "node scripts/run.mjs build:themes-umd.min",
+    "build:types": "node scripts/run.mjs build:types",
     "build:walkontable": "node scripts/run.mjs build:walkontable",
     "build:languages": "node scripts/run.mjs build:languages",
     "build:languages.es": "node scripts/run.mjs build:languages.es",
@@ -89,7 +89,7 @@
   ],
   "dependencies": {
     "@handsontable/pikaday": "^1.0.0",
-    "dompurify": "^3.1.7",
+    "dompurify": "^3.4.0",
     "moment": "2.30.1",
     "numbro": "2.5.0"
   },
@@ -102,6 +102,7 @@
     "@babel/eslint-plugin": "^7.13.16",
     "@babel/plugin-transform-runtime": "^7.11.0",
     "@babel/preset-env": "^7.11.0",
+    "@babel/preset-typescript": "^7.28.5",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
     "@rspack/cli": "^1.7.11",
@@ -153,13 +154,13 @@
     "stylelint": "^16.3.1",
     "stylelint-config-standard": "^36.0.1",
     "stylelint-config-standard-scss": "^13.1.0",
-    "typescript": "3.8.2"
+    "typescript": "^5.9.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
+  "typings": "./index.d.ts",
   "resolutions": {
     "@babel/core": "^7.11.4"
   },
-  "typings": "./index.d.ts",
   "handsontable": {
     "copy": [
       "dist/handsontable.full.js",
@@ -173,11 +174,7 @@
       "../CHANGELOG.md",
       "../handsontable-non-commercial-license.pdf",
       "../LICENSE.txt",
-      "README.md",
-      {
-        "pattern": "types/**/*.d.ts",
-        "pathSlice": 1
-      }
+      "README.md"
     ],
     "exports": [
       "./cellTypes/*/+(index)*",
@@ -212,16 +209,6 @@
         }
       },
       {
-        "./common": {
-          "types": "./common.d.ts"
-        }
-      },
-      {
-        "./settings": {
-          "types": "./settings.d.ts"
-        }
-      },
-      {
         "./languages/all": {
           "import": "./languages/index.mjs",
           "require": "./languages/all.js"
@@ -235,8 +222,15 @@
         }
       },
       {
+        "./settings": {
+          "types": "./settings.d.ts",
+          "import": "./settings.mjs",
+          "require": "./settings.js"
+        }
+      },
+      {
         "./themes": {
-          "types": "./themes.d.ts",
+          "types": "./themes/index.d.ts",
           "import": "./themes/index.mjs",
           "require": "./themes/index.js"
         }
@@ -259,7 +253,6 @@
       "dependencies",
       "optionalDependencies",
       "license",
-      "typings",
       "sideEffects"
     ]
   },
