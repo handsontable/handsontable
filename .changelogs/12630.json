@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed nested headers not expanding column widths to content after resetting `colWidths` to `undefined` via `updateSettings`.",
+  "type": "fixed",
+  "issueOrPR": 12630,
+  "breaking": false,
+  "framework": "none"
+}

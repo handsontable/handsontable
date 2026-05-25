@@ -69,11 +69,20 @@ export class RemoveRowAction extends BaseAction {
       const wrappedAction = () => {
         const physicalRowIndex = hot.toPhysicalRow(index);
         const lastRowIndex = physicalRowIndex + amount - 1;
-        const removedData = deepClone(
-          hot.getSourceData(
-            physicalRowIndex, 0, physicalRowIndex + amount - 1, hot.countSourceCols() - 1
-          )
-        );
+        const removedData = [];
+
+        for (let i = 0; i < amount; i++) {
+          const rowData = deepClone(hot.getSourceDataAtRow(physicalRowIndex + i));
+
+          // `nestedRows` manages its `__children` tree restoration on undo
+          // independently; writing `__children` back via `setSourceDataAtCell`
+          // would clash with the plugin's internal state.
+          if (rowData && typeof rowData === 'object' && !Array.isArray(rowData)) {
+            delete (rowData as Record<string, unknown>).__children;
+          }
+
+          removedData.push(rowData);
+        }
 
         return new RemoveRowAction({
           index: physicalRowIndex,

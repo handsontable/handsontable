@@ -3456,4 +3456,81 @@ describe('ColumnSorting', () => {
       expect(cssTop).toBeGreaterThan(0);
     });
   });
+
+  describe('fixed rows interaction', () => {
+    it('should not include `fixedRowsBottom` rows in the sortable range', async() => {
+      handsontable({
+        data: [
+          ['Apple', 10],
+          ['Banana', 20],
+          ['Cherry', 30],
+          ['Date', 40],
+          ['Total', 999], // footer row, must stay last regardless of sort
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsBottom: 1,
+        columnSorting: true,
+      });
+
+      // sort col B descending - 999 would normally float to the top
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // footer must remain at the last visual row
+      expect(getDataAtCell(4, 0)).toBe('Total');
+      expect(getDataAtCell(4, 1)).toBe(999);
+
+      // data rows above are sorted descending
+      expect(getDataAtCol(1).slice(0, 4)).toEqual([40, 30, 20, 10]);
+    });
+
+    it('should not include `fixedRowsTop` rows in the sortable range', async() => {
+      handsontable({
+        data: [
+          ['Header', 999], // header row, must stay first regardless of sort
+          ['Apple', 10],
+          ['Banana', 20],
+          ['Cherry', 30],
+          ['Date', 40],
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsTop: 1,
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // header must remain at the first visual row
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCell(0, 1)).toBe(999);
+
+      // data rows below are sorted ascending
+      expect(getDataAtCol(1).slice(1)).toEqual([10, 20, 30, 40]);
+    });
+
+    it('should respect `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together', async() => {
+      handsontable({
+        data: [
+          ['Header', 999],
+          ['Banana', 20],
+          ['Apple', 10],
+          ['Date', 40],
+          ['Cherry', 30],
+          ['Total', 111],
+          [null, null], // spare row
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        minSpareRows: 1,
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCol(1).slice(1, 5)).toEqual([10, 20, 30, 40]);
+      expect(getDataAtCell(5, 0)).toBe('Total');
+      expect(getDataAtCell(6, 0)).toBeNull();
+    });
+  });
 });

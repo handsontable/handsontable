@@ -326,7 +326,7 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeRender', this.#onBeforeRender);
-    this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width));
+    this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
