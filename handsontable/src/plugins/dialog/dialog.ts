@@ -2,6 +2,7 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
 import { isObject, isPlainObject } from '../../helpers/object';
+import { isHTMLElement } from '../../helpers/dom/element';
 import * as C from '../../i18n/constants';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -202,7 +203,7 @@ export class Dialog extends BasePlugin {
           (typeof item.callback === 'undefined' || typeof item.callback === 'function')
           )),
       content: (value: unknown) => typeof value === 'string' ||
-        (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
+        isHTMLElement(value) ||
         (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
       customClassName: (value: unknown) => typeof value === 'string',
       background: (value: unknown) => typeof value === 'string' && ['solid', 'semi-transparent'].includes(value),

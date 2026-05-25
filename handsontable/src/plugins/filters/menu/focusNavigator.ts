@@ -1,5 +1,5 @@
 import { createPaginator } from '../../../utils/paginator';
-import { isVisible } from '../../../helpers/dom/element';
+import { isHTMLElement, isVisible } from '../../../helpers/dom/element';
 import { MultipleSelectUI } from '../ui/multipleSelect';
 
 /**
@@ -21,7 +21,7 @@ export function createFocusNavigator(elements: unknown[]) {
 
       const elementRecord = element as Record<string, unknown>;
 
-      if (elementRecord.element && !isVisible(elementRecord.element as HTMLElement)) {
+      if (isHTMLElement(elementRecord.element) && !isVisible(elementRecord.element)) {
         return false;
       }
 

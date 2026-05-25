@@ -7,6 +7,7 @@ import {
   removeClass,
   hasClass,
   fastInnerHTML,
+  isHTMLElement,
   setAttribute,
   removeAttribute,
 } from '../../helpers/dom/element';
@@ -281,7 +282,7 @@ export class DialogUI {
       if (typeof content === 'string') {
         fastInnerHTML(contentElement, content, this.#sanitizer);
 
-      } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
+      } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
       }
 

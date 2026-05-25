@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, isHTMLElement } from '../../../helpers/dom/element';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 import { BaseComponent } from './_base';
@@ -75,7 +75,9 @@ export class ActionBarComponent extends BaseComponent {
       disableSelection: true,
       hidden: () => this.isHidden(),
       renderer: (hot: HotInstance, wrapper: HTMLElement) => {
-        addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuActionBar');
+        if (isHTMLElement(wrapper.parentNode)) {
+          addClass(wrapper.parentNode, 'htFiltersMenuActionBar');
+        }
         arrayEach(this.elements, ui => wrapper.appendChild((ui as InputUI).element));
 
         return wrapper;

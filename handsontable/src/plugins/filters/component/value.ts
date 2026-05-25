@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, isHTMLElement } from '../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
@@ -266,7 +266,9 @@ export class ValueComponent extends BaseComponent {
       hidden: () => this.isHidden() || (typeof this.hiddenWhen === 'function' && this.hiddenWhen()),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
                  prop: string | number, value: string) => {
-        addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuValue');
+        if (isHTMLElement(wrapper.parentNode)) {
+          addClass(wrapper.parentNode, 'htFiltersMenuValue');
+        }
 
         const label = this.hot.rootDocument.createElement('div');
 

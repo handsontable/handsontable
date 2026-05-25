@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass, eventTargetEl } from '../../../helpers/dom/element';
+import { addClass, eventTargetEl, isHTMLElement } from '../../../helpers/dom/element';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
@@ -49,7 +49,9 @@ export class OperatorsComponent extends BaseComponent {
       disableSelection: true,
       hidden: () => this.isHidden(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement) => {
-        addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuOperators');
+        if (isHTMLElement(wrapper.parentNode)) {
+          addClass(wrapper.parentNode, 'htFiltersMenuOperators');
+        }
         arrayEach(this.elements as BaseUI[], (ui: BaseUI) => wrapper.appendChild(ui.element));
 
         return wrapper;

@@ -1,5 +1,5 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass } from '../../../helpers/dom/element';
+import { addClass, isHTMLElement } from '../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
@@ -194,10 +194,12 @@ export class ConditionComponent extends BaseComponent {
       renderer: (
         hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number, prop: string | number, value: string
       ) => {
-        addClass(wrapper.parentNode as HTMLElement, 'htFiltersMenuCondition');
+        if (isHTMLElement(wrapper.parentNode)) {
+          addClass(wrapper.parentNode, 'htFiltersMenuCondition');
 
-        if (this.addSeparator) {
-          addClass(wrapper.parentNode as HTMLElement, 'border');
+          if (this.addSeparator) {
+            addClass(wrapper.parentNode, 'border');
+          }
         }
 
         const label = this.hot.rootDocument.createElement('div');

@@ -26,6 +26,7 @@ import {
   eventTargetEl,
   getScrollableElement,
   getScrollbarWidth,
+  isHTMLElement,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
 import { debounce } from '../../../helpers/function';

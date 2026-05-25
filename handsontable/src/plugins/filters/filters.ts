@@ -4,7 +4,7 @@ import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import { addClass, isBottomMostColumnHeader, removeClass } from '../../helpers/dom/element';
+import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { createObjectPropListener, deepClone } from '../../helpers/object';
@@ -291,9 +291,11 @@ export class Filters extends BasePlugin {
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu') as unknown as DropdownMenuPluginInterface;
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
-    const menuContainer = (typeof dropdownSettings === 'object'
-      ? (dropdownSettings as Record<string, unknown>).uiContainer : null) as HTMLElement ||
-      this.hot.rootPortalElement;
+    const uiContainerCandidate = typeof dropdownSettings === 'object'
+      ? (dropdownSettings as Record<string, unknown>).uiContainer : null;
+    const menuContainer = isHTMLElement(uiContainerCandidate)
+      ? uiContainerCandidate
+      : this.hot.rootPortalElement;
     const addConfirmationHooks = (component: BaseComponent) => {
       component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));

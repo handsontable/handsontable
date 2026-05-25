@@ -4,7 +4,9 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
-import { eventTargetEl, hasClass, isBottomMostColumnHeader, setAttribute } from '../../helpers/dom/element';
+import {
+  eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, setAttribute
+} from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
 import { Hooks } from '../../core/hooks';
@@ -346,8 +348,12 @@ export class DropdownMenu extends BasePlugin {
           return;
         }
 
-        const buttonRect = this.#getButtonRect(target as HTMLElement);
-        const th = (target as HTMLElement).closest('th');
+        if (!isHTMLElement(target)) {
+          return;
+        }
+
+        const buttonRect = this.#getButtonRect(target);
+        const th = target.closest('th');
         // For rowspanned headers the button may be mispositioned when the htRowspanHeader
         // CSS class is not yet applied. Anchor to the TH's inner bottom (clientHeight, no
         // borders) and use below:-1 so the positioner's +1 cancels out, placing the menu

@@ -8,7 +8,7 @@ import {
   Menu,
 } from './menu';
 import { getDocumentOffsetByElement } from './utils';
-import { eventTargetEl, hasClass } from '../../helpers/dom/element';
+import { eventTargetEl, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import {
   ROW_ABOVE,
   ROW_BELOW,
@@ -398,7 +398,9 @@ export class ContextMenu extends BasePlugin {
      * @returns {boolean}
      */
     function isValidElement(element: HTMLElement) {
-      return element.nodeName === 'TD' || (element.parentNode as HTMLElement).nodeName === 'TD';
+      const parent = element.parentNode;
+
+      return element.nodeName === 'TD' || (isHTMLElement(parent) && parent.nodeName === 'TD');
     }
     const element = eventTargetEl(event)!;
 
