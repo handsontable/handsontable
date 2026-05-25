@@ -244,17 +244,17 @@ class DataSource {
         // the integer path below. setProperty rejects arrays, so this must be handled here.
         const numericIndex = Number(column);
 
-        if (!Number.isNaN(numericIndex) && Number.isInteger(numericIndex)) {
+        if (!Number.isNaN(numericIndex) && Number.isInteger(numericIndex) &&
+            numericIndex >= 0 && numericIndex < this.countFirstRowKeys()) {
           dataRow[numericIndex] = value;
         }
       } else if (isObject(dataRow)) {
         setProperty(dataRow as Record<string, unknown>, String(column), value);
       }
-    } else {
-      if (!Array.isArray(dataRow)) {
-        return;
-      }
+    } else if (Array.isArray(dataRow)) {
       dataRow[column as number] = value;
+    } else if (isObject(dataRow)) {
+      (dataRow as Record<string | number, unknown>)[column as number] = value;
     }
   }
 

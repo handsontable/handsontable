@@ -92,6 +92,10 @@ export function extend(
  */
 export function deepExtend(target: Record<string, unknown>, extension: Record<string, unknown>): void {
   objectEach(extension, (_value, key) => {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return;
+    }
+
     const extensionValue = extension[key];
 
     if (extensionValue && typeof extensionValue === 'object') {
@@ -131,6 +135,10 @@ export function deepClone<T>(obj: T): T {
     const result: Record<string, unknown> = {};
 
     for (const key of Object.keys(obj)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue;
+      }
+
       result[key] = deepClone((obj as Record<string, unknown>)[key]);
     }
 
@@ -344,7 +352,7 @@ export function setProperty(object: Record<string, unknown>, name: string, value
     return;
   }
 
-  if (!isPlainObject(object)) {
+  if (object === null || typeof object !== 'object') {
     return;
   }
 
@@ -361,7 +369,7 @@ export function setProperty(object: Record<string, unknown>, name: string, value
 
     if (index !== names.length - 1) {
       if (!hasOwnProperty(workingObject, propName)) {
-        workingObject[propName] = Object.create(null);
+        workingObject[propName] = {};
       }
 
       const nextLevel = workingObject[propName];
