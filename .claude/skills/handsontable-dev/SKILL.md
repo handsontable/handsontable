@@ -1,12 +1,14 @@
 ---
 name: handsontable-dev
 description: >
-  Master dispatcher for any task inside the `handsontable/` core package — plugins, editors,
-  renderers, validators, cell types, CSS, themes, testing, or demo pages. Use whenever you
-  open or modify a file under `handsontable/src/`. Routes to the right specialist skill,
-  and centralizes the TypeScript conventions, type-safety gotchas, and cross-cutting rules
-  (private fields, generics over casts, `import type`, hooks-not-imports for cross-plugin
-  access, `_registerTimeout` not `setTimeout`) that apply to every component type in core.
+  Use for ANY work touching the `handsontable/` core package: fixing bugs, adding features,
+  modifying TypeScript types, removing as-casts, writing or debugging plugins, editors,
+  renderers, validators, cell types, hooks, shortcuts, selection, helpers, index translations,
+  or i18n. Also use for how-to questions about core internals (plugin lifecycle, coordinate
+  systems, hook registration, TypeScript conventions). Triggers on file paths under
+  `handsontable/src/` (excluding `3rdparty/walkontable/` which has its own skill), or when
+  the user describes a symptom in the core grid without naming a file. This is the primary
+  entry point for all core Handsontable development — when in doubt, load it.
 ---
 
 # Handsontable Core Development
@@ -92,6 +94,23 @@ const row = getFirst(rows); // typed as UserRow
 ```
 
 The same applies to `any`. If you need `any` to make something compile, the function should usually take a type parameter instead. Reach for `unknown` at boundaries, then narrow with a type guard.
+
+### 1a. DOM narrowing — prefer `isHTMLElement` over `as HTMLElement`
+
+A common DOM pattern is casting a `Node | Element | null` to `HTMLElement`. Use the existing type guard from `src/helpers/dom/element.ts` instead:
+
+```ts
+// ✗ Bad — assertion hides the null/non-HTML case
+const el = node.nextSibling as HTMLElement;
+
+// ✓ Good — narrows safely with a runtime check
+import { isHTMLElement } from '../helpers/dom/element';
+if (isHTMLElement(node.nextSibling)) {
+  // node.nextSibling is HTMLElement here
+}
+```
+
+`isHTMLElement` is exported from `src/helpers/dom/element.ts` and is equivalent to `instanceof HTMLElement`. Use it wherever you'd write `x as HTMLElement`, `x instanceof HTMLElement`, or a manual `nodeType === Node.ELEMENT_NODE` guard.
 
 ### 2. Don't hand-write mirror `.d.ts` files
 

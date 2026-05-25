@@ -18,7 +18,7 @@ export function getParent(element: HTMLElement | Node, level: number = 0): HTMLE
 
   while (elementToCheck !== null) {
     if (iteration === level) {
-      parent = elementToCheck as HTMLElement;
+      parent = elementToCheck instanceof HTMLElement ? elementToCheck : null;
       break;
     }
 
@@ -112,9 +112,9 @@ export function closest(
   while (elementToCheck !== null && elementToCheck !== undefined && elementToCheck !== until) {
     const { nodeType, nodeName } = elementToCheck;
 
-    if (nodeType === ELEMENT_NODE &&
-        (nodes.includes(nodeName) || nodes.includes(elementToCheck as HTMLElement))) {
-      return elementToCheck as HTMLElement;
+    if (nodeType === ELEMENT_NODE && elementToCheck instanceof HTMLElement &&
+        (nodes.includes(nodeName) || nodes.includes(elementToCheck))) {
+      return elementToCheck;
     }
 
     if (isShadowRoot(elementToCheck)) {
@@ -139,7 +139,7 @@ export function closest(
 export function closestDown(
   element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement | null {
   const matched: HTMLElement[] = [];
-  let elementToCheck: HTMLElement | null = element as HTMLElement;
+  let elementToCheck: HTMLElement | null = element instanceof HTMLElement ? element : null;
 
   while (elementToCheck) {
     elementToCheck = closest(elementToCheck, nodes, until);
@@ -152,7 +152,7 @@ export function closestDown(
     if (isShadowRoot(elementToCheck)) {
       const { host } = elementToCheck;
 
-      elementToCheck = host as HTMLElement;
+      elementToCheck = host instanceof HTMLElement ? host : null;
 
     } else {
       elementToCheck = elementToCheck.parentElement;
@@ -592,22 +592,20 @@ export function isVisible(element: HTMLElement): boolean {
       // internal implementation node when Web Platform features were disabled. It is no longer present
       // in any supported browser, but we keep the fallback to avoid a silent regression on very old builds.
       interface ShadowHostWithImpl extends HTMLElement { impl?: HTMLElement }
-      const { host } = next;
+      const host: ShadowHostWithImpl = next.host;
 
-      const hostWithImpl = host as ShadowHostWithImpl;
-
-      if (hostWithImpl.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
-        return isVisible(hostWithImpl.impl);
+      if (host.impl) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features disabled
+        return isVisible(host.impl);
 
       } else { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
-        return isVisible(host as HTMLElement);
+        return isVisible(host);
       }
 
     } else if (next.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
       return false; // this is a node detached from document in IE8
 
-    } else if (next.nodeType === Node.ELEMENT_NODE &&
-      windowElement.getComputedStyle(next as HTMLElement).display === 'none') {
+    } else if (next.nodeType === Node.ELEMENT_NODE && next instanceof HTMLElement &&
+      windowElement.getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -662,7 +660,7 @@ export function offset(element: HTMLElement): { left: number, top: number } {
   lastElem = elementToCheck;
 
   /* eslint-disable no-cond-assign */
-  while (elementToCheck = elementToCheck.offsetParent as HTMLElement) {
+  while (elementToCheck = (elementToCheck.offsetParent instanceof HTMLElement ? elementToCheck.offsetParent : null)) {
     // from my observation, document.body always has scrollLeft/scrollTop == 0
     if (elementToCheck === rootDocument.body) {
       break;
@@ -865,7 +863,7 @@ export function getStyle(element: HTMLElement | Window, prop: string, rootWindow
   }
 
   const styleProp = element.style.getPropertyValue(prop) ||
-    (element.style as CSSStyleDeclaration & Record<string, string>)[prop];
+    (element.style as unknown as Record<string, string>)[prop];
 
   if (styleProp !== '' && styleProp !== undefined) {
     return styleProp;
@@ -873,7 +871,7 @@ export function getStyle(element: HTMLElement | Window, prop: string, rootWindow
 
   const computedStyle = rootWindow.getComputedStyle(element);
   const computedProp = computedStyle.getPropertyValue(prop) ||
-    (computedStyle as CSSStyleDeclaration & Record<string, string>)[prop];
+    (computedStyle as unknown as Record<string, string>)[prop];
 
   if (computedProp !== '' && computedProp !== undefined) {
     return computedProp;
@@ -893,9 +891,10 @@ export function matchesCSSRules(element: Element, rule: CSSRule): boolean {
   if (rule instanceof CSSStyleRule && rule.selectorText) {
     // msMatchesSelector is a non-standard alias present in IE and old Edge
     type ElementWithMs = Element & { msMatchesSelector: (selector: string) => boolean };
+    const elementWithMs = element as ElementWithMs;
 
-    if ('msMatchesSelector' in element && typeof (element as ElementWithMs).msMatchesSelector === 'function') {
-      result = (element as ElementWithMs).msMatchesSelector(rule.selectorText);
+    if ('msMatchesSelector' in element && typeof elementWithMs.msMatchesSelector === 'function') {
+      result = elementWithMs.msMatchesSelector(rule.selectorText);
 
     } else if (element.matches) {
       result = element.matches(rule.selectorText);
@@ -1011,7 +1010,7 @@ export function getSelectionText(rootWindow: Window = window): string {
     type DocWithSelection = Document & { selection?: { type: string; createRange(): { text: string } } };
 
     if ('selection' in rootDocument) {
-      const docWithSel = rootDocument as DocWithSelection;
+      const docWithSel: DocWithSelection = rootDocument;
 
       if (docWithSel.selection && docWithSel.selection.type !== 'Control') {
         text = docWithSel.selection.createRange().text;
@@ -1384,9 +1383,14 @@ export function runWithSelectedContendEditableElement(
  * @returns {boolean} `true` if the element is HTMLElement.
  */
 export function isHTMLElement(element: unknown): element is HTMLElement {
-  const OwnElement = (element as HTMLElement)?.ownerDocument?.defaultView?.Element;
+  if (typeof element !== 'object' || element === null) {
+    return false;
+  }
 
-  return !!(OwnElement && OwnElement !== null && element instanceof OwnElement);
+  const OwnElement = (element as { ownerDocument?: { defaultView?: { Element?: typeof Element } } })
+    .ownerDocument?.defaultView?.Element;
+
+  return !!(OwnElement && element instanceof OwnElement);
 }
 
 /**
@@ -1406,7 +1410,7 @@ export function isHTMLInputElement(element: HTMLElement): element is HTMLInputEl
  * @returns {boolean} `true` if the node is a ShadowRoot.
  */
 export function isShadowRoot(node: Node): node is ShadowRoot {
-  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && !!((node as ShadowRoot).host);
+  return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE && 'host' in node;
 }
 
 /**
