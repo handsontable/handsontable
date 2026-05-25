@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable';
 import Handsontable from 'handsontable/base';
 
 @Component({
@@ -9,9 +8,11 @@ import Handsontable from 'handsontable/base';
   imports: [HotTableModule],
   selector: 'example1-undo-redo-custom-ui',
   template: `
-    <div class="undo-redo-controls">
-      <button type="button" [disabled]="!isUndoAvailable" (click)="undo()">Undo</button>
-      <button type="button" [disabled]="!isRedoAvailable" (click)="redo()">Redo</button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" [disabled]="!isUndoAvailable" (click)="undo()">Undo</button>
+        <button type="button" [disabled]="!isRedoAvailable" (click)="redo()">Redo</button>
+      </div>
     </div>
     <hot-table [data]="hotData" [settings]="hotSettings"></hot-table>
   `,

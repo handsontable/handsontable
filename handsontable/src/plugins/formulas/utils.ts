@@ -78,6 +78,27 @@ export function getDateInHotFormat(date: string, dateFormat: unknown) {
 }
 
 /**
+ * Converts an HF day-fraction representation of a time value into a string formatted with the cell's
+ * `timeFormat`. HyperFormula represents date-time values as a single number, where the integer part
+ * encodes the date (days since the HF epoch) and the fractional part encodes the time. This helper
+ * ignores the integer part and formats the fractional part as a time string.
+ *
+ * @param {number} numericTime A number whose fractional part represents the time as a fraction of a day.
+ * @param {string} timeFormat The moment.js-compatible format used to render the output time string.
+ * @returns {string}
+ */
+export function getTimeFromHfTimeFraction(numericTime: number, timeFormat: string) {
+  const SECONDS_IN_DAY = 86400;
+  const dayFraction = numericTime - Math.floor(numericTime);
+  const totalSeconds = Math.round(dayFraction * SECONDS_IN_DAY);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return moment({ hour: hours, minute: minutes, second: seconds }).format(timeFormat);
+}
+
+/**
  * Converts Excel-like dates into strings and formats them based on the handled date format.
  *
  * @param {number} numericDate An integer representing numbers of days from January 1, 1900.

@@ -19,13 +19,6 @@ const statusLabels = {
   error: 'Error',
 };
 
-const statusColors = {
-  idle: '#616161',
-  saving: '#1a42e8',
-  saved: '#117a1f',
-  error: '#c62828',
-};
-
 const saveRowsToBackend = (rows) => {
   return new Promise((resolve) => setTimeout(resolve, 450)).then(() => {
     // Replace this with fetch('/api/products', { method: 'PATCH', body: ... }) in production.
@@ -112,17 +105,13 @@ const ExampleComponent = () => {
   };
 
   return (
-    <>
-      <div
-        style={{
-          marginBottom: '8px',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '13px',
-          fontWeight: '600',
-          color: statusColors[saveStatus],
-        }}
-      >
-        {statusLabels[saveStatus]}
+    <div>
+      <div className="example-controls-container">
+        <div className="controls">
+          <span className="auto-save-backend-status" data-state={saveStatus}>
+            {statusLabels[saveStatus]}
+          </span>
+        </div>
       </div>
       <HotTable
         ref={hotRef}
@@ -140,7 +129,7 @@ const ExampleComponent = () => {
         afterChange={handleAfterChange}
         licenseKey="non-commercial-and-evaluation"
       />
-    </>
+    </div>
   );
 };
 

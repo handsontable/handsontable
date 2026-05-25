@@ -230,11 +230,13 @@ export class ValueComponent extends BaseComponent {
     // Update the next "by_value" component (filter column conditions added after this condition).
     // Its list of values has to be updated. As the new values by default are unchecked,
     // the further component update is unnecessary.
+    // `conditionArgsChange` is scoped to the edited column and must not be reapplied here -
+    // doing so overwrites the dependent column's by_value args with the edited column's value set (issue #8874).
     if (stateInfo.dependentConditionStacks.length) {
       updateColumnState(
         stateInfo.dependentConditionStacks[0].column,
         stateInfo.dependentConditionStacks[0].conditions,
-        stateInfo.conditionArgsChange,
+        undefined,
         stateInfo.filteredRowsFactory,
         stateInfo.editedConditionStack
       );
