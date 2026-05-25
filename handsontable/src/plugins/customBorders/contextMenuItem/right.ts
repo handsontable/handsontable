@@ -1,12 +1,13 @@
 import * as C from '../../../i18n/constants';
 import { checkSelectionBorders, markSelected } from '../utils';
+import type { CustomBordersPlugin } from '../utils';
 
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
  * @returns {object}
  */
-export default function right(customBordersPlugin: Record<string, unknown>) {
-  const borderDirection = (customBordersPlugin.hot as { isRtl: () => boolean }).isRtl() ? 'start' : 'end';
+export default function right(customBordersPlugin: CustomBordersPlugin) {
+  const borderDirection = customBordersPlugin.hot.isRtl() ? 'start' : 'end';
 
   return {
     key: 'borders:right',
@@ -23,7 +24,7 @@ export default function right(customBordersPlugin: Record<string, unknown>) {
     callback(key: string, selected: Record<string, unknown>[]) {
       const hasBorder = checkSelectionBorders(this, borderDirection);
 
-      (customBordersPlugin as { prepareBorder: Function }).prepareBorder(selected, borderDirection, hasBorder);
+      customBordersPlugin.prepareBorder(selected, borderDirection, hasBorder);
     }
   };
 }

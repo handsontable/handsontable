@@ -7,6 +7,59 @@ import { isDefined } from '../../helpers/mixed';
 import { arrayEach } from '../../helpers/array';
 
 /**
+ * Describes style properties for a single border side or corner.
+ */
+export interface BorderSettings {
+  width?: number;
+  color?: string;
+  cornerVisible?: boolean | ((...args: unknown[]) => boolean);
+  hide?: boolean;
+  className?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Internal shape of a stored border object, used by the plugin's bookkeeping.
+ */
+export interface BorderObject {
+  id: string;
+  row: number;
+  col: number;
+  top?: BorderSettings;
+  bottom?: BorderSettings;
+  start?: BorderSettings;
+  end?: BorderSettings;
+  border?: Record<string, unknown>;
+  range?: { from: { row: number; col: number }; to: { row: number; col: number } };
+  [key: string]: unknown;
+}
+
+/**
+ * Minimal interface the contextMenuItem functions need from the CustomBorders plugin instance.
+ */
+export interface CustomBordersPlugin {
+  hot: HotInstance;
+  prepareBorder(selected: Record<string, unknown>[], place: string, remove: boolean | undefined): void;
+}
+
+/**
+ * Describes a single user-provided custom border configuration entry.
+ */
+export interface CustomBorderConfig {
+  row?: number;
+  col?: number;
+  top?: BorderSettings;
+  bottom?: BorderSettings;
+  start?: BorderSettings;
+  end?: BorderSettings;
+  left?: BorderSettings;
+  right?: BorderSettings;
+  border?: Record<string, unknown>;
+  range?: { from: { row: number; col: number }; to: { row: number; col: number } };
+  [key: string]: unknown;
+}
+
+/**
  * Create separated id for borders for each cell.
  *
  * @param {number} row Visual row index.
@@ -22,7 +75,7 @@ export function createId(row: number, col: number) {
  *
  * @returns {object} `{{width: number, color: string}}`.
  */
-export function createDefaultCustomBorder() {
+export function createDefaultCustomBorder(): BorderSettings {
   return {
     width: 1,
     color: '#000',
@@ -34,7 +87,7 @@ export function createDefaultCustomBorder() {
  *
  * @returns {object} `{{hide: boolean}}`.
  */
-export function createSingleEmptyBorder() {
+export function createSingleEmptyBorder(): BorderSettings {
   return { hide: true };
 }
 
@@ -58,7 +111,7 @@ export function createDefaultHtBorder() {
  * @param {object} border The configuration object of the border.
  * @returns {object}
  */
-export function normalizeBorder(border: Record<string, unknown>) {
+export function normalizeBorder<T extends Record<string, unknown>>(border: T): T {
   if (isDefined(border.start) || isDefined(border.left)) {
     border.start = border.start ?? border.left;
   }
@@ -80,7 +133,7 @@ export function normalizeBorder(border: Record<string, unknown>) {
  * @param {object} border The configuration object of the border.
  * @returns {object}
  */
-export function denormalizeBorder(border: Record<string, unknown>) {
+export function denormalizeBorder<T extends Record<string, unknown>>(border: T): T {
   if (isDefined(border.start)) {
     border.left = border.start;
   }
@@ -96,9 +149,9 @@ export function denormalizeBorder(border: Record<string, unknown>) {
  *
  * @param {number} row Visual row index.
  * @param {number} col Visual column index.
- * @returns {{id: string, border: *, row: number, col: number, top: {hide: boolean}, bottom: {hide: boolean}, start: {hide: boolean}, end: {hide: boolean}}} Returns border configuration containing visual indexes.
+ * @returns {BorderObject} Returns border configuration containing visual indexes.
  */
-export function createEmptyBorders(row: number, col: number) {
+export function createEmptyBorders(row: number, col: number): BorderObject {
   return {
     id: createId(row, col),
     border: createDefaultHtBorder(),
@@ -116,7 +169,7 @@ export function createEmptyBorders(row: number, col: number) {
  * @param {object} customBorder The border object with custom settings.
  * @returns {object}
  */
-export function extendDefaultBorder(defaultBorder: Record<string, unknown>, customBorder: Record<string, unknown>) {
+export function extendDefaultBorder(defaultBorder: BorderObject, customBorder: CustomBorderConfig): BorderObject {
   if (hasOwnProperty(customBorder, 'border') && customBorder.border) {
     defaultBorder.border = customBorder.border;
   }
@@ -236,8 +289,8 @@ export function markSelected(label: string) {
  * @param {object[]} borders The custom border plugin's options.
  * @returns {boolean}
  */
-export function hasLeftRightTypeOptions(borders: Record<string, unknown>[]) {
-  return borders.some((border: Record<string, unknown>) => isDefined(border.left) || isDefined(border.right));
+export function hasLeftRightTypeOptions(borders: CustomBorderConfig[]) {
+  return borders.some((border: CustomBorderConfig) => isDefined(border.left) || isDefined(border.right));
 }
 
 /**
@@ -246,8 +299,8 @@ export function hasLeftRightTypeOptions(borders: Record<string, unknown>[]) {
  * @param {object[]} borders The custom border plugin's options.
  * @returns {boolean}
  */
-export function hasStartEndTypeOptions(borders: Record<string, unknown>[]) {
-  return borders.some((border: Record<string, unknown>) => isDefined(border.start) || isDefined(border.end));
+export function hasStartEndTypeOptions(borders: CustomBorderConfig[]) {
+  return borders.some((border: CustomBorderConfig) => isDefined(border.start) || isDefined(border.end));
 }
 
 const physicalToInlinePropNames = new Map([

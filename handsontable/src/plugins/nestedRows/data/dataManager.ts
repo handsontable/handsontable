@@ -17,11 +17,12 @@ interface NodeInfo {
   level: number;
 }
 
-// Forward-declare CollapsingUI to avoid circular dependency issues
-type CollapsingUI = {
-  translateTrimmedRow(row: number): number;
-  untranslateTrimmedRow(row: number): number;
-};
+interface CacheStructure {
+  levels: RowObject[][];
+  levelCount: number;
+  rows: RowObject[];
+  nodeInfo: WeakMap<object, NodeInfo>;
+}
 
 /**
  * Class responsible for making data operations.
@@ -58,11 +59,11 @@ class DataManager {
    *
    * @type {object}
    */
-  cache = {
-    levels: [] as RowObject[][],
+  cache: CacheStructure = {
+    levels: [],
     levelCount: 0,
-    rows: [] as RowObject[],
-    nodeInfo: new WeakMap<RowObject, NodeInfo>()
+    rows: [],
+    nodeInfo: new WeakMap<object, NodeInfo>()
   };
 
   constructor(nestedRowsPlugin: NestedRows, hotInstance: HotInstance) {
@@ -123,7 +124,7 @@ class DataManager {
       levels: [],
       levelCount: 0,
       rows: [],
-      nodeInfo: new WeakMap()
+      nodeInfo: new WeakMap<object, NodeInfo>()
     };
 
     rangeEach(0, this.data!.length - 1, (i: number) => {
@@ -188,7 +189,7 @@ class DataManager {
     let rootLevel = false;
     let readNodesCount: ReadTreeResult = readCount;
 
-    if (typeof readNodesCount !== 'number' && readNodesCount.end) {
+    if (typeof readNodesCount !== 'number') {
       return readNodesCount;
     }
 
@@ -196,10 +197,10 @@ class DataManager {
 
     if (!parentObj) {
       parentObj = {
-        __children: this.data as RowObject[]
+        __children: this.data!
       };
       rootLevel = true;
-      readNodesCount = (readNodesCount as number) - 1;
+      readNodesCount -= 1;
     }
 
     if (neededIndex !== null && neededIndex !== undefined && readNodesCount === neededIndex) {
@@ -210,7 +211,7 @@ class DataManager {
       return { result: readNodesCount, end: true };
     }
 
-    readNodesCount = (readNodesCount as number) + 1;
+    readNodesCount += 1;
 
     if (parentObj.__children) {
       arrayEach(parentObj.__children, (val: RowObject) => {
@@ -219,7 +220,7 @@ class DataManager {
 
         readNodesCount = this.readTreeNodes(val, readNodesCount, neededIndex, neededObject);
 
-        if (typeof readNodesCount !== 'number' && readNodesCount.end) {
+        if (typeof readNodesCount !== 'number') {
           return false;
         }
       });
@@ -237,7 +238,7 @@ class DataManager {
   mockParent(): RowObject {
     const fakeParent = this.mockNode();
 
-    fakeParent.__children = this.data as RowObject[];
+    fakeParent.__children = this.data!;
 
     return fakeParent;
   }
@@ -265,7 +266,11 @@ class DataManager {
    * @returns {number} Row index.
    */
   getRowIndex(rowObj: unknown): number {
-    return rowObj === null || rowObj === undefined ? null : this.cache.nodeInfo.get(rowObj as RowObject)!.row;
+    if (rowObj === null || rowObj === undefined || typeof rowObj !== 'object') {
+      return null;
+    }
+
+    return this.cache.nodeInfo.get(rowObj)!.row;
   }
 
   /**
@@ -286,10 +291,10 @@ class DataManager {
     const parent = this.getRowParent(row);
 
     if (parent === null || parent === undefined) {
-      return this.data!.indexOf(rowObj as RowObject);
+      return this.data!.indexOf(rowObj);
     }
 
-    return parent.__children!.indexOf(rowObj as RowObject);
+    return parent.__children!.indexOf(rowObj);
   }
 
   /**
@@ -299,7 +304,7 @@ class DataManager {
    */
   countAllRows(): number {
     const rootNodeMock: RowObject = {
-      __children: this.data as RowObject[]
+      __children: this.data!
     };
 
     return this.countChildren(rootNodeMock);
@@ -360,7 +365,7 @@ class DataManager {
       return null;
     }
 
-    return this.cache.nodeInfo.get(rowObject as RowObject)!.parent;
+    return this.cache.nodeInfo.get(rowObject)!.parent;
   }
 
   /**
@@ -389,9 +394,11 @@ class DataManager {
    * @returns {number} Row level.
    */
   getRowObjectLevel(rowObject: unknown): number | null {
-    return rowObject === null || rowObject === undefined
-      ? null
-      : this.cache.nodeInfo.get(rowObject as RowObject)!.level;
+    if (rowObject === null || rowObject === undefined || typeof rowObject !== 'object') {
+      return null;
+    }
+
+    return this.cache.nodeInfo.get(rowObject)!.level;
   }
 
   /**
@@ -579,7 +586,7 @@ class DataManager {
    * @param {object|Array} elements Row object or an array of selected coordinates.
    * @param {boolean} [forceRender=true] If true (default), it triggers render after finished.
    */
-  detachFromParent(elements: unknown, forceRender = true) {
+  detachFromParent(elements: RowObject | number[], forceRender = true) {
     let element: RowObject = null;
     const rowObjects: RowObject[] = [];
 
@@ -596,7 +603,7 @@ class DataManager {
 
       element = rowObjects[rowObjects.length - 1];
     } else {
-      element = elements as RowObject;
+      element = elements;
     }
 
     const childRowIndex = this.getRowIndex(element);
@@ -823,7 +830,7 @@ class DataManager {
    */
   translateTrimmedRow(row: number): number {
     if (this.plugin.collapsingUI) {
-      return (this.plugin.collapsingUI as CollapsingUI).translateTrimmedRow(row);
+      return this.plugin.collapsingUI.translateTrimmedRow(row);
     }
 
     return row;
@@ -838,7 +845,7 @@ class DataManager {
    */
   untranslateTrimmedRow(row: number): number {
     if (this.plugin.collapsingUI) {
-      return (this.plugin.collapsingUI as CollapsingUI).untranslateTrimmedRow(row);
+      return this.plugin.collapsingUI.untranslateTrimmedRow(row);
     }
 
     return row;

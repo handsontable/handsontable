@@ -24,40 +24,22 @@ import {
   normalizeBorder,
   denormalizeBorder,
 } from './utils';
+import type { BorderSettings, BorderObject, CustomBorderConfig } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 import { isDefined } from '../../helpers/mixed';
 import type Selection from '../../3rdparty/walkontable/src/selection/selection';
+import type Border from '../../3rdparty/walkontable/src/selection/border/border';
+import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
-/**
- * Describes style properties for a single border side or corner.
- */
-export interface BorderSettings {
-  width?: number;
-  color?: string;
-  cornerVisible?: boolean | ((...args: unknown[]) => boolean);
-  hide?: boolean;
-  className?: string;
-  [key: string]: unknown;
-}
+export type { BorderSettings, BorderObject };
 
 /**
- * Internal shape of a stored border object, used by the plugin's bookkeeping.
+ * The four sides a border can be applied to.
  */
-interface BorderObject {
-  id: string;
-  row: number;
-  col: number;
-  top?: BorderSettings;
-  bottom?: BorderSettings;
-  start?: BorderSettings;
-  end?: BorderSettings;
-  border?: Record<string, unknown>;
-  range?: { from: { row: number; col: number }; to: { row: number; col: number } };
-  [key: string]: unknown;
-}
+type BorderSide = 'top' | 'bottom' | 'start' | 'end';
 
 /**
  * Type guard returning true when the given value is a non-null object.
@@ -67,6 +49,39 @@ interface BorderObject {
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Type guard returning true when the value is a BorderObject (has `id`, `row`, `col` string/number fields).
+ *
+ * @param {unknown} value The value to test.
+ * @returns {boolean}
+ */
+function isBorderObject(value: unknown): value is BorderObject {
+  return isRecord(value)
+    && typeof value.id === 'string'
+    && typeof value.row === 'number'
+    && typeof value.col === 'number';
+}
+
+/**
+ * Type guard for cell coordinate objects with `row` and `col` number properties.
+ *
+ * @param {unknown} value The value to test.
+ * @returns {boolean}
+ */
+function isCellCoord(value: unknown): value is { row: number; col: number } {
+  return isRecord(value) && typeof value.row === 'number' && typeof value.col === 'number';
+}
+
+/**
+ * Type guard returning true when the string is a valid border side name.
+ *
+ * @param {string} value The string to test.
+ * @returns {boolean}
+ */
+function isBorderSide(value: string): value is BorderSide {
+  return value === 'top' || value === 'bottom' || value === 'start' || value === 'end';
 }
 
 const SUPPORTED_STYLES = ['dashed', 'dotted', 'solid'];
@@ -361,7 +376,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    */
   prepareBorderFromCustomAdded(
-    row: number, column: number, borderDescriptor: Record<string, unknown> | null, place: string | undefined
+    row: number, column: number, borderDescriptor: CustomBorderConfig | null, place: string | undefined
   ) {
     const nrOfRows = this.hot.countRows();
     const nrOfColumns = this.hot.countCols();
@@ -370,7 +385,7 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    let border: Record<string, unknown> = createEmptyBorders(row, column);
+    let border: BorderObject = createEmptyBorders(row, column);
 
     if (borderDescriptor) {
       border = extendDefaultBorder(border, borderDescriptor);
@@ -393,7 +408,7 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(border));
-    this.insertBorderIntoSettings(border as BorderObject, place);
+    this.insertBorderIntoSettings(border, place);
   }
 
   /**
@@ -405,20 +420,20 @@ export class CustomBorders extends BasePlugin {
    */
   prepareBorderFromCustomAddedRange(
     range: { from: { row: number; col: number }; to: { row: number; col: number } },
-    customBorder: Record<string, unknown>
+    customBorder: CustomBorderConfig
   ) {
     const lastRowIndex = Math.min(range.to.row, this.hot.countRows() - 1);
     const lastColumnIndex = Math.min(range.to.col, this.hot.countCols() - 1);
 
     rangeEach(range.from.row, lastRowIndex, (rowIndex: number) => {
       rangeEach(range.from.col, lastColumnIndex, (colIndex: number) => {
-        const border = createEmptyBorders(rowIndex, colIndex) as BorderObject;
+        const border = createEmptyBorders(rowIndex, colIndex);
         let add = 0;
 
         if (rowIndex === range.from.row) {
           if (hasOwnProperty(customBorder, 'top')) {
             add += 1;
-            border.top = customBorder.top as BorderSettings;
+            border.top = customBorder.top;
           }
         }
 
@@ -426,14 +441,14 @@ export class CustomBorders extends BasePlugin {
         if (rowIndex === range.to.row) {
           if (hasOwnProperty(customBorder, 'bottom')) {
             add += 1;
-            border.bottom = customBorder.bottom as BorderSettings;
+            border.bottom = customBorder.bottom;
           }
         }
 
         if (colIndex === range.from.col) {
           if (hasOwnProperty(customBorder, 'start')) {
             add += 1;
-            border.start = customBorder.start as BorderSettings;
+            border.start = customBorder.start;
           }
         }
 
@@ -441,7 +456,7 @@ export class CustomBorders extends BasePlugin {
         if (colIndex === range.to.col) {
           if (hasOwnProperty(customBorder, 'end')) {
             add += 1;
-            border.end = customBorder.end as BorderSettings;
+            border.end = customBorder.end;
           }
         }
 
@@ -486,10 +501,10 @@ export class CustomBorders extends BasePlugin {
     const meta = this.hot.getCellMeta(row, column).borders;
     let bordersMeta: BorderObject;
 
-    if (!isRecord(meta) || !('border' in meta) || meta.border === undefined) {
-      bordersMeta = createEmptyBorders(row, column) as BorderObject;
+    if (isBorderObject(meta)) {
+      bordersMeta = normalizeBorder(meta);
     } else {
-      bordersMeta = normalizeBorder(meta) as BorderObject;
+      bordersMeta = createEmptyBorders(row, column);
     }
 
     if (remove) {
@@ -532,10 +547,16 @@ export class CustomBorders extends BasePlugin {
    * @param {boolean} remove True when remove borders, and false when add borders.
    */
   prepareBorder(
-    selected: { start: { row: number; col: number }; end: { row: number; col: number } }[],
-    place: string, remove: boolean
+    selected: Record<string, unknown>[],
+    place: string, remove: boolean | undefined
   ) {
-    arrayEach(selected, ({ start, end }) => {
+    arrayEach(selected, (item) => {
+      if (!isCellCoord(item.start) || !isCellCoord(item.end)) {
+        return;
+      }
+
+      const { start, end } = { start: item.start, end: item.end };
+
       if (start.row === end.row && start.col === end.col) {
         if (place === 'noBorders') {
           this.removeAllBorders(start.row, start.col);
@@ -589,19 +610,16 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @param {Array} customBorders Object with `row` and `col`, `start`, `end`, `top` and `bottom` properties.
    */
-  createCustomBorders(customBorders: Record<string, unknown>[]) {
-    arrayEach(customBorders, (customBorder: Record<string, unknown>) => {
+  createCustomBorders(customBorders: CustomBorderConfig[]) {
+    arrayEach(customBorders, (customBorder: CustomBorderConfig) => {
       const normCustomBorder = normalizeBorder(customBorder);
 
-      if (customBorder.range) {
-        this.prepareBorderFromCustomAddedRange(
-          customBorder.range as { from: { row: number; col: number }; to: { row: number; col: number } },
-          normCustomBorder
-        );
+      if (normCustomBorder.range) {
+        this.prepareBorderFromCustomAddedRange(normCustomBorder.range, normCustomBorder);
 
       } else {
         this.prepareBorderFromCustomAdded(
-          customBorder.row as number, customBorder.col as number, normCustomBorder, undefined);
+          normCustomBorder.row ?? 0, normCustomBorder.col ?? 0, normCustomBorder, undefined);
       }
     });
   }
@@ -739,9 +757,11 @@ export class CustomBorders extends BasePlugin {
         const borders = this.hot.view._wt.selectionManager
           .getBorderInstances(customSelection);
 
-        arrayEach(borders, (borderObject: Record<string, unknown>) => {
-          (borderObject.toggleHiddenClass as (place: string, remove: boolean) => void)(place, remove);
-        });
+        if (isBorderSide(place)) {
+          arrayEach(borders, (borderObject: Border) => {
+            borderObject.toggleHiddenClass(place, remove);
+          });
+        }
 
         check = true;
 
@@ -762,7 +782,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} [place] Coordinate where add/remove border - `top`, `bottom`, `start`, `end`.
    * @returns {boolean}
    */
-  checkCustomSelections(border: BorderObject, cellRange: object, place: string | undefined) {
+  checkCustomSelections(border: BorderObject, cellRange: CellRange, place: string | undefined) {
     const hideCount = this.countHide(border);
     let check = false;
 
@@ -773,15 +793,15 @@ export class CustomBorders extends BasePlugin {
     } else {
       arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
         if (border.id === customSelection.settings.id) {
-          customSelection.visualCellRange = cellRange as typeof customSelection.visualCellRange;
+          customSelection.visualCellRange = cellRange;
           customSelection.commit();
 
-          if (place) {
+          if (place && isBorderSide(place)) {
             const borders = this.hot.view._wt.selectionManager
               .getBorderInstances(customSelection);
 
-            arrayEach(borders, (borderObject: Record<string, unknown>) => {
-              (borderObject.changeBorderStyle as (place: string, b: Record<string, unknown>) => void)(place, border);
+            arrayEach(borders, (borderObject: Border) => {
+              borderObject.changeBorderStyle(place, border);
             });
           }
 
@@ -804,7 +824,7 @@ export class CustomBorders extends BasePlugin {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
-      const bordersClone = deepClone(customBorders as Record<string, unknown>[]);
+      const bordersClone = deepClone(customBorders.filter(isRecord));
 
       this.checkSettingsCohesion(bordersClone);
 
@@ -826,7 +846,7 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @param {object[]} customBorders The user defined custom border objects array.
    */
-  checkSettingsCohesion(customBorders: Record<string, unknown>[]) {
+  checkSettingsCohesion(customBorders: CustomBorderConfig[]) {
     const hasLeftOrRight = hasLeftRightTypeOptions(customBorders);
     const hasStartOrEnd = hasStartEndTypeOptions(customBorders);
 
@@ -848,7 +868,7 @@ export class CustomBorders extends BasePlugin {
    * @private
    * @param {object[]} customBorders The user defined custom border objects array.
    */
-  #validateStyleSettings(customBorders: Record<string, unknown>[]) {
+  #validateStyleSettings(customBorders: CustomBorderConfig[]) {
     customBorders.forEach((customBorder) => {
       Object.keys(customBorder).forEach((key) => {
         const side = customBorder[key];
@@ -883,7 +903,13 @@ The border style will be ignored.`);
       return;
     }
 
-    const items = defaultOptions.items as unknown[];
+    const { items } = defaultOptions;
+
+    if (!Array.isArray(items)) {
+      return;
+    }
+
+    const plugin = this;
 
     items.push({
       name: '---------',
@@ -907,11 +933,11 @@ The border style will be ignored.`);
       },
       submenu: {
         items: [
-          menuItemTop(this as unknown as Record<string, Function>),
-          menuItemRight(this as unknown as Record<string, unknown>),
-          menuItemBottom(this as unknown as Record<string, Function>),
-          menuItemLeft(this as unknown as Record<string, unknown>),
-          menuItemNoBorders(this as unknown as Record<string, Function>)
+          menuItemTop(plugin),
+          menuItemRight(plugin),
+          menuItemBottom(plugin),
+          menuItemLeft(plugin),
+          menuItemNoBorders(plugin)
         ]
       }
     });
