@@ -91,11 +91,11 @@ class BaseUI {
    * @param {number} top New top position of the element.
    * @param {number} left New left position of the element.
    */
-  setPosition(top?: number, left?: number) {
-    if (top !== undefined) {
+  setPosition(top?: number | null, left?: number | null) {
+    if (top !== null && top !== undefined) {
       this._element.style.top = top + UNIT;
     }
-    if (left !== undefined) {
+    if (left !== null && left !== undefined) {
       this._element.style.left = left + UNIT;
     }
   }
@@ -145,7 +145,7 @@ class BaseUI {
    * @param {number} top New margin top of the element.
    * @param {number} left New margin left of the element.
    */
-  setOffset(top: number, left: number) {
+  setOffset(top: number | null, left: number | null) {
     if (top) {
       this._element.style.marginTop = top + UNIT;
     }

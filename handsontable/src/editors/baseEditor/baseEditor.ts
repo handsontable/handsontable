@@ -255,6 +255,10 @@ export class BaseEditor {
       return;
     }
 
+    if (this.row === null || this.col === null) {
+      return;
+    }
+
     const hotInstance = this.hot;
     // We have to convert visual indexes into renderable indexes
     // due to hidden columns don't participate in the rendering process
@@ -376,7 +380,7 @@ export class BaseEditor {
 
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
-      this.hot.selectCell(this.row, this.col);
+      this.hot.selectCell(this.row ?? 0, this.col ?? 0);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);
@@ -503,8 +507,8 @@ export class BaseEditor {
     }
 
     const hasColumnHeaders = this.hot.hasColHeaders();
-    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row ?? 0);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col ?? 0);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
     const firstRowIndexOfTheBottomOverlay =
       nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);
@@ -555,7 +559,7 @@ export class BaseEditor {
       cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
 
-    const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
+    const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
     const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
@@ -609,6 +613,10 @@ export class BaseEditor {
    * @returns {HTMLTableCellElement|null}
    */
   getEditedCell(): HTMLTableCellElement | null {
+    if (this.row === null || this.col === null) {
+      return null;
+    }
+
     return this.hot.getCell(this.row, this.col, true);
   }
 
@@ -619,6 +627,10 @@ export class BaseEditor {
    * @returns {string}
    */
   checkEditorSection(): string {
+    if (this.row === null || this.col === null) {
+      return '';
+    }
+
     const totalRows = this.hot.countRows();
     const settings = this.hot.getSettings();
     let section = '';

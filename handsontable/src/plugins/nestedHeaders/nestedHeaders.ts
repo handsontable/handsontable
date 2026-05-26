@@ -469,9 +469,10 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const { highlight } = selection;
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+    const isNestedHeadersRange = highlight.row !== null && highlight.col !== null &&
+      highlight.isHeader() && highlight.col >= 0;
 
-    if (isNestedHeadersRange) {
+    if (isNestedHeadersRange && highlight.row !== null && highlight.col !== null) {
       const {
         isRowspanPlaceholder,
       }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
@@ -615,11 +616,14 @@ export class NestedHeaders extends BasePlugin {
     const isSelectedByColumnHeader = this.hot.selection.isSelectedByColumnHeader();
     const highlightRow = navigableHeaders ? highlight.row : this.#recentlyHighlightCoords?.row;
     const highlightColumn = isSelectedByColumnHeader ? visualColumn : highlight.col;
-    const isNestedHeadersRange = highlightRow < 0 && highlightColumn >= 0;
+    const isNestedHeadersRange = highlightRow !== null && highlightRow !== undefined &&
+      highlightColumn !== null && highlightColumn !== undefined &&
+      highlightRow < 0 && highlightColumn >= 0;
 
     this.#recentlyHighlightCoords = null;
 
-    if (!isNestedHeadersRange) {
+    if (!isNestedHeadersRange || highlightRow === null || highlightRow === undefined ||
+        highlightColumn === null || highlightColumn === undefined) {
       return visualColumn;
     }
 
@@ -756,7 +760,11 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
-  #onAfterOnCellMouseDown = (event: MouseEvent, coords: { row: number, col: number, clone: () => any }) => {
+  #onAfterOnCellMouseDown = (event: MouseEvent, coords: CellCoords) => {
+    if (coords.row === null || coords.col === null) {
+      return;
+    }
+
     const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
 
     if (!headerNodeData) {
@@ -851,6 +859,11 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const selectedRange = this.hot.getSelectedRangeLast();
+
+    if (!selectedRange) {
+      return;
+    }
+
     const columnStart = selectedRange.getTopStartCorner().col;
     const columnEnd = selectedRange.getBottomEndCorner().col;
     const {
@@ -860,9 +873,10 @@ export class NestedHeaders extends BasePlugin {
 
     selectedRange.setHighlight(this.#focusInitialCoords as unknown as CellCoords);
 
-    if (origColspan > selectedRange.getWidth() ||
+    if (columnStart !== null && columnEnd !== null && (
+      origColspan > selectedRange.getWidth() ||
         columnIndex < columnStart ||
-        columnIndex + origColspan - 1 > columnEnd) {
+        columnIndex + origColspan - 1 > columnEnd)) {
 
       const headerLevel = this.#stateManager
         .findTopMostEntireHeaderLevel(
@@ -916,7 +930,7 @@ export class NestedHeaders extends BasePlugin {
     }
 
     if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && highlight.row < 0) {
-      if (Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+      if (this.#rowspanHeaderNavigationContextRow !== null) {
         const contextTargetColumn = this.#findNearestNavigableHeaderColumn(
           this.#rowspanHeaderNavigationContextRow,
           targetColumn,
@@ -929,7 +943,7 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      if (targetColumn < 0 && initialDeltaColumn < 0 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+      if (targetColumn < 0 && initialDeltaColumn < 0 && this.#rowspanHeaderNavigationContextRow !== null) {
         targetRow = this.#rowspanHeaderNavigationContextRow;
       }
 
@@ -975,7 +989,8 @@ export class NestedHeaders extends BasePlugin {
       this.#rowspanHeaderNavigationContextRow = null;
     }
 
-    if (isNestedHeadersRange) {
+    if (isNestedHeadersRange && highlight.row !== null && highlight.col !== null &&
+        nextCoords.row !== null && nextCoords.col !== null) {
       const {
         isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
       }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
@@ -1191,7 +1206,7 @@ export class NestedHeaders extends BasePlugin {
 
   #onModifyFocusedElement = (row: number, column: number) => {
     if (row < 0) {
-      return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true);
+      return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true) ?? undefined;
     }
   };
 
@@ -1209,7 +1224,7 @@ export class NestedHeaders extends BasePlugin {
     columnIndexMapper
       .hidingMapsCollection
       .getMergedValues()
-      .forEach((isColumnHidden: boolean, physicalColumnIndex: number) => {
+      .forEach((isColumnHidden: unknown, physicalColumnIndex: number) => {
         const visualColumnIndex = columnIndexMapper.getVisualFromPhysicalIndex(physicalColumnIndex);
 
         if (visualColumnIndex === null) {

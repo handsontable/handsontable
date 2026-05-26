@@ -7,7 +7,7 @@ import type { default as CellRange } from '../../../3rdparty/walkontable/src/cel
  * Minimal interface that toggleMergeItem requires from the MergeCells plugin.
  */
 interface MergeCellsPluginRef {
-  mergedCellsCollection: MergedCellsCollection;
+  mergedCellsCollection: MergedCellsCollection | null;
   toggleMerge(cellRange: CellRange): void;
 }
 

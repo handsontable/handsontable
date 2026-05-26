@@ -137,7 +137,10 @@ export function closest(
  * @returns {HTMLElement|null}
  */
 export function closestDown(
-  element: HTMLElement | Node, nodes: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement | null {
+  element: HTMLElement | Node | Element | null,
+  nodes: Array<string | HTMLElement>,
+  until?: HTMLElement
+): HTMLElement | null {
   const matched: HTMLElement[] = [];
   let elementToCheck: HTMLElement | null = isHTMLElement(element) ? element : null;
 
@@ -1046,7 +1049,9 @@ export function clearTextSelection(rootWindow: Window = window): void {
  * @param {number} pos The selection start position.
  * @param {number} endPos The selection end position.
  */
-export function setCaretPosition(element: HTMLInputElement | HTMLTextAreaElement, pos: number, endPos: number): void {
+export function setCaretPosition(
+  element: HTMLInputElement | HTMLTextAreaElement, pos: number, endPos: number | undefined
+): void {
   if (endPos === undefined) {
     endPos = pos;
   }

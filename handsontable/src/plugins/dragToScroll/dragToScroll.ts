@@ -139,10 +139,14 @@ export class DragToScroll extends BasePlugin {
       rampDistance: this.getSetting<number>('rampDistance'),
     });
 
-    this.addHook('beforeOnCellMouseDown', (event: Event, coords: unknown, TD: unknown, controller: unknown) => {
-      this.#setupListening('cell', event as MouseEvent, controller);
+    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, _coords: unknown, _TD: unknown, controller: unknown) => {
+      const typedController = (typeof controller === 'object' && controller !== null)
+        ? controller as { row?: boolean; column?: boolean }
+        : null;
+
+      this.#setupListening('cell', event, typedController);
     });
-    this.addHook('afterOnCellCornerMouseDown', (event: Event) => this.#setupListening('corner', event as MouseEvent));
+    this.addHook('afterOnCellCornerMouseDown', (event: MouseEvent) => this.#setupListening('corner', event));
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterScroll', this.#onAfterScroll);
 

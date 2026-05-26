@@ -198,7 +198,7 @@ export class AutocompleteEditor extends HandsontableEditor {
           setAttribute(TD, [
             A11Y_OPTION(),
             // Add `setsize` and `posinset` only if the source is an array.
-            ...(sourceArray ? [A11Y_SETSIZE(sourceSize)] : []),
+            ...(sourceArray ? [A11Y_SETSIZE(sourceSize ?? 0)] : []),
             ...(sourceArray ? [A11Y_POSINSET(sourceArray.indexOf(value) + 1)] : []),
             ['id', `${this.htEditor.rootElement.id}_${row}-${col}`],
           ]);
@@ -224,7 +224,9 @@ export class AutocompleteEditor extends HandsontableEditor {
             this.htEditor.addHookOnce('afterScrollVertically', () => {
               const renderedTD = this.htEditor.getCell(startRow, startCol, true);
 
-              setA11yAttributes(renderedTD);
+              if (renderedTD !== null) {
+                setA11yAttributes(renderedTD);
+              }
             });
           }
         }
@@ -370,7 +372,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       this.flipDropdownHorizontallyIfNeeded();
 
       if (this.cellProperties.strict === true) {
-        this.highlightBestMatchingChoice(highlightIndex);
+        this.highlightBestMatchingChoice(highlightIndex ?? undefined);
       }
     }
 
@@ -486,10 +488,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     let borderCompensation = 0;
 
     if (!this.hot.getCurrentThemeName()) {
-      const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
+      const htCoreElement = this.htContainer.querySelector('.htCore');
 
-      borderCompensation = parseInt(containerStyle.borderTopWidth, 10) +
-        parseInt(containerStyle.borderBottomWidth, 10);
+      if (htCoreElement) {
+        const containerStyle = this.hot.rootWindow.getComputedStyle(htCoreElement);
+
+        borderCompensation = parseInt(containerStyle.borderTopWidth, 10) +
+          parseInt(containerStyle.borderBottomWidth, 10);
+      }
     }
 
     const maxItems = Math.min(this.cellProperties.visibleRows as number, this.strippedChoices.length);
@@ -514,10 +520,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     let borderCompensation = 0;
 
     if (!this.hot.getCurrentThemeName()) {
-      const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
+      const htCoreElement = this.htContainer.querySelector('.htCore');
 
-      borderCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
-        parseInt(containerStyle.borderInlineEndWidth, 10);
+      if (htCoreElement) {
+        const containerStyle = this.hot.rootWindow.getComputedStyle(htCoreElement);
+
+        borderCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
+          parseInt(containerStyle.borderInlineEndWidth, 10);
+      }
     }
 
     return this.htEditor.getColWidth(0) + borderCompensation;

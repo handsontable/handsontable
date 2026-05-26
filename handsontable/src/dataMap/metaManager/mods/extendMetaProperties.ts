@@ -114,10 +114,16 @@ export class ExtendMetaPropertiesMod {
       this.metaManager.globalMeta.meta[origProp] = this.metaManager.globalMeta.meta[targetProp];
 
       if (onChange) {
-        this.installPropWatcher(alias, origProp, onChange as (this: unknown, ...args: unknown[]) => void);
+        this.installPropWatcher(
+          alias, origProp,
+          onChange as (this: unknown, changedPropName: string, value: unknown, isInitialChange: boolean) => void
+        );
 
         if (hasTarget) {
-          this.installPropWatcher(target, origProp, onChange as (this: unknown, ...args: unknown[]) => void);
+          this.installPropWatcher(
+            target, origProp,
+            onChange as (this: unknown, changedPropName: string, value: unknown, isInitialChange: boolean) => void
+          );
         }
 
       } else if (initOnly) {

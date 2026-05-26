@@ -466,9 +466,11 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#engineListeners.forEach(([eventName, listener]) => this.engine.off(eventName, listener));
+    this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
-    unregisterEngine(this.engine, this.hot);
+    if (this.engine) {
+      unregisterEngine(this.engine, this.hot);
+    }
 
     this.engine = null;
 
@@ -506,7 +508,7 @@ export class Formulas extends BasePlugin {
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
       if (sheetName && this.engine.doesSheetExist(sheetName)) {
-        this.switchSheet(this.sheetName);
+        this.switchSheet(sheetName);
 
       } else {
         const newSheetName = this.addSheet(sheetName ?? undefined, this.#getProcessedSourceDataArray());
@@ -527,7 +529,9 @@ export class Formulas extends BasePlugin {
     this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
-    unregisterEngine(this.engine, this.hot);
+    if (this.engine) {
+      unregisterEngine(this.engine, this.hot);
+    }
 
     this.engine = null;
 
@@ -666,6 +670,10 @@ export class Formulas extends BasePlugin {
       }
     });
 
+    if (!this.engine) {
+      return;
+    }
+
     getRegisteredHotInstances(this.engine).forEach((relatedHot, sheetId) => {
       if (
         (renderSelf || (sheetId !== this.sheetId)) &&
@@ -707,7 +715,7 @@ export class Formulas extends BasePlugin {
 
       // Validate the cells that depend on the calculated formulas. Skip that cells
       // where the user directly changes the values - the Core triggers those validators.
-      if (sheetId !== undefined && !changedCellsSet.has(addressId)) {
+      if (sheetId !== undefined && !changedCellsSet.has(addressId) && this.engine) {
         const boundHot = getRegisteredHotInstances(this.engine).get(sheetId);
 
         // if `sheetId` is not bound to any Handsontable instance, skip the validation process
@@ -989,7 +997,9 @@ export class Formulas extends BasePlugin {
    */
   #onAfterCellMetaReset = () => {
     if (this.#hotWasInitializedWithEmptyData) {
-      this.switchSheet(this.sheetName);
+      if (this.sheetName !== null) {
+        this.switchSheet(this.sheetName);
+      }
 
       return;
     }
@@ -1033,6 +1043,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    if (!this.engine) {
+      return;
+    }
+
     const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
     const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
     const sheetName = setupSheet(this.engine, settingsSheetName!);
@@ -1058,7 +1072,7 @@ export class Formulas extends BasePlugin {
         this.#internalOperationPending = false;
       }
 
-    } else {
+    } else if (this.sheetName !== null) {
       this.switchSheet(this.sheetName);
     }
   };

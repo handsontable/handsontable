@@ -327,7 +327,13 @@ export class ExportFile extends BasePlugin {
    *
    * @param {object} options Contains default added options of the Context Menu.
    */
-  #onAfterContextMenuDefaultOptions = (options: { items: unknown[] }) => {
+  #onAfterContextMenuDefaultOptions = (rawOptions: unknown) => {
+    if (typeof rawOptions !== 'object' || rawOptions === null) {
+      return;
+    }
+
+    const options = rawOptions as { items: unknown[] };
+
     options.items.push(
       { name: '---------' },
       exportItem(this),

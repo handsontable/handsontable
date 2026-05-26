@@ -231,7 +231,7 @@ export class HiddenColumns extends BasePlugin {
 
     this.#hiddenColumnsMap = new HidingMap();
     this.#hiddenColumnsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#hiddenColumnsMap);
+    this.hot.columnIndexMapper.registerMap(this.pluginName ?? '', this.#hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -261,7 +261,7 @@ export class HiddenColumns extends BasePlugin {
   disablePlugin() {
     super.disablePlugin();
 
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName ?? '');
     this.resetCellsMeta();
   }
 

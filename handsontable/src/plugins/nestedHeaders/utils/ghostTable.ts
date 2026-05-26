@@ -115,6 +115,10 @@ class GhostTable {
         continue; // eslint-disable-line no-continue
       }
 
+      if (th.dataset.column === undefined) {
+        continue; // eslint-disable-line no-continue
+      }
+
       const visCol = Number.parseInt(th.dataset.column, 10);
 
       columnElementByVisual.set(visCol, th);
@@ -161,7 +165,13 @@ class GhostTable {
     const fullWidthByPhysical = new Map();
 
     for (let column = 0; column < fullColumns.length; column++) {
-      const visualColumnIndex = Number.parseInt((fullColumns[column] as HTMLTableCellElement).dataset.column, 10);
+      const columnDataset = (fullColumns[column] as HTMLTableCellElement).dataset.column;
+
+      if (columnDataset === undefined) {
+        continue; // eslint-disable-line no-continue
+      }
+
+      const visualColumnIndex = Number.parseInt(columnDataset, 10);
       const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
       fullWidthByPhysical.set(physicalColumnIndex, fullColumns[column].getBoundingClientRect().width);

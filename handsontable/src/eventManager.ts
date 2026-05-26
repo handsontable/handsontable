@@ -49,16 +49,18 @@ class EventManager {
    * @param {AddEventListenerOptions|boolean} [options] Listener options if object or useCapture if boolean.
    * @returns {Function} Returns function which you can easily call to remove that event.
    */
-  addEventListener(
+  addEventListener<E extends Event = Event>(
     element: Element | Document | Window, eventName: string,
-    callback: (event: Event) => void, options: boolean | AddEventListenerOptions = false
+    callback: (event: E) => void, options: boolean | AddEventListenerOptions = false
   ): () => void {
+    const callbackRef: Function = callback;
+
     /**
      * @private
      * @param {Event} event The event object.
      */
     function callbackProxy(event: Event) {
-      callback.call(this, extendEvent(event));
+      callbackRef.call(this, extendEvent(event));
     }
 
     this.context.eventListeners.push({

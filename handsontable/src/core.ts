@@ -2123,8 +2123,8 @@ export default function Core(
    * @returns {object|undefined} Ending td in pasted area (only if any cell was changed).
    */
   this.populateFromArray = function(
-    row: number, column: number, input: Array<Array<unknown>>, endRow: number, endCol: number,
-    source: string, method: string
+    row: number, column: number, input: Array<Array<unknown>>, endRow: number | null | undefined,
+    endCol: number | null | undefined, source?: string, method?: string
   ) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
       throwWithCause('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly

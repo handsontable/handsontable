@@ -649,6 +649,10 @@ class DataProvider {
     const allDestRows = new Set<number>();
 
     allEndpoints.forEach((endpoint: SummaryEndpoint) => {
+      if (endpoint.destinationRow === undefined) {
+        return;
+      }
+
       const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
 
       if (destRow !== null) {
@@ -695,6 +699,10 @@ class DataProvider {
     endpoint: SummaryEndpoint, startRow: number, endRow: number,
     startCol: number, endCol: number, allDestRows: Set<number>
   ) {
+    if (endpoint.destinationRow === undefined || endpoint.destinationColumn === undefined) {
+      return null;
+    }
+
     const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
     const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
 

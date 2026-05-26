@@ -427,11 +427,18 @@ export class ManualRowMove extends BasePlugin {
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {
-      this.hot.scrollViewportTo(this.hot.rowIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
+      const nearestTop = this.hot.rowIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1);
+
+      if (nearestTop !== null) {
+        this.hot.scrollViewportTo(nearestTop);
+      }
     }
     if (this.isFixedRowBottom(coords.row) && lastVisible < countRows) {
-      this.hot.scrollViewportTo(
-        this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1), undefined, true);
+      const nearestBottom = this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1);
+
+      if (nearestBottom !== null) {
+        this.hot.scrollViewportTo(nearestBottom, undefined, true);
+      }
     }
 
     const wtTable = this.hot.view._wt.wtTable;
@@ -523,8 +530,8 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseDown = (
-    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-    controller: Record<string, boolean>
+    event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+    controller: { row: boolean; column: boolean; cell: boolean }
   ) => {
     const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
@@ -601,8 +608,8 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver = (
-    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-    controller: Record<string, boolean>
+    _event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+    controller: { row: boolean; column: boolean; cell: boolean }
   ) => {
     const selectedRange = this.hot.getSelectedRangeActive();
 

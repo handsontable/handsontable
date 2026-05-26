@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
+import type { Events } from '../../core/settings';
 import {
   defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty,
 } from '../../helpers/object';
@@ -403,6 +404,7 @@ export class BasePlugin {
    *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    */
+  addHook<K extends keyof Events>(name: K, callback: Events[K], orderIndex?: number): void;
   addHook(name: string, callback: HookCallback, orderIndex?: number): void {
     this.#hooks[name] = (this.#hooks[name] || []);
 

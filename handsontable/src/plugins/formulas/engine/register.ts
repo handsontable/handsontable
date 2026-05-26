@@ -65,9 +65,16 @@ export function setupEngine(hotInstance: HotInstance) {
   }
 
   // `engine.hyperformula` or `engine` is the engine class
-  if (typeof engineConfigItem.hyperformula === 'function' || typeof engineConfigItem === 'function') {
+  if (typeof engineConfigItem.hyperformula === 'function') {
     return registerEngine(
-      engineConfigItem.hyperformula ?? engineConfigItem,
+      engineConfigItem.hyperformula,
+      hotSettings,
+      hotInstance);
+  }
+
+  if (typeof engineConfigItem === 'function') {
+    return registerEngine(
+      engineConfigItem,
       hotSettings,
       hotInstance);
 
@@ -120,7 +127,7 @@ export function registerEngine(
   const engineRegistry = getEngineRelationshipRegistry();
   const sharedEngineRegistry = getSharedEngineUsageRegistry();
 
-  registerCustomFunctions(engineClass, pluginSettings.functions as unknown[]);
+  registerCustomFunctions(engineClass, pluginSettings.functions as Record<string, unknown>[]);
   registerLanguage(engineClass, pluginSettings.language as unknown as Record<string, unknown>);
 
   // Create instance
@@ -130,7 +137,7 @@ export function registerEngine(
   engineRegistry.set(engineInstance, [hotInstance]);
   sharedEngineRegistry.set(engineInstance, [hotInstance.guid]);
 
-  registerNamedExpressions(engineInstance, pluginSettings.namedExpressions as unknown[]);
+  registerNamedExpressions(engineInstance, pluginSettings.namedExpressions as Record<string, unknown>[]);
 
   // Add hooks needed for cross-referencing sheets
   engineInstance.on('sheetAdded', () => {
@@ -200,7 +207,7 @@ export function unregisterEngine(engine: HyperFormulaEngine, hotInstance: HotIns
  * @param {Function} engineClass The engine class.
  * @param {Array} customFunctions The custom functions array.
  */
-export function registerCustomFunctions(engineClass: HyperFormulaClass, customFunctions: unknown[]) {
+export function registerCustomFunctions(engineClass: HyperFormulaClass, customFunctions: Record<string, unknown>[]) {
   if (customFunctions) {
     customFunctions.forEach((func: Record<string, unknown>) => {
       const {
@@ -246,7 +253,9 @@ export function registerLanguage(engineClass: HyperFormulaClass, languageSetting
  * @param {object} engineInstance The engine instance.
  * @param {Array} namedExpressions Array of the named expressions to be registered.
  */
-export function registerNamedExpressions(engineInstance: HyperFormulaEngine, namedExpressions: unknown[]) {
+export function registerNamedExpressions(
+  engineInstance: HyperFormulaEngine, namedExpressions: Record<string, unknown>[]
+) {
   if (namedExpressions) {
     engineInstance.suspendEvaluation();
 

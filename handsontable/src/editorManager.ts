@@ -263,6 +263,11 @@ class EditorManager {
 
     const editorClass = this.hot.getCellEditor(this.cellProperties);
     const { row, col } = selection.highlight;
+
+    if (row === null || col === null) {
+      return false;
+    }
+
     const {
       rowIndexMapper,
       columnIndexMapper
@@ -297,9 +302,9 @@ class EditorManager {
     }
 
     if (this.hot.selection.isMultiple()) {
-      this.selection.transformFocus(enterMoves.row, enterMoves.col);
+      this.selection.transformFocus(enterMoves.row ?? 0, enterMoves.col ?? 0);
     } else {
-      this.selection.transformStart(enterMoves.row, enterMoves.col, true);
+      this.selection.transformStart(enterMoves.row ?? 0, enterMoves.col ?? 0, true);
     }
   }
 

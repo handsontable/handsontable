@@ -222,8 +222,10 @@ export function normalizeFormula(
         const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
         const hotPhysRow = Number.parseInt(rowStr, 10) - 1; // 0-based physical HOT row
 
-        const hiddenColsBefore = hasColExclusions ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
-        const hiddenRowsBefore = hasRowExclusions ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
+        const hiddenColsBefore = (hasColExclusions && excludedHiddenCols)
+          ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
+        const hiddenRowsBefore = (hasRowExclusions && excludedHiddenRows)
+          ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
 
         const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
         const newRow = Number.parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;

@@ -168,7 +168,7 @@ export function pipe(...functions: Array<(...args: unknown[]) => unknown>): (...
  * @param {Array} params Function arguments to cache.
  * @returns {Function}
  */
-export function partial(func: (...args: unknown[]) => unknown, ...params: unknown[]): (...args: unknown[]) => unknown {
+export function partial(func: (...args: never[]) => unknown, ...params: unknown[]): (...args: unknown[]) => unknown {
   return function _partial(...restParams) {
     return func.apply(this, params.concat(restParams));
   };

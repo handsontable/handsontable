@@ -1169,14 +1169,17 @@ export class MergeCells extends BasePlugin {
 
       if (isObject(mergeParentForViewportEnd)) {
         const mergeEnd = mergeParentForViewportEnd.row + mergeParentForViewportEnd.rowspan - 1;
-        const renderableIndexAtMergeEnd = rowMapper.getRenderableFromVisualIndex(
-          rowMapper.getNearestNotHiddenIndex(mergeEnd, -1));
+        const nearestRow = rowMapper.getNearestNotHiddenIndex(mergeEnd, -1);
 
-        if (renderableIndexAtMergeEnd > calc.endRow) {
-          calc.endRow = renderableIndexAtMergeEnd;
-          this.modifyViewportRowEnd(calc, nrOfColumns);
+        if (nearestRow !== null) {
+          const renderableIndexAtMergeEnd = rowMapper.getRenderableFromVisualIndex(nearestRow);
 
-          return;
+          if (renderableIndexAtMergeEnd !== null && renderableIndexAtMergeEnd > calc.endRow) {
+            calc.endRow = renderableIndexAtMergeEnd;
+            this.modifyViewportRowEnd(calc, nrOfColumns);
+
+            return;
+          }
         }
       }
     }
@@ -1213,14 +1216,17 @@ export class MergeCells extends BasePlugin {
       const mergeParentForViewportStart = this.mergedCellsCollection.get(visualRowIndex, visualStartCol);
 
       if (isObject(mergeParentForViewportStart)) {
-        const renderableIndexAtMergeStart = columnMapper.getRenderableFromVisualIndex(
-          columnMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.col, 1));
+        const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.col, 1);
 
-        if (renderableIndexAtMergeStart < calc.startColumn) {
-          calc.startColumn = renderableIndexAtMergeStart;
-          this.modifyViewportColumnStart(calc, nrOfRows);
+        if (nearestCol !== null) {
+          const renderableIndexAtMergeStart = columnMapper.getRenderableFromVisualIndex(nearestCol);
 
-          return;
+          if (renderableIndexAtMergeStart !== null && renderableIndexAtMergeStart < calc.startColumn) {
+            calc.startColumn = renderableIndexAtMergeStart;
+            this.modifyViewportColumnStart(calc, nrOfRows);
+
+            return;
+          }
         }
       }
     }
@@ -1242,14 +1248,17 @@ export class MergeCells extends BasePlugin {
 
       if (isObject(mergeParentForViewportEnd)) {
         const mergeEnd = mergeParentForViewportEnd.col + mergeParentForViewportEnd.colspan - 1;
-        const renderableIndexAtMergeEnd = columnMapper.getRenderableFromVisualIndex(
-          columnMapper.getNearestNotHiddenIndex(mergeEnd, -1));
+        const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeEnd, -1);
 
-        if (renderableIndexAtMergeEnd > calc.endColumn) {
-          calc.endColumn = renderableIndexAtMergeEnd;
-          this.modifyViewportColumnEnd(calc, nrOfRows);
+        if (nearestCol !== null) {
+          const renderableIndexAtMergeEnd = columnMapper.getRenderableFromVisualIndex(nearestCol);
 
-          return;
+          if (renderableIndexAtMergeEnd !== null && renderableIndexAtMergeEnd > calc.endColumn) {
+            calc.endColumn = renderableIndexAtMergeEnd;
+            this.modifyViewportColumnEnd(calc, nrOfRows);
+
+            return;
+          }
         }
       }
     }
@@ -1284,10 +1293,10 @@ export class MergeCells extends BasePlugin {
       firstNonHiddenColumn = columnMapper.getNearestNotHiddenIndex(parentColumn + colspan - 1, -1);
     }
 
-    const renderableRow = parentRow >= 0 ?
-      rowMapper.getRenderableFromVisualIndex(firstNonHiddenRow) : parentRow;
-    const renderableColumn = parentColumn >= 0 ?
-      columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) : parentColumn;
+    const renderableRow = parentRow >= 0 && firstNonHiddenRow !== null ?
+      (rowMapper.getRenderableFromVisualIndex(firstNonHiddenRow) ?? parentRow) : parentRow;
+    const renderableColumn = parentColumn >= 0 && firstNonHiddenColumn !== null ?
+      (columnMapper.getRenderableFromVisualIndex(firstNonHiddenColumn) ?? parentColumn) : parentColumn;
 
     return [renderableRow, renderableColumn];
   }
@@ -1514,6 +1523,11 @@ export class MergeCells extends BasePlugin {
   #onBeforeDrawAreaBorders = (corners: number[], className: string) => {
     if (className && className === 'area') {
       const selectedRange = this.hot.getSelectedRangeActive();
+
+      if (!selectedRange) {
+        return;
+      }
+
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
       arrayEach(mergedCellsWithinRange, (mergedCell: MergedCellCoords) => {
@@ -1573,6 +1587,11 @@ export class MergeCells extends BasePlugin {
     }
 
     const selection = this.hot.getSelectedRangeActive();
+
+    if (!selection) {
+      return;
+    }
+
     const mergeCell = this.mergedCellsCollection.getByRange(selection);
 
     if (!mergeCell) {
@@ -1625,6 +1644,10 @@ export class MergeCells extends BasePlugin {
         .getVisualFromRenderableIndex(overlayWtTable.getFirstRenderedColumn());
       lastColumn = this.hot.columnIndexMapper
         .getVisualFromRenderableIndex(overlayWtTable.getLastRenderedColumn());
+    }
+
+    if (firstColumn === null || firstColumn === undefined) {
+      return height;
     }
 
     const firstMergedCellInRow = this.mergedCellsCollection.get(row, firstColumn);

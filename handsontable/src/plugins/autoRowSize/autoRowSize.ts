@@ -434,7 +434,7 @@ export class AutoRowSize extends BasePlugin {
   ): void {
     let current = 0;
     const length = this.hot.countRows() - 1;
-    let timer: number | null = null;
+    let timer = 0;
 
     this.inProgress = true;
 
@@ -727,7 +727,7 @@ export class AutoRowSize extends BasePlugin {
    * @param {Array} sourceData Source data.
    * @param {boolean} isFirstLoad `true` if this is the first load.
    */
-  #onAfterLoadData = (sourceData: unknown[][], isFirstLoad: boolean) => {
+  #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
       this.recalculateAllRowsHeight();
     }
@@ -738,8 +738,8 @@ export class AutoRowSize extends BasePlugin {
    *
    * @param {Array} changes 2D array containing information about each of the edited cells.
    */
-  #onBeforeChange = (changes: unknown[][][]) => {
-    const changedRows = changes.reduce((acc: number[], [row]: unknown[]) => {
+  #onBeforeChange = (changes: unknown[][]) => {
+    const changedRows = changes.reduce<number[]>((acc, [row]: unknown[]) => {
       const rowIndex = Number(row);
 
       if (acc.indexOf(rowIndex) === -1) {
@@ -747,7 +747,7 @@ export class AutoRowSize extends BasePlugin {
       }
 
       return acc;
-    }, []);
+    }, [] as number[]);
 
     this.#visualRowsToRefresh.push(...changedRows);
   };
@@ -765,7 +765,7 @@ export class AutoRowSize extends BasePlugin {
    *
    * @param {Array} changes An array of modified data.
    */
-  #onAfterFormulasValuesUpdate = (changes: Record<string, unknown>[]) => {
+  #onAfterFormulasValuesUpdate = (changes: unknown[]) => {
     if (!this.#isInitialized) {
       return;
     }
@@ -773,23 +773,26 @@ export class AutoRowSize extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const sheetId = (formulasPlugin as unknown as Record<string, unknown> | undefined)?.sheetId;
 
-    const changedRows = changes.reduce((acc: number[], change: Record<string, unknown>) => {
-      if (sheetId !== null && sheetId !== undefined && (change.address as Record<string, unknown>)?.sheet !== sheetId) {
+    const changedRows = changes.reduce<number[]>((acc, change: unknown) => {
+      const changeRecord = change as Record<string, unknown>;
+
+      if (sheetId !== null && sheetId !== undefined &&
+          (changeRecord.address as Record<string, unknown>)?.sheet !== sheetId) {
         return acc;
       }
 
-      const physicalRow = Number((change.address as Record<string, unknown>)?.row);
+      const physicalRow = Number((changeRecord.address as Record<string, unknown>)?.row);
 
       if (Number.isInteger(physicalRow)) {
         const visualRow = this.hot.toVisualRow(physicalRow);
 
-        if (acc.indexOf(visualRow) === -1) {
+        if (visualRow !== null && acc.indexOf(visualRow) === -1) {
           acc.push(visualRow);
         }
       }
 
       return acc;
-    }, []);
+    }, [] as number[]);
 
     this.#visualRowsToRefresh.push(...changedRows);
   };

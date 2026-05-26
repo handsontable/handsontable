@@ -119,10 +119,18 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       const overlayName = hot.view.getActiveOverlayName();
 
       if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
-        notHiddenRow = Math.max(notHiddenRow, hot.getFirstRenderedVisibleRow());
+        const firstRenderedVisibleRow = hot.getFirstRenderedVisibleRow();
+
+        if (notHiddenRow !== null && firstRenderedVisibleRow !== null) {
+          notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
+        }
       }
       if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
-        notHiddenColumn = Math.max(notHiddenColumn, hot.getFirstRenderedVisibleColumn());
+        const firstRenderedVisibleColumn = hot.getFirstRenderedVisibleColumn();
+
+        if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
+          notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
+        }
       }
     }
 
