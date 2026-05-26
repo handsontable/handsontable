@@ -64,6 +64,7 @@ jobs:
           BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}
 
       - name: Delete Cloudflare Pages deployments for branch
+        if: always()
         continue-on-error: true
         run: node cloudflare/deleteDeployments.mjs
         env:

@@ -237,7 +237,7 @@ jobs:
             | Platform | URL |
             |---|---|
             | Netlify | [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs) |
-            | Cloudflare Pages | [${{ steps.cf-pages-deploy.outputs.pages-deployment-alias-url }}](${{ steps.cf-pages-deploy.outputs.pages-deployment-alias-url }}) |
+            | Cloudflare Pages | [${{ steps.cf-pages-deploy.outputs.pages-deployment-alias-url }}/docs](${{ steps.cf-pages-deploy.outputs.pages-deployment-alias-url }}/docs) |
 
       - name: Post RC staging summary
         if: ${{ steps.release-info.outputs.is_release == 'true' }}

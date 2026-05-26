@@ -33,26 +33,46 @@ async function cfFetch(path, options = {}) {
   });
 }
 
-const listResponse = await cfFetch(
-  `/accounts/${accountId}/pages/projects/${projectName}/deployments?per_page=25&sort_order=desc&env=preview`
-);
+const PER_PAGE = 25;
 
-if (!listResponse.ok) {
-  if (listResponse.status === 404) {
-    // eslint-disable-next-line no-console
-    console.log(`Project "${projectName}" not found. Nothing to delete.`);
-    process.exit(0);
+async function fetchAllDeploymentsForBranch() {
+  const results = [];
+  let page = 1;
+
+  for (;;) {
+    const response = await cfFetch(
+      `/accounts/${accountId}/pages/projects/${projectName}/deployments?per_page=${PER_PAGE}&page=${page}&sort_order=desc&env=preview`
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        // eslint-disable-next-line no-console
+        console.log(`Project "${projectName}" not found. Nothing to delete.`);
+        process.exit(0);
+      }
+
+      const body = await response.text();
+
+      throw new Error(`Failed to list deployments (HTTP ${response.status}): ${body}`);
+    }
+
+    const data = await response.json();
+    const pageItems = data.result ?? [];
+
+    results.push(...pageItems.filter(d => d.deployment_trigger?.metadata?.branch === branchName));
+
+    // Stop when the page is not full — we've reached the last page.
+    if (pageItems.length < PER_PAGE) {
+      break;
+    }
+
+    page += 1;
   }
 
-  const body = await listResponse.text();
-
-  throw new Error(`Failed to list deployments (HTTP ${listResponse.status}): ${body}`);
+  return results;
 }
 
-const data = await listResponse.json();
-const deployments = (data.result ?? []).filter(
-  d => d.deployment_trigger?.metadata?.branch === branchName
-);
+const deployments = await fetchAllDeploymentsForBranch();
 
 if (deployments.length === 0) {
   // eslint-disable-next-line no-console
