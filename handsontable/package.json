@@ -258,7 +258,9 @@
   },
   "sideEffects": [
     "**/*.css",
-    "./languages/*"
+    "./languages/*",
+    "./plugins/filters/condition/**",
+    "./plugins/filters/logicalOperations/**"
   ],
   "publishConfig": {
     "directory": "tmp",
