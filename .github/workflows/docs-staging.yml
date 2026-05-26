@@ -224,6 +224,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: docs
+          packageManager: npm
           command: pages deploy netlify/deploy --project-name handsontable-docs-staging --branch pr-${{ steps.resolve-pr.outputs.number }}
 
       - name: Update sticky PR comment with Cloudflare Pages URL
