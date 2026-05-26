@@ -32,6 +32,12 @@ if (getResponse.ok) {
   process.exit(0);
 }
 
+if (getResponse.status === 403) {
+  // eslint-disable-next-line no-console
+  console.warn(`Warning: cannot verify project "${projectName}" (HTTP 403). The API token may lack read access, but wrangler will create the project on first deploy if it does not exist.`);
+  process.exit(0);
+}
+
 if (getResponse.status !== 404) {
   const body = await getResponse.text();
 
