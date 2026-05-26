@@ -342,5 +342,23 @@ describe('Events', () => {
 
       expect(event.defaultPrevented).toBeFalse();
     });
+
+    it('should still "preventDefault" touchend on link element in unselected cell when disableVisualSelection is set', async() => {
+      handsontable({
+        data: [['<a href="#test">link</a>']],
+        width: 400,
+        height: 400,
+        renderer: 'html',
+        columns: [{ disableVisualSelection: 'current' }],
+      });
+
+      const linkElement = hot.getCell(0, 0).querySelector('a');
+
+      await triggerTouchEvent('touchstart', linkElement);
+
+      const event = await triggerTouchEvent('touchend', linkElement);
+
+      expect(event.defaultPrevented).toBeTrue();
+    });
   });
 });
