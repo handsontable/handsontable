@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed TypeScript TS2345 argument type errors after enabling strict mode.",
+  "type": "fixed",
+  "issueOrPR": 12635,
+  "breaking": false,
+  "framework": "none"
+}
