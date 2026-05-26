@@ -10,7 +10,7 @@ defaults:
 
 jobs:
   delete-preview-on-pull-request:
-    name: Delete Netlify Site if exist
+    name: Delete Netlify and Cloudflare Pages previews
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -62,3 +62,12 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           BRANCH_NAME_PREFIX: dev-handsontable-
           BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}
+
+      - name: Delete Cloudflare Pages deployments for branch
+        continue-on-error: true
+        run: node cloudflare/deleteDeployments.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT_NAME: handsontable-docs-staging
+          CF_BRANCH_NAME: pr-${{ github.event.pull_request.number }}
