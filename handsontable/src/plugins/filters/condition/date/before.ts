@@ -15,7 +15,7 @@ type DataRow = {
  * @param {*} inputValues."0" Maximum date of a range.
  * @returns {boolean}
  */
-export function condition(dataRow: DataRow, [value]: unknown[]) {
+export function condition(dataRow: DataRow, [value]: (string | undefined)[]) {
   const date = moment(dataRow.value as string, dataRow.meta.dateFormat as string);
   const inputDate = moment(value, dataRow.meta.dateFormat);
 

@@ -597,7 +597,7 @@ export class ExportFile extends BasePlugin {
     if (format === 'xlsx') {
       const settings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
 
-      return settings !== undefined && isObject(settings.engines) && Boolean(settings.engines.xlsx);
+      return settings !== undefined && isObject(settings.engines) && Boolean(settings.engines?.xlsx);
     }
 
     return true;

@@ -150,8 +150,8 @@ export class Formulas extends BasePlugin {
       return change;
     }
 
-    const visualRow = this.rowAxisSyncer.getVisualIndexFromHfIndex(change.address.row);
-    const visualColumn = this.columnAxisSyncer.getVisualIndexFromHfIndex(change.address.col);
+    const visualRow = this.rowAxisSyncer!.getVisualIndexFromHfIndex(change.address.row);
+    const visualColumn = this.columnAxisSyncer!.getVisualIndexFromHfIndex(change.address.col);
 
     if (visualRow < 0 || visualColumn < 0) {
       return change;
@@ -249,7 +249,7 @@ export class Formulas extends BasePlugin {
    *
    * @type {Array}
    */
-  #engineListeners: [string, Function][] = [
+  #engineListeners: [string, Function][] | null = [
     ['valuesUpdated', this.#onEngineValuesUpdated],
     ['namedExpressionAdded', this.#onEngineNamedExpressionsAdded],
     ['namedExpressionRemoved', this.#onEngineNamedExpressionsRemoved],
@@ -380,51 +380,51 @@ export class Formulas extends BasePlugin {
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
 
-    this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer.getIndexesChangeSyncMethod());
-    this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer.getIndexesChangeSyncMethod());
+    this.hot.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
+    this.hot.addHook('afterColumnSequenceChange', this.columnAxisSyncer!.getIndexesChangeSyncMethod());
 
     this.hot.addHook('beforeRowMove',
       (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
-        this.rowAxisSyncer.storeMovesInformation(movedRows, finalIndex, movePossible);
+        this.rowAxisSyncer!.storeMovesInformation(movedRows, finalIndex, movePossible);
       });
 
     this.hot.addHook('beforeColumnMove',
       (movedColumns: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
-        this.columnAxisSyncer.storeMovesInformation(movedColumns, finalIndex, movePossible);
+        this.columnAxisSyncer!.storeMovesInformation(movedColumns, finalIndex, movePossible);
       });
 
     this.hot.addHook('afterRowMove',
       (_movedRows: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
-        this.rowAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+        this.rowAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
       });
 
     this.hot.addHook('afterColumnMove',
       (_movedColumns: number[], _finalIndex: number, _dropIndex: number | undefined,
        movePossible: boolean, orderChanged: boolean) => {
-        this.columnAxisSyncer.calculateAndSyncMoves(movePossible, orderChanged);
+        this.columnAxisSyncer!.calculateAndSyncMoves(movePossible, orderChanged);
       });
 
     this.hot.addHook('beforeColumnFreeze', (column: number, freezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
-      this.columnAxisSyncer.storeMovesInformation(
+      this.columnAxisSyncer!.storeMovesInformation(
         [column], fixedColumnsStart!, freezePerformed);
     });
 
     this.hot.addHook('afterColumnFreeze', (_column: number, freezePerformed: boolean) => {
-      this.columnAxisSyncer.calculateAndSyncMoves(freezePerformed, freezePerformed);
+      this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed);
     });
 
     this.hot.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
       const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
 
-      this.columnAxisSyncer.storeMovesInformation(
+      this.columnAxisSyncer!.storeMovesInformation(
         [column], fixedColumnsStart! - 1, unfreezePerformed);
     });
 
     this.hot.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
-      this.columnAxisSyncer.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
+      this.columnAxisSyncer!.calculateAndSyncMoves(unfreezePerformed, unfreezePerformed);
     });
 
     // TODO: Actions related to overwriting dates from HOT format to HF default format are done as callback to this
@@ -434,30 +434,30 @@ export class Formulas extends BasePlugin {
 
     // Handling undo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeUndo', () => {
-      this.indexSyncer.setPerformUndo(true);
+      this.indexSyncer!.setPerformUndo(true);
 
-      this.engine.undo();
+      this.engine!.undo();
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => {
-      this.indexSyncer.setPerformRedo(true);
+      this.indexSyncer!.setPerformRedo(true);
 
-      this.engine.redo();
+      this.engine!.redo();
     });
 
     this.addHook('afterUndo', () => {
-      this.indexSyncer.setPerformUndo(false);
+      this.indexSyncer!.setPerformUndo(false);
     });
 
     this.addHook('afterUndo', () => {
-      this.indexSyncer.setPerformRedo(false);
+      this.indexSyncer!.setPerformRedo(false);
     });
 
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
-    this.#engineListeners.forEach(([eventName, listener]) => this.engine.on(eventName, listener));
+    this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
     super.enablePlugin();
   }
@@ -466,7 +466,7 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
+    this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
       unregisterEngine(this.engine, this.hot);
@@ -486,7 +486,7 @@ export class Formulas extends BasePlugin {
   updatePlugin(newSettings: Record<string, unknown>) {
     const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
 
-    if (haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
+    if (this.engine && haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
       this.engine.updateConfig(newEngineSettings);
     }
 
@@ -507,7 +507,7 @@ export class Formulas extends BasePlugin {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
-      if (sheetName && this.engine.doesSheetExist(sheetName)) {
+      if (sheetName && this.engine?.doesSheetExist(sheetName)) {
         this.switchSheet(sheetName);
 
       } else {
@@ -526,7 +526,7 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#engineListeners.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
+    this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
     if (this.engine) {
@@ -545,7 +545,7 @@ export class Formulas extends BasePlugin {
    */
   #updateSheetNameAndSheetId(sheetName: string) {
     this.sheetName = sheetName;
-    this.sheetId = this.engine.getSheetId(this.sheetName);
+    this.sheetId = this.engine?.getSheetId(this.sheetName) ?? null;
   }
 
   /**
@@ -565,23 +565,23 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    if (sheetName !== undefined && sheetName !== null && this.engine.doesSheetExist(sheetName)) {
+    if (sheetName !== undefined && sheetName !== null && this.engine?.doesSheetExist(sheetName)) {
       warn('Sheet with the provided name already exists.');
 
       return false;
     }
 
     try {
-      const actualSheetName = this.engine.addSheet(sheetName ?? undefined);
+      const actualSheetName = this.engine!.addSheet(sheetName ?? undefined);
 
       if (sheetData) {
-        this.engine.setSheetContent(this.engine.getSheetId(actualSheetName), sheetData);
+        this.engine!.setSheetContent(this.engine!.getSheetId(actualSheetName), sheetData);
       }
 
       return actualSheetName;
 
     } catch (e) {
-      warn(e.message);
+      warn(e instanceof Error ? e.message : String(e));
 
       return false;
     }
@@ -594,7 +594,7 @@ export class Formulas extends BasePlugin {
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
   switchSheet(sheetName: string): void {
-    if (!this.engine.doesSheetExist(sheetName)) {
+    if (!this.engine?.doesSheetExist(sheetName)) {
       error(`The sheet named \`${sheetName}\` does not exist, switch aborted.`);
 
       return;
@@ -622,10 +622,10 @@ export class Formulas extends BasePlugin {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     if (physicalRow !== null && physicalColumn !== null) {
-      return this.engine.getCellType({
+      return this.engine!.getCellType({
         sheet,
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
       });
 
     } else {
@@ -643,10 +643,10 @@ export class Formulas extends BasePlugin {
    * @returns {boolean}
    */
   isFormulaCellType(row: number, column: number, sheet: number | null = this.sheetId): boolean {
-    return this.engine.doesCellHaveFormula({
+    return this.engine!.doesCellHaveFormula({
       sheet,
-      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
-      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
     });
   }
 
@@ -706,7 +706,7 @@ export class Formulas extends BasePlugin {
       const { row, col, sheet: sheetId } = address ?? {};
 
       // Don't try to validate cells outside of the visual part of the table.
-      if (isDefined(row) === false || isDefined(col) === false ||
+      if (row === undefined || col === undefined ||
         row >= this.hot.countRows() || col >= this.hot.countCols()) {
         return;
       }
@@ -744,12 +744,12 @@ export class Formulas extends BasePlugin {
    */
   syncChangeWithEngine(row: number, column: number, newValue: unknown) {
     const address = {
-      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
-      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(column),
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(row),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(column),
       sheet: this.sheetId
     };
 
-    if (!this.engine.isItPossibleToSetCellContents(address)) {
+    if (!this.engine?.isItPossibleToSetCellContents(address)) {
       warn(`Not possible to set cell data at ${JSON.stringify(address)}`);
 
       return;
@@ -768,7 +768,7 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    return this.engine.setCellContents(address, newValue);
+    return this.engine?.setCellContents(address, newValue);
   }
 
   /**
@@ -868,13 +868,13 @@ export class Formulas extends BasePlugin {
 
     if (this.isFormulaCellType(visualRow, visualColumn)) {
       const address = {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId,
       };
 
       const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel-like date).
+      let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
         cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
@@ -908,37 +908,37 @@ export class Formulas extends BasePlugin {
 
     const engineSourceRange = {
       start: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceTopStartColumn),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(sourceTopStartRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(sourceTopStartColumn),
         sheet: this.sheetId,
       },
       end: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(sourceBottomEndColumn),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(sourceBottomEndRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(sourceBottomEndColumn),
         sheet: this.sheetId,
       },
     };
 
     const engineTargetRange = {
       start: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetTopStartRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetTopStartColumn),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetTopStartRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetTopStartColumn),
         sheet: this.sheetId,
       },
       end: {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(targetBottomEndColumn),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetBottomEndRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetBottomEndColumn),
         sheet: this.sheetId,
       },
     };
 
     // Blocks the autofill operation if HyperFormula says that at least one of
     // the underlying cell's contents cannot be set.
-    if (this.engine.isItPossibleToSetCellContents(engineTargetRange) === false) {
+    if (this.engine!.isItPossibleToSetCellContents(engineTargetRange) === false) {
       return false;
     }
 
-    const fillRangeData = this.engine.getFillRangeData(engineSourceRange, engineTargetRange);
+    const fillRangeData = this.engine!.getFillRangeData(engineSourceRange, engineTargetRange);
     const {
       row: sourceStartRow,
       col: sourceStartColumn,
@@ -1024,9 +1024,9 @@ export class Formulas extends BasePlugin {
     });
 
     this.#internalOperationPending = true;
-    const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
+    const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-    this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
     this.renderDependentSheets(dependentCells);
     this.#internalOperationPending = false;
   };
@@ -1061,12 +1061,12 @@ export class Formulas extends BasePlugin {
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
-      if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+      if (this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
         this.#internalOperationPending = true;
 
-        const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
+        const dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
 
-        this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
         this.renderDependentSheets(dependentCells);
 
         this.#internalOperationPending = false;
@@ -1091,7 +1091,7 @@ export class Formulas extends BasePlugin {
       ioMode !== 'get' ||
       this.#internalOperationPending ||
       this.sheetName === null ||
-      !this.engine.doesSheetExist(this.sheetName)
+      !this.engine?.doesSheetExist(this.sheetName)
     ) {
       return;
     }
@@ -1109,11 +1109,11 @@ export class Formulas extends BasePlugin {
     }
 
     const address = {
-      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
-    let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
+    let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
     const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
 
@@ -1143,7 +1143,7 @@ export class Formulas extends BasePlugin {
       ioMode !== 'get' ||
       this.#internalOperationPending ||
       this.sheetName === null ||
-      !this.engine.doesSheetExist(this.sheetName)
+      !this.engine?.doesSheetExist(this.sheetName)
     ) {
       return;
     }
@@ -1161,7 +1161,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
+    const dimensions = this.engine!.getSheetDimensions(this.engine!.getSheetId(this.sheetName));
 
     // Don't actually change the source data if HyperFormula is not
     // initialized yet. This is done to allow the `afterLoadData` hook to
@@ -1172,12 +1172,12 @@ export class Formulas extends BasePlugin {
     }
 
     const address = {
-      row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-      col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+      row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
       sheet: this.sheetId
     };
 
-    valueHolder.value = this.engine.getCellSerialized(address);
+    valueHolder.value = this.engine!.getCellSerialized(address);
   };
 
   /**
@@ -1201,7 +1201,7 @@ export class Formulas extends BasePlugin {
     const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
 
-    const dependentCells = this.engine.batch(() => {
+    const dependentCells = this.engine!.batch(() => {
       changes.forEach(([visualRow, prop, , newValue]) => {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
@@ -1210,8 +1210,8 @@ export class Formulas extends BasePlugin {
         const physicalRow = this.hot.toPhysicalRow(visualRow);
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
         const address = {
-          row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-          col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
           sheet: this.sheetId,
         };
 
@@ -1232,7 +1232,7 @@ export class Formulas extends BasePlugin {
       // Workaround for rows/columns being created two times (by HOT and the engine).
       // (unfortunately, this requires an extra re-render)
       this.hot.addHookOnce('afterChange', () => {
-        const outOfBoundsDependentCells = this.engine.batch(() => {
+        const outOfBoundsDependentCells = this.engine!.batch(() => {
           outOfBoundsChanges.forEach(([row, column, newValue]) => {
             this.syncChangeWithEngine(row, column, newValue);
           });
@@ -1272,12 +1272,12 @@ export class Formulas extends BasePlugin {
       }
 
       const address = {
-        row: this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow),
-        col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
+        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };
 
-      if (!this.engine.isItPossibleToSetCellContents(address)) {
+      if (!this.engine?.isItPossibleToSetCellContents(address)) {
         warn(`Not possible to set source cell data at ${JSON.stringify(address)}`);
 
         return;
@@ -1286,7 +1286,7 @@ export class Formulas extends BasePlugin {
       newValue = normalizeValueForFormulaEngine(newValue);
 
       changedCells.push({ address });
-      dependentCells.push(...this.engine.setCellContents(address, newValue));
+      dependentCells.push(...this.engine!.setCellContents(address, newValue));
     });
 
     this.renderDependentSheets(dependentCells);
@@ -1301,7 +1301,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeCreateRow = (visualRow: number, amount: number) => {
-    let hfRowIndex = this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow);
+    let hfRowIndex = this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow);
 
     if (visualRow >= this.hot.countRows()) {
       hfRowIndex = visualRow; // Row beyond the table boundaries.
@@ -1309,8 +1309,8 @@ export class Formulas extends BasePlugin {
 
     if (
       this.sheetId === null ||
-      !this.engine.doesSheetExist(this.sheetName) ||
-      !this.engine.isItPossibleToAddRows(this.sheetId, [hfRowIndex, amount])
+      !this.engine?.doesSheetExist(this.sheetName!) ||
+      !this.engine?.isItPossibleToAddRows(this.sheetId, [hfRowIndex, amount])
     ) {
       return false;
     }
@@ -1324,7 +1324,7 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeCreateCol = (visualColumn: number, amount: number) => {
-    let hfColumnIndex = this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn);
+    let hfColumnIndex = this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn);
 
     if (visualColumn >= this.hot.countCols()) {
       hfColumnIndex = visualColumn; // Column beyond the table boundaries.
@@ -1332,8 +1332,8 @@ export class Formulas extends BasePlugin {
 
     if (
       this.sheetId === null ||
-      !this.engine.doesSheetExist(this.sheetName) ||
-      !this.engine.isItPossibleToAddColumns(this.sheetId, [hfColumnIndex, amount])
+      !this.engine?.doesSheetExist(this.sheetName!) ||
+      !this.engine?.isItPossibleToAddColumns(this.sheetId, [hfColumnIndex, amount])
     ) {
       return false;
     }
@@ -1348,10 +1348,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeRemoveRow = (row: number, amount: number, physicalRows: number[]) => {
-    const hfRows = this.rowAxisSyncer.setRemovedHfIndexes(physicalRows);
+    const hfRows = this.rowAxisSyncer!.setRemovedHfIndexes(physicalRows);
 
     const possible = hfRows.every((hfRow: number) => {
-      return this.engine.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
+      return this.engine?.isItPossibleToRemoveRows(this.sheetId, [hfRow, 1]);
     });
 
     return possible === false ? false : undefined;
@@ -1366,10 +1366,10 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeRemoveCol = (col: number, amount: number, physicalColumns: number[]) => {
-    const hfColumns = this.columnAxisSyncer.setRemovedHfIndexes(physicalColumns);
+    const hfColumns = this.columnAxisSyncer!.setRemovedHfIndexes(physicalColumns);
 
     const possible = hfColumns.every((hfColumn: number) => {
-      return this.engine.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
+      return this.engine?.isItPossibleToRemoveColumns(this.sheetId, [hfColumn, 1]);
     });
 
     return possible === false ? false : undefined;
@@ -1388,8 +1388,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const changes = this.engine.addRows(this.sheetId,
-      [this.rowAxisSyncer.getHfIndexFromVisualIndex(visualRow), amount]);
+    const changes = this.engine!.addRows(this.sheetId,
+      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
 
     this.renderDependentSheets(changes);
   };
@@ -1407,8 +1407,8 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const changes = this.engine.addColumns(this.sheetId,
-      [this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn), amount]);
+    const changes = this.engine!.addColumns(this.sheetId,
+      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
 
     this.renderDependentSheets(changes);
   };
@@ -1427,13 +1427,13 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfRows = this.rowAxisSyncer
+    const descendingHfRows = this.rowAxisSyncer!
       .getRemovedHfIndexes()
       .sort((a: number, b: number) => b - a); // sort numeric values descending
 
-    const changes = this.engine.batch(() => {
+    const changes = this.engine!.batch(() => {
       descendingHfRows.forEach((hfRow: number) => {
-        this.engine.removeRows(this.sheetId, [hfRow, 1]);
+        this.engine!.removeRows(this.sheetId, [hfRow, 1]);
       });
     });
 
@@ -1454,13 +1454,13 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfColumns = this.columnAxisSyncer
+    const descendingHfColumns = this.columnAxisSyncer!
       .getRemovedHfIndexes()
       .sort((a: number, b: number) => b - a); // sort numeric values descending
 
-    const changes = this.engine.batch(() => {
+    const changes = this.engine!.batch(() => {
       descendingHfColumns.forEach((hfColumn: number) => {
-        this.engine.removeColumns(this.sheetId, [hfColumn, 1]);
+        this.engine!.removeColumns(this.sheetId, [hfColumn, 1]);
       });
     });
 
@@ -1492,7 +1492,7 @@ export class Formulas extends BasePlugin {
 
     rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
       row.forEach((value: unknown, colIndex: number) => {
-        this.engine.setCellContents({
+        this.engine?.setCellContents({
           col: colIndex,
           row: finalElementRowIndex + relativeRowIndex,
           sheet: this.sheetId

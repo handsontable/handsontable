@@ -113,13 +113,13 @@ export class DataChangeAction extends BaseAction {
       const rowsToRemove = hot.countRows() - this.countRows;
 
       if (rowsToRemove > 0) {
-        hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
+        hot.alter('remove_row', undefined, rowsToRemove, 'UndoRedo.undo');
       }
 
       const columnsToRemove = hot.countCols() - this.countCols;
 
       if (columnsToRemove > 0 && hot.isColumnModificationAllowed()) {
-        hot.alter('remove_col', null, columnsToRemove, 'UndoRedo.undo');
+        hot.alter('remove_col', undefined, columnsToRemove, 'UndoRedo.undo');
       }
 
       hot.scrollToFocusedCell();

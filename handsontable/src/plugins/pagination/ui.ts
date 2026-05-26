@@ -79,7 +79,7 @@ export class PaginationUI {
    *
    * @type {object}
    */
-  #refs: PaginationRefs | null;
+  #refs: PaginationRefs | null = null;
   /**
    * The name of the current theme.
    *
@@ -175,7 +175,7 @@ export class PaginationUI {
     if (this.#uiContainer) {
       this.#uiContainer.appendChild(elements.fragment);
 
-      addClass(container, [this.#themeName, 'handsontable']);
+      addClass(container, [this.#themeName ?? '', 'handsontable']);
     } else {
       this.#rootElement.after(elements.fragment);
     }
@@ -496,9 +496,9 @@ export class PaginationUI {
     // adds or removes the corner around the Handsontable root element
     if (!this.#uiContainer) {
       if (isSectionVisible) {
-        addClass(this.#rootElement.querySelector('.ht-wrapper'), 'htPagination');
+        addClass(this.#rootElement.querySelector('.ht-wrapper')!, 'htPagination');
       } else {
-        removeClass(this.#rootElement.querySelector('.ht-wrapper'), 'htPagination');
+        removeClass(this.#rootElement.querySelector('.ht-wrapper')!, 'htPagination');
       }
     }
 

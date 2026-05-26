@@ -7,7 +7,7 @@ import { isHTMLElement } from '../../helpers/dom/element';
  *
  * @param {HTMLElement} element The element to scroll.
  */
-export function scrollWindowToCell(element: HTMLElement) {
+export function scrollWindowToCell(element: HTMLElement | null) {
   if (isHTMLElement(element)) {
     element.scrollIntoView({
       block: 'nearest',
@@ -28,17 +28,17 @@ export function createScrollTargetCalculator(hotInstance: HotInstance) {
   const cellRange = hotInstance.getSelectedRangeActive();
   const source = selection.getSelectionSource();
 
-  const firstVisibleColumn = view.getFirstFullyVisibleColumn();
-  const lastVisibleColumn = view.getLastFullyVisibleColumn();
-  const selectionFirstColumn = cellRange.getTopStartCorner().col;
-  const selectionLastColumn = cellRange.getBottomEndCorner().col;
+  const firstVisibleColumn = view.getFirstFullyVisibleColumn() ?? -1;
+  const lastVisibleColumn = view.getLastFullyVisibleColumn() ?? -1;
+  const selectionFirstColumn = cellRange?.getTopStartCorner().col ?? -1;
+  const selectionLastColumn = cellRange?.getBottomEndCorner().col ?? -1;
   const isSelectionOutsideStartViewport = selectionFirstColumn <= firstVisibleColumn;
   const isSelectionOutsideEndViewport = selectionLastColumn >= lastVisibleColumn;
 
-  const firstVisibleRow = view.getFirstFullyVisibleRow();
-  const lastVisibleRow = view.getLastFullyVisibleRow();
-  const selectionFirstRow = cellRange.getTopStartCorner().row;
-  const selectionLastRow = cellRange.getBottomEndCorner().row;
+  const firstVisibleRow = view.getFirstFullyVisibleRow() ?? -1;
+  const lastVisibleRow = view.getLastFullyVisibleRow() ?? -1;
+  const selectionFirstRow = cellRange?.getTopStartCorner().row ?? -1;
+  const selectionLastRow = cellRange?.getBottomEndCorner().row ?? -1;
   const isSelectionOutsideTopViewport = selectionFirstRow <= firstVisibleRow;
   const isSelectionOutsideBottomViewport = selectionLastRow >= lastVisibleRow;
 
@@ -53,13 +53,13 @@ export function createScrollTargetCalculator(hotInstance: HotInstance) {
       if (source === 'mouse' || source === 'keyboard') {
         // For mouse or keyboard selection, always scroll to the last column
         // defined by the last selection coords
-        return lastSelectionCoords.col;
+        return lastSelectionCoords.col ?? -1;
       }
 
       if (isSelectionOutsideStartViewport && isSelectionOutsideEndViewport) {
         // If the selection is outside both ends of the viewport, scroll to the
         // column where the focused cell is located
-        return cellRange.highlight.col;
+        return cellRange?.highlight.col ?? -1;
       }
 
       if (isSelectionOutsideStartViewport) {
@@ -75,7 +75,7 @@ export function createScrollTargetCalculator(hotInstance: HotInstance) {
       }
 
       // For other cases, scroll to the column defined by the last selection coords
-      return lastSelectionCoords.col;
+      return lastSelectionCoords.col ?? -1;
     },
 
     /**
@@ -88,13 +88,13 @@ export function createScrollTargetCalculator(hotInstance: HotInstance) {
       if (source === 'mouse' || source === 'keyboard') {
         // For mouse or keyboard selection, always scroll to the last row
         // defined by the coords
-        return lastSelectionCoords.row;
+        return lastSelectionCoords.row ?? -1;
       }
 
       if (isSelectionOutsideTopViewport && isSelectionOutsideBottomViewport) {
         // If the selection is outside both ends of the viewport, scroll to the
         // row where the focused cell is located
-        return cellRange.highlight.row;
+        return cellRange?.highlight.row ?? -1;
       }
 
       if (isSelectionOutsideTopViewport) {
@@ -110,7 +110,7 @@ export function createScrollTargetCalculator(hotInstance: HotInstance) {
       }
 
       // For other cases, scroll to the row defined by the last selection coords
-      return lastSelectionCoords.row;
+      return lastSelectionCoords.row ?? -1;
     },
   };
 }

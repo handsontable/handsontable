@@ -4,14 +4,21 @@ export const command = {
   name: 'extendCellsSelectionUpByViewportHeight',
   callback(hot: HotInstance) {
     const { selection, rowIndexMapper } = hot;
-    const { to } = hot.getSelectedRangeActive();
-    const nextRowIndexToSelect = Math.max(to.row - hot.countVisibleRows(), 0);
+    const activeRange = hot.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { to } = activeRange;
+    const toRow = to.row ?? 0;
+    const nextRowIndexToSelect = Math.max(toRow - hot.countVisibleRows(), 0);
     const row = rowIndexMapper.getNearestNotHiddenIndex(nextRowIndexToSelect, 1);
 
     if (row !== null) {
-      const coords = hot._createCellCoords(row, to.col);
-      const scrollPadding = to.row - hot.getFirstFullyVisibleRow();
-      const nextVerticalScroll = Math.max(coords.row - scrollPadding, 0);
+      const coords = hot._createCellCoords(row, to.col ?? 0);
+      const scrollPadding = toRow - (hot.getFirstFullyVisibleRow() ?? 0);
+      const nextVerticalScroll = Math.max((coords.row ?? 0) - scrollPadding, 0);
 
       selection.markSource('keyboard');
       selection.setRangeEnd(coords, hot.getActiveSelectionLayerIndex());

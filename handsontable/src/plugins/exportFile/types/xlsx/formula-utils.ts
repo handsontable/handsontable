@@ -205,8 +205,8 @@ export function normalizeFormula(
   excludedHiddenCols?: Set<number>
 ): string {
   let formula = formulaStr.startsWith('=') ? formulaStr.slice(1) : formulaStr;
-  const hasRowExclusions = excludedHiddenRows?.size > 0;
-  const hasColExclusions = excludedHiddenCols?.size > 0;
+  const hasRowExclusions = (excludedHiddenRows?.size ?? 0) > 0;
+  const hasColExclusions = (excludedHiddenCols?.size ?? 0) > 0;
 
   if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
     // The leading alternative matches string literals (double-quoted Excel strings use "" to escape a quote;

@@ -34,7 +34,7 @@ export const normalizeKeys = (keys: string[]) => {
     const lowercaseKey = key.toLowerCase();
 
     if (mappings.has(lowercaseKey)) {
-      return mappings.get(lowercaseKey);
+      return mappings.get(lowercaseKey) ?? lowercaseKey;
     }
 
     return lowercaseKey;
@@ -108,7 +108,7 @@ const specialCharactersSet = new Map([
  */
 export const normalizeEventKey = ({ which, key }: { which: number; key: string }) => {
   if (specialCharactersSet.has(which)) {
-    return specialCharactersSet.get(which);
+    return specialCharactersSet.get(which) ?? key.toLowerCase();
   }
 
   const normalizedKey = String.fromCharCode(which).toLowerCase();

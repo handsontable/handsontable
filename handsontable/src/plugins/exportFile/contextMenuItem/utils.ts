@@ -29,7 +29,7 @@ export function getExportOptions(
   const opts = { colHeaders, rowHeaders };
 
   // No selection, single-cell cursor, or corner (select-all) → export entire table.
-  if (!range || range.isSingleCell() || (range.from.row < 0 && range.from.col < 0)) {
+  if (!range || range.isSingleCell() || ((range.from.row ?? 0) < 0 && (range.from.col ?? 0) < 0)) {
     return opts;
   }
 

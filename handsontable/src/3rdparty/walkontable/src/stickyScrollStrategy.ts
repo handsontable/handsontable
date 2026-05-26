@@ -120,8 +120,8 @@ export class StickyScrollStrategy {
     const overlays = this.#overlays;
     const { wtViewport } = overlays.wot;
 
-    const startTop = wtViewport.rowsRenderCalculator.startPosition;
-    const startLeft = wtViewport.columnsRenderCalculator.startPosition;
+    const startTop = wtViewport.rowsRenderCalculator?.startPosition;
+    const startLeft = wtViewport.columnsRenderCalculator?.startPosition;
 
     // startPosition is null when nothing is rendered (empty dataset or trimmed-away rows/columns).
     // Arithmetic with null produces NaN, which would set "NaNpx" on the style. Skip the update.
@@ -186,8 +186,8 @@ export class StickyScrollStrategy {
     // Capture the sticky offsets and computed start positions.
     const lastStickyTop = Number.parseInt(spreader.style.top, 10) || 0;
     const lastStickyLeft = Number.parseInt(spreader.style[leftProp], 10) || 0;
-    const startTop = wtViewport.rowsRenderCalculator.startPosition;
-    const startLeft = wtViewport.columnsRenderCalculator.startPosition;
+    const startTop = wtViewport.rowsRenderCalculator?.startPosition;
+    const startLeft = wtViewport.columnsRenderCalculator?.startPosition;
 
     // Adjust scroll position while still active to prevent cascading renders.
     const targetScrollTop = typeof startTop === 'number'
@@ -312,7 +312,7 @@ export class StickyScrollStrategy {
       return;
     }
 
-    if (overlays.inlineStartOverlay.needFullRender) {
+    if (overlays.inlineStartOverlay.needFullRender && overlays.inlineStartOverlay.clone) {
       const cloneSpreader = overlays.inlineStartOverlay.clone.wtTable.spreader;
 
       cloneSpreader.style.position = position;
@@ -325,7 +325,7 @@ export class StickyScrollStrategy {
       }
     }
 
-    if (overlays.topOverlay.needFullRender) {
+    if (overlays.topOverlay.needFullRender && overlays.topOverlay.clone) {
       const cloneSpreader = overlays.topOverlay.clone.wtTable.spreader;
 
       cloneSpreader.style.position = position;

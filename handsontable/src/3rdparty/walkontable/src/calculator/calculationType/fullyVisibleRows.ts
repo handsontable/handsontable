@@ -83,6 +83,10 @@ export class FullyVisibleRowsCalculationType {
       rowHeight,
     } = viewportCalculator;
 
+    if (!positionCache) {
+      return;
+    }
+
     // If the estimation has reached the last row and there is still some space available in the viewport,
     // we need to render in reverse in order to fill the whole viewport with rows
     if (this.endRow === totalRows - 1 && needReverse) {
@@ -117,11 +121,11 @@ export class FullyVisibleRowsCalculationType {
       this.isVisibleInTrimmingContainer = true;
     }
 
-    if (totalRows < this.endRow) {
+    if (this.endRow !== null && totalRows < this.endRow) {
       this.endRow = totalRows - 1;
     }
 
-    if (this.startRow !== null) {
+    if (this.startRow !== null && this.endRow !== null) {
       this.count = this.endRow - this.startRow + 1;
     }
   }

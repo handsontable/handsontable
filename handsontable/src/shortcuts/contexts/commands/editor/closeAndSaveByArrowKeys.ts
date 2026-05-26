@@ -7,7 +7,7 @@ export const command = {
     const editorManager = hot._getEditorManager();
     const activeEditor = editorManager.getActiveEditor();
 
-    if (activeEditor.isInFullEditMode() && activeEditor.state === EDITOR_STATE.EDITING) {
+    if (activeEditor?.isInFullEditMode() && activeEditor?.state === EDITOR_STATE.EDITING) {
       return;
     }
 

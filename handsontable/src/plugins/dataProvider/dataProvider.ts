@@ -416,7 +416,7 @@ export class DataProvider extends BasePlugin {
 
       return { rows, totalRows };
     } catch (err) {
-      if (signal.aborted || err?.name === 'AbortError') {
+      if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
         this.#runAfterDataProviderFetchAbort(params, err);
 
         return null;
@@ -456,7 +456,7 @@ export class DataProvider extends BasePlugin {
     return this.#queueCrud(
       'create',
       payload,
-      () => onRowsCreate(rowsCreatePayload),
+      () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => { await this.fetchData({ skipLoading: true }); }
     );
   }
@@ -579,10 +579,12 @@ export class DataProvider extends BasePlugin {
   /**
    * @returns {Function|undefined}
    */
-  #getOnRowsUpdate(): DataProviderConfig['onRowsUpdate'] {
+  #getOnRowsUpdate(): ((payload: object[]) => Promise<void>) | undefined {
     const c = this.#getConfig();
 
-    return c && isFunction(c.onRowsUpdate) ? c.onRowsUpdate as DataProviderConfig['onRowsUpdate'] : undefined;
+    return c && isFunction(c.onRowsUpdate)
+      ? c.onRowsUpdate as unknown as (payload: object[]) => Promise<void>
+      : undefined;
   }
 
   /**
@@ -677,7 +679,7 @@ export class DataProvider extends BasePlugin {
    * @param {Error|undefined} reason `AbortError` (or subclass) when `fetchRows` rejected; omit the argument when the promise settled after superseding.
    * @returns {void}
    */
-  #runAfterDataProviderFetchAbort(params: DataProviderBeforeFetchParameters, reason: Error | undefined): void {
+  #runAfterDataProviderFetchAbort(params: DataProviderBeforeFetchParameters, reason: unknown): void {
     const queryParameters = this.#snapshotQueryParameters(params);
 
     this.hot.runHooks('afterDataProviderFetchAbort', queryParameters, reason);

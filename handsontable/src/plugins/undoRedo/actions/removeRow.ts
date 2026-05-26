@@ -87,8 +87,8 @@ export class RemoveRowAction extends BaseAction {
         return new RemoveRowAction({
           index: physicalRowIndex,
           data: removedData as unknown[][],
-          fixedRowsBottom: hot.getSettings().fixedRowsBottom,
-          fixedRowsTop: hot.getSettings().fixedRowsTop,
+          fixedRowsBottom: hot.getSettings().fixedRowsBottom ?? 0,
+          fixedRowsTop: hot.getSettings().fixedRowsTop ?? 0,
           rowIndexesSequence: hot.rowIndexMapper.getIndexesSequence(),
           removedCellMetas: getCellMetas(hot, physicalRowIndex, lastRowIndex, 0, hot.countCols() - 1),
           removedMergedCells: collectAffectedMergedCells(hot, index, amount),
@@ -134,14 +134,16 @@ export class RemoveRowAction extends BaseAction {
     hot.alter('insert_row_above', hot.toVisualRow(this.index), this.data.length, 'UndoRedo.undo');
     hot.rowIndexMapper.setIndexesSequence(this.rowIndexesSequence);
 
-    this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]: [number, number, Record<string, unknown>]) => {
+    this.removedCellMetas.forEach((entry: unknown) => {
+      const [rowIndex, columnIndex, cellMeta] = entry as [number, number, Record<string, unknown>];
+
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
     });
 
     restoreMergedCells(hot, this.removedMergedCells);
 
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
+    hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
   }
 
   /**
@@ -177,7 +179,7 @@ function collectAffectedMergedCells(hot: HotInstance, visualRow: number, amount:
 
   type MergedCell = { row: number; col: number; rowspan: number; colspan: number };
 
-  mergeCellsPlugin.mergedCellsCollection.mergedCells.forEach(({ row, col, rowspan, colspan }: MergedCell) => {
+  mergeCellsPlugin.mergedCellsCollection?.mergedCells.forEach(({ row, col, rowspan, colspan }: MergedCell) => {
     const mergeStart = row;
     const mergeEnd = row + rowspan - 1;
 

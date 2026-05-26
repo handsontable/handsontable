@@ -19,7 +19,7 @@ export class CheckboxEditor extends BaseEditor {
     // element with a checkbox.
 
     if (event && (event as MouseEvent).type === 'mouseup' && eventTargetEl(event)!.nodeName === 'TD') {
-      const checkbox = this.TD.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      const checkbox = this.TD!.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       if (!hasClass(checkbox, 'htBadValue')) {
         checkbox.click();

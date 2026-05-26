@@ -146,8 +146,8 @@ class CellRange {
    * @returns {boolean}
    */
   isSingleCell(): boolean {
-    return this.from.row >= 0 && this.from.row === this.to.row &&
-           this.from.col >= 0 && this.from.col === this.to.col;
+    return this.#n(this.from.row) >= 0 && this.from.row === this.to.row &&
+           this.#n(this.from.col) >= 0 && this.from.col === this.to.col;
   }
 
   /**
@@ -156,7 +156,7 @@ class CellRange {
    * @returns {boolean}
    */
   isSingleHeader(): boolean {
-    return (this.from.row < 0 || this.from.col < 0) && this.from.row === this.to.row &&
+    return (this.#n(this.from.row) < 0 || this.#n(this.from.col) < 0) && this.from.row === this.to.row &&
            this.from.col === this.to.col;
   }
 
@@ -170,7 +170,8 @@ class CellRange {
       return true;
     }
 
-    return this.from.col < 0 && this.to.col < 0 || this.from.row < 0 && this.to.row < 0;
+    return (this.#n(this.from.col) < 0 && this.#n(this.to.col) < 0) ||
+      (this.#n(this.from.row) < 0 && this.#n(this.to.row) < 0);
   }
 
   /**
@@ -188,7 +189,8 @@ class CellRange {
    * @returns {number}
    */
   getOuterHeight(): number {
-    return Math.max(this.from.row, this.to.row) - Math.min(this.from.row, this.to.row) + 1;
+    return Math.max(this.#n(this.from.row), this.#n(this.to.row)) -
+      Math.min(this.#n(this.from.row), this.#n(this.to.row)) + 1;
   }
 
   /**
@@ -197,7 +199,8 @@ class CellRange {
    * @returns {number}
    */
   getOuterWidth(): number {
-    return Math.max(this.from.col, this.to.col) - Math.min(this.from.col, this.to.col) + 1;
+    return Math.max(this.#n(this.from.col), this.#n(this.to.col)) -
+      Math.min(this.#n(this.from.col), this.#n(this.to.col)) + 1;
   }
 
   /**
@@ -207,12 +210,12 @@ class CellRange {
    */
   getHeight(): number {
     // if the selection contains only row headers, return 0
-    if (this.from.row < 0 && this.to.row < 0) {
+    if (this.#n(this.from.row) < 0 && this.#n(this.to.row) < 0) {
       return 0;
     }
 
-    const fromRow = Math.max(this.from.row, 0);
-    const toRow = Math.max(this.to.row, 0);
+    const fromRow = Math.max(this.#n(this.from.row), 0);
+    const toRow = Math.max(this.#n(this.to.row), 0);
 
     return Math.max(fromRow, toRow) - Math.min(fromRow, toRow) + 1;
   }
@@ -224,12 +227,12 @@ class CellRange {
    */
   getWidth(): number {
     // if the selection contains only column headers, return 0
-    if (this.from.col < 0 && this.to.col < 0) {
+    if (this.#n(this.from.col) < 0 && this.#n(this.to.col) < 0) {
       return 0;
     }
 
-    const fromCol = Math.max(this.from.col, 0);
-    const toCol = Math.max(this.to.col, 0);
+    const fromCol = Math.max(this.#n(this.from.col), 0);
+    const toCol = Math.max(this.#n(this.to.col), 0);
 
     return Math.max(fromCol, toCol) - Math.min(fromCol, toCol) + 1;
   }
@@ -251,11 +254,13 @@ class CellRange {
    * @returns {boolean}
    */
   includes(cellCoords: CellCoords): boolean {
-    const { row, col } = cellCoords;
+    const row = this.#n(cellCoords.row);
+    const col = this.#n(cellCoords.col);
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
 
-    return topStart.row <= row && bottomEnd.row >= row && topStart.col <= col && bottomEnd.col >= col;
+    return this.#n(topStart.row) <= row && this.#n(bottomEnd.row) >= row &&
+      this.#n(topStart.col) <= col && this.#n(bottomEnd.col) >= col;
   }
 
   /**
@@ -276,10 +281,17 @@ class CellRange {
    * @returns {boolean}
    */
   isEqual(cellRange: CellRange): boolean {
-    return (Math.min(this.from.row, this.to.row) === Math.min(cellRange.from.row, cellRange.to.row)) &&
-      (Math.max(this.from.row, this.to.row) === Math.max(cellRange.from.row, cellRange.to.row)) &&
-      (Math.min(this.from.col, this.to.col) === Math.min(cellRange.from.col, cellRange.to.col)) &&
-      (Math.max(this.from.col, this.to.col) === Math.max(cellRange.from.col, cellRange.to.col));
+    const fromRowMin = Math.min(this.#n(this.from.row), this.#n(this.to.row));
+    const fromRowMax = Math.max(this.#n(this.from.row), this.#n(this.to.row));
+    const fromColMin = Math.min(this.#n(this.from.col), this.#n(this.to.col));
+    const fromColMax = Math.max(this.#n(this.from.col), this.#n(this.to.col));
+    const toRowMin = Math.min(this.#n(cellRange.from.row), this.#n(cellRange.to.row));
+    const toRowMax = Math.max(this.#n(cellRange.from.row), this.#n(cellRange.to.row));
+    const toColMin = Math.min(this.#n(cellRange.from.col), this.#n(cellRange.to.col));
+    const toColMax = Math.max(this.#n(cellRange.from.col), this.#n(cellRange.to.col));
+
+    return fromRowMin === toRowMin && fromRowMax === toRowMax &&
+      fromColMin === toColMin && fromColMax === toColMax;
   }
 
   /**
@@ -327,10 +339,10 @@ class CellRange {
    * @returns {boolean}
    */
   isOverlappingHorizontally(cellRange: CellRange): boolean {
-    return (this.getOuterTopEndCorner().col >= cellRange.getOuterTopStartCorner().col &&
-            this.getOuterTopEndCorner().col <= cellRange.getOuterTopEndCorner().col) ||
-           (this.getOuterTopStartCorner().col <= cellRange.getOuterTopEndCorner().col &&
-            this.getOuterTopStartCorner().col >= cellRange.getOuterTopStartCorner().col);
+    return (this.#n(this.getOuterTopEndCorner().col) >= this.#n(cellRange.getOuterTopStartCorner().col) &&
+            this.#n(this.getOuterTopEndCorner().col) <= this.#n(cellRange.getOuterTopEndCorner().col)) ||
+           (this.#n(this.getOuterTopStartCorner().col) <= this.#n(cellRange.getOuterTopEndCorner().col) &&
+            this.#n(this.getOuterTopStartCorner().col) >= this.#n(cellRange.getOuterTopStartCorner().col));
   }
 
   /**
@@ -343,10 +355,10 @@ class CellRange {
    * @returns {boolean}
    */
   isOverlappingVertically(cellRange: CellRange): boolean {
-    return (this.getOuterBottomStartCorner().row >= cellRange.getOuterTopRightCorner().row &&
-            this.getOuterBottomStartCorner().row <= cellRange.getOuterBottomStartCorner().row) ||
-           (this.getOuterTopEndCorner().row <= cellRange.getOuterBottomStartCorner().row &&
-            this.getOuterTopEndCorner().row >= cellRange.getOuterTopRightCorner().row);
+    return (this.#n(this.getOuterBottomStartCorner().row) >= this.#n(cellRange.getOuterTopRightCorner().row) &&
+            this.#n(this.getOuterBottomStartCorner().row) <= this.#n(cellRange.getOuterBottomStartCorner().row)) ||
+           (this.#n(this.getOuterTopEndCorner().row) <= this.#n(cellRange.getOuterBottomStartCorner().row) &&
+            this.#n(this.getOuterTopEndCorner().row) >= this.#n(cellRange.getOuterTopRightCorner().row));
   }
 
   /**
@@ -364,29 +376,29 @@ class CellRange {
     const bottomEnd = this.getOuterBottomEndCorner();
 
     if (
-      cellCoords.row < topStart.row || cellCoords.col < topStart.col ||
-      cellCoords.row > bottomEnd.row || cellCoords.col > bottomEnd.col
+      this.#n(cellCoords.row) < this.#n(topStart.row) || this.#n(cellCoords.col) < this.#n(topStart.col) ||
+      this.#n(cellCoords.row) > this.#n(bottomEnd.row) || this.#n(cellCoords.col) > this.#n(bottomEnd.col)
     ) {
       const verticalDirection = this.getVerticalDirection();
       const horizontalDirection = this.getHorizontalDirection();
 
-      this.from = this._createCellCoords(Math.min(topStart.row, cellCoords.row),
-        Math.min(topStart.col, cellCoords.col));
-      this.to = this._createCellCoords(Math.max(bottomEnd.row, cellCoords.row),
-        Math.max(bottomEnd.col, cellCoords.col));
+      this.from = this._createCellCoords(Math.min(this.#n(topStart.row), this.#n(cellCoords.row)),
+        Math.min(this.#n(topStart.col), this.#n(cellCoords.col)));
+      this.to = this._createCellCoords(Math.max(this.#n(bottomEnd.row), this.#n(cellCoords.row)),
+        Math.max(this.#n(bottomEnd.col), this.#n(cellCoords.col)));
 
       if (changeDirection) {
-        if (cellCoords.row < topStart.row && verticalDirection === 'N-S') {
+        if (this.#n(cellCoords.row) < this.#n(topStart.row) && verticalDirection === 'N-S') {
           this.flipDirectionVertically();
 
-        } else if (cellCoords.row > bottomEnd.row && verticalDirection === 'S-N') {
+        } else if (this.#n(cellCoords.row) > this.#n(bottomEnd.row) && verticalDirection === 'S-N') {
           this.flipDirectionVertically();
         }
 
-        if (cellCoords.col < topStart.col && horizontalDirection === 'W-E') {
+        if (this.#n(cellCoords.col) < this.#n(topStart.col) && horizontalDirection === 'W-E') {
           this.flipDirectionHorizontally();
 
-        } else if (cellCoords.col > bottomEnd.col && horizontalDirection === 'E-W') {
+        } else if (this.#n(cellCoords.col) > this.#n(bottomEnd.col) && horizontalDirection === 'E-W') {
           this.flipDirectionHorizontally();
         }
       }
@@ -417,10 +429,10 @@ class CellRange {
     const expandingTopStart = expandingRange.getOuterTopStartCorner();
     const expandingBottomEnd = expandingRange.getOuterBottomEndCorner();
 
-    const resultTopRow = Math.min(topStart.row, expandingTopStart.row);
-    const resultTopCol = Math.min(topStart.col, expandingTopStart.col);
-    const resultBottomRow = Math.max(bottomEnd.row, expandingBottomEnd.row);
-    const resultBottomCol = Math.max(bottomEnd.col, expandingBottomEnd.col);
+    const resultTopRow = Math.min(this.#n(topStart.row), this.#n(expandingTopStart.row));
+    const resultTopCol = Math.min(this.#n(topStart.col), this.#n(expandingTopStart.col));
+    const resultBottomRow = Math.max(this.#n(bottomEnd.row), this.#n(expandingBottomEnd.row));
+    const resultBottomCol = Math.max(this.#n(bottomEnd.col), this.#n(expandingBottomEnd.col));
 
     const finalFrom = this._createCellCoords(resultTopRow, resultTopCol);
     const finalTo = this._createCellCoords(resultBottomRow, resultBottomCol);
@@ -573,8 +585,8 @@ class CellRange {
    * @returns {CellCoords}
    */
   getTopStartCorner(): CellCoords {
-    return this._createCellCoords(Math.min(this.from.row, this.to.row),
-      Math.min(this.from.col, this.to.col)).normalize();
+    return this._createCellCoords(Math.min(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.min(this.#n(this.from.col), this.#n(this.to.col))).normalize();
   }
 
   /**
@@ -599,8 +611,8 @@ class CellRange {
    * @returns {CellCoords}
    */
   getBottomEndCorner(): CellCoords {
-    return this._createCellCoords(Math.max(this.from.row, this.to.row),
-      Math.max(this.from.col, this.to.col)).normalize();
+    return this._createCellCoords(Math.max(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.max(this.#n(this.from.col), this.#n(this.to.col))).normalize();
   }
 
   /**
@@ -625,8 +637,8 @@ class CellRange {
    * @returns {CellCoords}
    */
   getTopEndCorner(): CellCoords {
-    return this._createCellCoords(Math.min(this.from.row, this.to.row),
-      Math.max(this.from.col, this.to.col)).normalize();
+    return this._createCellCoords(Math.min(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.max(this.#n(this.from.col), this.#n(this.to.col))).normalize();
   }
 
   /**
@@ -651,8 +663,8 @@ class CellRange {
    * @returns {CellCoords}
    */
   getBottomStartCorner(): CellCoords {
-    return this._createCellCoords(Math.max(this.from.row, this.to.row),
-      Math.min(this.from.col, this.to.col)).normalize();
+    return this._createCellCoords(Math.max(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.min(this.#n(this.from.col), this.#n(this.to.col))).normalize();
   }
 
   /**
@@ -677,7 +689,9 @@ class CellRange {
    * @returns {CellCoords}
    */
   getOuterTopStartCorner(): CellCoords {
-    return this._createCellCoords(Math.min(this.from.row, this.to.row), Math.min(this.from.col, this.to.col));
+    return this._createCellCoords(
+      Math.min(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.min(this.#n(this.from.col), this.#n(this.to.col)));
   }
 
   /**
@@ -702,7 +716,9 @@ class CellRange {
    * @returns {CellCoords}
    */
   getOuterBottomEndCorner(): CellCoords {
-    return this._createCellCoords(Math.max(this.from.row, this.to.row), Math.max(this.from.col, this.to.col));
+    return this._createCellCoords(
+      Math.max(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.max(this.#n(this.from.col), this.#n(this.to.col)));
   }
 
   /**
@@ -727,7 +743,9 @@ class CellRange {
    * @returns {CellCoords}
    */
   getOuterTopEndCorner(): CellCoords {
-    return this._createCellCoords(Math.min(this.from.row, this.to.row), Math.max(this.from.col, this.to.col));
+    return this._createCellCoords(
+      Math.min(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.max(this.#n(this.from.col), this.#n(this.to.col)));
   }
 
   /**
@@ -752,7 +770,9 @@ class CellRange {
    * @returns {CellCoords}
    */
   getOuterBottomStartCorner(): CellCoords {
-    return this._createCellCoords(Math.max(this.from.row, this.to.row), Math.min(this.from.col, this.to.col));
+    return this._createCellCoords(
+      Math.max(this.#n(this.from.row), this.#n(this.to.row)),
+      Math.min(this.#n(this.from.col), this.#n(this.to.col)));
   }
 
   /**
@@ -822,16 +842,16 @@ class CellRange {
     }
 
     const thisBorders = {
-      top: Math.min(this.from.row, this.to.row),
-      bottom: Math.max(this.from.row, this.to.row),
-      left: Math.min(this.from.col, this.to.col),
-      right: Math.max(this.from.col, this.to.col)
+      top: Math.min(this.#n(this.from.row), this.#n(this.to.row)),
+      bottom: Math.max(this.#n(this.from.row), this.#n(this.to.row)),
+      left: Math.min(this.#n(this.from.col), this.#n(this.to.col)),
+      right: Math.max(this.#n(this.from.col), this.#n(this.to.col))
     };
     const rangeBorders = {
-      top: Math.min(range.from.row, range.to.row),
-      bottom: Math.max(range.from.row, range.to.row),
-      left: Math.min(range.from.col, range.to.col),
-      right: Math.max(range.from.col, range.to.col)
+      top: Math.min(this.#n(range.from.row), this.#n(range.to.row)),
+      bottom: Math.max(this.#n(range.from.row), this.#n(range.to.row)),
+      left: Math.min(this.#n(range.from.col), this.#n(range.to.col)),
+      right: Math.max(this.#n(range.from.col), this.#n(range.to.col))
     };
     const result: Array<'top' | 'right' | 'bottom' | 'left'> = [];
 
@@ -860,9 +880,13 @@ class CellRange {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
     const out: CellCoords[] = [];
+    const tsRow = this.#n(topStart.row);
+    const tsCol = this.#n(topStart.col);
+    const beRow = this.#n(bottomEnd.row);
+    const beCol = this.#n(bottomEnd.col);
 
-    for (let r = topStart.row; r <= bottomEnd.row; r++) {
-      for (let c = topStart.col; c <= bottomEnd.col; c++) {
+    for (let r = tsRow; r <= beRow; r++) {
+      for (let c = tsCol; c <= beCol; c++) {
         if (!(this.from.row === r && this.from.col === c) && !(this.to.row === r && this.to.col === c)) {
           out.push(this._createCellCoords(r, c));
         }
@@ -881,13 +905,17 @@ class CellRange {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
     const out: CellCoords[] = [];
+    const tsRow = this.#n(topStart.row);
+    const tsCol = this.#n(topStart.col);
+    const beRow = this.#n(bottomEnd.row);
+    const beCol = this.#n(bottomEnd.col);
 
-    for (let r = topStart.row; r <= bottomEnd.row; r++) {
-      for (let c = topStart.col; c <= bottomEnd.col; c++) {
-        if (topStart.row === r && topStart.col === c) {
+    for (let r = tsRow; r <= beRow; r++) {
+      for (let c = tsCol; c <= beCol; c++) {
+        if (tsRow === r && tsCol === c) {
           out.push(topStart);
 
-        } else if (bottomEnd.row === r && bottomEnd.col === c) {
+        } else if (beRow === r && beCol === c) {
           out.push(bottomEnd);
 
         } else {
@@ -909,9 +937,13 @@ class CellRange {
   forAll(callback: (row: number, column: number) => boolean | void): void {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
+    const tsRow = this.#n(topStart.row);
+    const tsCol = this.#n(topStart.col);
+    const beRow = this.#n(bottomEnd.row);
+    const beCol = this.#n(bottomEnd.col);
 
-    for (let r = topStart.row; r <= bottomEnd.row; r++) {
-      for (let c = topStart.col; c <= bottomEnd.col; c++) {
+    for (let r = tsRow; r <= beRow; r++) {
+      for (let c = tsCol; c <= beCol; c++) {
         const breakIteration = callback(r, c);
 
         if (breakIteration === false) {
@@ -942,7 +974,7 @@ class CellRange {
    *
    * @returns {{from: {row: number, col: number}, to: {row: number, col: number}}} An object literal with `from` and `to` properties.
    */
-  toObject(): { from: { row: number; col: number }; to: { row: number; col: number } } {
+  toObject(): { from: { row: number | null; col: number | null }; to: { row: number | null; col: number | null } } {
     return {
       from: this.from.toObject(),
       to: this.to.toObject(),
@@ -956,12 +988,23 @@ class CellRange {
    * from your `CellRange` instance.
    *
    * @private
-   * @param {number} row A row index.
-   * @param {number} column A column index.
+   * @param {number | null} row A row index.
+   * @param {number | null} column A column index.
    * @returns {CellCoords}
    */
-  _createCellCoords(row: number, column: number): CellCoords {
-    return new CellCoords(row, column, this.#isRtl);
+  _createCellCoords(row: number | null, column: number | null): CellCoords {
+    return new CellCoords(row ?? undefined, column ?? undefined, this.#isRtl);
+  }
+
+  /**
+   * Returns a numeric coordinate value, treating null as 0.
+   *
+   * @private
+   * @param {number | null} v The coordinate value.
+   * @returns {number}
+   */
+  #n(v: number | null): number {
+    return v ?? 0;
   }
 }
 

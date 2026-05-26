@@ -118,15 +118,15 @@ export class UndoRedo extends BasePlugin {
   registerShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
-    const runOnlyIf = (event: KeyboardEvent) => {
-      return !event.altKey; // right ALT in some systems triggers ALT+CTR
+    const runOnlyIf = (event?: KeyboardEvent): boolean => {
+      return !(event?.altKey); // right ALT in some systems triggers ALT+CTR
     };
     const config = {
       runOnlyIf,
       group: SHORTCUTS_GROUP,
     };
 
-    gridContext.addShortcuts([{
+    gridContext?.addShortcuts([{
       keys: [['Control/Meta', 'z']],
       callback: () => {
         this.undo();
@@ -136,7 +136,7 @@ export class UndoRedo extends BasePlugin {
       callback: () => {
         this.redo();
       },
-    }], config);
+    }], { ...config });
   }
 
   /**
@@ -148,7 +148,7 @@ export class UndoRedo extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
 
-    gridContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    gridContext?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -406,8 +406,8 @@ export class UndoRedo extends BasePlugin {
    */
   destroy() {
     this.clear();
-    this.doneActions = null;
-    this.undoneActions = null;
+    this.doneActions = [];
+    this.undoneActions = [];
     super.destroy();
   }
 }

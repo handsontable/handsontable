@@ -4,12 +4,12 @@ export const command = {
   name: 'extendCellsSelectionLeft',
   callback(hot: HotInstance) {
     const { selection } = hot;
-    const { highlight } = hot.getSelectedRangeActive();
+    const highlight = hot.getSelectedRangeActive()?.highlight;
 
     if (
       !selection.isSelectedByRowHeader() &&
       !selection.isSelectedByCorner() &&
-      (highlight.isCell() || highlight.isHeader() && selection.isSelectedByColumnHeader())
+      (highlight?.isCell() || highlight?.isHeader() && selection.isSelectedByColumnHeader())
     ) {
       selection.markSource('keyboard');
       selection.transformEnd(0, -1 * hot.getDirectionFactor());

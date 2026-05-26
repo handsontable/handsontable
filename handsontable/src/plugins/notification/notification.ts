@@ -470,8 +470,10 @@ export class Notification extends BasePlugin {
     }
 
     const id = `htn-${randomString()}`;
-    const variant = VARIANT_SET.has(raw.variant) ? raw.variant : 'info';
-    const position = POSITION_SET.has(raw.position) ? raw.position : 'bottom-end';
+    const variant: NotificationVariant =
+      (raw.variant && VARIANT_SET.has(raw.variant)) ? raw.variant : 'info';
+    const position: NotificationPosition =
+      (raw.position && POSITION_SET.has(raw.position)) ? raw.position : 'bottom-end';
     const duration = typeof raw.duration === 'number' && raw.duration >= 0 ? raw.duration : 4000;
     const closable = typeof raw.closable === 'boolean' ? raw.closable : true;
     const actions = Array.isArray(raw.actions) ? raw.actions.map((a) => {
@@ -520,8 +522,8 @@ export class Notification extends BasePlugin {
   #mountToast(normalized: NotificationNormalizedOptions): void {
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
     const animation = this.getSetting<boolean>('animation');
-    const { element } = this.#ui.createToastElement(normalized, closeLabel, animation);
-    const stack = this.#ui.getStack(normalized.position);
+    const { element } = this.#ui!.createToastElement(normalized, closeLabel, animation);
+    const stack = this.#ui!.getStack(normalized.position);
 
     if (!stack) {
       throwWithCause(`Unknown notification position "${normalized.position}".`);
@@ -618,7 +620,7 @@ export class Notification extends BasePlugin {
       return;
     }
 
-    const index = Number.parseInt((actionHost as HTMLElement).dataset.htNotificationAction, 10);
+    const index = Number.parseInt((actionHost as HTMLElement).dataset.htNotificationAction ?? '', 10);
     const action = state.options.actions[index];
 
     if (action) {
@@ -740,7 +742,7 @@ export class Notification extends BasePlugin {
     }
 
     this.hot.getFocusScopeManager()
-      .registerScope(PLUGIN_KEY, this.#ui.getHost(), {
+      .registerScope(PLUGIN_KEY, this.#ui!.getHost()!, {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
         runOnlyIf: () => this.#toasts.size > 0,
         enableFocusCatchers: false,
@@ -1200,7 +1202,7 @@ export class Notification extends BasePlugin {
     while (this.#queues[pos].length > 0 && this.#countVisibleAt(position) < limit) {
       const next = this.#queues[pos].shift();
 
-      this.#mountToast(next);
+      this.#mountToast(next!);
     }
   }
 

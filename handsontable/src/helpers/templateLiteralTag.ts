@@ -63,7 +63,9 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]) {
 
     element.removeAttribute('data-ref');
 
-    refs[name] = element as HTMLElement;
+    if (name !== null) {
+      refs[name] = element as HTMLElement;
+    }
   });
 
   return { fragment, refs };

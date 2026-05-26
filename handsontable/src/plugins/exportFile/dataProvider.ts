@@ -350,7 +350,7 @@ class DataProvider {
       return [];
     }
 
-    const mergedCells = mergeCellsPlugin.mergedCellsCollection.mergedCells;
+    const mergedCells = mergeCellsPlugin.mergedCellsCollection!.mergedCells;
     const result: MergeCellDescriptor[] = [];
     const excludeHiddenRows = this.options.exportHiddenRows === false;
     const excludeHiddenCols = this.options.exportHiddenColumns === false;
@@ -640,7 +640,7 @@ class DataProvider {
     }
 
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
-    const allEndpoints = plugin.endpoints.getAllEndpoints();
+    const allEndpoints = plugin.endpoints!.getAllEndpoints();
 
     // First pass: collect all destination data-row indices so we can exclude every
     // summary destination from every formula's source range.  Without this, multiple

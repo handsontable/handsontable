@@ -239,7 +239,7 @@ export class Dialog extends BasePlugin {
    * @type {SelectionState | null}
    */
   #selectionState: {
-    ranges: CellRange[]; activeRange: CellRange; activeSelectionLayer: number;
+    ranges: CellRange[]; activeRange: CellRange | undefined; activeSelectionLayer: number;
     selectedByRowHeader: number[]; selectedByColumnHeader: number[]; disableHeadersHighlight: boolean;
   } | null = null;
 
@@ -346,7 +346,7 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogShow');
     this.update(options);
 
-    this.#ui.showDialog(this.getSetting<boolean>('animation'));
+    this.#ui!.showDialog(this.getSetting<boolean>('animation'));
 
     this.#isVisible = true;
 
@@ -369,13 +369,22 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('beforeDialogHide');
 
-    this.#ui.hideDialog(this.getSetting<boolean>('animation'));
+    this.#ui!.hideDialog(this.getSetting<boolean>('animation'));
     this.#isVisible = false;
 
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
-    if (this.#selectionState && this.#selectionState.ranges.length > 0) {
-      this.hot.selection.importSelection(this.#selectionState);
+    if (this.#selectionState && this.#selectionState.ranges.length > 0 && this.#selectionState.activeRange) {
+      const state = this.#selectionState;
+
+      this.hot.selection.importSelection({
+        ranges: state.ranges,
+        activeRange: state.activeRange!,
+        activeSelectionLayer: state.activeSelectionLayer,
+        selectedByRowHeader: state.selectedByRowHeader,
+        selectedByColumnHeader: state.selectedByColumnHeader,
+        disableHeadersHighlight: state.disableHeadersHighlight,
+      });
       this.hot.view.render();
       this.#selectionState = null;
     } else {
@@ -430,15 +439,15 @@ export class Dialog extends BasePlugin {
     if (templateValue) {
       const template = templateValue as { type: string; [key: string]: unknown };
 
-      this.#ui.useTemplate(template.type, {
+      this.#ui!.useTemplate(template.type, {
         id: this.hot.guid,
         ...template,
       });
     } else {
-      this.#ui.useDefaultTemplate();
+      this.#ui!.useDefaultTemplate();
     }
 
-    this.#ui.updateDialog({
+    this.#ui!.updateDialog({
       isVisible: this.isVisible(),
       content: this.getSetting('content'),
       customClassName: this.getSetting('customClassName'),
@@ -528,7 +537,7 @@ export class Dialog extends BasePlugin {
    * Focus the dialog.
    */
   focus(): void {
-    this.#ui.focusDialog();
+    this.#ui!.focusDialog();
   }
 
   /**
@@ -571,7 +580,7 @@ export class Dialog extends BasePlugin {
     const shortcutManager = this.hot.getShortcutManager();
     const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
 
-    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    pluginContext?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -579,29 +588,29 @@ export class Dialog extends BasePlugin {
    */
   #registerFocusScope() {
     this.hot.getFocusScopeManager()
-      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+      .registerScope(PLUGIN_KEY, this.#ui!.getContainer(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
         type: 'modal',
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource: string) => {
           const isListening = this.hot.isListening();
-          const focusableElements = this.#ui.getFocusableElements();
+          const focusableElements = this.#ui!.getFocusableElements();
 
           if (focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
-              focusableElements.at(0).focus();
+              focusableElements.at(0)?.focus();
 
             } else if (focusSource === 'tab_from_below') {
-              focusableElements.at(-1).focus();
+              focusableElements.at(-1)?.focus();
             }
 
           } else if (
             focusSource !== 'tab_from_above' &&
             focusSource !== 'tab_from_below' &&
             isListening &&
-            !this.#ui.getContainer().contains(this.hot.rootDocument.activeElement)
+            !this.#ui!.getContainer().contains(this.hot.rootDocument.activeElement)
           ) {
-            this.#ui.getContainer().focus();
+            this.#ui!.getContainer().focus();
           }
 
           if (isListening) {
@@ -627,7 +636,7 @@ export class Dialog extends BasePlugin {
     const width = view.isHorizontallyScrollableByWindow()
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-    this.#ui.updateWidth(width);
+    this.#ui!.updateWidth(width);
 
     const dialogInfo = rootWrapperElement.querySelector('.hot-display-license-info');
 
@@ -635,7 +644,7 @@ export class Dialog extends BasePlugin {
       const height = (dialogInfo as HTMLElement).offsetHeight;
       const marginTop = Number.parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
 
-      this.#ui.updateHeight(height + marginTop);
+      this.#ui!.updateHeight(height + marginTop);
     }
   }
 

@@ -4,10 +4,14 @@ export const command = {
   name: 'populateSelectedCellsData',
   callback(hot: HotInstance) {
     const selectedRange = hot.getSelectedRange();
-    const {
-      row: highlightRow,
-      col: highlightColumn,
-    } = selectedRange[selectedRange.length - 1].highlight.normalize();
+
+    if (!selectedRange) {
+      return;
+    }
+
+    const normalizedHighlight = selectedRange[selectedRange.length - 1].highlight.normalize();
+    const highlightRow = normalizedHighlight.row ?? 0;
+    const highlightColumn = normalizedHighlight.col ?? 0;
     const valueToPopulate = hot.getDataAtCell(highlightRow, highlightColumn);
     const cellValues = new Map();
 

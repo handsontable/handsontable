@@ -754,7 +754,9 @@ export class CustomBorders extends BasePlugin {
   checkCustomSelectionsFromContextMenu(border: Record<string, unknown>, place: string, remove: boolean | undefined) {
     let check = false;
 
-    arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
+    const customSelections = this.hot.selection.highlight.customSelections as unknown as Selection[];
+
+    arrayEach(customSelections, (customSelection: Selection) => {
       if (border.id === customSelection.settings.id) {
         const borders: Border[] = this.hot.view._wt.selectionManager
           .getBorderInstances(customSelection) as Border[];
@@ -800,7 +802,7 @@ export class CustomBorders extends BasePlugin {
 
           if (place && isBorderSide(place)) {
             const borders: Border[] = this.hot.view._wt.selectionManager
-              .getBorderInstances(customSelection) as Border[];
+              .getBorderInstances(customSelection as unknown as Selection) as Border[];
 
             arrayEach(borders, (borderObject: Border) => {
               borderObject.changeBorderStyle(place, border);

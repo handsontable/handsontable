@@ -61,7 +61,7 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
   function after(TD: HTMLTableCellElement, row: number, col: number) {
     const mergedCell = plugin.mergedCellsCollection.get(row, col);
 
-    if (!isObject(mergedCell)) {
+    if (mergedCell === null || !isObject(mergedCell)) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
 
@@ -106,8 +106,8 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
       }
     }
 
-    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
-    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
+    const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row) ?? 0;
+    const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col) ?? 0;
 
     const maxRowSpan = lastMergedRowIndex - renderedRowIndex + 1; // Number of rendered columns.
     const maxColSpan = lastMergedColumnIndex - renderedColumnIndex + 1; // Number of rendered columns.

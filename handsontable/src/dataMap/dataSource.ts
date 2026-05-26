@@ -27,7 +27,7 @@ class DataSource {
    *
    * @type {Array}
    */
-  declare data: (Record<string, unknown> | unknown[])[];
+  declare data: (Record<string, unknown> | unknown[])[] | null;
   /**
    * Type of data source.
    *
@@ -59,7 +59,7 @@ class DataSource {
       modifyRowData = this.hot!.runHooks('modifyRowData', rowIndex);
     }
 
-    return (modifyRowData !== undefined && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data[rowIndex];
+    return (modifyRowData !== undefined && !Number.isInteger(modifyRowData)) ? modifyRowData : this.data![rowIndex];
   }
 
   /**
@@ -82,8 +82,8 @@ class DataSource {
     }
 
     if (!toArray
-        && !this.hot.hasHook('modifySourceData')
-        && !this.hot.hasHook('modifyRowData')) {
+        && !this.hot!.hasHook('modifySourceData')
+        && !this.hot!.hasHook('modifyRowData')) {
       return this.data.map(cloneRow);
     }
 
@@ -108,7 +108,7 @@ class DataSource {
   getAtColumn(column: number) {
     const result: unknown[] = [];
 
-    arrayEach(this.data, (row: unknown, rowIndex: number) => {
+    arrayEach(this.data!, (row: unknown, rowIndex: number) => {
       const value = this.getAtCell(rowIndex, column);
 
       result.push(value);
@@ -171,7 +171,9 @@ class DataSource {
               (newDataRow as unknown as unknown[]).push(cellValue);
 
             } else if (dataDotNotation) {
-              setProperty(newDataRow, prop as string, cellValue);
+              if (newDataRow !== null) {
+                setProperty(newDataRow as Record<string, unknown>, prop as string, cellValue);
+              }
 
             } else {
               newDataRow![prop as string] = cellValue;
@@ -184,7 +186,9 @@ class DataSource {
           const cellValue = this.getAtPhysicalCell(row, prop, dataRow);
 
           if (dataDotNotation) {
-            setProperty(newDataRow, prop, cellValue);
+            if (newDataRow !== null) {
+              setProperty(newDataRow as Record<string, unknown>, prop, cellValue);
+            }
           } else {
             newDataRow![prop] = cellValue;
           }
@@ -387,7 +391,7 @@ class DataSource {
       }
     }
 
-    return this.data.length;
+    return this.data!.length;
   }
 
   /**
@@ -396,7 +400,7 @@ class DataSource {
    * @returns {number}
    */
   countFirstRowKeys() {
-    return countFirstRowKeys(this.data);
+    return countFirstRowKeys(this.data ?? []);
   }
 
   /**

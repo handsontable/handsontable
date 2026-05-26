@@ -36,23 +36,26 @@ export function mouseDown({
 
   sel.markSource('mouse');
 
+  const coordsRow = coords.row ?? -1;
+  const coordsCol = coords.col ?? -1;
+
   if (isShiftKey && currentSelection) {
-    if (coords.row >= 0 && coords.col >= 0 && !controller.cell) {
+    if (coordsRow >= 0 && coordsCol >= 0 && !controller.cell) {
       sel.setRangeEnd(coords);
 
-    } else if (selectedCorner && coords.row < 0 && !controller.column) {
-      sel.setRangeEnd(cellCoordsFactory(currentSelection.to.row, coords.col));
+    } else if (selectedCorner && coordsRow < 0 && !controller.column) {
+      sel.setRangeEnd(cellCoordsFactory(currentSelection.to.row ?? 0, coordsCol));
 
-    } else if (selectedRow && coords.col < 0 && !controller.row) {
-      sel.setRangeEnd(cellCoordsFactory(coords.row, currentSelection.to.col));
+    } else if (selectedRow && coordsCol < 0 && !controller.row) {
+      sel.setRangeEnd(cellCoordsFactory(coordsRow, currentSelection.to.col ?? 0));
 
-    } else if (((!selectedCorner && !selectedRow && coords.col < 0) ||
-               (selectedCorner && coords.col < 0)) && !controller.row) {
-      sel.selectRows(Math.max(currentSelection.from.row, 0), coords.row, coords.col);
+    } else if (((!selectedCorner && !selectedRow && coordsCol < 0) ||
+               (selectedCorner && coordsCol < 0)) && !controller.row) {
+      sel.selectRows(Math.max(currentSelection.from.row ?? 0, 0), coordsRow, coordsCol);
 
-    } else if (((!selectedCorner && !selectedRow && coords.row < 0) ||
-               (selectedRow && coords.row < 0)) && !controller.column) {
-      sel.selectColumns(Math.max(currentSelection.from.col, 0), coords.col, coords.row);
+    } else if (((!selectedCorner && !selectedRow && coordsRow < 0) ||
+               (selectedRow && coordsRow < 0)) && !controller.column) {
+      sel.selectColumns(Math.max(currentSelection.from.col ?? 0, 0), coordsCol, coordsRow);
     }
 
   } else {
@@ -60,22 +63,22 @@ export function mouseDown({
     const performSelection = isLeftClick || (isRightClick && allowRightClickSelection);
 
     // clicked row header and when some column was selected
-    if (coords.row < 0 && coords.col >= 0 && !controller.column) {
+    if (coordsRow < 0 && coordsCol >= 0 && !controller.column) {
       if (performSelection) {
-        sel.selectColumns(coords.col, coords.col, coords.row);
+        sel.selectColumns(coordsCol, coordsCol, coordsRow);
       }
 
     // clicked column header and when some row was selected
-    } else if (coords.col < 0 && coords.row >= 0 && !controller.row) {
+    } else if (coordsCol < 0 && coordsRow >= 0 && !controller.row) {
       if (performSelection) {
-        sel.selectRows(coords.row, coords.row, coords.col);
+        sel.selectRows(coordsRow, coordsRow, coordsCol);
       }
 
-    } else if (coords.col >= 0 && coords.row >= 0 && !controller.cell) {
+    } else if (coordsCol >= 0 && coordsRow >= 0 && !controller.cell) {
       if (performSelection) {
         sel.setRangeStart(coords);
       }
-    } else if (coords.col < 0 && coords.row < 0) {
+    } else if (coordsCol < 0 && coordsRow < 0) {
       sel.selectAll(true, true, {
         disableHeadersHighlight: true,
         focusPosition: { row: 0, col: 0 },
@@ -119,10 +122,10 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   sel.markSource('mouse');
 
   if (selectedColumn && !controller.column) {
-    sel.setRangeEnd(cellCoordsFactory(countRows - 1, coords.col));
+    sel.setRangeEnd(cellCoordsFactory(countRows - 1, coords.col ?? 0));
 
   } else if (selectedRow && !controller.row) {
-    sel.setRangeEnd(cellCoordsFactory(coords.row, countCols - 1));
+    sel.setRangeEnd(cellCoordsFactory(coords.row ?? 0, countCols - 1));
 
   } else if (!controller.cell) {
     sel.setRangeEnd(coords);
@@ -160,6 +163,7 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
   const lastRenderableRange = renderableRange.current();
 
   if (
+    lastRenderableRange &&
     renderableRange.size() > 1 &&
     !lastRenderableRange.isHeader() &&
     !sel.isMultiple(lastRenderableRange)

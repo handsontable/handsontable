@@ -86,7 +86,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
   resetFixedPosition() {
     this.updateTrimmingContainer();
 
-    if (!(this.wot.wtTable.holder.parentNode as HTMLElement)) {
+    if (!(this.wot.wtTable.holder.parentNode as HTMLElement) || !this.clone) {
       // removed from DOM
       return false;
     }

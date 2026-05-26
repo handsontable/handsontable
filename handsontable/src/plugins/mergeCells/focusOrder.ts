@@ -41,15 +41,16 @@ export class FocusOrder {
   /**
    * The merged cells getter function.
    */
-  #mergedCellsGetter: Function | null = null;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  #mergedCellsGetter!: Function;
   /**
    * The row index mapper.
    */
-  #rowIndexMapper: IndexMapper | null = null;
+  #rowIndexMapper!: IndexMapper;
   /**
    * The column index mapper.
    */
-  #columnIndexMapper: IndexMapper | null = null;
+  #columnIndexMapper!: IndexMapper;
 
   constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }: {
     mergedCellsGetter: Function, rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper
@@ -65,7 +66,7 @@ export class FocusOrder {
    * @returns {NodeStructure}
    */
   getCurrentVerticalNode() {
-    return this.#currentVerticalLinkedNode.data;
+    return this.#currentVerticalLinkedNode?.data;
   }
 
   /**
@@ -74,7 +75,7 @@ export class FocusOrder {
    * @returns {NodeStructure}
    */
   getFirstVerticalNode() {
-    return this.#cellsVerticalOrder.first.data;
+    return this.#cellsVerticalOrder.first?.data;
   }
 
   /**
@@ -83,7 +84,7 @@ export class FocusOrder {
    * @returns {FocusNodeData}
    */
   getNextVerticalNode(): FocusNodeData {
-    return this.#currentVerticalLinkedNode.next.data as FocusNodeData;
+    return this.#currentVerticalLinkedNode?.next?.data as FocusNodeData;
   }
 
   /**
@@ -92,7 +93,7 @@ export class FocusOrder {
    * @returns {FocusNodeData}
    */
   getPrevVerticalNode(): FocusNodeData {
-    return this.#currentVerticalLinkedNode.prev.data as FocusNodeData;
+    return this.#currentVerticalLinkedNode?.prev?.data as FocusNodeData;
   }
 
   /**
@@ -101,7 +102,7 @@ export class FocusOrder {
    * @returns {NodeStructure}
    */
   getCurrentHorizontalNode() {
-    return this.#currentHorizontalLinkedNode.data;
+    return this.#currentHorizontalLinkedNode?.data;
   }
 
   /**
@@ -110,7 +111,7 @@ export class FocusOrder {
    * @returns {NodeStructure}
    */
   getFirstHorizontalNode() {
-    return this.#cellsHorizontalOrder.first.data;
+    return this.#cellsHorizontalOrder.first?.data;
   }
 
   /**
@@ -119,7 +120,7 @@ export class FocusOrder {
    * @returns {FocusNodeData}
    */
   getNextHorizontalNode(): FocusNodeData {
-    return this.#currentHorizontalLinkedNode.next.data as FocusNodeData;
+    return this.#currentHorizontalLinkedNode?.next?.data as FocusNodeData;
   }
 
   /**
@@ -128,23 +129,33 @@ export class FocusOrder {
    * @returns {FocusNodeData}
    */
   getPrevHorizontalNode(): FocusNodeData {
-    return this.#currentHorizontalLinkedNode.prev.data as FocusNodeData;
+    return this.#currentHorizontalLinkedNode?.prev?.data as FocusNodeData;
   }
 
   /**
    * Sets the previous node from the vertical focus order list as active.
    */
   setPrevNodeAsActive() {
-    this.#currentVerticalLinkedNode = this.#currentVerticalLinkedNode.prev;
-    this.#currentHorizontalLinkedNode = this.#currentHorizontalLinkedNode.prev;
+    if (this.#currentVerticalLinkedNode) {
+      this.#currentVerticalLinkedNode = this.#currentVerticalLinkedNode.prev;
+    }
+
+    if (this.#currentHorizontalLinkedNode) {
+      this.#currentHorizontalLinkedNode = this.#currentHorizontalLinkedNode.prev;
+    }
   }
 
   /**
    * Sets the previous node from the horizontal focus order list as active.
    */
   setNextNodeAsActive() {
-    this.#currentVerticalLinkedNode = this.#currentVerticalLinkedNode.next;
-    this.#currentHorizontalLinkedNode = this.#currentHorizontalLinkedNode.next;
+    if (this.#currentVerticalLinkedNode) {
+      this.#currentVerticalLinkedNode = this.#currentVerticalLinkedNode.next;
+    }
+
+    if (this.#currentHorizontalLinkedNode) {
+      this.#currentHorizontalLinkedNode = this.#currentHorizontalLinkedNode.next;
+    }
   }
 
   /**
@@ -159,15 +170,19 @@ export class FocusOrder {
       const visitedHorizontalCells = new WeakSet();
       const topStart = range.getTopStartCorner();
       const bottomEnd = range.getBottomEndCorner();
+      const rowFrom = topStart.row ?? 0;
+      const rowTo = bottomEnd.row ?? 0;
+      const colFrom = topStart.col ?? 0;
+      const colTo = bottomEnd.col ?? 0;
 
-      for (let r = topStart.row; r <= bottomEnd.row; r++) {
-        if (this.#rowIndexMapper!.isHidden(r)) {
+      for (let r = rowFrom; r <= rowTo; r++) {
+        if (this.#rowIndexMapper.isHidden(r)) {
           // eslint-disable-next-line no-continue
           continue;
         }
 
-        for (let c = topStart.col; c <= bottomEnd.col; c++) {
-          if (this.#columnIndexMapper!.isHidden(c)) {
+        for (let c = colFrom; c <= colTo; c++) {
+          if (this.#columnIndexMapper.isHidden(c)) {
             // eslint-disable-next-line no-continue
             continue;
           }
@@ -189,7 +204,7 @@ export class FocusOrder {
     });
 
     // create circular linked list
-    if (this.#cellsHorizontalOrder.first) {
+    if (this.#cellsHorizontalOrder.first && this.#cellsHorizontalOrder.last) {
       this.#cellsHorizontalOrder.first.prev = this.#cellsHorizontalOrder.last;
       this.#cellsHorizontalOrder.last.next = this.#cellsHorizontalOrder.first;
     }
@@ -200,15 +215,19 @@ export class FocusOrder {
       const visitedVerticalCells = new WeakSet();
       const topStart = range.getTopStartCorner();
       const bottomEnd = range.getBottomEndCorner();
+      const rowFrom = topStart.row ?? 0;
+      const rowTo = bottomEnd.row ?? 0;
+      const colFrom = topStart.col ?? 0;
+      const colTo = bottomEnd.col ?? 0;
 
-      for (let c = topStart.col; c <= bottomEnd.col; c++) {
-        if (this.#columnIndexMapper!.isHidden(c)) {
+      for (let c = colFrom; c <= colTo; c++) {
+        if (this.#columnIndexMapper.isHidden(c)) {
           // eslint-disable-next-line no-continue
           continue;
         }
 
-        for (let r = topStart.row; r <= bottomEnd.row; r++) {
-          if (this.#rowIndexMapper!.isHidden(r)) {
+        for (let r = rowFrom; r <= rowTo; r++) {
+          if (this.#rowIndexMapper.isHidden(r)) {
             // eslint-disable-next-line no-continue
             continue;
           }
@@ -230,7 +249,7 @@ export class FocusOrder {
     });
 
     // create circular linked list
-    if (this.#cellsVerticalOrder.first) {
+    if (this.#cellsVerticalOrder.first && this.#cellsVerticalOrder.last) {
       this.#cellsVerticalOrder.first.prev = this.#cellsVerticalOrder.last;
       this.#cellsVerticalOrder.last.next = this.#cellsVerticalOrder.first;
     }
@@ -254,7 +273,13 @@ export class FocusOrder {
   }) {
     const topStart = selectedRange.getTopStartCorner();
     const bottomEnd = selectedRange.getBottomEndCorner();
+    const topStartRow = topStart.row ?? 0;
+    const topStartCol = topStart.col ?? 0;
+    const bottomEndRow = bottomEnd.row ?? 0;
+    const bottomEndCol = bottomEnd.col ?? 0;
     const highlight = selectedRange.highlight.clone().normalize();
+    const highlightRow = highlight.row ?? 0;
+    const highlightCol = highlight.col ?? 0;
     const mergeParent = this.#mergedCellsGetter(row, column);
 
     if (mergeParent && mergeCellsVisitor.has(mergeParent)) {
@@ -273,10 +298,10 @@ export class FocusOrder {
       mergeCellsVisitor.add(mergeParent);
 
       if (
-        mergeParent.row < topStart.row ||
-        mergeParent.row + mergeParent.rowspan - 1 > bottomEnd.row ||
-        mergeParent.col < topStart.col ||
-        mergeParent.col + mergeParent.colspan - 1 > bottomEnd.col
+        mergeParent.row < topStartRow ||
+        mergeParent.row + mergeParent.rowspan - 1 > bottomEndRow ||
+        mergeParent.col < topStartCol ||
+        mergeParent.col + mergeParent.colspan - 1 > bottomEndCol
       ) {
         return null;
       }
@@ -290,10 +315,10 @@ export class FocusOrder {
     const linkedNode = listOrder.push(node);
 
     if (
-      row === highlight.row && column === highlight.col ||
+      row === highlightRow && column === highlightCol ||
       mergeParent &&
-      (highlight.row >= mergeParent.row && highlight.row <= mergeParent.row + mergeParent.rowspan - 1 &&
-      highlight.col >= mergeParent.col && highlight.col <= mergeParent.col + mergeParent.colspan - 1)
+      (highlightRow >= mergeParent.row && highlightRow <= mergeParent.row + mergeParent.rowspan - 1 &&
+      highlightCol >= mergeParent.col && highlightCol <= mergeParent.col + mergeParent.colspan - 1)
     ) {
       return linkedNode;
     }

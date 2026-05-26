@@ -77,10 +77,14 @@ class VisualSelection extends Selection {
     }
 
     // Check if the coords have crossed each other after finding nearest not hidden indexes
-    const rowCrossed = (rowDirection === 1 && visibleFromCoords.row > visibleToCoords.row) ||
-                       (rowDirection === -1 && visibleFromCoords.row < visibleToCoords.row);
-    const colCrossed = (columnDirection === 1 && visibleFromCoords.col > visibleToCoords.col) ||
-                       (columnDirection === -1 && visibleFromCoords.col < visibleToCoords.col);
+    const fromRow = visibleFromCoords.row ?? 0;
+    const toRow = visibleToCoords.row ?? 0;
+    const fromCol = visibleFromCoords.col ?? 0;
+    const toCol = visibleToCoords.col ?? 0;
+    const rowCrossed = (rowDirection === 1 && fromRow > toRow) ||
+                       (rowDirection === -1 && fromRow < toRow);
+    const colCrossed = (columnDirection === 1 && fromCol > toCol) ||
+                       (columnDirection === -1 && fromCol < toCol);
 
     if (rowCrossed || colCrossed) {
       return null;
@@ -102,6 +106,10 @@ class VisualSelection extends Selection {
    */
   getNearestNotHiddenCoords(
     coords: CellCoords, rowSearchDirection: 1 | -1, columnSearchDirection: 1 | -1 = rowSearchDirection) {
+    if (coords.row === null || coords.col === null) {
+      return null;
+    }
+
     const nextVisibleRow = this.getNearestNotHiddenIndex(
       this.settings.rowIndexMapper, coords.row, rowSearchDirection);
 
@@ -178,7 +186,9 @@ class VisualSelection extends Selection {
     const coordsFrom = broaderCellRange.from.clone().normalize();
     const rowDirection = broaderCellRange.getVerticalDirection() === 'N-S' ? 1 : -1;
     const columnDirection = broaderCellRange.getHorizontalDirection() === 'W-E' ? 1 : -1;
-    const renderableHighlight = this.settings.visualToRenderableCoords(this.visualCellRange.highlight);
+    const renderableHighlight = this.visualCellRange
+      ? this.settings.visualToRenderableCoords(this.visualCellRange.highlight)
+      : null;
     let cellCoordsVisual: CellCoords | null = null;
 
     if (renderableHighlight === null || renderableHighlight.col === null || renderableHighlight.row === null) {
@@ -188,10 +198,10 @@ class VisualSelection extends Selection {
     if (cellCoordsVisual !== null && broaderCellRange.includes(cellCoordsVisual)) {
       const currentHighlight = broaderCellRange.highlight.clone();
 
-      if (currentHighlight.row >= 0) {
+      if ((currentHighlight.row ?? -1) >= 0) {
         currentHighlight.row = cellCoordsVisual.row;
       }
-      if (currentHighlight.col >= 0) {
+      if ((currentHighlight.col ?? -1) >= 0) {
         currentHighlight.col = cellCoordsVisual.col;
       }
 
@@ -210,7 +220,8 @@ class VisualSelection extends Selection {
 
     // TODO
     // Sync the highlight coords from the visual selection layer with logical coords.
-    if (this.settings.selectionType === 'focus' && renderableHighlight !== null && cellCoordsVisual === null) {
+    if (this.settings.selectionType === 'focus' && renderableHighlight !== null &&
+        cellCoordsVisual === null && this.visualCellRange !== null) {
       broaderCellRange.setHighlight(this.visualCellRange.highlight);
     }
 
@@ -225,14 +236,14 @@ class VisualSelection extends Selection {
    *
    * @returns {Array} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
-  getCorners() {
+  getCorners(): [number, number, number, number] {
     const { from, to } = this.cellRange as CellRange;
 
     return [
-      Math.min(from.row, to.row),
-      Math.min(from.col, to.col),
-      Math.max(from.row, to.row),
-      Math.max(from.col, to.col),
+      Math.min(from.row ?? 0, to.row ?? 0),
+      Math.min(from.col ?? 0, to.col ?? 0),
+      Math.max(from.row ?? 0, to.row ?? 0),
+      Math.max(from.col ?? 0, to.col ?? 0),
     ];
   }
 

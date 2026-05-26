@@ -230,7 +230,7 @@ export class HiddenColumns extends BasePlugin {
     }
 
     this.#hiddenColumnsMap = new HidingMap();
-    this.#hiddenColumnsMap.addLocalHook('init', () => this.#onMapInit());
+    this.#hiddenColumnsMap!.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName ?? '', this.#hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
@@ -274,7 +274,7 @@ export class HiddenColumns extends BasePlugin {
     const currentHideConfig = this.getHiddenColumns();
     const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
-    const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
+    const hidingMapValues = this.#hiddenColumnsMap!.getValues().slice();
     const isAnyColumnShowed = columns.length > 0;
 
     if (isValidConfig && isAnyColumnShowed) {
@@ -303,7 +303,7 @@ export class HiddenColumns extends BasePlugin {
     }
 
     if (isValidConfig && isAnyColumnShowed) {
-      this.#hiddenColumnsMap.setValues(hidingMapValues);
+      this.#hiddenColumnsMap!.setValues(hidingMapValues);
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins
@@ -346,7 +346,7 @@ export class HiddenColumns extends BasePlugin {
     if (isConfigValid) {
       this.hot.batchExecution(() => {
         arrayEach(columns, (visualColumn) => {
-          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
+          this.#hiddenColumnsMap!.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
       }, true);
     }
@@ -370,7 +370,7 @@ export class HiddenColumns extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenColumns(): number[] {
-    return arrayMap(this.#hiddenColumnsMap.getHiddenIndexes(), (physicalColumnIndex) => {
+    return arrayMap(this.#hiddenColumnsMap!.getHiddenIndexes(), (physicalColumnIndex) => {
       return this.hot.toVisualColumn(physicalColumnIndex)!;
     });
   }
@@ -382,7 +382,7 @@ export class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(column: number): boolean {
-    return this.#hiddenColumnsMap.getValueAtIndex<boolean>(this.hot.toPhysicalColumn(column)) || false;
+    return this.#hiddenColumnsMap!.getValueAtIndex<boolean>(this.hot.toPhysicalColumn(column)) || false;
   }
 
   /**

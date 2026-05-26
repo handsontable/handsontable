@@ -26,8 +26,8 @@ export function normalizeCoordsIfNeeded(hot: HotInstance) {
       return null;
     }
 
-    coords.row = clamp(coords.row, mostTopStartCoords.row, mostBottomEndCoords.row);
-    coords.col = clamp(coords.col, mostTopStartCoords.col, mostBottomEndCoords.col);
+    coords.row = clamp(coords.row, mostTopStartCoords.row ?? coords.row, mostBottomEndCoords.row ?? coords.row);
+    coords.col = clamp(coords.col, mostTopStartCoords.col ?? coords.col, mostBottomEndCoords.col ?? coords.col);
 
     return coords;
   };
@@ -42,16 +42,16 @@ export function normalizeCoordsIfNeeded(hot: HotInstance) {
 export function getMostTopStartPosition(hot: HotInstance) {
   const { rowIndexMapper, columnIndexMapper } = hot;
   const { navigableHeaders } = hot.getSettings();
-  let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
-  let startColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
+  const initialTopRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
+  const initialStartColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
 
-  if (topRow === 0) {
-    topRow = rowIndexMapper.getVisualFromRenderableIndex(topRow);
-  }
+  const topRow = initialTopRow === 0
+    ? rowIndexMapper.getVisualFromRenderableIndex(initialTopRow)
+    : initialTopRow;
 
-  if (startColumn === 0) {
-    startColumn = columnIndexMapper.getVisualFromRenderableIndex(startColumn);
-  }
+  const startColumn = initialStartColumn === 0
+    ? columnIndexMapper.getVisualFromRenderableIndex(initialStartColumn)
+    : initialStartColumn;
 
   if (topRow === null || startColumn === null) {
     return null;

@@ -47,7 +47,7 @@ class Table {
    * @protected
    * @type {Settings}
    */
-  wtSettings: Settings = null;
+  declare wtSettings: Settings;
   domBindings;
   TBODY: HTMLTableSectionElement | null = null;
   THEAD: HTMLTableSectionElement | null = null;
@@ -152,9 +152,9 @@ class Table {
     removeTextNodes(this.TABLE);
 
     // TODO refactoring, to recognize the legitimacy of moving them into domBidings
-    this.spreader = this.createSpreader(this.TABLE);
-    this.hider = this.createHider(this.spreader);
-    this.holder = this.createHolder(this.hider);
+    this.spreader = this.createSpreader(this.TABLE)!;
+    this.hider = this.createHider(this.spreader)!;
+    this.holder = this.createHolder(this.hider)!;
     // parentNode is always an HTMLElement in production; null only when TABLE is detached (e.g. Jasmine tests).
     this.wtRootElement = this.holder.parentNode as HTMLElement;
 
@@ -177,9 +177,9 @@ class Table {
 
     this.tableRenderer = new Renderer({ // TODO refactoring, It can be passed through IOC.
       TABLE: this.TABLE,
-      THEAD: this.THEAD,
-      COLGROUP: this.COLGROUP,
-      TBODY: this.TBODY,
+      THEAD: this.THEAD ?? undefined,
+      COLGROUP: this.COLGROUP ?? undefined,
+      TBODY: this.TBODY ?? undefined,
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
       cellRenderer: this.wtSettings.getSettingPure<Function>('cellRenderer'),
@@ -230,7 +230,7 @@ class Table {
    */
   createSpreader(table: HTMLTableElement) {
     const parent = table.parentNode;
-    let spreader;
+    let spreader: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
         !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
@@ -244,12 +244,14 @@ class Table {
       spreader.appendChild(table);
     }
 
-    spreader.style.position = 'relative';
+    if (spreader) {
+      spreader.style.position = 'relative';
 
-    if (this.wtSettings.getSetting('ariaTags')) {
-      setAttribute(spreader, [
-        A11Y_PRESENTATION()
-      ]);
+      if (this.wtSettings.getSetting('ariaTags')) {
+        setAttribute(spreader, [
+          A11Y_PRESENTATION()
+        ]);
+      }
     }
 
     return spreader;
@@ -261,7 +263,7 @@ class Table {
    */
   createHider(spreader: HTMLElement) {
     const parent = spreader.parentNode;
-    let hider;
+    let hider: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
         !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
@@ -275,7 +277,7 @@ class Table {
       hider.appendChild(spreader);
     }
 
-    if (this.wtSettings.getSetting('ariaTags')) {
+    if (hider && this.wtSettings.getSetting('ariaTags')) {
       setAttribute(hider, [
         A11Y_PRESENTATION()
       ]);
@@ -327,7 +329,7 @@ class Table {
       holder.appendChild(hider);
     }
 
-    if (this.wtSettings.getSetting('ariaTags')) {
+    if (holder && this.wtSettings.getSetting('ariaTags')) {
       setAttribute(holder, [
         A11Y_PRESENTATION()
       ]);
@@ -497,7 +499,7 @@ class Table {
    * @param {number} col The visual column index.
    */
   markIfOversizedColumnHeader(col: number) {
-    const sourceColIndex = this.columnFilter.renderedToSource(col);
+    const sourceColIndex = this.columnFilter!.renderedToSource(col);
     let level = this.wtSettings.getSetting<Function[]>('columnHeaders').length;
     const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     let previousColHeaderHeight;
@@ -536,7 +538,7 @@ class Table {
         ? (columnHeaderHeightSetting[level] ?? 0)
         : columnHeaderHeightSetting;
 
-      if (this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] < headerHeightAtLevel) {
+      if ((this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] ?? 0) < headerHeightAtLevel) {
         this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = headerHeightAtLevel;
       }
     }
@@ -547,7 +549,7 @@ class Table {
    */
   adjustColumnHeaderHeights() {
     const { wtSettings } = this;
-    const children = this.THEAD.childNodes;
+    const children = this.THEAD!.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
     const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
 
@@ -574,7 +576,7 @@ class Table {
    */
   syncOversizedColumnHeadersWithDOM() {
     const { wtSettings } = this;
-    const children = this.THEAD.childNodes;
+    const children = this.THEAD!.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
     const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
     const borderCompensation = 1;
@@ -587,7 +589,7 @@ class Table {
       const child = children[i];
       const actualRowHeight = child instanceof HTMLElement ? innerHeight(child) : 0;
 
-      if (actualRowHeight > oversizedColumnHeaders[i] + borderCompensation) {
+      if (actualRowHeight > (oversizedColumnHeaders[i] ?? 0) + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;
       }
     }
@@ -610,7 +612,7 @@ class Table {
 
       // Reset the oversized row cache for rendered rows
       for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-        const sourceRow = this.rowFilter.renderedToSource(visibleRowIndex);
+        const sourceRow = this.rowFilter!.renderedToSource(visibleRowIndex);
 
         if (wtViewport.oversizedRows && wtViewport.oversizedRows[sourceRow]) {
           wtViewport.oversizedRows[sourceRow] = undefined;
@@ -638,7 +640,11 @@ class Table {
    *  -3 column before viewport
    *  -4 column after viewport.
    */
-  getCell(coords: { row: number; col: number }) {
+  getCell(coords: { row: number | null; col: number | null }) {
+    if (coords.row === null || coords.col === null) {
+      return -5;
+    }
+
     let row = coords.row;
     let column = coords.col;
     const hookResult = this.wtSettings
@@ -672,7 +678,7 @@ class Table {
     }
 
     const trElement = TR !== false ? TR : null;
-    const TD = trElement?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
+    const TD = trElement?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(column)];
 
     if (!TD && column >= 0) {
       throwWithCause('TD or TH was expected to be rendered but is not');
@@ -704,7 +710,7 @@ class Table {
       parentElement = this.TBODY;
     }
 
-    if (renderedRowIndex !== undefined && parentElement !== undefined) {
+    if (renderedRowIndex !== undefined && renderedRowIndex !== null && parentElement !== null) {
       if (parentElement.childNodes.length < renderedRowIndex + 1) {
         return false;
 
@@ -724,8 +730,8 @@ class Table {
    * @returns {object} HTMLElement on success or undefined on error.
    */
   getColumnHeader(col: number, level = 0): HTMLElement | undefined {
-    const TR = this.THEAD.childNodes[level];
-    const TH = TR?.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(col)];
+    const TR = this.THEAD!.childNodes[level];
+    const TH = TR?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(col)];
 
     return TH instanceof HTMLElement ? TH : undefined;
   }
@@ -738,9 +744,9 @@ class Table {
    */
   getColumnHeaders(column: number) {
     const THs: HTMLTableCellElement[] = [];
-    const visibleColumn = this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column);
+    const visibleColumn = this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(column);
 
-    this.THEAD.childNodes.forEach((TR: ChildNode) => {
+    this.THEAD!.childNodes.forEach((TR: ChildNode) => {
       const TH = TR.childNodes[visibleColumn];
 
       if (TH instanceof HTMLTableCellElement) {
@@ -766,10 +772,10 @@ class Table {
       return undefined;
     }
 
-    const renderedRow = this.rowFilter.sourceToRendered(row);
-    const visibleRow = renderedRow < 0 ? this.rowFilter.sourceRowToVisibleColHeadedRow(row) : renderedRow;
+    const renderedRow = this.rowFilter!.sourceToRendered(row);
+    const visibleRow = renderedRow < 0 ? this.rowFilter!.sourceRowToVisibleColHeadedRow(row) : renderedRow;
     const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
-    const TR = parentElement.childNodes[visibleRow];
+    const TR = parentElement?.childNodes[visibleRow];
     const TH = TR?.childNodes[level];
 
     return TH instanceof HTMLElement ? TH : undefined;
@@ -786,7 +792,7 @@ class Table {
     const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
 
     for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
-      const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
+      const TR = this.TBODY!.childNodes[this.rowFilter!.sourceToRendered(row)];
       const TH = TR?.childNodes[renderedRowIndex];
 
       if (TH) {
@@ -821,7 +827,12 @@ class Table {
       return null;
     }
 
-    const CONTAINER = TR.parentNode;
+    const CONTAINER = TR.parentNode as (Node & ParentNode) | null;
+
+    if (!CONTAINER) {
+      return null;
+    }
+
     let row = TR instanceof Element ? index(TR) : 0;
     let col = cellElement instanceof HTMLTableCellElement ? cellElement.cellIndex : 0;
 
@@ -838,19 +849,19 @@ class Table {
       row = totalRows - CONTAINER.childNodes.length + row;
 
     } else if (CONTAINER === this.THEAD) {
-      row = this.rowFilter.visibleColHeadedRowToSourceRow(row);
+      row = this.rowFilter!.visibleColHeadedRowToSourceRow(row);
 
     } else if (this.rowFilter) {
-      row = this.rowFilter.renderedToSource(row);
+      row = this.rowFilter!.renderedToSource(row);
     }
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_INLINE_START, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
-      col = this.columnFilter.offsettedTH(col);
+      col = this.columnFilter!.offsettedTH(col);
 
     } else if (this.columnFilter) {
-      col = this.columnFilter.visibleRowHeadedColumnToSourceColumn(col);
+      col = this.columnFilter!.visibleRowHeadedColumnToSourceColumn(col);
     }
 
     const hookResult = this.wtSettings
@@ -870,10 +881,10 @@ class Table {
     if (this.wtSettings.getSetting('externalRowCalculator')) {
       return;
     }
-    let rowCount = this.TBODY.childNodes.length;
+    let rowCount = this.TBODY!.childNodes.length;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
-    const actualTableHeight = innerHeight(this.TBODY) - 1;
+    const actualTableHeight = innerHeight(this.TBODY!) - 1;
     const borderBoxSizing = stylesHandler.areCellsBorderBox();
     const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
     const borderCompensation = borderBoxSizing ? 0 : 1;
@@ -894,7 +905,7 @@ class Table {
 
     while (rowCount) {
       rowCount -= 1;
-      sourceRowIndex = this.rowFilter.renderedToSource(rowCount);
+      sourceRowIndex = this.rowFilter!.renderedToSource(rowCount);
       previousRowHeight = this.getRowHeight(sourceRowIndex);
       currentTr = this.getTrForRow(sourceRowIndex);
       rowHeader = currentTr.querySelector('th');
@@ -915,7 +926,7 @@ class Table {
       if (
         !previousRowHeight &&
         stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
-        previousRowHeight < rowCurrentHeight
+        (previousRowHeight ?? 0) < rowCurrentHeight
       ) {
         if (!borderBoxSizing) {
           rowCurrentHeight += 1;
@@ -936,7 +947,7 @@ class Table {
    * @returns {HTMLTableRowElement}
    */
   getTrForRow(row: number): HTMLTableRowElement {
-    return this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)] as HTMLTableRowElement;
+    return this.TBODY!.childNodes[this.rowFilter!.sourceToRendered(row)] as HTMLTableRowElement;
   }
 
   /**
@@ -1138,7 +1149,7 @@ class Table {
   }
 
   isColumnBeforeViewport(column: number) {
-    return this.columnFilter && (this.columnFilter.sourceToRendered(column) < 0 && column >= 0);
+    return this.columnFilter && (this.columnFilter!.sourceToRendered(column) < 0 && column >= 0);
   }
 
   isLastRowFullyVisible() {

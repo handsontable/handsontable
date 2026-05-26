@@ -50,7 +50,7 @@ class MasterTable extends Table {
       const overflowValues = ['auto', 'hidden', 'scroll', 'clip'];
       // getStyle() may return a compound value (e.g. 'auto hidden') when overflow-x and
       // overflow-y are set independently. Split on whitespace so each token is checked.
-      const hasScrollOverflow = trimmingOverflow.split(' ').some(v => overflowValues.includes(v));
+      const hasScrollOverflow = (trimmingOverflow ?? '').split(' ').some(v => overflowValues.includes(v));
       let useAutoHeight = (trimmingHeight === 'auto');
 
       if (trimmingElementParent && hasScrollOverflow) {

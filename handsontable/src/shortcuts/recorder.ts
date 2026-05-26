@@ -6,7 +6,7 @@ import { isMacOS } from '../helpers/browser';
 import { isFunction } from '../helpers/function';
 
 const modifierKeysObserver = createKeysObserver();
-const modKeyListeners: Array<{event: string; listener: (event: KeyboardEvent) => void}> = [];
+const modKeyListeners: Array<{event: 'keydown' | 'keyup'; listener: (event: KeyboardEvent) => void}> = [];
 let instanceCounter = 0;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -187,9 +187,13 @@ export function useRecorder(
     while (eventTarget) {
       if (instanceCounter === 0) {
         for (let i = 0; i < modKeyListeners.length; i++) {
-          const { event, listener } = modKeyListeners[i];
+          const { event: eventType, listener } = modKeyListeners[i];
 
-          eventTarget.document.documentElement.removeEventListener(event, listener);
+          if (eventType === 'keydown') {
+            eventTarget.document.documentElement.removeEventListener('keydown', listener);
+          } else {
+            eventTarget.document.documentElement.removeEventListener('keyup', listener);
+          }
         }
 
         modKeyListeners.length = 0;

@@ -96,6 +96,10 @@ export class MultipleSelectionHandles extends BasePlugin {
       if (hasClass(target, 'topSelectionHandle-HitArea')) {
         selectedRange = _this.hot.getSelectedRangeActive();
 
+        if (!selectedRange) {
+          return false;
+        }
+
         _this.dragged.push('top');
 
         _this.touchStartRange = {
@@ -110,6 +114,10 @@ export class MultipleSelectionHandles extends BasePlugin {
 
       } else if (hasClass(target, 'bottomSelectionHandle-HitArea')) {
         selectedRange = _this.hot.getSelectedRangeActive();
+
+        if (!selectedRange) {
+          return false;
+        }
 
         _this.dragged.push('bottom');
 
@@ -171,11 +179,20 @@ export class MultipleSelectionHandles extends BasePlugin {
       if (endTarget.nodeName === 'TD' || endTarget.nodeName === 'TH') {
         targetCoords = _this.hot.getCoords(endTarget as HTMLElement);
 
+        if (!targetCoords) {
+          return;
+        }
+
         if (targetCoords.col === -1) {
           targetCoords.col = 0;
         }
 
         selectedRange = _this.hot.getSelectedRangeActive();
+
+        if (!selectedRange) {
+          return;
+        }
+
         rangeWidth = selectedRange.getWidth();
         rangeHeight = selectedRange.getHeight();
         rangeDirection = selectedRange.getDirection();
@@ -227,21 +244,21 @@ export class MultipleSelectionHandles extends BasePlugin {
           case 'NW-SE':
             if (draggedHandle === 'top') {
               newCoords = {
-                start: this.hot._createCellCoords(currentTouch.row, selectedRange.highlight.col),
-                end: this.hot._createCellCoords(bottomStartCorner.row, currentTouch.col)
+                start: this.hot._createCellCoords(currentTouch.row ?? 0, selectedRange.highlight.col ?? 0),
+                end: this.hot._createCellCoords(bottomStartCorner.row ?? 0, currentTouch.col ?? 0)
               };
             } else {
               newCoords = {
-                start: this.hot._createCellCoords(selectedRange.highlight.row, currentTouch.col),
-                end: this.hot._createCellCoords(currentTouch.row, topStartCorner.col)
+                start: this.hot._createCellCoords(selectedRange.highlight.row ?? 0, currentTouch.col ?? 0),
+                end: this.hot._createCellCoords(currentTouch.row ?? 0, topStartCorner.col ?? 0)
               };
             }
             break;
           case 'SE-NW':
             if (draggedHandle === 'bottom') {
               newCoords = {
-                start: this.hot._createCellCoords(bottomEndCorner.row, currentTouch.col),
-                end: this.hot._createCellCoords(currentTouch.row, topStartCorner.col)
+                start: this.hot._createCellCoords(bottomEndCorner.row ?? 0, currentTouch.col ?? 0),
+                end: this.hot._createCellCoords(currentTouch.row ?? 0, topStartCorner.col ?? 0)
               };
             }
             break;
@@ -300,13 +317,13 @@ export class MultipleSelectionHandles extends BasePlugin {
           case 'NW-SE':
             if (draggedHandle === 'bottom') {
               newCoords = {
-                start: this.hot._createCellCoords(currentTouch.row, topStartCorner.col),
-                end: this.hot._createCellCoords(bottomStartCorner.row, currentTouch.col)
+                start: this.hot._createCellCoords(currentTouch.row ?? 0, topStartCorner.col ?? 0),
+                end: this.hot._createCellCoords(bottomStartCorner.row ?? 0, currentTouch.col ?? 0)
               };
             } else {
               newCoords = {
-                start: this.hot._createCellCoords(topStartCorner.row, currentTouch.col),
-                end: this.hot._createCellCoords(currentTouch.row, bottomEndCorner.col)
+                start: this.hot._createCellCoords(topStartCorner.row ?? 0, currentTouch.col ?? 0),
+                end: this.hot._createCellCoords(currentTouch.row ?? 0, bottomEndCorner.col ?? 0)
               };
             }
             break;
@@ -316,21 +333,21 @@ export class MultipleSelectionHandles extends BasePlugin {
           case 'SW-NE':
             if (draggedHandle === 'top') {
               newCoords = {
-                start: this.hot._createCellCoords(selectedRange.highlight.row, currentTouch.col),
-                end: this.hot._createCellCoords(currentTouch.row, bottomEndCorner.col)
+                start: this.hot._createCellCoords(selectedRange.highlight.row ?? 0, currentTouch.col ?? 0),
+                end: this.hot._createCellCoords(currentTouch.row ?? 0, bottomEndCorner.col ?? 0)
               };
             } else {
               newCoords = {
-                start: this.hot._createCellCoords(currentTouch.row, topStartCorner.col),
-                end: this.hot._createCellCoords(topStartCorner.row, currentTouch.col)
+                start: this.hot._createCellCoords(currentTouch.row ?? 0, topStartCorner.col ?? 0),
+                end: this.hot._createCellCoords(topStartCorner.row ?? 0, currentTouch.col ?? 0)
               };
             }
             break;
           case 'SE-NW':
             if (draggedHandle === 'bottom') {
               newCoords = {
-                start: this.hot._createCellCoords(currentTouch.row, topEndCorner.col),
-                end: this.hot._createCellCoords(topStartCorner.row, currentTouch.col)
+                start: this.hot._createCellCoords(currentTouch.row ?? 0, topEndCorner.col ?? 0),
+                end: this.hot._createCellCoords(topStartCorner.row ?? 0, currentTouch.col ?? 0)
               };
             } else if (draggedHandle === 'top') {
               newCoords = {

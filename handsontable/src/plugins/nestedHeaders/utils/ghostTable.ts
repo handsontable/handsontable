@@ -100,6 +100,14 @@ class GhostTable {
       : null;
 
     const renderedTable = this.container.querySelector('[data-ghost-table="rendered"]');
+
+    if (!renderedTable) {
+      this.container.remove();
+      this.container = null;
+
+      return;
+    }
+
     const allColumns = renderedTable.querySelectorAll('th[data-column]');
 
     // Build a map of visual column → last TH element with colspan=1. When rowspan is
@@ -135,7 +143,7 @@ class GhostTable {
 
       let width;
 
-      if (hasCollapsedGroups && collapsedPhysicalColumns.has(physicalColumnIndex)) {
+      if (hasCollapsedGroups && fullWidthByPhysical && collapsedPhysicalColumns.has(physicalColumnIndex)) {
         const fullWidth = fullWidthByPhysical.get(physicalColumnIndex);
 
         if (fullWidth !== undefined) {
@@ -160,7 +168,12 @@ class GhostTable {
    * @returns {Map<number, number>} Map of physical column index to width.
    */
   #measureFullTable() {
-    const fullTable = this.container.querySelector('[data-ghost-table="full"]');
+    const fullTable = this.container?.querySelector('[data-ghost-table="full"]');
+
+    if (!fullTable) {
+      return new Map();
+    }
+
     const fullColumns = fullTable.querySelectorAll('tr:last-of-type th');
     const fullWidthByPhysical = new Map();
 
@@ -305,7 +318,7 @@ class GhostTable {
           !headerSettings.isPlaceholder && !headerSettings.isHidden &&
           !headerSettings.isRowspanPlaceholder
         ) {
-          const rowspanAttr = headerSettings.rowspan > 1
+          const rowspanAttr = (headerSettings.rowspan ?? 0) > 1
             ? ` rowspan="${headerSettings.rowspan}"`
             : '';
 

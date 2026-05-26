@@ -49,12 +49,12 @@ class ContextMenuUI extends BaseUI {
     row_above: (key: string, selection: ContextMenuSelection[]) => {
       const lastSelection = selection[selection.length - 1];
 
-      this.dataManager.addSibling(lastSelection.start.row, 'above');
+      this.dataManager!.addSibling(lastSelection.start.row, 'above');
     },
     row_below: (key: string, selection: ContextMenuSelection[]) => {
       const lastSelection = selection[selection.length - 1];
 
-      this.dataManager.addSibling(lastSelection.start.row, 'below');
+      this.dataManager!.addSibling(lastSelection.start.row, 'below');
     }
   };
 
@@ -74,16 +74,17 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD);
         },
         callback: () => {
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedActive()[0]);
-          const parent = this.dataManager.getDataObject(translatedRowIndex);
+          const selectedActive = this.hot.getSelectedActive();
+          const translatedRowIndex = this.dataManager!.translateTrimmedRow(selectedActive?.[0] ?? 0);
+          const parent = this.dataManager!.getDataObject(translatedRowIndex);
 
-          this.dataManager.addChild(parent);
+          this.dataManager!.addChild(parent);
         },
         disabled: () => {
           const selected = this.hot.getSelectedActive();
 
-          return !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() ||
-            this.hot.countRows() >= this.hot.getSettings().maxRows;
+          return !selected || (selected[0] ?? 0) < 0 || this.hot.selection.isSelectedByColumnHeader() ||
+            this.hot.countRows() >= (this.hot.getSettings().maxRows ?? Infinity);
         }
       },
       {
@@ -92,15 +93,15 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
         },
         callback: () => {
-          this.dataManager.detachFromParent(this.hot.getSelectedActive());
+          this.dataManager!.detachFromParent(this.hot.getSelectedActive() ?? []);
         },
         disabled: () => {
           const selected = this.hot.getSelectedActive();
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
-          const parent = this.dataManager.getRowParent(translatedRowIndex);
+          const translatedRowIndex = this.dataManager!.translateTrimmedRow(selected?.[0] ?? 0);
+          const parent = this.dataManager!.getRowParent(translatedRowIndex);
 
-          return !parent || !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() ||
-            this.hot.countRows() >= this.hot.getSettings().maxRows;
+          return !parent || !selected || (selected[0] ?? 0) < 0 || this.hot.selection.isSelectedByColumnHeader() ||
+            this.hot.countRows() >= (this.hot.getSettings().maxRows ?? Infinity);
         }
       },
       {

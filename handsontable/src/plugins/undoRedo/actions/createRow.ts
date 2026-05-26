@@ -40,8 +40,8 @@ export class CreateRowAction extends BaseAction {
     const rowCount = hot.countRows();
     const minSpareRows = hot.getSettings().minSpareRows;
 
-    if (this.index >= rowCount && this.index - minSpareRows < rowCount) {
-      this.index -= minSpareRows; // work around the situation where the needed row was removed due to an 'undo' of a made change
+    if (this.index >= rowCount && this.index - (minSpareRows ?? 0) < rowCount) {
+      this.index -= (minSpareRows ?? 0); // work around the situation where the needed row was removed due to an 'undo' of a made change
     }
 
     hot.addHookOnce('afterRemoveRow', undoneCallback);

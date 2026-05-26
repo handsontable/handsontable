@@ -586,7 +586,7 @@ export class AutoColumnSize extends BasePlugin {
       }
     }
 
-    return width;
+    return width ?? 0;
   }
 
   /**
@@ -725,7 +725,7 @@ export class AutoColumnSize extends BasePlugin {
     if (isDblClick) {
       this.calculateColumnsWidth(column, undefined, true);
 
-      newSize = this.getColumnWidth(column, undefined, false);
+      newSize = this.getColumnWidth(column, undefined, false) ?? newSize;
     }
 
     return newSize;

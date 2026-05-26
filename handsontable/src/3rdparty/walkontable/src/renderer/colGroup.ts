@@ -31,8 +31,8 @@ export class ColGroupRenderer extends BaseRenderer {
 
     this.orderView = new OrderView(
       rootNode,
-      (sourceColumnIndex: number) => this.nodesPool.obtain(sourceColumnIndex),
-      this.nodeType,
+      (sourceColumnIndex?: number) => this.nodesPool!.obtain(sourceColumnIndex ?? 0) as HTMLElement,
+      this.nodeType!,
     );
   }
 
@@ -59,6 +59,10 @@ export class ColGroupRenderer extends BaseRenderer {
       this.orderView.render();
 
       const COL = this.orderView.getCurrentNode();
+
+      if (!COL) {
+        continue; // eslint-disable-line no-continue
+      }
 
       if (visibleColumnIndex < rowHeadersCount) {
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);

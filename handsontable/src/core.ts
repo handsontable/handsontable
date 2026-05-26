@@ -438,7 +438,7 @@ export default function Core(
     colWidths: unknown;
     rowHeights: unknown;
     width: unknown;
-    themeName: string;
+    themeName: string | undefined;
     isEmptyRow: Function;
     isEmptyCol: Function;
   };
@@ -571,7 +571,7 @@ export default function Core(
 
       return instance.getCellMeta(visualRow, visualColumn).disableVisualSelection;
     }
-  }) as SelectionTableProps);
+  }) as unknown as SelectionTableProps);
 
   this.selection = selection;
 
@@ -844,7 +844,7 @@ export default function Core(
               const spliceArray = [instance.toVisualColumn(startColumnPhysicalIndex), 0];
 
               spliceArray.length += colDelta; // inserts empty (undefined) elements at the end of an array
-              Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray); // inserts empty (undefined) elements into the colHeader array
+              Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
             }
 
             selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex), colDelta);
@@ -900,13 +900,13 @@ export default function Core(
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeRow') {
-                const selectionRange = selection.getSelectedRange();
-                const lastSelection = selectionRange.pop();
+                const selectionRange = selection.getSelectedRange()!;
+                const lastSelection = selectionRange.pop()!;
 
                 selectionRange
                   .clear()
                   .set(lastSelection.from)
-                  .current()
+                  .current()!
                   .setTo(lastSelection.to);
 
                 selection.refresh();
@@ -922,7 +922,7 @@ export default function Core(
           if (Array.isArray(index)) {
             removeRow(normalizeIndexesGroup(index));
           } else {
-            removeRow([[index, amount]]);
+            removeRow([[(index ?? 0) as number, amount]]);
           }
           break;
 
@@ -965,13 +965,13 @@ export default function Core(
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeColumn') {
-                const selectionRange = selection.getSelectedRange();
-                const lastSelection = selectionRange.pop();
+                const selectionRange = selection.getSelectedRange()!;
+                const lastSelection = selectionRange.pop()!;
 
                 selectionRange
                   .clear()
                   .set(lastSelection.from)
-                  .current()
+                  .current()!
                   .setTo(lastSelection.to);
 
                 selection.refresh();
@@ -1000,7 +1000,7 @@ export default function Core(
           if (Array.isArray(index)) {
             removeCol(normalizeIndexesGroup(index));
           } else {
-            removeCol([[index, amount]]);
+            removeCol([[(index ?? 0) as number, amount]]);
           }
           break;
         default:
@@ -1117,8 +1117,8 @@ export default function Core(
       let rowsPopulationEnd = 0;
 
       if (isObject(end)) {
-        columnsPopulationEnd = end.col - startColumn + 1;
-        rowsPopulationEnd = end.row - startRow + 1;
+        columnsPopulationEnd = end!.col! - startColumn! + 1;
+        rowsPopulationEnd = end!.row! - startRow! + 1;
       }
 
       // insert data with specified pasteMode method
@@ -1133,7 +1133,7 @@ export default function Core(
 
           // translate data from a list of rows to a list of columns
           const pushedDownDataByColumns: unknown[][] = (pivot(pushedDownDataByRows) as unknown[][])
-            .slice(startColumn, startColumn + numberOfColumnsToPopulate);
+            .slice(startColumn!, startColumn! + numberOfColumnsToPopulate);
 
           for (c = 0; c < numberOfColumnsToPopulate; c += 1) {
             if (c < numberOfDataColumns) {
@@ -1167,7 +1167,7 @@ export default function Core(
           // method's argument can extend the range of data population (data would be repeated)
           const numberOfRowsToPopulate = Math.max(numberOfDataRows, rowsPopulationEnd);
           const pushedRightDataByRows = instance.getData().slice(startRow)
-            .map((rowData: Array<unknown>) => rowData.slice(startColumn));
+            .map((rowData: Array<unknown>) => rowData.slice(startColumn!));
 
           for (r = 0; r < numberOfRowsToPopulate; r += 1) {
             if (r < numberOfDataRows) {
@@ -1200,8 +1200,8 @@ export default function Core(
         case 'overwrite':
         default:
           // overwrite and other not specified options
-          current.row = start.row;
-          current.col = start.col;
+          current.row = start.row!;
+          current.col = start.col!;
 
           let skippedRow = 0;
           let skippedColumn = 0;
@@ -1219,7 +1219,7 @@ export default function Core(
             return rowValue;
           };
           const rowInputLength = input.length;
-          const rowSelectionLength = end ? end.row - start.row + 1 : 0;
+          const rowSelectionLength = end ? end.row! - start.row! + 1 : 0;
 
           if (end) {
             rlen = rowSelectionLength;
@@ -1227,7 +1227,7 @@ export default function Core(
             rlen = Math.max(rowInputLength, rowSelectionLength);
           }
           for (r = 0; r < rlen; r++) {
-            if ((end && current.row > end.row && rowSelectionLength > rowInputLength) ||
+            if ((end && current.row > end.row! && rowSelectionLength > rowInputLength) ||
                 (!tableMeta.allowInsertRow && current.row > instance.countRows() - 1) ||
                 (current.row >= tableMeta.maxRows)) {
               break;
@@ -1235,14 +1235,14 @@ export default function Core(
             const visualRow = r - skippedRow;
             const sourceRow = isAutofillSource ? r : visualRow;
             const colInputLength = (getInputValue(sourceRow) as unknown[]).length;
-            const colSelectionLength = end ? end.col - start.col + 1 : 0;
+            const colSelectionLength = end ? end.col! - start.col! + 1 : 0;
 
             if (end) {
               clen = colSelectionLength;
             } else {
               clen = Math.max(colInputLength, colSelectionLength);
             }
-            current.col = start.col;
+            current.col = start.col!;
             cellMeta = instance.getCellMeta(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
@@ -1260,7 +1260,7 @@ export default function Core(
             skippedColumn = 0;
 
             for (c = 0; c < clen; c++) {
-              if ((end && current.col > end.col && colSelectionLength > colInputLength) ||
+              if ((end && current.col > end.col! && colSelectionLength > colInputLength) ||
                   (!tableMeta.allowInsertColumn && current.col > instance.countCols() - 1) ||
                   (current.col >= tableMeta.maxCols)) {
                 break;
@@ -1390,7 +1390,9 @@ export default function Core(
     const element = className === 'className' ? instance.rootElement : instance.table;
 
     if (firstRun) {
-      addClass(element, classSettings);
+      if (classSettings !== undefined) {
+        addClass(element, classSettings);
+      }
 
     } else {
       let globalMetaSettingsArray: string[] = [];
@@ -1495,7 +1497,7 @@ export default function Core(
         themeObject = registerTheme(mainTheme);
       }
 
-      themeObject = getTheme('main');
+      themeObject = getTheme('main')!;
     } else if (typeof theme.getThemeConfig !== 'function') {
       themeObject = registerTheme(theme as Parameters<typeof registerTheme>[0]);
     } else {
@@ -1547,7 +1549,7 @@ export default function Core(
       return false;
     }
 
-    return hasChangeForCell(changes, activeEditor.row, activeEditor.prop);
+    return hasChangeForCell(changes, activeEditor.row!, activeEditor.prop!);
   }
 
   /**
@@ -1556,7 +1558,7 @@ export default function Core(
    * @param {string} source The string that identifies source of validation.
    * @param {Function} callback The callback function fot async validation.
    */
-  function validateChanges(changes: CellChange[], source: string, callback: Function) {
+  function validateChanges(changes: CellChange[], source: string | undefined, callback: Function) {
     if (!changes.length) {
       callback();
 
@@ -1660,7 +1662,7 @@ export default function Core(
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
-  function applyChanges(changes: CellChange[], source: string) {
+  function applyChanges(changes: CellChange[], source: string | undefined) {
     for (let i = changes.length - 1; i >= 0; i--) {
       let skipThisChange = false;
 
@@ -1738,7 +1740,7 @@ export default function Core(
 
       if (
         activeEditor &&
-        isDefined(activeEditor.refreshValue) &&
+        activeEditor.refreshValue !== undefined &&
         (!activeEditor.isOpened() || isOpenedEditorAffectedByChanges)
       ) {
         activeEditor.refreshValue();
@@ -1900,7 +1902,7 @@ export default function Core(
    * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
    * @returns {Array} List of changes finally applied to the dataset.
    */
-  function processChanges(changes: Array<CellChange | null>, source: string): CellChange[] {
+  function processChanges(changes: Array<CellChange | null>, source: string | undefined): CellChange[] {
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
     // The `beforeChange` hook could add a `null` for purpose of cancelling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
@@ -2308,10 +2310,10 @@ export default function Core(
 
       const topStart = cellRange.getTopStartCorner();
       const bottomEnd = cellRange.getBottomEndCorner();
-      const fromRow = Math.max(topStart.row, 0);
-      const toRow = Math.min(bottomEnd.row, this.countRows() - 1);
-      const fromColumn = Math.max(topStart.col, 0);
-      const toColumn = Math.min(bottomEnd.col, this.countCols() - 1);
+      const fromRow = Math.max(topStart.row!, 0);
+      const toRow = Math.min(bottomEnd.row!, this.countRows() - 1);
+      const fromColumn = Math.max(topStart.col!, 0);
+      const toColumn = Math.min(bottomEnd.col!, this.countCols() - 1);
 
       if (fromRow > toRow || fromColumn > toColumn) {
         return;
@@ -3057,7 +3059,7 @@ export default function Core(
         instance.themeManager = null;
         tableMeta.theme = settings.themeName;
         tableMeta.themeName = undefined;
-        instance.useTheme(settings.themeName);
+        instance.useTheme(settings.themeName!);
 
       // Initialize or update the themeManager when theme is an object.
       } else if (
@@ -3148,8 +3150,8 @@ export default function Core(
     }
 
     if (isDefined(settings.cell)) {
-      objectEach(settings.cell, (cell: Record<string, unknown>) => {
-        instance.setCellMetaObject(cell.row, cell.col, cell);
+      (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
+        instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
       });
     }
 
@@ -3847,7 +3849,7 @@ export default function Core(
 
         return isTypeEqual;
       });
-      type = isTypeEqual ? currentType : 'mixed';
+      type = isTypeEqual ? (currentType ?? 'mixed') : 'mixed';
 
       return isTypeEqual;
     });
@@ -5130,38 +5132,38 @@ export default function Core(
     }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
-      const isValidRowGrid = Number.isInteger(row) && row >= 0;
-      const isValidColumnGrid = Number.isInteger(col) && col >= 0;
+      const isValidRowGrid = row !== undefined && Number.isInteger(row) && row >= 0;
+      const isValidColumnGrid = col !== undefined && Number.isInteger(col) && col >= 0;
 
-      const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row) : undefined;
-      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col) : undefined;
+      const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row!) : undefined;
+      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col!) : undefined;
 
       if (visualRowToScroll === null || visualColumnToScroll === null) {
         return false;
       }
 
       renderableRow = isValidRowGrid ?
-        instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll) : row;
+        (instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll!) ?? undefined) : row;
       renderableColumn = isValidColumnGrid ?
-        instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll) : col;
+        (instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll!) ?? undefined) : col;
     }
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
     let isScrolled = false;
 
-    if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
+    if (isRowInteger && renderableRow! >= 0 && isColumnInteger && renderableColumn! >= 0) {
       isScrolled = instance.view.scrollViewport(
-        instance._createCellCoords(renderableRow, renderableColumn),
+        instance._createCellCoords(renderableRow!, renderableColumn!),
         options.horizontalSnap,
         options.verticalSnap,
       );
 
-    } else if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      isScrolled = instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+    } else if (isRowInteger && renderableRow! >= 0 && (isColumnInteger && renderableColumn! < 0 || !isColumnInteger)) {
+      isScrolled = instance.view.scrollViewportVertically(renderableRow!, options.verticalSnap);
 
-    } else if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
+    } else if (isColumnInteger && renderableColumn! >= 0 && (isRowInteger && renderableRow! < 0 || !isRowInteger)) {
+      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn!, options.horizontalSnap);
     }
 
     if (isFunction(callback)) {
@@ -5229,7 +5231,7 @@ export default function Core(
       dataSource.destroy();
     }
 
-    dataSource = null;
+    dataSource = null!;
 
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
@@ -5294,10 +5296,10 @@ export default function Core(
       datamap.destroy();
     }
 
-    datamap = null;
-    grid = null;
-    selection = null;
-    editorManager = null;
+    datamap = null!;
+    grid = null!;
+    selection = null!;
+    editorManager = null!;
     instance = null;
   };
 

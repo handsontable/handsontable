@@ -55,7 +55,7 @@ class Event {
   /**
    * @type {boolean}
    */
-  #selectedCellBeforeTouchEnd: CellRange | null;
+  #selectedCellBeforeTouchEnd: CellRange | null = null;
   /**
    * @type {number[]}
    */
@@ -232,12 +232,18 @@ class Event {
       cell.TD = TD as HTMLTableCellElement;
 
     } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'current')) {
-      cell.coords = this.#selectionManager.getFocusSelection().cellRange.highlight;
-      cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
+      const focusCellRange = this.#selectionManager.getFocusSelection()?.cellRange;
+
+      if (focusCellRange) {
+        cell.coords = focusCellRange.highlight;
+        cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
+      }
 
     } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'area')) {
-      if (this.#selectionManager.getAreaSelection().cellRange) {
-        cell.coords = this.#selectionManager.getAreaSelection().cellRange.to;
+      const areaCellRange = this.#selectionManager.getAreaSelection()?.cellRange;
+
+      if (areaCellRange) {
+        cell.coords = areaCellRange.to;
         cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
       }
     }
@@ -253,12 +259,13 @@ class Event {
    */
   onMouseDown(event: MouseEvent | TouchEvent) {
     const activeElement = this.#domBindings.rootDocument.activeElement;
-    const getParentNode = partial(getParent, eventTargetEl(event)!);
+    const targetEl = eventTargetEl(event)!;
+    const getParentNode = (level: number) => getParent(targetEl, level);
     const realTarget = eventTargetEl(event);
 
     // ignore non-TD focusable elements from mouse down processing
     // (https://github.com/handsontable/handsontable/issues/3555)
-    if (!['TD', 'TH'].includes(activeElement.nodeName) &&
+    if (activeElement && !['TD', 'TH'].includes(activeElement.nodeName) &&
       (
         realTarget === activeElement ||
         getParentNode(0) === activeElement ||
@@ -286,7 +293,9 @@ class Event {
     if (((event as MouseEvent).button === 0 || this.touchApplied) && cell.TD) {
       this.#dblClickOrigin[0] = cell.TD;
 
-      clearTimeout(this.#dblClickTimeout[0]);
+      if (this.#dblClickTimeout[0] !== null) {
+        clearTimeout(this.#dblClickTimeout[0]);
+      }
 
       this.#dblClickTimeout[0] = setTimeout(() => {
         this.#dblClickOrigin[0] = null;
@@ -330,7 +339,11 @@ class Event {
     if (td && td !== parent.lastMouseOver && isChildOf(td, table)) {
       parent.lastMouseOver = td;
 
-      this.callListener('onCellMouseOver', event, this.#wtTable.getCoords(td), td);
+      const tdCoords = this.#wtTable.getCoords(td);
+
+      if (tdCoords) {
+        this.callListener('onCellMouseOver', event, tdCoords, td);
+      }
     }
   }
 
@@ -531,7 +544,11 @@ class Event {
     const parent = this.#parent || this;
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-      this.callListener('onCellMouseOut', event, this.#wtTable.getCoords(lastTD), lastTD);
+      const lastTDCoords = this.#wtTable.getCoords(lastTD);
+
+      if (lastTDCoords) {
+        this.callListener('onCellMouseOut', event, lastTDCoords, lastTD);
+      }
 
       if (nextTD === null) {
         parent.lastMouseOver = null;
@@ -573,7 +590,9 @@ class Event {
     } else if (cell.TD && cell.TD === this.#dblClickOrigin[0]) {
       this.#dblClickOrigin[1] = cell.TD;
 
-      clearTimeout(this.#dblClickTimeout[1]);
+      if (this.#dblClickTimeout[1] !== null) {
+        clearTimeout(this.#dblClickTimeout[1]);
+      }
 
       this.#dblClickTimeout[1] = setTimeout(() => {
         this.#dblClickOrigin[1] = null;
@@ -590,7 +609,7 @@ class Event {
    * @param {TouchEvent} event The touch event object.
    */
   onTouchStart(event: TouchEvent) {
-    this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection().cellRange;
+    this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection()?.cellRange ?? null;
     this.touchApplied = true;
     this.#touchWasMoved = false;
     this.#longPressFired = false;
@@ -615,13 +634,14 @@ class Event {
     this.#cancelLongPressTimer();
     this.#deferredTouchStartEvent = null;
 
-    if (isTap) {
+    if (isTap && deferredTouchStartEvent !== null) {
       this.onMouseDown(deferredTouchStartEvent);
     }
 
     const target = eventTargetEl(event);
     const parentCellCoords = this.parentCell(target)?.coords;
-    const isCellsRange = isDefined(parentCellCoords) && (parentCellCoords.row >= 0 && parentCellCoords.col >= 0);
+    const isCellsRange = parentCellCoords !== null && parentCellCoords !== undefined &&
+      ((parentCellCoords.row ?? -1) >= 0 && (parentCellCoords.col ?? -1) >= 0);
     const isEventCancelable = event.cancelable && isCellsRange && this.#wtSettings.getSetting('isDataViewInstance');
 
     // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
@@ -695,10 +715,20 @@ class Event {
 
       this.#dblClickOrigin[0] = null;
       this.#dblClickOrigin[1] = null;
-      clearTimeout(this.#dblClickTimeout[0]);
-      clearTimeout(this.#dblClickTimeout[1]);
+
+      if (this.#dblClickTimeout[0] !== null) {
+        clearTimeout(this.#dblClickTimeout[0]);
+      }
+      if (this.#dblClickTimeout[1] !== null) {
+        clearTimeout(this.#dblClickTimeout[1]);
+      }
 
       const target = event.target;
+
+      if (!target) {
+        return;
+      }
+
       const contextMenuEvent = new MouseEvent('contextmenu', {
         bubbles: true,
         cancelable: true,
@@ -811,8 +841,12 @@ class Event {
    * Clears double-click timeouts and destroys the internal eventManager instance.
    */
   destroy() {
-    clearTimeout(this.#dblClickTimeout[0]);
-    clearTimeout(this.#dblClickTimeout[1]);
+    if (this.#dblClickTimeout[0] !== null) {
+      clearTimeout(this.#dblClickTimeout[0]);
+    }
+    if (this.#dblClickTimeout[1] !== null) {
+      clearTimeout(this.#dblClickTimeout[1]);
+    }
     this.#cancelLongPressTimer();
 
     if (this.momentumScrolling) {

@@ -82,6 +82,11 @@ class MergedCellsCollection {
   getByRange(range: CellRange) {
     const { row: rowStart, col: columnStart } = range.getTopStartCorner();
     const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+
+    if (rowStart === null || rowEnd === null || columnStart === null || columnEnd === null) {
+      return false;
+    }
+
     const mergedCellsLength = this.mergedCells.length;
     let result: MergedCellCoords | false = false;
 
@@ -166,6 +171,11 @@ class MergedCellsCollection {
   getWithinRange(range: CellRange, countPartials = false) {
     const { row: rowStart, col: columnStart } = range.getTopStartCorner();
     const { row: rowEnd, col: columnEnd } = range.getBottomEndCorner();
+
+    if (rowStart === null || rowEnd === null || columnStart === null || columnEnd === null) {
+      return [];
+    }
+
     const result = [];
 
     for (let row = rowStart; row <= rowEnd; row++) {
@@ -273,11 +283,17 @@ class MergedCellsCollection {
   isOverlapping(mergedCell: MergedCellCoords) {
     const mergedCellRange = mergedCell.getRange();
 
+    if (!mergedCellRange) {
+      return false;
+    }
+
     for (let i = 0; i < this.mergedCells.length; i++) {
       const otherMergedCell = this.mergedCells[i];
       const otherMergedCellRange = otherMergedCell.getRange();
 
-      if ((otherMergedCellRange as CellRange & { overlaps(range: CellRange): boolean }).overlaps(mergedCellRange)) {
+      const overlappingRange = otherMergedCellRange as CellRange & { overlaps(range: CellRange): boolean };
+
+      if (otherMergedCellRange && overlappingRange.overlaps(mergedCellRange)) {
         return true;
       }
     }
@@ -333,8 +349,10 @@ class MergedCellsCollection {
       return this.hot._createCellCoords(row, column);
     }
 
-    const firstRenderableRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1);
-    const firstRenderableColumn = this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1);
+    const firstRenderableRow =
+      this.hot.rowIndexMapper.getNearestNotHiddenIndex(mergeParent.row, 1) ?? mergeParent.row;
+    const firstRenderableColumn =
+      this.hot.columnIndexMapper.getNearestNotHiddenIndex(mergeParent.col, 1) ?? mergeParent.col;
 
     return this.hot._createCellCoords(firstRenderableRow, firstRenderableColumn);
   }
@@ -435,15 +453,19 @@ class MergedCellsCollection {
     const indexes = new Map<number, Set<number>>();
     const from = scanDirection === 1 ? range.getTopStartCorner() : range.getBottomEndCorner();
     const to = scanDirection === 1 ? range.getBottomEndCorner() : range.getTopStartCorner();
+    const fromRow = from.row ?? 0;
+    const fromCol = from.col ?? 0;
+    const toRow = to.row ?? 0;
+    const toCol = to.col ?? 0;
 
     for (
-      let row = from.row;
-      scanDirection === 1 ? row <= to.row : row >= to.row;
+      let row = fromRow;
+      scanDirection === 1 ? row <= toRow : row >= toRow;
       row += scanDirection
     ) {
       for (
-        let column = from.col;
-        scanDirection === 1 ? column <= to.col : column >= to.col;
+        let column = fromCol;
+        scanDirection === 1 ? column <= toCol : column >= toCol;
         column += scanDirection
       ) {
         const index = axis === 'row' ? row : column;
@@ -458,7 +480,7 @@ class MergedCellsCollection {
           indexes.set(index, new Set());
         }
 
-        indexes.get(index).add(lastIndex);
+        indexes.get(index)!.add(lastIndex);
       }
     }
 

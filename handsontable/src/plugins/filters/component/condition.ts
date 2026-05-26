@@ -51,9 +51,9 @@ export class ConditionComponent extends BaseComponent {
     this.name = options.name;
     this.addSeparator = options.addSeparator;
 
-    this.elements.push(new SelectUI(this.hot, { menuContainer: options.menuContainer }));
-    this.elements.push(new InputUI(this.hot, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_VALUE }));
-    this.elements.push(new InputUI(this.hot, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE }));
+    this.elements.push(new SelectUI(hotInstance, { menuContainer: options.menuContainer }));
+    this.elements.push(new InputUI(hotInstance, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_VALUE }));
+    this.elements.push(new InputUI(hotInstance, { placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE }));
     this.registerHooks();
   }
 
@@ -88,7 +88,7 @@ export class ConditionComponent extends BaseComponent {
     const copyOfCommand = clone(value.command) as ConditionDescriptor;
 
     if (typeof copyOfCommand.name === 'string' && copyOfCommand.name.startsWith(C.FILTERS_CONDITIONS_NAMESPACE)) {
-      copyOfCommand.name = this.hot.getTranslatedPhrase(copyOfCommand.name);
+      copyOfCommand.name = this.hot?.getTranslatedPhrase(copyOfCommand.name) ?? copyOfCommand.name;
     }
 
     this.getSelectElement().setValue(copyOfCommand);
@@ -103,7 +103,7 @@ export class ConditionComponent extends BaseComponent {
       element[(copyOfCommand.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (!index) {
-        this.hot._registerTimeout(() => element.focus(), 10);
+        this.hot?._registerTimeout(() => element.focus(), 10);
       }
     });
   }
@@ -141,7 +141,7 @@ export class ConditionComponent extends BaseComponent {
   updateState(condition: { name: string; args: unknown[] } | null, column: number) {
     const command = condition ? getConditionDescriptor(condition.name) : getConditionDescriptor(CONDITION_NONE);
 
-    this.state.setValueAtIndex(column, {
+    this.state?.setValueAtIndex(column, {
       command,
       args: condition ? condition.args : [],
     });
@@ -202,7 +202,7 @@ export class ConditionComponent extends BaseComponent {
           }
         }
 
-        const label = this.hot.rootDocument.createElement('div');
+        const label = this.hot?.rootDocument.createElement('div') ?? wrapper.ownerDocument.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
 
@@ -212,8 +212,14 @@ export class ConditionComponent extends BaseComponent {
 
         // The SelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
-        if (!wrapper.parentElement.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        if (!wrapper.parentElement?.hasAttribute('ghost-table')) {
+          arrayEach(this.elements, (ui) => {
+            const el = ui.element;
+
+            if (el) {
+              wrapper.appendChild(el);
+            }
+          });
         }
 
         return wrapper;
@@ -225,13 +231,13 @@ export class ConditionComponent extends BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
-    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
     let items = [getConditionDescriptor(CONDITION_NONE)];
 
     if (selectedColumn !== null) {
       const { visualIndex } = selectedColumn;
 
-      items = getOptionsList(this.hot.getDataType(0, visualIndex, this.hot.countRows(), visualIndex));
+      items = getOptionsList(this.hot?.getDataType(0, visualIndex, this.hot.countRows(), visualIndex) ?? 'text');
     }
 
     arrayEach(this.getInputElements(), element => element.hide());
@@ -251,7 +257,7 @@ export class ConditionComponent extends BaseComponent {
       element[(command.inputsCount ?? 0) > index ? 'show' : 'hide']();
 
       if (index === 0) {
-        this.hot._registerTimeout(() => element.focus(), 10);
+        this.hot?._registerTimeout(() => element.focus(), 10);
       }
     });
 

@@ -8,16 +8,16 @@ export const command = {
     const editorManager = hot._getEditorManager();
     const selectedRanges = hot.getSelectedRange();
     const selectedRange = hot.getSelectedRangeActive();
-    const { highlight } = selectedRange;
+    const highlight = selectedRange?.highlight;
 
     // supports for navigating with enter key when multiple cells are selected
     if (
       (
-        selectedRanges.some((range: object) =>
+        selectedRanges?.some((range: object) =>
           selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
-        selectedRanges.length > 1
+        (selectedRanges?.length ?? 0) > 1
       ) &&
-      !selectedRange.isHeader() &&
+      !selectedRange?.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0
     ) {
@@ -27,15 +27,15 @@ export const command = {
         : settings.enterMoves;
 
       if (keys.includes('shift')) {
-        selection.transformFocus(-enterMoves.row, -enterMoves.col);
+        selection.transformFocus(-(enterMoves?.row ?? 0), -(enterMoves?.col ?? 0));
       } else {
-        selection.transformFocus(enterMoves.row, enterMoves.col);
+        selection.transformFocus(enterMoves?.row ?? 0, enterMoves?.col ?? 0);
       }
 
       return;
     }
 
-    if (highlight.isHeader()) {
+    if (highlight?.isHeader()) {
       return;
     }
 

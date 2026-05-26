@@ -57,7 +57,7 @@ hot.batch(() => {});
 (hot.batchRender(() => 'string') as string).toUpperCase();
 (hot.batchRender(() => 12345) as number).toFixed();
 (hot as any).clear();
-hot.clearUndo();
+hot.clearUndo?.();
 hot.colToProp(123) === 'foo';
 hot.countCols() === 123;
 (hot as any).countEmptyCols(true) === 123;

@@ -744,7 +744,7 @@ export class IndexMapper {
       this.#mapObservers.set(map, new Set());
     }
 
-    this.#mapObservers.get(map).add(callback);
+    this.#mapObservers.get(map)!.add(callback);
 
     return () => {
       const callbacks = this.#mapObservers.get(map);

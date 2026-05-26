@@ -36,7 +36,7 @@ let initializedPlugins: string[] | null = null;
  */
 export class BasePlugin {
   declare hot: HotInstance;
-  declare t: Record<string, Function> | undefined;
+  declare t?: Record<string, Function>;
   declare ['constructor']: typeof BasePlugin;
 
   // Allow child classes to define isEnabled
@@ -556,12 +556,9 @@ export class BasePlugin {
     this.eventManager?.destroy();
     this.clearHooks();
 
-    objectEach(this, (value: unknown, property: string) => {
-      if (property !== 'hot') {
-        this[property as keyof this] = null;
-      }
+    objectEach(this, (_value: unknown, property: string) => {
+      Reflect.set(this, property, null);
     });
     delete this.t;
-    delete this.hot;
   }
 }

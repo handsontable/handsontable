@@ -59,7 +59,7 @@ class DisplaySwitch {
    */
   show(range: object) {
     this.wasLastActionShow = true;
-    this.showDebounced(range);
+    this.showDebounced?.(range);
   }
 
   /**
@@ -68,7 +68,7 @@ class DisplaySwitch {
   cancelHiding() {
     this.wasLastActionShow = true;
 
-    clearTimeout(this.hidingTimer);
+    clearTimeout(this.hidingTimer ?? undefined);
     this.hidingTimer = null;
   }
 

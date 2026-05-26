@@ -54,8 +54,8 @@ export function createArrayAssertion(initialData: unknown[]) {
  * @param {*} value Value to check.
  * @returns {string}
  */
-export function toEmptyString(value: unknown) {
-  return value === null || value === undefined ? '' : value;
+export function toEmptyString(value: unknown): string {
+  return value === null || value === undefined ? '' : String(value);
 }
 
 /**
@@ -66,10 +66,13 @@ export function toEmptyString(value: unknown) {
  *   and all other values sort lexicographically.
  * @returns {Array}
  */
-export function unifyColumnValues(values: unknown[], comparator?: (a: unknown, b: unknown) => number) {
-  const defaultComparator = (a: unknown, b: unknown) => {
-    if (typeof a === 'number' && typeof b === 'number') {
-      return a - b;
+export function unifyColumnValues(values: unknown[], comparator?: (a: string, b: string) => number) {
+  const defaultComparator = (a: string, b: string) => {
+    const aNum = parseFloat(a);
+    const bNum = parseFloat(b);
+
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return aNum - bNum;
     }
 
     if (a === b) {

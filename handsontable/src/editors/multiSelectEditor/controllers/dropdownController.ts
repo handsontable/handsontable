@@ -21,7 +21,7 @@ import {
   createListItemElement,
 } from './utils';
 
-type DropdownEntry = { key?: string; value?: string } | string;
+export type DropdownEntry = { key?: string; value?: string } | string;
 
 interface DropdownControllerCache {
   visibleRowsNumberSetting: number | null;

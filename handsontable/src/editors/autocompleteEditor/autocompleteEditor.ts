@@ -412,10 +412,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (dropdownHeight > spaceAvailable) {
       let tempHeight = 0;
       let lastRowHeight = 0;
-      let height: number | null = null;
+      let height = 0;
 
       do {
-        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight();
+        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight() ?? 0;
         tempHeight += lastRowHeight;
       } while (tempHeight < spaceAvailable);
 
@@ -502,7 +502,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const height = Array.from({ length: maxItems }, (_, i) => i)
       .reduce((totalHeight, index) => {
         // for the first row, we need to add 1px (border-top compensation)
-        const rowHeight = this.hot.stylesHandler.getDefaultRowHeight() + (index === 0 ? 1 : 0);
+        const rowHeight = (this.hot.stylesHandler.getDefaultRowHeight() ?? 0) + (index === 0 ? 1 : 0);
 
         return totalHeight + rowHeight;
       }, 0);

@@ -81,8 +81,8 @@ export function getFrameElement(frame: Window): HTMLIFrameElement | null {
  * @param {Window} frame Frame from which should get frameElement in a safe way.
  * @returns {Window|null}
  */
-export function getParentWindow(frame: Window): Window {
-  return getFrameElement(frame) && frame.parent;
+export function getParentWindow(frame: Window): Window | null {
+  return getFrameElement(frame) ? frame.parent : null;
 }
 
 /**
@@ -267,9 +267,9 @@ export function index(element: Element): number {
  * @returns {boolean}
  */
 export function overlayContainsElement(overlayType: string, element: HTMLElement, root: HTMLElement): boolean {
-  const overlayElement = root.parentElement.querySelector(`.ht_clone_${overlayType}`);
+  const overlayElement = root.parentElement?.querySelector(`.ht_clone_${overlayType}`);
 
-  return overlayElement ? overlayElement.contains(element) : null;
+  return overlayElement ? overlayElement.contains(element) : false;
 }
 
 /**
@@ -289,9 +289,9 @@ export function isBottomMostColumnHeader(TH: HTMLTableCellElement) {
   }
 
   const headerRow = TH.parentNode;
-  const headerRows: Node[] = Array.from(headerRow.parentNode.childNodes);
-  const headerLevel = headerRows.indexOf(headerRow);
-  const rowspan = Number.parseInt(TH.getAttribute('rowspan'), 10) || 1;
+  const headerRows: Node[] = Array.from(headerRow?.parentNode?.childNodes ?? []);
+  const headerLevel = headerRow ? headerRows.indexOf(headerRow) : -1;
+  const rowspan = Number.parseInt(TH.getAttribute('rowspan') ?? '', 10) || 1;
 
   return headerLevel + rowspan >= headerRows.length;
 }
@@ -425,10 +425,10 @@ export function setAttribute(
   attributes: [string, string | number | boolean][] | string = [],
   attributeValue?: string | number | boolean) {
   if (!Array.isArray(attributes)) {
-    attributes = [[attributes, attributeValue]];
+    attributes = [[attributes, attributeValue ?? '']];
   }
 
-  attributes.forEach((attributeInfo: [string, string | number | boolean] | string) => {
+  (attributes as [string, string | number | boolean][]).forEach((attributeInfo) => {
     if (Array.isArray(attributeInfo) && attributeInfo[0] !== '') {
       domElement.setAttribute(attributeInfo[0], String(attributeInfo[1]));
     }
@@ -477,7 +477,7 @@ export function removeAttribute(
  */
 export function removeTextNodes(element: Node): void {
   if (element.nodeType === 3) {
-    element.parentNode.removeChild(element); // bye text nodes!
+    element.parentNode?.removeChild(element); // bye text nodes!
 
   } else if (['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].indexOf(element.nodeName) > -1) {
     const childs = element.childNodes;
@@ -581,7 +581,7 @@ export function fastInnerText(element: HTMLElement, content: string): void {
 export function isVisible(element: HTMLElement): boolean {
   const documentElement = element.ownerDocument.documentElement;
   const windowElement = element.ownerDocument.defaultView;
-  let next: Node = element;
+  let next: Node | null = element;
 
   while (next !== documentElement) { // until <html> reached
     if (next === null) { // parent detached from DOM
@@ -608,7 +608,7 @@ export function isVisible(element: HTMLElement): boolean {
       return false; // this is a node detached from document in IE8
 
     } else if (next.nodeType === Node.ELEMENT_NODE && isHTMLElement(next) &&
-      windowElement.getComputedStyle(next).display === 'none') {
+      windowElement?.getComputedStyle(next).display === 'none') {
       return false;
     }
 
@@ -631,7 +631,7 @@ export function hasZeroHeight(element: HTMLElement): boolean {
 
   while (currentElement.parentElement) {
     if (currentElement.style.height === '0px' || currentElement.style.height === '0') {
-      const computedOverflow = rootWindow.getComputedStyle(currentElement)
+      const computedOverflow = rootWindow?.getComputedStyle(currentElement)
         .getPropertyValue('overflow');
 
       return computedOverflow === 'hidden' || computedOverflow === 'clip';
@@ -681,8 +681,8 @@ export function offset(element: HTMLElement): { left: number, top: number } {
   // slow - http://jsperf.com/offset-vs-getboundingclientrect/6
   if (lastElem && lastElem.style.position === 'fixed') {
     // if(lastElem !== document.body) { //faster but does gives false positive in Firefox
-    offsetLeft += rootWindow.pageXOffset || documentElement.scrollLeft;
-    offsetTop += rootWindow.pageYOffset || documentElement.scrollTop;
+    offsetLeft += (rootWindow?.pageXOffset ?? 0) || documentElement.scrollLeft;
+    offsetTop += (rootWindow?.pageYOffset ?? 0) || documentElement.scrollTop;
   }
 
   return {
@@ -765,7 +765,9 @@ export function getScrollableElement(element: HTMLElement): HTMLElement | Window
       return el;
 
     } else {
-      ({ overflow, overflowX, overflowY } = rootWindow.getComputedStyle(el));
+      if (rootWindow) {
+        ({ overflow, overflowX, overflowY } = rootWindow.getComputedStyle(el));
+      }
 
       if (props.includes(overflow) || props.includes(overflowX) || props.includes(overflowY)) {
         return el;
@@ -783,7 +785,7 @@ export function getScrollableElement(element: HTMLElement): HTMLElement | Window
     el = el.parentElement;
   }
 
-  return rootWindow;
+  return rootWindow ?? rootDocument.documentElement;
 }
 
 /**
@@ -823,22 +825,24 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
       return el;
     }
 
-    const computedStyle = rootWindow.getComputedStyle(el);
-    const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
-    const property = computedStyle.getPropertyValue('overflow');
-    const propertyY = computedStyle.getPropertyValue('overflow-y');
-    const propertyX = computedStyle.getPropertyValue('overflow-x');
+    if (rootWindow) {
+      const computedStyle = rootWindow.getComputedStyle(el);
+      const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
+      const property = computedStyle.getPropertyValue('overflow');
+      const propertyY = computedStyle.getPropertyValue('overflow-y');
+      const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-    if (allowedProperties.includes(property) ||
-        allowedProperties.includes(propertyY) ||
-        allowedProperties.includes(propertyX)) {
-      return el;
+      if (allowedProperties.includes(property) ||
+          allowedProperties.includes(propertyY) ||
+          allowedProperties.includes(propertyX)) {
+        return el;
+      }
     }
 
     el = el.parentElement;
   }
 
-  return rootWindow;
+  return rootWindow ?? rootDocument.documentElement;
 }
 
 /**
@@ -850,7 +854,7 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
  * @returns {string|undefined} Element's style property.
  */
 // eslint-disable-next-line no-restricted-globals
-export function getStyle(element: HTMLElement | Window, prop: string, rootWindow: Window = window): string {
+export function getStyle(element: HTMLElement | Window, prop: string, rootWindow: Window = window): string | undefined {
   if (!element) {
     return;
 
@@ -1006,7 +1010,7 @@ export function getSelectionText(rootWindow: Window = window): string {
   let text = '';
 
   if (rootWindow.getSelection) {
-    text = rootWindow.getSelection().toString();
+    text = rootWindow.getSelection()?.toString() ?? '';
 
   } else {
     // `document.selection` is an IE-only non-standard API
@@ -1033,10 +1037,12 @@ export function getSelectionText(rootWindow: Window = window): string {
 export function clearTextSelection(rootWindow: Window = window): void {
   // http://stackoverflow.com/questions/3169786/clear-text-selection-with-javascript
   if (rootWindow.getSelection) {
-    if (rootWindow.getSelection().empty) { // Chrome
-      rootWindow.getSelection().empty();
-    } else if (rootWindow.getSelection().removeAllRanges) { // Firefox
-      rootWindow.getSelection().removeAllRanges();
+    const sel = rootWindow.getSelection();
+
+    if (sel?.empty) { // Chrome
+      sel.empty();
+    } else if (sel?.removeAllRanges) { // Firefox
+      sel.removeAllRanges();
     }
   }
 }
@@ -1091,7 +1097,7 @@ export function getFractionalScalingCompensation(rootDocument: Document = docume
 
   // On Windows, fractional scaling makes the scrollbar wider to compensate for the anti-aliasing.
   // This is a workaround to calculate the correct scrollbar width.
-  return Number.isInteger(rootDocument.defaultView.devicePixelRatio || 1) ? 0 : 2;
+  return Number.isInteger((rootDocument.defaultView?.devicePixelRatio) || 1) ? 0 : 2;
 }
 
 /**
@@ -1319,7 +1325,7 @@ export function makeElementContentEditableAndSelectItsContent(
   element: HTMLElement, invisibleSelection = true, ariaHidden = true) {
   const ownerDocument = element.ownerDocument;
   const range = ownerDocument.createRange();
-  const sel = ownerDocument.defaultView.getSelection();
+  const sel = ownerDocument.defaultView?.getSelection();
 
   setAttribute(element, 'contenteditable', true);
 
@@ -1335,9 +1341,9 @@ export function makeElementContentEditableAndSelectItsContent(
 
   range.selectNodeContents(element);
 
-  sel.removeAllRanges();
+  sel?.removeAllRanges();
 
-  sel.addRange(range);
+  sel?.addRange(range);
 }
 
 /**
@@ -1349,13 +1355,13 @@ export function makeElementContentEditableAndSelectItsContent(
  */
 export function removeContentEditableFromElementAndDeselect(
   selectedElement: HTMLElement, removeInvisibleSelectionClass = true) {
-  const sel = selectedElement.ownerDocument.defaultView.getSelection();
+  const sel = selectedElement.ownerDocument.defaultView?.getSelection();
 
   if (selectedElement.hasAttribute('aria-hidden')) {
     selectedElement.removeAttribute('aria-hidden');
   }
 
-  sel.removeAllRanges();
+  sel?.removeAllRanges();
 
   if (removeInvisibleSelectionClass) {
     removeClass(selectedElement, 'invisibleSelection');

@@ -74,7 +74,7 @@ const _m = '\x6C\x65\x6E\x67\x74\x68';
 const _hd = (v: string) => parseInt(v, 16);
 const _pi = (v: string) => parseInt(v, 10);
 const _ss = (v: string, s: number, l: number) => v['\x73\x75\x62\x73\x74\x72'](s, l);
-const _cp = (v: string) => v['\x63\x6F\x64\x65\x50\x6F\x69\x6E\x74\x41\x74'](0) - 65;
+const _cp = (v: string) => (v.codePointAt(0) ?? 0) - 65;
 const _norm = (v: unknown) => `${v}`.replace(/\-/g, '');
 const _extractTime = (v: unknown) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v) as string, _cp('\x42'), ~~![][ _m as keyof never[]])) || 9);
 const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
@@ -211,7 +211,7 @@ function _checkKeySchema(v: string) {
     return false;
   }
 
-  for (let c = '', i = '\x42\x3C\x48\x34\x50\x2B'.split(''), j = _cp(i.shift()); j; j = _cp(i.shift() || 'A')) {
+  for (let c = '', i = '\x42\x3C\x48\x34\x50\x2B'.split(''), j = _cp(i.shift() ?? 'A'); j; j = _cp(i.shift() ?? 'A')) {
     (--j<(('' as unknown as Record<string, number>)[_m] as number))?p=p|((_pi(`${_pi(_hd(c)+(_hd(_ss(v,Math.abs(j),2))+String([])).padStart(2,'0'))}`)%97||2)>>1):c=_ss(v,j,!j?6:((i as unknown as Record<string, number>)[_m] as number)===1?9:8);
   }
 

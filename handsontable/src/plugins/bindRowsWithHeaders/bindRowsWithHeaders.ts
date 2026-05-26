@@ -96,6 +96,10 @@ export class BindRowsWithHeaders extends BasePlugin {
     const MapStrategy =
       bindTypeToMapStrategy.get(selfWithGetSetting.getSetting()) ?? bindTypeToMapStrategy.get(DEFAULT_BIND);
 
+    if (!MapStrategy) {
+      return;
+    }
+
     this.headerIndexes = this.hot.rowIndexMapper.registerMap(
       'bindRowsWithHeaders', new MapStrategy()
     ) as unknown as Record<string, unknown>;

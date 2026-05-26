@@ -52,7 +52,7 @@ class Overlays {
    * @protected
    * @type {object}
    */
-  domBindings: DomBindings = null;
+  declare domBindings: DomBindings;
 
   /**
    * Function which returns proper facade.
@@ -60,7 +60,7 @@ class Overlays {
    * @protected
    * @type {Function}
    */
-  facadeGetter: Function = null;
+  declare facadeGetter: Function;
 
   /**
    * Reference to the master table instance.
@@ -68,7 +68,7 @@ class Overlays {
    * @protected
    * @type {MasterTable}
    */
-  wtTable: Table = null;
+  declare wtTable: Table;
 
   /**
    * Legacy support reference to the Walkontable instance.
@@ -76,7 +76,7 @@ class Overlays {
    * @protected
    * @type {Walkontable}
    */
-  instance: WalkontableInstance = null;
+  declare instance: WalkontableInstance;
 
   /**
    * The walkontable event manager instance.
@@ -84,7 +84,7 @@ class Overlays {
    * @protected
    * @type {EventManager}
    */
-  eventManager: EventManager = null;
+  declare eventManager: EventManager;
 
   /**
    * The width of the scrollbar.
@@ -100,7 +100,7 @@ class Overlays {
    * @protected
    * @type {HTMLElement|Window}
    */
-  scrollableElement: HTMLElement | Window = null;
+  declare scrollableElement: HTMLElement | Window;
 
   /**
    * Flag indicating whether the overlay has been destroyed.
@@ -164,7 +164,7 @@ class Overlays {
    * @protected
    * @type {Walkontable}
    */
-  wot: WalkontableInstance = null;
+  declare wot: WalkontableInstance;
 
   /**
    * An array of the all overlays.
@@ -179,7 +179,7 @@ class Overlays {
    * @protected
    * @type {TopOverlay}
    */
-  topOverlay: Overlay = null;
+  declare topOverlay: Overlay;
 
   /**
    * Refer to the BottomOverlay instance.
@@ -187,7 +187,7 @@ class Overlays {
    * @protected
    * @type {BottomOverlay}
    */
-  bottomOverlay: Overlay = null;
+  declare bottomOverlay: Overlay;
 
   /**
    * Refer to the InlineStartOverlay or instance.
@@ -195,7 +195,7 @@ class Overlays {
    * @protected
    * @type {InlineStartOverlay}
    */
-  inlineStartOverlay: Overlay = null;
+  declare inlineStartOverlay: Overlay;
 
   /**
    * Refer to the TopInlineStartCornerOverlay instance.
@@ -203,7 +203,7 @@ class Overlays {
    * @protected
    * @type {TopInlineStartCornerOverlay}
    */
-  topInlineStartCornerOverlay: Overlay = null;
+  declare topInlineStartCornerOverlay: Overlay;
 
   /**
    * Refer to the BottomInlineStartCornerOverlay instance.
@@ -211,7 +211,7 @@ class Overlays {
    * @protected
    * @type {BottomInlineStartCornerOverlay}
    */
-  bottomInlineStartCornerOverlay: Overlay = null;
+  declare bottomInlineStartCornerOverlay: Overlay;
 
   /**
    * Browser line height for purposes of translating mouse wheel.
@@ -219,7 +219,7 @@ class Overlays {
    * @private
    * @type {number}
    */
-  browserLineHeight: number = undefined;
+  declare browserLineHeight: number;
 
   /**
    * The walkontable settings.
@@ -227,7 +227,7 @@ class Overlays {
    * @protected
    * @type {Settings}
    */
-  wtSettings: Settings = null;
+  declare wtSettings: Settings;
 
   /**
    * Indicates whether the rendering state has changed for one of the overlays.
@@ -550,6 +550,10 @@ class Overlays {
     ];
 
     overlays.forEach((overlay) => {
+      if (!overlay.clone) {
+        return;
+      }
+
       this.eventManager.addEventListener(
         overlay.clone.wtTable.holder,
         'wheel',
@@ -573,7 +577,9 @@ class Overlays {
     });
 
     if (!isScrollOnWindow) {
-      this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
+      if (this.wtTable.wtRootElement.parentElement) {
+        this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
+      }
     }
   }
 
@@ -743,8 +749,8 @@ class Overlays {
       return;
     }
 
-    const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
-    const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
+    const topHolder = this.topOverlay.clone?.wtTable.holder; // todo rethink
+    const leftHolder = this.inlineStartOverlay.clone?.wtTable.holder; // todo rethink
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     let scrollX = this.scrollableElement instanceof HTMLElement ? this.scrollableElement.scrollLeft : 0;
@@ -774,9 +780,11 @@ class Overlays {
     this.#stickyScroll.tryActivate(this.verticalScrolling, this.horizontalScrolling);
 
     if (this.horizontalScrolling) {
-      topHolder.scrollLeft = scrollX;
+      if (topHolder instanceof HTMLElement) {
+        topHolder.scrollLeft = scrollX;
+      }
 
-      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
+      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone?.wtTable.holder : null; // todo rethink
 
       if (bottomHolder) {
         bottomHolder.scrollLeft = scrollX;
@@ -789,10 +797,12 @@ class Overlays {
       // Setting scrollTop to window.scrollY would be capped to the tiny
       // hider/holder size difference caused by fractional zoom rounding,
       // shifting the visible rows and misaligning them with the master table.
-      if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
-        leftHolder.scrollTop = 0;
-      } else {
-        leftHolder.scrollTop = scrollY;
+      if (leftHolder instanceof HTMLElement) {
+        if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
+          leftHolder.scrollTop = 0;
+        } else {
+          leftHolder.scrollTop = scrollY;
+        }
       }
     }
 
@@ -816,13 +826,13 @@ class Overlays {
 
     const { scrollLeft, scrollTop } = masterScrollable;
 
-    if (this.topOverlay.needFullRender) {
+    if (this.topOverlay.needFullRender && this.topOverlay.clone) {
       this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
     }
-    if (this.bottomOverlay.needFullRender) {
+    if (this.bottomOverlay.needFullRender && this.bottomOverlay.clone) {
       this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
     }
-    if (this.inlineStartOverlay.needFullRender) {
+    if (this.inlineStartOverlay.needFullRender && this.inlineStartOverlay.clone) {
       this.inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
     }
 
@@ -1128,7 +1138,9 @@ class Overlays {
         return;
       }
 
-      elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
+      if (elem.clone) {
+        elem.clone.wtTable.TABLE.className = masterTable.className; // todo demeter
+      }
     });
   }
 

@@ -66,12 +66,14 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     this.updateTrimmingContainer();
 
-    if (!(wot.wtTable.holder.parentNode as HTMLElement)) {
+    const { clone } = this;
+
+    if (!(wot.wtTable.holder.parentNode as HTMLElement) || !clone) {
       // removed from DOM
       return false;
     }
 
-    const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const overlayRoot = clone.wtTable.holder.parentNode as HTMLElement;
 
     overlayRoot.style.top = '';
 
@@ -90,8 +92,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       this.repositionOverlay();
     }
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    let tableHeight = outerHeight(clone.wtTable.TABLE);
+    const tableWidth = outerWidth(clone.wtTable.TABLE);
 
     if (!this.wot.wtTable.hasDefinedSize()) {
       tableHeight = 0;
@@ -119,6 +121,10 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * Reposition the overlay.
    */
   repositionOverlay() {
+    if (!this.clone) {
+      return;
+    }
+
     const { wtTable, wtViewport } = this.wot;
     const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;

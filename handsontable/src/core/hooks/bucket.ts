@@ -24,11 +24,11 @@ export class HooksBucket {
   /**
    * A map that stores hooks.
    */
-  #hooks: Map<string, HookEntry[]> | null = new Map();
+  #hooks: Map<string, HookEntry[]> = new Map();
   /**
    * A map that stores the number of skipped hooks.
    */
-  #skippedHooksCount: Map<string, number> | null = new Map();
+  #skippedHooksCount: Map<string, number> = new Map();
   /**
    * A set that stores hook names that need to be re-sorted.
    */
@@ -45,7 +45,7 @@ export class HooksBucket {
    * @returns {HookEntry[]}
    */
   getHooks(hookName: string): HookEntry[] {
-    return this.#hooks!.get(hookName) ?? [];
+    return this.#hooks.get(hookName) ?? [];
   }
 
   /**
@@ -65,7 +65,7 @@ export class HooksBucket {
       REGISTERED_HOOKS.push(hookName);
     }
 
-    const hooks = this.#hooks.get(hookName);
+    const hooks = this.#hooks.get(hookName) ?? [];
     const existingHook = hooks.find(hook => hook.callback === callback);
 
     if (existingHook) {
@@ -78,7 +78,7 @@ export class HooksBucket {
       return;
     }
 
-    const orderIndex = Number.isInteger(options.orderIndex) ? options.orderIndex : 0;
+    const orderIndex = Number.isInteger(options.orderIndex) ? (options.orderIndex ?? 0) : 0;
     const runOnce = !!options.runOnce;
     const initialHook = !!options.initialHook;
 
@@ -122,7 +122,7 @@ export class HooksBucket {
    * @returns {boolean}
    */
   has(hookName: string): boolean {
-    return this.#hooks!.has(hookName) && this.#hooks!.get(hookName)!.length > 0;
+    return this.#hooks.has(hookName) && (this.#hooks.get(hookName)?.length ?? 0) > 0;
   }
 
   /**
@@ -134,15 +134,15 @@ export class HooksBucket {
    * @returns {boolean}
    */
   remove(hookName: string, callback: HookCallback): boolean {
-    if (!this.#hooks!.has(hookName)) {
+    if (!this.#hooks.has(hookName)) {
       return false;
     }
 
-    const hooks = this.#hooks.get(hookName);
+    const hooks = this.#hooks.get(hookName) ?? [];
     const hookEntry = hooks.find(hook => hook.callback === callback);
 
     if (hookEntry) {
-      let skippedHooksCount = this.#skippedHooksCount.get(hookName);
+      let skippedHooksCount = this.#skippedHooksCount.get(hookName) ?? 0;
 
       hookEntry.skip = true;
       skippedHooksCount += 1;
@@ -166,8 +166,6 @@ export class HooksBucket {
   destroy() {
     this.#hooks.clear();
     this.#skippedHooksCount.clear();
-    this.#hooks = null;
-    this.#skippedHooksCount = null;
   }
 
   /**

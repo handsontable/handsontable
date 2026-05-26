@@ -108,18 +108,18 @@ export class BaseTransformation {
       const autoWrapCol = this.tableApi.autoWrapCol();
 
       const zeroBasedCoords = this.tableApi.createCellCoords(
-        row + delta.row,
-        col + delta.col,
+        (row ?? 0) + (delta.row ?? 0),
+        (col ?? 0) + (delta.col ?? 0),
       );
 
-      if (zeroBasedCoords.row >= height) {
+      if ((zeroBasedCoords.row ?? 0) >= height) {
         const isActionInterrupted = createObjectPropListener(
           createMissingRecords && minSpareRows > 0 && fixedRowsBottom === 0
         );
-        const nextColumn = zeroBasedCoords.col + 1;
+        const nextColumn = (zeroBasedCoords.col ?? 0) + 1;
         const isColumnOutOfRange = nextColumn >= width;
         const newCoords = this.tableApi.createCellCoords(
-          zeroBasedCoords.row - height,
+          (zeroBasedCoords.row ?? 0) - height,
           isColumnOutOfRange ? nextColumn - width : nextColumn,
         );
 
@@ -147,12 +147,12 @@ export class BaseTransformation {
           zeroBasedCoords.assign(newCoords);
         }
 
-      } else if (zeroBasedCoords.row < 0) {
+      } else if ((zeroBasedCoords.row ?? 0) < 0) {
         const isActionInterrupted = createObjectPropListener(autoWrapCol);
-        const previousColumn = zeroBasedCoords.col - 1;
+        const previousColumn = (zeroBasedCoords.col ?? 0) - 1;
         const isColumnOutOfRange = previousColumn < 0;
         const newCoords = this.tableApi.createCellCoords(
-          height + zeroBasedCoords.row,
+          height + (zeroBasedCoords.row ?? 0),
           isColumnOutOfRange ? width + previousColumn : previousColumn,
         );
 
@@ -181,15 +181,15 @@ export class BaseTransformation {
       // the range size may be changed after the column wrap, so we need to recalculate it for row wrap
       ({ width, height } = this.#getTableSize());
 
-      if (zeroBasedCoords.col >= width) {
+      if ((zeroBasedCoords.col ?? 0) >= width) {
         const isActionInterrupted = createObjectPropListener(
           createMissingRecords && minSpareCols > 0
         );
-        const nextRow = zeroBasedCoords.row + 1;
+        const nextRow = (zeroBasedCoords.row ?? 0) + 1;
         const isRowOutOfRange = nextRow >= height;
         const newCoords = this.tableApi.createCellCoords(
           isRowOutOfRange ? nextRow - height : nextRow,
-          zeroBasedCoords.col - width,
+          (zeroBasedCoords.col ?? 0) - width,
         );
 
         this.runLocalHooks(
@@ -216,13 +216,13 @@ export class BaseTransformation {
           zeroBasedCoords.assign(newCoords);
         }
 
-      } else if (zeroBasedCoords.col < 0) {
+      } else if ((zeroBasedCoords.col ?? 0) < 0) {
         const isActionInterrupted = createObjectPropListener(autoWrapRow);
-        const previousRow = zeroBasedCoords.row - 1;
+        const previousRow = (zeroBasedCoords.row ?? 0) - 1;
         const isRowOutOfRange = previousRow < 0;
         const newCoords = this.tableApi.createCellCoords(
           isRowOutOfRange ? height + previousRow : previousRow,
-          width + zeroBasedCoords.col,
+          width + (zeroBasedCoords.col ?? 0),
         );
 
         this.runLocalHooks(
@@ -275,8 +275,8 @@ export class BaseTransformation {
     const delta = this.tableApi.createCellCoords(rowDelta, colDelta);
     const cellRange = this.getCurrentSelection();
     const highlightRenderableCoords = this.tableApi.visualToRenderableCoords(cellRange.highlight);
-    const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
-    const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
+    const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row ?? 0, cellRange.from.row ?? 0);
+    const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col ?? 0, cellRange.from.col ?? 0);
     const visualCoords = cellRange.to.clone();
     let rowTransformDir = 0;
     let colTransformDir = 0;
@@ -291,33 +291,36 @@ export class BaseTransformation {
         row: highlightRow,
         col: highlightColumn,
       } = this.#visualToZeroBasedCoords(cellRange.highlight);
-      const coords = this.tableApi.createCellCoords(toRow + delta.row, toColumn + delta.col);
+      const coords = this.tableApi.createCellCoords(toRow + (delta.row ?? 0), toColumn + (delta.col ?? 0));
       const topStartCorner = cellRange.getTopStartCorner();
       const topEndCorner = cellRange.getTopEndCorner();
       const bottomEndCorner = cellRange.getBottomEndCorner();
 
-      if (delta.col < 0 && toColumn >= highlightColumn && coords.col < highlightColumn) {
-        const columnRestDelta = coords.col - highlightColumn;
+      if ((delta.col ?? 0) < 0 && toColumn >= (highlightColumn ?? 0) && (coords.col ?? 0) < (highlightColumn ?? 0)) {
+        const columnRestDelta = (coords.col ?? 0) - (highlightColumn ?? 0);
+        const firstNonHidden = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col ?? 0, topEndCorner.col ?? 0);
 
-        coords.col = this.#findFirstNonHiddenZeroBasedColumn(topStartCorner.col, topEndCorner.col) + columnRestDelta;
+        coords.col = (firstNonHidden ?? 0) + columnRestDelta;
 
-      } else if (delta.col > 0 && toColumn <= highlightColumn && coords.col > highlightColumn) {
-        const endColumnIndex = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col, topStartCorner.col);
-        const columnRestDelta = Math.max(coords.col - endColumnIndex, 1);
+      } else if ((delta.col ?? 0) > 0 && toColumn <= (highlightColumn ?? 0) &&
+          (coords.col ?? 0) > (highlightColumn ?? 0)) {
+        const endColumnIndex = this.#findFirstNonHiddenZeroBasedColumn(topEndCorner.col ?? 0, topStartCorner.col ?? 0);
+        const columnRestDelta = Math.max((coords.col ?? 0) - (endColumnIndex ?? 0), 1);
 
-        coords.col = endColumnIndex + columnRestDelta;
+        coords.col = (endColumnIndex ?? 0) + columnRestDelta;
       }
 
-      if (delta.row < 0 && toRow >= highlightRow && coords.row < highlightRow) {
-        const rowRestDelta = coords.row - highlightRow;
+      if ((delta.row ?? 0) < 0 && toRow >= (highlightRow ?? 0) && (coords.row ?? 0) < (highlightRow ?? 0)) {
+        const rowRestDelta = (coords.row ?? 0) - (highlightRow ?? 0);
+        const firstNonHidden = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row ?? 0, bottomEndCorner.row ?? 0);
 
-        coords.row = this.#findFirstNonHiddenZeroBasedRow(topStartCorner.row, bottomEndCorner.row) + rowRestDelta;
+        coords.row = (firstNonHidden ?? 0) + rowRestDelta;
 
-      } else if (delta.row > 0 && toRow <= highlightRow && coords.row > highlightRow) {
-        const bottomRowIndex = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row, topStartCorner.row);
-        const rowRestDelta = Math.max(coords.row - bottomRowIndex, 1);
+      } else if ((delta.row ?? 0) > 0 && toRow <= (highlightRow ?? 0) && (coords.row ?? 0) > (highlightRow ?? 0)) {
+        const bottomRowIndex = this.#findFirstNonHiddenZeroBasedRow(bottomEndCorner.row ?? 0, topStartCorner.row ?? 0);
+        const rowRestDelta = Math.max((coords.row ?? 0) - (bottomRowIndex ?? 0), 1);
 
-        coords.row = bottomRowIndex + rowRestDelta;
+        coords.row = (bottomRowIndex ?? 0) + rowRestDelta;
       }
 
       const { rowDir, colDir } = this.#clampCoords(coords);
@@ -412,20 +415,20 @@ export class BaseTransformation {
     let rowDir = 0;
     let colDir = 0;
 
-    if (zeroBasedCoords.row < 0) {
+    if ((zeroBasedCoords.row ?? 0) < 0) {
       rowDir = -1;
       zeroBasedCoords.row = 0;
 
-    } else if (zeroBasedCoords.row > 0 && zeroBasedCoords.row >= height) {
+    } else if ((zeroBasedCoords.row ?? 0) > 0 && (zeroBasedCoords.row ?? 0) >= height) {
       rowDir = 1;
       zeroBasedCoords.row = height - 1;
     }
 
-    if (zeroBasedCoords.col < 0) {
+    if ((zeroBasedCoords.col ?? 0) < 0) {
       colDir = -1;
       zeroBasedCoords.col = 0;
 
-    } else if (zeroBasedCoords.col > 0 && zeroBasedCoords.col >= width) {
+    } else if ((zeroBasedCoords.col ?? 0) > 0 && (zeroBasedCoords.col ?? 0) >= width) {
       colDir = 1;
       zeroBasedCoords.col = width - 1;
     }
@@ -468,8 +471,8 @@ export class BaseTransformation {
       ? [topStartCoords.row, bottomEndCoords.row, topStartCoords.col, bottomEndCoords.col]
       : [bottomEndCoords.row, topStartCoords.row, bottomEndCoords.col, topStartCoords.col];
 
-    const zeroBasedRow = this.#findFirstNonHiddenZeroBasedRow(visualRowFrom, visualRowTo);
-    const zeroBasedCol = this.#findFirstNonHiddenZeroBasedColumn(visualColumnFrom, visualColumnTo);
+    const zeroBasedRow = this.#findFirstNonHiddenZeroBasedRow(visualRowFrom ?? 0, visualRowTo ?? 0);
+    const zeroBasedCol = this.#findFirstNonHiddenZeroBasedColumn(visualColumnFrom ?? 0, visualColumnTo ?? 0);
 
     if (zeroBasedRow === null || zeroBasedCol === null) {
       return null;
@@ -525,7 +528,7 @@ export class BaseTransformation {
       throwWithCause('Renderable coords are not visible.');
     }
 
-    return this.tableApi.createCellCoords(this.#offset.y + row, this.#offset.x + col);
+    return this.tableApi.createCellCoords(this.#offset.y + row!, this.#offset.x + col!);
   }
 
   /**
@@ -537,8 +540,8 @@ export class BaseTransformation {
   #zeroBasedToVisualCoords(zeroBasedCoords: CellCoords) {
     const coords = zeroBasedCoords.clone();
 
-    coords.col = zeroBasedCoords.col - this.#offset.x;
-    coords.row = zeroBasedCoords.row - this.#offset.y;
+    coords.col = (zeroBasedCoords.col ?? 0) - this.#offset.x;
+    coords.row = (zeroBasedCoords.row ?? 0) - this.#offset.y;
 
     return this.tableApi.renderableToVisualCoords(coords);
   }

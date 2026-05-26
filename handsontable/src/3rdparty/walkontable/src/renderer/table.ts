@@ -72,61 +72,61 @@ export class TableRenderer {
    *
    * @type {RowHeadersRenderer}
    */
-  rowHeaders: RowHeadersRenderer = null;
+  declare rowHeaders: RowHeadersRenderer;
   /**
    * Renderer class responsible for rendering column header rows (TR elements in THEAD).
    *
    * @type {ColumnHeaderRowsRenderer}
    */
-  columnHeaderRows: ColumnHeaderRowsRenderer = null;
+  declare columnHeaderRows: ColumnHeaderRowsRenderer;
   /**
    * Renderer class responsible for rendering column headers (TH elements in TR).
    *
    * @type {ColumnHeadersRenderer}
    */
-  columnHeaders: ColumnHeadersRenderer = null;
+  declare columnHeaders: ColumnHeadersRenderer;
   /**
    * Renderer class responsible for rendering col in colgroup.
    *
    * @type {ColGroupRenderer}
    */
-  colGroup: ColGroupRenderer = null;
+  declare colGroup: ColGroupRenderer;
   /**
    * Renderer class responsible for rendering rows in tbody.
    *
    * @type {RowsRenderer}
    */
-  rows: RowsRenderer = null;
+  declare rows: RowsRenderer;
   /**
    * Renderer class responsible for rendering cells.
    *
    * @type {CellsRenderer}
    */
-  cells: CellsRenderer = null;
+  declare cells: CellsRenderer;
   /**
    * Row filter which contains all necessary information about row index transformation.
    *
    * @type {RowFilter}
    */
-  rowFilter: RowFilter = null;
+  declare rowFilter: RowFilter;
   /**
    * Column filter which contains all necessary information about column index transformation.
    *
    * @type {ColumnFilter}
    */
-  columnFilter: ColumnFilter = null;
+  declare columnFilter: ColumnFilter;
   /**
    * Row utils class which contains all necessary information about sizes of the rows.
    *
    * @type {RowUtils}
    */
-  rowUtils: RowUtils = null;
+  declare rowUtils: RowUtils;
   /**
    * Column utils class which contains all necessary information about sizes of the columns.
    *
    * @type {ColumnUtils}
    */
-  columnUtils: ColumnUtils = null;
+  declare columnUtils: ColumnUtils;
   /**
    * Indicates how much rows should be rendered to fill whole table viewport.
    *
@@ -185,8 +185,8 @@ export class TableRenderer {
     { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: StylesHandler } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
-    this.cellRenderer = cellRenderer;
-    this.stylesHandler = stylesHandler;
+    this.cellRenderer = cellRenderer!;
+    this.stylesHandler = stylesHandler!;
   }
 
   /**
@@ -330,7 +330,7 @@ export class TableRenderer {
       const TR = rows.getRenderedNode(visibleRowIndex);
       const rowUtils = this.rowUtils;
 
-      if (TR.firstChild) {
+      if (TR && TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
         const isBorderBoxSizing = this.stylesHandler.areCellsBorderBox();

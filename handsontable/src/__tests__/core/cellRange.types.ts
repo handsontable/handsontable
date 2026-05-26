@@ -89,4 +89,5 @@ const getAll: CellCoords[] = cellRange.getAll();
 cellRange.forAll(() => true);
 
 const clone: CellRange = cellRange.clone();
-const toObject: { from: { row: number, col: number}, to: { row: number, col: number} } = cellRange.toObject();
+type CellRangeObject = { from: { row: number | null, col: number | null}, to: { row: number | null, col: number | null} };
+const toObject: CellRangeObject = cellRange.toObject();

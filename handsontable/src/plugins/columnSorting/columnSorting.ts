@@ -241,7 +241,7 @@ export class ColumnSorting extends BasePlugin {
     }, true);
 
     this.hot.columnIndexMapper.unregisterMap(`${this.pluginKey}.columnMeta`);
-    this.columnStatesManager.destroy();
+    this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
     this.columnStatesManager = null;
 
@@ -257,23 +257,32 @@ export class ColumnSorting extends BasePlugin {
   registerShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeActive();
+          const activeRange = this.hot.getSelectedRangeActive();
 
-          this.sort(this.getColumnNextConfig(highlight.col));
+          if (!activeRange) {
+            return false;
+          }
+
+          const { highlight } = activeRange;
+
+          this.sort(this.getColumnNextConfig(highlight.col ?? 0));
 
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
         },
-        runOnlyIf: () => {
+        runOnlyIf: (): boolean => {
           const highlight = this.hot.getSelectedRangeActive()?.highlight;
-          const highlightedHeaderElement = highlight ? this.hot.getCell(highlight.row, highlight.col, true) : null;
+          const highlightedHeaderElement = (highlight && highlight.row !== null && highlight.col !== null)
+            ? this.hot.getCell(highlight.row, highlight.col, true)
+            : null;
 
-          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.row < 0 && highlight.col >= 0 &&
-            isBottomMostColumnHeader(highlightedHeaderElement);
+          return !!(highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.row !== null &&
+            highlight.row < 0 && highlight.col !== null && highlight.col >= 0 &&
+            highlightedHeaderElement && isBottomMostColumnHeader(highlightedHeaderElement));
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
@@ -289,7 +298,7 @@ export class ColumnSorting extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   // DIFF - MultiColumnSorting & ColumnSorting: changed function documentation.
@@ -330,7 +339,7 @@ export class ColumnSorting extends BasePlugin {
     }
 
     if (sortPossible) {
-      this.columnStatesManager.setSortStates(destinationSortConfigs);
+      this.columnStatesManager?.setSortStates(destinationSortConfigs);
       this.sortByPresetSortStates(destinationSortConfigs);
     }
 
@@ -355,7 +364,7 @@ export class ColumnSorting extends BasePlugin {
    * @returns {boolean}
    */
   isSorted(): boolean {
-    return this.enabled && !this.columnStatesManager.isListOfSortedColumnsEmpty();
+    return this.enabled && !this.columnStatesManager?.isListOfSortedColumnsEmpty();
   }
 
   /**
@@ -367,11 +376,11 @@ export class ColumnSorting extends BasePlugin {
    * @returns {undefined|object|Array}
    */
   getSortConfig(column?: number): SortConfig | SortConfig[] | undefined {
-    if (isDefined(column)) {
-      return this.columnStatesManager.getColumnSortState(column);
+    if (column !== undefined) {
+      return this.columnStatesManager?.getColumnSortState(column);
     }
 
-    return this.columnStatesManager.getSortStates() as SortConfig[];
+    return this.columnStatesManager?.getSortStates() as SortConfig[];
   }
 
   /**
@@ -403,7 +412,7 @@ export class ColumnSorting extends BasePlugin {
     const destinationSortConfigs = this.getNormalizedSortConfigs(sortConfig);
 
     if (this.areValidSortConfigs(destinationSortConfigs)) {
-      this.columnStatesManager.setSortStates(destinationSortConfigs);
+      this.columnStatesManager?.setSortStates(destinationSortConfigs);
     }
   }
 
@@ -496,13 +505,13 @@ export class ColumnSorting extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {undefined|object}
    */
-  getColumnNextConfig(column: number) {
-    const sortOrder = this.columnStatesManager.getSortOrderOfColumn(column);
+  getColumnNextConfig(column: number): SortConfig | undefined {
+    const sortOrder = this.columnStatesManager?.getSortOrderOfColumn(column);
 
     if (isDefined(sortOrder)) {
       const nextSortOrder = getNextSortOrder(sortOrder);
 
-      if (isDefined(nextSortOrder)) {
+      if (nextSortOrder !== undefined) {
         return {
           column,
           sortOrder: nextSortOrder,
@@ -517,7 +526,7 @@ export class ColumnSorting extends BasePlugin {
     if (Number.isInteger(column) && column >= 0 && column < nrOfColumns) {
       return {
         column,
-        sortOrder: getNextSortOrder()
+        sortOrder: getNextSortOrder() ?? 'asc'
       };
     }
   }
@@ -565,7 +574,7 @@ export class ColumnSorting extends BasePlugin {
       }
     }
 
-    if (isDefined(nextColumnConfig)) {
+    if (nextColumnConfig !== undefined) {
       return currentSortConfig.concat(nextColumnConfig);
     }
 
@@ -600,7 +609,7 @@ export class ColumnSorting extends BasePlugin {
    */
   getMergedPluginSettings(column: number) {
     const pluginMainSettings = this.hot.getSettings()[this.pluginKey];
-    const storedColumnProperties = this.columnStatesManager.getAllColumnsProperties();
+    const storedColumnProperties = this.columnStatesManager?.getAllColumnsProperties() ?? {};
     const cellMeta = this.hot.getCellMeta(0, column);
     const columnMeta = Object.getPrototypeOf(cellMeta);
 
@@ -630,7 +639,7 @@ export class ColumnSorting extends BasePlugin {
 
     const cellMetaCopy = Object.create(cellMeta);
 
-    cellMetaCopy[this.pluginKey] = this.columnMetaCache.getValueAtIndex(this.hot.toPhysicalColumn(column));
+    cellMetaCopy[this.pluginKey] = this.columnMetaCache?.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
     return cellMetaCopy;
   }
@@ -649,11 +658,11 @@ export class ColumnSorting extends BasePlugin {
     // `maxRows` option doesn't take into account `minSpareRows` option in this case.
     // `fixedRowsBottom` is excluded from the sort range so footer rows (e.g. SUM formulas)
     // stay pinned and keep their absolute-address references intact.
-    if (settings.maxRows <= numberOfRows) {
-      return Math.max(0, settings.maxRows - fixedRowsBottom);
+    if ((settings.maxRows ?? Infinity) <= numberOfRows) {
+      return Math.max(0, (settings.maxRows ?? 0) - fixedRowsBottom);
     }
 
-    return Math.max(0, numberOfRows - settings.minSpareRows - fixedRowsBottom);
+    return Math.max(0, numberOfRows - (settings.minSpareRows ?? 0) - fixedRowsBottom);
   }
 
   /**
@@ -669,7 +678,7 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const indexesWithData = [];
+    const indexesWithData: [number, ...unknown[]][] = [];
     const numberOfRows = this.hot.countRows();
     const settings = this.hot.getSettings();
     const fixedRowsTop = settings.fixedRowsTop || 0;
@@ -767,14 +776,14 @@ export class ColumnSorting extends BasePlugin {
 
     this.updateHeaderClasses(
       headerSpanElement,
-      this.columnStatesManager,
+      this.columnStatesManager ?? undefined,
       column,
       showSortIndicator,
       headerActionEnabled
     );
 
     if (this.hot.getSettings().ariaTags) {
-      const currentSortState = this.columnStatesManager.getSortOrderOfColumn(column);
+      const currentSortState = this.columnStatesManager?.getSortOrderOfColumn(column);
 
       setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }

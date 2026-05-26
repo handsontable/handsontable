@@ -4,8 +4,8 @@ import { hasClass } from '../../../helpers/dom/element';
 import { SEPARATOR } from './../predefinedItems';
 
 interface CellRangeLike {
-  getTopStartCorner(): { row: number; col: number };
-  getBottomEndCorner(): { row: number; col: number };
+  getTopStartCorner(): { row: number | null; col: number | null };
+  getBottomEndCorner(): { row: number | null; col: number | null };
 }
 
 interface MenuItemLike {

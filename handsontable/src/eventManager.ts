@@ -26,13 +26,13 @@ class EventManager {
   /**
    * @type {object}
    */
-  declare context: (Record<string, unknown> & { eventListeners?: EventListenerEntry[] }) | null;
+  declare context: (Record<string, unknown> & { eventListeners: EventListenerEntry[] }) | null;
 
   /**
    * @param {object} [context=null] An object to which event listeners will be stored.
    */
   constructor(context: (object & { eventListeners?: EventListenerEntry[] }) | null = null) {
-    this.context = (context || this) as Record<string, unknown> & { eventListeners?: EventListenerEntry[] };
+    this.context = (context || this) as Record<string, unknown> & { eventListeners: EventListenerEntry[] };
 
     // TODO it modify external object. Rethink that.
     if (!this.context.eventListeners) {
@@ -53,6 +53,10 @@ class EventManager {
     element: Element | Document | Window, eventName: string,
     callback: (event: E) => void, options: boolean | AddEventListenerOptions = false
   ): () => void {
+    if (!this.context) {
+      return () => {};
+    }
+
     const callbackRef: Function = callback;
 
     /**
@@ -91,6 +95,10 @@ class EventManager {
   removeEventListener(
     element: Element | Document | Window, eventName: string, callback: Function, onlyOwnEvents = false
   ): void {
+    if (!this.context) {
+      return;
+    }
+
     let len = this.context.eventListeners.length;
     let tmpEvent;
 

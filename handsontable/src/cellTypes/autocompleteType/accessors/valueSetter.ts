@@ -8,7 +8,7 @@ import { isKeyValueObject } from '../../../helpers/object';
  * @param {number} column The visual column index.
  * @returns {*} The new value to be set.
  */
-type SetterContext = {
+export type SetterContext = {
   getSourceDataAtCell: (row: number, col: number) => unknown;
   toPhysicalRow: (row: number) => number;
   toPhysicalColumn: (col: number) => number;

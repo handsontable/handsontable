@@ -2,7 +2,6 @@ import type { HotInstance } from '../../../core/types';
 import { addClass, eventTargetEl, getScrollbarWidth } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
 import { isKey } from '../../../helpers/unicode';
-import { partial } from '../../../helpers/function';
 import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
@@ -38,26 +37,26 @@ export class MultipleSelectUI extends BaseUI {
    * @type {Array}
    */
   #items: SelectItem[] = [];
-  #itemsBox: HotInstance;
-  #locale: string;
-  #searchInput;
-  #selectAllUI;
-  #clearAllUI;
+  #itemsBox: HotInstance | null = null;
+  #locale: string = '';
+  #searchInput: InputUI | null = null;
+  #selectAllUI: LinkUI | null = null;
+  #clearAllUI: LinkUI | null = null;
 
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(
       MultipleSelectUI.DEFAULTS as Record<string, unknown>, options
     ) as Record<string, unknown>);
 
-    this.#searchInput = new InputUI(this.hot, {
+    this.#searchInput = new InputUI(hotInstance, {
       placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
       className: 'htUIMultipleSelectSearch',
     });
-    this.#selectAllUI = new LinkUI(this.hot, {
+    this.#selectAllUI = new LinkUI(hotInstance, {
       textContent: C.FILTERS_BUTTONS_SELECT_ALL,
       className: 'htUISelectAll',
     });
-    this.#clearAllUI = new LinkUI(this.hot, {
+    this.#clearAllUI = new LinkUI(hotInstance, {
       textContent: C.FILTERS_BUTTONS_CLEAR,
       className: 'htUIClearAll',
     });
@@ -78,10 +77,10 @@ export class MultipleSelectUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.#searchInput.addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event));
-    this.#searchInput.addLocalHook('input', (event: Event) => this.#onInput(event));
-    this.#selectAllUI.addLocalHook('click', (event: Event) => this.#onSelectAllClick(event));
-    this.#clearAllUI.addLocalHook('click', (event: Event) => this.#onClearAllClick(event));
+    this.#searchInput?.addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event));
+    this.#searchInput?.addLocalHook('input', (event: Event) => this.#onInput(event));
+    this.#selectAllUI?.addLocalHook('click', (event: Event) => this.#onSelectAllClick(event));
+    this.#clearAllUI?.addLocalHook('click', (event: Event) => this.#onClearAllClick(event));
   }
 
   /**
@@ -172,23 +171,36 @@ export class MultipleSelectUI extends BaseUI {
   build() {
     super.build();
 
-    const { rootDocument } = this.hot;
+    if (!this.hot || !this._element) {
+      return;
+    }
+
+    const hot = this.hot;
+    const rootElement = this._element;
+    const { rootDocument } = hot;
     const itemsBoxWrapper = rootDocument.createElement('div');
-    const selectionControl = new BaseUI(this.hot, {
+    const selectionControl = new BaseUI(hot, {
       className: 'htUISelectionControls',
-      children: [this.#selectAllUI, this.#clearAllUI],
+      children: [this.#selectAllUI, this.#clearAllUI].filter((x): x is LinkUI => x !== null),
     });
 
-    this._element.appendChild(this.#searchInput.element);
-    this._element.appendChild(selectionControl.element);
-    this._element.appendChild(itemsBoxWrapper);
+    const searchEl = this.#searchInput?.element;
+    const selectionEl = selectionControl.element;
+
+    if (searchEl) {
+      rootElement.appendChild(searchEl);
+    }
+    if (selectionEl) {
+      rootElement.appendChild(selectionEl);
+    }
+    rootElement.appendChild(itemsBoxWrapper);
 
     this.#itemsBox?.destroy();
     addClass(itemsBoxWrapper, 'htUIMultipleSelectHot');
 
     // Constructs and initializes a new Handsontable instance
     this.#itemsBox = new (
-      this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
+      hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
     )(itemsBoxWrapper, {
       data: [[]],
       columns: [{
@@ -211,10 +223,10 @@ export class MultipleSelectUI extends BaseUI {
         this.runLocalHooks('focus', this);
       },
       beforeOnCellMouseUp: () => {
-        this.#itemsBox.listen();
+        this.#itemsBox?.listen();
       },
       modifyColWidth: (width: number | undefined) => {
-        const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
+        const minWidth = (this.#itemsBox?.container.scrollWidth ?? 0) - getScrollbarWidth(rootDocument);
 
         if (width !== undefined && width < minWidth) {
           return minWidth;
@@ -233,13 +245,17 @@ export class MultipleSelectUI extends BaseUI {
       fillHandle: false,
       fragmentSelection: 'cell',
       tabMoves: { row: 1, col: 0 },
-      themeName: this.hot.getCurrentThemeName(),
-      layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
+      themeName: hot.getCurrentThemeName(),
+      layoutDirection: hot.isRtl() ? 'rtl' : 'ltr',
     });
     this.#itemsBox.init();
 
     const shortcutManager = this.#itemsBox.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
+
+    if (!gridContext) {
+      return;
+    }
 
     gridContext.removeShortcutsByKeys(['Tab']);
     gridContext.removeShortcutsByKeys(['Shift', 'Tab']);
@@ -253,7 +269,7 @@ export class MultipleSelectUI extends BaseUI {
     gridContext.addShortcut({
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event: KeyboardEvent) => {
-        this.#itemsBox.deselectCell();
+        this.#itemsBox?.deselectCell();
 
         this.runLocalHooks('keydown', event, this);
         this.runLocalHooks('listTabKeydown', event, this);
@@ -267,7 +283,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   focus() {
     if (this.isBuilt()) {
-      this.#itemsBox.listen();
+      this.#itemsBox?.listen();
     }
   }
 
@@ -275,16 +291,16 @@ export class MultipleSelectUI extends BaseUI {
    * Reset DOM structure.
    */
   reset() {
-    this.#searchInput.reset();
-    this.#selectAllUI.reset();
-    this.#clearAllUI.reset();
+    this.#searchInput?.reset();
+    this.#selectAllUI?.reset();
+    this.#clearAllUI?.reset();
   }
 
   /**
    * Update DOM structure.
    */
   update() {
-    if (!this.isBuilt() || this.#itemsBox.rootElement.offsetHeight === 0) {
+    if (!this.isBuilt() || !this.#itemsBox || this.#itemsBox.rootElement.offsetHeight === 0) {
       return;
     }
 
@@ -300,15 +316,15 @@ export class MultipleSelectUI extends BaseUI {
    */
   destroy() {
     this.#itemsBox?.destroy();
-    this.#searchInput.destroy();
-    this.#clearAllUI.destroy();
-    this.#selectAllUI.destroy();
+    this.#searchInput?.destroy();
+    this.#clearAllUI?.destroy();
+    this.#selectAllUI?.destroy();
 
     this.#searchInput = null;
     this.#clearAllUI = null;
     this.#selectAllUI = null;
     this.#itemsBox = null;
-    this.#items = null;
+    this.#items.length = 0;
     super.destroy();
   }
 
@@ -322,10 +338,12 @@ export class MultipleSelectUI extends BaseUI {
     const value = trimmed.toLocaleLowerCase(this.getLocale());
 
     if ((this.options as Record<string, unknown>).searchMode === 'apply') {
-      const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
+      const hiddenRows = this.#itemsBox?.getPlugin('hiddenRows');
       const rowsToHide: number[] = [];
 
-      hiddenRows.showRows(hiddenRows.getHiddenRows());
+      if (hiddenRows) {
+        hiddenRows.showRows(hiddenRows.getHiddenRows());
+      }
 
       this.#items.forEach((item, index) => {
         item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
@@ -335,9 +353,11 @@ export class MultipleSelectUI extends BaseUI {
         }
       });
 
-      hiddenRows.hideRows(rowsToHide);
-      this.#itemsBox.view.adjustElementsSize();
-      this.#itemsBox.render();
+      if (hiddenRows) {
+        hiddenRows.hideRows(rowsToHide);
+      }
+      this.#itemsBox?.view.adjustElementsSize();
+      this.#itemsBox?.render();
     } else {
       let filteredItems;
 
@@ -348,7 +368,7 @@ export class MultipleSelectUI extends BaseUI {
           .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
       }
 
-      this.#itemsBox.loadData(filteredItems);
+      this.#itemsBox?.loadData(filteredItems);
     }
   }
 
@@ -360,13 +380,11 @@ export class MultipleSelectUI extends BaseUI {
   #onInputKeyDown(event: KeyboardEvent) {
     this.runLocalHooks('keydown', event, this);
 
-    const isKeyCode = partial(isKey, event.keyCode);
-
-    if (isKeyCode('ARROW_DOWN')) {
+    if (isKey(event.keyCode, 'ARROW_DOWN')) {
       event.preventDefault();
       stopImmediatePropagation(event);
-      this.#itemsBox.listen();
-      this.#itemsBox.selectCell(0, 0);
+      this.#itemsBox?.listen();
+      this.#itemsBox?.selectCell(0, 0);
     }
   }
 
@@ -379,6 +397,10 @@ export class MultipleSelectUI extends BaseUI {
     const changes: unknown[][] = [];
 
     event.preventDefault();
+
+    if (!this.#itemsBox) {
+      return;
+    }
 
     (this.#itemsBox.getSourceData() as SelectItem[]).forEach((row, rowIndex) => {
       row.checked = true;
@@ -398,6 +420,11 @@ export class MultipleSelectUI extends BaseUI {
     const changes: unknown[][] = [];
 
     event.preventDefault();
+
+    if (!this.#itemsBox) {
+      return;
+    }
+
     (this.#itemsBox.getSourceData() as SelectItem[]).forEach((row, rowIndex) => {
       row.checked = false;
 

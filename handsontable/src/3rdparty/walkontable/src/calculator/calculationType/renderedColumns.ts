@@ -39,20 +39,20 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
       overrideFn(this);
 
       this.columnStartOffset = startColumn - this.startColumn;
-      this.columnEndOffset = this.endColumn - endColumn;
+      this.columnEndOffset = this.endColumn !== null && endColumn !== null ? this.endColumn - endColumn : 0;
     }
 
-    if (this.startColumn < 0) {
+    if (this.startColumn !== null && this.startColumn < 0) {
       this.startColumn = 0;
     }
 
-    this.startPosition = this.startColumn !== null ? positionCache.getOffset(this.startColumn) : null;
+    this.startPosition = this.startColumn !== null && positionCache ? positionCache.getOffset(this.startColumn) : null;
 
-    if (totalColumns < this.endColumn) {
+    if (this.endColumn !== null && totalColumns < this.endColumn) {
       this.endColumn = totalColumns - 1;
     }
 
-    if (this.startColumn !== null) {
+    if (this.startColumn !== null && this.endColumn !== null) {
       this.count = this.endColumn - this.startColumn + 1;
     }
   }

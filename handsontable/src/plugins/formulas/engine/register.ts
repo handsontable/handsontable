@@ -60,7 +60,7 @@ export function setupEngine(hotInstance: HotInstance) {
     hyperformula?: HyperFormulaClass;
   }) | undefined;
 
-  if (isUndefined(engineConfigItem)) {
+  if (engineConfigItem === undefined) {
     return null;
   }
 
@@ -220,7 +220,7 @@ export function registerCustomFunctions(engineClass: HyperFormulaClass, customFu
         engineClass.registerFunction(name, plugin, translations);
 
       } catch (e) {
-        warn(e.message);
+        warn(e instanceof Error ? e.message : String(e));
       }
     });
   }
@@ -242,7 +242,7 @@ export function registerLanguage(engineClass: HyperFormulaClass, languageSetting
       engineClass.registerLanguage(langCode, languageSetting);
 
     } catch (e) {
-      warn(e.message);
+      warn(e instanceof Error ? e.message : String(e));
     }
   }
 }
@@ -271,7 +271,7 @@ export function registerNamedExpressions(
         engineInstance.addNamedExpression(name, expression, scope, options);
 
       } catch (e) {
-        warn(e.message);
+        warn(e instanceof Error ? e.message : String(e));
       }
     });
 

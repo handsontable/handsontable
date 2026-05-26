@@ -42,7 +42,7 @@ export class DateEditor extends TextEditor {
   /**
    * @type {Pikaday}
    */
-  $datePicker: PikadayInstance = null;
+  $datePicker: PikadayInstance | null = null;
   /**
    * @type {HTMLDivElement}
    */
@@ -156,28 +156,28 @@ export class DateEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    this.showDatepicker(event);
+    this.showDatepicker(event ?? undefined);
     super.open();
 
-    editorContext.addShortcuts([{
+    editorContext!.addShortcuts([{
       keys: [['ArrowLeft']],
       callback: () => {
-        this.$datePicker.adjustDate('subtract', 1);
+        this.$datePicker!.adjustDate('subtract', 1);
       },
     }, {
       keys: [['ArrowRight']],
       callback: () => {
-        this.$datePicker.adjustDate('add', 1);
+        this.$datePicker!.adjustDate('add', 1);
       },
     }, {
       keys: [['ArrowUp']],
       callback: () => {
-        this.$datePicker.adjustDate('subtract', 7);
+        this.$datePicker!.adjustDate('subtract', 7);
       },
     }, {
       keys: [['ArrowDown']],
       callback: () => {
-        this.$datePicker.adjustDate('add', 7);
+        this.$datePicker!.adjustDate('add', 7);
       },
     }], {
       group: SHORTCUTS_GROUP_EDITOR,
@@ -204,7 +204,7 @@ export class DateEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
+    editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP_EDITOR);
 
     super.close();
   }
@@ -278,7 +278,7 @@ export class DateEditor extends TextEditor {
    */
   hideDatepicker(): void {
     this.datePickerStyle.display = 'none';
-    this.$datePicker.hide();
+    this.$datePicker!.hide();
   }
 
   /**
@@ -367,8 +367,8 @@ export class DateEditor extends TextEditor {
     const lastVisibleColumn = columnIndexMapper.getVisualFromRenderableIndex(wtTable.getLastPartiallyVisibleColumn());
 
     if (
-      this.row >= firstVisibleRow && this.row <= lastVisibleRow &&
-      this.col >= firstVisibleColumn && this.col <= lastVisibleColumn
+      this.row! >= firstVisibleRow! && this.row! <= lastVisibleRow! &&
+      this.col! >= firstVisibleColumn! && this.col! <= lastVisibleColumn!
     ) {
       const offset = this.TD.getBoundingClientRect();
       const pickerWidth = outerWidth(this.datePicker);
