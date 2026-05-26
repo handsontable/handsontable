@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 51aacis1
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: b4qs2km7
 title: Export to Excel
 metaTitle: Export to Excel - JavaScript Data Grid | Handsontable

@@ -8,7 +8,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 - HyperFormula - Spreadsheet formula calculation engine
   - Package: `hyperformula` ^3.0.0 (optional dependency)
   - Integration: Plugin-based via `handsontable/src/plugins/formulas/`
-  - Engine setup: `handsontable/src/plugins/formulas/engine/register.js`
+  - Engine setup: `handsontable/src/plugins/formulas/engine/register.ts`
   - No network calls; runs entirely in-browser
   - Bundled in `handsontable.full.js` variant; external in `handsontable.js`
 
@@ -35,10 +35,10 @@ Handsontable is a frontend-only library with no built-in external API integratio
 
 **Error Tracking:**
 - None built-in. No telemetry or error reporting services.
-- Errors use custom handler: `handsontable/src/helpers/errors.js` with `throwWithCause(error, cause)` utility.
+- Errors use custom handler: `handsontable/src/helpers/errors.ts` with `throwWithCause(error, cause)` utility.
 
 **Logs:**
-- Console helpers via `handsontable/src/helpers/console.js` (wraps `console` to avoid direct global access).
+- Console helpers via `handsontable/src/helpers/console.ts` (wraps `console` to avoid direct global access).
 - No external logging service integration.
 
 ## CI/CD & Deployment
@@ -112,7 +112,7 @@ These are the only external libraries bundled or referenced at runtime:
 - Core component: `wrappers/angular-wrapper/projects/hot-table/src/lib/`
 - Runtime deps: `rxjs` ^7.8.1, `tslib` ^2.3.0, `zone.js` ~0.13.0
 - Tests require `NODE_OPTIONS=--openssl-legacy-provider`
-- **Modern pattern (required for all examples):** Components use `standalone: true` with `imports: [HotTableModule]`. Use `app.config.ts` (`ApplicationConfig` + `provideZoneChangeDetection`) instead of `AppModule`. License is set globally via `HOT_GLOBAL_CONFIG` -- no per-table `licenseKey`. Templates use `@if`/`@for` control flow, not `*ngIf`/`*ngFor`. Row data typed as `RowObject[]` from `handsontable/common`.
+- **Modern pattern (required for all examples):** Components use `standalone: true` with `imports: [HotTableModule]`. Use `app.config.ts` (`ApplicationConfig` + `provideZoneChangeDetection`) instead of `AppModule`. License is set globally via `HOT_GLOBAL_CONFIG` -- no per-table `licenseKey`. Templates use `@if`/`@for` control flow, not `*ngIf`/`*ngFor`. Row data typed as `RowObject[]` from `handsontable`.
 
 **Vue 3 (`wrappers/vue3/`):**
 - Peer dependency: `handsontable` ^17.0.0, `vue` ^3.2.22
@@ -122,7 +122,7 @@ These are the only external libraries bundled or referenced at runtime:
 ## Import/Export Capabilities
 
 **Supported formats (client-side only):**
-- CSV - Parsed via `handsontable/src/utils/parseTable.js`
+- CSV - Parsed via `handsontable/src/utils/parseTable.ts`
 - HTML tables - HTML parsing utility for copy/paste and export
 - JSON - Data structure is plain arrays/objects
 - Excel formulas - When Formulas plugin enabled via HyperFormula

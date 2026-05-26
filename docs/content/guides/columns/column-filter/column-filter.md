@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable

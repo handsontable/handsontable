@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: aq1vywt4
 title: Column moving
 metaTitle: Column moving - JavaScript Data Grid | Handsontable

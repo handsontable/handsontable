@@ -1,0 +1,36 @@
+import { isValidISODate } from '../../helpers/dateTime';
+import { isEmpty } from '../../helpers/mixed';
+
+export const VALIDATOR_TYPE = 'intl-date';
+export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
+  'Invalid value for "intl-date" cell type.\n\n' +
+  '[affectedCells]\n\n' +
+  'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").';
+
+type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
+
+/**
+ *
+ */
+export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean {
+  if (cellMeta.allowEmpty && isEmpty(value)) {
+    return true;
+  }
+
+  return isValidISODate(value);
+}
+
+/**
+ *
+ */
+export function intlDateValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+  if (this.allowEmpty && isEmpty(value)) {
+    callback(true);
+
+    return;
+  }
+
+  callback(isValidISODate(value));
+}
+
+intlDateValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: b5f02fb2
 title: Star Rating
 metaTitle:  Star Rating Cell Type - JavaScript Data Grid | Handsontable"

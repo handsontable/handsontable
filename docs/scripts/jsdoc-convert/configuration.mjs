@@ -1,6 +1,6 @@
 /* eslint max-len: 0 */
 export default {
-  pathToSource: '../../../handsontable/src',
+  pathToSource: '../../../handsontable/tmp',
   pathToDist: '../../content/api',
   urlPrefix: '/api/',
   seo: {
@@ -798,6 +798,78 @@ export default {
       angular: {
         id: 'x8y9z0a1',
         metaTitle: 'EmptyDataState - Angular Data Grid | Handsontable',
+      },
+    },
+    'ItemsFactory.md': {
+      id: 'y3p9w2kd',
+      react: {
+        id: 'u8c4m1ra',
+      },
+      angular: {
+        id: 'd5f7n2sz',
+      },
+    },
+    'MergedCellsCollection.md': {
+      id: 'h8q4m1zr',
+      react: {
+        id: 'm2w9k6vb',
+      },
+      angular: {
+        id: 'g3t8p4xc',
+      },
+    },
+    'PersistentState.md': {
+      id: 'n6t2b5xv',
+      react: {
+        id: 'q7y1d5ne',
+      },
+      angular: {
+        id: 'j4u6h9lf',
+      },
+    },
+    'CommentEditor.md': {
+      id: 'r2v8z4mg',
+      react: {
+        id: 'p6x3c7na',
+      },
+      angular: {
+        id: 'k9b5t1od',
+      },
+    },
+    'CopyableRangesFactory.md': {
+      id: 's3n7w2qe',
+      react: {
+        id: 'l4d8y6pf',
+      },
+      angular: {
+        id: 'h1m9r5ug',
+      },
+    },
+    'FocusOrder.md': {
+      id: 't5p2k8vh',
+      react: {
+        id: 'f7q3j1wi',
+      },
+      angular: {
+        id: 'b6n4x9yj',
+      },
+    },
+    'MultiSelectEditor.md': {
+      id: 'v8r1h6zk',
+      react: {
+        id: 'c2m7p5xl',
+      },
+      angular: {
+        id: 'a9t4d3yn',
+      },
+    },
+    'TextEditor.md': {
+      id: 'c7r3j9lp',
+      react: {
+        id: 'e5w8k2zo',
+      },
+      angular: {
+        id: 'i1v6q4ap',
       },
     },
   }

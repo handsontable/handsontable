@@ -92,6 +92,8 @@ if (!fs.existsSync(originalPath)) {
   process.exit(1);
 }
 
+verboseReporting = flags.includes('verbose');
+
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
   const random = flagArgs.includes('--random');
@@ -110,7 +112,19 @@ if (flags) {
     params.push(`hotVersion=${hotVersionMatch[1]}`);
   }
 
-  htmlPath = `${htmlPath}?${params.join('&')}`;
+  // Support --spec=<pattern> to filter test files at runtime (e.g., --spec=i18n or --spec="i18n/index").
+  const specFlag = flagArgs.find(a => a.startsWith('--spec='));
+
+  if (specFlag) {
+    const specPattern = specFlag.replace('--spec=', '');
+
+    params.push(`spec=${encodeURIComponent(specPattern)}`);
+    console.log(`Filtering tests with pattern: ${specPattern}`);
+  }
+
+  if (params.length > 0) {
+    htmlPath = `${originalPath}?${params.join('&')}`;
+  }
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {

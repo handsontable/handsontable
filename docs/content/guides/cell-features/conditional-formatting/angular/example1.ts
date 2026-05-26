@@ -48,7 +48,7 @@ const negativeValueRenderer = (
   );
 
   // if the row contains a negative number
-  if (parseInt(value, 10) < 0) {
+  if (parseInt(value as string, 10) < 0) {
     td.style.color = '#FF5A12';
   }
 
@@ -87,10 +87,10 @@ export class AppComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     height: 'auto',
-    afterSelection: function (this: Handsontable, _row, _col, row2, col2) {
+    afterSelection: function (this: Handsontable, _row: number, _col: number, row2: number, col2: number) {
       const meta = this.getCellMeta(row2, col2);
 
-      if (meta.readOnly) {
+      if (meta['readOnly']) {
         this.updateSettings({
           fillHandle: false,
         });
@@ -100,18 +100,18 @@ export class AppComponent {
         });
       }
     },
-    cells: function (row, col) {
+    cells: function (row: number, col: number) {
       const cellProperties: Handsontable.CellMeta = {};
-      const data = this.instance.getData();
+      const data = (this as any).instance.getData();
 
       if (row === 0 || (data[row] && data[row][col] === 'readOnly')) {
-        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+        cellProperties['readOnly'] = true; // make cell read-only if it is first row or the text reads 'readOnly'
       }
 
       if (row === 0) {
-        cellProperties.renderer = firstRowRenderer;
+        cellProperties['renderer'] = firstRowRenderer;
       } else {
-        cellProperties.renderer = 'negativeValueRenderer';
+        cellProperties['renderer'] = 'negativeValueRenderer';
       }
 
       return cellProperties;

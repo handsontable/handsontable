@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed `setSourceDataAtCell()` updating parent rows instead of nested child rows when `nestedRows` is enabled.",
-  "type": "fixed",
-  "issueOrPR": 10657,
-  "breaking": false,
-  "framework": "none"
-}

@@ -83,6 +83,46 @@ describe('DataProvider integration with Pagination', () => {
     expect(getDataAtCell(0, 0)).toBe(6);
   });
 
+  it('should keep user-selected pageSize when column sort triggers refetch', async() => {
+    const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
+      const { page, pageSize } = params;
+      const start = (page - 1) * pageSize;
+      const rows = Array.from({ length: Math.min(pageSize, 100 - start) }, (_, i) => ({
+        id: start + i + 1,
+        name: `Item ${start + i + 1}`,
+      }));
+
+      return Promise.resolve({ rows, totalRows: 100 });
+    });
+
+    handsontable({
+      data: [],
+      columns: [{ data: 'id' }, { data: 'name' }],
+      colHeaders: true,
+      columnSorting: true,
+      pagination: { pageSize: 10, initialPage: 1 },
+      dataProvider: createDataProviderConfig({ fetchRows }),
+    });
+
+    await sleep(100);
+
+    getPlugin('pagination').setPageSize(50);
+
+    await sleep(100);
+
+    fetchRows.calls.reset();
+
+    getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+    await sleep(100);
+
+    expect(fetchRows).toHaveBeenCalledWith(
+      jasmine.objectContaining({ pageSize: 50 }),
+      jasmine.any(Object)
+    );
+    expect(getPlugin('pagination').getPaginationData().pageSize).toBe(50);
+  });
+
   it('should keep current pagination page when column sort triggers refetch', async() => {
     const fetchRows = jasmine.createSpy('fetchRows').and.callFake((params) => {
       const { page, pageSize } = params;

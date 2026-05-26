@@ -1306,4 +1306,42 @@ describe('Formulas general', () => {
       HyperFormula.unregisterLanguage(plPL.langCode);
     });
   });
+
+  describe('Data source shape', () => {
+    it('should evaluate formulas on init for array-of-arrays data when `columns` skips physical indexes (#10021)', async() => {
+      handsontable({
+        data: [[1, 2, 3, '=A1']],
+        columns: [{ data: 0 }, { data: 2 }, { data: 3 }],
+        formulas: { engine: HyperFormula },
+      });
+
+      expect(getDataAtCell(0, 0)).toBe(1);
+      expect(getDataAtCell(0, 1)).toBe(3);
+      expect(getDataAtCell(0, 2)).toBe(1);
+    });
+
+    it('should evaluate formulas on init for array-of-objects data when `columns` skips properties', async() => {
+      handsontable({
+        data: [{ a: 1, b: 2, c: 3, d: '=A1' }],
+        columns: [{ data: 'a' }, { data: 'c' }, { data: 'd' }],
+        formulas: { engine: HyperFormula },
+      });
+
+      expect(getDataAtCell(0, 0)).toBe(1);
+      expect(getDataAtCell(0, 1)).toBe(3);
+      expect(getDataAtCell(0, 2)).toBe(1);
+    });
+
+    it('should recalculate dependents when the referenced cell is edited (AoA with skipped columns)', async() => {
+      handsontable({
+        data: [[1, 2, 3, '=A1']],
+        columns: [{ data: 0 }, { data: 2 }, { data: 3 }],
+        formulas: { engine: HyperFormula },
+      });
+
+      await setDataAtCell(0, 0, 42);
+
+      expect(getDataAtCell(0, 2)).toBe(42);
+    });
+  });
 });

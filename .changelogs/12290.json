@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed filter-by-value search by trimming leading and trailing spaces and treating whitespace-only input as an empty query.",
-  "type": "fixed",
-  "issueOrPR": 12290,
-  "breaking": false,
-  "framework": "none"
-}

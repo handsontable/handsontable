@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'jsdom',
+  setupFiles: ['<rootDir>/test/cryptoSetup.js'],
   roots: [
     '<rootDir>/src',
     '<rootDir>/test'
@@ -9,7 +10,7 @@ module.exports = {
   setupFilesAfterEnv: [
     '<rootDir>/test/bootstrap.js'
   ],
-  testRegex: '\\.unit\\.js$',
+  testRegex: '\\.(unit\\.js|unit\\.ts)$',
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/'
   ],

@@ -19,7 +19,7 @@ angular:
   metaTitle: Frozen summary row recipe - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will pin a read-only totals row at the bottom of the grid. You will learn how to use `fixedRowsBottom`, recalculate aggregates on `afterChange`, and style the summary row with the `cells` callback.

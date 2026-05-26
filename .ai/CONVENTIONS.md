@@ -3,12 +3,12 @@
 ## Naming Patterns
 
 **Files:**
-- Source files: `camelCase.js` (e.g., `hiddenColumns.js`, `conditionCollection.js`, `editorManager.js`)
+- Source files: `camelCase.ts` (e.g., `hiddenColumns.ts`, `conditionCollection.ts`, `editorManager.ts`). Walkontable (`src/3rdparty/walkontable/`) is also `camelCase.ts`.
 - Plugin directories: `camelCase/` (e.g., `src/plugins/hiddenColumns/`, `src/plugins/copyPaste/`)
-- Helper files: `camelCase.js` in `src/helpers/` (e.g., `array.js`, `object.js`, `unicode.js`)
+- Helper files: `camelCase.ts` in `src/helpers/` (e.g., `array.ts`, `object.ts`, `unicode.ts`)
 - Test files: `*.unit.js` for Jest unit tests, `*.spec.js` for Jasmine E2E tests
-- Type definition files: `*.types.ts` in `handsontable/test/types/`
-- Each plugin directory has an `index.js` barrel that re-exports `PLUGIN_KEY`, `PLUGIN_PRIORITY`, and the class
+- Type definition files: `*.types.ts` in `handsontable/test/types/`; generated `.d.ts` in `handsontable/tmp/`
+- Each plugin directory has an `index.ts` barrel that re-exports `PLUGIN_KEY`, `PLUGIN_PRIORITY`, and the class
 
 **Functions:**
 - Use `camelCase` for all functions and methods: `getActiveEditor()`, `createSpreadsheetData()`
@@ -25,9 +25,9 @@
 
 **Types:**
 - Class names: `PascalCase` (e.g., `BasePlugin`, `HiddenColumns`, `CellMeta`, `EditorManager`)
-- Type annotations in JSDoc use `@type {TypeName}` or `@private` tags
-- TypeScript `.d.ts` files use PascalCase for types and interfaces
-- Never create `.ts` files in `handsontable/src/` -- core is JavaScript only
+- Type annotations use TypeScript syntax directly in `.ts` source files
+- TypeScript `.d.ts` files in `handsontable/tmp/` are auto-generated — do not hand-edit them.
+- TypeScript compilation uses `strict: false`, `noImplicitAny: true`
 
 ## Code Style
 
@@ -61,8 +61,8 @@
 
 | Rule | Enforcement |
 |---|---|
-| `handsontable/no-native-error-throw` | Use `throwWithCause()` from `src/helpers/errors.js`, never `throw new Error()` |
-| `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from specific submodule paths. Only exception: `src/registry.js` |
+| `handsontable/no-native-error-throw` | Use `throwWithCause()` from `src/helpers/errors.ts`, never `throw new Error()` |
+| `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from specific submodule paths. Only exception: `src/registry.ts` |
 | `handsontable/require-async-in-it` | All `it()` callbacks in `*.spec.js` must be `async`. Disabled for `*.unit.js` |
 | `handsontable/require-await` | Specific HOT API calls must be `await`-ed in `*.spec.js` (full list in `handsontable/.eslintrc.js` lines 84-151) |
 | `no-restricted-globals` | Source: `window`, `document`, `console`, `Handsontable` banned. Tests: only `fit`, `fdescribe` banned |
@@ -84,8 +84,8 @@
 3. Local modules from sibling/child directories
 4. Constants and configurations
 
-**Example from `src/plugins/hiddenColumns/hiddenColumns.js`:**
-```javascript
+**Example from `src/plugins/hiddenColumns/hiddenColumns.ts`:**
+```typescript
 import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
@@ -104,12 +104,12 @@ import { HidingMap } from '../../translations';
 **Critical Rule: No barrel imports in source code.**
 - Wrong: `import { HiddenColumns } from '../plugins'`
 - Correct: `import { HiddenColumns } from '../plugins/hiddenColumns/hiddenColumns'`
-- Only `src/registry.js` may import from barrel indices
+- Only `src/registry.ts` may import from barrel indices
 
 ## Error Handling
 
 **Pattern -- Always use `throwWithCause()`:**
-```javascript
+```typescript
 import { throwWithCause } from '../helpers/errors';
 
 // Instead of: throw new Error('message')
@@ -120,7 +120,7 @@ throwWithCause('The `fixedColumnsLeft` is not supported for RTL. Please use opti
 - All errors include `cause: { handsontable: true }` for programmatic recognition
 - Check with `error.cause?.handsontable === true`
 
-**Implementation in `src/helpers/errors.js`:**
+**Implementation in `src/helpers/errors.ts`:**
 ```javascript
 export function throwWithCause(message) {
   throw new Error(message, {
@@ -131,7 +131,7 @@ export function throwWithCause(message) {
 
 ## Logging
 
-**Framework:** Custom wrappers in `src/helpers/console.js`
+**Framework:** Custom wrappers in `src/helpers/console.ts`
 
 **Available Functions:**
 - `log(...args)` -- General logging
@@ -215,8 +215,8 @@ deprecatedWarn('The `getTotalRows()` method is deprecated. Use `countRows()` ins
 
 **Exports:**
 - Named exports preferred (`import/prefer-default-export: 'off'`)
-- Plugin index pattern from `src/plugins/hiddenColumns/index.js`:
-```javascript
+- Plugin index pattern from `src/plugins/hiddenColumns/index.ts`:
+```typescript
 export {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
@@ -245,7 +245,7 @@ class MyPlugin extends BasePlugin {
 6. `destroy()` -- final teardown. Call `super.destroy()` at the end
 
 **Hooks Registration at Module Level (outside the class):**
-```javascript
+```typescript
 import { Hooks } from '../../core/hooks';
 
 Hooks.getSingleton().register('beforeMyAction');
@@ -258,8 +258,8 @@ Hooks.getSingleton().register('afterMyAction');
 
 ```
 src/plugins/{pluginName}/
-├── index.js              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
-├── {pluginName}.js       # Main plugin class extending BasePlugin
+├── index.ts              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
+├── {pluginName}.ts       # Main plugin class extending BasePlugin
 ├── __tests__/            # Tests (*.spec.js for E2E, *.unit.js for unit)
 │   └── helpers/          # Optional plugin-specific test helpers (auto-loaded for E2E)
 └── {submodules}/         # Additional subdirectories as needed

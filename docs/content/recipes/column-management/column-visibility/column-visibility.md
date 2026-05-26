@@ -18,17 +18,17 @@ angular:
   metaTitle: Dynamic Column Visibility Toggle - Angular Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
-type: tutorial
+type: how-to
 ---
 
 In this tutorial, you will build a checkbox list outside the grid that shows or hides columns on demand. You will learn how to use `updateSettings` to update the `columns` array while preserving each column's type, renderer, and validator configuration.
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --html 1 --js 2
+::: example #example1 :hot-recipe --js 1 --ts 2
 
-@[code](@/content/recipes/column-management/column-visibility/javascript/example1.html)
 @[code](@/content/recipes/column-management/column-visibility/javascript/example1.js)
+@[code](@/content/recipes/column-management/column-visibility/javascript/example1.ts)
 
 :::
 
@@ -75,7 +75,7 @@ This recipe uses only the built-in Handsontable API. No extra dependencies are r
 
 The example uses HR/workforce data with seven columns: Name, Department, Role, Salary, Start Date, Location, and Status. The Salary column uses the `numeric` type with formatting. The Status column uses the `dropdown` type. This variety demonstrates that `hot.updateSettings()` restores each column's full configuration -- not just its header text.
 
-## Step 1 -- Define the full columns config
+## Step 1: Define the full columns config
 
 ```javascript
 const allColumns = [
@@ -86,10 +86,11 @@ const allColumns = [
     data: 'salary',
     title: 'Salary',
     type: 'numeric',
-    numericFormat: { pattern: '$0,0', culture: 'en-US' },
+    locale: 'en-US',
+    numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
     width: 110,
   },
-  { data: 'startDate', title: 'Start Date', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
+  { data: 'startDate', title: 'Start Date', type: 'intl-date', locale: 'en-CA', dateFormat: { dateStyle: 'short' }, width: 110 },
   { data: 'location', title: 'Location', type: 'text', width: 110 },
   {
     data: 'status',
@@ -105,7 +106,7 @@ const allColumns = [
 
 **Why not mutate?** If you splice or delete entries from `allColumns`, you lose the config for hidden columns and cannot restore them. An immutable source lets you re-derive the visible set at any time.
 
-## Step 2 -- Track visible column indices
+## Step 2: Track visible column indices
 
 ```javascript
 const visibleIndices = new Set(allColumns.map((_, i) => i));
@@ -127,7 +128,7 @@ function getVisibleHeaders() {
 
 These two helpers produce the arguments that `hot.updateSettings()` needs on every toggle. They are pure functions with no side effects.
 
-## Step 3 -- Initialize Handsontable
+## Step 3: Initialize Handsontable
 
 ```javascript
 const hot = new Handsontable(container, {
@@ -144,7 +145,7 @@ const hot = new Handsontable(container, {
 
 **What's happening:** The grid starts with all columns visible, so `getVisibleColumns()` and `getVisibleHeaders()` return full arrays at this point. The initial state of the grid and the initial checkbox state both derive from `visibleIndices`, so they are always in sync.
 
-## Step 4 -- Generate the checkbox list
+## Step 4: Generate the checkbox list
 
 ```javascript
 const togglesContainer = document.querySelector('#column-toggles');
@@ -167,7 +168,7 @@ allColumns.forEach((col, index) => {
 
 **Why generate checkboxes in JS rather than hardcode them in HTML?** Generating them from the same `allColumns` array means a single source of truth. If you add or rename a column config entry, the checkbox list updates automatically.
 
-## Step 5 -- Implement the toggle handler
+## Step 5: Implement the toggle handler
 
 ```javascript
 checkbox.addEventListener('change', () => {

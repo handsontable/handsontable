@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: x2u15qpx
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable

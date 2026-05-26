@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 01620d5a
 title: Pikaday
 metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 2yi2yfl5
 title: Loading
 metaTitle: Loading - JavaScript Data Grid | Handsontable

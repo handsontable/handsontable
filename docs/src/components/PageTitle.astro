@@ -18,6 +18,8 @@ import { createRequire } from 'module';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
+import { shouldShowNewerVersionBanner } from '../lib/newer-version-banner.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require   = createRequire(import.meta.url);
 
@@ -56,7 +58,7 @@ try {
   // Network unavailable — banner will be hidden (graceful degradation).
 }
 
-const showNewerBanner = currentMinor !== '' && latestVersion !== '' && currentMinor !== latestVersion;
+const showNewerBanner = shouldShowNewerVersionBanner(currentMinor, latestVersion);
 
 // ── Framework labels ──────────────────────────────────────────────────────────
 const FRAMEWORK_LABELS: Record<string, string> = {

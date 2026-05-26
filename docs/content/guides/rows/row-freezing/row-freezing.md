@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: jgrtvjxx
 title: Row freezing
 metaTitle: Row freezing - JavaScript Data Grid | Handsontable

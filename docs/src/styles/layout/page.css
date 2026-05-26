@@ -70,6 +70,34 @@ header.header {
   z-index: 10100;
 }
 
+/* DocSearch modal must appear above the sticky header (z-index: 10100) */
+.DocSearch-Container {
+  z-index: 10200 !important;
+}
+
+/* Search bar: starlight-docsearch adds a ::before icon on .DocSearch-Button-Keys and
+   @docsearch/js injects a "/" .DocSearch-Button-Key — together they read as a broken
+   shortcut hint (DEV-1681). */
+@media (min-width: 50rem) {
+  sl-doc-search .DocSearch-Button-Keys::before {
+    display: none;
+  }
+
+  sl-doc-search .DocSearch-Button-Key {
+    display: none;
+  }
+}
+
+/* Modal footer: global kbd styles add margin and box-shadow that throw off centering. */
+.DocSearch-Button-Key,
+.DocSearch-Commands-Key {
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  line-height: 1;
+  padding-bottom: 0;
+}
+
 header.header > .header {
   max-width: 1500px;
   margin-inline: auto;

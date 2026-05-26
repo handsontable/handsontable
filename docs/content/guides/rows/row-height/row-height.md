@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: fehmrn1j
 title: Row heights
 metaTitle: Row heights - JavaScript Data Grid | Handsontable

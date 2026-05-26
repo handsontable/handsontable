@@ -12,27 +12,11 @@ const employees = [
   { name: 'Carlos Mendes', department: 'Finance', role: 'Financial Analyst', salary: 88000, startDate: '2021-09-05' },
   { name: 'Fatima Al-Hassan', department: 'Engineering', role: 'Backend Developer', salary: 92000, startDate: '2020-04-18' },
   { name: 'Noah Kim', department: 'Design', role: 'UX Designer', salary: 75000, startDate: '2023-02-14' },
-  { name: 'Sara Lindqvist', department: 'Marketing', role: 'Content Strategist', salary: 71000, startDate: '2022-06-30' },
+  { name: 'Sara Lindqvist', department: 'Marketing', role: 'Content Strategist', salary: 71000, startDate: '2019-06-30' },
 ];
 /* end:skip-in-preview */
 
 const container = document.querySelector('#example1');
-const submitLog = document.querySelector('#submit-log');
-const shortcutStatus = document.querySelector('#shortcut-status');
-
-let statusTimeout = null;
-
-function showStatus(message) {
-  shortcutStatus.textContent = message;
-  shortcutStatus.classList.add('visible');
-  if (statusTimeout !== null) {
-    clearTimeout(statusTimeout);
-  }
-  statusTimeout = setTimeout(() => {
-    shortcutStatus.classList.remove('visible');
-    statusTimeout = null;
-  }, 2000);
-}
 
 const hot = new Handsontable(container, {
   data: employees,
@@ -41,7 +25,7 @@ const hot = new Handsontable(container, {
     { data: 'name', type: 'text' },
     { data: 'department', type: 'text' },
     { data: 'role', type: 'text' },
-    { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
+    { data: 'salary', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 } },
     { data: 'startDate', type: 'text' },
   ],
   rowHeaders: true,
@@ -51,8 +35,11 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const shortcutManager = hot.getShortcutManager();
-const gridContext = shortcutManager.getContext('grid');
+const preview = container.closest('.hot-example-preview') ?? container.parentElement;
+const lastShortcutEl = preview.querySelector('.last-shortcut');
+const lastSubmissionEl = preview.querySelector('.last-submission');
+
+const gridContext = hot.getShortcutManager().getContext('grid');
 
 // Ctrl+D: duplicate the currently selected row
 gridContext.addShortcut({
@@ -74,7 +61,7 @@ gridContext.addShortcut({
     hot.alter('insert_row_below', row);
     hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
 
-    showStatus('Ctrl+D -- row duplicated');
+    lastShortcutEl.textContent = 'Ctrl+D -- row duplicated';
   },
 });
 
@@ -91,8 +78,7 @@ gridContext.addShortcut({
     const rowCount = data.length;
     const timestamp = new Date().toLocaleTimeString();
 
-    submitLog.textContent = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
-
-    showStatus('Ctrl+Enter -- data submitted');
+    lastShortcutEl.textContent = 'Ctrl+Enter -- data submitted';
+    lastSubmissionEl.textContent = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
   },
 });

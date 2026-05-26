@@ -51,12 +51,16 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "build:types": {
+      "cmd": "tsc -p tsconfig.build-types.json",
+      "deps": []
+    },
     "build:umd": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles", "build:themes-css"]
     },
     "build:umd.min": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.ts",
       "deps": ["build:styles.min", "build:themes-css.min"]
     },
     "build:es": {
@@ -65,7 +69,7 @@
       "note": "needs build:styles.min to finalize handsontableStyles.js"
     },
     "build:walkontable": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.ts",
       "deps": [],
       "passthrough": true,
       "passthroughFilter": ["--watch"]
@@ -80,25 +84,13 @@
     },
 
     "lint:eslint": {
-      "cmd": "eslint --cache src/ test/ .config/plugin scripts/",
+      "cmd": "eslint --cache --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
       "deps": [],
       "mode": "inherit"
     },
     "lint:eslint.fix": {
-      "cmd": "eslint --fix src/ test/ .config/plugin scripts/",
+      "cmd": "eslint --fix --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
       "deps": [],
-      "mode": "inherit"
-    },
-    "lint:types": {
-      "cmd": "eslint \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-      "deps": [],
-      "cwd": "types",
-      "mode": "inherit"
-    },
-    "lint:types.fix": {
-      "cmd": "eslint --fix \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-      "deps": [],
-      "cwd": "types",
       "mode": "inherit"
     },
     "lint:stylelint": {
@@ -108,6 +100,11 @@
     },
     "lint:stylelint.fix": {
       "cmd": "stylelint --fix \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "typecheck": {
+      "cmd": "tsc --noEmit",
       "deps": [],
       "mode": "inherit"
     },
@@ -121,8 +118,8 @@
       "note": "interactive gives Jest a real TTY so colors/progress work; passthroughFilter limits forwarded flags to Jest-understood args — blocks --random, --verbose, etc."
     },
     "test:types": {
-      "cmd": "tsc -p ./test/types -t es2015",
-      "deps": [],
+      "cmd": "tsc -p ./test/types",
+      "deps": ["build:types"],
       "mode": "inherit"
     },
     "test:e2e.dump": {
@@ -182,7 +179,7 @@
     },
 
     "watch:rspack": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.js",
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.ts",
       "deps": [],
       "mode": "inherit"
     },
@@ -209,16 +206,17 @@
         "build:themes-umd.min",
         "build:umd",
         "build:umd.min",
-        "build:es"
+        "build:es",
+        "build:types"
       ]
     },
     "lint": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint", "lint:types", "lint:stylelint"]
+      "tasks": ["lint:eslint", "lint:stylelint", "typecheck"]
     },
     "lint:fix": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint.fix", "lint:types.fix", "lint:stylelint.fix"]
+      "tasks": ["lint:eslint.fix", "lint:stylelint.fix"]
     },
     "test:unit": {
       "before": ["build:styles"],

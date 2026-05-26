@@ -12,10 +12,10 @@ Review staged or changed code for compliance with Handsontable coding convention
 ## Checklist
 
 1. **ESLint rules (custom):**
-   - Errors must use `throwWithCause('...', cause)` from `src/helpers/errors.js` -- never `throw new Error()`.
+   - Errors must use `throwWithCause('...', cause)` from `src/helpers/errors.ts` - never `throw new Error()`.
    - No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from the specific submodule path.
    - Every `it()` callback in `*.spec.js` files must be `async`. HOT API calls inside tests must be `await`-ed.
-   - No bare `window`, `document`, or `console` globals. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.js`.
+   - No bare `window`, `document`, or `console` globals. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`.
 
 2. **JSDoc:**
    - All public and private APIs must have JSDoc comments.
@@ -50,7 +50,9 @@ Review staged or changed code for compliance with Handsontable coding convention
     - No duplicated logic. Reuse existing helpers and mixins from `src/helpers/`. Extract shared code into utility functions.
 
 11. **Core language boundary:**
-    - No TypeScript files in `handsontable/src/`. Core is JavaScript only. Type definitions go in `handsontable/types/` as `.d.ts` files.
+    - `handsontable/src/` is **TypeScript** — all source files are `.ts`, including Walkontable (`src/3rdparty/walkontable/src/`). Walkontable is excluded from the main `tsconfig.json` and has its own separate build/test pipeline.
+    - Type declarations are **auto-generated** into `handsontable/tmp/*.d.ts` by `build:types` (`tsc -p tsconfig.build-types.json`).
+    - Do not hand-edit files in `tmp/`. Regenerate with `npm run build:types` after changing source.
 
 12. **Documentation and AGENTS.md updates:**
     - If the change introduces new conventions, constraints, or gotchas, require an `AGENTS.md` update.
@@ -59,16 +61,16 @@ Review staged or changed code for compliance with Handsontable coding convention
 13. **Public API naming:**
     - New option, hook, and method names must be generic, self-explanatory, and free of internal jargon.
     - Check for collisions with existing API names (options, hooks, methods, plugin keys, CSS classes) before approving.
-    - Public API names carry long-term maintenance weight -- once released, they must be maintained indefinitely.
+    - Public API names carry long-term maintenance weight - once released, they must be maintained indefinitely.
 
 ## Output Format
 
 List findings numbered by severity. Use these levels:
 
-- **Critical** -- will break builds, tests, or runtime behavior.
-- **High** -- violates enforced ESLint rules or mandatory conventions.
-- **Medium** -- style or maintainability concern.
-- **Low** -- suggestion for improvement.
+- **Critical** - will break builds, tests, or runtime behavior.
+- **High** - violates enforced ESLint rules or mandatory conventions.
+- **Medium** - style or maintainability concern.
+- **Low** - suggestion for improvement.
 
 Each finding must include `file:line` reference and a short explanation.
 

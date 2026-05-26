@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -25,87 +25,66 @@ const columns = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-  const toolbarRef = useRef(null);
 
-  useEffect(() => {
-    const hot = hotTableRef.current?.hotInstance;
-    const toolbar = toolbarRef.current;
+  const getPlugin = () => hotTableRef.current?.hotInstance?.getPlugin('notification');
 
-    if (!hot || !toolbar) {
-      return;
-    }
-
-    const plugin = hot.getPlugin('notification');
-    const addToolButton = (text, handler) => {
-      const btn = document.createElement('button');
-
-      btn.type = 'button';
-      btn.textContent = text;
-      btn.addEventListener('click', handler);
-      toolbar.appendChild(btn);
-    };
-
-    addToolButton('Save', () => {
-      plugin.showMessage({
-        title: 'Saved',
-        message: 'Inventory updates were written.',
-        variant: 'success',
-        position: 'top-end',
-        duration: 2500,
-      });
+  const onSave = () => {
+    getPlugin()?.showMessage({
+      title: 'Saved',
+      message: 'Inventory updates were written.',
+      variant: 'success',
+      position: 'top-end',
+      duration: 2500,
     });
-    addToolButton('Sync error', () => {
-      plugin.showMessage({
-        title: 'Sync failed',
-        message:
-          'The service is unavailable. Retry when your connection is stable.',
-        variant: 'error',
-        position: 'bottom-end',
-        duration: 0,
-        actions: [
-          {
-            label: 'Retry',
-            type: 'primary',
-            callback: () => {
-              plugin.hideAll();
-              plugin.showMessage({
-                message: 'Sync completed.',
-                variant: 'success',
-                position: 'bottom-end',
-              });
-            },
+  };
+
+  const onSyncError = () => {
+    const plugin = getPlugin();
+
+    plugin?.showMessage({
+      title: 'Sync failed',
+      message: 'The service is unavailable. Retry when your connection is stable.',
+      variant: 'error',
+      position: 'bottom-end',
+      duration: 0,
+      actions: [
+        {
+          label: 'Retry',
+          type: 'primary',
+          callback: () => {
+            plugin.hideAll();
+            plugin.showMessage({
+              message: 'Sync completed.',
+              variant: 'success',
+              position: 'bottom-end',
+            });
           },
-          {
-            label: 'Dismiss',
-            type: 'secondary',
-            callback: () => plugin.hideAll(),
-          },
-        ],
-      });
+        },
+        { label: 'Dismiss', type: 'secondary', callback: () => plugin.hideAll() },
+      ],
     });
-    addToolButton('Low stock', () => {
-      plugin.showMessage({
-        title: 'Review quantities',
-        message:
-          'SKUs below reorder: USB-C cable 1m, Wireless mouse, HDMI cable 2m. Out of stock: Notebook A5 ruled, Laptop stand.',
-        variant: 'warning',
-        position: 'top-start',
-        duration: 6000,
-      });
+  };
+
+  const onLowStock = () => {
+    getPlugin()?.showMessage({
+      title: 'Review quantities',
+      message:
+        'SKUs below reorder: USB-C cable 1m, Wireless mouse, HDMI cable 2m. Out of stock: Notebook A5 ruled, Laptop stand.',
+      variant: 'warning',
+      position: 'top-start',
+      duration: 6000,
     });
-  }, []);
+  };
 
   return (
     <div>
-      <div
-        ref={toolbarRef}
-        style={{
-          display: 'flex',
-          gap: 8,
-          marginBottom: 8,
-          flexWrap: 'wrap',
-        }}
-      />
+      <div className="example-controls-container">
+        <div className="controls">
+          <button type="button" className="button button--primary" onClick={onSave}>Save</button>
+          <button type="button" className="button button--primary" onClick={onSyncError}>Sync error</button>
+          <button type="button" className="button button--primary" onClick={onLowStock}>Low stock</button>
+        </div>
+      </div>
       <HotTable
         ref={hotTableRef}
         data={data}

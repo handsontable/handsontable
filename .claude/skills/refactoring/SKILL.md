@@ -41,10 +41,10 @@ These rules are non-negotiable when refactoring:
 
 | Rule | Detail |
 |------|--------|
-| Never change default setting values | Defaults in `metaSchema.js` must stay the same. |
+| Never change default setting values | Defaults in `metaSchema.ts` must stay the same. |
 | Keep legacy CSS class names | Add new class names alongside old ones. Old names stay in the DOM. |
 | Keep legacy API names working | Old method/option/hook names continue to work with no console warnings (this is "legacy", not "deprecated"). |
-| Deprecated APIs get one-time warning | Use `deprecatedWarn()` from `src/helpers/console.js`. The old API works until the next major release. |
+| Deprecated APIs get one-time warning | Use `deprecatedWarn()` from `src/helpers/console.ts`. The old API works until the next major release. |
 | Removed hooks go on the removed list | So users see a clear error instead of silent failure. |
 
 ## Clarity and Maintainability

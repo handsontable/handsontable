@@ -1,13 +1,14 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 import moment from 'moment';
 import { getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 
 const cellTimeTypeDefinition = {
+  CELL_TYPE: 'moment-time',
   renderer: getRenderer('text'),
   validator(this: any, value: any, callback: (valid: boolean) => void): void {
     const timeFormat = this.timeFormat ?? 'h:mm:ss a';

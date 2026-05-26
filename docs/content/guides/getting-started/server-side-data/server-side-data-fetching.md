@@ -1,4 +1,5 @@
 ---
+type: reference
 id: t2u5v8w3
 title: Server-side fetching and examples
 metaTitle: Server-side fetching and examples - JavaScript Data Grid | Handsontable

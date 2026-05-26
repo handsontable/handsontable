@@ -1,8 +1,21 @@
 import Handsontable from 'handsontable/base';
-import { ColumnConditions, OperationType } from 'handsontable/plugins/filters';
-import { Condition } from 'handsontable/plugins/filters/conditionCollection';
 
-const hot = new Handsontable(document.createElement('div'), {
+interface ColumnConditions {
+  column: number;
+  operation: string;
+  conditions: { name: string; args: unknown[] }[];
+}
+
+type Maybe<T> = T | undefined;
+type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
+
+interface Condition {
+  name: string;
+  args: unknown[];
+  func?: (dataRow: unknown, values: unknown[]) => boolean;
+}
+
+const hot = Handsontable(document.createElement('div'), {
   filters: true,
 });
 
@@ -20,7 +33,7 @@ const cellLikeData = {
 };
 const condition = {
   args: [3],
-  name: 'eq' as Handsontable.plugins.Filters.ConditionName,
+  name: 'eq',
 };
 
 if (conditionCollection) {
@@ -30,7 +43,7 @@ if (conditionCollection) {
     [{
       name: 'not_between',
       args: [[3]],
-      func: (dataRow, values) => true,
+      func: (dataRow: unknown, values: unknown[]) => true,
     }],
     cellLikeData,
     'conjunction'

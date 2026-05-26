@@ -18,8 +18,8 @@
     "lib": ["ES2022", "dom"],
     "baseUrl": ".",
     "paths": {
-      "handsontable": ["../../handsontable/types"],
-      "handsontable/*": ["../../handsontable/types/*"]
+      "handsontable": ["../../handsontable/tmp"],
+      "handsontable/*": ["../../handsontable/tmp/*"]
     }
   },
   "angularCompilerOptions": {

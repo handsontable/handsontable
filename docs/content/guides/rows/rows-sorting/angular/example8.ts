@@ -197,7 +197,7 @@ export class AppComponent {
       this.rowIndexMapper.moveIndexes(this.toVisualRow(lastRowIndex), lastRowIndex);
     },
     cells(row: number) {
-      const lastRowIndex = this.instance.countRows() - 1;
+      const lastRowIndex = (this as any).instance.countRows() - 1;
 
       if (row === 0) {
         return {

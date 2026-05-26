@@ -1,29 +1,25 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es2015",
-      "dom"
-    ],
-    "module": "commonjs",
-    "target": "es2015",
-    "noEmit": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
+    "noEmit": true,
     "baseUrl": "./",
     "paths": {
-      "handsontable": [ "../../types" ],
-      "handsontable/*": [ "../../types/*" ]
+      "handsontable": [ "../../tmp" ],
+      "handsontable/base": [ "../../tmp/base" ],
+      "handsontable/*": [ "../../tmp/*" ]
     },
     "typeRoots": [
       "../../node_modules/@types",
       "../../../node_modules/@types"
     ],
-    "types": ["node"]
+    "types": ["node"],
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "dom"],
+    "skipLibCheck": false
   },
   "include": [
-    "./common.d.ts",
-    "**/*.types.ts",
     "../../src/**/*.types.ts"
   ]
 }

@@ -1,17 +1,17 @@
 # Handsontable Core Package
 
-This is the core data grid package. **JavaScript only** - no TypeScript files in `src/`. Type definitions are hand-authored `.d.ts` files in `types/`.
+This is the core data grid package. **TypeScript** - source files in `src/` are `.ts`. Type declarations are **auto-generated** by `tsc --emitDeclarationOnly` (`npm run build:types`, task defined in `scripts/tasks.json`) into `tmp/*.d.ts` — do not hand-edit them. The `types/` directory has been **deleted** — do not recreate it. Walkontable (`src/3rdparty/walkontable/src/`) is also TypeScript but excluded from the main `tsconfig.json` — it has its own separate build/test pipeline.
 
 ## Critical Rules
 
-- Use `throwWithCause()` from `src/helpers/errors.js`, never `throw new Error()`
-- No barrel imports from `plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index` - import from specific submodule paths. Only exception: `src/registry.js`
-- No global `window`, `document`, `console` - use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.js`
+- Use `throwWithCause()` from `src/helpers/errors.ts`, never `throw new Error()`
+- No barrel imports from `plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index` - import from specific submodule paths. Only exception: `src/registry.ts`
+- No global `window`, `document`, `console` - use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`
 - Private fields use `#` prefix, not `@private` JSDoc
-- Arrow function class fields for callbacks: `#onAfterX = () => { ... }` (not `.bind(this)`)
+- **Required**: Plugin hook callbacks must be arrow function class fields — `#onAfterX = (arg1, arg2) => { ... }` — and passed directly: `this.addHook('afterX', this.#onAfterX)`. Never wrap in `(args) => this.#onX(args)` or use `.bind(this)`.
 - Cognitive complexity: keep each function at 15 or below
 - Optional chaining `?.` only when value is genuinely optional by design
-- No hardcoded user-visible strings in source - add constants to `src/i18n/constants.js` and update all language files in `src/i18n/languages/`
+- No hardcoded user-visible strings in source - add constants to `src/i18n/constants.ts` and update all language files in `src/i18n/languages/`
 - No direct cross-plugin imports - use hooks for inter-plugin communication, or `hot.getPlugin('Name')` if API access is required
 - Never use raw `setTimeout` - use `this.hot._registerTimeout(fn, delay)` instead; it auto-clears on `hot.destroy()`, preventing memory leaks
 
@@ -25,7 +25,7 @@ disablePlugin()  → super.disablePlugin() FIRST. Then clean up.
 destroy()        → null out fields. super.destroy() AT END.
 ```
 
-Gold standard: `src/plugins/pagination/pagination.js`
+Gold standard: `src/plugins/pagination/pagination.ts`
 
 ## Three Coordinate Systems
 
@@ -40,7 +40,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 ## DataProvider and Notification
 
-For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), enable **`notification`** if you want built-in error toasts on failed fetches or mutations. **`dialog: true` alone does not** show those errors. Failed **fetch** toasts include a **Refetch** button that calls `fetchData()` again (`duration: 0` until dismissed or Refetch). Use **`afterDataProviderFetchError`** and **`afterRowsMutationError`** for custom UI when Notification is disabled. See `src/plugins/dataProvider/dataProvider.js` and AGENTS.md Gotchas.
+For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), enable **`notification`** if you want built-in error toasts on failed fetches or mutations. **`dialog: true` alone does not** show those errors. Failed **fetch** toasts include a **Refetch** button that calls `fetchData()` again (`duration: 0` until dismissed or Refetch). Use **`afterDataProviderFetchError`** and **`afterRowsMutationError`** for custom UI when Notification is disabled. See `src/plugins/dataProvider/dataProvider.ts` and AGENTS.md Gotchas.
 
 ## Testing
 
@@ -63,25 +63,32 @@ For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), en
 - **Merged cells**: Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, NOT from DOM element attributes. The meta is authoritative regardless of viewport state.
 - **Filters visual/physical index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
 - **Hook signature / TypeScript fixes**: When changing hook signatures, add both a runtime regression test and a TypeScript regression (`src/__tests__/core/settings.types.ts`).
+- **Adding a new hook**: (1) Add the callback signature to `GridSettings` in `src/common.ts` (the `Events` type is derived automatically from hook-shaped entries). (2) Register the hook name in `src/core/hooks/index.ts`. The `addHook<K extends keyof Events>` overload then provides full IDE autocomplete.
+- **Plugin public types**: Export new interfaces/types from the plugin `.ts` source file, then re-export via the plugin's barrel `index.ts` using `export type { ... }`. Do NOT add hand-crafted `.d.ts` stubs.
 - **Two builds to test**: `handsontable.js` (base, no HyperFormula) and `handsontable.full.js` (includes HyperFormula). Test both when changing build-time behavior.
-- **Validator corrections via `setDataAtCell`**: If a validator calls `setDataAtCell` to write a corrected value (e.g. `correctFormat`), the source string **must end with `'Validator'`** (e.g. `'myCustomValidator'`). Without this suffix, the correction is silently overwritten when the same batch contains columns with async validators (async autocomplete `source`). See `src/core.js` `validateChanges()` and the `handsontable-validator-dev` skill.
+- **Validator corrections via `setDataAtCell`**: If a validator calls `setDataAtCell` to write a corrected value (e.g. `correctFormat`), the source string **must end with `'Validator'`** (e.g. `'myCustomValidator'`). Without this suffix, the correction is silently overwritten when the same batch contains columns with async validators (async autocomplete `source`). See `src/core.ts` `validateChanges()` and the `handsontable-validator-dev` skill.
 
 ## Key File Locations
 
 | Area | Path (relative to `handsontable/`) |
 |---|---|
-| Core class | `src/core.js` |
-| Entry points | `src/index.js` (full), `src/base.js` (tree-shakeable) |
-| Plugin base class | `src/plugins/base/base.js` |
-| Meta schema (defaults) | `src/dataMap/metaManager/metaSchema.js` |
+| Core class | `src/core.ts` |
+| Entry points | `src/index.ts` (full), `src/base.ts` (tree-shakeable) |
+| Plugin base class | `src/plugins/base/base.ts` |
+| Meta schema (defaults) | `src/dataMap/metaManager/metaSchema.ts` |
 | Index translations | `src/translations/` |
-| Walkontable engine | `src/3rdparty/walkontable/src/` |
+| Walkontable engine | `src/3rdparty/walkontable/src/` (TypeScript, separate build pipeline) |
 | Hooks system | `src/core/hooks/` |
-| DataProvider plugin | `src/plugins/dataProvider/dataProvider.js` |
-| Error helpers | `src/helpers/errors.js` |
-| i18n constants | `src/i18n/constants.js` |
+| DataProvider plugin | `src/plugins/dataProvider/dataProvider.ts` |
+| Error helpers | `src/helpers/errors.ts` |
+| i18n constants | `src/i18n/constants.ts` |
 | i18n language files | `src/i18n/languages/` |
-| TypeScript definitions | `types/` |
+| TypeScript declarations (auto-generated) | `tmp/*.d.ts` — generated by `build:types` |
+| Central shared types hub | `src/common.ts` — `GridSettings`, `HotInstance`, `Events` |
+| TypeScript config (source) | `tsconfig.json` |
+| TypeScript config (emit declarations) | `tsconfig.build-types.json` |
+| Build/test task definitions | `scripts/tasks.json` |
+| Shortcut contexts | `src/shortcuts/contexts/` |
 
 ## Context Menu vs Column Menu
 
@@ -123,6 +130,13 @@ node scripts/run.mjs --parallel <pipeline>      # run pipeline with DAG schedule
 ```
 
 Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks.json`. `--testPathPattern=` and `--theme=` are also propagated as env vars to all pipeline tasks so the dump step and Puppeteer compute the same run-ID filename.
+
+## TypeScript
+
+- Type check: `npm run test:types`
+- `readonly #field` syntax IS valid TypeScript — do NOT convert `#field` to `private readonly field` to add `readonly`
+- When removing `as T` casts (e.g. SonarCloud S4325), always rerun `npm run test:types` — some casts are load-bearing
+- Prefer fixing function/method signatures or making them generic over adding `as T[]` casts at call sites
 
 ## For Deeper Guidance
 

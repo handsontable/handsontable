@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: xv8sf6at
 title: Column virtualization
 metaTitle: Column virtualization - JavaScript Data Grid | Handsontable

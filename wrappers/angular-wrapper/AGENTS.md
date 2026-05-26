@@ -36,6 +36,6 @@
 | Using `standalone: false` or `AppModule` | All Angular docs examples use `standalone: true` with `imports: [HotTableModule]` and `app.config.ts`. |
 | Adding `licenseKey` to individual `<hot-table>` | Set it globally via `HOT_GLOBAL_CONFIG` in `app.config.ts`. Never put it on each component. |
 | Using `*ngIf` / `*ngFor` in templates | Use Angular 17+ built-in control flow: `@if (cond) { }` and `@for (x of list; track x.id) { }`. |
-| Typing Angular row data as `any[]` | Use `RowObject[]` imported from `handsontable/common`. |
+| Typing Angular row data as `any[]` | Use `RowObject[]` imported from `handsontable`. |
 
 For detailed guidance: use skill `angular-wrapper-dev`

@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 
 @Component({
   selector: 'app-example1',
@@ -562,9 +562,9 @@ export class AppComponent implements OnInit {
     // the flexibility of Handsontable in configuring according to your needs.
     // Checkbox: Enable/Disable Tab Navigation
     setupCheckbox(document.querySelector<HTMLInputElement>('#enable-tab-navigation'), (checked: boolean) => {
-      this.hotSettings.tabNavigation = checked;
+      this.hotSettings['tabNavigation'] = checked;
       this.hotTable.hotInstance!.updateSettings({
-        tabNavigation: this.hotSettings.tabNavigation,
+        tabNavigation: this.hotSettings['tabNavigation'],
       });
       console.log(
         'Updated setting: tabNavigation to',
@@ -575,9 +575,9 @@ export class AppComponent implements OnInit {
     setupCheckbox(
       document.querySelector<HTMLInputElement>('#enable-header-navigation'),
       (checked: boolean) => {
-        this.hotSettings.navigableHeaders = checked;
+        this.hotSettings['navigableHeaders'] = checked;
         this.hotTable.hotInstance!.updateSettings({
-          navigableHeaders: this.hotSettings.navigableHeaders,
+          navigableHeaders: this.hotSettings['navigableHeaders'],
         });
         console.log(
           'Updated setting: navigableHeaders to',
@@ -604,9 +604,9 @@ export class AppComponent implements OnInit {
     setupCheckbox(
       document.querySelector<HTMLInputElement>('#enable-cell-enter-editing'),
       (checked: boolean) => {
-        this.hotSettings.enterBeginsEditing = checked;
+        this.hotSettings['enterBeginsEditing'] = checked;
         this.hotTable.hotInstance!.updateSettings({
-          enterBeginsEditing: this.hotSettings.enterBeginsEditing,
+          enterBeginsEditing: this.hotSettings['enterBeginsEditing'],
         });
         console.log(
           'Updated setting: enable-cell-enter-editing to',
@@ -618,9 +618,9 @@ export class AppComponent implements OnInit {
     setupCheckbox(
       document.querySelector<HTMLInputElement>('#enable-arrow-rl-first-last-column'),
       (checked: boolean) => {
-        this.hotSettings.autoWrapRow = checked;
+        this.hotSettings['autoWrapRow'] = checked;
         this.hotTable.hotInstance!.updateSettings({
-          autoWrapRow: this.hotSettings.autoWrapRow,
+          autoWrapRow: this.hotSettings['autoWrapRow'],
         });
         console.log(
           'Updated setting: autoWrapRow to',
@@ -632,9 +632,9 @@ export class AppComponent implements OnInit {
     setupCheckbox(
       document.querySelector<HTMLInputElement>('#enable-arrow-td-first-last-column'),
       (checked: boolean) => {
-        this.hotSettings.autoWrapCol = checked;
+        this.hotSettings['autoWrapCol'] = checked;
         this.hotTable.hotInstance!.updateSettings({
-          autoWrapCol: this.hotSettings.autoWrapCol,
+          autoWrapCol: this.hotSettings['autoWrapCol'],
         });
         console.log(
           'Updated setting: autoWrapCol to',
@@ -646,9 +646,9 @@ export class AppComponent implements OnInit {
     setupCheckbox(
       document.querySelector<HTMLInputElement>('#enable-enter-focus-editing'),
       (checked: boolean) => {
-        this.hotSettings.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
+        this.hotSettings['enterMoves'] = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
         this.hotTable.hotInstance!.updateSettings({
-          enterMoves: this.hotSettings.enterMoves,
+          enterMoves: this.hotSettings['enterMoves'],
         });
         console.log('Updated setting: enterMoves to', this.hotTable.hotInstance!.getSettings().enterMoves);
       }

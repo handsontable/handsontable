@@ -4,8 +4,8 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 ## Architecture Boundary
 
-- Walkontable lives in `src/3rdparty/walkontable/src/`
-- The bridge to core Handsontable is `src/tableView.js` (TableView class)
+- Walkontable lives in `src/3rdparty/walkontable/src/` (TypeScript, excluded from main tsconfig — separate build/test pipeline)
+- The bridge to core Handsontable is `src/tableView.ts` (TableView class)
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
 
@@ -64,7 +64,7 @@ The first tool call should be `ToolSearch` for the graph schema whenever the use
 |------|---------------|-----------------|
 | Who calls `foo`? | `query_graph` `callers_of` | ~5k tokens vs ~11k for grep+context (2x cheaper) |
 | What does `Foo` call? | `query_graph` `callees_of` | Same advantage as above |
-| What files import `bar.js`? | `query_graph` `importers_of` | Structured; no grep context needed |
+| What files import `bar.ts`? | `query_graph` `importers_of` | Structured; no grep context needed |
 | Blast radius before a refactor | `get_impact_radius` | ~100 tokens for count + risk score |
 
 ### Use Grep/Read for single-file work
@@ -80,7 +80,7 @@ The first tool call should be `ToolSearch` for the graph schema whenever the use
 ### Mandatory rules
 
 1. **Always pass `detail_level: "minimal"`** - standard mode repeats the full absolute path per node and inflates token cost 6x.
-2. **Use fully qualified names**: `path/to/file.js::ClassName.methodName`. Bare names return an "ambiguous" error.
+2. **Use fully qualified names**: `path/to/file.ts::ClassName.methodName`. Bare names return an "ambiguous" error.
 3. **Rebuild on branch switch**: `pipx run code-review-graph==2.3.2 build`. A stale graph causes `detect_changes` to report function names from unrelated files.
 
 ### Reliable tools

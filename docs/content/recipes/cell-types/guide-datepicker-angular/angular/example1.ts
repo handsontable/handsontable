@@ -156,7 +156,7 @@ const DATE_FORMAT_US = 'MM/dd/yyyy';
 const DATE_FORMAT_EU = 'dd/MM/yyyy';
 
 @Component({
-  selector: 'app-root',
+  selector: 'example1-guide-datepicker-angular',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>

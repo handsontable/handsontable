@@ -1,21 +1,21 @@
 .placeholder-input {
   max-width: 20rem;
   padding: 0.4rem 0.625rem;
-  font-size: var(--sl-text-sm);
+  font-size: var(--sl-text-sm, 0.875rem);
   line-height: 1.25rem;
-  color: var(--sl-color-text);
+  color: var(--sl-color-text, #333333);
   background: none;
-  border: 1px solid var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
   border-radius: 0;
   outline: none;
 }
 
 .placeholder-input::placeholder {
-  color: var(--sl-color-gray-3);
+  color: var(--sl-color-gray-3, #777777);
 }
 
 .placeholder-input:focus {
-  border-color: var(--sl-color-accent);
+  border-color: var(--sl-color-accent, #1A42E8);
 }
 
 .example-container {

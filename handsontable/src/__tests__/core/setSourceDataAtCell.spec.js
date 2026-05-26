@@ -222,4 +222,24 @@ describe('Core.setSourceDataAtCell', () => {
 
     expect(getSourceData()).toEqual([{ id: 1, name: 'Ted Right', address: '' }]);
   });
+
+  it('should not throw when called inside the `afterLoadData` hook during initialization (#9904)', async() => {
+    let thrownError = null;
+
+    expect(() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        afterLoadData() {
+          try {
+            this.setSourceDataAtCell(0, 0, 'modified');
+          } catch (e) {
+            thrownError = e;
+          }
+        },
+      });
+    }).not.toThrow();
+
+    expect(thrownError).toBeNull();
+    expect(getSourceData()[0][0]).toBe('modified');
+  });
 });

@@ -1,4 +1,4 @@
-import type { SourceRowData } from 'handsontable/common';
+import type { SourceRowData } from 'handsontable';
 import type {
   DataProviderFetchOptions,
   DataProviderQueryParameters,
@@ -172,7 +172,7 @@ export function createWarehouseDataProvider(restApi: string) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          updates: rows.map(({ id, changes }) => ({ id: String(id), changes })),
+          updates: rows.map(({ rowId, data }) => ({ id: String(rowId), changes: data })),
         }),
       });
 
@@ -217,9 +217,9 @@ export function createTicketsDataProvider(graphqlUrl: string) {
       await gqlFetch(graphqlUrl, {
         query: M_UPDATE,
         variables: {
-          updates: rows.map(({ id, changes }) => ({
-            id: String(id),
-            changes,
+          updates: rows.map(({ rowId, data }) => ({
+            id: String(rowId),
+            changes: data,
           })),
         },
       });

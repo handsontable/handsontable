@@ -14,16 +14,7 @@ const data = [
   ['SKU-008', 'Mechanical keycap set', 112, 20, 'B-01'],
 ];
 
-const root = document.getElementById('example2');
-const toolbar = document.createElement('div');
-
-toolbar.style.cssText =
-  'display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;';
-root.appendChild(toolbar);
-
-const container = document.createElement('div');
-
-root.appendChild(container);
+const container = document.getElementById('example2');
 
 const hot = new Handsontable(container, {
   data,
@@ -44,16 +35,7 @@ const hot = new Handsontable(container, {
 
 const plugin = hot.getPlugin('notification');
 
-function addToolButton(text, handler) {
-  const btn = document.createElement('button');
-
-  btn.type = 'button';
-  btn.textContent = text;
-  btn.addEventListener('click', handler);
-  toolbar.appendChild(btn);
-}
-
-addToolButton('Save', () => {
+document.getElementById('example2-save').addEventListener('click', () => {
   plugin.showMessage({
     title: 'Saved',
     message: 'Inventory updates were written.',
@@ -62,7 +44,8 @@ addToolButton('Save', () => {
     duration: 2500,
   });
 });
-addToolButton('Sync error', () => {
+
+document.getElementById('example2-sync-error').addEventListener('click', () => {
   plugin.showMessage({
     title: 'Sync failed',
     message:
@@ -87,7 +70,8 @@ addToolButton('Sync error', () => {
     ],
   });
 });
-addToolButton('Low stock', () => {
+
+document.getElementById('example2-low-stock').addEventListener('click', () => {
   plugin.showMessage({
     title: 'Review quantities',
     message:

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: f2a7b9c1
 title: Handsontable with MUI
 metaTitle: Handsontable with MUI - JavaScript Data Grid | Handsontable

@@ -1,8 +1,10 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
+import { AutocompleteEditor } from 'handsontable/editors';
 
 const element = document.createElement('div');
-const hot = new Handsontable(element, {});
-const editor = new Handsontable.editors.AutocompleteEditor(hot);
+const hot = Handsontable(element, {}) as unknown as HotInstance;
+const editor = new AutocompleteEditor(hot);
 
 // abstract ones
 editor.open();
@@ -16,7 +18,7 @@ editor.updateChoicesList(['test', 2, 'test3']);
 editor.updateChoicesList([{ key: 'test', value: 'test' }, { key: 'test2', value: 'test2' }]);
 editor.updateChoicesList([{ key: 1, value: 'test' }, { key: 'test2', value: 2 }]);
 
-const value: string = editor.getValue();
+const value: unknown = editor.getValue();
 
 // editor specific ones
 editor.queryChoices('test');

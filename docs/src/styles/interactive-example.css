@@ -149,6 +149,16 @@
   gap: 0.5rem;
 }
 
+/* display on buttons below overrides the UA [hidden] rule; keep hidden controls invisible */
+.example-controls-container button[hidden],
+.example-controls-container .button[hidden] {
+  display: none !important;
+}
+
+.example-controls-container .controls:not(:has(button:not([hidden]))):not(:has(input:not([hidden]))) {
+  display: none;
+}
+
 .example-controls-container button,
 .example-controls-container .button,
 .hot-example-preview > button,
@@ -256,6 +266,10 @@
   font-family: var(--sl-font);
   font-size: var(--sl-text-xs);
   line-height: 1.4;
+}
+
+.example-controls-container output.is-error {
+  color: var(--ht-notification-error-accent, #c62828);
 }
 
 /* ── Toolbar ───────────────────────────────────────────────────────────── */

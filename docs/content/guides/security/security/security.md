@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: nb36sme6
 title: Security
 metaTitle: Security - JavaScript Data Grid | Handsontable

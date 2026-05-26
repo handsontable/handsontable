@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: fwrhn9ys
 title: Versioning policy
 metaTitle: Versioning policy - JavaScript Data Grid | Handsontable

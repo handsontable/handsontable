@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 import numbro from 'numbro';
 import languages from 'numbro/dist/languages.min.js';
 import { rendererFactory, getRenderer } from 'handsontable/renderers';
@@ -39,6 +39,7 @@ function isNumeric(value: any): boolean {
 }
 
 const cellTypeDefinition = {
+  CELL_TYPE: 'numbro',
   renderer: rendererFactory(({ hotInstance, td, row, col, prop, value, cellProperties }: any) => {
     if (isNumeric(value)) {
       let classArr: string[] = [];

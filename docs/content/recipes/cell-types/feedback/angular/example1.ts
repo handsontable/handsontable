@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotCellEditorAdvancedComponent, KeyboardShortcutConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import { RowObject } from 'handsontable';
 
 /* start:skip-in-preview */
 const inputData = [
@@ -22,7 +22,6 @@ const inputData = [
       }
     </div>
   `,
-  styleUrls: ['./example1.css'],
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override config = ['👍', '👎', '🤷'];

@@ -1,5 +1,5 @@
 ---
-type: tutorial
+type: how-to
 id: 2d2b22ef
 title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
@@ -26,8 +26,8 @@ This tutorial shows you how to integrate the Pickr color picker library as a cus
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
 
-@[code collapse={11-196}](@/recipes/cell-types/color-picker/javascript/example1.js)
-@[code collapse={11-198}](@/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
 
 :::

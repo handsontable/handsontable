@@ -19,52 +19,48 @@ const hot3 = new Handsontable(document.createElement('div'), {
     showNavigation: true,
     uiContainer: document.createElement('div'),
   },
-  beforePageChange(oldPage, newPage) {
+  beforePageChange(oldPage: number, newPage: number) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
 
     return true;
   },
-  afterPageChange(oldPage, newPage) {
+  afterPageChange(oldPage: number, newPage: number) {
     const _oldPage: number = oldPage;
     const _newPage: number = newPage;
   },
-  beforePageSizeChange(oldPageSize, newPageSize) {
+  beforePageSizeChange(oldPageSize: number | 'auto', newPageSize: number | 'auto') {
     const _oldPageSize: number | 'auto' = oldPageSize;
     const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
   },
-  afterPageSizeChange(oldPageSize, newPageSize) {
+  afterPageSizeChange(oldPageSize: number | 'auto', newPageSize: number | 'auto') {
     const _oldPageSize: number | 'auto' = oldPageSize;
     const _newPageSize: number | 'auto' = newPageSize;
   },
-  afterPageSizeVisibilityChange(isVisible) {
+  afterPageSizeVisibilityChange(isVisible: boolean) {
     const _isVisible: boolean = isVisible;
   },
-  afterPageCounterVisibilityChange(isVisible) {
+  afterPageCounterVisibilityChange(isVisible: boolean) {
     const _isVisible: boolean = isVisible;
   },
-  afterPageNavigationVisibilityChange(isVisible) {
+  afterPageNavigationVisibilityChange(isVisible: boolean) {
     const _isVisible: boolean = isVisible;
   },
 });
 const plugin = hot.getPlugin('pagination');
 
-const paginationData: {
-  currentPage: number;
-  totalPages: number;
-  pageSize: number;
-  pageSizeList: Array<number | 'auto'>;
-  autoPageSize: boolean;
-  numberOfRenderedRows: number;
-  firstVisibleRowIndex: number;
-  lastVisibleRowIndex: number;
-} = plugin.getPaginationData();
+const paginationData = plugin.getPaginationData();
+const _currentPage: number = paginationData.currentPage;
+const _totalPages: number = paginationData.totalPages;
+const _autoPageSize: boolean = paginationData.autoPageSize;
+const _numberOfRenderedRows: number = paginationData.numberOfRenderedRows;
 const currentPageIndex: number = plugin.getCurrentPage();
+const currentPageSize: number | 'auto' = plugin.getCurrentPageSize();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();
-const data: any[][] = plugin.getCurrentPageData();
+const data: unknown[] = plugin.getCurrentPageData();
 
 plugin.setPage(2);
 plugin.resetPage();

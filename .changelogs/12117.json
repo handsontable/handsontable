@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the Filters plugin incorrectly applying filter conditions after columns were moved with the ManualColumnMove plugin.",
-  "type": "fixed",
-  "issueOrPR": 11832,
-  "breaking": false,
-  "framework": "none"
-}

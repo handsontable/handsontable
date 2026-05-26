@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: kgegbmgz
 title: Batch operations
 metaTitle: Batch operations - JavaScript Data Grid | Handsontable
