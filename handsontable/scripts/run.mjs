@@ -156,6 +156,10 @@ function resolveMode(task, flags) {
 
   if (task.mode === 'inherit') { return 'inherit'; }
 
+  // --verbose: stream stdout/stderr directly so tools like tsc that write errors to stdout
+  // are not silently swallowed by quiet mode's stderr-only capture.
+  if (isVerbose) { return 'inherit'; }
+
   // Tasks with no explicit mode that forward --watch must use inherit so their stdout
   // reaches concurrently's output stream — the watcher reads it to detect build-completion
   // markers and trigger Puppeteer re-runs. Without this, output is piped and swallowed.
@@ -254,7 +258,9 @@ function runParallelTask(name, spinner) {
     // picks the first case-insensitive match, which would otherwise be 'Path'.
     const baseEnv = { ...process.env };
 
-    if (process.platform === 'win32') { delete baseEnv.Path; }
+    if (process.platform === 'win32') {
+      delete baseEnv.Path;
+    }
 
     // In verbose mode use inherit so tools write directly to the terminal —
     // many CLI tools (including rspack) suppress output when stdout is piped.
