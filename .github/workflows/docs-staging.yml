@@ -204,8 +204,51 @@ jobs:
         with:
           number: ${{ steps.resolve-pr.outputs.number }}
           message: |
-            ✅ Preview documentation is is available now
+            ✅ Preview documentation is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+
+      - name: Add Cloudflare worker to deploy
+        if: ${{ steps.resolve-pr.outputs.number }}
+        continue-on-error: true
+        run: cp cloudflare/_worker.js netlify/deploy/_worker.js
+
+      - name: Ensure Cloudflare Pages project exists
+        if: ${{ steps.resolve-pr.outputs.number }}
+        continue-on-error: true
+        run: node cloudflare/ensureProject.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT_NAME: handsontable-docs-staging
+
+      - name: Deploy preview to Cloudflare Pages
+        id: cf-pages-deploy
+        if: ${{ steps.resolve-pr.outputs.number }}
+        continue-on-error: true
+        # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
+        working-directory: /tmp
+        run: |
+          npm install wrangler
+          ./node_modules/.bin/wrangler pages deploy \
+            "$GITHUB_WORKSPACE/docs/netlify/deploy" \
+            --project-name handsontable-docs-staging \
+            --branch "pr-${{ steps.resolve-pr.outputs.number }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Update sticky PR comment with Cloudflare Pages URL
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
+        with:
+          number: ${{ steps.resolve-pr.outputs.number }}
+          message: |
+            ✅ Preview documentation is available now
+
+            | Platform | URL |
+            |---|---|
+            | Netlify | [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs) |
+            | Cloudflare Pages | [https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs](https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs) |
 
       - name: Post RC staging summary
         if: ${{ steps.release-info.outputs.is_release == 'true' }}
