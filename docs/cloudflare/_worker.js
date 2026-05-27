@@ -7,7 +7,13 @@
  *
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
- *   2. Legacy versioned angular-data-grid   → /docs/javascript-data-grid/
+ *   2. / → /docs
+ *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
+ *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
+ *  2c. Blog article redirects              → /blog/... or /blog
+ *  2d. /demo/*                             → /demo
+ *  2e. /customers/*                        → /customers/
+ *   3. Legacy versioned angular-data-grid  → /docs/angular-data-grid/ or /docs/javascript-data-grid/
  *   3. /docs/hyperformula[/*]              → external hyperformula site
  *   4. Exact versioned HTML redirects      → framework-specific pages
  *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
@@ -703,6 +709,48 @@ export default {
     // -- 2. Root / → /docs ---------------------------------------------------
     if (path === '/' || path === '') {
       return redirect301(abs('/docs', url));
+    }
+
+    // -- 2a. /0.8.0/* → changelog (legacy version pages) --------------------
+    if (path === '/0.8.0' || path.startsWith('/0.8.0/')) {
+      return redirect301(abs('/docs/javascript-data-grid/changelog', url));
+    }
+
+    // -- 2b. /docs/redirect?pageId=* and /docs/:ver/redirect?pageId=* --------
+    // Destination changed from /docs/:version to /docs/javascript-data-grid/changelog.
+    if (url.searchParams.has('pageId')) {
+      if (path === '/docs/redirect' || /^\/docs\/\d+\.\d+\/redirect$/.test(path)) {
+        return redirect301(abs('/docs/javascript-data-grid/changelog', url));
+      }
+    }
+
+    // -- 2c. Blog redirects --------------------------------------------------
+    // Specific articles must be checked before the wildcard fallback.
+    {
+      const blogExact = {
+        '/blog/articles/4-ways-to-handle-read-only-cells': '/blog/4-ways-to-handle-read-only-cells',
+        '/blog/articles/2019/09/introducing-ckeditor-4-spreadsheets': '/blog/introducing-ckeditor-4-spreadsheets',
+        '/blog/articles/2016/2/what-to-expect-when-switching-from-open-source-to-commercial': '/blog/what-to-expect-when-switching-from-open-source-to-commercial',
+        '/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes': '/blog',
+      };
+
+      if (Object.prototype.hasOwnProperty.call(blogExact, path)) {
+        return redirect301(abs(blogExact[path], url));
+      }
+    }
+
+    if (path.startsWith('/blog/articles/')) {
+      return redirect301(abs('/blog', url));
+    }
+
+    // -- 2d. /demo/* → /demo (removed demo pages) ----------------------------
+    if (path.startsWith('/demo/')) {
+      return redirect301(abs('/demo', url));
+    }
+
+    // -- 2e. /customers/* → /customers/ (deprecated customer pages) ----------
+    if (path.startsWith('/customers/') && path !== '/customers/') {
+      return redirect301(abs('/customers/', url));
     }
 
     // -- 3. Legacy versioned angular-data-grid redirects ---------------------
