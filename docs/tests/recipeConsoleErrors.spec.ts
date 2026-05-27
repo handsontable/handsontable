@@ -1,10 +1,6 @@
+import path from 'path';
 import { test, expect } from '@playwright/test';
-
-type RecipePage = {
-  path: string;
-  framework: 'javascript-data-grid' | 'react-data-grid' | 'angular-data-grid';
-  hasExamples: boolean;
-};
+import { loadRecipePages } from './recipePages';
 
 /**
  * Errors that are expected in a no-backend test environment and should not
@@ -33,101 +29,15 @@ function shouldIgnoreError(message: string): boolean {
 }
 
 /**
- * Full list of recipe pages to test. Multi-framework pages are tested with the
- * javascript-data-grid prefix (JS variant). Framework-exclusive pages use their
- * own prefix.
+ * Recipe pages are discovered automatically by scanning the markdown files
+ * under docs/content/recipes/. No manual updates are needed here when a
+ * new recipe page is added.
+ *
+ * See docs/tests/recipePages.ts for the scanning logic.
  */
-const recipePages: RecipePage[] = [
-  // Introduction
-  { path: 'recipes', framework: 'javascript-data-grid', hasExamples: false },
-
-  // Accessibility
-  { path: 'recipes/accessibility', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/accessibility/aria-grid', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/accessibility/keyboard-shortcuts', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Cell types
-  { path: 'recipes/cell-types', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/cell-types/color-picker', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/color-picker-angular', framework: 'angular-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/colorful-picker', framework: 'react-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/datepicker', framework: 'angular-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/feedback', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/feedback-angular', framework: 'angular-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/feedback-react', framework: 'react-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/flatpickr', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/moment-date', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/moment-time', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/numbro', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/pikaday', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/rating', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/rating-angular', framework: 'angular-data-grid', hasExamples: true },
-  { path: 'recipes/cell-types/react-rating', framework: 'react-data-grid', hasExamples: true },
-
-  // Column management
-  { path: 'recipes/column-management', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/column-management/column-visibility', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/column-management/freeze-columns', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Context menu
-  { path: 'recipes/context-menu', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/context-menu/custom-context-menu', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/context-menu/row-operations', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Data management
-  { path: 'recipes/data-management', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/auto-save-backend', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/data-management/load-data-graphql', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/data-management/load-data-rest-api', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/data-management/server-side-django', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/server-side-laravel', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/server-side-nestjs', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/server-side-rails', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/server-side-spring', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/data-management/sync-two-grids', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/data-management/undo-redo-custom-ui', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Editing / validation
-  { path: 'recipes/editing-validation', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/editing-validation/dependent-dropdowns', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/editing-validation/row-validation-error-summary', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Filtering and search (two separate sections in sidebar)
-  { path: 'recipes/filtering-and-search', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/filtering-and-search/external-search-box', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/filtering-and-search/highlight-search-matches', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/filtering-search', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/filtering-search/multi-column-filter-panel', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Import / export
-  { path: 'recipes/import-export', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/import-export/export-to-pdf', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/import-export/import-csv-excel', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Performance
-  { path: 'recipes/performance', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/performance/lazy-loading', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/performance/persist-column-layout', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Real-time
-  { path: 'recipes/real-time', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/real-time/chartjs-sync', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/real-time/websocket-updates', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Rendering / styling
-  { path: 'recipes/rendering-styling', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/rendering-styling/conditional-row-coloring', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/rendering-styling/frozen-summary-row', framework: 'javascript-data-grid', hasExamples: true },
-  { path: 'recipes/rendering-styling/sparkline-cell-renderer', framework: 'javascript-data-grid', hasExamples: true },
-
-  // Themes (use CodeSandbox iframes, no inline hot-example blocks)
-  { path: 'recipes/themes', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/themes/ant-design', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/themes/base-theme', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/themes/custom-theme', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/themes/fluent-ui', framework: 'javascript-data-grid', hasExamples: false },
-  { path: 'recipes/themes/mui-theme', framework: 'javascript-data-grid', hasExamples: false },
-];
+const recipePages = loadRecipePages(
+  path.join(__dirname, '..', 'content', 'recipes'),
+);
 
 test.beforeEach(async ({ page, baseURL }) => {
   const url = new URL(baseURL?.toString() || '');
@@ -157,8 +67,8 @@ test.beforeEach(async ({ page, baseURL }) => {
   ]);
 });
 
-recipePages.forEach(({ path, framework, hasExamples }) => {
-  const label = `[${framework.replace('-data-grid', '')}] ${path}`;
+recipePages.forEach(({ path: pagePath, framework, hasExamples }) => {
+  const label = `[${framework.replace('-data-grid', '')}] ${pagePath}`;
 
   test(label, async ({ page, baseURL }) => {
     const consoleErrors: string[] = [];
@@ -176,7 +86,7 @@ recipePages.forEach(({ path, framework, hasExamples }) => {
       }
     });
 
-    const fullUrl = `${baseURL}/${framework}/${path}`;
+    const fullUrl = `${baseURL}/${framework}/${pagePath}`;
 
     await page.goto(fullUrl);
     await expect(page.getByText('Page not found (404)')).toHaveCount(0);
