@@ -68,7 +68,7 @@ export class CellsRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = rows!.getRenderedNode(visibleRowIndex);
 
       this.sourceRowIndex = sourceRowIndex;
 
@@ -77,7 +77,7 @@ export class CellsRenderer extends BaseRenderer {
       }
 
       const orderView = this.obtainOrderView(TR);
-      const rowHeadersView = rowHeaders.obtainOrderView(TR);
+      const rowHeadersView = rowHeaders!.obtainOrderView(TR);
 
       orderView
         .prependView(rowHeadersView)

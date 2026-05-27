@@ -65,7 +65,7 @@ export class RowHeadersRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = rows!.getRenderedNode(visibleRowIndex);
 
       if (!TR) {
         continue; // eslint-disable-line no-continue
@@ -74,7 +74,7 @@ export class RowHeadersRenderer extends BaseRenderer {
       this.sourceRowIndex = sourceRowIndex;
 
       const orderView = this.obtainOrderView(TR);
-      const cellsView = cells.obtainOrderView(TR);
+      const cellsView = cells!.obtainOrderView(TR);
 
       orderView
         .appendView(cellsView)

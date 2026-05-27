@@ -71,7 +71,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     const allColumnsToRender = columnsToRender + rowHeadersCount;
 
     for (let visibleRowIndex = 0; visibleRowIndex < columnHeadersCount; visibleRowIndex++) {
-      const TR = columnHeaderRows.getRenderedNode(visibleRowIndex);
+      const TR = columnHeaderRows!.getRenderedNode(visibleRowIndex);
 
       if (!TR) {
         continue; // eslint-disable-line no-continue

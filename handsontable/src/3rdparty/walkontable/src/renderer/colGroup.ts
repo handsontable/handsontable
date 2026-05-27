@@ -67,11 +67,11 @@ export class ColGroupRenderer extends BaseRenderer {
       if (visibleColumnIndex < rowHeadersCount) {
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
 
-        COL.style.width = `${this.table.columnUtils.getHeaderWidth(sourceColumnIndex)}px`;
+        COL.style.width = `${this.table.columnUtils!.getHeaderWidth(sourceColumnIndex)}px`;
       } else {
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex - rowHeadersCount);
 
-        COL.style.width = `${this.table.columnUtils.getWidth(sourceColumnIndex)}px`;
+        COL.style.width = `${this.table.columnUtils!.getWidth(sourceColumnIndex)}px`;
       }
     }
 
