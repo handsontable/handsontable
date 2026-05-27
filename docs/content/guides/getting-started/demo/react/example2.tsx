@@ -1,5 +1,3 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
@@ -189,12 +187,4 @@ const App = () => {
   );
 };
 
-const rootElement = document.getElementById('example2')!;
-const root = ReactDOM.createRoot(rootElement);
-
-rootElement._reactRoot = root;
-root.render(<App />);
-
-console.log(
-  `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`
-);
+export default App;
