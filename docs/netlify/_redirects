@@ -1,7 +1,24 @@
 / /docs
 
-/docs/:version/redirect pageId=:pageId /docs/:version
-/docs/redirect pageId=:pageId /docs 301
+/docs/:version/redirect pageId=:pageId /docs/javascript-data-grid/changelog 301
+/docs/redirect pageId=:pageId /docs/javascript-data-grid/changelog 301
+
+# Removed blog articles - specific redirects to equivalent new URLs
+/blog/articles/4-ways-to-handle-read-only-cells /blog/4-ways-to-handle-read-only-cells 301
+/blog/articles/2019/09/introducing-ckeditor-4-spreadsheets /blog/introducing-ckeditor-4-spreadsheets 301
+/blog/articles/2016/2/what-to-expect-when-switching-from-open-source-to-commercial /blog/what-to-expect-when-switching-from-open-source-to-commercial 301
+/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes /blog 301
+# Removed blog articles - wildcard fallback to blog homepage
+/blog/articles/* /blog 301
+
+# Removed demo pages
+/demo/* /demo 301
+
+# Old version landing pages
+/0.8.0/* /docs/javascript-data-grid/changelog 301
+
+# Deprecated customer pages
+/customers/* /customers/ 301
 
 # Angular dedicated docs are available from 16.0+ only.
 # Versions 12.1-15.3 had the Angular package but no dedicated docs pages - redirect to latest Angular docs.
