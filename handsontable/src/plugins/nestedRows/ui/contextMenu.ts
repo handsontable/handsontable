@@ -78,7 +78,7 @@ class ContextMenuUI extends BaseUI {
           const translatedRowIndex = this.dataManager!.translateTrimmedRow(selectedActive?.[0] ?? 0);
           const parent = this.dataManager!.getDataObject(translatedRowIndex);
 
-          this.dataManager!.addChild(parent);
+          this.dataManager!.addChild(parent!);
         },
         disabled: () => {
           const selected = this.hot.getSelectedActive();

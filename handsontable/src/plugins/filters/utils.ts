@@ -48,14 +48,16 @@ export function createArrayAssertion(initialData: unknown[]) {
   };
 }
 
+export function toEmptyString(value: null | undefined): '';
+export function toEmptyString<T>(value: T): T;
 /**
  * Convert empty-ish values like null and undefined to an empty string.
  *
  * @param {*} value Value to check.
- * @returns {string}
+ * @returns {*}
  */
-export function toEmptyString(value: unknown): string {
-  return value === null || value === undefined ? '' : String(value);
+export function toEmptyString(value: unknown): unknown {
+  return value === null || value === undefined ? '' : value;
 }
 
 /**
@@ -66,20 +68,17 @@ export function toEmptyString(value: unknown): string {
  *   and all other values sort lexicographically.
  * @returns {Array}
  */
-export function unifyColumnValues(values: unknown[], comparator?: (a: string, b: string) => number) {
-  const defaultComparator = (a: string, b: string) => {
-    const aNum = parseFloat(a);
-    const bNum = parseFloat(b);
-
-    if (!isNaN(aNum) && !isNaN(bNum)) {
-      return aNum - bNum;
+export function unifyColumnValues(values: unknown[], comparator?: (a: unknown, b: unknown) => number): unknown[] {
+  const defaultComparator = (a: unknown, b: unknown): number => {
+    if (typeof a === 'number' && typeof b === 'number') {
+      return a - b;
     }
 
     if (a === b) {
       return 0;
     }
 
-    return a > b ? 1 : -1;
+    return (a as string | number) > (b as string | number) ? 1 : -1;
   };
 
   return Array.from(new Set(values))

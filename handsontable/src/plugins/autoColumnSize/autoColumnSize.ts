@@ -575,7 +575,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {number}
    */
-  getColumnWidth(column: number, defaultWidth?: number, keepMinimum: boolean = true): number {
+  getColumnWidth(column: number, defaultWidth?: number, keepMinimum: boolean = true): number | undefined {
     let width = defaultWidth;
 
     if (width === undefined) {
@@ -586,7 +586,7 @@ export class AutoColumnSize extends BasePlugin {
       }
     }
 
-    return width ?? 0;
+    return width;
   }
 
   /**

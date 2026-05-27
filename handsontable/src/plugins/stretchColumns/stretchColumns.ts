@@ -100,14 +100,14 @@ export class StretchColumns extends BasePlugin {
    */
   #resizeObserver: ResizeObserver | null = new ResizeObserver((entries) => {
     requestAnimationFrame(() => {
-      if (!this.hot?.view.isHorizontallyScrollableByWindow()) {
+      if (!this.hot?.view?.isHorizontallyScrollableByWindow()) {
         return;
       }
 
       entries.forEach(({ contentRect }) => {
         if (this.#previousTableWidth !== null && this.#previousTableWidth !== contentRect.width) {
-          this.hot.view.adjustElementsSize();
-          this.hot.refreshDimensions();
+          this.hot?.view?.adjustElementsSize();
+          this.hot?.refreshDimensions();
         }
 
         this.#previousTableWidth = contentRect.width;

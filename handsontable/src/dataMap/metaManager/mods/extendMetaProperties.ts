@@ -147,7 +147,8 @@ export class ExtendMetaPropertiesMod {
    * @param {Function} onChange The callback.
    */
   installPropWatcher(propName: string, origProp: string,
-      onChange: (this: unknown, changedPropName: string, value: unknown, isInitialChange: boolean) => void) {
+                     onChange: (this: unknown, changedPropName: string,
+                                value: unknown, isInitialChange: boolean) => void) {
     const self = this;
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {

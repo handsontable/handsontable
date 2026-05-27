@@ -922,7 +922,7 @@ export default function Core(
           if (Array.isArray(index)) {
             removeRow(normalizeIndexesGroup(index));
           } else {
-            removeRow([[(index ?? 0) as number, amount]]);
+            removeRow([[index as number, amount]]);
           }
           break;
 
@@ -1000,7 +1000,7 @@ export default function Core(
           if (Array.isArray(index)) {
             removeCol(normalizeIndexesGroup(index));
           } else {
-            removeCol([[(index ?? 0) as number, amount]]);
+            removeCol([[index as number, amount]]);
           }
           break;
         default:

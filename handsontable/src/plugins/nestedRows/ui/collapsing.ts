@@ -98,7 +98,7 @@ class CollapsingUI extends BaseUI {
    */
   collapseChildren(row: number, forceRender = true, doTrimming = true): number[] {
     const rowsToCollapse: number[] = [];
-    let rowObject: Record<string, unknown> | null = null;
+    let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
     let rowsToTrim: number[] | null = null;
 
@@ -110,7 +110,7 @@ class CollapsingUI extends BaseUI {
       rowIndex = row;
     }
 
-    if (this.dataManager.hasChildren(rowObject)) {
+    if (rowObject && this.dataManager.hasChildren(rowObject)) {
       arrayEach(rowObject.__children as unknown[], (elem) => {
         rowsToCollapse.push(this.dataManager.getRowIndex(elem) ?? -1);
       });
@@ -204,7 +204,7 @@ class CollapsingUI extends BaseUI {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children ?? [], (elem: unknown) => {
+      arrayEach(parentObject!.__children ?? [], (elem: unknown) => {
         const elemIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
         rowsToTrim.push(elemIndex);
@@ -265,7 +265,7 @@ class CollapsingUI extends BaseUI {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children ?? [], (elem: RowObject) => {
+      arrayEach(parentObject!.__children ?? [], (elem: RowObject) => {
         if (!this.isAnyParentCollapsed(elem)) {
           const elemIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
@@ -290,7 +290,7 @@ class CollapsingUI extends BaseUI {
    */
   expandChildren(row: number, forceRender = true, doTrimming = true): number[] {
     const rowsToExpand: number[] = [];
-    let rowObject: Record<string, unknown> | null = null;
+    let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
     let rowsToUntrim: number[] | null = null;
 
@@ -304,7 +304,7 @@ class CollapsingUI extends BaseUI {
 
     this.collapsedRows.splice(this.collapsedRows.indexOf(rowIndex!), 1);
 
-    if (this.dataManager.hasChildren(rowObject)) {
+    if (rowObject && this.dataManager.hasChildren(rowObject)) {
       arrayEach(rowObject.__children as unknown[], (elem) => {
         const childIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
@@ -418,20 +418,20 @@ class CollapsingUI extends BaseUI {
    * @returns {boolean}
    */
   areChildrenCollapsed(row: number): boolean {
-    let rowObj: Record<string, unknown> = isNaN(row)
+    let rowObj: Record<string, unknown> | null | undefined = isNaN(row)
       ? row as unknown as Record<string, unknown>
       : this.dataManager.getDataObject(row);
     let allCollapsed = true;
 
     // Checking the children of the top-level "parent"
-    if (rowObj === null) {
+    if (rowObj === null || rowObj === undefined) {
       rowObj = {
         __children: this.dataManager.data
       };
 
     }
 
-    if (this.dataManager.hasChildren(rowObj)) {
+    if (rowObj && this.dataManager.hasChildren(rowObj)) {
       arrayEach(rowObj.__children as unknown[], (elem) => {
         const rowIndex = this.dataManager.getRowIndex(elem) ?? -1;
 

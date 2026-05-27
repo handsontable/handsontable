@@ -145,9 +145,10 @@ class ConditionUpdateObserver {
 
     const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
       const splitConditionCollection = new ConditionCollection(this.hot, false);
-      const curriedConditionsBeforeArray = [
-        ...(curriedConditionsBefore as unknown[]), ...(conditionsStack as unknown[])
-      ];
+      const curriedConditionsBeforeArray = ([] as unknown[]).concat(
+        curriedConditionsBefore as unknown[],
+        conditionsStack as unknown[]
+      );
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box
       // in the next conditions in the chain

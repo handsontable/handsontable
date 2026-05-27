@@ -343,7 +343,7 @@ class DataMap {
    * @returns {number} Returns number of created rows.
    */
   createRow(index: number | undefined, amount = 1,
-      { source, mode = 'above' }: { source?: string; mode?: string } = {}) {
+            { source, mode = 'above' }: { source?: string; mode?: string } = {}) {
     const sourceRowsCount = this.hot!.countSourceRows();
     let physicalRowIndex = sourceRowsCount;
     let numberOfCreatedRows = 0;
@@ -449,7 +449,7 @@ class DataMap {
    * @returns {number} Returns number of created columns.
    */
   createCol(index: number | undefined, amount = 1,
-      { source, mode = 'start' }: { source?: string; mode?: 'start' | 'end' } = {}) {
+            { source, mode = 'start' }: { source?: string; mode?: 'start' | 'end' } = {}) {
     if (!this.hot!.isColumnModificationAllowed()) {
       throwWithCause('Cannot create new column. When data source in an object, ' +
         // eslint-disable-next-line max-len

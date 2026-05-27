@@ -926,7 +926,7 @@ class Table {
       if (
         !previousRowHeight &&
         stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
-        (previousRowHeight ?? 0) < rowCurrentHeight
+        (previousRowHeight !== undefined && previousRowHeight < rowCurrentHeight)
       ) {
         if (!borderBoxSizing) {
           rowCurrentHeight += 1;

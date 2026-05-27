@@ -557,8 +557,14 @@ export class BasePlugin {
     this.clearHooks();
 
     objectEach(this, (_value: unknown, property: string) => {
-      Reflect.set(this, property, null);
+      if (property !== 'hot') {
+        Reflect.set(this, property, null);
+      }
     });
     delete this.t;
+    // `hot` is non-writable (set via defineGetter with writable: false) so Reflect.set
+    // silently fails for it. Delete the own property instead so that async guards like
+    // `if (!this.hot)` return `undefined` (falsy) after the plugin is destroyed.
+    Reflect.deleteProperty(this, 'hot');
   }
 }

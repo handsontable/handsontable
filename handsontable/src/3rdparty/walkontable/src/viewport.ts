@@ -100,7 +100,7 @@ class Viewport {
      */
     this.rowHeightCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting<number>('totalRows'),
-      sizeFn: sourceRow => wtTable.getRowHeight(sourceRow) ?? 0,
+      sizeFn: sourceRow => wtTable.getRowHeight(sourceRow) ?? NaN,
       defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
     });
     /**
