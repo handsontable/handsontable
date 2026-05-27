@@ -11,6 +11,11 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    // Scope layout recalculation to the grid subtree. Geometry reads inside
+    // (offsetWidth, clientHeight, scrollHeight) only flush layout within this
+    // container rather than the entire host document, reducing forced-reflow
+    // cost on pages with complex CSS. Safe: no position:fixed used internally.
+    contain: layout;
   }
 
   .htFocusCatcher {

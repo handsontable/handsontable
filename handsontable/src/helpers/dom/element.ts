@@ -576,6 +576,15 @@ export function fastInnerText(element: HTMLElement, content: string): void {
  * @returns {boolean}
  */
 export function isVisible(element: HTMLElement): boolean {
+  // Fast path: use the native checkVisibility() API (Chrome 105+, Firefox 106+, Safari 17.4+).
+  // With no options it checks display:none ancestry and DOM attachment — matching the legacy
+  // ancestor walk below, but in O(1) browser-native time instead of O(DOM depth) with
+  // per-node getComputedStyle() calls that force full-document layout recalculation.
+  if (typeof element.checkVisibility === 'function') {
+    return element.checkVisibility();
+  }
+
+  // Legacy fallback: manual ancestor walk for browsers that do not support checkVisibility().
   const documentElement = element.ownerDocument.documentElement;
   const windowElement = element.ownerDocument.defaultView;
   let next: Node = element;
