@@ -155,10 +155,6 @@
   margin: 0;
 }
 
-.sl-markdown-content .handsontable :not(a, strong, em, del, span, input, code, br) + :not(a, strong, em, del, span, input, code, br, :where(.not-content *)) {
-  margin-top: 0;
-}
-
 /* -------------------------------------------------------------------------
  * Markdown tables — scoped re-styling
  *
