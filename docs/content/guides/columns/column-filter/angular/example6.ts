@@ -1,51 +1,56 @@
 /* file: app.component.ts */
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, HostListener, ViewChild } from "@angular/core";
 import { GridSettings, HotTableComponent, HotTableModule } from "@handsontable/angular-wrapper";
-import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
 @Component({
   standalone: true,
-  imports: [HotTableModule, ReactiveFormsModule],
+  imports: [HotTableModule],
   selector: "app-example6",
   template: `
     <div class="example-controls-container">
       <div class="controlsQuickFilter">
-        <label for="columns" class="selectColumn"
-          >Select a column:
-          <select [formControl]="columnControl" id="columns">
-            @for (option of columnOptions; track option.value) {
-            <option [value]="option.value">
-              {{ option.label }}
-            </option>
-            }
-          </select>
-        </label>
-      </div>
-      <div class="controlsQuickFilter">
-        <input id="filterField" [formControl]="fieldControl" type="text" placeholder="Filter" />
+        <div class="filter-dropdown" (click)="$event.stopPropagation()">
+          <label class="filter-dropdown-label">Select a column:</label>
+          <button
+            class="filter-dropdown-trigger"
+            type="button"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="isOpen ? 'true' : 'false'"
+            (click)="toggleDropdown()"
+          >
+            <span class="filter-dropdown-text">{{ selectedLabel }}</span>
+            <svg class="filter-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6l6 -6"/>
+            </svg>
+          </button>
+          @if (isOpen) {
+            <ul class="filter-dropdown-menu" role="listbox">
+              @for (option of columnOptions; track option.value) {
+                <li
+                  role="option"
+                  [attr.aria-selected]="option.value === selectedColumn.toString() ? 'true' : 'false'"
+                  (click)="selectColumn(option)"
+                >
+                  {{ option.label }}
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <input id="filterField" type="text" placeholder="Filter" (keyup)="handleFilter($event)" />
       </div>
     </div>
 
-    <hot-table [settings]="hotSettings!" [data]="hotData"> </hot-table>
-  `,
-  styles: `
-    .controlsQuickFilter {
-      margin: 0;
-      padding: 0;
-    }
-
-    #filterField {
-      margin-top: 20px;
-    }
+    <hot-table [settings]="hotSettings!" [data]="hotData"></hot-table>
   `,
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) hotTable!: HotTableComponent;
 
-  fieldControl = new FormControl("");
-  columnControl = new FormControl("0");
+  isOpen = false;
+  selectedColumn = 0;
 
-  columnOptions: Array<{ value: string; label: string }> = [
+  readonly columnOptions: Array<{ value: string; label: string }> = [
     { value: "0", label: "Brand" },
     { value: "1", label: "Model" },
     { value: "2", label: "Price" },
@@ -53,6 +58,34 @@ export class AppComponent implements OnInit {
     { value: "4", label: "Time" },
     { value: "5", label: "In stock" },
   ];
+
+  get selectedLabel(): string {
+    return this.columnOptions.find((o) => o.value === this.selectedColumn.toString())?.label ?? "Brand";
+  }
+
+  @HostListener("document:click")
+  closeDropdown() {
+    this.isOpen = false;
+  }
+
+  toggleDropdown() {
+    this.isOpen = !this.isOpen;
+  }
+
+  selectColumn(option: { value: string; label: string }) {
+    this.selectedColumn = Number(option.value);
+    this.isOpen = false;
+  }
+
+  handleFilter(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    const filters = this.hotTable.hotInstance!.getPlugin("filters");
+
+    filters.removeConditions(this.selectedColumn);
+    filters.addCondition(this.selectedColumn, "contains", [value]);
+    filters.filter();
+    this.hotTable.hotInstance!.render();
+  }
 
   readonly hotData = [
     {
@@ -113,27 +146,27 @@ export class AppComponent implements OnInit {
         title: "Price",
         type: "numeric",
         data: "price",
-        locale: 'en-US',
+        locale: "en-US",
         numericFormat: {
-          style: 'currency',
-          currency: 'USD',
+          style: "currency",
+          currency: "USD",
           minimumFractionDigits: 2,
         },
       },
       {
         title: "Date",
-        type: 'intl-date',
+        type: "intl-date",
         data: "sellDate",
-        locale: 'en-GB',
-        dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
+        locale: "en-GB",
+        dateFormat: { day: "2-digit", month: "2-digit", year: "numeric" },
         className: "htRight",
       },
       {
         title: "Time",
-        type: 'intl-time',
+        type: "intl-time",
         data: "sellTime",
-        locale: 'en-GB',
-        timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+        locale: "en-GB",
+        timeFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
         className: "htRight",
       },
       {
@@ -150,18 +183,6 @@ export class AppComponent implements OnInit {
     autoWrapRow: true,
     autoWrapCol: true,
   };
-
-  ngOnInit() {
-    this.fieldControl.valueChanges.subscribe((fieldValue) => {
-      const filters = this.hotTable.hotInstance!.getPlugin("filters");
-      const columnValue = +this.columnControl.value!;
-
-      filters.removeConditions(columnValue);
-      filters.addCondition(columnValue, "contains", [fieldValue ?? '']);
-      filters.filter();
-      this.hotTable.hotInstance!.render();
-    });
-  }
 }
 /* end-file */
 

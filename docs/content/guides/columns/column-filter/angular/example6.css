@@ -91,10 +91,6 @@
   z-index: 9999;
 }
 
-.filter-dropdown-menu[hidden] {
-  display: none !important;
-}
-
 .filter-dropdown-menu li {
   align-items: center;
   color: var(--sl-color-text, #333333);
