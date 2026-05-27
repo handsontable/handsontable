@@ -206,6 +206,10 @@ jobs:
             ✅ Preview documentation is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
+      - name: Add Cloudflare worker to deploy
+        if: ${{ steps.resolve-pr.outputs.number }}
+        run: cp cloudflare/_worker.js netlify/deploy/_worker.js
+
       - name: Ensure Cloudflare Pages project exists
         if: ${{ steps.resolve-pr.outputs.number }}
         continue-on-error: true
