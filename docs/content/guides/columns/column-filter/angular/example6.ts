@@ -34,8 +34,46 @@ import { FormControl, ReactiveFormsModule } from "@angular/forms";
       padding: 0;
     }
 
+    .selectColumn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #555555;
+      white-space: nowrap;
+    }
+
+    .selectColumn select {
+      border: 1px solid #e0e0e0;
+      background: none;
+      color: #333333;
+      font-size: 0.875rem;
+      padding: 0.4rem 0.625rem;
+      outline: none;
+      border-radius: 0;
+      cursor: pointer;
+    }
+
+    .selectColumn select:focus {
+      border-color: #1A42E8;
+    }
+
     #filterField {
       margin-top: 20px;
+      border: 1px solid #e0e0e0;
+      background: none;
+      color: #333333;
+      font-size: 0.875rem;
+      padding: 0.4rem 0.625rem;
+      outline: none;
+    }
+
+    #filterField::placeholder {
+      color: #777777;
+    }
+
+    #filterField:focus {
+      border-color: #1A42E8;
     }
   `,
 })
