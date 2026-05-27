@@ -448,11 +448,10 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 ::: only-for angular
 
-::: example #example6 :angular --ts 1 --html 2 --css 3
+::: example #example6 :angular --ts 1 --html 2
 
 @[code](@/content/guides/columns/column-filter/angular/example6.ts)
 @[code](@/content/guides/columns/column-filter/angular/example6.html)
-@[code](@/content/guides/columns/column-filter/angular/example6.css)
 
 :::
 

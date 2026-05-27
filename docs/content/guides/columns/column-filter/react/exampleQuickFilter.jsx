@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import './exampleQuickFilter.css';
 
 // register Handsontable's modules
 registerAllModules();
