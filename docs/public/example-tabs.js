@@ -563,6 +563,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function buildReactProject(hotVersion, exampleId, userFiles, extraDeps) {
     var jsxFile = findFile(userFiles, '.jsx') || findFile(userFiles, '.tsx') || 'App.jsx';
     var jsxCode = userFiles[jsxFile] || '';
+    var cssFile = findFile(userFiles, '.css');
 
     var deps = Object.assign(
       {
@@ -594,11 +595,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var index = [
       'import React from "react";',
       'import { createRoot } from "react-dom/client";',
+      cssFile ? 'import "./styles.css";' : null,
       'import App from "./App";',
       '',
       'const root = createRoot(document.getElementById("' + exampleId + '"));',
       'root.render(React.createElement(App));',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
@@ -624,13 +626,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var html = indexPartsR.join('\n');
 
-    return {
+    var projectFiles = {
       'package.json':   pkg,
       'vite.config.js': viteConfig,
       'index.html':     html,
       'src/main.jsx':   index,
       'src/App.jsx':    jsxCode,
     };
+
+    if (cssFile) {
+      projectFiles['src/styles.css'] = userFiles[cssFile];
+    }
+
+    return projectFiles;
   }
 
   // ── Vue 3 project ─────────────────────────────────────────────────────────
