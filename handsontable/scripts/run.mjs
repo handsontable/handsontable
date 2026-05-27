@@ -121,8 +121,12 @@ const passthroughFlags = allExtraArgs;
 
 const propagatedEnv = {};
 
-if (patternArg) { propagatedEnv.npm_config_testpathpattern = patternArg.replace('--testPathPattern=', ''); }
-if (themeArg) { propagatedEnv.npm_config_theme = themeArg.replace('--theme=', ''); }
+if (patternArg) {
+  propagatedEnv.npm_config_testpathpattern = patternArg.replace('--testPathPattern=', '');
+}
+if (themeArg) {
+  propagatedEnv.npm_config_theme = themeArg.replace('--theme=', '');
+}
 
 // --- Task resolution ---
 
@@ -154,11 +158,15 @@ function resolveMode(task, flags) {
     return 'interactive';
   }
 
-  if (task.mode === 'inherit') { return 'inherit'; }
+  if (task.mode === 'inherit') {
+    return 'inherit';
+  }
 
   // --verbose: stream stdout/stderr directly so tools like tsc that write errors to stdout
   // are not silently swallowed by quiet mode's stderr-only capture.
-  if (isVerbose) { return 'inherit'; }
+  if (isVerbose) {
+    return 'inherit';
+  }
 
   // Tasks with no explicit mode that forward --watch must use inherit so their stdout
   // reaches concurrently's output stream — the watcher reads it to detect build-completion
@@ -276,8 +284,12 @@ function runParallelTask(name, spinner) {
     let combined = '';
 
     if (!isVerbose) {
-      child.stdout.on('data', (d) => { combined += d.toString(); });
-      child.stderr.on('data', (d) => { combined += d.toString(); });
+      child.stdout.on('data', (d) => {
+        combined += d.toString();
+      });
+      child.stderr.on('data', (d) => {
+        combined += d.toString();
+      });
     }
 
     child.on('close', (code) => {
@@ -346,7 +358,9 @@ async function runPipeline(name, parallel) {
     // Build a subset of TASKS containing only the pipeline's tasks.
     const subTasks = {};
 
-    tasks.forEach((t) => { subTasks[t] = TASKS[t] ?? { cmd: t, deps: [] }; });
+    tasks.forEach((t) => {
+      subTasks[t] = TASKS[t] ?? { cmd: t, deps: [] };
+    });
 
     const spinner = isVerbose ? { start: () => {}, finish: () => {} } : new ParallelSpinner();
     const totalStart = performance.now();

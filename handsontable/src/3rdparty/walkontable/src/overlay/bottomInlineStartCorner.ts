@@ -105,17 +105,29 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     return true;
   }
 
-  setScrollPosition(_pos: number) { return false; }
-  getScrollPosition() { return 0; }
-  getTableParentOffset() { return 0; }
-  getOverlayOffset() { return 0; }
+  setScrollPosition(_pos: number) {
+    return false;
+  }
+  getScrollPosition() {
+    return 0;
+  }
+  getTableParentOffset() {
+    return 0;
+  }
+  getOverlayOffset() {
+    return 0;
+  }
   onScroll() {}
-  sumCellSizes(_from: number, _to: number) { return 0; }
+  sumCellSizes(_from: number, _to: number) {
+    return 0;
+  }
   adjustElementsSize() { // intentionally empty
   }
   applyToDOM() { // intentionally empty
   }
-  scrollTo(_sourceIndex: number, _snapToEdge: boolean) { return false; }
+  scrollTo(_sourceIndex: number, _snapToEdge: boolean) {
+    return false;
+  }
 
   /**
    * Reposition the overlay.

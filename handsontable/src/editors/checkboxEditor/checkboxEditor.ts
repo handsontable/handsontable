@@ -35,7 +35,9 @@ export class CheckboxEditor extends BaseEditor {
   }
   close(): void { // intentionally empty
   }
-  getValue(): unknown { return undefined; }
+  getValue(): unknown {
+    return undefined;
+  }
   setValue(): void { // intentionally empty
   }
   focus(): void { // intentionally empty

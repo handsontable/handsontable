@@ -224,7 +224,9 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       } else {
         const rect = editor.getEditedCellRect();
 
-        if (!rect) { return; }
+        if (!rect) {
+          return;
+        }
         containerStyle.top = `${rect.top}px`;
         containerStyle[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
         containerStyle.width = `${rect.width}px`;

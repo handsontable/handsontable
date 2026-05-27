@@ -457,7 +457,9 @@ export class DataProvider extends BasePlugin {
       'create',
       payload,
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
-      async() => { await this.fetchData({ skipLoading: true }); }
+      async() => {
+        await this.fetchData({ skipLoading: true });
+      }
     );
   }
 
@@ -834,7 +836,9 @@ export class DataProvider extends BasePlugin {
       {
         hot: this.hot,
         getQueryPage: () => this.#queryParameters.page,
-        goToPage: async(page) => { await this.fetchData({ page }); },
+        goToPage: async(page) => {
+          await this.fetchData({ page });
+        },
       },
       oldPage,
       newPage
@@ -855,7 +859,9 @@ export class DataProvider extends BasePlugin {
         hot: this.hot,
         getQueryPage: () => this.#queryParameters.page,
         getQueryPageSize: () => this.#queryParameters.pageSize,
-        setPageSize: async(pageSize) => { await this.fetchData({ pageSize, page: 1 }); },
+        setPageSize: async(pageSize) => {
+          await this.fetchData({ pageSize, page: 1 });
+        },
       },
       oldPageSize,
       newPageSize

@@ -79,8 +79,12 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.innerViewportHeight,
       positionCache: this.positionCache,
-      setSizeField: (ctx, size) => { ctx.rowHeight = size; },
-      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedHeight = v; },
+      setSizeField: (ctx, size) => {
+        ctx.rowHeight = size;
+      },
+      setTotalCalculated: (ctx, v) => {
+        ctx.totalCalculatedHeight = v;
+      },
       getTotalCalculated: ctx => ctx.totalCalculatedHeight as number,
     });
   }

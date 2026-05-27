@@ -289,6 +289,7 @@ class ConditionCollection {
     }
 
     this.clearLocalHooks();
+    (this as any).filteringStates = null;
   }
 }
 

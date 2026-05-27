@@ -77,8 +77,12 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.zeroBasedScrollOffset + this.viewportWidth,
       positionCache: this.positionCache,
-      setSizeField: (ctx, size) => { ctx.columnWidth = size; },
-      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedWidth = v; },
+      setSizeField: (ctx, size) => {
+        ctx.columnWidth = size;
+      },
+      setTotalCalculated: (ctx, v) => {
+        ctx.totalCalculatedWidth = v;
+      },
       getTotalCalculated: ctx => ctx.totalCalculatedWidth as number,
     });
   }
