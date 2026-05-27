@@ -8,29 +8,14 @@
  *   CF_PROJECT_NAME - Name of the Pages project
  *   CF_BRANCH_NAME - Branch name whose deployments should be removed
  */
-const CF_API = 'https://api.cloudflare.com/client/v4';
-const {
-  CLOUDFLARE_API_TOKEN: apiToken,
-  CLOUDFLARE_ACCOUNT_ID: accountId,
-  CF_PROJECT_NAME: projectName,
-  CF_BRANCH_NAME: branchName,
-} = process.env;
+import { accountId, cfFetch } from './cfFetch.mjs';
 
-if (!apiToken || !accountId || !projectName || !branchName) {
+const { CF_PROJECT_NAME: projectName, CF_BRANCH_NAME: branchName } = process.env;
+
+if (!projectName || !branchName) {
   throw new Error(
-    'Missing required environment variables: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CF_PROJECT_NAME, CF_BRANCH_NAME'
+    'Missing required environment variables: CF_PROJECT_NAME, CF_BRANCH_NAME'
   );
-}
-
-async function cfFetch(path, options = {}) {
-  return fetch(`${CF_API}${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
 }
 
 const PER_PAGE = 25;

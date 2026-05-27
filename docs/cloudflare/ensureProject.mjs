@@ -6,22 +6,12 @@
  *   CLOUDFLARE_ACCOUNT_ID - Cloudflare account ID
  *   CF_PROJECT_NAME - Name of the Pages project to ensure
  */
-const CF_API = 'https://api.cloudflare.com/client/v4';
-const { CLOUDFLARE_API_TOKEN: apiToken, CLOUDFLARE_ACCOUNT_ID: accountId, CF_PROJECT_NAME: projectName } = process.env;
+import { CF_API, accountId, cfFetch } from './cfFetch.mjs';
 
-if (!apiToken || !accountId || !projectName) {
-  throw new Error('Missing required environment variables: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CF_PROJECT_NAME');
-}
+const { CF_PROJECT_NAME: projectName } = process.env;
 
-async function cfFetch(path, options = {}) {
-  return fetch(`${CF_API}${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${apiToken}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
+if (!projectName) {
+  throw new Error('Missing required environment variable: CF_PROJECT_NAME');
 }
 
 const getResponse = await cfFetch(`/accounts/${accountId}/pages/projects/${projectName}`);

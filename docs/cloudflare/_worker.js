@@ -628,14 +628,21 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
-// Legacy angular-docs versions that always redirect to /docs/javascript-data-grid/
+// Legacy angular-docs version sets
+// Versions 12.1+ had a real Angular wrapper and redirect to /docs/angular-data-grid/.
+// Versions ≤12.0 pre-date the Angular wrapper and redirect to /docs/javascript-data-grid/.
 // ---------------------------------------------------------------------------
 
-const LEGACY_ANGULAR_VERSIONS_SET = new Set([
+// 12.1 and above → /docs/angular-data-grid/
+const LEGACY_ANGULAR_TO_ANGULAR_SET = new Set([
   '15.3', '15.2', '15.1', '15.0',
   '14.6', '14.5', '14.4', '14.3', '14.2', '14.1', '14.0',
   '13.1', '13.0',
   '12.4', '12.3', '12.2', '12.1',
+]);
+
+// 12.0 and below → /docs/javascript-data-grid/
+const LEGACY_ANGULAR_TO_JS_SET = new Set([
   '12.0', '11.1', '11.0', '10.0', '9.0',
 ]);
 
@@ -706,7 +713,11 @@ export default {
       if (m) {
         const version = m[1];
 
-        if (LEGACY_ANGULAR_VERSIONS_SET.has(version)) {
+        if (LEGACY_ANGULAR_TO_ANGULAR_SET.has(version)) {
+          return redirect301(abs('/docs/angular-data-grid/', url));
+        }
+
+        if (LEGACY_ANGULAR_TO_JS_SET.has(version)) {
           return redirect301(abs('/docs/javascript-data-grid/', url));
         }
       }

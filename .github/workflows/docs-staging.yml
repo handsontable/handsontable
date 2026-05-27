@@ -208,6 +208,7 @@ jobs:
 
       - name: Add Cloudflare worker to deploy
         if: ${{ steps.resolve-pr.outputs.number }}
+        continue-on-error: true
         run: cp cloudflare/_worker.js netlify/deploy/_worker.js
 
       - name: Ensure Cloudflare Pages project exists
