@@ -250,6 +250,54 @@ describe('HiddenRows', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
     });
 
+    it('should clear the `skipRowOnPaste` meta after a hidden row is shown again, when ' +
+      '"copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        hiddenRows: {
+          copyPasteEnabled: false,
+        },
+      });
+
+      const plugin = getPlugin('hiddenRows');
+
+      plugin.hideRows([2]);
+      await render();
+
+      // Reading the meta while the row is hidden caches `skipRowOnPaste: true` on the cell.
+      expect(getCellMeta(2, 0).skipRowOnPaste).toBe(true);
+
+      plugin.showRows([2]);
+      await render();
+
+      expect(getCellMeta(2, 0).skipRowOnPaste).toBe(false);
+    });
+
+    it('should paste data into a row that was hidden and then shown again, when ' +
+      '"copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 1),
+        hiddenRows: {
+          copyPasteEnabled: false,
+        },
+      });
+
+      const plugin = getPlugin('hiddenRows');
+
+      plugin.hideRows([2]);
+      await render();
+      // Force the skip flag to be cached on the hidden row.
+      getCellMeta(2, 0);
+      plugin.showRows([2]);
+      await render();
+
+      await selectCell(0, 0);
+      getPlugin('CopyPaste').paste('v\nw\nx\ny\nz');
+
+      expect(getDataAtCell(2, 0)).toBe('x');
+      expect(getData().map(([cell]) => cell)).toEqual(['v', 'w', 'x', 'y', 'z']);
+    });
+
     it('should keep same number of rows if all rows are hidden', async() => {
       handsontable({
         data: createSpreadsheetData(2, 1),
