@@ -642,9 +642,12 @@ class Event {
           !interactiveElements.includes(target!.tagName)) {
         event.preventDefault();
 
-      } else if (!this.selectedCellWasTouched(target)) {
+      } else if (!this.selectedCellWasTouched(target) &&
+                 !(target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox')) {
         // For other browsers, prevent default is fired only for the first tap and only when the previous
-        // highlighted cell was different.
+        // highlighted cell was different. Checkbox inputs are excluded so that checkboxes with
+        // disableVisualSelection can still be toggled via touch (the focus cellRange is never populated
+        // when visual selection is disabled, so selectedCellWasTouched always returns false for them).
         event.preventDefault();
       }
     }
