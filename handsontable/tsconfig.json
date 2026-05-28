@@ -16,6 +16,7 @@
     "noImplicitThis": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": false,
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "handsontable/*": ["src/*"]
