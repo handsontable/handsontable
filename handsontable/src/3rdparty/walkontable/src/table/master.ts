@@ -11,9 +11,18 @@ import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
 
 /**
- * Cached output values from `alignOverlaysWithTrimmingContainer()`.
+ * Cached output of `alignOverlaysWithTrimmingContainer()` plus the input
+ * "fingerprint" — the dimensions that drive the output. The fast path applies
+ * the cached output only when the fingerprint still matches; otherwise it
+ * falls through to a fresh measurement. The fingerprint covers both the
+ * trimming container size (catches container resizes) and the hider size
+ * (catches synchronous content growth such as `loadData()` in the autocomplete
+ * dropdown, where the container stays fixed but the rendered rows expand).
  */
 interface TrimmingContainerCache {
+  trimmingOffsetWidth: number;
+  trimmingOffsetHeight: number;
+  hiderOffsetHeight: number;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
@@ -45,13 +54,13 @@ class MasterTable extends Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
-    // The base-class constructor calls this method before MasterTable's field
-    // initializers have run. The brand check detects that case and exits early;
-    // the first draw() call (which always follows construction) runs the full path.
-    if (!(#trimmingCache in this)) {
-      return;
-    }
-
+    // The base-class constructor invokes this method before MasterTable's
+    // field initializers have run. Accessing a private field in that window
+    // throws; the brand check detects the pre-init call so the caching block
+    // can be skipped. The non-caching branches (window-trimming overflow
+    // reset and the trailing isVisible check) still run, matching the
+    // pre-DEV-1777 behaviour and the side effects callers depend on.
+    const fieldsInitialized = #trimmingCache in this;
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.domBindings;
 
@@ -62,9 +71,12 @@ class MasterTable extends Table {
         this.holder.style.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
-    } else {
+    } else if (fieldsInitialized) {
       // (Re-)establish ResizeObservers when the trimming element changes.
       // This handles the rare case where the HOT container is moved in the DOM.
+      // The observers are a backstop: they catch async size changes (e.g. window
+      // resize) that the synchronous fingerprint check below cannot see ahead of
+      // the next draw call.
       if (this.#observedTrimmingElement !== trimmingElement) {
         this.#trimmingContainerObserver?.disconnect();
         this.#hiderObserver?.disconnect();
@@ -83,12 +95,26 @@ class MasterTable extends Table {
         this.#hiderObserver = hoObserver;
       }
 
+      // Fingerprint of the current trimming container and hider sizes. These
+      // are cheap reads on a pure-scroll draw (no pending layout invalidation),
+      // and they catch every synchronous DOM mutation that the async
+      // ResizeObserver callbacks would miss between renders in the same tick —
+      // for example `htEditor.loadData()` followed by an explicit
+      // `alignOverlaysWithTrimmingContainer()` call in the autocomplete editor.
+      const trimmingOffsetWidth = trimmingElement.offsetWidth;
+      const trimmingOffsetHeight = trimmingElement.offsetHeight;
+      const hiderOffsetHeight = this.hider.offsetHeight;
       const cache = this.#trimmingCache;
+      const cacheValid = cache !== null
+        && cache.trimmingOffsetWidth === trimmingOffsetWidth
+        && cache.trimmingOffsetHeight === trimmingOffsetHeight
+        && cache.hiderOffsetHeight === hiderOffsetHeight;
 
-      if (cache !== null) {
-        // Fast path: apply cached measurements without any DOM reads that would
-        // force a synchronous layout flush. This path is taken on every scroll
-        // draw where the container dimensions have not changed.
+      if (cacheValid) {
+        // Fast path: apply cached measurements without the expensive
+        // cloneNode + getComputedStyle round-trip in the slow path. Taken on
+        // every scroll draw where the container and hider dimensions have not
+        // changed since the previous measurement.
         const holderStyle = this.holder.style;
 
         holderStyle.width = cache.holderWidth;
@@ -183,18 +209,26 @@ class MasterTable extends Table {
         this.hasTableHeight = hasTableHeight;
         this.hasTableWidth = hasTableWidth;
 
-        // Store measurements in cache. They remain valid until a ResizeObserver fires
-        // (container or hider size changed).
-        this.#trimmingCache = { holderWidth, holderHeight, hasTableHeight, hasTableWidth };
+        // Only cache when the trimming container has a real positive width.
+        // When scrollWidth is 0 (e.g. the dropdown HOT has no content yet on first
+        // render), width is min(offsetWidth, 0) = 0 — a transient empty state that
+        // should not be locked in. Without this guard the stale 0px cache would be
+        // applied on every subsequent draw (e.g. after loadData fills the dropdown).
+        if (width > 0) {
+          this.#trimmingCache = {
+            trimmingOffsetWidth,
+            trimmingOffsetHeight,
+            hiderOffsetHeight,
+            holderWidth,
+            holderHeight,
+            hasTableHeight,
+            hasTableWidth,
+          };
+        }
       }
     }
 
-    // Skip the checkVisibility() style flush when the table is already known
-    // to be visible — the common case during scrolling. Only re-check when
-    // the last known state was invisible (handles the hidden→visible transition).
-    if (!this.isTableVisible) {
-      this.isTableVisible = isVisible(this.TABLE);
-    }
+    this.isTableVisible = isVisible(this.TABLE);
   }
 
   markOversizedColumnHeaders() {
