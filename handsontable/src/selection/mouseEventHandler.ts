@@ -148,8 +148,16 @@ interface MouseUpOptions {
  */
 export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOptions) {
   const sel = selection;
+  const dvs = sel.settings.disableVisualSelection;
+  // Treat empty string and empty array as equivalent to `false` (nothing is actually disabled),
+  // matching how the rest of the codebase normalizes this setting.
+  const visualSelectionDisabled = dvs === true
+    || (typeof dvs === 'string' && dvs.length > 0)
+    || (Array.isArray(dvs) && dvs.length > 0);
 
-  if (!isLeftClick || sel.settings.selectionMode !== 'multiple') {
+  // The dedup-on-second-click behavior relies on visible selection feedback; without it,
+  // toggling invisible layers produces highlight jumps once any visible range repaints.
+  if (!isLeftClick || sel.settings.selectionMode !== 'multiple' || visualSelectionDisabled) {
     return;
   }
 
