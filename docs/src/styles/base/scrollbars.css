@@ -49,3 +49,7 @@
 *::-webkit-scrollbar-thumb:hover {
   background-color: var(--sl-color-gray-4);
 }
+
+.handsontable *::-webkit-scrollbar-thumb:hover {
+  background-color: revert;
+}
