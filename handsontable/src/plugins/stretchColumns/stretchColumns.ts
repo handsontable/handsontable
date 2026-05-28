@@ -100,7 +100,7 @@ export class StretchColumns extends BasePlugin {
    */
   #resizeObserver = new ResizeObserver((entries) => {
     requestAnimationFrame(() => {
-      if (!this.hot?.view.isHorizontallyScrollableByWindow()) {
+      if (!this.hot?.view?.isHorizontallyScrollableByWindow()) {
         return;
       }
 
