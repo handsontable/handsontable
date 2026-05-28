@@ -146,6 +146,10 @@ class CellRange {
    * @returns {boolean}
    */
   isSingleCell(): boolean {
+    if (this.from.row === null || this.from.col === null || this.to.row === null || this.to.col === null) {
+      return false;
+    }
+
     return this.#n(this.from.row) >= 0 && this.from.row === this.to.row &&
            this.#n(this.from.col) >= 0 && this.from.col === this.to.col;
   }
@@ -156,6 +160,10 @@ class CellRange {
    * @returns {boolean}
    */
   isSingleHeader(): boolean {
+    if (this.from.row === null || this.from.col === null || this.to.row === null || this.to.col === null) {
+      return false;
+    }
+
     return (this.#n(this.from.row) < 0 || this.#n(this.from.col) < 0) && this.from.row === this.to.row &&
            this.from.col === this.to.col;
   }
@@ -254,6 +262,11 @@ class CellRange {
    * @returns {boolean}
    */
   includes(cellCoords: CellCoords): boolean {
+    if (this.from.row === null || this.from.col === null || this.to.row === null || this.to.col === null ||
+        cellCoords.row === null || cellCoords.col === null) {
+      return false;
+    }
+
     const row = this.#n(cellCoords.row);
     const col = this.#n(cellCoords.col);
     const topStart = this.getOuterTopStartCorner();
@@ -905,6 +918,11 @@ class CellRange {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
     const out: CellCoords[] = [];
+
+    if (topStart.row === null || topStart.col === null || bottomEnd.row === null || bottomEnd.col === null) {
+      return out;
+    }
+
     const tsRow = this.#n(topStart.row);
     const tsCol = this.#n(topStart.col);
     const beRow = this.#n(bottomEnd.row);
@@ -937,6 +955,11 @@ class CellRange {
   forAll(callback: (row: number, column: number) => boolean | void): void {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
+
+    if (topStart.row === null || topStart.col === null || bottomEnd.row === null || bottomEnd.col === null) {
+      return;
+    }
+
     const tsRow = this.#n(topStart.row);
     const tsCol = this.#n(topStart.col);
     const beRow = this.#n(bottomEnd.row);

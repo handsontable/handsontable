@@ -780,7 +780,7 @@ class Overlays {
     this.#stickyScroll.tryActivate(this.verticalScrolling, this.horizontalScrolling);
 
     if (this.horizontalScrolling) {
-      if (topHolder instanceof HTMLElement) {
+      if (isHTMLElement(topHolder)) {
         topHolder.scrollLeft = scrollX;
       }
 
@@ -797,7 +797,7 @@ class Overlays {
       // Setting scrollTop to window.scrollY would be capped to the tiny
       // hider/holder size difference caused by fractional zoom rounding,
       // shifting the visible rows and misaligning them with the master table.
-      if (leftHolder instanceof HTMLElement) {
+      if (isHTMLElement(leftHolder)) {
         if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
           leftHolder.scrollTop = 0;
         } else {

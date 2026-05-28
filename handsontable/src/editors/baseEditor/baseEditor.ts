@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
+import { warn } from '../../helpers/console';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
@@ -256,6 +257,8 @@ export class BaseEditor {
     }
 
     if (this.row === null || this.col === null) {
+      warn('Editor opened without valid cell coordinates.');
+
       return;
     }
 
@@ -382,7 +385,11 @@ export class BaseEditor {
 
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
-      this.hot.selectCell(this.row ?? 0, this.col ?? 0);
+      if (this.row === null || this.col === null) {
+        return;
+      }
+
+      this.hot.selectCell(this.row, this.col);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);
