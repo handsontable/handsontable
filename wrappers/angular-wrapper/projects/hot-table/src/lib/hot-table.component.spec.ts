@@ -197,6 +197,28 @@ describe('HotTableComponent', () => {
       expect(editorRefMock.destroy).toHaveBeenCalled();
     });
 
+    it('should NOT destroy old editor refs when new settings do not include columns', () => {
+      const editorRefMock = { destroy: jest.fn() } as any;
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      };
+      fixture.detectChanges();
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          fixture.componentInstance.settings,
+          { ...settings, readOnly: true },
+          false
+        ),
+      };
+
+      fixture.componentInstance.ngOnChanges(changes);
+
+      expect(editorRefMock.destroy).not.toHaveBeenCalled();
+    });
+
     it('should not pass init-only settings to updateSettings after initialization', () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {

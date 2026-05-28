@@ -123,7 +123,10 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
 
-      if (Array.isArray(prevColumns)) {
+      // Only destroy old editor refs when new settings actually replace columns.
+      // If newOptions has no columns, HOT keeps the old column objects active — destroying
+      // their refs would crash FactoryEditorAdapter / BaseEditorAdapter on next edit.
+      if (Array.isArray(prevColumns) && Array.isArray(newOptions.columns)) {
         prevColumns.forEach((column) => {
           if (column._editorComponentReference) {
             column._editorComponentReference.destroy();
