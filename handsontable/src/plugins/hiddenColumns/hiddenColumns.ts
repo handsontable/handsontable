@@ -16,6 +16,8 @@ Hooks.getSingleton().register('afterUnhideColumns');
 export const PLUGIN_KEY = 'hiddenColumns';
 export const PLUGIN_PRIORITY = 310;
 
+const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -409,7 +411,12 @@ export class HiddenColumns extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      (meta as Record<string, unknown>).skipColumnOnPaste = false;
+      const cellMeta = meta as Record<string | symbol, unknown>;
+
+      if (cellMeta[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
+        delete cellMeta.skipColumnOnPaste;
+        delete cellMeta[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
+      }
     });
   }
 
@@ -444,9 +451,22 @@ export class HiddenColumns extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
-    if (this.getSetting('copyPasteEnabled') === false && this.isHidden(column)) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
-      cellProperties.skipColumnOnPaste = true;
+    if (this.getSetting('copyPasteEnabled') === false) {
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. The plugin only sets
+      // and marks cells whose `skipColumnOnPaste` it actually flips to `true`. Cells that already
+      // had `true` from user configuration (`columns`, `cells`, or `cell`) are left untouched,
+      // so that unhiding the column does not erase the user-defined value.
+      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+
+      if (this.isHidden(column)) {
+        if (cellProperties.skipColumnOnPaste !== true) {
+          cellProperties.skipColumnOnPaste = true;
+          cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN] = true;
+        }
+      } else if (cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
+        delete cellProperties.skipColumnOnPaste;
+        delete cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
+      }
     }
 
     if (this.isHidden(column - 1)) {
