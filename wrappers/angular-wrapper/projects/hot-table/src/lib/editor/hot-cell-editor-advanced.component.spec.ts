@@ -100,14 +100,18 @@ describe('HotCellEditorAdvancedComponent', () => {
   describe('@Output events', () => {
     it('should emit finishEdit', () => {
       let emitted = false;
-      component.finishEdit.subscribe(() => { emitted = true; });
+      component.finishEdit.subscribe(() => {
+        emitted = true;
+      });
       component.finishEdit.emit();
       expect(emitted).toBe(true);
     });
 
     it('should emit cancelEdit', () => {
       let emitted = false;
-      component.cancelEdit.subscribe(() => { emitted = true; });
+      component.cancelEdit.subscribe(() => {
+        emitted = true;
+      });
       component.cancelEdit.emit();
       expect(emitted).toBe(true);
     });

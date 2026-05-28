@@ -260,7 +260,9 @@ export class DynamicComponentService {
    * @param properties - Context object providing properties to be used within the template.
    * @returns The created EmbeddedViewRef so the caller can track and destroy it later.
    */
-  private attachTemplateToElement(template: TemplateRef<any>, tdEl: HTMLTableCellElement, properties: BaseRendererParametersObject): EmbeddedViewRef<any> {
+  private attachTemplateToElement(
+    template: TemplateRef<any>, tdEl: HTMLTableCellElement, properties: BaseRendererParametersObject
+  ): EmbeddedViewRef<any> {
     const embeddedView: EmbeddedViewRef<any> = template.createEmbeddedView({
       $implicit: properties.value,
       ...properties,

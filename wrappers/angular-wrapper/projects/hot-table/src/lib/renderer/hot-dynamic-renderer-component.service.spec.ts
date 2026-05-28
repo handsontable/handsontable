@@ -1,4 +1,7 @@
-import { ApplicationRef, Component, createComponent, CUSTOM_ELEMENTS_SCHEMA, EnvironmentInjector, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  ApplicationRef, Component, createComponent, CUSTOM_ELEMENTS_SCHEMA,
+  EnvironmentInjector, TemplateRef, ViewChild, ViewContainerRef
+} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import {
   DynamicComponentService,
