@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Made the published TypeScript definitions compatible with TypeScript 5.1+ (restores Angular 16 support).",
+  "title": "Made the published TypeScript definitions compatible with TypeScript 5.1+.",
   "type": "fixed",
   "issueOrPR": 12658,
   "breaking": false,
