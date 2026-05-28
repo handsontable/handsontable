@@ -25,6 +25,7 @@ interface TrimmingContainerCache {
   trimmingScrollWidth: number;
   trimmingScrollHeight: number;
   trimmingOverflow: string;
+  trimmingHeight: string;
   hiderOffsetHeight: number;
   hiderOffsetWidth: number;
   holderWidth: string;
@@ -139,6 +140,7 @@ class MasterTable extends Table {
       const trimmingScrollWidth = trimmingElement.scrollWidth;
       const trimmingScrollHeight = trimmingElement.scrollHeight;
       const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow) ?? '';
+      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow) ?? '';
       const hiderOffsetHeight = this.hider.offsetHeight;
       const hiderOffsetWidth = this.hider.offsetWidth;
       const cache = this.#trimmingCache;
@@ -148,6 +150,7 @@ class MasterTable extends Table {
         && cache.trimmingScrollWidth === trimmingScrollWidth
         && cache.trimmingScrollHeight === trimmingScrollHeight
         && cache.trimmingOverflow === trimmingOverflow
+        && cache.trimmingHeight === trimmingHeight
         && cache.hiderOffsetHeight === hiderOffsetHeight
         && cache.hiderOffsetWidth === hiderOffsetWidth;
 
@@ -168,7 +171,6 @@ class MasterTable extends Table {
         // the first draw, whenever the fingerprint no longer matches, and
         // whenever a ResizeObserver callback has nulled the cache.
         const trimmingElementParent = trimmingElement.parentElement;
-        const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
         const holderStyle = this.holder.style;
         let width = trimmingOffsetWidth;
         let height = trimmingOffsetHeight;
@@ -261,6 +263,7 @@ class MasterTable extends Table {
             trimmingScrollWidth,
             trimmingScrollHeight,
             trimmingOverflow,
+            trimmingHeight,
             hiderOffsetHeight,
             hiderOffsetWidth,
             holderWidth,
