@@ -20,51 +20,6 @@ interface TrimmingContainerCache {
   hasTableWidth: boolean;
 }
 
-// ---------------------------------------------------------------------------
-// Module-level WeakMaps for per-instance caching state.
-//
-// Module-level WeakMaps are used instead of `#` class private fields because
-// `Table`'s base-class constructor calls `alignOverlaysWithTrimmingContainer()`
-// at line 162 — before `MasterTable`'s class-field initializers have run.
-// `#` private fields are only added to their WeakMaps during the derived-class
-// constructor body (after `super()` returns), so accessing them during the
-// base-class constructor throws "Cannot read private member from an object
-// whose class did not declare it".  Module-level WeakMaps are initialised at
-// module-load time, so `WeakMap.get()` safely returns `undefined` on the
-// first call rather than throwing.
-// ---------------------------------------------------------------------------
-
-/**
- * Per-instance cache of the computed holder dimensions.
- * `undefined` (key absent) or `null` means a fresh measurement is needed.
- *
- * @type {WeakMap<MasterTable, TrimmingContainerCache | null>}
- */
-const trimmingCaches = new WeakMap<MasterTable, TrimmingContainerCache | null>();
-
-/**
- * Per-instance ResizeObserver watching the trimming container's own size.
- *
- * @type {WeakMap<MasterTable, ResizeObserver | null>}
- */
-const trimmingContainerObservers = new WeakMap<MasterTable, ResizeObserver | null>();
-
-/**
- * Per-instance ResizeObserver watching the hider element.
- * The hider changes size when the dataset grows or shrinks.
- *
- * @type {WeakMap<MasterTable, ResizeObserver | null>}
- */
-const hiderObservers = new WeakMap<MasterTable, ResizeObserver | null>();
-
-/**
- * The trimming element currently being observed per instance.
- * Used to detect element changes and re-establish observers.
- *
- * @type {WeakMap<MasterTable, HTMLElement | null>}
- */
-const observedTrimmingElements = new WeakMap<MasterTable, HTMLElement | null>();
-
 /**
  * Subclass of `Table` that provides the helper methods relevant to the master table (not overlays), implemented through mixins.
  *
@@ -72,6 +27,12 @@ const observedTrimmingElements = new WeakMap<MasterTable, HTMLElement | null>();
  * @mixes calculatedColumns
  */
 class MasterTable extends Table {
+  // `null` means a fresh measurement is needed.
+  #trimmingCache: TrimmingContainerCache | null = null;
+  #trimmingContainerObserver: ResizeObserver | null = null;
+  #hiderObserver: ResizeObserver | null = null;
+  #observedTrimmingElement: HTMLElement | null = null;
+
   /**
    * @param {TableDao} dataAccessObject The data access object.
    * @param {FacadeGetter} facadeGetter Function which return proper facade.
@@ -84,6 +45,13 @@ class MasterTable extends Table {
   }
 
   alignOverlaysWithTrimmingContainer() {
+    // The base-class constructor calls this method before MasterTable's field
+    // initializers have run. The brand check detects that case and exits early;
+    // the first draw() call (which always follows construction) runs the full path.
+    if (!(#trimmingCache in this)) {
+      return;
+    }
+
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
     const { rootWindow } = this.domBindings;
 
@@ -97,29 +65,25 @@ class MasterTable extends Table {
     } else {
       // (Re-)establish ResizeObservers when the trimming element changes.
       // This handles the rare case where the HOT container is moved in the DOM.
-      // WeakMap.get() returns `undefined` on the first call (before any entry is set)
-      // which is safe — treated the same as `null` (no element observed yet).
-      const currentObserved = observedTrimmingElements.get(this) ?? null;
+      if (this.#observedTrimmingElement !== trimmingElement) {
+        this.#trimmingContainerObserver?.disconnect();
+        this.#hiderObserver?.disconnect();
+        this.#trimmingCache = null;
+        this.#observedTrimmingElement = trimmingElement;
 
-      if (currentObserved !== trimmingElement) {
-        trimmingContainerObservers.get(this)?.disconnect();
-        hiderObservers.get(this)?.disconnect();
-        trimmingCaches.set(this, null);
-        observedTrimmingElements.set(this, trimmingElement);
-
-        const invalidate = () => trimmingCaches.set(this, null);
+        const invalidate = () => { this.#trimmingCache = null; };
         const tcObserver = new ResizeObserver(invalidate);
 
         tcObserver.observe(trimmingElement);
-        trimmingContainerObservers.set(this, tcObserver);
+        this.#trimmingContainerObserver = tcObserver;
 
         const hoObserver = new ResizeObserver(invalidate);
 
         hoObserver.observe(this.hider);
-        hiderObservers.set(this, hoObserver);
+        this.#hiderObserver = hoObserver;
       }
 
-      const cache = trimmingCaches.get(this) ?? null;
+      const cache = this.#trimmingCache;
 
       if (cache !== null) {
         // Fast path: apply cached measurements without any DOM reads that would
@@ -221,7 +185,7 @@ class MasterTable extends Table {
 
         // Store measurements in cache. They remain valid until a ResizeObserver fires
         // (container or hider size changed).
-        trimmingCaches.set(this, { holderWidth, holderHeight, hasTableHeight, hasTableWidth });
+        this.#trimmingCache = { holderWidth, holderHeight, hasTableHeight, hasTableWidth };
       }
     }
 
@@ -258,12 +222,12 @@ class MasterTable extends Table {
    * Cleans up ResizeObservers to prevent memory leaks when the Walkontable instance is destroyed.
    */
   destroy() {
-    trimmingContainerObservers.get(this)?.disconnect();
-    hiderObservers.get(this)?.disconnect();
-    trimmingCaches.delete(this);
-    trimmingContainerObservers.delete(this);
-    hiderObservers.delete(this);
-    observedTrimmingElements.delete(this);
+    this.#trimmingContainerObserver?.disconnect();
+    this.#hiderObserver?.disconnect();
+    this.#trimmingCache = null;
+    this.#trimmingContainerObserver = null;
+    this.#hiderObserver = null;
+    this.#observedTrimmingElement = null;
   }
 }
 
