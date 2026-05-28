@@ -66,6 +66,14 @@ export default class Walkontable extends CoreAbstract {
   }
 
   /**
+   * Destroy instance.
+   */
+  destroy() {
+    (this.wtTable as MasterTable).destroy();
+    super.destroy();
+  }
+
+  /**
    * Gets the overlay instance by its name.
    *
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
