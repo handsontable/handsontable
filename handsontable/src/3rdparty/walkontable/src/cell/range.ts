@@ -294,6 +294,12 @@ class CellRange {
    * @returns {boolean}
    */
   isEqual(cellRange: CellRange): boolean {
+    if (this.from.row === null || this.from.col === null || this.to.row === null || this.to.col === null ||
+        cellRange.from.row === null || cellRange.from.col === null ||
+        cellRange.to.row === null || cellRange.to.col === null) {
+      return false;
+    }
+
     const fromRowMin = Math.min(this.#n(this.from.row), this.#n(this.to.row));
     const fromRowMax = Math.max(this.#n(this.from.row), this.#n(this.to.row));
     const fromColMin = Math.min(this.#n(this.from.col), this.#n(this.to.col));
