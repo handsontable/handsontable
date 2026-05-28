@@ -433,17 +433,9 @@ export class DropdownMenu extends BasePlugin {
   /**
    * Opens the menu and positions it based on the passed coordinates.
    *
-   * The `position` argument accepts either:
-   * - An object with `top` and `left` properties (coordinates relative to the browser viewport,
-   *   without scroll offsets).
-   * - A native browser `Event` (e.g., a `MouseEvent`). The menu reads `pageX` and `pageY`
-   *   from the event to determine its position.
-   *
-   * Passing a plain object with `pageX`/`pageY` properties (not a real `Event` instance) is
-   * **not supported** and results in incorrect positioning. Use `{ top, left }` instead.
-   *
-   * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties,
-   * or a native browser `Event` instance.
+   * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties
+   * (coordinates relative to the browser viewport, without scroll offsets), or a native browser
+   * `Event` instance (e.g., a `MouseEvent`).
    * @param {{ above: number, below: number, left: number, right: number }} offset An object that applies
    * an offset to the menu position.
    * @fires Hooks#beforeDropdownMenuShow

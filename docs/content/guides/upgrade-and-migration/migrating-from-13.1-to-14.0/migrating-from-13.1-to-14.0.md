@@ -58,18 +58,22 @@ To make the table more accessible, this release changes the color of the invalid
 | Autocomplete-typed cells arrow: `#eeeeee`  | Autocomplete-typed cells arrow: `#bbbbbb`   |
 | Invalid autocomplete-typed cells arrow: `#eeeeee`  | Invalid autocomplete-typed cells arrow: `#555555`   |
 | Invalid autocomplete-typed cells arrow on hover: `#777777`   | Invalid autocomplete-typed cells arrow on hover: `#1a1a1a`    |
+
 ### Update `ContextMenu.open()` and `DropdownMenu.open()` calls
 
-Handsontable 14.0 refactors the internal positioning logic for context menus and dropdown menus. The `open()` method now uses `instanceof Event` to distinguish between a native browser event and a literal position object.
+Handsontable 14.0 changes the accepted `position` argument for `ContextMenu.open()` and `DropdownMenu.open()`. When you open the menu programmatically with a literal position, use an object with `top` and `left` properties. Passing a native browser `Event` instance still works the same as before.
 
-If you pass a native `Event` (e.g., a `MouseEvent` from a `contextmenu` listener), the menu reads `pageX` and `pageY` from it automatically. This works the same as before.
+```javascript
+const menu = hot.getPlugin('contextMenu');
 
-If you pass a plain object, it **must** use `{ top, left }` properties -- not `{ pageX, pageY }`. In versions prior to 14.0, passing `{ pageX, pageY }` as a plain object worked because the internal code translated those properties. Starting with 14.0, a plain object with `pageX`/`pageY` falls through to the literal positioning path, which reads `top`/`left` and results in `NaN` coordinates.
+// Literal position -- use { top, left }:
+menu.open({ top: 300, left: 200 });
 
-| Before (13.x and earlier) | After (14.0+) |
-| --- | --- |
-| `menu.open({ pageX: 200, pageY: 300 })` | `menu.open({ left: 200, top: 300 })` |
-| `menu.open(event)` (native `Event`) | `menu.open(event)` (unchanged) |
+// Native event -- works unchanged:
+element.addEventListener('contextmenu', (event) => {
+  menu.open(event);
+});
+```
 
 ## Result
 
