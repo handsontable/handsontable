@@ -893,6 +893,11 @@ class CellRange {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
     const out: CellCoords[] = [];
+
+    if (topStart.row === null || topStart.col === null || bottomEnd.row === null || bottomEnd.col === null) {
+      return out;
+    }
+
     const tsRow = this.#n(topStart.row);
     const tsCol = this.#n(topStart.col);
     const beRow = this.#n(bottomEnd.row);
