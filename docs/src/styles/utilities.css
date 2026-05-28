@@ -52,11 +52,13 @@ html {
 
 /* ── Global checkbox styling ─────────────────────────────────────────── */
 
-/* Use :not(.htCheckboxRendererInput) — an O(1) self-class check — instead of
- * :not(.handsontable input) which forces an O(depth) ancestor walk for every
- * HOT checkbox cell rendered during scroll. */
+/* .sl-markdown-content is the prose area — no HOT instance lives there, so
+ * an O(1) class check is safe. .hot-example contains the HOT instance itself,
+ * so we must exclude all HOT-internal inputs with :not(.handsontable input)
+ * to avoid overriding the multiSelectEditor's own checkbox appearance. The
+ * cost is low because the subject is a scoped input selector, not * . */
 .sl-markdown-content input[type="checkbox"]:not(.htCheckboxRendererInput),
-.hot-example input[type="checkbox"]:not(.htCheckboxRendererInput) {
+.hot-example input[type="checkbox"]:not(.handsontable input) {
   appearance: none;
   width: 1rem;
   height: 1rem;
@@ -70,13 +72,13 @@ html {
 }
 
 .sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput),
-.hot-example input[type="checkbox"]:checked:not(.htCheckboxRendererInput) {
+.hot-example input[type="checkbox"]:checked:not(.handsontable input) {
   background: var(--sl-color-accent);
   border-color: var(--sl-color-accent);
 }
 
 .sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after,
-.hot-example input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after {
+.hot-example input[type="checkbox"]:checked:not(.handsontable input)::after {
   content: '';
   position: absolute;
   left: 4px;
