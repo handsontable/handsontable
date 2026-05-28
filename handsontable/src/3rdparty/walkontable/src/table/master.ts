@@ -111,7 +111,9 @@ class MasterTable extends Table {
         this.#trimmingCache = null;
         this.#observedTrimmingElement = trimmingElement;
 
-        const invalidate = () => { this.#trimmingCache = null; };
+        const invalidate = () => {
+          this.#trimmingCache = null;
+        };
         const tcObserver = new ResizeObserver(invalidate);
 
         tcObserver.observe(trimmingElement);
