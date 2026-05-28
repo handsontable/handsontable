@@ -544,9 +544,14 @@ const frameworks = [
     };
   }
 
-  // Run on initial load and after Astro view transitions
+  // Run on initial load and after Astro view transitions.
+  // Use astro:page-load (not astro:after-swap) for view transitions so that
+  // Preact islands are fully hydrated before initMobileNav() moves DOM nodes
+  // out of their server-rendered positions via document.body.appendChild().
+  // Moving nodes on astro:after-swap races with Preact hydration and causes
+  // "NotFoundError: insertBefore" failures (Sentry HANDSONTABLE-DOCS-1BT).
   initMobileNav();
-  document.addEventListener('astro:after-swap', initMobileNav);
+  document.addEventListener('astro:page-load', initMobileNav);
 </script>
 
 <style>
