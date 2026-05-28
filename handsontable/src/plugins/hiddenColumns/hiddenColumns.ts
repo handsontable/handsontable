@@ -16,6 +16,8 @@ Hooks.getSingleton().register('afterUnhideColumns');
 export const PLUGIN_KEY = 'hiddenColumns';
 export const PLUGIN_PRIORITY = 310;
 
+const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -409,7 +411,12 @@ export class HiddenColumns extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      (meta as Record<string, unknown>).skipColumnOnPaste = false;
+      const cellMeta = meta as Record<string | symbol, unknown>;
+
+      if (cellMeta[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
+        delete cellMeta.skipColumnOnPaste;
+        delete cellMeta[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
+      }
     });
   }
 
@@ -445,9 +452,18 @@ export class HiddenColumns extends BasePlugin {
    */
   #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
     if (this.getSetting('copyPasteEnabled') === false) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. Assigned on every
-      // `afterGetCellMeta` call so the flag clears itself once a previously hidden column is shown again.
-      cellProperties.skipColumnOnPaste = this.isHidden(column);
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. Marked with a Symbol so
+      // the flag clears itself once a previously hidden column is shown again, without overwriting
+      // `skipColumnOnPaste` values set by the user via `columns`, `cells`, or `cell` configuration.
+      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+
+      if (this.isHidden(column)) {
+        cellProperties.skipColumnOnPaste = true;
+        cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN] = true;
+      } else if (cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
+        delete cellProperties.skipColumnOnPaste;
+        delete cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
+      }
     }
 
     if (this.isHidden(column - 1)) {

@@ -16,6 +16,8 @@ Hooks.getSingleton().register('afterUnhideRows');
 export const PLUGIN_KEY = 'hiddenRows';
 export const PLUGIN_PRIORITY = 320;
 
+const SKIP_ROW_ON_PASTE_BY_PLUGIN = Symbol('skipRowOnPasteByHiddenRows');
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -404,7 +406,12 @@ export class HiddenRows extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      (meta as Record<string, unknown>).skipRowOnPaste = false;
+      const cellMeta = meta as Record<string | symbol, unknown>;
+
+      if (cellMeta[SKIP_ROW_ON_PASTE_BY_PLUGIN]) {
+        delete cellMeta.skipRowOnPaste;
+        delete cellMeta[SKIP_ROW_ON_PASTE_BY_PLUGIN];
+      }
     });
   }
 
@@ -434,9 +441,18 @@ export class HiddenRows extends BasePlugin {
    */
   #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
     if (this.getSetting('copyPasteEnabled') === false) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. Assigned on every
-      // `afterGetCellMeta` call so the flag clears itself once a previously hidden row is shown again.
-      cellProperties.skipRowOnPaste = this.isHidden(row);
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. Marked with a Symbol so
+      // the flag clears itself once a previously hidden row is shown again, without overwriting
+      // `skipRowOnPaste` values set by the user via `cells`, or `cell` configuration.
+      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+
+      if (this.isHidden(row)) {
+        cellProperties.skipRowOnPaste = true;
+        cellPropsWithMarker[SKIP_ROW_ON_PASTE_BY_PLUGIN] = true;
+      } else if (cellPropsWithMarker[SKIP_ROW_ON_PASTE_BY_PLUGIN]) {
+        delete cellProperties.skipRowOnPaste;
+        delete cellPropsWithMarker[SKIP_ROW_ON_PASTE_BY_PLUGIN];
+      }
     }
 
     if (this.isHidden(row - 1)) {

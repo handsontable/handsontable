@@ -273,6 +273,32 @@ describe('HiddenRows', () => {
       expect(getCellMeta(2, 0).skipRowOnPaste).toBe(false);
     });
 
+    it('should not overwrite the user-defined `skipRowOnPaste: true` on a non-hidden row, when ' +
+      '"copyPasteEnabled" property is set to false', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+        hiddenRows: {
+          copyPasteEnabled: false,
+          rows: [2],
+        },
+        cells(row) {
+          if (row === 3) {
+            return { skipRowOnPaste: true };
+          }
+        },
+      });
+
+      expect(getCellMeta(3, 0).skipRowOnPaste).toBe(true);
+      expect(getCellMeta(0, 0).skipRowOnPaste).toBe(false);
+      expect(getCellMeta(2, 0).skipRowOnPaste).toBe(true);
+
+      getPlugin('hiddenRows').showRows([2]);
+      await render();
+
+      expect(getCellMeta(3, 0).skipRowOnPaste).toBe(true);
+      expect(getCellMeta(2, 0).skipRowOnPaste).toBe(false);
+    });
+
     it('should paste data into a row that was hidden and then shown again, when ' +
       '"copyPasteEnabled" property is set to false', async() => {
       handsontable({
