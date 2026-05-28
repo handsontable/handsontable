@@ -564,6 +564,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var jsxFile = findFile(userFiles, '.jsx') || findFile(userFiles, '.tsx') || 'App.jsx';
     var jsxCode = userFiles[jsxFile] || '';
     var cssFile = findFile(userFiles, '.css');
+    // When the JSX already imports the CSS by filename (e.g. `import './example1.css'`)
+    // we keep the original name so the import resolves. Otherwise we normalise to styles.css.
+    var cssImportedByName = cssFile && new RegExp('import\\s+[\'"]\\./?' + cssFile.replace('.', '\\.') + '[\'"]').test(jsxCode);
+    var cssDestName = cssImportedByName ? cssFile : 'styles.css';
 
     var deps = Object.assign(
       {
@@ -595,7 +599,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var index = [
       'import React from "react";',
       'import { createRoot } from "react-dom/client";',
-      cssFile ? 'import "./styles.css";' : null,
+      (cssFile && !cssImportedByName) ? 'import "./' + cssDestName + '";' : null,
       'import App from "./App";',
       '',
       'const root = createRoot(document.getElementById("' + exampleId + '"));',
@@ -635,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     if (cssFile) {
-      projectFiles['src/styles.css'] = userFiles[cssFile];
+      projectFiles['src/' + cssDestName] = userFiles[cssFile];
     }
 
     return projectFiles;
