@@ -921,7 +921,10 @@ document.addEventListener('DOMContentLoaded', function () {
         '  .catch(err => console.error(err));',
       ].join('\n');
     } else {
-      var classMatch = componentCode.match(/export\s+class\s+(\w+)/);
+      // Prefer AppComponent (the bootstrappable root) over any helper classes
+      // that appear earlier in the file (editors, renderers, etc.).
+      var classMatch = componentCode.match(/export\s+class\s+(AppComponent\b)/) ||
+                       componentCode.match(/export\s+class\s+(\w+)/);
       var className  = classMatch ? classMatch[1] : 'AppComponent';
 
       if (configCode) {
