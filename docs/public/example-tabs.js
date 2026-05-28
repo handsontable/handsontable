@@ -759,6 +759,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
     var tsFile = findFile(userFiles, '.ts') || 'app.component.ts';
     var tsCode = userFiles[tsFile] || '';
+    var cssFile = findFile(userFiles, '.css');
 
     // Split the combined example file into component / module / config sections.
     var parsed        = parseAngularSourceFiles(tsCode);
@@ -831,7 +832,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 polyfills: ['zone.js'],
                 tsConfig: 'tsconfig.json',
                 assets: [],
-                styles: [],
+                styles: cssFile ? ['src/styles.css'] : [],
                 scripts: [],
               },
               configurations: {
@@ -956,6 +957,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (configCode) {
       files['src/app/app.config.ts'] = configCode;
+    }
+
+    if (cssFile) {
+      files['src/styles.css'] = userFiles[cssFile];
     }
 
     return files;
