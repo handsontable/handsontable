@@ -78,7 +78,11 @@ export class DirectDomRendererAdapter {
     const isSharedPlacedOnTop = (isShared && sizeSet.isPlaceOn(WORKING_SPACE_TOP));
 
     while (childElementCount > nextSize) {
-      rootNode.removeChild(isSharedPlacedOnTop ? rootNode.firstChild : rootNode.lastChild);
+      const childToRemove = isSharedPlacedOnTop ? rootNode.firstChild : rootNode.lastChild;
+
+      if (childToRemove) {
+        rootNode.removeChild(childToRemove);
+      }
       childElementCount -= 1;
     }
   }
@@ -91,7 +95,7 @@ export class DirectDomRendererAdapter {
     const { rootNode, sizeSet } = this.orderView;
     let visualIndex = this.visualIndex;
 
-    if (this.orderView.isSharedViewSet() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM)) {
+    if (this.orderView.isSharedViewSet() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM) && sizeSet.sharedSize) {
       visualIndex += sizeSet.sharedSize.nextSize;
     }
 

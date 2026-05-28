@@ -138,7 +138,7 @@ function detectExplicitBackgroundColor(doc: Document, metaClasses: string[], vie
   }
 
   if (docCache.has(cacheKey)) {
-    return docCache.get(cacheKey);
+    return docCache.get(cacheKey) ?? null;
   }
 
   // Off-screen probe with Handsontable CSS context so scoped rules (e.g.
@@ -211,7 +211,7 @@ function getCssStyleFromProbe(doc: Document, view: Window, metaClasses: string[]
   }
 
   if (docCache.has(cacheKey)) {
-    return docCache.get(cacheKey);
+    return docCache.get(cacheKey)!;
   }
 
   const probe = doc.createElement('div');

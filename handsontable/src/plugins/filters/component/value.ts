@@ -30,7 +30,7 @@ interface FilteredRow {
   [key: string]: unknown;
 }
 
-interface StateInfo {
+export interface StateInfo {
   editedConditionStack: ConditionStack;
   dependentConditionStacks: ConditionStack[];
   conditionArgsChange: unknown;
@@ -85,7 +85,7 @@ export class ValueComponent extends BaseComponent {
      * @type {function(): boolean | undefined}
      */
     this.hiddenWhen = options.hiddenWhen;
-    this.elements.push(new MultipleSelectUI(this.hot, {
+    this.elements.push(new MultipleSelectUI(hotInstance, {
       searchMode: this.searchMode
     }));
 
@@ -102,9 +102,8 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event))
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
-    this.hot
-      .addHook('modifyFiltersMultiSelectValue',
-        (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
+    this.hot?.addHook('modifyFiltersMultiSelectValue',
+      (value: string, meta: Record<string, unknown>) => this.#onModifyDisplayedValue(value, meta));
   }
 
   /**
@@ -174,14 +173,14 @@ export class ValueComponent extends BaseComponent {
       const [firstByValueCondition] = arrayFilter(conditions,
         condition => condition.name === CONDITION_BY_VALUE);
       const state: Record<string, unknown> = {};
-      const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
+      const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
 
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
         const rowValues = arrayMap(filteredRows, row => row.value);
         const rowMetaMap = new Map(
           filteredRows.map((row: FilteredRow) =>
-            [row.value, this.hot.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
+            [row.value, this.hot?.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
         );
         const columnMeta = filteredRows[0]?.meta;
         const comparator = getSortComparatorForMeta(columnMeta);
@@ -207,7 +206,7 @@ export class ValueComponent extends BaseComponent {
 
         const column = stateInfo.editedConditionStack.column;
 
-        state.locale = this.hot.getCellMeta(0, column).locale;
+        state.locale = this.hot?.getCellMeta(0, column).locale;
         state.args = [selectedValues];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
@@ -217,7 +216,7 @@ export class ValueComponent extends BaseComponent {
         state.command = getConditionDescriptor(CONDITION_NONE);
       }
 
-      this.state.setValueAtIndex(physicalColumn, state);
+      this.state?.setValueAtIndex(physicalColumn, state);
     };
 
     updateColumnState(
@@ -270,7 +269,7 @@ export class ValueComponent extends BaseComponent {
           addClass(wrapper.parentNode, 'htFiltersMenuValue');
         }
 
-        const label = this.hot.rootDocument.createElement('div');
+        const label = this.hot?.rootDocument.createElement('div') ?? wrapper.ownerDocument.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
         label.textContent = value;
@@ -279,8 +278,14 @@ export class ValueComponent extends BaseComponent {
 
         // The MultipleSelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
-        if (!wrapper.parentElement.hasAttribute('ghost-table')) {
-          arrayEach(this.elements, ui => wrapper.appendChild(ui.element));
+        if (!wrapper.parentElement?.hasAttribute('ghost-table')) {
+          arrayEach(this.elements, (ui) => {
+            const el = ui.element;
+
+            if (el) {
+              wrapper.appendChild(el);
+            }
+          });
         }
 
         return wrapper;
@@ -292,7 +297,7 @@ export class ValueComponent extends BaseComponent {
    * Reset elements to their initial state.
    */
   reset() {
-    const defaultBlankCellValue = this.hot.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS);
+    const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
     const rowEntries = this._getColumnVisibleValues();
     const rowValues = rowEntries.map(entry => entry.value);
     const rowMetaMap = new Map(rowEntries.map(row => [row.value, row.meta]));
@@ -307,10 +312,10 @@ export class ValueComponent extends BaseComponent {
     super.reset();
     this.getMultipleSelectElement().setValue(values);
 
-    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
 
     if (selectedColumn !== null) {
-      this.getMultipleSelectElement().setLocale(this.hot.getCellMeta(0, selectedColumn.visualIndex).locale as string);
+      this.getMultipleSelectElement().setLocale(this.hot?.getCellMeta(0, selectedColumn.visualIndex).locale as string);
     }
   }
 
@@ -341,9 +346,9 @@ export class ValueComponent extends BaseComponent {
    * @param {Map} metaMap Map of row meta objects.
    */
   #triggerModifyMultipleSelectionValueHook(item: Record<string, unknown>, metaMap: Map<unknown, unknown>) {
-    if (this.hot.hasHook('modifyFiltersMultiSelectValue')) {
+    if (this.hot?.hasHook('modifyFiltersMultiSelectValue')) {
       item.visualValue =
-        this.hot.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
+        this.hot?.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
     }
   }
 
@@ -369,16 +374,16 @@ export class ValueComponent extends BaseComponent {
    * @private
    */
   _getColumnVisibleValues(): Array<{ value: string; meta: Record<string, unknown> }> {
-    const selectedColumn = this.hot.getPlugin('filters').getSelectedColumn();
+    const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
 
     if (selectedColumn === null) {
       return [];
     }
 
-    return arrayMap(this.hot.getDataAtCol(selectedColumn.visualIndex), (v, rowIndex) => {
+    return arrayMap(this.hot?.getDataAtCol(selectedColumn.visualIndex) ?? [], (v, rowIndex) => {
       return {
         value: toEmptyString(v) as string,
-        meta: this.hot.getCellMeta(rowIndex, selectedColumn.visualIndex),
+        meta: this.hot?.getCellMeta(rowIndex, selectedColumn.visualIndex) ?? {},
       };
     });
   }

@@ -237,8 +237,10 @@ export class CollapsibleColumns extends BasePlugin {
       warn('You need to configure the Nested Headers plugin in order to use collapsible headers.');
     }
 
-    this.#collapsedColumnsMap = this.hot.columnIndexMapper
-      .createAndRegisterIndexMap(this.pluginName, 'hiding') as HidingMap;
+    if (this.pluginName) {
+      this.#collapsedColumnsMap = this.hot.columnIndexMapper
+        .createAndRegisterIndexMap(this.pluginName, 'hiding') as HidingMap;
+    }
     this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders') as unknown as NestedHeadersPlugin;
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
@@ -266,22 +268,22 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    if (!this.nestedHeadersPlugin.detectedOverlappedHeaders) {
+    if (!this.nestedHeadersPlugin?.detectedOverlappedHeaders) {
       const { collapsibleColumns } = this.hot.getSettings();
 
       if (typeof collapsibleColumns === 'boolean') {
         // Add `collapsible: true` attribute to all headers with colspan higher than 1.
-        this.headerStateManager.mapState((headerSettings: Record<string, unknown>) => {
+        this.headerStateManager?.mapState((headerSettings: Record<string, unknown>) => {
           return { collapsible: Number(headerSettings.origColspan) > 1 };
         });
 
       } else if (Array.isArray(collapsibleColumns)) {
 
-        this.headerStateManager.mapState(() => {
+        this.headerStateManager?.mapState(() => {
           return { collapsible: false };
         });
 
-        this.headerStateManager.mergeStateWith(collapsibleColumns);
+        this.headerStateManager?.mergeStateWith(collapsibleColumns);
       }
     }
 
@@ -292,7 +294,9 @@ export class CollapsibleColumns extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    if (this.pluginName) {
+      this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    }
     this.#collapsedColumnsMap = null;
     this.nestedHeadersPlugin = null;
 
@@ -309,11 +313,22 @@ export class CollapsibleColumns extends BasePlugin {
   registerShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { row, col } = this.hot.getSelectedRangeActive().highlight;
-          const nodeData = this.headerStateManager.getHeaderTreeNodeData(row, col) ?? {
+          const activeRange = this.hot.getSelectedRangeActive();
+
+          if (!activeRange) {
+            return;
+          }
+
+          const { row, col } = activeRange.highlight;
+
+          if (row === null || col === null) {
+            return;
+          }
+
+          const nodeData = this.headerStateManager?.getHeaderTreeNodeData(row, col) ?? {
             collapsible: false, isCollapsed: false, columnIndex: 0, headerLevel: 0
           };
           const { collapsible, isCollapsed, columnIndex } = nodeData;
@@ -331,8 +346,8 @@ export class CollapsibleColumns extends BasePlugin {
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
         },
-        runOnlyIf: () => this.hot.getSelectedRangeActive()?.isSingle() &&
-          this.hot.getSelectedRangeActive()?.highlight.isHeader(),
+        runOnlyIf: (): boolean => !!(this.hot.getSelectedRangeActive()?.isSingle() &&
+          this.hot.getSelectedRangeActive()?.highlight.isHeader()),
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
@@ -347,7 +362,7 @@ export class CollapsibleColumns extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -362,15 +377,20 @@ export class CollapsibleColumns extends BasePlugin {
 
     const headerLevels = (this.hot.view._wt.getSetting('columnHeaders') as unknown[]).length;
     const mainHeaders = this.hot.view._wt.wtTable.THEAD;
-    const topHeaders = this.hot.view._wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay ?
-      this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
+    const topHeaders = this.hot.view._wt.wtOverlays.topOverlay?.clone?.wtTable.THEAD ?? null;
+    const topLeftCornerHeaders = this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay
+      ? this.hot.view._wt.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.THEAD ?? null
+      : null;
 
     const removeButton = function(button: HTMLElement | null) {
-      if (button) {
+      if (button && button.parentNode) {
         button.parentNode.removeChild(button);
       }
     };
+
+    if (!mainHeaders || !topHeaders) {
+      return;
+    }
 
     rangeEach(0, headerLevels - 1, (i: number) => {
       const masterLevel = mainHeaders.childNodes[i];
@@ -422,7 +442,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {string} action 'collapse' or 'expand'.
    */
   toggleAllCollapsibleSections(action: 'collapse' | 'expand'): void {
-    const coords = this.headerStateManager.mapNodes((headerSettings: Record<string, unknown>) => {
+    const coords = this.headerStateManager?.mapNodes((headerSettings: Record<string, unknown>) => {
       const {
         collapsible,
         origColspan,
@@ -434,7 +454,7 @@ export class CollapsibleColumns extends BasePlugin {
       if (collapsible === true && Number(origColspan) > 1
           && (isCollapsed && action === 'expand' || !isCollapsed && action === 'collapse')) {
         return {
-          row: this.headerStateManager.levelToRowCoords(headerLevel),
+          row: this.headerStateManager?.levelToRowCoords(headerLevel) ?? 0,
           col: columnIndex,
         };
       }
@@ -468,7 +488,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @fires Hooks#afterColumnExpand
    */
   toggleCollapsibleSection(coords: { row: number, col: number }[], action?: 'collapse' | 'expand'): void {
-    if (!actionDictionary.has(action)) {
+    if (action === undefined || !actionDictionary.has(action)) {
       throwWithCause(`Unsupported action is passed (${action}).`);
     }
     if (!Array.isArray(coords)) {
@@ -480,7 +500,7 @@ export class CollapsibleColumns extends BasePlugin {
     let isActionPossible = filteredCoords.length > 0;
 
     arrayEach(filteredCoords, ({ row, col: column }) => {
-      const { collapsible, isCollapsed } = this.headerStateManager.getHeaderSettings(row, column)
+      const { collapsible, isCollapsed } = this.headerStateManager?.getHeaderSettings(row, column)
         ?? {} as Record<string, unknown>;
 
       if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
@@ -499,7 +519,9 @@ export class CollapsibleColumns extends BasePlugin {
           colspanCompensation,
           affectedColumns,
           rollbackModification,
-        } = this.headerStateManager.triggerNodeModification(action, row, column);
+        } = this.headerStateManager?.triggerNodeModification(action, row, column) ?? {
+          colspanCompensation: 0, affectedColumns: [], rollbackModification: () => {}
+        };
 
         if (colspanCompensation > 0) {
           affectedColumnsIndexes.push(...affectedColumns);
@@ -519,7 +541,7 @@ export class CollapsibleColumns extends BasePlugin {
         index => !affectedColumnsIndexes.includes(index));
     }
 
-    const actionTranslator = actionDictionary.get(action);
+    const actionTranslator = actionDictionary.get(action)!;
     const isActionAllowed = this.hot.runHooks(
       actionTranslator.beforeHook,
       currentCollapsedColumns,
@@ -539,7 +561,7 @@ export class CollapsibleColumns extends BasePlugin {
     this.hot.batchExecution(() => {
       arrayEach(affectedColumnsIndexes, (visualColumn) => {
         this.#collapsedColumnsMap
-          .setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
+          ?.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), actionTranslator.hideColumn);
       });
     }, true);
 
@@ -548,14 +570,17 @@ export class CollapsibleColumns extends BasePlugin {
 
     if (action === 'collapse' && isActionPerformed && selectionRange) {
       const { row, col } = selectionRange.highlight;
-      const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
 
-      if (isHidden && affectedColumnsIndexes.includes(col)) {
-        const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
-        const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
+      if (row !== null && col !== null) {
+        const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
 
-        if (nextRow !== null && nextColumn !== null) {
-          this.hot.selectCell(nextRow, nextColumn);
+        if (isHidden && affectedColumnsIndexes.includes(col)) {
+          const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
+          const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
+
+          if (nextRow !== null && nextColumn !== null) {
+            this.hot.selectCell(nextRow, nextColumn);
+          }
         }
       }
     }
@@ -579,7 +604,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @returns {number[]}
    */
   getCollapsedColumns(): number[] {
-    return this.#collapsedColumnsMap.getHiddenIndexes();
+    return this.#collapsedColumnsMap?.getHiddenIndexes() ?? [];
   }
 
   /**
@@ -590,12 +615,12 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {number} headerLevel The index of header level counting from the top (positive
    *                             values counting from 0 to N).
    */
-  #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement, headerLevel: number) => {
-    const headerSettings = this.headerStateManager.getHeaderSettings(headerLevel, column);
+  #onAfterGetColHeader = (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => {
+    const headerSettings = this.headerStateManager?.getHeaderSettings(headerLevel, column);
     const { collapsible, origColspan, isCollapsed } = headerSettings ?? {};
     const isNodeCollapsible = collapsible === true &&
       (origColspan ?? 0) > 1 &&
-      column >= this.hot.getSettings().fixedColumnsStart;
+      column >= (this.hot.getSettings().fixedColumnsStart ?? 0);
     const isAriaTagsEnabled = this.hot.getSettings().ariaTags;
     let collapsibleElement = TH.querySelector<HTMLElement>(`.${COLLAPSIBLE_ELEMENT_CLASS}`);
 
@@ -608,7 +633,7 @@ export class CollapsibleColumns extends BasePlugin {
         collapsibleElement = this.hot.rootDocument.createElement('div');
 
         addClass(collapsibleElement, COLLAPSIBLE_ELEMENT_CLASS);
-        TH.querySelector('div:first-child').appendChild(collapsibleElement);
+        TH.querySelector('div:first-child')?.appendChild(collapsibleElement);
       }
 
       const el = collapsibleElement;
@@ -651,7 +676,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {object} event Mouse event.
    * @param {object} coords Event coordinates.
    */
-  #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number, col: number }) => {
+  #onBeforeOnCellMouseDown = (event: MouseEvent, coords: { row: number; col: number }) => {
     const target = eventTargetEl(event)!;
 
     if (hasClass(target, COLLAPSIBLE_ELEMENT_CLASS)) {
@@ -683,7 +708,7 @@ export class CollapsibleColumns extends BasePlugin {
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded
    *                              during the initialization.
    */
-  #onAfterLoadData = (sourceData: unknown[][][], initialLoad: boolean) => {
+  #onAfterLoadData = (_sourceData: unknown[], initialLoad: boolean) => {
     if (!initialLoad) {
       this.updatePlugin();
     }

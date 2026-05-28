@@ -219,8 +219,8 @@ export class NotificationUI {
 
     if (animation) {
       /* Double rAF: first frame paints opacity/transform start; second adds --visible so transition runs. */
-      win.requestAnimationFrame(() => {
-        win.requestAnimationFrame(() => {
+      win!.requestAnimationFrame(() => {
+        win!.requestAnimationFrame(() => {
           element.classList.add(`${NOTIFICATION_CLASS_NAME}__toast--visible`);
         });
       });

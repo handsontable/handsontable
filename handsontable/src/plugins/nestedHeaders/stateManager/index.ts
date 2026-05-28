@@ -125,7 +125,7 @@ export default class StateManager {
    */
   triggerNodeModification(action: string, headerLevel: number, columnIndex: number) {
     if (headerLevel < 0) {
-      headerLevel = this.rowCoordsToLevel(headerLevel);
+      headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
 
     const nodeToProcess = this.#headersTree.getNode(headerLevel, columnIndex);
@@ -210,7 +210,7 @@ export default class StateManager {
    */
   getHeaderSettings(headerLevel: number, columnIndex: number) {
     if (headerLevel < 0) {
-      headerLevel = this.rowCoordsToLevel(headerLevel);
+      headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
 
     if (headerLevel === null || headerLevel >= this.getLayersCount()) {
@@ -247,15 +247,17 @@ export default class StateManager {
    * @returns {TreeNode|null}
    */
   getHeaderTreeNode(headerLevel: number, columnIndex: number): TreeNode | null {
+    let resolvedLevel: number | null = headerLevel;
+
     if (headerLevel < 0) {
-      headerLevel = this.rowCoordsToLevel(headerLevel);
+      resolvedLevel = this.rowCoordsToLevel(headerLevel);
     }
 
-    if (headerLevel === null || headerLevel >= this.getLayersCount()) {
+    if (resolvedLevel === null || resolvedLevel >= this.getLayersCount()) {
       return null;
     }
 
-    const node = this.#headersTree.getNode(headerLevel, columnIndex);
+    const node = this.#headersTree.getNode(resolvedLevel, columnIndex);
 
     if (!node) {
       return null;

@@ -38,16 +38,16 @@ class Renderer {
      *
      * @type {TableRenderer}
      */
-    this.renderer = new TableRenderer(TABLE, { cellRenderer, stylesHandler });
+    this.renderer = new TableRenderer(TABLE!, { cellRenderer, stylesHandler });
     this.renderer.setRenderers({
       rowHeaders: new RowHeadersRenderer(),
-      columnHeaderRows: new ColumnHeaderRowsRenderer(THEAD),
+      columnHeaderRows: new ColumnHeaderRowsRenderer(THEAD!),
       columnHeaders: new ColumnHeadersRenderer(),
-      colGroup: new ColGroupRenderer(COLGROUP),
-      rows: new RowsRenderer(TBODY),
+      colGroup: new ColGroupRenderer(COLGROUP!),
+      rows: new RowsRenderer(TBODY!),
       cells: new CellsRenderer(),
     });
-    this.renderer.setAxisUtils(rowUtils, columnUtils);
+    this.renderer.setAxisUtils(rowUtils!, columnUtils!);
   }
 
   /**

@@ -19,7 +19,7 @@ export class CheckboxEditor extends BaseEditor {
     // element with a checkbox.
 
     if (event && (event as MouseEvent).type === 'mouseup' && eventTargetEl(event)!.nodeName === 'TD') {
-      const checkbox = this.TD.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      const checkbox = this.TD!.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       if (!hasClass(checkbox, 'htBadValue')) {
         checkbox.click();
@@ -35,7 +35,9 @@ export class CheckboxEditor extends BaseEditor {
   }
   close(): void { // intentionally empty
   }
-  getValue(): unknown { return undefined; }
+  getValue(): unknown {
+    return undefined;
+  }
   setValue(): void { // intentionally empty
   }
   focus(): void { // intentionally empty

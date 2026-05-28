@@ -50,7 +50,7 @@ class BaseUI {
    * @param {HTMLElement} wrapper Element which are parent for our UI element.
    */
   appendTo(wrapper: HTMLElement) {
-    wrapper.appendChild(this._element);
+    wrapper.appendChild(this._element!);
 
     this.state = STATE_APPENDED;
   }
@@ -72,7 +72,7 @@ class BaseUI {
    */
   destroy() {
     if (this.isAppended()) {
-      this._element.parentElement.removeChild(this._element);
+      this._element!.parentElement?.removeChild(this._element!);
     }
 
     this._element = null;
@@ -105,10 +105,10 @@ class BaseUI {
    */
   setPosition(top?: number, inlinePosition?: number) {
     if (isNumeric(top)) {
-      this._element.style.top = top + UNIT;
+      this._element!.style.top = top + UNIT;
     }
     if (isNumeric(inlinePosition)) {
-      this._element.style[this.inlineProperty] = inlinePosition + UNIT;
+      this._element!.style[this.inlineProperty] = inlinePosition + UNIT;
     }
   }
 
@@ -118,7 +118,7 @@ class BaseUI {
    * @returns {object} Object contains left and top position of the element.
    */
   getPosition() {
-    const style = this._element.style;
+    const style = this._element!.style;
 
     return {
       top: style.top ? Number.parseInt(style.top, 10) : 0,
@@ -134,10 +134,10 @@ class BaseUI {
    */
   setSize(width?: number, height?: number) {
     if (isNumeric(width)) {
-      this._element.style.width = width + UNIT;
+      this._element!.style.width = width + UNIT;
     }
     if (isNumeric(height)) {
-      this._element.style.height = height + UNIT;
+      this._element!.style.height = height + UNIT;
     }
   }
 
@@ -148,8 +148,8 @@ class BaseUI {
    */
   getSize() {
     return {
-      width: this._element.style.width ? Number.parseInt(this._element.style.width, 10) : 0,
-      height: this._element.style.height ? Number.parseInt(this._element.style.height, 10) : 0
+      width: this._element!.style.width ? Number.parseInt(this._element!.style.width, 10) : 0,
+      height: this._element!.style.height ? Number.parseInt(this._element!.style.height, 10) : 0
     };
   }
 
@@ -161,12 +161,12 @@ class BaseUI {
    */
   setOffset(top: number, inlineOffset: number) {
     if (isNumeric(top)) {
-      this._element.style.marginTop = top + UNIT;
+      this._element!.style.marginTop = top + UNIT;
     }
     if (isNumeric(inlineOffset)) {
       const marginProp = `margin${toUpperCaseFirst(this.inlineProperty)}` as 'marginLeft' | 'marginRight';
 
-      this._element.style[marginProp] = inlineOffset + UNIT;
+      this._element!.style[marginProp] = inlineOffset + UNIT;
     }
   }
 
@@ -176,7 +176,7 @@ class BaseUI {
    * @returns {object} Object contains top and left offset of the element.
    */
   getOffset() {
-    const style = this._element.style;
+    const style = this._element!.style;
     const inlineProp = `margin${toUpperCaseFirst(this.inlineProperty)}` as 'marginLeft' | 'marginRight';
 
     return {

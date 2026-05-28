@@ -103,7 +103,8 @@ function logSourceDataWarning(message: string, items: Array<{ row?: number; col?
     logFunction: warn,
     message,
     items,
-    itemFormatter: ({ row, col, value }) => {
+    itemFormatter: (item: unknown) => {
+      const { row, col, value } = item as { row?: number; col?: number; value?: unknown };
       const rawValue = stringify(value);
       const shortValue = rawValue.length > 64 ? `${rawValue.slice(0, 64)}...` : rawValue;
 

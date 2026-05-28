@@ -47,8 +47,8 @@ export class ViewOrder {
    * @param {number} zeroBasedIndex The zero-based index.
    * @returns {number}
    */
-  get(zeroBasedIndex: number) {
-    return zeroBasedIndex < this.order.length ? this.order[zeroBasedIndex] : -1;
+  get(zeroBasedIndex: number): number {
+    return zeroBasedIndex < this.order.length ? (this.order[zeroBasedIndex] ?? -1) : -1;
   }
 
   /**
@@ -72,14 +72,16 @@ export class ViewOrder {
    * @param {number} offsetIndex The offset index.
    * @returns {number}
    */
-  prepend(offsetIndex: number) {
+  prepend(offsetIndex: number): number {
     this.order.unshift(offsetIndex);
     this.#indexSet.add(offsetIndex);
 
     const removed = this.order.pop();
 
-    this.#indexSet.delete(removed);
+    if (removed !== undefined) {
+      this.#indexSet.delete(removed);
+    }
 
-    return removed;
+    return removed ?? -1;
   }
 }

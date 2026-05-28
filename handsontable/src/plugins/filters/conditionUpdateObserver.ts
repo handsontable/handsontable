@@ -65,7 +65,7 @@ class ConditionUpdateObserver {
   constructor(
     hot: HotInstance,
     conditionCollection: ConditionCollection,
-    columnDataFactory: (...args: unknown[]) => unknown[] = () => []
+    columnDataFactory: (physicalColumn: number) => Record<string, unknown>[] = () => []
   ) {
     this.hot = hot;
     this.conditionCollection = conditionCollection;
@@ -145,13 +145,16 @@ class ConditionUpdateObserver {
 
     const visibleDataFactory = curry((curriedConditionsBefore, curriedColumn, conditionsStack = []) => {
       const splitConditionCollection = new ConditionCollection(this.hot, false);
-      const curriedConditionsBeforeArray = [].concat(curriedConditionsBefore, conditionsStack);
+      const curriedConditionsBeforeArray = ([] as unknown[]).concat(
+        curriedConditionsBefore as unknown[],
+        conditionsStack as unknown[]
+      );
 
       // Create new condition collection to determine what rows should be visible in "filter by value" box
       // in the next conditions in the chain
       splitConditionCollection.importAllConditions(curriedConditionsBeforeArray);
 
-      const allRows = this.columnDataFactory(curriedColumn);
+      const allRows = this.columnDataFactory(Number(curriedColumn));
       let visibleRows;
 
       if (splitConditionCollection.isEmpty()) {
@@ -173,7 +176,7 @@ class ConditionUpdateObserver {
       });
     })(conditionsBefore);
 
-    const editedConditions = [].concat(this.conditionCollection.getConditions(column));
+    const editedConditions = [...this.conditionCollection.getConditions(column)];
 
     this.runLocalHooks('update', {
       editedConditionStack: { column, conditions: editedConditions },

@@ -73,7 +73,7 @@ export function instanceToHTML(instance: HotInstance): string {
           if (isEmpty(cellData)) {
             cell = `<td ${attrs.join(' ')}></td>`;
           } else {
-            const value = cellData.toString()
+            const value = String(cellData)
               .replaceAll('<', '&lt;')
               .replaceAll('>', '&gt;')
               .replace(/(<br(\s*|\/)>(\r\n|\n)?|\r\n|\n)/g, '<br>\r\n')
@@ -177,13 +177,13 @@ function findMatchingTdClose(html: string, openEndIndex: number): { start: numbe
       return null;
     }
 
-    const closeIndex = searchStart + closeMatch.index;
+    const closeIndex = searchStart + (closeMatch.index ?? 0);
     const closeTagLength = closeMatch[0].length;
-    const openIndex = openMatch ? searchStart + openMatch.index : html.length;
+    const openIndex = openMatch ? searchStart + (openMatch.index ?? 0) : html.length;
 
     if (openIndex < closeIndex) {
       depth += 1;
-      searchStart = openIndex + openMatch[0].length;
+      searchStart = openIndex + (openMatch?.[0].length ?? 0);
     } else {
       depth -= 1;
 
@@ -219,7 +219,7 @@ export function replaceTdCellsWithTextContent(html: string): string {
       break;
     }
 
-    const openStart = pos + openMatch.index;
+    const openStart = pos + (openMatch.index ?? 0);
     const openTag = openMatch[0];
     const openEnd = openStart + openTag.length;
 

@@ -48,7 +48,7 @@ export class BaseUI {
    *
    * @type {EventManager}
    */
-  eventManager = new EventManager(this);
+  eventManager: EventManager | null = new EventManager(this);
   /**
    * List of element options.
    *
@@ -61,7 +61,7 @@ export class BaseUI {
    * @type {Element}
    * @private
    */
-  declare _element: HTMLElement;
+  declare _element: HTMLElement | null;
   /**
    * Flag which determines build state of element.
    *
@@ -72,7 +72,8 @@ export class BaseUI {
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     this.hot = hotInstance;
     this.options = extend(BaseUI.DEFAULTS, options) as BaseUIOptions;
-    this._element = this.hot.rootDocument.createElement(this.options.wrapIt ? 'div' : this.options.tagName);
+    this._element = hotInstance.rootDocument.createElement(
+      this.options.wrapIt ? 'div' : (this.options.tagName ?? 'div'));
   }
 
   /**
@@ -132,7 +133,7 @@ export class BaseUI {
    */
   translateIfPossible(value: unknown) {
     if (typeof value === 'string' && value.startsWith(C.FILTERS_NAMESPACE)) {
-      return this.hot.getTranslatedPhrase(value);
+      return this.hot?.getTranslatedPhrase(value) ?? value;
     }
 
     return value;
@@ -142,9 +143,14 @@ export class BaseUI {
    * Build DOM structure.
    */
   build() {
+    if (!this._element || !this.hot) {
+      return;
+    }
+
+    const rootElement = this._element;
+    const { eventManager } = this;
     const registerEvent = (element: HTMLElement, eventName: string) => {
-      this.eventManager
-        .addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
+      eventManager?.addEventListener(element, eventName, event => this.runLocalHooks(eventName, event, this));
     };
 
     if (!this.buildState) {
@@ -153,24 +159,30 @@ export class BaseUI {
 
     // prevents "hot.unlisten()" call when clicked
     // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
-    this._element.setAttribute('data-hot-input', 'true');
+    rootElement.setAttribute('data-hot-input', 'true');
 
     if (this.options.tabIndex !== undefined) {
-      this._element.setAttribute('tabindex', String(this.options.tabIndex));
+      rootElement.setAttribute('tabindex', String(this.options.tabIndex));
     }
     if (this.options.role !== undefined) {
-      this._element.setAttribute('role', this.options.role);
+      rootElement.setAttribute('role', this.options.role);
     }
     if (this.options.className) {
-      addClass(this._element, this.options.className);
+      addClass(rootElement, this.options.className);
     }
 
-    if (this.options.children.length) {
-      arrayEach(this.options.children, element => this._element.appendChild((element as BaseUI).element));
+    if (this.options.children?.length) {
+      arrayEach(this.options.children, (element) => {
+        const el = (element as BaseUI).element;
+
+        if (el) {
+          rootElement.appendChild(el);
+        }
+      });
 
     } else if (this.options.wrapIt) {
       const element = this.hot.rootDocument.createElement(
-        this.options.tagName
+        this.options.tagName ?? 'div'
       ) as HTMLElement & Record<string, unknown>;
 
       // prevents "hot.unlisten()" call when clicked
@@ -183,12 +195,12 @@ export class BaseUI {
         }
       });
 
-      this._element.appendChild(element);
+      rootElement.appendChild(element);
 
       arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(element, eventName));
 
     } else {
-      arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(this._element, eventName));
+      arrayEach(EVENTS_TO_REGISTER, eventName => registerEvent(rootElement, eventName));
     }
   }
 
@@ -211,14 +223,22 @@ export class BaseUI {
    * Show element.
    */
   show() {
-    this.element.style.display = '';
+    const el = this.element;
+
+    if (el) {
+      el.style.display = '';
+    }
   }
 
   /**
    * Hide element.
    */
   hide() {
-    this.element.style.display = 'none';
+    const el = this.element;
+
+    if (el) {
+      el.style.display = 'none';
+    }
   }
 
   /**
@@ -228,11 +248,11 @@ export class BaseUI {
   }
 
   destroy() {
-    this.eventManager.destroy();
+    this.eventManager?.destroy();
     this.eventManager = null;
     this.hot = null;
 
-    if (this._element.parentNode) {
+    if (this._element?.parentNode) {
       this._element.parentNode.removeChild(this._element);
     }
     this._element = null;

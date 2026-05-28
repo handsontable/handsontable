@@ -37,7 +37,7 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
   inlineStartOffset: number = 0;
   totalCalculatedWidth: number = 0;
   needReverse: boolean = true;
-  positionCache: PositionCache = null;
+  positionCache: PositionCache | null = null;
   lastProcessedIndex: number = -1;
 
   /**
@@ -68,13 +68,21 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate(): void {
+    if (!this.positionCache) {
+      return;
+    }
+
     calculateAxis(this as unknown as AxisCalculatorContext, {
       totalCount: this.totalColumns,
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.zeroBasedScrollOffset + this.viewportWidth,
       positionCache: this.positionCache,
-      setSizeField: (ctx, size) => { ctx.columnWidth = size; },
-      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedWidth = v; },
+      setSizeField: (ctx, size) => {
+        ctx.columnWidth = size;
+      },
+      setTotalCalculated: (ctx, v) => {
+        ctx.totalCalculatedWidth = v;
+      },
       getTotalCalculated: ctx => ctx.totalCalculatedWidth as number,
     });
   }
@@ -94,6 +102,6 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getColumnWidth(column: number): number {
-    return this.positionCache.getSizeAt(column);
+    return this.positionCache?.getSizeAt(column) ?? 0;
   }
 }

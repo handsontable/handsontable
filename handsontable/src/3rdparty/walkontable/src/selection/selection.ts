@@ -51,7 +51,7 @@ class Selection {
       this.cellRange = (this.settings.createCellRange as (coords: CellCoords) => typeof this.cellRange)(coords);
 
     } else {
-      this.cellRange.expand(coords);
+      this.cellRange!.expand(coords);
     }
 
     return this;
@@ -67,13 +67,13 @@ class Selection {
    */
   replace(oldCoords: CellCoords, newCoords: CellCoords) {
     if (!this.isEmpty()) {
-      if (this.cellRange.from.isEqual(oldCoords)) {
-        this.cellRange.from = newCoords;
+      if (this.cellRange!.from.isEqual(oldCoords)) {
+        this.cellRange!.from = newCoords;
 
         return true;
       }
-      if (this.cellRange.to.isEqual(oldCoords)) {
-        this.cellRange.to = newCoords;
+      if (this.cellRange!.to.isEqual(oldCoords)) {
+        this.cellRange!.to = newCoords;
 
         return true;
       }
@@ -99,15 +99,15 @@ class Selection {
    * @returns {number[]} Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
-    const topStart = this.cellRange.getOuterTopStartCorner();
-    const bottomEnd = this.cellRange.getOuterBottomEndCorner();
+    const topStart = this.cellRange!.getOuterTopStartCorner();
+    const bottomEnd = this.cellRange!.getOuterBottomEndCorner();
 
     return [
-      topStart.row,
-      topStart.col,
-      bottomEnd.row,
-      bottomEnd.col,
-    ];
+      topStart.row ?? 0,
+      topStart.col ?? 0,
+      bottomEnd.row ?? 0,
+      bottomEnd.col ?? 0,
+    ] as [number, number, number, number];
   }
 
   /**

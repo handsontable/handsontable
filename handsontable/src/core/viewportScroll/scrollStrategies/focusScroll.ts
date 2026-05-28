@@ -18,7 +18,9 @@ export function focusScrollStrategy(hot: HotInstance) {
 
       const { row, col } = activeRange.highlight;
 
-      scrollWindowToCell(hot.getCell(row, col, true));
+      if (row !== null && col !== null) {
+        scrollWindowToCell(hot.getCell(row, col, true));
+      }
     });
   };
 }

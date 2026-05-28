@@ -232,8 +232,8 @@ export class HiddenRows extends BasePlugin {
     }
 
     this.#hiddenRowsMap = new HidingMap();
-    this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
+    this.#hiddenRowsMap!.addLocalHook('init', () => this.#onMapInit());
+    this.hot.rowIndexMapper.registerMap(this.pluginName!, this.#hiddenRowsMap);
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -263,7 +263,7 @@ export class HiddenRows extends BasePlugin {
   disablePlugin() {
     super.disablePlugin();
 
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName!);
     this.resetCellsMeta();
   }
 
@@ -276,7 +276,7 @@ export class HiddenRows extends BasePlugin {
     const currentHideConfig = this.getHiddenRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;
-    const hidingMapValues = this.#hiddenRowsMap.getValues().slice();
+    const hidingMapValues = this.#hiddenRowsMap!.getValues().slice();
     const isAnyRowShowed = rows.length > 0;
 
     if (isValidConfig && isAnyRowShowed) {
@@ -305,7 +305,7 @@ export class HiddenRows extends BasePlugin {
     }
 
     if (isValidConfig && isAnyRowShowed) {
-      this.#hiddenRowsMap.setValues(hidingMapValues);
+      this.#hiddenRowsMap!.setValues(hidingMapValues);
     }
 
     this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed,
@@ -344,7 +344,7 @@ export class HiddenRows extends BasePlugin {
     if (isConfigValid) {
       this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
-          this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
+          this.#hiddenRowsMap!.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });
       }, true);
     }
@@ -368,7 +368,7 @@ export class HiddenRows extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenRows(): number[] {
-    return arrayMap(this.#hiddenRowsMap.getHiddenIndexes(), (physicalRowIndex) => {
+    return arrayMap(this.#hiddenRowsMap!.getHiddenIndexes(), (physicalRowIndex) => {
       return this.hot.toVisualRow(physicalRowIndex)!;
     });
   }
@@ -380,7 +380,7 @@ export class HiddenRows extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(row: number): boolean {
-    return this.#hiddenRowsMap.getValueAtIndex<boolean>(this.hot.toPhysicalRow(row)) || false;
+    return this.#hiddenRowsMap!.getValueAtIndex<boolean>(this.hot.toPhysicalRow(row)) || false;
   }
 
   /**

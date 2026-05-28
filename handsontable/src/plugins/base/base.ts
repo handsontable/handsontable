@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import type { HookCallback } from '../../core/hooks/bucket';
+import type { Events } from '../../core/settings';
 import {
   defineGetter, objectEach, isObject, isPlainObject, assignObjectDefaults, getProperty,
 } from '../../helpers/object';
@@ -35,7 +36,7 @@ let initializedPlugins: string[] | null = null;
  */
 export class BasePlugin {
   declare hot: HotInstance;
-  declare t: Record<string, Function> | undefined;
+  declare t?: Record<string, Function>;
   declare ['constructor']: typeof BasePlugin;
 
   // Allow child classes to define isEnabled
@@ -403,6 +404,7 @@ export class BasePlugin {
    *                              If < 0, the callback will be added before the others, for example, with an index of -1, the callback will be added after the ones with an index of -2, -3, etc., but before the ones with an index of 0 and higher.
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    */
+  addHook<K extends keyof Events>(name: K, callback: Events[K], orderIndex?: number): void;
   addHook(name: string, callback: HookCallback, orderIndex?: number): void {
     this.#hooks[name] = (this.#hooks[name] || []);
 
@@ -554,12 +556,15 @@ export class BasePlugin {
     this.eventManager?.destroy();
     this.clearHooks();
 
-    objectEach(this, (value: unknown, property: string) => {
+    objectEach(this, (_value: unknown, property: string) => {
       if (property !== 'hot') {
-        this[property as keyof this] = null;
+        Reflect.set(this, property, null);
       }
     });
     delete this.t;
-    delete this.hot;
+    // `hot` is non-writable (set via defineGetter with writable: false) so Reflect.set
+    // silently fails for it. Delete the own property instead so that async guards like
+    // `if (!this.hot)` return `undefined` (falsy) after the plugin is destroyed.
+    Reflect.deleteProperty(this, 'hot');
   }
 }

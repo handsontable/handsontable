@@ -1,6 +1,8 @@
-import { IndexMap, alterUtilsFactory, getDecreasedIndexes, getIncreasedIndexes } from '../../../translations';
-
-const { getListWithInsertedItems, getListWithRemovedItems } = alterUtilsFactory('physicallyIndexed');
+import { IndexMap, getDecreasedIndexes, getIncreasedIndexes } from '../../../translations';
+import {
+  getListWithInsertedItems,
+  getListWithRemovedItems
+} from '../../../translations/maps/utils/physicallyIndexed';
 
 /**
  * Map from physical index to another index.

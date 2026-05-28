@@ -139,10 +139,14 @@ export class DragToScroll extends BasePlugin {
       rampDistance: this.getSetting<number>('rampDistance'),
     });
 
-    this.addHook('beforeOnCellMouseDown', (event: Event, coords: unknown, TD: unknown, controller: unknown) => {
-      this.#setupListening('cell', event as MouseEvent, controller);
+    this.addHook('beforeOnCellMouseDown', (event: MouseEvent, _coords: unknown, _TD: unknown, controller: unknown) => {
+      const typedController = (typeof controller === 'object' && controller !== null)
+        ? controller as { row?: boolean; column?: boolean }
+        : null;
+
+      this.#setupListening('cell', event, typedController);
     });
-    this.addHook('afterOnCellCornerMouseDown', (event: Event) => this.#setupListening('corner', event as MouseEvent));
+    this.addHook('afterOnCellCornerMouseDown', (event: MouseEvent) => this.#setupListening('corner', event));
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterScroll', this.#onAfterScroll);
 
@@ -485,17 +489,17 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    let targetRow = edgeCell.row;
-    let targetCol = edgeCell.col;
+    let targetRow = edgeCell.row ?? 0;
+    let targetCol = edgeCell.col ?? 0;
 
     // Clamp the target to the last fully visible row/column so that the
     // selection border stays inside the viewport. Without this, the target
     // could land on a partially visible row/column whose border is clipped
     // by the viewport edge.
-    const firstFullyVisibleRow = view.getFirstFullyVisibleRow();
-    const lastFullyVisibleRow = view.getLastFullyVisibleRow();
-    const firstFullyVisibleColumn = view.getFirstFullyVisibleColumn();
-    const lastFullyVisibleColumn = view.getLastFullyVisibleColumn();
+    const firstFullyVisibleRow = view.getFirstFullyVisibleRow() ?? 0;
+    const lastFullyVisibleRow = view.getLastFullyVisibleRow() ?? 0;
+    const firstFullyVisibleColumn = view.getFirstFullyVisibleColumn() ?? 0;
+    const lastFullyVisibleColumn = view.getLastFullyVisibleColumn() ?? 0;
 
     if (targetRow > lastFullyVisibleRow) {
       targetRow = lastFullyVisibleRow;
@@ -536,7 +540,6 @@ export class DragToScroll extends BasePlugin {
    */
   destroy() {
     this.#autoScroller.destroy();
-    this.#autoScroller = null;
 
     super.destroy();
   }

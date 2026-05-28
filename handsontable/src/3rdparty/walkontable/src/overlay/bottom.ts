@@ -65,7 +65,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode || !this.clone) {
       // removed from DOM
       return false;
     }
@@ -107,6 +107,10 @@ export class BottomOverlay extends Overlay {
    * Updates the bottom overlay position.
    */
   repositionOverlay() {
+    if (!this.clone) {
+      return;
+    }
+
     const { wtTable, wtViewport } = this.wot;
     const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
@@ -201,6 +205,10 @@ export class BottomOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
+    if (!this.clone) {
+      return;
+    }
+
     const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
@@ -235,6 +243,10 @@ export class BottomOverlay extends Overlay {
    * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
+    if (!this.clone) {
+      return;
+    }
+
     const { holder } = this.clone.wtTable;
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
@@ -250,7 +262,7 @@ export class BottomOverlay extends Overlay {
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalRows');
 
-    if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+    if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
@@ -272,10 +284,14 @@ export class BottomOverlay extends Overlay {
    * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
+    if (!this.clone) {
+      return;
+    }
+
     const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
 
-    if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+    if (typeof this.wot.wtViewport.columnsRenderCalculator?.startPosition === 'number') {
       spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
@@ -345,7 +361,7 @@ export class BottomOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 
-    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical') && this.clone) {
       const rootHeight = this.wot.wtTable.getTotalHeight();
       const overlayRootHeight = this.clone.wtTable.getTotalHeight();
       const maxOffset = rootHeight - overlayRootHeight;

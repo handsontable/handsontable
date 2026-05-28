@@ -127,8 +127,8 @@ function replaceData(
   newDataMap.dataSource = data as (Record<string, unknown> | unknown[])[];
   dataSource.data = data as (Record<string, unknown> | unknown[])[];
   dataSource.dataType = hotInstance.dataType;
-  dataSource.colToProp = newDataMap.colToProp.bind(newDataMap);
-  dataSource.propToCol = newDataMap.propToCol.bind(newDataMap);
+  dataSource.colToProp = (column: unknown) => newDataMap.colToProp(column as number);
+  dataSource.propToCol = (prop: unknown) => newDataMap.propToCol(prop as string | number);
   dataSource.countCachedColumns = newDataMap.countCachedColumns.bind(newDataMap);
 
   // Run the logic for reassuring that the table structure fits the new dataset.

@@ -95,7 +95,7 @@ export function registerTheme(themeNameOrConfig: string | BaseTheme, themeConfig
   if (hasTheme(themeName)) {
     warn(`Theme "${themeName}" is already registered. Registration skipped.`);
 
-    return getTheme(themeName);
+    return getTheme(themeName)!;
   }
 
   register(themeName, theme);

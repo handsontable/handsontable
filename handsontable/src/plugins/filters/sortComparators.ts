@@ -8,8 +8,11 @@ import { parseToLocalDate } from '../../helpers/dateTime';
  * @param {string} dateFormat Moment.js format string matching the column's `dateFormat` setting.
  * @returns {Function}
  */
-export function createDateSortComparator(dateFormat: string): (a: string, b: string) => number {
-  return (a: string, b: string) => {
+export function createDateSortComparator(dateFormat: string): (a: unknown, b: unknown) => number {
+  return (aVal: unknown, bVal: unknown) => {
+    const a = aVal as string;
+    const b = bVal as string;
+
     if (a === '' && b === '') {
       return 0;
     }
@@ -50,8 +53,11 @@ export function createDateSortComparator(dateFormat: string): (a: string, b: str
  *
  * @returns {Function}
  */
-export function createISODateSortComparator(): (a: string, b: string) => number {
-  return (a: string, b: string) => {
+export function createISODateSortComparator(): (a: unknown, b: unknown) => number {
+  return (aVal: unknown, bVal: unknown) => {
+    const a = aVal as string;
+    const b = bVal as string;
+
     if (a === '' && b === '') {
       return 0;
     }
@@ -92,7 +98,7 @@ export function createISODateSortComparator(): (a: string, b: string) => number 
  */
 export function getSortComparatorForMeta(
   meta: Record<string, unknown> | null | undefined
-): ((a: string, b: string) => number) | undefined {
+): ((a: unknown, b: unknown) => number) | undefined {
   if (!meta) {
     return undefined;
   }

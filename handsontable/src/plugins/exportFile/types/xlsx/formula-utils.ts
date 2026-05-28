@@ -205,8 +205,8 @@ export function normalizeFormula(
   excludedHiddenCols?: Set<number>
 ): string {
   let formula = formulaStr.startsWith('=') ? formulaStr.slice(1) : formulaStr;
-  const hasRowExclusions = excludedHiddenRows?.size > 0;
-  const hasColExclusions = excludedHiddenCols?.size > 0;
+  const hasRowExclusions = (excludedHiddenRows?.size ?? 0) > 0;
+  const hasColExclusions = (excludedHiddenCols?.size ?? 0) > 0;
 
   if (rowOffset !== 0 || colOffset !== 0 || hasRowExclusions || hasColExclusions) {
     // The leading alternative matches string literals (double-quoted Excel strings use "" to escape a quote;
@@ -222,8 +222,10 @@ export function normalizeFormula(
         const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column
         const hotPhysRow = Number.parseInt(rowStr, 10) - 1; // 0-based physical HOT row
 
-        const hiddenColsBefore = hasColExclusions ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
-        const hiddenRowsBefore = hasRowExclusions ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
+        const hiddenColsBefore = (hasColExclusions && excludedHiddenCols)
+          ? countBelow(excludedHiddenCols, hotPhysCol) : 0;
+        const hiddenRowsBefore = (hasRowExclusions && excludedHiddenRows)
+          ? countBelow(excludedHiddenRows, hotPhysRow) : 0;
 
         const newCol = colLetterToIndex(colLetters) + colOffset - hiddenColsBefore;
         const newRow = Number.parseInt(rowStr, 10) + rowOffset - hiddenRowsBefore;

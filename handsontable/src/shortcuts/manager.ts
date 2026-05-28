@@ -146,12 +146,12 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     const activeContext = isContextObject(context) ? context : getContext(context);
     let isExecutionCancelled = false;
 
-    if (!activeContext.hasShortcut(keys)) {
+    if (!activeContext?.hasShortcut(keys)) {
       return isExecutionCancelled;
     }
 
     // Processing just actions being in stack at the moment of shortcut pressing (without respecting additions/removals performed dynamically).
-    const shortcuts = activeContext.getShortcuts(keys);
+    const shortcuts = activeContext?.getShortcuts(keys) ?? [];
 
     for (let index = 0; index < shortcuts.length; index++) {
       const {
@@ -163,8 +163,8 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
         forwardToContext,
       } = shortcuts[index];
 
-      if (runOnlyIf(event) === true) {
-        isCtrlKeySilenced = captureCtrl;
+      if (runOnlyIf?.(event) === true) {
+        isCtrlKeySilenced = captureCtrl ?? false;
         isExecutionCancelled = callback(event, keys) === false;
         isCtrlKeySilenced = false;
 

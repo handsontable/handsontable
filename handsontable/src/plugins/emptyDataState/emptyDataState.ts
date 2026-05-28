@@ -24,7 +24,7 @@ type MessageSetting =
 
 interface SelectionState {
   ranges: CellRange[];
-  activeRange: CellRange;
+  activeRange: CellRange | undefined;
   activeSelectionLayer: number;
   selectedByRowHeader: number[];
   selectedByColumnHeader: number[];
@@ -382,7 +382,7 @@ export class EmptyDataState extends BasePlugin {
    * Registers the DOM listeners.
    */
   #registerEvents() {
-    this.eventManager.addEventListener(this.#ui!.getElement(), 'wheel', (event) => {
+    this.eventManager.addEventListener(this.#ui!.getElement()!, 'wheel', (event) => {
       this.#onMouseWheel(event as WheelEvent);
     });
   }
@@ -439,7 +439,7 @@ export class EmptyDataState extends BasePlugin {
    * Disconnects the mutation observers for the emptyDataState plugin.
    */
   #disconnectObservers() {
-    this.#observer.disconnect();
+    this.#observer?.disconnect();
     this.#observer = null;
   }
 
@@ -448,7 +448,7 @@ export class EmptyDataState extends BasePlugin {
    */
   #registerFocusScope() {
     this.hot.getFocusScopeManager()
-      .registerScope(PLUGIN_KEY, this.#ui!.getElement(), {
+      .registerScope(PLUGIN_KEY, this.#ui!.getElement()!, {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource: string) => {
@@ -611,7 +611,10 @@ export class EmptyDataState extends BasePlugin {
     this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
 
     if (this.#selectionState && this.#selectionState.ranges.length > 0) {
-      this.hot.selection.importSelection(this.#selectionState);
+      this.hot.selection.importSelection({
+        ...this.#selectionState,
+        activeRange: this.#selectionState.activeRange!,
+      });
       this.hot.view.render();
       this.#selectionState = null;
     } else {

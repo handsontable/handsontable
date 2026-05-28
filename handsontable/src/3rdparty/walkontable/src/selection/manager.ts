@@ -36,7 +36,7 @@ export class SelectionManager {
    *
    * @type {Walkontable}
    */
-  #activeOverlaysWot: WalkontableInstance | null;
+  #activeOverlaysWot: WalkontableInstance | null = null;
   /**
    * The Highlight instance that holds Selections instances within it.
    *
@@ -84,8 +84,8 @@ export class SelectionManager {
     this.#activeOverlaysWot = activeWot;
     this.#scanner.setActiveOverlay(this.#activeOverlaysWot);
 
-    if (!this.#appliedClasses.has(this.#activeOverlaysWot)) {
-      this.#appliedClasses.set(this.#activeOverlaysWot, new Set());
+    if (!this.#appliedClasses.has(this.#activeOverlaysWot!)) {
+      this.#appliedClasses.set(this.#activeOverlaysWot!, new Set());
     }
 
     return this;
@@ -123,20 +123,20 @@ export class SelectionManager {
     if (this.#selectionBorders.has(selection)) {
       const borders = this.#selectionBorders.get(selection);
 
-      if (borders.has(this.#activeOverlaysWot)) {
-        return borders.get(this.#activeOverlaysWot);
+      if (borders.has(this.#activeOverlaysWot!)) {
+        return borders.get(this.#activeOverlaysWot!);
       }
 
-      const border = new Border(this.#activeOverlaysWot, selection.settings);
+      const border = new Border(this.#activeOverlaysWot!, selection.settings);
 
-      borders.set(this.#activeOverlaysWot, border);
+      borders.set(this.#activeOverlaysWot!, border);
 
       return border;
     }
 
-    const border = new Border(this.#activeOverlaysWot, selection.settings);
+    const border = new Border(this.#activeOverlaysWot!, selection.settings);
 
-    this.#selectionBorders.set(selection, new Map([[this.#activeOverlaysWot, border]]));
+    this.#selectionBorders.set(selection, new Map([[this.#activeOverlaysWot!, border]]));
 
     return border;
   }
@@ -188,7 +188,7 @@ export class SelectionManager {
     }
 
     const selections: Selection[] = Array.from(this.#selections);
-    const classNamesMap = new Map();
+    const classNamesMap = new Map<HTMLElement, Map<string, number>>();
     const headerAttributesMap = new Map();
 
     for (let i = 0; i < selections.length; i++) {
@@ -216,20 +216,20 @@ export class SelectionManager {
       if (className) {
         const elements = this.#scanner
           .setActiveSelection(selection)
-          .scan();
+          .scan() as Set<HTMLElement>;
 
         elements.forEach((element: HTMLElement) => {
           if (classNamesMap.has(element)) {
-            const classNamesLayers = classNamesMap.get(element);
+            const classNamesLayers = classNamesMap.get(element)!;
 
-            if (classNamesLayers.has(className) && createLayers === true) {
-              classNamesLayers.set(className, classNamesLayers.get(className) + 1);
+            if (classNamesLayers.has(className as string) && createLayers === true) {
+              classNamesLayers.set(className as string, (classNamesLayers.get(className as string) ?? 0) + 1);
             } else {
-              classNamesLayers.set(className, 1);
+              classNamesLayers.set(className as string, 1);
             }
 
           } else {
-            classNamesMap.set(element, new Map([[className, 1]]));
+            classNamesMap.set(element, new Map<string, number>([[className as string, 1]]));
           }
 
           if (headerAttributes) {
@@ -246,12 +246,12 @@ export class SelectionManager {
 
       const corners = selection.getCorners();
 
-      this.#activeOverlaysWot.getSetting('onBeforeDrawBorders', corners, selectionType);
+      this.#activeOverlaysWot!.getSetting('onBeforeDrawBorders', corners, selectionType);
       borderInstance?.appear(corners);
     }
 
     classNamesMap.forEach((classNamesLayers, element) => {
-      const classNames = (Array.from(classNamesLayers).map(([className, occurrenceCount]: [string, number]) => {
+      const classNames = Array.from(classNamesLayers).map(([className, occurrenceCount]) => {
         if (occurrenceCount === 1) {
           return className;
         }
@@ -259,16 +259,16 @@ export class SelectionManager {
         return [className, ...Array.from({
           length: occurrenceCount - 1
         }, (_, i) => `${className}-${i + 1}`)];
-      }) as unknown[]).flat();
+      }).flat();
 
       classNames.forEach((className: string) => this.#appliedClasses
-        .get(this.#activeOverlaysWot)
+        .get(this.#activeOverlaysWot!)
         .add(className));
 
       addClass(element, classNames as string[]);
 
-      if (element.nodeName === 'TD' && Array.isArray(this.#selections.options?.cellAttributes)) {
-        setAttribute(element, this.#selections.options.cellAttributes);
+      if (element.nodeName === 'TD' && Array.isArray(this.#selections!.options?.cellAttributes)) {
+        setAttribute(element, this.#selections!.options.cellAttributes);
       }
     });
 
@@ -283,8 +283,8 @@ export class SelectionManager {
    * previous render cycle).
    */
   #resetCells() {
-    const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot);
-    const classesToRemove = this.#activeOverlaysWot.wtSettings.getSetting('onBeforeRemoveCellClassNames');
+    const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot!);
+    const classesToRemove = this.#activeOverlaysWot!.wtSettings.getSetting('onBeforeRemoveCellClassNames');
 
     if (Array.isArray(classesToRemove)) {
       for (let i = 0; i < classesToRemove.length; i++) {
@@ -293,16 +293,16 @@ export class SelectionManager {
     }
 
     appliedOverlaysClasses.forEach((className: string) => {
-      const nodes = this.#activeOverlaysWot.wtTable.TABLE.querySelectorAll(`.${className}`);
+      const nodes = this.#activeOverlaysWot!.wtTable.TABLE.querySelectorAll(`.${className}`);
       let cellAttributes: string[] = [];
 
-      if (Array.isArray(this.#selections.options?.cellAttributes)) {
-        cellAttributes = this.#selections.options.cellAttributes.map(el => el[0]);
+      if (Array.isArray(this.#selections!.options?.cellAttributes)) {
+        cellAttributes = this.#selections!.options.cellAttributes.map(el => el[0]);
       }
 
-      if (Array.isArray(this.#selections.options?.headerAttributes)) {
+      if (Array.isArray(this.#selections!.options?.headerAttributes)) {
         cellAttributes = [
-          ...cellAttributes, ...this.#selections.options.headerAttributes.map(el => el[0])];
+          ...cellAttributes, ...this.#selections!.options.headerAttributes.map(el => el[0])];
       }
 
       for (let i = 0, len = nodes.length; i < len; i++) {

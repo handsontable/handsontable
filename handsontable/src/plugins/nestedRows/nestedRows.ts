@@ -190,11 +190,17 @@ export class NestedRows extends BasePlugin {
   registerShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeActive();
-          const row = this.collapsingUI!.translateTrimmedRow(highlight.row);
+          const activeRange = this.hot.getSelectedRangeActive();
+
+          if (!activeRange) {
+            return false;
+          }
+
+          const { highlight } = activeRange;
+          const row = this.collapsingUI!.translateTrimmedRow(highlight.row ?? 0);
 
           if (this.collapsingUI!.areChildrenCollapsed(row)) {
             this.collapsingUI!.expandChildren(row);
@@ -208,8 +214,9 @@ export class NestedRows extends BasePlugin {
         runOnlyIf: () => {
           const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
+          return !!(highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 &&
+            highlight.row !== null && highlight.row >= 0);
         },
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
@@ -225,7 +232,7 @@ export class NestedRows extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -404,14 +411,20 @@ export class NestedRows extends BasePlugin {
   #onBeforeRemoveRow = (index: number, amount: number, physicalRows: number[]) => {
     const modifiedPhysicalRows = Array.from(physicalRows.reduce((removedRows: Set<number>, physicalIndex: number) => {
       if (this.dataManager!.isParent(physicalIndex)) {
-        const children = this.dataManager!.getDataObject(physicalIndex).__children;
+        const children = this.dataManager!.getDataObject(physicalIndex)?.__children;
 
         // Preserve a parent in the list of removed rows.
         removedRows.add(physicalIndex);
 
         if (Array.isArray(children)) {
           // Add a children to the list of removed rows.
-          children.forEach(child => removedRows.add(this.dataManager!.getRowIndex(child)));
+          children.forEach((child) => {
+            const childRowIndex = this.dataManager!.getRowIndex(child);
+
+            if (childRowIndex !== null) {
+              removedRows.add(childRowIndex);
+            }
+          });
         }
 
         return removedRows;
@@ -439,8 +452,13 @@ export class NestedRows extends BasePlugin {
    * @param {object} parent Parent element.
    * @param {object} element New child element.
    */
-  #onAfterAddChild = (parent: Record<string, unknown>, element: Record<string, unknown>) => {
-    this.collapsingUI!.collapsedRowsStash.shiftStash(this.dataManager!.getRowIndex(element));
+  #onAfterAddChild = (parent: RowObject, element: RowObject | undefined) => {
+    const newChildRowIndex = this.dataManager!.getRowIndex(element);
+
+    if (newChildRowIndex !== null) {
+      this.collapsingUI!.collapsedRowsStash.shiftStash(newChildRowIndex);
+    }
+
     this.collapsingUI!.collapsedRowsStash.applyStash();
 
     this.headersUI!.updateRowHeaderWidth(undefined);

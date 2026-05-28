@@ -7,7 +7,7 @@ import type { default as CellRange } from '../../../3rdparty/walkontable/src/cel
  * Minimal interface that toggleMergeItem requires from the MergeCells plugin.
  */
 interface MergeCellsPluginRef {
-  mergedCellsCollection: MergedCellsCollection;
+  mergedCellsCollection: MergedCellsCollection | null;
   toggleMerge(cellRange: CellRange): void;
 }
 
@@ -21,7 +21,7 @@ export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
     name() {
       const selection = this.getSelectedActive();
 
-      if (selection) {
+      if (selection && plugin.mergedCellsCollection) {
         const info = plugin.mergedCellsCollection.get(selection[0], selection[1]);
 
         if (info !== false && info.row === selection[0] && info.col === selection[1] &&

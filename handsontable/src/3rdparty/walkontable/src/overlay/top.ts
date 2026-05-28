@@ -69,7 +69,7 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode || !this.clone) {
       // removed from DOM
       return false;
     }
@@ -191,6 +191,10 @@ export class TopOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
+    if (!this.clone) {
+      return;
+    }
+
     const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
@@ -225,6 +229,10 @@ export class TopOverlay extends Overlay {
    * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
+    if (!this.clone) {
+      return;
+    }
+
     const { holder } = this.clone.wtTable;
     const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
@@ -245,7 +253,7 @@ export class TopOverlay extends Overlay {
   applyToDOM() {
     const total = this.wtSettings.getSetting('totalRows');
 
-    if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+    if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
@@ -266,10 +274,14 @@ export class TopOverlay extends Overlay {
    * Synchronize calculated left position to an element.
    */
   syncOverlayOffset() {
+    if (!this.clone) {
+      return;
+    }
+
     const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
 
-    if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+    if (typeof this.wot.wtViewport.columnsRenderCalculator?.startPosition === 'number') {
       spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else {
@@ -299,7 +311,7 @@ export class TopOverlay extends Overlay {
     let scrollbarCompensation = 0;
 
     if (bottomEdge) {
-      const rowHeight = this.wot.wtTable.getRowHeight(sourceRow);
+      const rowHeight = this.wot.wtTable.getRowHeight(sourceRow) ?? 0;
       const viewportHeight = this.wot.wtViewport.getViewportHeight();
 
       if (rowHeight > viewportHeight) {
@@ -374,7 +386,7 @@ export class TopOverlay extends Overlay {
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const rootHeight = this.wot.wtTable.getTotalHeight();
-      const overlayRootHeight = this.clone.wtTable.getTotalHeight();
+      const overlayRootHeight = this.clone ? this.clone.wtTable.getTotalHeight() : 0;
       const maxOffset = rootHeight - overlayRootHeight;
 
       overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);

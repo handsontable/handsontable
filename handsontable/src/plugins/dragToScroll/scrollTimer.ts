@@ -105,8 +105,8 @@ export class ScrollTimer {
 
     const interval = calculateInterval(
       this.#distance,
-      this.#settings.intervalRange,
-      this.#settings.rampDistance
+      this.#settings!.intervalRange,
+      this.#settings!.rampDistance
     );
 
     this.#timerId = this.#registerTimeout(this.#tick, interval);

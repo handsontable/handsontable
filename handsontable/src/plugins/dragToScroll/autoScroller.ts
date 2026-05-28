@@ -39,7 +39,7 @@ export class AutoScroller {
    * @type {boolean}
    */
   get isActive() {
-    return this.#horizontal.isActive || this.#vertical.isActive;
+    return this.#horizontal!.isActive || this.#vertical!.isActive;
   }
 
   /**
@@ -48,7 +48,7 @@ export class AutoScroller {
    * @type {boolean}
    */
   get isHorizontalActive() {
-    return this.#horizontal.isActive;
+    return this.#horizontal!.isActive;
   }
 
   /**
@@ -57,7 +57,7 @@ export class AutoScroller {
    * @type {boolean}
    */
   get isVerticalActive() {
-    return this.#vertical.isActive;
+    return this.#vertical!.isActive;
   }
 
   /**
@@ -80,8 +80,8 @@ export class AutoScroller {
    * @param {{ x: number, y: number }} overflow Distance past viewport edges (0 = inside, N >0 || N < 0 = pixels outside).
    */
   update({ x, y }: { x: number; y: number }): void {
-    this.#horizontal.update(x);
-    this.#vertical.update(y);
+    this.#horizontal!.update(x);
+    this.#vertical!.update(y);
   }
 
   /**

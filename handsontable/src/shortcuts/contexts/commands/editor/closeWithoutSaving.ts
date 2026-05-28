@@ -6,6 +6,6 @@ export const command = {
     const editorManager = hot._getEditorManager();
 
     editorManager.closeEditorAndRestoreOriginalValue(hot.getShortcutManager().isCtrlPressed());
-    editorManager.activeEditor.focus();
+    editorManager.activeEditor?.focus();
   },
 };

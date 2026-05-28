@@ -38,7 +38,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   innerViewportHeight: number = 0;
   totalCalculatedHeight: number = 0;
   needReverse: boolean = true;
-  positionCache: PositionCache = null;
+  positionCache: PositionCache | null = null;
   lastProcessedIndex: number = -1;
 
   /**
@@ -70,13 +70,21 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * Calculates viewport.
    */
   calculate(): void {
+    if (!this.positionCache) {
+      return;
+    }
+
     calculateAxis(this as unknown as AxisCalculatorContext, {
       totalCount: this.totalRows,
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.innerViewportHeight,
       positionCache: this.positionCache,
-      setSizeField: (ctx, size) => { ctx.rowHeight = size; },
-      setTotalCalculated: (ctx, v) => { ctx.totalCalculatedHeight = v; },
+      setSizeField: (ctx, size) => {
+        ctx.rowHeight = size;
+      },
+      setTotalCalculated: (ctx, v) => {
+        ctx.totalCalculatedHeight = v;
+      },
       getTotalCalculated: ctx => ctx.totalCalculatedHeight as number,
     });
   }
@@ -96,6 +104,6 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    * @returns {number}
    */
   getRowHeight(row: number): number {
-    return this.positionCache.getSizeAt(row);
+    return this.positionCache?.getSizeAt(row) ?? 0;
   }
 }

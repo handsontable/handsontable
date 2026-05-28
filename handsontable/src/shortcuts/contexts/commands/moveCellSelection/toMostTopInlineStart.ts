@@ -14,7 +14,7 @@ export const command = {
     const column = columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 
     selection.markSource('keyboard');
-    selection.setRangeStart(hot._createCellCoords(row, column));
+    selection.setRangeStart(hot._createCellCoords(row ?? 0, column ?? 0));
     selection.markEndSource();
   },
 };

@@ -129,19 +129,32 @@ export class BaseComponent {
   /**
    * The custom logic for component state gathering (for stateful components).
    */
-  getState() {
+  getState(): Record<string, unknown> | string {
     throwWithCause('The state gathering logic is not implemented');
+
+    return {};
+  }
+
+  /**
+   * Returns the menu item descriptor for this component (used to add it to the dropdown menu).
+   *
+   * @returns {object}
+   */
+  getMenuItemDescriptor(): Record<string, unknown> {
+    throwWithCause('The menu item descriptor logic is not implemented');
+
+    return {};
   }
 
   /**
    * Destroy element.
    */
   destroy() {
-    this.hot.columnIndexMapper.unregisterMap(this.stateId);
+    this.hot?.columnIndexMapper.unregisterMap(this.stateId);
     this.clearLocalHooks();
     arrayEach(this.elements, ui => (ui as { destroy: () => void }).destroy());
     this.state = null;
-    this.elements = null;
+    this.elements.length = 0;
     this.hot = null;
   }
 }

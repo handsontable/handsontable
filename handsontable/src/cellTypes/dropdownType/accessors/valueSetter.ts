@@ -1,4 +1,5 @@
 import { valueSetter as autocompleteValueSetter } from '../../autocompleteType/accessors';
+import type { SetterContext } from '../../autocompleteType/accessors/valueSetter';
 
 /**
  * Defines what value is set to an dropdown-typed cell.
@@ -10,6 +11,7 @@ import { valueSetter as autocompleteValueSetter } from '../../autocompleteType/a
  * @returns {*} The new value to be set.
  */
 export function valueSetter(
-  this: object, newValue: unknown, row: number, column: number, cellMeta?: Record<string, unknown>): unknown {
-  return autocompleteValueSetter.call(this, newValue, row, column, cellMeta);
+  this: SetterContext, newValue: unknown, row: number, column: number,
+  cellMeta?: Record<string, unknown>): unknown {
+  return autocompleteValueSetter.call(this, newValue, row, column);
 }

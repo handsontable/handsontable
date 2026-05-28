@@ -59,7 +59,7 @@ export class PersistentState extends BasePlugin {
    * @private
    * @type {Storage}
    */
-  declare storage: Record<string, Function>;
+  declare storage: Record<string, Function> | undefined;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -129,7 +129,7 @@ export class PersistentState extends BasePlugin {
    * @param {object} saveTo Saved value from local storage.
    */
   loadValue(key: string, saveTo: { value: unknown }): void {
-    saveTo.value = this.storage.loadValue(key);
+    saveTo.value = this.storage!.loadValue(key);
   }
 
   /**
@@ -139,7 +139,7 @@ export class PersistentState extends BasePlugin {
    * @param {Mixed} value Value to save.
    */
   saveValue(key: string, value: unknown): void {
-    this.storage.saveValue(key, value);
+    this.storage!.saveValue(key, value);
   }
 
   /**
@@ -149,10 +149,10 @@ export class PersistentState extends BasePlugin {
    */
   resetValue(key?: string): void {
     if (typeof key === 'undefined') {
-      this.storage.resetAll();
+      this.storage!.resetAll();
 
     } else {
-      this.storage.reset(key);
+      this.storage!.reset(key);
     }
   }
 

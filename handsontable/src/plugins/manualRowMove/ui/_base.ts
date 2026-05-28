@@ -38,7 +38,7 @@ class BaseUI {
    * @param {HTMLElement} wrapper Element which are parent for our UI element.
    */
   appendTo(wrapper: HTMLElement) {
-    wrapper.appendChild(this._element);
+    wrapper.appendChild(this._element!);
 
     this.state = STATE_APPENDED;
   }
@@ -60,7 +60,7 @@ class BaseUI {
    */
   destroy() {
     if (this.isAppended()) {
-      this._element.parentElement.removeChild(this._element);
+      this._element!.parentElement?.removeChild(this._element!);
     }
 
     this._element = null;
@@ -91,12 +91,12 @@ class BaseUI {
    * @param {number} top New top position of the element.
    * @param {number} left New left position of the element.
    */
-  setPosition(top?: number, left?: number) {
-    if (top !== undefined) {
-      this._element.style.top = top + UNIT;
+  setPosition(top?: number | null, left?: number | null) {
+    if (top !== null && top !== undefined) {
+      this._element!.style.top = top + UNIT;
     }
-    if (left !== undefined) {
-      this._element.style.left = left + UNIT;
+    if (left !== null && left !== undefined) {
+      this._element!.style.left = left + UNIT;
     }
   }
 
@@ -107,8 +107,8 @@ class BaseUI {
    */
   getPosition() {
     return {
-      top: this._element.style.top ? Number.parseInt(this._element.style.top, 10) : 0,
-      left: this._element.style.left ? Number.parseInt(this._element.style.left, 10) : 0
+      top: this._element!.style.top ? Number.parseInt(this._element!.style.top, 10) : 0,
+      left: this._element!.style.left ? Number.parseInt(this._element!.style.left, 10) : 0
     };
   }
 
@@ -120,10 +120,10 @@ class BaseUI {
    */
   setSize(width?: number, height?: number) {
     if (width) {
-      this._element.style.width = width + UNIT;
+      this._element!.style.width = width + UNIT;
     }
     if (height) {
-      this._element.style.height = height + UNIT;
+      this._element!.style.height = height + UNIT;
     }
   }
 
@@ -134,8 +134,8 @@ class BaseUI {
    */
   getSize() {
     return {
-      width: this._element.style.width ? Number.parseInt(this._element.style.width, 10) : 0,
-      height: this._element.style.height ? Number.parseInt(this._element.style.height, 10) : 0
+      width: this._element!.style.width ? Number.parseInt(this._element!.style.width, 10) : 0,
+      height: this._element!.style.height ? Number.parseInt(this._element!.style.height, 10) : 0
     };
   }
 
@@ -145,12 +145,12 @@ class BaseUI {
    * @param {number} top New margin top of the element.
    * @param {number} left New margin left of the element.
    */
-  setOffset(top: number, left: number) {
+  setOffset(top: number | null, left: number | null) {
     if (top) {
-      this._element.style.marginTop = top + UNIT;
+      this._element!.style.marginTop = top + UNIT;
     }
     if (left) {
-      this._element.style.marginLeft = left + UNIT;
+      this._element!.style.marginLeft = left + UNIT;
     }
   }
 
@@ -161,8 +161,8 @@ class BaseUI {
    */
   getOffset() {
     return {
-      top: this._element.style.marginTop ? Number.parseInt(this._element.style.marginTop, 10) : 0,
-      left: this._element.style.marginLeft ? Number.parseInt(this._element.style.marginLeft, 10) : 0
+      top: this._element!.style.marginTop ? Number.parseInt(this._element!.style.marginTop, 10) : 0,
+      left: this._element!.style.marginLeft ? Number.parseInt(this._element!.style.marginLeft, 10) : 0
     };
   }
 }

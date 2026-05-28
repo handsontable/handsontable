@@ -219,14 +219,30 @@ export class ContextMenu extends BasePlugin {
   registerShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeActive();
+          const activeRange = this.hot.getSelectedRangeActive();
+
+          if (!activeRange) {
+            return;
+          }
+
+          const { highlight } = activeRange;
+
+          if (highlight.row === null || highlight.col === null) {
+            return;
+          }
 
           this.hot.scrollToFocusedCell();
 
-          const rect = this.hot.getCell(highlight.row, highlight.col, true).getBoundingClientRect();
+          const cell = this.hot.getCell(highlight.row, highlight.col, true);
+
+          if (!cell) {
+            return;
+          }
+
+          const rect = cell.getBoundingClientRect();
           const offset = getDocumentOffsetByElement(this.menu!.container, this.hot.rootDocument);
 
           this.open({
@@ -257,7 +273,7 @@ export class ContextMenu extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

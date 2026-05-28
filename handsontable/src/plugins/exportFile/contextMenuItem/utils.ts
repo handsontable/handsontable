@@ -29,17 +29,17 @@ export function getExportOptions(
   const opts = { colHeaders, rowHeaders };
 
   // No selection, single-cell cursor, or corner (select-all) → export entire table.
-  if (!range || range.isSingleCell() || (range.from.row < 0 && range.from.col < 0)) {
+  if (!range || range.isSingleCell() || ((range.from.row ?? 0) < 0 && (range.from.col ?? 0) < 0)) {
     return opts;
   }
 
   return {
     ...opts,
     range: [
-      Math.max(0, Math.min(range.from.row, range.to.row)),
-      Math.max(0, Math.min(range.from.col, range.to.col)),
-      Math.max(range.from.row, range.to.row),
-      Math.max(range.from.col, range.to.col),
+      Math.max(0, Math.min(range.from.row ?? 0, range.to.row ?? 0)),
+      Math.max(0, Math.min(range.from.col ?? 0, range.to.col ?? 0)),
+      Math.max(range.from.row ?? 0, range.to.row ?? 0),
+      Math.max(range.from.col ?? 0, range.to.col ?? 0),
     ],
   };
 }

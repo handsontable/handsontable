@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { isKeyValueObject } from '../../../helpers/object';
 import { A11Y_HIDDEN } from '../../../helpers/a11y';
 import { addClass, eventTargetEl, hasClass } from '../../../helpers/dom/element';
@@ -104,14 +105,14 @@ interface HotInstanceWithRoot {
   getSourceDataAtCell: (row: number, col: number) => unknown;
   setSourceDataAtCell: (row: number, col: number | string, value: unknown, source?: string) => void;
   render: () => void;
-  addHook: (name: string, callback: (...args: unknown[]) => void) => void;
+  addHook: (name: string, callback: (...args: unknown[]) => unknown) => void;
 }
 
 /**
  *
  */
 export function registerChipRemovingEvents(
-  hotInstance: HotInstanceWithRoot,
+  hotInstance: HotInstance,
   rendererType: string
 ): void {
   if (chipsEventManagers.has(hotInstance)) {
@@ -138,7 +139,7 @@ export function registerChipRemovingEvents(
 
     const rowIndex = chip.dataset.row;
     const columnProp = chip.dataset.prop;
-    const physicalRow = hotInstance.toPhysicalRow(rowIndex ?? '');
+    const physicalRow = hotInstance.toPhysicalRow(Number(rowIndex ?? 0));
     const physicalColumn = typeof columnProp === 'string'
       ? columnProp : hotInstance.toPhysicalColumn(Number(columnProp));
     const visualColumn = hotInstance.propToCol(columnProp ?? '');
@@ -150,7 +151,9 @@ export function registerChipRemovingEvents(
     hotInstance.render();
   });
 
-  hotInstance.addHook('beforeOnCellMouseDown', (event: Event) => {
+  hotInstance.addHook('beforeOnCellMouseDown', (...args: unknown[]) => {
+    const event = args[0] as Event;
+
     if (hasClass(eventTargetEl(event)!, CHIP_REMOVE_CLASS)) {
       stopImmediatePropagation(event as MouseEvent);
     }
@@ -159,14 +162,14 @@ export function registerChipRemovingEvents(
 
 interface HotInstanceWithColWidth {
   getColWidth: (col: number) => number;
-  addHook: (name: string, callback: (...args: unknown[]) => void) => void;
+  addHook: (name: string, callback: (...args: unknown[]) => unknown) => void;
 }
 
 /**
  *
  */
 export function cacheColumnWidthAndRegisterResizeHook(
-  hotInstance: HotInstanceWithColWidth & object,
+  hotInstance: HotInstance,
   col: number
 ): number {
   const currentWidth = hotInstance.getColWidth(col);
@@ -182,7 +185,9 @@ export function cacheColumnWidthAndRegisterResizeHook(
   }
 
   if (!beforeColumnResizeHookRegistered.has(hotInstance)) {
-    hotInstance.addHook('beforeColumnResize', (newSize: number, columnIndex: number) => {
+    hotInstance.addHook('beforeColumnResize', (...args: unknown[]) => {
+      const newSize = args[0] as number;
+      const columnIndex = args[1] as number;
       const cache = latestColumnWidthCache.get(hotInstance);
 
       if (cache?.[columnIndex]?.width !== newSize) {

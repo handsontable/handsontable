@@ -213,7 +213,7 @@ export class Pagination extends BasePlugin {
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
     this.#serverSideTotalCount = null;
 
-    this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
+    this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding', false);
 
     if (this.#pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
       warn(AUTO_PAGE_SIZE_WARNING);
@@ -383,11 +383,11 @@ export class Pagination extends BasePlugin {
   disablePlugin() {
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
-      .unregisterMap(this.pluginName);
+      .unregisterMap(this.pluginName!);
 
     this.#unregisterFocusScope();
 
-    this.#ui.destroy();
+    this.#ui?.destroy();
     this.#ui = null;
 
     super.disablePlugin();
@@ -416,7 +416,7 @@ export class Pagination extends BasePlugin {
    * }}
    */
   getPaginationData() {
-    const totalPages = this.#calcStrategy.getTotalPages();
+    const totalPages = this.#calcStrategy?.getTotalPages() ?? 0;
     let firstVisibleRowIndex = -1;
     let lastVisibleRowIndex = -1;
 
@@ -428,10 +428,25 @@ export class Pagination extends BasePlugin {
         lastVisibleRowIndex = countRows - 1;
       }
     } else {
+      const state = this.#calcStrategy?.getState(this.#currentPage);
+
+      if (!state) {
+        return {
+          currentPage: this.#currentPage,
+          totalPages: 0,
+          pageSize: 0,
+          pageSizeList: [],
+          autoPageSize: false,
+          numberOfRenderedRows: 0,
+          firstVisibleRowIndex,
+          lastVisibleRowIndex,
+        };
+      }
+
       const {
         pageSize,
         startIndex,
-      } = this.#calcStrategy.getState(this.#currentPage);
+      } = state;
 
       const countRows = this.hot.countRows();
       let visibleCount = 0;
@@ -455,7 +470,7 @@ export class Pagination extends BasePlugin {
       }
     }
 
-    const stateForReturn = this.#calcStrategy.getState(this.#currentPage);
+    const stateForReturn = this.#calcStrategy?.getState(this.#currentPage);
 
     return {
       currentPage: this.#currentPage,
@@ -584,7 +599,7 @@ export class Pagination extends BasePlugin {
    * Switches the page to the last one.
    */
   lastPage(): void {
-    this.setPage(this.#calcStrategy.getTotalPages());
+    this.setPage(this.#calcStrategy?.getTotalPages() ?? 1);
   }
 
   /**
@@ -602,7 +617,7 @@ export class Pagination extends BasePlugin {
    * @returns {boolean}
    */
   hasNextPage(): boolean {
-    return this.#currentPage < this.#calcStrategy.getTotalPages();
+    return this.#currentPage < (this.#calcStrategy?.getTotalPages() ?? 0);
   }
 
   /**
@@ -630,7 +645,7 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageSizeVisibilityChange
    */
   showPageSizeSection(): void {
-    this.#ui.setPageSizeSectionVisibility(true);
+    this.#ui?.setPageSizeSectionVisibility(true);
     this.hot.runHooks('afterPageSizeVisibilityChange', true);
   }
 
@@ -640,7 +655,7 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageSizeVisibilityChange
    */
   hidePageSizeSection(): void {
-    this.#ui.setPageSizeSectionVisibility(false);
+    this.#ui?.setPageSizeSectionVisibility(false);
     this.hot.runHooks('afterPageSizeVisibilityChange', false);
   }
 
@@ -650,7 +665,7 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageCounterVisibilityChange
    */
   showPageCounterSection(): void {
-    this.#ui.setCounterSectionVisibility(true);
+    this.#ui?.setCounterSectionVisibility(true);
     this.hot.runHooks('afterPageCounterVisibilityChange', true);
   }
 
@@ -660,7 +675,7 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageCounterVisibilityChange
    */
   hidePageCounterSection(): void {
-    this.#ui.setCounterSectionVisibility(false);
+    this.#ui?.setCounterSectionVisibility(false);
     this.hot.runHooks('afterPageCounterVisibilityChange', false);
   }
 
@@ -670,7 +685,7 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageNavigationVisibilityChange
    */
   showPageNavigationSection(): void {
-    this.#ui.setNavigationSectionVisibility(true);
+    this.#ui?.setNavigationSectionVisibility(true);
     this.hot.runHooks('afterPageNavigationVisibilityChange', true);
   }
 
@@ -680,7 +695,7 @@ export class Pagination extends BasePlugin {
    * @fires Hooks#afterPageNavigationVisibilityChange
    */
   hidePageNavigationSection(): void {
-    this.#ui.setNavigationSectionVisibility(false);
+    this.#ui?.setNavigationSectionVisibility(false);
     this.hot.runHooks('afterPageNavigationVisibilityChange', false);
   }
 
@@ -712,7 +727,7 @@ export class Pagination extends BasePlugin {
    */
   #computeAndApplyState() {
     this.#internalExecutionCall = true;
-    this.#pagedRowsMap.clear();
+    this.#pagedRowsMap?.clear();
 
     const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
     const renderableRowsLength = renderableIndexes.length;
@@ -723,7 +738,7 @@ export class Pagination extends BasePlugin {
       ? (this.#serverSideTotalCount ?? renderableRowsLength)
       : renderableRowsLength;
 
-    this.#calcStrategy.calculate({
+    this.#calcStrategy?.calculate({
       pageSize: this.#pageSize,
       totalItems,
       viewportSizeProvider: () => {
@@ -734,10 +749,10 @@ export class Pagination extends BasePlugin {
           const margin = Number.parseInt(bodyStyle.marginTop, 10) + Number.parseInt(bodyStyle.marginBottom, 10);
           const columnHeaderHeight = this.hot.hasColHeaders()
             ? view._wt.wtViewport.getColumnHeaderHeight() : 0;
-          const paginationContainerHeight = this.#ui.getHeight();
+          const paginationContainerHeight = this.#ui?.getHeight();
           const workspaceHeight = view.getWorkspaceHeight();
 
-          return workspaceHeight - paginationContainerHeight - columnHeaderHeight - margin;
+          return workspaceHeight - (paginationContainerHeight ?? 0) - columnHeaderHeight - margin;
         }
 
         const scrollbarWidth = view.hasHorizontalScroll() ? getScrollbarWidth() : 0;
@@ -758,22 +773,23 @@ export class Pagination extends BasePlugin {
       },
     });
 
-    const totalPages = this.#calcStrategy.getTotalPages();
+    const totalPages = this.#calcStrategy?.getTotalPages();
 
-    this.#currentPage = clamp(this.#currentPage, 1, totalPages);
+    this.#currentPage = clamp(this.#currentPage, 1, totalPages ?? 1);
 
     if (!externalPagedMode && renderableIndexes.length > 0) {
-      const {
-        startIndex,
-        pageSize,
-      } = this.#calcStrategy.getState(this.#currentPage);
+      const pageState = this.#calcStrategy?.getState(this.#currentPage);
 
-      renderableIndexes.splice(startIndex, pageSize);
+      if (pageState) {
+        const { startIndex, pageSize } = pageState;
+
+        renderableIndexes.splice(startIndex, pageSize);
+      }
     }
 
     if (!externalPagedMode && renderableIndexes.length > 0) {
       this.hot.batchExecution(() => {
-        renderableIndexes.forEach((index: number) => this.#pagedRowsMap.setValueAtIndex(index, true));
+        renderableIndexes.forEach((index: number) => this.#pagedRowsMap?.setValueAtIndex(index, true));
       }, true);
     } else if (!externalPagedMode) {
       this.hot.rowIndexMapper.updateCache(true);
@@ -790,13 +806,13 @@ export class Pagination extends BasePlugin {
 
     if (externalPagedMode) {
       const totalRows = totalItems;
-      const pageSize = this.#calcStrategy.getState(this.#currentPage)?.pageSize ?? this.#pageSize;
+      const pageSize = this.#calcStrategy?.getState(this.#currentPage)?.pageSize ?? this.#pageSize;
 
       uiState.counterStartRow = ((this.#currentPage - 1) * (pageSize as number)) + 1;
       uiState.counterEndRow = Math.min((this.#currentPage * (pageSize as number)), totalRows);
     }
 
-    this.#ui.updateState(uiState);
+    this.#ui?.updateState(uiState);
   }
 
   /**
@@ -831,19 +847,25 @@ export class Pagination extends BasePlugin {
    * Registers the focus scope for the pagination plugin.
    */
   #registerFocusScope() {
+    const container = this.#ui?.getContainer();
+
+    if (!container) {
+      return;
+    }
+
     this.hot.getFocusScopeManager()
-      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+      .registerScope(PLUGIN_KEY, container, {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
         runOnlyIf: () => Boolean(this.getSetting('showPageSize')) || Boolean(this.getSetting('showNavigation')),
         onActivate: (focusSource: unknown) => {
-          const focusableElements = this.#ui.getFocusableElements();
+          const focusableElements = this.#ui?.getFocusableElements();
 
-          if (focusableElements.length > 0) {
+          if (focusableElements && focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
-              focusableElements.at(0).focus();
+              focusableElements.at(0)?.focus();
 
             } else if (focusSource === 'tab_from_below') {
-              focusableElements.at(-1).focus();
+              focusableElements.at(-1)?.focus();
             }
           }
         },
@@ -900,14 +922,18 @@ export class Pagination extends BasePlugin {
 
     const selectedRange = this.hot.getSelectedRangeLast();
 
+    if (!selectedRange) {
+      return;
+    }
+
     if (!selectedRange.isSingle()) {
       const { highlight } = selectedRange;
+      const topRow = selectedRange.getTopStartCorner().row;
+      const bottomRow = selectedRange.getBottomEndCorner().row;
 
-      highlight.row = clamp(
-        highlight.row,
-        selectedRange.getTopStartCorner().row,
-        selectedRange.getBottomEndCorner().row
-      );
+      if (highlight.row !== null && topRow !== null && bottomRow !== null) {
+        highlight.row = clamp(highlight.row, topRow, bottomRow);
+      }
     }
   };
 
@@ -971,8 +997,8 @@ export class Pagination extends BasePlugin {
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
     this.#ui
-      .updateWidth(width)
-      .refreshBorderState();
+      ?.updateWidth(width)
+      ?.refreshBorderState();
   };
 
   /**
@@ -1000,7 +1026,7 @@ export class Pagination extends BasePlugin {
     const heightValue = typeof height === 'string' && height.endsWith('px')
       ? height : `${height}px`;
 
-    return `calc(${heightValue} - ${this.#ui.getHeight()}px)`;
+    return `calc(${heightValue} - ${this.#ui?.getHeight()}px)`;
   };
 
   /**
@@ -1019,7 +1045,7 @@ export class Pagination extends BasePlugin {
    * the border state of the pagination UI.
    */
   #onAfterScrollVertically = () => {
-    this.#ui.refreshBorderState();
+    this.#ui?.refreshBorderState();
   };
 
   /**
@@ -1035,7 +1061,7 @@ export class Pagination extends BasePlugin {
    * @param {string | undefined} themeName The name of the theme to use.
    */
   #onAfterSetTheme = (themeName: unknown) => {
-    this.#ui.updateTheme(themeName as string | undefined);
+    this.#ui?.updateTheme(themeName as string | undefined);
   };
 
   /**

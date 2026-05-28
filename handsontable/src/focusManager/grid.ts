@@ -44,7 +44,7 @@ export class FocusGridManager {
    *
    * @type {'cell' | 'mixed'}
    */
-  #focusMode: FocusMode;
+  #focusMode!: FocusMode;
   /**
    * The delay after which the focus switches from the lastly selected cell to the active editor's `TEXTAREA`
    * element if the focus mode is set to 'mixed'.
@@ -227,7 +227,7 @@ export class FocusGridManager {
 
       if (
         elementToBeFocused &&
-        !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened()
+        !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
       ) {
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
       }
@@ -250,7 +250,7 @@ export class FocusGridManager {
     // Re-focus on the editor's `TEXTAREA` element (or a predefined element) if the `imeFastEdit` option is enabled.
     if (
       this.#hot.getSettings().imeFastEdit &&
-      !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened()
+      !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
     ) {
       (this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.refreshValue?.();
 
@@ -280,11 +280,18 @@ export class FocusGridManager {
       return;
     }
 
-    const cell = this.#hot.getCell(highlight.row, highlight.col, true);
+    if (highlight.row === null || highlight.col === null) {
+      callback(null);
+
+      return;
+    }
+
+    const { row, col } = highlight;
+    const cell = this.#hot.getCell(row, col, true);
 
     if (cell === null) {
       this.#hot.addHookOnce('afterScroll', () => {
-        callback(this.#hot.getCell(highlight.row, highlight.col, true));
+        callback(this.#hot.getCell(row, col, true));
       });
 
     } else {

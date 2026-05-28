@@ -86,6 +86,10 @@ export class FullyVisibleColumnsCalculationType {
       columnWidth,
     } = viewportCalculator;
 
+    if (!positionCache) {
+      return;
+    }
+
     // If the estimation has reached the last column and there is still some space available in the viewport,
     // we need to render in reverse in order to fill the whole viewport with columns
     if (this.endColumn === totalColumns - 1 && needReverse) {
@@ -126,11 +130,11 @@ export class FullyVisibleColumnsCalculationType {
       this.isVisibleInTrimmingContainer = true;
     }
 
-    if (totalColumns < this.endColumn) {
+    if (this.endColumn !== null && totalColumns < this.endColumn) {
       this.endColumn = totalColumns - 1;
     }
 
-    if (this.startColumn !== null) {
+    if (this.startColumn !== null && this.endColumn !== null) {
       this.count = this.endColumn - this.startColumn + 1;
     }
   }

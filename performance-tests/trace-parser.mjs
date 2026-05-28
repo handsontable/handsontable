@@ -179,7 +179,9 @@ function forEachEvent(events, config) {
     const aStart = eventTimingsMilliSeconds(a).startTime;
     const bStart = eventTimingsMilliSeconds(b).startTime;
 
-    if (aStart !== bStart) { return aStart - bStart; }
+    if (aStart !== bStart) {
+      return aStart - bStart;
+    }
     // Same start: longer events first (parents before children)
     const aDur = eventTimingsMilliSeconds(a).duration;
     const bDur = eventTimingsMilliSeconds(b).duration;
@@ -201,8 +203,12 @@ function forEachEvent(events, config) {
       continue;
     }
 
-    if (currentEnd < globalStartTime) { continue; }
-    if (currentStart > globalEndTime) { break; }
+    if (currentEnd < globalStartTime) {
+      continue;
+    }
+    if (currentStart > globalEndTime) {
+      break;
+    }
 
     // Pop events that ended before current starts
     let lastEventOnStack = stack[stack.length - 1];
@@ -219,7 +225,9 @@ function forEachEvent(events, config) {
       }
     }
 
-    if (config.eventFilter && !config.eventFilter(currentEvent)) { continue; }
+    if (config.eventFilter && !config.eventFilter(currentEvent)) {
+      continue;
+    }
 
     if (currentDuration > 0) {
       config.onStartEvent(currentEvent);
@@ -230,7 +238,9 @@ function forEachEvent(events, config) {
   while (stack.length) {
     const last = stack.pop();
 
-    if (last) { config.onEndEvent(last); }
+    if (last) {
+      config.onEndEvent(last);
+    }
   }
 }
 
@@ -239,7 +249,9 @@ function forEachEvent(events, config) {
 const categoryBreakdownCacheSymbol = Symbol('categoryBreakdownCache');
 
 function buildRangeStatsCacheIfNeeded(events) {
-  if (events[categoryBreakdownCacheSymbol]) { return; }
+  if (events[categoryBreakdownCacheSymbol]) {
+    return;
+  }
 
   const sortedEvents = [...events].sort((a, b) => {
     const aTimings = eventTimingsMilliSeconds(a);
@@ -252,7 +264,9 @@ function buildRangeStatsCacheIfNeeded(events) {
     return (bTimings.duration || 0) - (aTimings.duration || 0);
   });
 
-  if (sortedEvents.length === 0) { return; }
+  if (sortedEvents.length === 0) {
+    return;
+  }
 
   const aggregatedStats = {};
   const categoryStack = [];
@@ -264,8 +278,12 @@ function buildRangeStatsCacheIfNeeded(events) {
     }
     const statsArrays = aggregatedStats[category];
 
-    if (statsArrays.time.length && statsArrays.time[statsArrays.time.length - 1] === time) { return; }
-    if (lastTime > time) { return; }
+    if (statsArrays.time.length && statsArrays.time[statsArrays.time.length - 1] === time) {
+      return;
+    }
+    if (lastTime > time) {
+      return;
+    }
     const lastValue = statsArrays.value.length > 0 ? statsArrays.value[statsArrays.value.length - 1] : 0;
 
     // Match TimelineUIUtils: always append (including zero-length steps at categoryChange)
@@ -274,10 +292,14 @@ function buildRangeStatsCacheIfNeeded(events) {
   }
 
   function categoryChange(from, to, time) {
-    if (from) { updateCategory(from, time); }
+    if (from) {
+      updateCategory(from, time);
+    }
     lastTime = time;
 
-    if (to) { updateCategory(to, time); }
+    if (to) {
+      updateCategory(to, time);
+    }
   }
 
   function onStartEvent(e) {
@@ -334,7 +356,9 @@ function statsForTimeRange(events, startTime, endTime) {
     const stats = {};
     const cache = events[categoryBreakdownCacheSymbol];
 
-    if (!cache) { return stats; }
+    if (!cache) {
+      return stats;
+    }
     for (const category of Object.keys(cache)) {
       const categoryCache = cache[category];
       const index = upperBound(categoryCache.time, time, (a, b) => a - b);
@@ -398,8 +422,12 @@ function findMainRendererThread(events) {
     }
   }
 
-  if (rendererThreads.length === 0) { return null; }
-  if (rendererThreads.length === 1) { return rendererThreads[0]; }
+  if (rendererThreads.length === 0) {
+    return null;
+  }
+  if (rendererThreads.length === 1) {
+    return rendererThreads[0];
+  }
 
   // Multiple renderer threads: pick the one with the most complete events
   let best = null;
@@ -458,7 +486,9 @@ function computeTraceBounds(events) {
 // Finds the "interesting" region of the trace by detecting low utilization at edges
 // Uses ALL main thread entries (not just visible) - matches DevTools behavior
 function calculateWindow(traceBoundsUs, allMainThreadEntries) {
-  if (!allMainThreadEntries.length) { return traceBoundsUs; }
+  if (!allMainThreadEntries.length) {
+    return traceBoundsUs;
+  }
 
   // Sort entries (already sorted, but ensure)
   const entries = [...allMainThreadEntries].sort((a, b) => a.ts - b.ts);
@@ -518,7 +548,9 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   // Find Profile event (gives start time for CPU profiling)
   const profileEvent = events.find(e => e.name === 'Profile' && e.pid === mainPid);
 
-  if (!profileEvent || !profileEvent.args?.data?.startTime) { return 0; }
+  if (!profileEvent || !profileEvent.args?.data?.startTime) {
+    return 0;
+  }
 
   const cpuStartTime = profileEvent.args.data.startTime; // μs absolute
 
@@ -527,7 +559,9 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
     .filter(e => e.name === 'ProfileChunk' && e.pid === mainPid)
     .sort((a, b) => a.ts - b.ts);
 
-  if (chunks.length === 0) { return 0; }
+  if (chunks.length === 0) {
+    return 0;
+  }
 
   const allSamples = [];
   const allDeltas = [];
@@ -536,15 +570,25 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   for (const chunk of chunks) {
     const d = chunk.args?.data;
 
-    if (!d) { continue; }
-    if (d.cpuProfile?.samples) { allSamples.push(...d.cpuProfile.samples); }
-    if (d.timeDeltas) { allDeltas.push(...d.timeDeltas); }
+    if (!d) {
+      continue;
+    }
+    if (d.cpuProfile?.samples) {
+      allSamples.push(...d.cpuProfile.samples);
+    }
+    if (d.timeDeltas) {
+      allDeltas.push(...d.timeDeltas);
+    }
     if (d.cpuProfile?.nodes) {
-      for (const n of d.cpuProfile.nodes) { allNodes.set(n.id, n); }
+      for (const n of d.cpuProfile.nodes) {
+        allNodes.set(n.id, n);
+      }
     }
   }
 
-  if (allSamples.length === 0) { return 0; }
+  if (allSamples.length === 0) {
+    return 0;
+  }
 
   // Compute absolute timestamps for each sample
   let t = cpuStartTime;
@@ -559,7 +603,9 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
 
   // Helper: merge overlapping intervals for correct binary search
   function mergeIntervals(intervals) {
-    if (!intervals.length) { return []; }
+    if (!intervals.length) {
+      return [];
+    }
     intervals.sort((a, b) => a[0] - b[0]);
     const merged = [intervals[0].slice()];
 
@@ -583,7 +629,13 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
     while (lo <= hi) {
       const mid = Math.floor((lo + hi) / 2);
 
-      if (merged[mid][1] <= ts) { lo = mid + 1; } else if (merged[mid][0] > ts) { hi = mid - 1; } else { return true; }
+      if (merged[mid][1] <= ts) {
+        lo = mid + 1;
+      } else if (merged[mid][0] > ts) {
+        hi = mid - 1;
+      } else {
+        return true;
+      }
     }
 
     return false;
@@ -621,7 +673,11 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
     while (lo < hi) {
       const mid = Math.floor((lo + hi) / 2);
 
-      if (nonRunTaskEventStarts[mid] <= ts) { lo = mid + 1; } else { hi = mid; }
+      if (nonRunTaskEventStarts[mid] <= ts) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
     }
     // lo is the index of the first event start > ts
     if (lo < nonRunTaskEventStarts.length && nonRunTaskEventStarts[lo] < runTaskEnd) {
@@ -634,7 +690,9 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
   // Find RunTask end for a given timestamp
   function getRunTaskEnd(ts) {
     for (const rt of runTaskEvents) {
-      if (ts >= rt.ts && ts < rt.ts + rt.dur) { return rt.ts + rt.dur; }
+      if (ts >= rt.ts && ts < rt.ts + rt.dur) {
+        return rt.ts + rt.dur;
+      }
     }
 
     return ts; // shouldn't happen
@@ -650,20 +708,28 @@ function computeProfileCallScripting(events, mainPid, mainTid, windowMinUs, wind
     const nextTs = i < allSamples.length - 1 ? timestamps[i + 1] : Infinity;
 
     // Only consider samples within the display window
-    if (ts < windowMinUs || ts >= windowMaxUs) { continue; }
+    if (ts < windowMinUs || ts >= windowMaxUs) {
+      continue;
+    }
 
     // Check if non-idle
     const nodeId = allSamples[i];
     const node = allNodes.get(nodeId);
     const fname = node?.callFrame?.functionName ?? '';
 
-    if (IDLE_NAMES.has(fname)) { continue; }
+    if (IDLE_NAMES.has(fname)) {
+      continue;
+    }
 
     // Must be within a RunTask
-    if (!inMerged(ts, mergedRunTasks)) { continue; }
+    if (!inMerged(ts, mergedRunTasks)) {
+      continue;
+    }
 
     // Must NOT be within an existing visible scripting event
-    if (inMerged(ts, mergedScripting)) { continue; }
+    if (inMerged(ts, mergedScripting)) {
+      continue;
+    }
 
     // Cap duration at: next trace event start in RunTask, RunTask end, next sample, window end
     const runTaskEnd = getRunTaskEnd(ts);
@@ -844,7 +910,9 @@ export function parseTrace(traceJson) {
 }
 
 function mean(nums) {
-  if (nums.length === 0) { return NaN; }
+  if (nums.length === 0) {
+    return NaN;
+  }
 
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
@@ -864,7 +932,9 @@ export function averageParsedTraces(parsedResults) {
 
   for (const r of parsedResults) {
     if (r.categories) {
-      for (const k of Object.keys(r.categories)) { catKeys.add(k); }
+      for (const k of Object.keys(r.categories)) {
+        catKeys.add(k);
+      }
     }
   }
   const categories = {};

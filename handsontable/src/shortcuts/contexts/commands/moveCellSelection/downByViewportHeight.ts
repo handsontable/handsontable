@@ -6,7 +6,7 @@ export const command = {
     const { selection } = hot;
     const { navigableHeaders } = hot.getSettings();
     const columnHeadersCount = (navigableHeaders ? hot.countColHeaders() : 0);
-    const { row } = hot.getSelectedRangeActive().highlight;
+    const row = hot.getSelectedRangeActive()?.highlight.row ?? 0;
     let rowsStep = hot.countVisibleRows() + columnHeadersCount;
 
     rowsStep = rowsStep === 0 ? 1 : rowsStep;
@@ -25,7 +25,7 @@ export const command = {
     selection.transformStart(rowsStep, 0);
     selection.markEndSource();
 
-    if (hot.getSelectedRangeActive().highlight.row < 0) {
+    if ((hot.getSelectedRangeActive()?.highlight.row ?? 0) < 0) {
       hot.scrollViewportTo({ row: 0 });
     }
   },

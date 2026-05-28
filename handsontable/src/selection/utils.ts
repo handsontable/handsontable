@@ -131,15 +131,17 @@ export function normalizeSelectionFactory(type: number, {
       const origColStart = colStart;
       const origColEnd = colEnd;
 
-      rowStart = Math.min(origRowStart, origRowEnd);
-      colStart = Math.min(origColStart, origColEnd);
-      rowEnd = Math.max(origRowStart, origRowEnd);
-      colEnd = Math.max(origColStart, origColEnd);
+      rowStart = Math.min(origRowStart ?? 0, origRowEnd ?? 0);
+      colStart = Math.min(origColStart ?? 0, origColEnd ?? 0);
+      rowEnd = Math.max(origRowStart ?? 0, origRowEnd ?? 0);
+      colEnd = Math.max(origColStart ?? 0, origColEnd ?? 0);
     }
 
-    const highlight = isObjectType ? (selection as CellRange).highlight.clone() : createCellCoords(rowStart, colStart);
-    const from = createCellCoords(rowStart, colStart);
-    const to = createCellCoords(rowEnd, colEnd);
+    const highlight = isObjectType
+      ? (selection as CellRange).highlight.clone()
+      : createCellCoords(rowStart ?? 0, colStart ?? 0);
+    const from = createCellCoords(rowStart ?? 0, colStart ?? 0);
+    const to = createCellCoords(rowEnd ?? 0, colEnd ?? 0);
 
     return createCellRange(highlight, from, to);
   };
@@ -171,10 +173,10 @@ export function transformSelectionToColumnDistance(hotInstance: HotInstance) {
   const unorderedIndexes = new Set<number>();
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
-  arrayEach(hotInstance.getSelected(), (selection) => {
+  arrayEach(hotInstance.getSelected() ?? [], (selection) => {
     const { from, to } = selectionSchemaNormalizer(selection);
-    const columnNonHeaderStart = Math.max(from.col, 0);
-    const amount = to.col - columnNonHeaderStart + 1;
+    const columnNonHeaderStart = Math.max(from.col ?? 0, 0);
+    const amount = (to.col ?? 0) - columnNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => columnNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {
@@ -225,10 +227,10 @@ export function transformSelectionToRowDistance(hotInstance: HotInstance) {
   const unorderedIndexes = new Set<number>();
 
   // Iterate through all ranges and collect all column indexes which are not saved yet.
-  arrayEach(hotInstance.getSelected(), (selection) => {
+  arrayEach(hotInstance.getSelected() ?? [], (selection) => {
     const { from, to } = selectionSchemaNormalizer(selection);
-    const rowNonHeaderStart = Math.max(from.row, 0);
-    const amount = to.row - rowNonHeaderStart + 1;
+    const rowNonHeaderStart = Math.max(from.row ?? 0, 0);
+    const amount = (to.row ?? 0) - rowNonHeaderStart + 1;
 
     arrayEach(Array.from(new Array(amount), (_, i) => rowNonHeaderStart + i), (index) => {
       if (!unorderedIndexes.has(index)) {

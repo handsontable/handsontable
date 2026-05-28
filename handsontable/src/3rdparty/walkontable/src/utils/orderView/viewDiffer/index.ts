@@ -48,7 +48,7 @@ export class ViewDiffer {
    *
    * @returns {Array[]} Returns an array with generated commands/leads.
    */
-  diff() {
+  diff(): number[][] {
     const { sizeSet } = this;
     const {
       currentSize: currentViewSize,

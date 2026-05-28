@@ -72,6 +72,11 @@ export class StretchCalculator {
       this.#widthsMap.clear();
 
       const stretchStrategy = this.#stretchStrategies.get(this.#activeStrategy);
+
+      if (!stretchStrategy) {
+        return;
+      }
+
       const view = this.#hot.view;
       let viewportWidth = view.getViewportWidth();
 

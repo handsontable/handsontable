@@ -40,7 +40,7 @@ export abstract class Overlay {
   declare facadeGetter: Function;
   declare instance: WalkontableInstance;
   declare type: string;
-  declare mainTableScrollableElement: HTMLElement | Window;
+  declare mainTableScrollableElement: HTMLElement | Window; // assigned in makeClone() called from constructor
   declare TABLE: HTMLTableElement;
   declare hider: HTMLElement;
   declare spreader: HTMLElement;
@@ -79,13 +79,12 @@ export abstract class Overlay {
     this.instance = this.wot;
 
     this.type = type;
-    this.mainTableScrollableElement = null;
     this.TABLE = TABLE;
     this.hider = hider;
     this.spreader = spreader;
     this.holder = holder;
     this.wtRootElement = wtRootElement;
-    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode as HTMLElement);
+    this.trimmingContainer = getTrimmingContainer((this.hider.parentNode?.parentNode ?? this.hider) as HTMLElement);
     this.needFullRender = this.shouldBeRendered();
     this.clone = this.makeClone();
   }
@@ -143,7 +142,7 @@ export abstract class Overlay {
    * Update the trimming container.
    */
   updateTrimmingContainer() {
-    this.trimmingContainer = getTrimmingContainer(this.hider.parentNode.parentNode as HTMLElement);
+    this.trimmingContainer = getTrimmingContainer((this.hider.parentNode?.parentNode ?? this.hider) as HTMLElement);
   }
 
   /**
@@ -184,7 +183,7 @@ export abstract class Overlay {
    * @returns {{top: number, start: number}|undefined}
    */
   getRelativeCellPosition(element: HTMLElement, rowIndex: number, columnIndex: number) {
-    if (this.clone.wtTable.holder.contains(element) === false) {
+    if (!this.clone || this.clone.wtTable.holder.contains(element) === false) {
       warn(`The provided element is not a child of the ${this.type} overlay`);
 
       return;
@@ -272,7 +271,7 @@ export abstract class Overlay {
       horizontalOffset = absoluteRootElementStartPosition <= 0 ? (-1) * absoluteRootElementStartPosition : 0;
     }
 
-    if (onFixedRowTop) {
+    if (onFixedRowTop && this.clone) {
       const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
 
       verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
@@ -313,7 +312,7 @@ export abstract class Overlay {
       horizontalOffset = tableScrollPosition.horizontal - spreaderOffset.start;
     }
 
-    if (onFixedRowBottom) {
+    if (onFixedRowBottom && this.clone) {
       const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();// todo refactoring: DEMETER
       const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();// todo refactoring: DEMETER
 
@@ -347,6 +346,10 @@ export abstract class Overlay {
     const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
 
+    if (!tableParent) {
+      throwWithCause('The Walkontable root element has no parent node.');
+    }
+
     clone.className = `${CLONE_CLASS_NAMES.get(this.type)} handsontable`;
     clone.setAttribute('dir', this.isRtl() ? 'rtl' : 'ltr');
     clone.style.position = 'absolute';
@@ -371,7 +374,7 @@ export abstract class Overlay {
     const mainTableRole = wtTable.TABLE.getAttribute('role');
 
     if (mainTableRole) {
-      clonedTable.setAttribute('role', wtTable.TABLE.getAttribute('role'));
+      clonedTable.setAttribute('role', mainTableRole);
     }
 
     clone.appendChild(clonedTable);
@@ -416,7 +419,7 @@ export abstract class Overlay {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    if (this.needFullRender) {
+    if (this.needFullRender && this.clone) {
       const cloneSource = this.clone.cloneSource;
 
       cloneSource.activeOverlayName = this.clone.wtTable.name;
@@ -429,6 +432,10 @@ export abstract class Overlay {
    * Reset overlay styles to initial values.
    */
   reset() {
+    if (!this.clone) {
+      return;
+    }
+
     const holder = this.clone.wtTable.holder; // todo refactoring: DEMETER
     const hider = this.clone.wtTable.hider; // todo refactoring: DEMETER
     const holderStyle = holder.style;
@@ -454,6 +461,6 @@ export abstract class Overlay {
    * Destroy overlay instance.
    */
   destroy() {
-    this.clone.eventManager.destroy(); // todo check if it is good place for that operation
+    this.clone?.eventManager.destroy(); // todo check if it is good place for that operation
   }
 }

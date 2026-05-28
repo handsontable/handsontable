@@ -21,13 +21,13 @@ export class RadioInputUI extends BaseUI {
    *
    * @type {HTMLInputElement}
    */
-  #input: HTMLInputElement;
+  #input: HTMLInputElement | null = null;
   /**
    * The reference to the label element.
    *
    * @type {HTMLLabelElement}
    */
-  #label: HTMLLabelElement;
+  #label: HTMLLabelElement | null = null;
 
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(RadioInputUI.DEFAULTS, options) as Record<string, unknown>);
@@ -38,6 +38,10 @@ export class RadioInputUI extends BaseUI {
    */
   build() {
     super.build();
+
+    if (!this.hot || !this._element) {
+      return;
+    }
 
     const label = this.hot.rootDocument.createElement('label');
     const labelOpts = this.options.label as { textContent?: string; htmlFor?: string };
@@ -63,7 +67,9 @@ export class RadioInputUI extends BaseUI {
 
     const labelOpts = this.options.label as { textContent?: string; htmlFor?: string };
 
-    this.#label.textContent = String(this.translateIfPossible(labelOpts.textContent) ?? '');
+    if (this.#label) {
+      this.#label.textContent = String(this.translateIfPossible(labelOpts.textContent) ?? '');
+    }
   }
 
   /**
@@ -72,7 +78,7 @@ export class RadioInputUI extends BaseUI {
    * @returns {boolean}
    */
   isChecked() {
-    return this.isBuilt() ? this.#input.checked : false;
+    return this.isBuilt() && this.#input ? this.#input.checked : false;
   }
 
   /**
@@ -81,7 +87,7 @@ export class RadioInputUI extends BaseUI {
    * @param {boolean} value Set the component state.
    */
   setChecked(value = true) {
-    if (this.isBuilt()) {
+    if (this.isBuilt() && this.#input) {
       this.#input.checked = value;
     }
   }
@@ -91,7 +97,7 @@ export class RadioInputUI extends BaseUI {
    */
   focus() {
     if (this.isBuilt()) {
-      this.#input.focus();
+      this.#input?.focus();
     }
   }
 }

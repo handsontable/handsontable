@@ -350,7 +350,7 @@ class DataProvider {
       return [];
     }
 
-    const mergedCells = mergeCellsPlugin.mergedCellsCollection.mergedCells;
+    const mergedCells = mergeCellsPlugin.mergedCellsCollection!.mergedCells;
     const result: MergeCellDescriptor[] = [];
     const excludeHiddenRows = this.options.exportHiddenRows === false;
     const excludeHiddenCols = this.options.exportHiddenColumns === false;
@@ -640,7 +640,7 @@ class DataProvider {
     }
 
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
-    const allEndpoints = plugin.endpoints.getAllEndpoints();
+    const allEndpoints = plugin.endpoints!.getAllEndpoints();
 
     // First pass: collect all destination data-row indices so we can exclude every
     // summary destination from every formula's source range.  Without this, multiple
@@ -649,6 +649,10 @@ class DataProvider {
     const allDestRows = new Set<number>();
 
     allEndpoints.forEach((endpoint: SummaryEndpoint) => {
+      if (endpoint.destinationRow === undefined) {
+        return;
+      }
+
       const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
 
       if (destRow !== null) {
@@ -695,6 +699,10 @@ class DataProvider {
     endpoint: SummaryEndpoint, startRow: number, endRow: number,
     startCol: number, endCol: number, allDestRows: Set<number>
   ) {
+    if (endpoint.destinationRow === undefined || endpoint.destinationColumn === undefined) {
+      return null;
+    }
+
     const destRow = this._physicalRowToDataIndex(endpoint.destinationRow, startRow, endRow);
     const destCol = this._physicalColToDataIndex(endpoint.destinationColumn, startCol, endCol);
 

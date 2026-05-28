@@ -201,7 +201,7 @@ export default class TreeNode {
       throwWithCause(`Traversal strategy "${traversalStrategy}" does not exist`);
     }
 
-    TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);
+    TRAVERSAL_STRATEGIES.get(traversalStrategy)!.call(this, callback, this);
   }
 
   /**

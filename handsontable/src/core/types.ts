@@ -205,12 +205,12 @@ export interface HotInstance {
   _createCellRange(highlight: CellCoords, from?: CellCoords, to?: CellCoords): CellRange;
 
   // Undo/Redo
-  undo(): void;
-  redo(): void;
-  clearUndo(): void;
-  isUndoAvailable(): boolean;
-  isRedoAvailable(): boolean;
-  undoRedo: object;
+  undo?(): void;
+  redo?(): void;
+  clearUndo?(): void;
+  isUndoAvailable?(): boolean;
+  isRedoAvailable?(): boolean;
+  undoRedo?: object;
 
   // Plugins
   getPlugin<K extends keyof PluginTypeMap>(pluginName: K): PluginTypeMap[K];
