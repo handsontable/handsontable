@@ -5,6 +5,108 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+// Embedded so the example is self-contained in StackBlitz and bundler environments.
+const QUICK_FILTER_STYLES = `
+  .controlsQuickFilter {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+  }
+  #filterField {
+    border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+    background: none;
+    color: var(--sl-color-text, #333333);
+    font-size: var(--sl-text-sm, 0.875rem);
+    padding: 0.4rem 0.625rem;
+    outline: none;
+    width: 140px;
+  }
+  #filterField::placeholder { color: var(--sl-color-gray-3, #777777); }
+  #filterField:focus { border-color: var(--sl-color-accent, #1A42E8); }
+  #filterField:focus-visible {
+    border-color: var(--sl-color-accent, #1A42E8);
+    box-shadow: 0 0 0 1px var(--sl-color-accent, #1A42E8);
+  }
+  .filter-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .filter-dropdown-label {
+    color: var(--sl-color-gray-2, #555555);
+    font-size: var(--sl-text-sm, 0.875rem);
+    white-space: nowrap;
+  }
+  .filter-dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+    color: var(--sl-color-gray-2, #555555);
+    cursor: pointer;
+    font-size: var(--sl-text-sm, 0.875rem);
+    font-weight: 500;
+    padding: 0.4rem 0.625rem;
+    transition: color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+    border-radius: 0;
+  }
+  .filter-dropdown-trigger:hover {
+    color: var(--sl-color-white, #333333);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6, #eeeeee));
+  }
+  .filter-dropdown-chevron {
+    flex-shrink: 0;
+    margin-inline-start: 0.15rem;
+    transition: transform 0.15s;
+  }
+  .filter-dropdown-trigger[aria-expanded='true'] .filter-dropdown-chevron { transform: rotate(180deg); }
+  .filter-dropdown-menu {
+    background: var(--sl-color-bg-nav, #ffffff);
+    border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+    border-radius: 0;
+    box-shadow: none;
+    inset-inline-start: 0;
+    list-style: none;
+    margin: 0;
+    min-width: 100%;
+    overflow-y: auto;
+    padding: 0;
+    position: absolute;
+    top: 100%;
+    z-index: 9999;
+  }
+  .filter-dropdown-menu li {
+    align-items: center;
+    color: var(--sl-color-text, #333333);
+    display: flex;
+    font-size: var(--sl-text-sm, 0.875rem);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+    list-style: none;
+    margin: 0;
+  }
+  .filter-dropdown-menu li:last-child { border-bottom: none; }
+  .filter-dropdown-menu li:hover,
+  .filter-dropdown-menu li:focus-visible {
+    background: var(--sl-color-gray-6, #eeeeee);
+    color: var(--sl-color-white, #333333);
+    outline: none;
+  }
+  .filter-dropdown-menu li[aria-selected='true'] {
+    color: var(--sl-color-white, #333333);
+    box-shadow: inset 0 0 0 1px var(--sl-color-accent, #1A42E8);
+  }
+`;
+
 const columns = [
   { value: '0', label: 'Brand' },
   { value: '1', label: 'Model' },
@@ -51,35 +153,38 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controlsQuickFilter">
-        <div className="filter-dropdown" ref={dropdownRef}>
-          <span className="filter-dropdown-label">Select a column:</span>
-          <button
-            className="filter-dropdown-trigger"
-            type="button"
-            aria-haspopup="listbox"
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
-          >
-            <span className="filter-dropdown-text">{selectedLabel}</span>
-            <svg className="filter-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
-          </button>
-          {open && (
-            <ul className="filter-dropdown-menu" role="listbox">
-              {columns.map((col) => (
-                <li
-                  key={col.value}
-                  role="option"
-                  aria-selected={col.value === selectedColumn}
-                  onClick={() => handleSelect(col)}
-                >
-                  {col.label}
-                </li>
-              ))}
-            </ul>
-          )}
+      <style>{QUICK_FILTER_STYLES}</style>
+      <div className="example-controls-container">
+        <div className="controlsQuickFilter">
+          <div className="filter-dropdown" ref={dropdownRef}>
+            <span className="filter-dropdown-label">Select a column:</span>
+            <button
+              className="filter-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={open}
+              onClick={() => setOpen(!open)}
+            >
+              <span className="filter-dropdown-text">{selectedLabel}</span>
+              <svg className="filter-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            {open && (
+              <ul className="filter-dropdown-menu" role="listbox">
+                {columns.map((col) => (
+                  <li
+                    key={col.value}
+                    role="option"
+                    aria-selected={col.value === selectedColumn}
+                    onClick={() => handleSelect(col)}
+                  >
+                    {col.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <input id="filterField" type="text" placeholder="Filter" onKeyUp={handleFilter} />
         </div>
-        <input id="filterField" type="text" placeholder="Filter" onKeyUp={handleFilter} />
       </div>
       <HotTable
         ref={hotTableComponentRef}
