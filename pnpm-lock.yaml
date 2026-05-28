@@ -31,7 +31,6 @@ overrides:
   node-gyp>tar: ^7.5.11
   cacache>tar: ^7.5.11
   undici: ^6.24.0
-  react-star-rating-component>react: 18.3.1
   '@astrojs/mdx': ^6.0.1
 
 packageExtensionsChecksum: sha256-HW0fEgNzl97t+n6OP9YhjxMaqHuFQdiKyvrxqn9AYp4=
@@ -235,9 +234,6 @@ importers:
       react-redux:
         specifier: ^9.2.0
         version: 9.3.0(@types/react@18.3.29)(react@18.3.1)(redux@5.0.1)
-      react-star-rating-component:
-        specifier: ^1.4.1
-        version: 1.4.1(react@18.3.1)
       redux:
         specifier: ^5.0.1
         version: 5.0.1
@@ -5884,9 +5880,6 @@ packages:
   cjs-module-lexer@1.4.3:
     resolution: {integrity: sha512-9z8TZaGM1pfswYeXrUpzPrkx8UnWYdhJclsiYMm6x/w5+nN+8Tf/LnAgfLGQCm59qAOxU8WwHEq2vNwF6i4j+Q==}
 
-  classnames@2.5.1:
-    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
-
   cli-cursor@2.1.0:
     resolution: {integrity: sha512-8lgKz8LmCRYZZQDpRyT2m5rKJ08TnU4tR9FFFW2rxpxR1FzWi4PQ/NfyODchAatHaUgnSPVcx/R5w6NuTBzFiw==}
     engines: {node: '>=4'}
@@ -10013,12 +10006,6 @@ packages:
         optional: true
       redux:
         optional: true
-
-  react-star-rating-component@1.4.1:
-    resolution: {integrity: sha512-i0YEvQzToS0s0GDkxn01Jy4EeLpVEyh023NXJTJ+/1+xkvhpACyD4d1YeBhYWZab53ppUnUxs5gmp75gJr3khA==}
-    engines: {node: '>=8.0.0', npm: '>=5.5.0'}
-    peerDependencies:
-      react: 18.3.1
 
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
@@ -18111,8 +18098,6 @@ snapshots:
 
   cjs-module-lexer@1.4.3: {}
 
-  classnames@2.5.1: {}
-
   cli-cursor@2.1.0:
     dependencies:
       restore-cursor: 2.0.0
@@ -23836,12 +23821,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.29
       redux: 5.0.1
-
-  react-star-rating-component@1.4.1(react@18.3.1):
-    dependencies:
-      classnames: 2.5.1
-      prop-types: 15.8.1
-      react: 18.3.1
 
   react@18.3.1:
     dependencies:
