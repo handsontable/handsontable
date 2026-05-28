@@ -23,6 +23,7 @@ interface TrimmingContainerCache {
   trimmingOffsetWidth: number;
   trimmingOffsetHeight: number;
   hiderOffsetHeight: number;
+  hiderOffsetWidth: number;
   holderWidth: string;
   holderHeight: string;
   hasTableHeight: boolean;
@@ -131,11 +132,13 @@ class MasterTable extends Table {
       const trimmingOffsetWidth = trimmingElement.offsetWidth;
       const trimmingOffsetHeight = trimmingElement.offsetHeight;
       const hiderOffsetHeight = this.hider.offsetHeight;
+      const hiderOffsetWidth = this.hider.offsetWidth;
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
         && cache.trimmingOffsetHeight === trimmingOffsetHeight
-        && cache.hiderOffsetHeight === hiderOffsetHeight;
+        && cache.hiderOffsetHeight === hiderOffsetHeight
+        && cache.hiderOffsetWidth === hiderOffsetWidth;
 
       if (cacheValid) {
         // Fast path: apply cached measurements without the expensive
@@ -247,6 +250,7 @@ class MasterTable extends Table {
             trimmingOffsetWidth,
             trimmingOffsetHeight,
             hiderOffsetHeight,
+            hiderOffsetWidth,
             holderWidth,
             holderHeight,
             hasTableHeight,
