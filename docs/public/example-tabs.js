@@ -810,6 +810,12 @@ document.addEventListener('DOMContentLoaded', function () {
       private: true,
       scripts: { ng: 'ng', start: 'ng serve', build: 'ng build' },
       dependencies: deps,
+      // Add @types/* for third-party packages that ship without bundled declarations.
+      devDependencies: Object.assign(
+        {},
+        extraDeps['papaparse']   ? { '@types/papaparse':   'latest' } : {},
+        extraDeps['moment']      ? { '@types/moment':      'latest' } : {}
+      ),
     }, null, 2);
 
     var angularJson = JSON.stringify({
