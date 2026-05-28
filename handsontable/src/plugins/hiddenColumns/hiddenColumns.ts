@@ -452,14 +452,17 @@ export class HiddenColumns extends BasePlugin {
    */
   #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
     if (this.getSetting('copyPasteEnabled') === false) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. Marked with a Symbol so
-      // the flag clears itself once a previously hidden column is shown again, without overwriting
-      // `skipColumnOnPaste` values set by the user via `columns`, `cells`, or `cell` configuration.
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. The plugin only sets
+      // and marks cells whose `skipColumnOnPaste` it actually flips to `true`. Cells that already
+      // had `true` from user configuration (`columns`, `cells`, or `cell`) are left untouched,
+      // so that unhiding the column does not erase the user-defined value.
       const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
 
       if (this.isHidden(column)) {
-        cellProperties.skipColumnOnPaste = true;
-        cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN] = true;
+        if (cellProperties.skipColumnOnPaste !== true) {
+          cellProperties.skipColumnOnPaste = true;
+          cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN] = true;
+        }
       } else if (cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
         delete cellProperties.skipColumnOnPaste;
         delete cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
