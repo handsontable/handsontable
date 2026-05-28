@@ -1,21 +1,49 @@
-/* Custom scrollbar styling — subtle (exclude Handsontable internals) */
-*:not(.handsontable *) {
+/* Custom scrollbar styling — subtle.
+ *
+ * Use a plain universal `*` base rule + a positive `.handsontable *` reset rather
+ * than `*:not(.handsontable *)`.  The negative descendant form forces Blink to
+ * walk the ancestor chain for every element during HOT DOM mutations (O(depth)
+ * per cell); the positive override is indexed on the `.handsontable` class and
+ * is evaluated only for elements that already have a `.handsontable` ancestor.
+ */
+* {
   scrollbar-width: thin;
   scrollbar-color: var(--sl-color-gray-5) transparent;
 }
 
-*:not(.handsontable *)::-webkit-scrollbar {
+/* HOT manages its own scrollbar UX — restore native defaults for all HOT internals */
+.handsontable,
+.handsontable * {
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+}
+
+*::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
-*:not(.handsontable *)::-webkit-scrollbar-track {
+.handsontable *::-webkit-scrollbar {
+  width: revert;
+  height: revert;
+}
+
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-*:not(.handsontable *)::-webkit-scrollbar-thumb {
+.handsontable *::-webkit-scrollbar-track {
+  background: revert;
+}
+
+*::-webkit-scrollbar-thumb {
   background-color: var(--sl-color-gray-5);
   border-radius: 2px;
+}
+
+.handsontable *::-webkit-scrollbar-thumb {
+  background-color: revert;
+  border-radius: revert;
 }
 
 *::-webkit-scrollbar-thumb:hover {
