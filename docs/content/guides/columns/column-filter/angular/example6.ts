@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild, ViewEncapsulation } from "@angular/core";
 import { GridSettings, HotTableComponent, HotTableModule } from "@handsontable/angular-wrapper";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
@@ -7,6 +7,7 @@ import { FormControl, ReactiveFormsModule } from "@angular/forms";
   standalone: true,
   imports: [HotTableModule, ReactiveFormsModule],
   selector: "app-example6",
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div class="example-controls-container">
       <div class="controlsQuickFilter">
