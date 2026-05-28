@@ -36,10 +36,38 @@ interface TrimmingContainerCache {
  * @mixes calculatedColumns
  */
 class MasterTable extends Table {
-  // `null` means a fresh measurement is needed.
+  /**
+   * Output and input fingerprint of the last slow-path
+   * `alignOverlaysWithTrimmingContainer()` measurement. `null` when no valid
+   * cache is available — either before the first measurement or after an
+   * invalidation by a ResizeObserver callback. The fast path applies the
+   * cached output only when the fingerprint still matches the current DOM
+   * dimensions.
+   */
   #trimmingCache: TrimmingContainerCache | null = null;
+  /**
+   * ResizeObserver attached to the trimming container referenced by
+   * `#observedTrimmingElement`. Fires asynchronously after the container's
+   * size changes and nulls `#trimmingCache` so the next draw re-measures.
+   * Acts as a defensive backstop — the synchronous fingerprint check at draw
+   * time catches the same changes, but the observer invalidates the cache
+   * eagerly, before the next draw is scheduled.
+   */
   #trimmingContainerObserver: ResizeObserver | null = null;
+  /**
+   * ResizeObserver attached to `this.hider`. Fires asynchronously when
+   * rendered content drives the hider to a new size and nulls
+   * `#trimmingCache` so the next draw re-measures. Same backstop role as
+   * `#trimmingContainerObserver`.
+   */
   #hiderObserver: ResizeObserver | null = null;
+  /**
+   * The trimming container currently observed by `#trimmingContainerObserver`.
+   * `alignOverlaysWithTrimmingContainer()` compares this reference against
+   * `getTrimmingContainer(this.wtRootElement)` on every draw to detect when
+   * the HOT instance has been reparented to a new scrollable ancestor, so the
+   * observers can be rebound to the new container.
+   */
   #observedTrimmingElement: HTMLElement | null = null;
 
   /**
@@ -72,11 +100,10 @@ class MasterTable extends Table {
         this.wtRootElement.style.overflow = 'visible';
       }
     } else if (fieldsInitialized) {
-      // (Re-)establish ResizeObservers when the trimming element changes.
-      // This handles the rare case where the HOT container is moved in the DOM.
-      // The observers are a backstop: they catch async size changes (e.g. window
-      // resize) that the synchronous fingerprint check below cannot see ahead of
-      // the next draw call.
+      // Bind ResizeObservers on the first call, and re-bind on the rare draw
+      // where the trimming container has changed (HOT reparented in the DOM).
+      // Each rebind also nulls the cache, since the previous measurement was
+      // taken against a now-stale container reference.
       if (this.#observedTrimmingElement !== trimmingElement) {
         this.#trimmingContainerObserver?.disconnect();
         this.#hiderObserver?.disconnect();
@@ -123,9 +150,9 @@ class MasterTable extends Table {
         this.hasTableHeight = cache.hasTableHeight;
         this.hasTableWidth = cache.hasTableWidth;
       } else {
-        // Slow path: full measurement of the trimming container.
-        // Runs on the first draw and whenever a ResizeObserver fires
-        // (container or hider size changed).
+        // Slow path: full measurement of the trimming container. Runs on
+        // the first draw, whenever the fingerprint no longer matches, and
+        // whenever a ResizeObserver callback has nulled the cache.
         const trimmingElementParent = trimmingElement.parentElement;
         const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
         const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
@@ -209,11 +236,12 @@ class MasterTable extends Table {
         this.hasTableHeight = hasTableHeight;
         this.hasTableWidth = hasTableWidth;
 
-        // Only cache when the trimming container has a real positive width.
-        // When scrollWidth is 0 (e.g. the dropdown HOT has no content yet on first
-        // render), width is min(offsetWidth, 0) = 0 — a transient empty state that
-        // should not be locked in. Without this guard the stale 0px cache would be
-        // applied on every subsequent draw (e.g. after loadData fills the dropdown).
+        // Skip caching transient zero-width states. When scrollWidth is 0
+        // (e.g. the dropdown HOT before content loads), `width` collapses to
+        // min(offsetWidth, 0) = 0. The fingerprint check would invalidate
+        // such a cache on the next draw anyway, but suppressing the write
+        // here avoids one wasted fast-path application before the next slow
+        // measurement.
         if (width > 0) {
           this.#trimmingCache = {
             trimmingOffsetWidth,
@@ -253,7 +281,9 @@ class MasterTable extends Table {
   }
 
   /**
-   * Cleans up ResizeObservers to prevent memory leaks when the Walkontable instance is destroyed.
+   * Disconnects the ResizeObservers and drops cache references so the
+   * MasterTable instance, the trimming container, and the hider can be
+   * garbage-collected after Walkontable is destroyed.
    */
   destroy() {
     this.#trimmingContainerObserver?.disconnect();
