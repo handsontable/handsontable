@@ -1,24 +1,19 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CHANGELOG_ROOT = resolve(__dirname, '../../content/guides/upgrade-and-migration');
 
-const CHANGELOG_FILES = [
-  'changelog-6/changelog-6.md',
-  'changelog-7/changelog-7.md',
-  'changelog-8/changelog-8.md',
-  'changelog-9/changelog-9.md',
-  'changelog-10/changelog-10.md',
-  'changelog-11/changelog-11.md',
-  'changelog-12/changelog-12.md',
-  'changelog-13/changelog-13.md',
-  'changelog-14/changelog-14.md',
-  'changelog-15/changelog-15.md',
-  'changelog-16/changelog-16.md',
-  'changelog-17/changelog-17.md',
-];
+// Auto-detect changelog files at module load: scan upgrade-and-migration/ for
+// changelog-N directories, sort ascending by major version, and emit the
+// matching changelog-N.md path inside each. Adding a new major release no
+// longer requires editing this list.
+const CHANGELOG_FILES = readdirSync(CHANGELOG_ROOT, { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && /^changelog-\d+$/.test(entry.name))
+  .map(entry => `${entry.name}/${entry.name}.md`)
+  .filter(rel => existsSync(resolve(CHANGELOG_ROOT, rel)))
+  .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));
 
 const MONTHS = {
   january: '01', february: '02', march: '03', april: '04',

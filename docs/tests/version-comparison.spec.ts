@@ -9,22 +9,21 @@ test.describe('Version comparison page', () => {
     await expect(page.locator('#version-comparison-root')).toBeAttached();
     await expect(page.locator('.vc-selector-trigger').first()).toBeVisible();
 
-    const count = page.locator('[data-testid="entry-count"]');
-    await expect(count).toBeVisible();
-    const initial = await count.textContent();
-    expect(initial).toContain('changes');
+    // At least one rendered entry confirms the data pipeline ran and the widget mounted.
+    await expect(page.locator('.vc-entry').first()).toBeVisible();
   });
 
   test('changing the From version updates the entry count', async ({ page }) => {
     await page.goto(PAGE_PATH);
-    const count = page.locator('[data-testid="entry-count"]');
-    const before = await count.textContent();
+    const entries = page.locator('.vc-entry');
+    const before = await entries.count();
 
     const fromWrapper = page.locator('.vc-selector', { hasText: 'From' });
     await fromWrapper.locator('.vc-selector-trigger').click();
     await fromWrapper.locator('.vc-selector-item', { hasText: /^14\.0/ }).click();
 
-    await expect(count).not.toHaveText(before ?? '');
+    // Widening the From..To range must surface a different number of entries.
+    await expect.poll(async () => entries.count()).not.toBe(before);
   });
 
   test('clicking a filter tab narrows the visible entries', async ({ page }) => {

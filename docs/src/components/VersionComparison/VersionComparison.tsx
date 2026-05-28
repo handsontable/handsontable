@@ -406,14 +406,11 @@ function useActiveVersion(versions: string[]): string | null {
   const [active, setActive] = useState<string | null>(versions[0] ?? null);
   useEffect(() => {
     if (versions.length === 0) return;
-    const visibility = new Map<string, number>();
+    // Scroll-spy: on each intersection event, walk all observed sections and
+    // pick the one closest to the top of the visible window. The observer
+    // only triggers the recompute — it does not influence which version wins.
     const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          const v = (e.target as HTMLElement).dataset.vcVersion;
-          if (!v) continue;
-          visibility.set(v, e.intersectionRatio);
-        }
+      () => {
         let best: string | null = null;
         let bestTop = Infinity;
         for (const v of versions) {
