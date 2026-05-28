@@ -22,6 +22,9 @@ import { mixin } from './../../../../helpers/object';
 interface TrimmingContainerCache {
   trimmingOffsetWidth: number;
   trimmingOffsetHeight: number;
+  trimmingScrollWidth: number;
+  trimmingScrollHeight: number;
+  trimmingOverflow: string;
   hiderOffsetHeight: number;
   hiderOffsetWidth: number;
   holderWidth: string;
@@ -133,12 +136,18 @@ class MasterTable extends Table {
       // `alignOverlaysWithTrimmingContainer()` call in the autocomplete editor.
       const trimmingOffsetWidth = trimmingElement.offsetWidth;
       const trimmingOffsetHeight = trimmingElement.offsetHeight;
+      const trimmingScrollWidth = trimmingElement.scrollWidth;
+      const trimmingScrollHeight = trimmingElement.scrollHeight;
+      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow) ?? '';
       const hiderOffsetHeight = this.hider.offsetHeight;
       const hiderOffsetWidth = this.hider.offsetWidth;
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
         && cache.trimmingOffsetHeight === trimmingOffsetHeight
+        && cache.trimmingScrollWidth === trimmingScrollWidth
+        && cache.trimmingScrollHeight === trimmingScrollHeight
+        && cache.trimmingOverflow === trimmingOverflow
         && cache.hiderOffsetHeight === hiderOffsetHeight
         && cache.hiderOffsetWidth === hiderOffsetWidth;
 
@@ -160,15 +169,13 @@ class MasterTable extends Table {
         // whenever a ResizeObserver callback has nulled the cache.
         const trimmingElementParent = trimmingElement.parentElement;
         const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow);
-        const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow);
         const holderStyle = this.holder.style;
-        const { scrollWidth, scrollHeight } = trimmingElement;
-        let width = trimmingElement.offsetWidth;
-        let height = trimmingElement.offsetHeight;
+        let width = trimmingOffsetWidth;
+        let height = trimmingOffsetHeight;
         const overflowValues = ['auto', 'hidden', 'scroll', 'clip'];
         // getStyle() may return a compound value (e.g. 'auto hidden') when overflow-x and
         // overflow-y are set independently. Split on whitespace so each token is checked.
-        const hasScrollOverflow = (trimmingOverflow ?? '').split(' ').some(v => overflowValues.includes(v));
+        const hasScrollOverflow = trimmingOverflow.split(' ').some(v => overflowValues.includes(v));
         let useAutoHeight = (trimmingHeight === 'auto');
 
         if (trimmingElementParent && hasScrollOverflow) {
@@ -227,8 +234,8 @@ class MasterTable extends Table {
           }
         }
 
-        height = Math.min(height, scrollHeight);
-        width = Math.min(width, scrollWidth);
+        height = Math.min(height, trimmingScrollHeight);
+        width = Math.min(width, trimmingScrollWidth);
 
         const holderHeight = useAutoHeight ? 'auto' : `${height}px`;
         const holderWidth = `${width}px`;
@@ -251,6 +258,9 @@ class MasterTable extends Table {
           this.#trimmingCache = {
             trimmingOffsetWidth,
             trimmingOffsetHeight,
+            trimmingScrollWidth,
+            trimmingScrollHeight,
+            trimmingOverflow,
             hiderOffsetHeight,
             hiderOffsetWidth,
             holderWidth,
