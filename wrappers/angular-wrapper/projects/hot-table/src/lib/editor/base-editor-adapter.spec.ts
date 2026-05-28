@@ -62,6 +62,10 @@ describe('BaseEditorAdapter', () => {
   });
 
   describe('hot table hooks', () => {
+    it('should not throw when afterDestroy hook fires before prepare() is called', () => {
+      expect(() => instance.runHooks('afterDestroy')).not.toThrow();
+    });
+
     it('should call setInput on custom editor when afterRowResize hook is triggered', () => {
       const setInputSpy = jest.spyOn(customEditor.componentRef, 'setInput');
       adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
@@ -80,6 +84,16 @@ describe('BaseEditorAdapter', () => {
       instance.runHooks('afterColumnResize');
 
       expect(setInputSpy).toHaveBeenCalledTimes(5);
+    });
+
+    it('should destroy editor placeholder on afterDestroy hook', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const placeholder = (adapter as any)._editorPlaceHolderRef;
+      const destroySpy = jest.spyOn(placeholder, 'destroy');
+
+      instance.runHooks('afterDestroy');
+
+      expect(destroySpy).toHaveBeenCalled();
     });
   });
 
@@ -209,6 +223,26 @@ describe('BaseEditorAdapter', () => {
 
       expect(setValueSpy).toHaveBeenCalledWith(2);
       expect(detectChangesSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('finishEdit / cancelEdit event subscriptions', () => {
+    it('should call finishEditing when custom editor emits finishEdit', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const finishEditingSpy = jest.spyOn(adapter, 'finishEditing').mockImplementation(() => {});
+
+      customEditor.componentInstance.finishEdit.emit();
+
+      expect(finishEditingSpy).toHaveBeenCalled();
+    });
+
+    it('should call cancelChanges when custom editor emits cancelEdit', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const cancelChangesSpy = jest.spyOn(adapter, 'cancelChanges').mockImplementation(() => {});
+
+      customEditor.componentInstance.cancelEdit.emit();
+
+      expect(cancelChangesSpy).toHaveBeenCalled();
     });
   });
 });

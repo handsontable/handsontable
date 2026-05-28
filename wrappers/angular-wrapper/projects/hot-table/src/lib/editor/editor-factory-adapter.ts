@@ -33,7 +33,7 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
       editor._cancelEditSubscription = undefined;
 
       createEditorPlaceholder(editor, (editor.hot as any)._angularEnvironmentInjector);
-      editor.input = editor._editorPlaceHolderRef.location.nativeElement;
+      editor.input = editor._editorPlaceHolderRef?.location.nativeElement ?? document.createElement('div');
 
       editor._afterRowResizeCallback = (): void => {
         if (editor.isOpened()) {
@@ -48,6 +48,7 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
       };
 
       editor._afterDestroyCallback = (): void => {
+        cleanupSubscriptions(editor);
         if (editor._editorPlaceHolderRef) {
           editor._editorPlaceHolderRef.destroy();
         }
@@ -80,8 +81,8 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
     onFocus: (editor) => editor._componentRef.instance.onFocus?.(editor),
     afterClose: (editor: EditorInstance) => {
       resetEditorState(editor);
-      editor._editorPlaceHolderRef.changeDetectorRef.detectChanges();
-      editor._editorPlaceHolderRef.instance.detachEditor();
+      editor._editorPlaceHolderRef?.changeDetectorRef.detectChanges();
+      editor._editorPlaceHolderRef?.instance.detachEditor();
       editor._componentRef.instance.afterClose?.(editor);
     },
     getValue: (editor) => editor._componentRef.instance.getValue(),

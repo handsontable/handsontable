@@ -171,7 +171,8 @@ describe('HotSettingsResolver', () => {
     const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
     expect(typeof settings.editor).toBe('function');
-    expect(settings._editorComponentReference).toBeUndefined();
+    // ComponentRef is stored so ngOnDestroy can destroy it — advanced editors do NOT set _environmentInjector.
+    expect(settings._editorComponentReference.instance instanceof TestEditorAdvancedComponent).toBe(true);
     expect(settings._environmentInjector).toBeUndefined();
   });
 
@@ -256,6 +257,34 @@ describe('HotSettingsResolver', () => {
     expect(mergedSettings.columns[0].validator.length).toBe(2);
   });
 
+  it('should invoke the custom validator and pass its result to the HOT callback', () => {
+    // validator must have .length === 1 to be recognised as a custom (single-arg) validator
+    const mergedSettings: GridSettings = {
+      columns: [{ validator: (v: any): boolean => v === 'valid' } as ColumnSettings],
+    };
+    service.applyCustomSettings(mergedSettings);
+
+    const wrappedValidator = mergedSettings.columns[0].validator as Function;
+    const callback = jest.fn();
+    wrappedValidator('valid', callback);
+
+    expect(callback).toHaveBeenCalledWith(true);
+  });
+
+  it('should pass false to HOT callback when custom validator returns false', () => {
+    const mergedSettings: GridSettings = {
+      columns: [{ validator: (v: any): boolean => v !== null } as ColumnSettings],
+    };
+    service.applyCustomSettings(mergedSettings);
+
+    const wrappedValidator = mergedSettings.columns[0].validator as Function;
+    const cbFalse = jest.fn();
+
+    wrappedValidator(null, cbFalse);
+
+    expect(cbFalse).toHaveBeenCalledWith(false);
+  });
+
   it('should handle multiple columns with different renderer render modes', () => {
     const mergedSettings: GridSettings = {
       columns: [
@@ -298,8 +327,81 @@ describe('HotSettingsResolver', () => {
     const settings1 = mergedSettings.columns[1] as ColumnSettingsInternal;
     const settings2 = mergedSettings.columns[2] as ColumnSettingsInternal;
 
-    expect(settings0._editorComponentReference).toBeUndefined();
+    expect(settings0._editorComponentReference).toBeDefined(); // advanced — tracked for cleanup
     expect(settings1._editorComponentReference).toBeDefined();
     expect(settings2._editorComponentReference).toBeDefined();
+  });
+
+  describe('null / undefined columns edge cases', () => {
+    it('should not throw when columns is null', () => {
+      const mergedSettings = { columns: null } as unknown as GridSettings;
+
+      expect(() => service.applyCustomSettings(mergedSettings)).not.toThrow();
+      expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
+      expect(dynamicComponentService.createRendererWithFactory).not.toHaveBeenCalled();
+    });
+
+    it('should not throw when columns is undefined', () => {
+      const mergedSettings: GridSettings = {};
+
+      expect(() => service.applyCustomSettings(mergedSettings)).not.toThrow();
+      expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
+    });
+
+    it('should not throw when columns is an empty array', () => {
+      const mergedSettings: GridSettings = { columns: [] };
+
+      expect(() => service.applyCustomSettings(mergedSettings)).not.toThrow();
+      expect(dynamicComponentService.createRendererFromComponent).not.toHaveBeenCalled();
+    });
+
+    it('should not throw when settings object itself has no keys', () => {
+      expect(() => service.applyCustomSettings({} as GridSettings)).not.toThrow();
+    });
+  });
+
+  describe('wrapHooksInNgZone', () => {
+    it('should leave array-valued hooks unchanged and not wrap them', () => {
+      const fn1 = jest.fn();
+      const fn2 = jest.fn();
+      const hookArray = [fn1, fn2];
+      const mergedSettings = { afterChange: hookArray } as unknown as GridSettings;
+
+      service.applyCustomSettings(mergedSettings);
+
+      expect((mergedSettings as any).afterChange).toBe(hookArray);
+    });
+
+    it('should wrap function hooks so they run inside NgZone', () => {
+      const hookFn = jest.fn().mockReturnValue('result');
+      const mergedSettings = { afterChange: hookFn } as unknown as GridSettings;
+
+      service.applyCustomSettings(mergedSettings);
+
+      const wrappedHook = (mergedSettings as any).afterChange;
+      expect(wrappedHook).not.toBe(hookFn);
+      expect(typeof wrappedHook).toBe('function');
+    });
+
+    it('should not wrap non-hook keys', () => {
+      const mergedSettings = { readOnly: true } as GridSettings;
+
+      service.applyCustomSettings(mergedSettings);
+
+      expect((mergedSettings as any).readOnly).toBe(true);
+    });
+
+    it('should not double-wrap a hook when applyCustomSettings is called twice with the same settings object', () => {
+      const hookFn = jest.fn();
+      const mergedSettings = { afterChange: hookFn } as unknown as GridSettings;
+
+      service.applyCustomSettings(mergedSettings);
+      const wrappedOnce = (mergedSettings as any).afterChange;
+
+      service.applyCustomSettings(mergedSettings);
+      const wrappedTwice = (mergedSettings as any).afterChange;
+
+      expect(wrappedTwice).toBe(wrappedOnce);
+    });
   });
 });

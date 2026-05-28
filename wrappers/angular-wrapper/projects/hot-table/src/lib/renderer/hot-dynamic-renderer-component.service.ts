@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { baseRenderer, BaseRenderer, registerRenderer, rendererFactory } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
+import { HotCellRendererBase } from './hot-cell-renderer-base.directive';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
 import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.component';
 
@@ -45,7 +46,7 @@ interface BaseRendererParametersObject {
  * @returns True if the object is a TemplateRef; otherwise, false.
  */
 export function isTemplateRef<T>(obj: any): obj is TemplateRef<T> {
-  return obj && typeof obj.createEmbeddedView === 'function';
+  return !!obj && typeof obj.createEmbeddedView === 'function';
 }
 
 /**
@@ -82,6 +83,11 @@ export function isAdvancedHotCellRendererComponent(obj: any): obj is Type<HotCel
   providedIn: 'root',
 })
 export class DynamicComponentService {
+  // Track Angular component refs and embedded views keyed by the TD element they are attached to.
+  // When a cell is re-rendered the previous component is destroyed before a new one is created.
+  private readonly _tdComponentRefs = new WeakMap<HTMLTableCellElement, ComponentRef<any>>();
+  private readonly _tdEmbeddedViews = new WeakMap<HTMLTableCellElement, EmbeddedViewRef<any>>();
+
   constructor(private appRef: ApplicationRef, private environmentInjector: EnvironmentInjector) {}
 
   /**
@@ -98,6 +104,8 @@ export class DynamicComponentService {
     componentProps: Record<string, any> = {},
     register: boolean = false
   ) {
+    let registered = false;
+
     return (
       instance: Handsontable.Core,
       td: HTMLTableCellElement,
@@ -117,27 +125,40 @@ export class DynamicComponentService {
         cellProperties,
       };
 
-      if (componentProps) {
-        Object.assign(cellProperties, { rendererProps: componentProps });
-      }
+      Object.assign(cellProperties, { rendererProps: componentProps });
 
       const rendererParameters: BaseRendererParameters = [instance, td, row, col, prop, value, cellProperties];
 
       baseRenderer.apply(this, rendererParameters);
 
+      // Destroy previously attached component/view for this cell before replacing its content.
+      const prevRef = this._tdComponentRefs.get(td);
+      if (prevRef) {
+        this.destroyComponent(prevRef);
+        this._tdComponentRefs.delete(td);
+      }
+      const prevView = this._tdEmbeddedViews.get(td);
+      if (prevView) {
+        prevView.destroy();
+        this._tdEmbeddedViews.delete(td);
+      }
+
       td.innerHTML = '';
 
       if (isTemplateRef(component)) {
-        this.attachTemplateToElement(component, td, properties);
+        const embeddedView = this.attachTemplateToElement(component, td, properties);
+        this._tdEmbeddedViews.set(td, embeddedView);
       } else if (isHotCellRendererComponent(component)) {
         const componentRef = this.createComponent(component, properties);
         this.attachComponentToElement(componentRef, td);
+        this._tdComponentRefs.set(td, componentRef);
       } else {
         console.warn(INVALID_RENDERER_WARNING);
       }
 
-      if (register && isHotCellRendererComponent(component)) {
-        Handsontable.renderers.registerRenderer(component.constructor.name, component as any as BaseRenderer);
+      if (register && !registered && isHotCellRendererComponent(component)) {
+        Handsontable.renderers.registerRenderer((component as Type<any>).name, component as any as BaseRenderer);
+        registered = true;
       }
 
       return td;
@@ -158,6 +179,8 @@ export class DynamicComponentService {
     componentProps: Record<string, any> = {},
     register: boolean = false
   ) {
+    let registered = false;
+
     return rendererFactory(({
       instance,
       td,
@@ -177,8 +200,18 @@ export class DynamicComponentService {
         cellProperties,
       };
 
-      if (componentProps) {
-        Object.assign(cellProperties, { rendererProps: componentProps });
+      Object.assign(cellProperties, { rendererProps: componentProps });
+
+      // Destroy previously attached component/view for this cell before replacing its content.
+      const prevRef = this._tdComponentRefs.get(td);
+      if (prevRef) {
+        this.destroyComponent(prevRef);
+        this._tdComponentRefs.delete(td);
+      }
+      const prevView = this._tdEmbeddedViews.get(td);
+      if (prevView) {
+        prevView.destroy();
+        this._tdEmbeddedViews.delete(td);
       }
 
       td.innerHTML = '';
@@ -186,12 +219,35 @@ export class DynamicComponentService {
       if (isAdvancedHotCellRendererComponent(component)) {
         const componentRef = this.createComponent(component, properties);
         this.attachComponentToElement(componentRef, td);
+        this._tdComponentRefs.set(td, componentRef);
       } else {
         console.warn(INVALID_ADVANCED_RENDERER_WARNING);
       }
 
-      if (register && isAdvancedHotCellRendererComponent(component)) {
-        registerRenderer(component.constructor.name, component as any as BaseRenderer);
+      if (register && !registered && isAdvancedHotCellRendererComponent(component)) {
+        registerRenderer(component.name, component as any as BaseRenderer);
+        registered = true;
+      }
+    });
+  }
+
+  /**
+   * Destroys all renderer components and embedded views attached to cells within a container element.
+   * Must be called before destroying the Handsontable instance to prevent Angular component leaks.
+   *
+   * @param container - The root DOM element of the Handsontable instance.
+   */
+  cleanupContainer(container: HTMLElement): void {
+    container.querySelectorAll<HTMLTableCellElement>('td').forEach((td) => {
+      const compRef = this._tdComponentRefs.get(td);
+      if (compRef) {
+        this.destroyComponent(compRef);
+        this._tdComponentRefs.delete(td);
+      }
+      const embView = this._tdEmbeddedViews.get(td);
+      if (embView) {
+        embView.destroy();
+        this._tdEmbeddedViews.delete(td);
       }
     });
   }
@@ -202,8 +258,9 @@ export class DynamicComponentService {
    * @param template - The TemplateRef to create an embedded view from.
    * @param tdEl - The target DOM element (a table cell) to which the view will be appended.
    * @param properties - Context object providing properties to be used within the template.
+   * @returns The created EmbeddedViewRef so the caller can track and destroy it later.
    */
-  private attachTemplateToElement(template: TemplateRef<any>, tdEl: HTMLTableCellElement, properties: BaseRendererParametersObject) {
+  private attachTemplateToElement(template: TemplateRef<any>, tdEl: HTMLTableCellElement, properties: BaseRendererParametersObject): EmbeddedViewRef<any> {
     const embeddedView: EmbeddedViewRef<any> = template.createEmbeddedView({
       $implicit: properties.value,
       ...properties,
@@ -213,6 +270,8 @@ export class DynamicComponentService {
     embeddedView.rootNodes.forEach((node) => {
       tdEl.appendChild(node);
     });
+
+    return embeddedView;
   }
 
   /**
@@ -222,7 +281,7 @@ export class DynamicComponentService {
    * @param rendererParameters - An object containing input properties to assign to the component instance.
    * @returns The ComponentRef of the dynamically created component.
    */
-  private createComponent<T extends HotCellRendererComponent>(
+  private createComponent<T extends HotCellRendererBase>(
     component: Type<T>,
     rendererParameters: BaseRendererParametersObject
   ): ComponentRef<T> {
@@ -230,12 +289,8 @@ export class DynamicComponentService {
       environmentInjector: this.environmentInjector,
     });
 
-    Object.keys(rendererParameters).forEach((key) => {
-      if (Object.prototype.hasOwnProperty.call(rendererParameters, key)) {
-        componentRef.setInput(key, rendererParameters[key]);
-      } else {
-        console.warn(`Input property "${key}" does not exist on component instance: ${component?.name}.`);
-      }
+    (Object.keys(rendererParameters) as (keyof BaseRendererParametersObject)[]).forEach((key) => {
+      componentRef.setInput(key, rendererParameters[key]);
     });
     componentRef.changeDetectorRef.detectChanges();
 

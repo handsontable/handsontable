@@ -11,6 +11,7 @@ import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-
 import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanced.component';
 
 const AVAILABLE_HOOKS_SET = new Set<string>(Handsontable.hooks.getRegistered());
+const HOT_ZONE_WRAPPED = Symbol('hotZoneWrapped');
 
 /**
  * Service to resolve and apply custom settings for Handsontable settings object.
@@ -37,7 +38,7 @@ export class HotSettingsResolver {
 
     this.wrapHooksInNgZone(mergedSettings);
 
-    return (mergedSettings as GridSettingsInternal) ?? {};
+    return mergedSettings as GridSettingsInternal;
   }
 
   /**
@@ -48,13 +49,19 @@ export class HotSettingsResolver {
   private wrapHooksInNgZone(settings: GridSettings): void {
     const ngZone = this.ngZone;
 
-    AVAILABLE_HOOKS_SET.forEach((key) => {
+    // Iterate only the keys actually present in settings instead of all ~100 registered HOT hooks.
+    Object.keys(settings).forEach((key) => {
+      if (!AVAILABLE_HOOKS_SET.has(key)) {
+        return;
+      }
       const option = settings[key];
 
-      if (typeof option === 'function') {
-        settings[key] = function (...args: any) {
+      if (typeof option === 'function' && !(option as any)[HOT_ZONE_WRAPPED]) {
+        const wrapped = function (...args: any) {
           return ngZone.run(() => option.apply(this, args));
         };
+        (wrapped as any)[HOT_ZONE_WRAPPED] = true;
+        settings[key] = wrapped;
       }
     });
   }
@@ -98,6 +105,8 @@ export class HotSettingsResolver {
           const component = createComponent(cellSettings.editor, {
             environmentInjector: this.environmentInjector,
           });
+          // Store the ref so ngOnDestroy / ngOnChanges can destroy it alongside basic editors.
+          cellSettings['_editorComponentReference'] = component;
           cellSettings.editor = FactoryEditorAdapter(component);
         } else {
           const component = createComponent(cellSettings.editor as Type<HotCellEditorComponent<any>>, {

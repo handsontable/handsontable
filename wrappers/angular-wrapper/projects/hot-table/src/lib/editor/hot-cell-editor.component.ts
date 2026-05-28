@@ -1,11 +1,15 @@
-import Handsontable from 'handsontable/base';
-import { Directive, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Directive, HostBinding } from '@angular/core';
+import { HotCellEditorBase } from './hot-cell-editor-base.directive';
 
 /**
- * Abstract class representing a Handsontable editor in angular.
+ * Abstract class representing a basic Handsontable cell editor in Angular.
+ *
+ * Extend this class and decorate the subclass with `@Component()` to implement a custom editor.
+ * Value type is limited to primitives (`string | number | boolean`).
+ * For object and array values use {@link HotCellEditorAdvancedComponent}.
  */
 @Directive()
-export abstract class HotCellEditorComponent<T extends string | number | boolean> {
+export abstract class HotCellEditorComponent<T extends string | number | boolean> extends HotCellEditorBase<T> {
   static readonly EDITOR_MARKER = Symbol('HotCellEditorComponent');
 
   /** The tabindex attribute for the editor. */
@@ -17,81 +21,23 @@ export abstract class HotCellEditorComponent<T extends string | number | boolean
   /** The handsontableInput class for the editor. */
   @HostBinding('class.handsontableInput') protected handsontableInputClass = true;
 
-  /** The height of the editor as a percentage of the parent container. */
-  @HostBinding('style.height.%') protected heightFitParentContainer = 100;
-
-  /** The width of the editor as a percentage of the parent container. */
-  @HostBinding('style.width.%') protected widthFitParentContainer = 100;
-
-  /** The row index of the cell being edited. */
-  @Input() row: number;
-
-  /** The column index of the cell being edited. */
-  @Input() column: number;
-
-  /** The property name of the cell being edited. */
-  @Input() prop: string | number;
-
-  /** The original value of the cell being edited. */
-  @Input() originalValue: T;
-
-  /** The cell properties of the cell being edited. */
-  @Input() cellProperties: Handsontable.CellProperties;
-
-  /** Event emitted when the edit is finished.
-   * The data will be saved to the model.
-   */
-  @Output() finishEdit = new EventEmitter<void>();
-
-  /** Event emitted when the edit is canceled.
-   * The entered data will be reverted to the original value.
-   */
-  @Output() cancelEdit = new EventEmitter<void>();
-
-  /** The current value of the editor. */
-  private _value: T;
-
-  /** Event triggered by Handsontable on closing the editor.
-   * The user can define their own actions for
-   * the custom editor to be called after the base logic. */
+  /** Event triggered by Handsontable on closing the editor. */
   onClose(): void {}
 
-  /** Event triggered by Handsontable on open the editor.
-   * The user can define their own actions for
-   * the custom editor to be called after the base logic. */
+  /** Event triggered by Handsontable on opening the editor. */
   onOpen(event?: Event): void {}
 
-  /** Event triggered by Handsontable on focus the editor.
-   * The user have to define focus logic.
+  /**
+   * Event triggered by Handsontable on focusing the editor.
+   * Must be implemented by the subclass to move focus to the actual input element.
    * @example
    * ```typescript
-   * component({
-   *  template: `<input #inputElement>`
-   * })
-   * class CustomEditor extends HotEditor<string> {
+   * @Component({ template: `<input #inputElement>` })
+   * class CustomEditor extends HotCellEditorComponent<string> {
    *   @ViewChild('inputElement') inputElement!: ElementRef;
-   *
-   *   onFocus(): void {
-   *     this.inputElement.nativeElement.focus();
-   *   }
+   *   onFocus(): void { this.inputElement.nativeElement.focus(); }
    * }
    * ```
    */
   abstract onFocus(): void;
-
-  /**
-   * Gets the current value of the editor.
-   * @returns The current value of the editor.
-   */
-  getValue(): T {
-    return this._value;
-  }
-
-  /**
-   * Sets the current value of the editor.
-   * @param value The value to set.
-   */
-  setValue(value: T): void {
-    this._value = value;
-  }
 }

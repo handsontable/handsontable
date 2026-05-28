@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   EnvironmentInjector,
   Input,
@@ -9,13 +10,16 @@ import {
   OnDestroy,
   SimpleChanges,
   ViewChild,
-  ViewEncapsulation
+  ViewEncapsulation,
+  inject
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
-import { Subscription } from 'rxjs';
+import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
+import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
 
@@ -45,13 +49,14 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /** The Handsontable instance. */
   private __hotInstance: Handsontable | null = null;
-  private configSubscription: Subscription;
+  private readonly _destroyRef = inject(DestroyRef);
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
     private _hotConfig: HotGlobalConfigService,
     public ngZone: NgZone,
-    private readonly environmentInjector: EnvironmentInjector
+    private readonly environmentInjector: EnvironmentInjector,
+    private readonly _dynamicComponentService: DynamicComponentService
   ) {}
 
   /**
@@ -59,7 +64,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * @returns The Handsontable instance or `null` if it's not yet been created or has been destroyed.
    */
   public get hotInstance(): Handsontable | null {
-    if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
+    if (!this.__hotInstance || !this.__hotInstance.isDestroyed) {
       // Will return the Handsontable instance or `null` if it's not yet been created.
       return this.__hotInstance;
     } else {
@@ -94,7 +99,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.hotInstance.init();
     });
 
-    this.configSubscription = this._hotConfig.config$.subscribe((config) => {
+    this._hotConfig.config$.pipe(skip(1), takeUntilDestroyed(this._destroyRef)).subscribe((config) => {
       if (this.hotInstance) {
         const negotiatedSettings = this.getNegotiatedSettings(this.settings);
         this.updateHotTable(negotiatedSettings);
@@ -108,11 +113,23 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
+      // Capture old editor refs before applying new settings so HOT can close any active editor first.
+      const prevColumns = this.__hotInstance?.getSettings().columns;
+
       const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
         changes.settings.currentValue
       );
 
+      // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
+
+      if (Array.isArray(prevColumns)) {
+        prevColumns.forEach((column) => {
+          if (column._editorComponentReference) {
+            column._editorComponentReference.destroy();
+          }
+        });
+      }
     }
 
     if (changes.data && !changes.data.firstChange) {
@@ -125,11 +142,16 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnDestroy(): void {
     this.ngZone.runOutsideAngular(() => {
-      if (!this.hotInstance) {
+      if (!this.__hotInstance || this.__hotInstance.isDestroyed) {
         return;
       }
 
-      const columns = this.hotInstance.getSettings().columns;
+      // Destroy renderer Angular components attached to table cells before HOT removes the DOM.
+      if (this.container) {
+        this._dynamicComponentService.cleanupContainer(this.container.nativeElement);
+      }
+
+      const columns = this.__hotInstance.getSettings().columns;
 
       if (columns && Array.isArray(columns)) {
         columns.forEach((column) => {
@@ -139,10 +161,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         });
       }
 
-      this.hotInstance.destroy();
+      this.__hotInstance.destroy();
     });
-
-    this.configSubscription.unsubscribe();
   }
 
   /**
