@@ -69,7 +69,7 @@ export default class Walkontable extends CoreAbstract {
    * Destroy instance.
    */
   destroy() {
-    (this.wtTable as MasterTable).destroy();
+    this.wtTable.destroy();
     super.destroy();
   }
 
