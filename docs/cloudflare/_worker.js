@@ -1039,9 +1039,13 @@ export default {
           }
 
           // redirectPath may be an absolute path (starts with /) or a relative slug.
+          // An empty redirectPath (e.g. FLAT_HTML_MAP['tutorial-introduction'] === '')
+          // must not produce a double-slash like `/docs/javascript-data-grid//`.
           const dest = redirectPath.startsWith('/')
             ? `/docs/${framework}${redirectPath}`
-            : `/docs/${framework}/${redirectPath}/`;
+            : redirectPath
+              ? `/docs/${framework}/${redirectPath}/`
+              : `/docs/${framework}/`;
 
           return redirect302(abs(dest, url));
         }
@@ -1064,7 +1068,12 @@ export default {
           const framework = getFrameworkFromCookie(cookieValue);
           let redirectPath = FLAT_PAGES_REMAP[page];
 
-          redirectPath = redirectPath.endsWith('/') ? redirectPath : `${redirectPath}/`;
+          // Do not append a trailing slash when the path contains a fragment
+          // (#anchor), as that would place the slash inside the fragment identifier
+          // and break anchor navigation.
+          const hasFragment = redirectPath.includes('#');
+
+          redirectPath = hasFragment || redirectPath.endsWith('/') ? redirectPath : `${redirectPath}/`;
           redirectPath = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
           const dest = `/docs/${framework}${redirectPath}`;
 
