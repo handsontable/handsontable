@@ -16,15 +16,16 @@ const projectRoot = fileURLToPath(new URL('..', import.meta.url));
 const tmpDir = join(projectRoot, 'tmp');
 
 /**
- * Replacement table: types emitted by TS >= 5.2 / 5.6 that TS 5.1 doesn't know.
- * Processed in order — more specific patterns (with generics) come first.
+ * Simple regex replacement table: types emitted by TS >= 5.2 / 5.6 that TS 5.1
+ * doesn't know. Processed in order.
+ *
+ * Generic types whose first type parameter may itself contain angle brackets
+ * (e.g. IteratorObject<Map<K,V>,...>) are handled separately by
+ * replaceGenericType() below — [^,>]+ can't match balanced nested generics.
  *
  * @type {Array<Array>}
  */
 const REPLACEMENTS = [
-  // TS 5.6 — generic iterator types (collapse multi-tparam form to single-tparam supertype)
-  [/\bIteratorObject<\s*([^,>]+)\s*(?:,[^>]+)?>/g, 'IterableIterator<$1>'],
-  [/\bAsyncIteratorObject<\s*([^,>]+)\s*(?:,[^>]+)?>/g, 'AsyncIterableIterator<$1>'],
   // TS 5.6 — named built-in iterator types (subtypes of IterableIterator<T>)
   [/\bArrayIterator\b/g, 'IterableIterator'],
   [/\bMapIterator\b/g, 'IterableIterator'],
@@ -33,10 +34,110 @@ const REPLACEMENTS = [
   [/\bBuiltinIteratorReturn\b/g, 'any'],
   // TS 5.2 — constraint type for WeakMap / WeakSet keys (was `object` before 5.2)
   [/\bWeakKey\b/g, 'object'],
-  // TS 5.2 — using-statement dispose types (speculative; extend if CI catches more)
-  [/\bDisposable\b/g, '{ [Symbol.dispose](): void }'],
-  [/\bAsyncDisposable\b/g, '{ [Symbol.asyncDispose](): PromiseLike<void> }'],
+  // TS 5.2 — using-statement dispose types (speculative; extend if CI catches more).
+  // Symbol.dispose / Symbol.asyncDispose are also TS 5.2+, so we replace with
+  // `object` rather than a struct that references those symbols.
+  [/\bDisposable\b/g, 'object'],
+  [/\bAsyncDisposable\b/g, 'object'],
 ];
+
+/**
+ * Generic types where the first type parameter must be preserved but additional
+ * parameters must be dropped. Handled with bracket-balancing rather than regex
+ * so that nested generics like `IteratorObject<Map<K, V>, undefined>` are parsed
+ * correctly.
+ *
+ * Each entry is [sourceTypeName, replacementTypeName].
+ *
+ * @type {Array<Array>}
+ */
+const GENERIC_REPLACEMENTS = [
+  // TS 5.6 — collapse multi-tparam iterator objects to single-tparam supertype
+  ['IteratorObject', 'IterableIterator'],
+  ['AsyncIteratorObject', 'AsyncIterableIterator'],
+];
+
+/**
+ * Replaces every occurrence of `typeName<T1[, ...]>` with `replacement<T1>`,
+ * where T1 may itself contain nested angle-bracketed generics. Uses bracket
+ * depth counting instead of a regex character class so that inputs like
+ * `IteratorObject<Map<K, V>, undefined>` are handled correctly.
+ *
+ * @param {string} str - Source string.
+ * @param {string} typeName - Identifier to find (e.g. 'IteratorObject').
+ * @param {string} replacement - Replacement identifier (e.g. 'IterableIterator').
+ * @returns {{ result: string, count: number }}
+ */
+function replaceGenericType(str, typeName, replacement) {
+  const prefix = `${typeName}<`;
+  let result = str;
+  let count = 0;
+  let searchFrom = 0;
+
+  for (;;) {
+    const idx = result.indexOf(prefix, searchFrom);
+
+    if (idx === -1) {
+      break;
+    }
+
+    // Enforce word boundary: the char immediately before must not be \w.
+    if (idx > 0 && /\w/.test(result[idx - 1])) {
+      searchFrom = idx + 1;
+      continue;
+    }
+
+    const paramStart = idx + prefix.length;
+
+    // Walk forward to find where the first type parameter ends (depth-aware).
+    let depth = 1;
+    let firstParamEnd = paramStart;
+
+    while (firstParamEnd < result.length && depth > 0) {
+      const ch = result[firstParamEnd];
+
+      if (ch === '<') {
+        depth += 1;
+      } else if (ch === '>') {
+        depth -= 1;
+
+        if (depth === 0) {
+          break; // closing '>' of whole TypeName<...>
+        }
+      } else if (ch === ',' && depth === 1) {
+        break; // comma separating first from second type param
+      }
+
+      firstParamEnd += 1;
+    }
+
+    const firstParam = result.slice(paramStart, firstParamEnd).trim();
+
+    // Walk forward from paramStart to find the closing '>' of the whole expression.
+    let closeDepth = 1;
+    let closePos = paramStart;
+
+    while (closePos < result.length && closeDepth > 0) {
+      const ch = result[closePos];
+
+      if (ch === '<') {
+        closeDepth += 1;
+      } else if (ch === '>') {
+        closeDepth -= 1;
+      }
+
+      closePos += 1;
+    }
+
+    const newToken = `${replacement}<${firstParam}>`;
+
+    result = result.slice(0, idx) + newToken + result.slice(closePos);
+    count += 1;
+    searchFrom = idx + newToken.length;
+  }
+
+  return { result, count };
+}
 
 /**
  * Recursively yields all *.d.ts file paths under `dir`, skipping *.d.ts.map.
@@ -75,6 +176,15 @@ try {
       if (matches) {
         fileReplacements += matches.length;
         updated = updated.replace(regex, replacement);
+      }
+    }
+
+    for (const [typeName, replacement] of GENERIC_REPLACEMENTS) {
+      const { result, count } = replaceGenericType(updated, typeName, replacement);
+
+      if (count > 0) {
+        updated = result;
+        fileReplacements += count;
       }
     }
 
