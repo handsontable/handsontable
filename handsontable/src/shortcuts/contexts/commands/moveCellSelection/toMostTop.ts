@@ -4,7 +4,7 @@ export const command = {
   name: 'moveCellSelectionToMostTop',
   callback(hot: HotInstance) {
     const { selection } = hot;
-    const { col } = hot.getSelectedRangeActive().highlight;
+    const col = hot.getSelectedRangeActive()?.highlight.col ?? 0;
     let row = hot.rowIndexMapper.getNearestNotHiddenIndex(0, 1);
 
     if (row === null) {

@@ -33,6 +33,7 @@ module.exports = {
     'class-methods-use-this': 'off',
     'comma-dangle': 'off',
     'consistent-return': 'off',
+    'brace-style': ['error', '1tbs', { allowSingleLine: false }],
     curly: ['error', 'all'],
     'func-names': 'off',
     'import/no-extraneous-dependencies': 'off',

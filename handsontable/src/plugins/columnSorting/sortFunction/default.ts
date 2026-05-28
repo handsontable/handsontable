@@ -70,11 +70,14 @@ export function compareFunctionFactory(
       nextValue = parseFloat(String(nextValue));
     }
 
-    if (value < nextValue) {
+    const comparableValue = value as string | number;
+    const comparableNextValue = nextValue as string | number;
+
+    if (comparableValue < comparableNextValue) {
       return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
     }
 
-    if (value > nextValue) {
+    if (comparableValue > comparableNextValue) {
       return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
     }
 

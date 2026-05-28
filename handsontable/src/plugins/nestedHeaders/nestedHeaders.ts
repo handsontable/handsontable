@@ -288,7 +288,7 @@ export class NestedHeaders extends BasePlugin {
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
-    this.#hidingIndexMapObserver.unsubscribe();
+    this.#hidingIndexMapObserver?.unsubscribe();
     this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
 
@@ -315,9 +315,12 @@ export class NestedHeaders extends BasePlugin {
     const { _wt: wt } = this.hot.view;
     const headerLevels = (wt.getSetting('columnHeaders') as unknown[]).length;
     const mainHeaders = wt.wtTable.THEAD;
-    const topHeaders = wt.wtOverlays.topOverlay.clone.wtTable.THEAD;
-    const topLeftCornerHeaders = wt.wtOverlays.topInlineStartCornerOverlay ?
-      wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.THEAD : null;
+    const topHeaders = wt.wtOverlays.topOverlay.clone?.wtTable.THEAD;
+    const topLeftCornerHeaders = wt.wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable.THEAD ?? null;
+
+    if (!mainHeaders || !topHeaders) {
+      return;
+    }
 
     for (let i = 0; i < headerLevels; i++) {
       const masterLevel = mainHeaders.childNodes[i];
@@ -399,9 +402,9 @@ export class NestedHeaders extends BasePlugin {
       } else {
         if (colspan !== undefined && colspan > 1) {
           const { wtOverlays } = view._wt;
-          const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone.wtTable.THEAD.contains(TH);
-          const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone.wtTable.THEAD.contains(TH);
-          const isTopOverlay = wtOverlays.topOverlay?.clone.wtTable.THEAD.contains(TH);
+          const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable.THEAD?.contains(TH);
+          const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone?.wtTable.THEAD?.contains(TH);
+          const isTopOverlay = wtOverlays.topOverlay?.clone?.wtTable.THEAD?.contains(TH);
 
           if (isTopOverlay && visualColumnIndex < fixedColumnsStart) {
             addClass(TH, 'hiddenHeaderText');
@@ -469,9 +472,10 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const { highlight } = selection;
-    const isNestedHeadersRange = highlight.isHeader() && highlight.col >= 0;
+    const isNestedHeadersRange = highlight.row !== null && highlight.col !== null &&
+      highlight.isHeader() && highlight.col >= 0;
 
-    if (isNestedHeadersRange) {
+    if (isNestedHeadersRange && highlight.row !== null && highlight.col !== null) {
       const {
         isRowspanPlaceholder,
       }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
@@ -615,11 +619,14 @@ export class NestedHeaders extends BasePlugin {
     const isSelectedByColumnHeader = this.hot.selection.isSelectedByColumnHeader();
     const highlightRow = navigableHeaders ? highlight.row : this.#recentlyHighlightCoords?.row;
     const highlightColumn = isSelectedByColumnHeader ? visualColumn : highlight.col;
-    const isNestedHeadersRange = highlightRow < 0 && highlightColumn >= 0;
+    const isNestedHeadersRange = highlightRow !== null && highlightRow !== undefined &&
+      highlightColumn !== null && highlightColumn !== undefined &&
+      highlightRow < 0 && highlightColumn >= 0;
 
     this.#recentlyHighlightCoords = null;
 
-    if (!isNestedHeadersRange) {
+    if (!isNestedHeadersRange || highlightRow === null || highlightRow === undefined ||
+        highlightColumn === null || highlightColumn === undefined) {
       return visualColumn;
     }
 
@@ -756,14 +763,19 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
-  #onAfterOnCellMouseDown = (event: MouseEvent, coords: { row: number, col: number, clone: () => any }) => {
-    const headerNodeData = this._getHeaderTreeNodeDataByCoords(coords);
+  #onAfterOnCellMouseDown = (event: MouseEvent, coords: CellCoords) => {
+    if (coords.row === null || coords.col === null) {
+      return;
+    }
+
+    const narrowedCoords = { row: coords.row, col: coords.col };
+    const headerNodeData = this._getHeaderTreeNodeDataByCoords(narrowedCoords);
 
     if (!headerNodeData) {
       return;
     }
 
-    this.#focusInitialCoords = coords.clone();
+    this.#focusInitialCoords = { row: coords.row, col: coords.col, clone: () => coords.clone() };
     this.#isColumnsSelectionInProgress = true;
 
     const { selection } = this.hot;
@@ -777,14 +789,16 @@ export class NestedHeaders extends BasePlugin {
     const allowRightClickSelection = !selection.inInSelection(coords as unknown as CellCoords);
 
     if (event.shiftKey && currentSelection) {
-      if (coords.col < currentSelection.from.col) {
-        columnsToSelect = [currentSelection.getTopEndCorner().col, columnIndex, coords.row];
+      if ((coords.col ?? 0) < (currentSelection.from.col ?? 0)) {
+        columnsToSelect = [currentSelection.getTopEndCorner().col ?? 0, columnIndex, coords.row ?? 0];
 
-      } else if (coords.col > currentSelection.from.col) {
-        columnsToSelect = [currentSelection.getTopStartCorner().col, columnIndex + origColspan - 1, coords.row];
+      } else if ((coords.col ?? 0) > (currentSelection.from.col ?? 0)) {
+        columnsToSelect = [
+          currentSelection.getTopStartCorner().col ?? 0, columnIndex + origColspan - 1, coords.row ?? 0
+        ];
 
       } else {
-        columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row];
+        columnsToSelect = [columnIndex, columnIndex + origColspan - 1, coords.row ?? 0];
       }
 
     } else if (isLeftClick(event) || (isRightClick(event) && allowRightClickSelection) || isTouchEvent(event)) {
@@ -816,6 +830,11 @@ export class NestedHeaders extends BasePlugin {
     } = headerNodeData;
 
     const selectedRange = this.hot.getSelectedRangeActive();
+
+    if (!selectedRange) {
+      return;
+    }
+
     const topStartCoords = selectedRange.getTopStartCorner();
     const bottomEndCoords = selectedRange.getBottomEndCorner();
     const { from } = selectedRange;
@@ -823,14 +842,14 @@ export class NestedHeaders extends BasePlugin {
     controller.column = true;
     controller.cell = true;
 
-    const headerLevel = clamp(coords.row, -Infinity, -1);
+    const headerLevel = clamp(coords.row ?? 0, -Infinity, -1);
     let columnsToSelect: [number, number, number];
 
-    if (coords.col < from.col) {
-      columnsToSelect = [bottomEndCoords.col, columnIndex, headerLevel];
+    if ((coords.col ?? 0) < (from.col ?? 0)) {
+      columnsToSelect = [bottomEndCoords.col ?? 0, columnIndex, headerLevel];
 
-    } else if (coords.col > from.col) {
-      columnsToSelect = [topStartCoords.col, columnIndex + origColspan - 1, headerLevel];
+    } else if ((coords.col ?? 0) > (from.col ?? 0)) {
+      columnsToSelect = [topStartCoords.col ?? 0, columnIndex + origColspan - 1, headerLevel];
 
     } else {
       columnsToSelect = [columnIndex, columnIndex + origColspan - 1, headerLevel];
@@ -851,6 +870,11 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const selectedRange = this.hot.getSelectedRangeLast();
+
+    if (!selectedRange) {
+      return;
+    }
+
     const columnStart = selectedRange.getTopStartCorner().col;
     const columnEnd = selectedRange.getBottomEndCorner().col;
     const {
@@ -860,9 +884,10 @@ export class NestedHeaders extends BasePlugin {
 
     selectedRange.setHighlight(this.#focusInitialCoords as unknown as CellCoords);
 
-    if (origColspan > selectedRange.getWidth() ||
+    if (columnStart !== null && columnEnd !== null && (
+      origColspan > selectedRange.getWidth() ||
         columnIndex < columnStart ||
-        columnIndex + origColspan - 1 > columnEnd) {
+        columnIndex + origColspan - 1 > columnEnd)) {
 
       const headerLevel = this.#stateManager
         .findTopMostEntireHeaderLevel(
@@ -876,7 +901,13 @@ export class NestedHeaders extends BasePlugin {
   };
 
   #onModifyTransformStart = (delta: { row: number, col: number }) => {
-    const { highlight } = this.hot.getSelectedRangeActive();
+    const activeRange = this.hot.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { highlight } = activeRange;
     const {
       row: expectedRow,
       col: expectedColumn,
@@ -888,10 +919,12 @@ export class NestedHeaders extends BasePlugin {
       }
     }
 
+    const highlightRow = highlight.row ?? 0;
+    const highlightCol = highlight.col ?? 0;
     const initialDeltaRow = delta.row;
     const initialDeltaColumn = delta.col;
-    let targetColumn = highlight.col + delta.col;
-    let targetRow = highlight.row + delta.row;
+    let targetColumn = highlightCol + delta.col;
+    let targetRow = highlightRow + delta.row;
 
     if (delta.row !== 0 && targetColumn >= 0) {
       const rowDirection = Math.sign(delta.row);
@@ -911,12 +944,12 @@ export class NestedHeaders extends BasePlugin {
         adjustedNextRow += rowDirection;
       }
 
-      delta.row = adjustedNextRow - highlight.row;
+      delta.row = adjustedNextRow - highlightRow;
       targetRow = adjustedNextRow;
     }
 
-    if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && highlight.row < 0) {
-      if (Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+    if (initialDeltaRow === 0 && initialDeltaColumn !== 0 && highlightRow < 0) {
+      if (this.#rowspanHeaderNavigationContextRow !== null) {
         const contextTargetColumn = this.#findNearestNavigableHeaderColumn(
           this.#rowspanHeaderNavigationContextRow,
           targetColumn,
@@ -929,33 +962,33 @@ export class NestedHeaders extends BasePlugin {
         }
       }
 
-      if (targetColumn < 0 && initialDeltaColumn < 0 && Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
+      if (targetColumn < 0 && initialDeltaColumn < 0 && this.#rowspanHeaderNavigationContextRow !== null) {
         targetRow = this.#rowspanHeaderNavigationContextRow;
       }
 
-      const currentHeaderStartColumn = this.#stateManager.findLeftMostColumnIndex(highlight.row, highlight.col);
-      const currentHeaderEndColumn = this.#stateManager.findRightMostColumnIndex(highlight.row, highlight.col);
+      const currentHeaderStartColumn = this.#stateManager.findLeftMostColumnIndex(highlightRow, highlightCol);
+      const currentHeaderEndColumn = this.#stateManager.findRightMostColumnIndex(highlightRow, highlightCol);
       const {
         isRowspanPlaceholder: isTargetRowspanPlaceholder,
       }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(targetRow, targetColumn) ?? {};
-      const isTargetInsideCurrentHeader = targetRow === highlight.row &&
+      const isTargetInsideCurrentHeader = targetRow === highlightRow &&
         targetColumn >= currentHeaderStartColumn &&
         targetColumn <= currentHeaderEndColumn;
-      const shouldKeepLogicalRowForRowspan = targetRow === highlight.row &&
+      const shouldKeepLogicalRowForRowspan = targetRow === highlightRow &&
         isTargetRowspanPlaceholder &&
         initialDeltaColumn > 0 &&
-        highlight.row < -1;
+        highlightRow < -1;
 
       if (!isTargetInsideCurrentHeader && !shouldKeepLogicalRowForRowspan) {
         targetRow = this.#findRenderableHeaderRow(targetRow, targetColumn);
       }
-      delta.row = targetRow - highlight.row;
+      delta.row = targetRow - highlightRow;
 
       const targetHeaderRowspan = this.#getRootHeaderRowspan(targetRow, targetColumn);
 
       if (targetHeaderRowspan > 1 && !Number.isInteger(this.#rowspanHeaderNavigationContextRow)) {
         this.#rowspanHeaderNavigationContextRow = resolveRowspanNavigationContextRow(
-          highlight.row,
+          highlightRow,
           targetColumn,
           -this.getLayersCount(),
           (headerRow: number, visualColumn: number) => {
@@ -969,13 +1002,14 @@ export class NestedHeaders extends BasePlugin {
     }
 
     const nextCoords = this.hot._createCellCoords(targetRow, targetColumn);
-    const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
+    const isNestedHeadersRange = nextCoords.isHeader() && (nextCoords.col ?? -1) >= 0;
 
     if (!isNestedHeadersRange || initialDeltaRow !== 0) {
       this.#rowspanHeaderNavigationContextRow = null;
     }
 
-    if (isNestedHeadersRange) {
+    if (isNestedHeadersRange && highlight.row !== null && highlight.col !== null &&
+        nextCoords.row !== null && nextCoords.col !== null) {
       const {
         isRowspanPlaceholder: isCurrentHeaderRowspanPlaceholderForBounds,
       }: Partial<HeaderNodeData> = this.#stateManager.getHeaderSettings(highlight.row, highlight.col) ?? {};
@@ -1051,8 +1085,8 @@ export class NestedHeaders extends BasePlugin {
     }
 
     this.#expectedNextKeyboardHighlightCoords = {
-      row: highlight.row + delta.row,
-      col: highlight.col + delta.col,
+      row: highlightRow + delta.row,
+      col: highlightCol + delta.col,
     };
   };
 
@@ -1114,7 +1148,7 @@ export class NestedHeaders extends BasePlugin {
         nonRenderable = false;
       }
 
-      if (isNumeric(renderedStartColumn) && renderedStartColumn < calc.startColumn) {
+      if (isNumeric(renderedStartColumn) && renderedStartColumn !== null && renderedStartColumn < calc.startColumn) {
         newStartColumn = renderedStartColumn;
         break;
       }
@@ -1191,7 +1225,7 @@ export class NestedHeaders extends BasePlugin {
 
   #onModifyFocusedElement = (row: number, column: number) => {
     if (row < 0) {
-      return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true);
+      return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true) ?? undefined;
     }
   };
 
@@ -1209,7 +1243,7 @@ export class NestedHeaders extends BasePlugin {
     columnIndexMapper
       .hidingMapsCollection
       .getMergedValues()
-      .forEach((isColumnHidden: boolean, physicalColumnIndex: number) => {
+      .forEach((isColumnHidden: unknown, physicalColumnIndex: number) => {
         const visualColumnIndex = columnIndexMapper.getVisualFromPhysicalIndex(physicalColumnIndex);
 
         if (visualColumnIndex === null) {
@@ -1270,7 +1304,7 @@ export class NestedHeaders extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#stateManager = null;
+    this.#stateManager.clear();
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
 
     if (this.#hidingIndexMapObserver !== null) {

@@ -400,7 +400,7 @@ export type ThemeTokensConfig = Partial<Record<TokenKey, ThemeTokenValue>>;
 export type ThemeColorScheme = 'light' | 'dark' | 'auto';
 
 export interface ThemeConfig {
-  name: string;
+  name: string | undefined;
   sizing: ThemeSizingConfig;
   density: ThemeDensityConfig;
   icons: ThemeIconsConfig;

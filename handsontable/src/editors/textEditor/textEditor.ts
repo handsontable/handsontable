@@ -308,8 +308,8 @@ export class TextEditor extends BaseEditor {
    * @private
    */
   refreshValue(): void {
-    const physicalRow = this.hot.toPhysicalRow(this.row);
-    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col);
+    const physicalRow = this.hot.toPhysicalRow(this.row!);
+    const sourceData = this.hot.getSourceDataAtCell(physicalRow, this.col!);
 
     this.originalValue = sourceData;
 
@@ -338,14 +338,13 @@ export class TextEditor extends BaseEditor {
       return;
     }
 
-    const {
-      top,
-      start,
-      width,
-      maxWidth,
-      height,
-      maxHeight
-    } = this.getEditedCellRect();
+    const cellRect = this.getEditedCellRect();
+
+    if (!cellRect) {
+      return;
+    }
+
+    const { top, start, width, maxWidth, height, maxHeight } = cellRect;
 
     this.textareaParentStyle.top = `${top}px`;
     this.textareaParentStyle[this.hot.isRtl() ? 'right' : 'left'] = `${start}px`;
@@ -424,16 +423,16 @@ export class TextEditor extends BaseEditor {
       this.hot.rootDocument.execCommand('insertText', false, '\n');
     };
 
-    editorContext.addShortcuts([{
+    editorContext!.addShortcuts([{
       keys: [['Control', 'Enter']],
       callback: () => {
         insertNewLine();
 
         return false; // Will block closing editor.
       },
-      runOnlyIf: (event: KeyboardEvent) => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
+      runOnlyIf: (event?: KeyboardEvent) => !this.hot.selection.isMultiple() && // We trigger a data population for multiple selection.
         // catch CTRL but not right ALT (which in some systems triggers ALT+CTRL)
-        !event.altKey,
+        !event?.altKey,
     }, {
       keys: [['Meta', 'Enter']],
       callback: () => {
@@ -451,13 +450,13 @@ export class TextEditor extends BaseEditor {
       },
     }, {
       keys: [['Home']],
-      callback: (event: KeyboardEvent, [keyName]: string[]) => {
-        updateCaretPosition(keyName, this.TEXTAREA);
+      callback: (_event: KeyboardEvent, keys?: string[]) => {
+        updateCaretPosition(keys?.[0] ?? '', this.TEXTAREA);
       },
     }, {
       keys: [['End']],
-      callback: (event: KeyboardEvent, [keyName]: string[]) => {
-        updateCaretPosition(keyName, this.TEXTAREA);
+      callback: (_event: KeyboardEvent, keys?: string[]) => {
+        updateCaretPosition(keys?.[0] ?? '', this.TEXTAREA);
       },
     }], contextConfig);
   }
@@ -471,6 +470,6 @@ export class TextEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 }

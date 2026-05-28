@@ -45,13 +45,13 @@ class CommentEditor {
    */
   #container: HTMLElement | null = null;
   /**
-   * @type {HTMLElement}
+   * @type {HTMLElement | null}
    */
-  #editor;
+  #editor: HTMLElement | null = null;
   /**
-   * @type {CSSStyleDeclaration}
+   * @type {CSSStyleDeclaration | null}
    */
-  #editorStyle;
+  #editorStyle: CSSStyleDeclaration | null = null;
   /**
    * @type {boolean}
    */
@@ -80,8 +80,10 @@ class CommentEditor {
    * @param {number} y Y position (in pixels).
    */
   setPosition(x: number, y: number) {
-    this.#editorStyle.left = `${x}px`;
-    this.#editorStyle.top = `${y}px`;
+    if (this.#editorStyle) {
+      this.#editorStyle.left = `${x}px`;
+      this.#editorStyle.top = `${y}px`;
+    }
   }
 
   /**
@@ -143,7 +145,9 @@ class CommentEditor {
    * Show the comments editor.
    */
   show() {
-    this.#editorStyle.display = 'block';
+    if (this.#editorStyle) {
+      this.#editorStyle.display = 'block';
+    }
     this.#hidden = false;
   }
 
@@ -154,7 +158,9 @@ class CommentEditor {
     this.#resizeObserver.unobserve();
 
     if (!this.#hidden) {
-      this.#editorStyle.display = 'none';
+      if (this.#editorStyle) {
+        this.#editorStyle.display = 'none';
+      }
     }
 
     this.#hidden = true;
@@ -166,7 +172,7 @@ class CommentEditor {
    * @returns {boolean}
    */
   isVisible() {
-    return this.#editorStyle.display === 'block';
+    return this.#editorStyle?.display === 'block';
   }
 
   /**
@@ -239,7 +245,7 @@ class CommentEditor {
    * @returns {HTMLTextAreaElement | null}
    */
   getInputElement(): HTMLTextAreaElement | null {
-    return this.#editor.querySelector<HTMLTextAreaElement>(`.${CommentEditor.CLASS_INPUT}`);
+    return this.#editor?.querySelector<HTMLTextAreaElement>(`.${CommentEditor.CLASS_INPUT}`) ?? null;
   }
 
   /**
@@ -257,12 +263,12 @@ class CommentEditor {
   destroy() {
     const containerParentElement = this.#container ? this.#container.parentNode : null;
 
-    this.#editor.parentNode.removeChild(this.#editor);
+    this.#editor?.parentNode?.removeChild(this.#editor);
     this.#editor = null;
     this.#editorStyle = null;
     this.#resizeObserver.destroy();
 
-    if (containerParentElement) {
+    if (containerParentElement && this.#container) {
       containerParentElement.removeChild(this.#container);
     }
   }

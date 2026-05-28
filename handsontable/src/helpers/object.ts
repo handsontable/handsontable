@@ -303,6 +303,12 @@ export function defineGetter(object: object, property: string, value: unknown, o
  * @param {Function} iteratee The function invoked per iteration.
  * @returns {object} Returns `object`.
  */
+export function objectEach<V>(
+  object: Record<string, V>,
+  iteratee: (value: V, key: string, object: Record<string, V>) => unknown
+): Record<string, V>;
+export function objectEach(object: object, iteratee: (value: unknown, key: string, object: object) => unknown): object;
+// eslint-disable-next-line jsdoc/require-jsdoc
 export function objectEach(object: object, iteratee: (value: unknown, key: string, object: object) => unknown): object {
   const rec = object as Record<string, unknown>;
 

@@ -39,8 +39,12 @@ export function getClassesToAdd(
 
   const columnOrder = columnStatesManager.getSortOrderOfColumn(column);
 
-  if (isDefined(columnOrder)) {
-    cssClasses.push(orderToCssClass.get(columnOrder));
+  if (columnOrder !== undefined) {
+    const cssClass = orderToCssClass.get(columnOrder);
+
+    if (cssClass !== undefined) {
+      cssClasses.push(cssClass);
+    }
   }
 
   return cssClasses;

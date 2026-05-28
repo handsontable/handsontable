@@ -2095,6 +2095,11 @@ export default (): Record<string, unknown> => {
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
+     * When set to any non-`false` value, the second-click deselect behavior
+     * (Ctrl/Cmd+click on an already-selected cell removing it from a multi-cell selection)
+     * is also skipped. Without visible feedback, toggling layers off can cause unexpected
+     * highlight jumps.
+     *
      * Read more:
      * - [Selection](@/guides/cell-features/selection/selection.md)
      *

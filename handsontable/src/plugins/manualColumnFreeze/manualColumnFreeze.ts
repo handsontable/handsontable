@@ -102,8 +102,8 @@ export class ManualColumnFreeze extends BasePlugin {
   freezeColumn(column: number): void {
     const settings = this.hot.getSettings();
     // columns are already fixed (frozen)
-    const freezePerformed = settings.fixedColumnsStart < this.hot.countCols()
-      && column > settings.fixedColumnsStart - 1;
+    const freezePerformed = (settings.fixedColumnsStart ?? 0) < this.hot.countCols()
+      && column > (settings.fixedColumnsStart ?? 0) - 1;
 
     if (!this.#afterFirstUse) {
       this.#afterFirstUse = true;
@@ -116,7 +116,7 @@ export class ManualColumnFreeze extends BasePlugin {
     }
 
     if (freezePerformed) {
-      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
+      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart ?? 0);
 
       // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
       // However, keeping the old name still in effect. When both option names are used together,
@@ -136,7 +136,8 @@ export class ManualColumnFreeze extends BasePlugin {
   unfreezeColumn(column: number): void {
     const settings = this.hot.getSettings();
     // columns are not fixed (not frozen)
-    const unfreezePerformed = settings.fixedColumnsStart > 0 && (column <= settings.fixedColumnsStart - 1);
+    const fixedStart = settings.fixedColumnsStart ?? 0;
+    const unfreezePerformed = fixedStart > 0 && (column <= fixedStart - 1);
 
     if (!this.#afterFirstUse) {
       this.#afterFirstUse = true;
@@ -155,7 +156,7 @@ export class ManualColumnFreeze extends BasePlugin {
       // to bypass the validation.
       (settings as { _fixedColumnsStart: number })._fixedColumnsStart -= 1;
 
-      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart);
+      this.hot.columnIndexMapper.moveIndexes(column, settings.fixedColumnsStart ?? 0);
     }
 
     this.hot.runHooks('afterColumnUnfreeze', column, unfreezePerformed);

@@ -248,7 +248,7 @@ export function extendDefaultBorder(defaultBorder: BorderObject, customBorder: C
 export function checkSelectionBorders(hot: HotInstance, direction?: string) {
   let atLeastOneHasBorder = false;
 
-  arrayEach(hot.getSelectedRange(), (range) => {
+  arrayEach(hot.getSelectedRange() ?? [], (range) => {
     (range as { forAll: (cb: (r: number, c: number) => void | boolean) => void }).forAll((r: number, c: number) => {
       if (r < 0 || c < 0) {
         return;

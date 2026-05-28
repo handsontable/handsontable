@@ -13,7 +13,7 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
 import { OperatorsComponent } from './component/operators';
-import { ValueComponent } from './component/value';
+import { ValueComponent, StateInfo } from './component/value';
 import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
@@ -211,7 +211,7 @@ export class Filters extends BasePlugin {
    * @private
    * @type {Map}
    */
-  components = new Map([
+  components = new Map<string, BaseComponent | null>([
     ['filter_by_condition', null],
     ['filter_operators', null],
     ['filter_by_condition2', null],
@@ -267,6 +267,27 @@ export class Filters extends BasePlugin {
   }
 
   /**
+   * @private
+   */
+  #getConditionComponent(id: 'filter_by_condition' | 'filter_by_condition2'): ConditionComponent | null {
+    return (this.components.get(id) as ConditionComponent | null | undefined) ?? null;
+  }
+
+  /**
+   * @private
+   */
+  #getOperatorsComponent(): OperatorsComponent | null {
+    return (this.components.get('filter_operators') as OperatorsComponent | null | undefined) ?? null;
+  }
+
+  /**
+   * @private
+   */
+  #getValueComponent(): ValueComponent | null {
+    return (this.components.get('filter_by_value') as ValueComponent | null | undefined) ?? null;
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link Filters#enablePlugin} method is called.
    *
@@ -287,7 +308,7 @@ export class Filters extends BasePlugin {
 
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName, new TrimmingMap()) as TrimmingMap;
+    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName ?? '', new TrimmingMap()) as TrimmingMap;
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu') as unknown as DropdownMenuPluginInterface;
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
@@ -373,7 +394,7 @@ export class Filters extends BasePlugin {
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
     }
 
-    this.components.forEach(component => component.show());
+    this.components.forEach(component => component?.show());
 
     this.addHook('afterDropdownMenuDefaultOptions', this.#onAfterDropdownMenuDefaultOptions);
     this.addHook('beforeDropdownMenuShow', this.#onBeforeDropdownMenuShow);
@@ -390,15 +411,21 @@ export class Filters extends BasePlugin {
       this.dropdownMenuPlugin.enablePlugin();
     }
 
-    if (!this.#menuFocusNavigator && this.dropdownMenuPlugin.enabled) {
+    if (!this.#menuFocusNavigator && this.dropdownMenuPlugin?.enabled) {
       const focusableItems = [
         // A fake menu item that once focused allows escaping from the focus navigation (using Tab keys)
         // to the menu navigation using arrow keys.
         {
           focus: () => {
-            const menu = this.#menuFocusNavigator.getMenu();
+            const navigator = this.#menuFocusNavigator;
+
+            if (!navigator) {
+              return;
+            }
+
+            const menu = navigator.getMenu();
             const menuNavigator = menu.getNavigator();
-            const lastSelectedMenuItem = this.#menuFocusNavigator.getLastMenuPage();
+            const lastSelectedMenuItem = navigator.getLastMenuPage();
 
             menu.focus();
 
@@ -410,7 +437,7 @@ export class Filters extends BasePlugin {
           },
         },
         ...Array.from(this.components)
-          .map(([, component]) => component.getElements())
+          .map(([, component]) => component?.getElements() ?? [])
           .flat(),
       ];
 
@@ -418,22 +445,22 @@ export class Filters extends BasePlugin {
         this.dropdownMenuPlugin.menu, focusableItems) as MenuFocusNavigatorInterface;
 
       const forwardToFocusNavigation = (event: KeyboardEvent) => {
-        this.#menuFocusNavigator.listen();
+        this.#menuFocusNavigator?.listen();
         event.preventDefault();
 
         if (isKey(event.keyCode, 'TAB')) {
           if (event.shiftKey) {
-            this.#menuFocusNavigator.toPreviousItem();
+            this.#menuFocusNavigator?.toPreviousItem();
           } else {
-            this.#menuFocusNavigator.toNextItem();
+            this.#menuFocusNavigator?.toNextItem();
           }
         }
       };
 
       this.components.get('filter_by_value')
-        .addLocalHook('listTabKeydown', forwardToFocusNavigation);
+        ?.addLocalHook('listTabKeydown', forwardToFocusNavigation);
       this.components.get('filter_by_condition')
-        .addLocalHook('selectTabKeydown', forwardToFocusNavigation);
+        ?.addLocalHook('selectTabKeydown', forwardToFocusNavigation);
     }
 
     this.registerShortcuts();
@@ -460,12 +487,12 @@ export class Filters extends BasePlugin {
       }
 
       this.components.forEach((component, key) => {
-        component.destroy();
+        component?.destroy();
         this.components.set(key, null);
       });
-      this.conditionCollection.destroy();
+      this.conditionCollection?.destroy();
       this.conditionCollection = null;
-      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
     }
 
     this.unregisterShortcuts();
@@ -480,7 +507,7 @@ export class Filters extends BasePlugin {
   registerShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Alt', 'A']],
         stopPropagation: true,
         callback: () => {
@@ -505,7 +532,7 @@ export class Filters extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -906,7 +933,7 @@ export class Filters extends BasePlugin {
 
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.conditionCollection.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
+    this.conditionCollection?.addCondition(physicalColumn, { command: { key: name }, args }, operationId);
   }
 
   /**
@@ -917,7 +944,7 @@ export class Filters extends BasePlugin {
   removeConditions(column: number): void {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    this.conditionCollection.removeConditions(physicalColumn);
+    this.conditionCollection?.removeConditions(physicalColumn);
   }
 
   /**
@@ -928,12 +955,12 @@ export class Filters extends BasePlugin {
    */
   clearConditions(column?: number): void {
     if (column === undefined) {
-      this.conditionCollection.clean();
+      this.conditionCollection?.clean();
 
     } else {
       const physicalColumn = this.hot.toPhysicalColumn(column);
 
-      this.conditionCollection.removeConditions(physicalColumn);
+      this.conditionCollection?.removeConditions(physicalColumn);
     }
   }
 
@@ -947,7 +974,7 @@ export class Filters extends BasePlugin {
    * @param {Array} conditions Array of conditions.
    */
   importConditions(conditions: ColumnConditions[]): void {
-    this.conditionCollection.importAllConditions(conditions);
+    this.conditionCollection?.importAllConditions(conditions);
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -978,7 +1005,7 @@ export class Filters extends BasePlugin {
    * @returns {Array}
    */
   exportConditions(): ColumnConditions[] {
-    return this.conditionCollection.exportAllConditions();
+    return this.conditionCollection?.exportAllConditions() ?? [];
   }
   /* eslint-enable jsdoc/require-description-complete-sentence */
 
@@ -990,7 +1017,7 @@ export class Filters extends BasePlugin {
    */
   filter(): void {
     const { navigableHeaders } = this.hot.getSettings();
-    const needToFilter = !this.conditionCollection.isEmpty();
+    const needToFilter = !this.conditionCollection?.isEmpty();
     const conditions = this.exportConditions();
 
     if (this.#isDataProviderActive) {
@@ -1011,7 +1038,7 @@ export class Filters extends BasePlugin {
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
 
       this.hot.batchExecution(() => {
-        this.filtersRowsMap.clear();
+        this.filtersRowsMap?.clear();
 
         rangeEach(this.hot.countSourceRows() - 1, (row: number) => {
           if (!rowIndexesToShowAssertion(row)) {
@@ -1020,7 +1047,7 @@ export class Filters extends BasePlugin {
         });
 
         arrayEach(trimmedRows, (physicalRow) => {
-          this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+          this.filtersRowsMap?.setValueAtIndex(physicalRow, true);
         });
       }, true);
 
@@ -1032,7 +1059,7 @@ export class Filters extends BasePlugin {
 
     } else if (allowFiltering !== false && !needToFilter) {
       this.#previousConditionStack = this.exportConditions();
-      this.filtersRowsMap.clear();
+      this.filtersRowsMap?.clear();
 
     } else if (this.#isDataProviderActive) {
       this.#previousConditionStack = this.exportConditions();
@@ -1042,10 +1069,14 @@ export class Filters extends BasePlugin {
     }
 
     if (this.hot.selection.isSelected()) {
-      this.hot.selectCell(
-        navigableHeaders ? -1 : 0,
-        this.hot.getSelectedRangeActive().highlight.col,
-      );
+      const highlightCol = this.hot.getSelectedRangeActive()?.highlight.col;
+
+      if (highlightCol !== null && highlightCol !== undefined) {
+        this.hot.selectCell(
+          navigableHeaders ? -1 : 0,
+          highlightCol,
+        );
+      }
     }
 
     if (allowFiltering !== false) {
@@ -1065,7 +1096,7 @@ export class Filters extends BasePlugin {
   getSelectedColumn(): { physicalIndex: number, visualIndex: number } | null {
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-    if (!highlight) {
+    if (!highlight || highlight.col === null) {
       return null;
     }
 
@@ -1137,7 +1168,7 @@ export class Filters extends BasePlugin {
         const visualColumnIndex = this.hot.propToCol(prop as string | number);
         const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
-        if (this.conditionCollection.hasConditions(physicalColumnIndex)) {
+        if (this.conditionCollection?.hasConditions(physicalColumnIndex)) {
           this.updateValueComponentCondition(physicalColumnIndex);
         }
       });
@@ -1157,7 +1188,7 @@ export class Filters extends BasePlugin {
     const comparator = getSortComparatorForMeta(columnMeta);
     const selectedValues = unifyColumnValues(dataAtCol, comparator);
 
-    this.conditionUpdateObserver.updateStatesAtColumn(columnIndex, selectedValues);
+    this.conditionUpdateObserver?.updateStatesAtColumn(columnIndex, selectedValues);
   }
 
   /**
@@ -1167,7 +1198,7 @@ export class Filters extends BasePlugin {
    * @param {Array} components List of components.
    */
   restoreComponents(components: BaseComponent[]) {
-    const physicalIndex = this.getSelectedColumn()?.physicalIndex;
+    const physicalIndex = this.getSelectedColumn()?.physicalIndex ?? -1;
 
     components.forEach((component: BaseComponent) => {
       if (component.isHidden()) {
@@ -1195,14 +1226,14 @@ export class Filters extends BasePlugin {
       return;
     }
 
-    const filteredColumns = this.conditionCollection.getFilteredColumns();
+    const filteredColumns = this.conditionCollection?.getFilteredColumns() ?? [];
 
     if (filteredColumns.length === 0) {
       return;
     }
 
     arrayEach(filteredColumns, (physicalColumn: number) => {
-      this.conditionUpdateObserver.updateStatesAtColumn(physicalColumn);
+      this.conditionUpdateObserver?.updateStatesAtColumn(physicalColumn);
     });
   }
 
@@ -1226,9 +1257,15 @@ export class Filters extends BasePlugin {
    * After dropdown menu show listener.
    */
   #onAfterDropdownMenuShow = () => {
-    const menu = this.dropdownMenuPlugin.menu;
+    const menu = this.dropdownMenuPlugin?.menu;
 
-    this.restoreComponents(Array.from(this.components.values()));
+    if (!menu) {
+      return;
+    }
+
+    this.restoreComponents(
+      Array.from(this.components.values()).filter((c): c is BaseComponent => c !== null)
+    );
 
     menu.updateMenuDimensions();
   };
@@ -1237,18 +1274,24 @@ export class Filters extends BasePlugin {
    * After dropdown menu hide listener.
    */
   #onAfterDropdownMenuHide = () => {
-    this.components.get('filter_by_condition').getSelectElement().closeOptions();
-    this.components.get('filter_by_condition2').getSelectElement().closeOptions();
+    (this.components.get('filter_by_condition') as ConditionComponent | null | undefined)
+      ?.getSelectElement()?.closeOptions();
+    (this.components.get('filter_by_condition2') as ConditionComponent | null | undefined)
+      ?.getSelectElement()?.closeOptions();
   };
 
   /**
    * Hooks applies the new dropdown menu instance to the focus navigator.
    */
   #onBeforeDropdownMenuShow = () => {
-    const mainMenu = this.dropdownMenuPlugin.menu;
+    const mainMenu = this.dropdownMenuPlugin?.menu;
+
+    if (!mainMenu) {
+      return;
+    }
 
     if (!this.#dropdownMenuTraces.has(mainMenu)) {
-      this.#menuFocusNavigator.setMenu(mainMenu);
+      this.#menuFocusNavigator?.setMenu(mainMenu);
     }
 
     this.#dropdownMenuTraces.add(mainMenu);
@@ -1263,7 +1306,9 @@ export class Filters extends BasePlugin {
     defaultOptions.items.push({ name: SEPARATOR });
 
     this.components.forEach((component) => {
-      defaultOptions.items.push(component.getMenuItemDescriptor());
+      if (component) {
+        defaultOptions.items.push(component.getMenuItemDescriptor());
+      }
     });
   };
 
@@ -1279,18 +1324,21 @@ export class Filters extends BasePlugin {
    */
   getOperationBasedOnArguments(
     suggestedOperation: string,
-    byConditionState1: Record<string, Record<string, unknown>>,
-    byConditionState2: Record<string, Record<string, unknown>>,
-    byValueState: Record<string, Record<string, unknown>>
+    byConditionState1: Record<string, unknown>,
+    byConditionState2: Record<string, unknown>,
+    byValueState: Record<string, unknown>
   ) {
     let operation = suggestedOperation;
+    const cmd1 = (byConditionState1.command as Record<string, unknown>)?.key;
+    const cmd2 = (byConditionState2.command as Record<string, unknown>)?.key;
+    const cmdV = (byValueState.command as Record<string, unknown>)?.key;
 
-    if (operation === OPERATION_OR && byConditionState1.command.key !== CONDITION_NONE &&
-      byConditionState2.command.key !== CONDITION_NONE && byValueState.command.key !== CONDITION_NONE) {
+    if (operation === OPERATION_OR && cmd1 !== CONDITION_NONE &&
+      cmd2 !== CONDITION_NONE && cmdV !== CONDITION_NONE) {
       operation = OPERATION_OR_THEN_VARIABLE;
 
-    } else if (byValueState.command.key !== CONDITION_NONE) {
-      if (byConditionState1.command.key === CONDITION_NONE || byConditionState2.command.key === CONDITION_NONE) {
+    } else if (cmdV !== CONDITION_NONE) {
+      if (cmd1 === CONDITION_NONE || cmd2 === CONDITION_NONE) {
         operation = OPERATION_AND;
       }
     }
@@ -1315,41 +1363,46 @@ export class Filters extends BasePlugin {
       }
 
       const { physicalIndex } = selectedColumn;
-      const byConditionState1 = this.components.get('filter_by_condition').getState();
-      const byConditionState2 = this.components.get('filter_by_condition2').getState();
-      const byValueState = this.components.get('filter_by_value').getState();
+      const noneState: Record<string, unknown> = { command: { key: CONDITION_NONE }, args: [] };
+      const byConditionState1 = this.#getConditionComponent('filter_by_condition')?.getState() ?? noneState;
+      const byConditionState2 = this.#getConditionComponent('filter_by_condition2')?.getState() ?? noneState;
+      const byValueState = this.#getValueComponent()?.getState() ?? noneState;
 
       const operation = this.getOperationBasedOnArguments(
-        this.components.get('filter_operators').getActiveOperationId(),
+        this.#getOperatorsComponent()?.getActiveOperationId() ?? OPERATION_AND,
         byConditionState1,
         byConditionState2,
         byValueState
       );
 
-      this.conditionUpdateObserver.groupChanges();
+      this.conditionUpdateObserver?.groupChanges();
 
-      let columnStackPosition = this.conditionCollection.getColumnStackPosition(physicalIndex);
+      let columnStackPosition = this.conditionCollection?.getColumnStackPosition(physicalIndex);
 
-      if (columnStackPosition === -1) {
+      if (columnStackPosition === undefined || columnStackPosition === -1) {
         columnStackPosition = undefined;
       }
 
-      this.conditionCollection.removeConditions(physicalIndex);
+      this.conditionCollection?.removeConditions(physicalIndex);
 
-      if (byConditionState1.command.key !== CONDITION_NONE) {
-        this.conditionCollection.addCondition(physicalIndex, byConditionState1, operation, columnStackPosition);
+      const cmd1 = (byConditionState1.command as Record<string, unknown>)?.key;
+      const cmd2 = (byConditionState2.command as Record<string, unknown>)?.key;
+      const cmdV = (byValueState.command as Record<string, unknown>)?.key;
 
-        if (byConditionState2.command.key !== CONDITION_NONE) {
-          this.conditionCollection.addCondition(physicalIndex, byConditionState2, operation, columnStackPosition);
+      if (cmd1 !== CONDITION_NONE) {
+        this.conditionCollection?.addCondition(physicalIndex, byConditionState1, operation, columnStackPosition);
+
+        if (cmd2 !== CONDITION_NONE) {
+          this.conditionCollection?.addCondition(physicalIndex, byConditionState2, operation, columnStackPosition);
         }
       }
 
-      if (byValueState.command.key !== CONDITION_NONE && !this.#isDataProviderActive) {
-        this.conditionCollection.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
+      if (cmdV !== CONDITION_NONE && !this.#isDataProviderActive) {
+        this.conditionCollection?.addCondition(physicalIndex, byValueState, operation, columnStackPosition);
       }
 
-      this.conditionUpdateObserver.flush();
-      this.components.forEach(component => component.saveState(physicalIndex));
+      this.conditionUpdateObserver?.flush();
+      this.components.forEach(component => component?.saveState(physicalIndex));
       this.filter();
     }
 
@@ -1363,7 +1416,7 @@ export class Filters extends BasePlugin {
    * @param {object} command Menu item object (command).
    */
   #onComponentChange(component: BaseComponent, command: Record<string, unknown>) {
-    const menu = this.dropdownMenuPlugin.menu;
+    const menu = this.dropdownMenuPlugin?.menu;
 
     this.updateDependentComponentsVisibility();
 
@@ -1371,7 +1424,7 @@ export class Filters extends BasePlugin {
       this.setListeningDropdownMenu();
     }
 
-    menu.updateMenuDimensions();
+    menu?.updateMenuDimensions();
   }
 
   /**
@@ -1399,14 +1452,16 @@ export class Filters extends BasePlugin {
    * @private
    */
   updateDependentComponentsVisibility() {
-    const component = this.components.get('filter_by_condition');
-    const { command } = component.getState();
+    const component = this.#getConditionComponent('filter_by_condition');
+    const defaultState: Record<string, unknown> = { command: { key: CONDITION_NONE } };
+    const state = component?.getState() ?? defaultState;
+    const command = (state as Record<string, unknown>).command as Record<string, unknown> | undefined;
     const componentsToShow = [
       this.components.get('filter_by_condition2'),
       this.components.get('filter_operators')
-    ];
+    ].filter((c): c is BaseComponent => c !== null && c !== undefined);
 
-    if (command.showOperators) {
+    if (command?.showOperators) {
       this.showComponents(...componentsToShow);
     } else {
       this.hideComponents(...componentsToShow);
@@ -1425,7 +1480,7 @@ export class Filters extends BasePlugin {
 
     if (
       this.enabled
-      && this.conditionCollection.hasConditions(physicalColumn)
+      && this.conditionCollection?.hasConditions(physicalColumn)
       && isBottomMostColumnHeader(TH as HTMLTableCellElement)
     ) {
       addClass(TH, 'htFiltersActive');
@@ -1441,7 +1496,11 @@ export class Filters extends BasePlugin {
    * @param {ConditionCollection} conditionCollection Condition collection object.
    * @returns {DataFilter}
    */
-  _createDataFilter(conditionCollection = this.conditionCollection) {
+  _createDataFilter(conditionCollection: ConditionCollection | null = this.conditionCollection) {
+    if (!conditionCollection) {
+      conditionCollection = new ConditionCollection(this.hot, false);
+    }
+
     return new DataFilter(conditionCollection,
       ((physicalColumn: number) => this.getDataMapAtColumn(physicalColumn)) as () => Record<string, unknown>[]);
   }
@@ -1480,9 +1539,9 @@ export class Filters extends BasePlugin {
     }
 
     const conditionsByValue = conditions.filter(
-      (condition: Record<string, unknown>) => condition.name === CONDITION_BY_VALUE);
+      condition => (condition as Record<string, unknown>).name === CONDITION_BY_VALUE);
     const conditionsWithoutByValue = conditions.filter(
-      (condition: Record<string, unknown>) => condition.name !== CONDITION_BY_VALUE);
+      condition => (condition as Record<string, unknown>).name !== CONDITION_BY_VALUE);
 
     if (conditionsByValue.length >= 2 || conditionsWithoutByValue.length >= 3) {
       warn(toSingleLine`The filter conditions have been applied properly, but couldn’t be displayed visually.\x20
@@ -1490,12 +1549,14 @@ export class Filters extends BasePlugin {
         but more were provided. For more details see the documentation.`);
 
     } else {
-      const operationType = this.conditionCollection.getOperation(column);
+      const operationType = this.conditionCollection?.getOperation(column);
 
-      this.components.get('filter_by_condition').updateState(conditionsWithoutByValue[0], column);
-      this.components.get('filter_by_condition2').updateState(conditionsWithoutByValue[1], column);
-      this.components.get('filter_operators').updateState(operationType, column);
-      this.components.get('filter_by_value').updateState(conditionsState);
+      this.#getConditionComponent('filter_by_condition')
+        ?.updateState(conditionsWithoutByValue[0] as { name: string; args: unknown[] } | null, column);
+      this.#getConditionComponent('filter_by_condition2')
+        ?.updateState(conditionsWithoutByValue[1] as { name: string; args: unknown[] } | null, column);
+      this.#getOperatorsComponent()?.updateState(operationType ?? OPERATION_AND, column);
+      this.#getValueComponent()?.updateState(conditionsState as StateInfo);
     }
   }
 
@@ -1587,9 +1648,9 @@ export class Filters extends BasePlugin {
           this.components.set(key, null);
         }
       });
-      this.conditionCollection.destroy();
-      this.conditionUpdateObserver.destroy();
-      this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+      this.conditionCollection?.destroy();
+      this.conditionUpdateObserver?.destroy();
+      this.hot.rowIndexMapper.unregisterMap(this.pluginName ?? '');
     }
 
     super.destroy();

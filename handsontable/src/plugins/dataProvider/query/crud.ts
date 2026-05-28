@@ -65,7 +65,7 @@ export function runAfterRowsMutation(hot: HotInstance, operation: string, payloa
  * @param {object} payload Hook payload (`RowMutationPayload` in `types/plugins/dataProvider/dataProvider.d.ts`).
  * @returns {void}
  */
-export function runAfterRowsMutationError(hot: HotInstance, operation: string, err: Error, payload: object): void {
+export function runAfterRowsMutationError(hot: HotInstance, operation: string, err: unknown, payload: object): void {
   hot.runHooks('afterRowsMutationError', operation, err, payload);
 }
 
@@ -422,7 +422,7 @@ type CommitRowsUpdateCallbacks = {
   getOnRowsUpdate: () => ((payload: object[]) => Promise<void>) | undefined;
   fetchData: () => Promise<unknown>;
   logError: (...args: unknown[]) => void;
-  onRequestFailed?: (kind: string, err: Error) => void;
+  onRequestFailed?: (kind: string, err: unknown) => void;
 };
 /**
  *
@@ -506,7 +506,7 @@ export async function runManualUpdateRowsMutation(
       return true;
     }
 
-    return validateRowChanges(hot, visualRow, p.changes);
+    return validateRowChanges(hot, visualRow, p.changes ?? {});
   }));
 
   if (validationResults.some(ok => !ok)) {
@@ -548,13 +548,13 @@ export async function runUpdateFromChanges(
     if (!byRow.has(vr)) {
       byRow.set(vr, []);
     }
-    byRow.get(vr).push(ch);
+    byRow.get(vr)!.push(ch);
   });
 
   const sortedRows = [...byRow.keys()].sort((a, b) => a - b);
   const rowIdOption = getRowIdOption();
   const rowPayloads = sortedRows.map((vr) => {
-    const { changesObj, rowData } = buildChangesAndRowData(hot, byRow.get(vr));
+    const { changesObj, rowData } = buildChangesAndRowData(hot, byRow.get(vr)!);
 
     return {
       id: getRowIdByVisualRow(hot, rowIdOption, vr),
@@ -622,9 +622,9 @@ type QueueCrudCtx = {
   enqueueMutation: (fn: () => Promise<void>) => Promise<void>;
   runBeforeRowsMutation: (op: string, p: object) => false | undefined;
   runAfterRowsMutation: (op: string, p: object) => void;
-  runAfterRowsMutationError: (op: string, err: Error, p: object) => void;
+  runAfterRowsMutationError: (op: string, err: unknown, p: object) => void;
   logError: (...args: unknown[]) => void;
-  onRequestFailed?: (op: string, err: Error) => void;
+  onRequestFailed?: (op: string, err: unknown) => void;
 };
 /**
  *

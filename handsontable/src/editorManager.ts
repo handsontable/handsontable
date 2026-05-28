@@ -105,7 +105,9 @@ class EditorManager {
       return;
     }
 
-    const { row, col } = highlight;
+    const { row: rowNullable, col: colNullable } = highlight;
+    const row = rowNullable!;
+    const col = colNullable!;
     const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col, false, 'meta');
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
@@ -167,8 +169,8 @@ class EditorManager {
     const selection = this.hot.getSelectedRangeActive();
     let allowOpening = this.hot.runHooks(
       'beforeBeginEditing',
-      selection.highlight.row,
-      selection.highlight.col,
+      selection!.highlight.row,
+      selection!.highlight.col,
       newInitialValue,
       event,
       enableFullEditMode,
@@ -178,7 +180,7 @@ class EditorManager {
     // an editor after double mouse click for non-contiguous selection (while pressing Ctrl/Cmd) and
     // for multiple selected cells (while pressing SHIFT).
     if (event instanceof MouseEvent && typeof allowOpening !== 'boolean') {
-      allowOpening = this.hot.selection.getLayerLevel() === 0 && selection.isSingle();
+      allowOpening = this.hot.selection.getLayerLevel() === 0 && selection!.isSingle();
     }
 
     if (allowOpening === false) {
@@ -263,6 +265,11 @@ class EditorManager {
 
     const editorClass = this.hot.getCellEditor(this.cellProperties);
     const { row, col } = selection.highlight;
+
+    if (row === null || col === null) {
+      return false;
+    }
+
     const {
       rowIndexMapper,
       columnIndexMapper
@@ -292,14 +299,14 @@ class EditorManager {
       this.tableMeta.enterMoves(event) : this.tableMeta.enterMoves };
 
     if (event.shiftKey) {
-      enterMoves.row = -enterMoves.row;
-      enterMoves.col = -enterMoves.col;
+      enterMoves.row = -(enterMoves.row ?? 0);
+      enterMoves.col = -(enterMoves.col ?? 0);
     }
 
     if (this.hot.selection.isMultiple()) {
-      this.selection.transformFocus(enterMoves.row, enterMoves.col);
+      this.selection.transformFocus(enterMoves.row ?? 0, enterMoves.col ?? 0);
     } else {
-      this.selection.transformStart(enterMoves.row, enterMoves.col, true);
+      this.selection.transformStart(enterMoves.row ?? 0, enterMoves.col ?? 0, true);
     }
   }
 

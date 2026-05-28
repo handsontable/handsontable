@@ -68,7 +68,7 @@ export class DialogUI {
    *
    * @type {object}
    */
-  #refs: Record<string, HTMLElement>;
+  #refs: Record<string, HTMLElement> | undefined;
   /**
    * Indicates if the UI is in RTL mode.
    *
@@ -96,10 +96,10 @@ export class DialogUI {
   /**
    * Optional sanitizer for dialog content (from settings).
    */
-  #sanitizer?: (html: string) => string;
+  #sanitizer?: (html: string) => string | undefined;
 
   constructor({ rootElement, isRtl, sanitizer }: {
-    rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string;
+    rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
   }) {
     this.#rootElement = rootElement;
     this.#isRtl = isRtl;
@@ -124,7 +124,7 @@ export class DialogUI {
         Valid templates are: ${validTemplates}.`);
     }
 
-    this.#template = TEMPLATES.get(templateName)(templateVars);
+    this.#template = TEMPLATES.get(templateName)!(templateVars);
     this.#templateButtonCallbacks = ((templateVars.buttons ?? []) as Array<Record<string, unknown>>)
       .map(button => button.callback as EventListener);
   }
@@ -133,7 +133,7 @@ export class DialogUI {
    * Uses the default template for the dialog for the `content` option.
    */
   useDefaultTemplate() {
-    this.#template = TEMPLATES.get('base')();
+    this.#template = TEMPLATES.get('base')!();
     this.#templateButtonCallbacks = [];
   }
 
@@ -149,7 +149,7 @@ export class DialogUI {
 
     this.#refs = elements.refs;
 
-    const { dialogElement } = this.#refs;
+    const { dialogElement } = this.#refs!;
 
     // Set ARIA attributes
     setAttribute(dialogElement, [
@@ -170,7 +170,7 @@ export class DialogUI {
    * @returns {HTMLElement} The dialog element.
    */
   getContainer() {
-    return this.#refs.dialogElement;
+    return this.#refs!.dialogElement;
   }
 
   /**
@@ -200,15 +200,15 @@ export class DialogUI {
     isVisible, content, customClassName, background, contentBackground, animation, a11y
   }: Record<string, unknown>) {
     const elements = this.#template.compile();
-    const { dialogElement, dialogWrapperElement } = this.#refs;
+    const { dialogElement, dialogWrapperElement } = this.#refs!;
     const typedA11y = a11y as DialogA11ySettings;
 
     dialogWrapperElement.innerHTML = '';
     dialogWrapperElement.appendChild(elements.fragment);
 
-    Object.assign(this.#refs, elements.refs);
+    Object.assign(this.#refs!, elements.refs);
 
-    const { contentElement, buttonsContainer } = this.#refs;
+    const { contentElement, buttonsContainer } = this.#refs!;
 
     if (this.#template.TEMPLATE_NAME !== 'base') {
       Object.assign(typedA11y, this.#template.dialogA11YOptions());
@@ -280,7 +280,8 @@ export class DialogUI {
 
       // Render new dialog content
       if (typeof content === 'string') {
-        fastInnerHTML(contentElement, content, this.#sanitizer);
+        fastInnerHTML(contentElement, content,
+          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined);
 
       } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
@@ -306,7 +307,7 @@ export class DialogUI {
    * @returns {DialogUI} The instance of the DialogUI.
    */
   showDialog(animation: boolean) {
-    const { dialogElement } = this.#refs;
+    const { dialogElement } = this.#refs!;
 
     dialogElement.style.display = 'block';
 
@@ -330,7 +331,7 @@ export class DialogUI {
    * @returns {DialogUI} The instance of the DialogUI.
    */
   hideDialog(animation: boolean) {
-    const { dialogElement } = this.#refs;
+    const { dialogElement } = this.#refs!;
 
     removeClass(dialogElement, `${DIALOG_CLASS_NAME}--show`);
 
@@ -347,7 +348,7 @@ export class DialogUI {
    * Focuses the dialog element.
    */
   focusDialog() {
-    this.#refs.dialogElement.focus();
+    this.#refs!.dialogElement.focus();
   }
 
   /**
@@ -357,7 +358,7 @@ export class DialogUI {
    * @returns {DialogUI} The instance of the DialogUI.
    */
   updateWidth(width: number) {
-    this.#refs.dialogElement.style.width = `${width}px`;
+    this.#refs!.dialogElement.style.width = `${width}px`;
 
     return this;
   }
@@ -369,7 +370,7 @@ export class DialogUI {
    * @returns {DialogUI} The instance of the DialogUI.
    */
   updateHeight(licenseInfoHeight: number) {
-    this.#refs.dialogElement.style.height = `calc(100% - ${licenseInfoHeight}px)`;
+    this.#refs!.dialogElement.style.height = `calc(100% - ${licenseInfoHeight}px)`;
 
     return this;
   }
@@ -379,14 +380,14 @@ export class DialogUI {
    */
   destroyDialog() {
     this.#refs?.dialogElement.remove();
-    this.#refs = null;
+    this.#refs = undefined;
   }
 
   /**
    * Handles the transition end event.
    */
   #onTransitionEnd() {
-    const { dialogElement } = this.#refs;
+    const { dialogElement } = this.#refs!;
 
     if (!hasClass(dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
       dialogElement.style.display = 'none';

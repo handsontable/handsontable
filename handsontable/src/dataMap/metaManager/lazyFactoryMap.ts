@@ -68,9 +68,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
     } else {
       result = this.valueFactory(key);
 
-      if (this.holes.size > 0) {
-        const reuseIndex = this.holes.values().next().value; // Gets first item from the collection
+      const reuseIndex: number | undefined = this.holes.size > 0 ? this.holes.values().next().value : undefined;
 
+      if (reuseIndex !== undefined) {
         this.holes.delete(reuseIndex);
 
         this.data[reuseIndex] = result;
@@ -166,8 +166,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
     let dataIndex = 0;
 
-    return {
-      next: (): { value: [number, V]; done: false } | { value: undefined; done: true } => {
+    type SelfIterator = Iterator<[number, V]> & { [Symbol.iterator](): SelfIterator };
+    const iterator: SelfIterator = {
+      next(): IteratorResult<[number, V]> {
         if (dataIndex < validEntries.length) {
           const value = validEntries[dataIndex];
 
@@ -176,9 +177,14 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
           return { value, done: false };
         }
 
-        return { done: true, value: undefined };
-      }
+        return { done: true, value: undefined as unknown as [number, V] };
+      },
+      [Symbol.iterator]() {
+        return this;
+      },
     };
+
+    return iterator;
   }
 
   /**

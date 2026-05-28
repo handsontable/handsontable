@@ -41,7 +41,6 @@ export interface CalculationTypeLike {
   initialize(context: unknown): void;
   process(index: number, context: unknown): void;
   finalize(context: unknown): void;
-  [key: string]: unknown;
 }
 
 /**

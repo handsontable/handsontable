@@ -55,6 +55,7 @@ export interface SelectionSettings {
   autoWrapRow?: boolean;
   autoWrapCol?: boolean;
   selectionMode?: 'single' | 'range' | 'multiple';
+  disableVisualSelection?: boolean | string | string[];
   fillHandle?: unknown;
   [key: string]: unknown;
 }

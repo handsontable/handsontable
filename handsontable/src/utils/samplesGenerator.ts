@@ -157,7 +157,7 @@ class SamplesGenerator {
 
     rangeEach(range.from, range.to, (index) => {
       const data = type === 'row' ?
-        this.dataFactory(specifierValue, index, this) : this.dataFactory(index, specifierValue, this);
+        this.dataFactory!(specifierValue, index, this) : this.dataFactory!(index, specifierValue, this);
 
       if (data === false) {
         return;

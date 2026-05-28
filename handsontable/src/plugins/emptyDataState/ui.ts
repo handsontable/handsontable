@@ -143,13 +143,13 @@ export class EmptyDataStateUI {
    *
    * @type {object}
    */
-  #refs: Record<string, HTMLElement>;
+  #refs: Record<string, HTMLElement> | null = null;
   /**
    * The placeholder element.
    *
    * @type {HTMLElement}
    */
-  #placeholderElement: HTMLElement;
+  #placeholderElement: HTMLElement | null = null;
 
   constructor({
     rootElement,
@@ -200,7 +200,7 @@ export class EmptyDataStateUI {
    * @returns {HTMLElement[]} The focusable elements.
    */
   getFocusableElements(): HTMLElement[] {
-    const { emptyDataStateButtons, emptyDataStateInner } = this.#refs;
+    const { emptyDataStateButtons, emptyDataStateInner } = this.#refs!;
     // HTMLCollection<Element> → cast once here so callers receive HTMLElement[]
     const emptyDataStateButtonsElements = Array.from(emptyDataStateButtons?.children ?? []) as HTMLElement[];
 
@@ -244,7 +244,7 @@ export class EmptyDataStateUI {
    * @returns {void}
    */
   updateContent(message: string | Record<string, unknown>, isLoading = false) {
-    const { emptyDataStateElement, emptyDataStateInner } = this.#refs;
+    const { emptyDataStateElement, emptyDataStateInner } = this.#refs!;
 
     let content: {
       title?: string, description?: string, buttons?: Array<{ type: string, text: string, callback?: Function }>
@@ -292,7 +292,7 @@ export class EmptyDataStateUI {
    * @param {View} view - The view instance.
    */
   updateClassNames(view: ViewInstance) {
-    const { emptyDataStateElement } = this.#refs;
+    const { emptyDataStateElement } = this.#refs!;
 
     if (view.countRenderableColumns() > 0 && view.getColumnHeadersCount() > 0) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
@@ -321,7 +321,7 @@ export class EmptyDataStateUI {
    *   workspace sizing as when renderable rows exist (e.g. DataProvider fetch while a page is still shown).
    */
   updateSize(view: ViewInstance, isLoading = false) {
-    const { emptyDataStateElement } = this.#refs;
+    const { emptyDataStateElement } = this.#refs!;
 
     const scrollbarSize = view.hasHorizontalScroll()
       ? getScrollbarWidth((view as ViewInstance & { hot: { rootDocument: Document } }).hot.rootDocument)

@@ -162,20 +162,26 @@ export function getCellCoordsFromMousePosition(
   // Check fixed columns first
   if (numberOfFixedColumnsStart > 0) {
     const firstFixedColumn = columnIndexMapper.getVisualFromRenderableIndex(0);
-    const firstNonHiddenColumn = columnIndexMapper.getNearestNotHiddenIndex(firstFixedColumn, 1);
-    const fixedCell = hotInstance.getCell(firstPartiallyVisibleRow, firstNonHiddenColumn, true);
+    const lastFixedColumn = columnIndexMapper.getVisualFromRenderableIndex(numberOfFixedColumnsStart - 1);
+    const firstNonHiddenColumn = firstFixedColumn !== null
+      ? columnIndexMapper.getNearestNotHiddenIndex(firstFixedColumn, 1)
+      : null;
 
-    if (fixedCell instanceof HTMLElement) {
-      const fixedCellRect = fixedCell.getBoundingClientRect();
-      const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
+    if (firstNonHiddenColumn !== null && lastFixedColumn !== null) {
+      const fixedCell = hotInstance.getCell(firstPartiallyVisibleRow, firstNonHiddenColumn, true);
 
-      foundColumn = findColumnAtX(
-        hotInstance,
-        firstPartiallyVisibleRow,
-        firstNonHiddenColumn,
-        columnIndexMapper.getVisualFromRenderableIndex(numberOfFixedColumnsStart - 1),
-        fixedRelativeX,
-      );
+      if (fixedCell instanceof HTMLElement) {
+        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
+
+        foundColumn = findColumnAtX(
+          hotInstance,
+          firstPartiallyVisibleRow,
+          firstNonHiddenColumn,
+          lastFixedColumn,
+          fixedRelativeX,
+        );
+      }
     }
   }
 
@@ -213,20 +219,26 @@ export function getCellCoordsFromMousePosition(
   // Check fixed top rows first
   if (numberOfFixedRowsTop > 0) {
     const firstFixedRow = rowIndexMapper.getVisualFromRenderableIndex(0);
-    const firstNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(firstFixedRow, 1);
-    const fixedCell = hotInstance.getCell(firstNonHiddenRow, firstPartiallyVisibleColumn, true);
+    const lastFixedRow = rowIndexMapper.getVisualFromRenderableIndex(numberOfFixedRowsTop - 1);
+    const firstNonHiddenRow = firstFixedRow !== null
+      ? rowIndexMapper.getNearestNotHiddenIndex(firstFixedRow, 1)
+      : null;
 
-    if (fixedCell instanceof HTMLElement) {
-      const fixedCellRect = fixedCell.getBoundingClientRect();
-      const fixedRelativeY = clampedY - fixedCellRect.top;
+    if (firstNonHiddenRow !== null && lastFixedRow !== null) {
+      const fixedCell = hotInstance.getCell(firstNonHiddenRow, firstPartiallyVisibleColumn, true);
 
-      foundRow = findRowAtY(
-        hotInstance,
-        firstPartiallyVisibleColumn,
-        firstNonHiddenRow,
-        rowIndexMapper.getVisualFromRenderableIndex(numberOfFixedRowsTop - 1),
-        fixedRelativeY,
-      );
+      if (fixedCell instanceof HTMLElement) {
+        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedRelativeY = clampedY - fixedCellRect.top;
+
+        foundRow = findRowAtY(
+          hotInstance,
+          firstPartiallyVisibleColumn,
+          firstNonHiddenRow,
+          lastFixedRow,
+          fixedRelativeY,
+        );
+      }
     }
   }
 
@@ -235,25 +247,32 @@ export function getCellCoordsFromMousePosition(
     const totalSourceRows = rowIndexMapper.getNotHiddenIndexesLength();
     const bottomStartRow = rowIndexMapper.getVisualFromRenderableIndex(totalSourceRows - numberOfFixedRowsBottom);
     const bottomEndRow = rowIndexMapper.getVisualFromRenderableIndex(totalSourceRows - 1);
-    const bottomStartNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(bottomStartRow, 1);
-    const bottomEndNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(bottomEndRow, -1);
-    const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, firstPartiallyVisibleColumn, true);
+    const bottomStartNonHiddenRow = bottomStartRow !== null
+      ? rowIndexMapper.getNearestNotHiddenIndex(bottomStartRow, 1)
+      : null;
+    const bottomEndNonHiddenRow = bottomEndRow !== null
+      ? rowIndexMapper.getNearestNotHiddenIndex(bottomEndRow, -1)
+      : null;
 
-    if (fixedBottomCell instanceof HTMLElement) {
-      const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
-      const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
+    if (bottomStartNonHiddenRow !== null && bottomEndNonHiddenRow !== null) {
+      const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, firstPartiallyVisibleColumn, true);
 
-      if (fixedBottomRelativeY >= 0) {
-        foundRow = findRowAtY(
-          hotInstance,
-          firstPartiallyVisibleColumn,
-          bottomStartNonHiddenRow,
-          bottomEndNonHiddenRow,
-          fixedBottomRelativeY
-        );
+      if (fixedBottomCell instanceof HTMLElement) {
+        const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
+        const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
-        if (foundRow === null) {
-          foundRow = bottomEndNonHiddenRow;
+        if (fixedBottomRelativeY >= 0) {
+          foundRow = findRowAtY(
+            hotInstance,
+            firstPartiallyVisibleColumn,
+            bottomStartNonHiddenRow,
+            bottomEndNonHiddenRow,
+            fixedBottomRelativeY
+          );
+
+          if (foundRow === null) {
+            foundRow = bottomEndNonHiddenRow;
+          }
         }
       }
     }

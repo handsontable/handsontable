@@ -70,7 +70,7 @@ interface HandsontableFactory {
   version: string | undefined;
   languages: {
     dictionaryKeys: unknown;
-    getLanguageDictionary: (languageCode: string) => object;
+    getLanguageDictionary: (languageCode: string) => object | null;
     getLanguagesDictionaries: () => object[];
     registerLanguageDictionary: (
       languageCodeOrDictionary: string | Record<string, unknown>, dictionary?: Record<string, unknown>

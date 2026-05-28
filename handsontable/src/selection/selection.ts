@@ -359,7 +359,7 @@ class Selection {
     this.selectedRange
       .add(coordsClone)
       .current()
-      .setHighlight(highlightCoords.clone());
+      ?.setHighlight(highlightCoords.clone());
 
     if (this.getLayerLevel() === 0) {
       this.selectedByRowHeader.clear();
@@ -379,7 +379,7 @@ class Selection {
    *                                      the default trigger will be used.
    * @param {CellCoords} [highlightCoords] If set, allows changing the coordinates of the highlight/focus cell.
    */
-  setRangeStartOnly(coords: CellCoords, multipleSelection: boolean, highlightCoords: CellCoords = coords) {
+  setRangeStartOnly(coords: CellCoords, multipleSelection?: boolean, highlightCoords: CellCoords = coords) {
     this.setRangeStart(coords, multipleSelection, true, highlightCoords);
   }
 
@@ -399,13 +399,13 @@ class Selection {
     const coordsClone = coords.clone();
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
-    const isSingle = this.getActiveSelectedRange().clone().setTo(coords).isSingleHeader();
+    const isSingle = this.getActiveSelectedRange()?.clone().setTo(coords).isSingleHeader();
 
     // Ignore processing the end range when the header selection starts overlapping the corner and
     // the selection is not a single header highlight.
     if ((countRows > 0 || countCols > 0) &&
-       (countRows === 0 && coordsClone.col < 0 && !isSingle ||
-        countCols === 0 && coordsClone.row < 0 && !isSingle)) {
+       (countRows === 0 && (coordsClone.col ?? 0) < 0 && !isSingle ||
+        countCols === 0 && (coordsClone.row ?? 0) < 0 && !isSingle)) {
       return;
     }
 
@@ -413,6 +413,10 @@ class Selection {
     this.begin();
 
     const cellRange = this.getActiveSelectedRange();
+
+    if (!cellRange) {
+      return;
+    }
 
     if (!this.settings.navigableHeaders) {
       cellRange.highlight.normalize();
@@ -435,7 +439,7 @@ class Selection {
         cellRange.getWidth() === 1 && !cellRange.includes(cellRange.highlight))
       ) {
         cellRange.from.assign({
-          col: cellRange.highlight.col
+          col: cellRange.highlight.col ?? undefined
         });
       }
       if (
@@ -444,7 +448,7 @@ class Selection {
         cellRange.getHeight() === 1 && !cellRange.includes(cellRange.highlight))
       ) {
         cellRange.from.assign({
-          row: cellRange.highlight.row
+          row: cellRange.highlight.row ?? undefined
         });
       }
     }
@@ -457,8 +461,8 @@ class Selection {
     }
 
     this.runLocalHooks('beforeHighlightSet');
-    this.setRangeFocus(this.getActiveSelectedRange().highlight, layerIndex);
-    this.applyAndCommit(this.getActiveSelectedRange(), layerIndex);
+    this.setRangeFocus(this.getActiveSelectedRange()?.highlight ?? cellRange.highlight, layerIndex);
+    this.applyAndCommit(this.getActiveSelectedRange() ?? cellRange, layerIndex);
 
     const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
 
@@ -473,6 +477,10 @@ class Selection {
    * @param {number} [layerLevel] The layer level to apply. If not provided, the current layer level is used.
    */
   applyAndCommit(cellRange = this.getActiveSelectedRange(), layerLevel = this.getLayerLevel()) {
+    if (!cellRange) {
+      return;
+    }
+
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
 
@@ -488,23 +496,23 @@ class Selection {
     const rowHighlight = this.highlight.createRowHighlight();
     const columnHighlight = this.highlight.createColumnHighlight();
 
-    areaHighlight.clear();
-    layeredAreaHighlight.clear();
-    rowHeaderHighlight.clear();
-    columnHeaderHighlight.clear();
-    activeRowHeaderHighlight.clear();
-    activeColumnHeaderHighlight.clear();
-    activeCornerHeaderHighlight.clear();
-    rowHighlight.clear();
-    columnHighlight.clear();
+    areaHighlight?.clear();
+    layeredAreaHighlight?.clear();
+    rowHeaderHighlight?.clear();
+    columnHeaderHighlight?.clear();
+    activeRowHeaderHighlight?.clear();
+    activeColumnHeaderHighlight?.clear();
+    activeCornerHeaderHighlight?.clear();
+    rowHighlight?.clear();
+    columnHighlight?.clear();
 
     if (this.highlight.isEnabledFor(AREA_TYPE, cellRange.highlight) && (this.isMultiple() || layerLevel >= 1)) {
       areaHighlight
-        .add(cellRange.from)
+        ?.add(cellRange.from)
         .add(cellRange.to)
         .commit();
       layeredAreaHighlight
-        .add(cellRange.from)
+        ?.add(cellRange.from)
         .add(cellRange.to)
         .commit();
 
@@ -514,52 +522,54 @@ class Selection {
         // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
         const previousRange = this.selectedRange.peekByIndex(layerLevel - 1);
 
-        this.highlight.useLayerLevel(layerLevel - 1);
-        this.highlight
-          .createArea()
-          .add(previousRange.from)
-          .commit()
-          // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
-          .syncWith(previousRange);
-        this.highlight
-          .createLayeredArea()
-          .add(previousRange.from)
-          .commit()
-          // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
-          .syncWith(previousRange);
+        if (previousRange) {
+          this.highlight.useLayerLevel(layerLevel - 1);
+          this.highlight
+            .createArea()
+            ?.add(previousRange.from)
+            .commit()
+            // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
+            .syncWith(previousRange);
+          this.highlight
+            .createLayeredArea()
+            ?.add(previousRange.from)
+            .commit()
+            // Range may start with hidden indexes. Commit would not found start point (as we add just the `from` coords).
+            .syncWith(previousRange);
 
-        this.highlight.useLayerLevel(layerLevel);
+          this.highlight.useLayerLevel(layerLevel);
+        }
       }
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
       if (!cellRange.isSingleHeader()) {
-        const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row, 0), -1);
-        const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row, -1);
-        const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col, 0));
-        const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col);
+        const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), -1);
+        const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row ?? 0, -1);
+        const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col ?? 0, 0));
+        const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col ?? 0);
 
         if (this.settings.selectionMode === 'single') {
-          rowHeaderHighlight.add(rowCoordsFrom).commit();
-          columnHeaderHighlight.add(columnCoordsFrom).commit();
-          rowHighlight.add(rowCoordsFrom).commit();
-          columnHighlight.add(columnCoordsFrom).commit();
+          rowHeaderHighlight?.add(rowCoordsFrom).commit();
+          columnHeaderHighlight?.add(columnCoordsFrom).commit();
+          rowHighlight?.add(rowCoordsFrom).commit();
+          columnHighlight?.add(columnCoordsFrom).commit();
 
         } else {
           rowHeaderHighlight
-            .add(rowCoordsFrom)
+            ?.add(rowCoordsFrom)
             .add(rowCoordsTo)
             .commit();
           columnHeaderHighlight
-            .add(columnCoordsFrom)
+            ?.add(columnCoordsFrom)
             .add(columnCoordsTo)
             .commit();
           rowHighlight
-            .add(rowCoordsFrom)
+            ?.add(rowCoordsFrom)
             .add(rowCoordsTo)
             .commit();
           columnHighlight
-            .add(columnCoordsFrom)
+            ?.add(columnCoordsFrom)
             .add(columnCoordsTo)
             .commit();
         }
@@ -574,25 +584,25 @@ class Selection {
 
       if (highlightRowHeaders) {
         activeRowHeaderHighlight
+          ?.add(this.tableProps
+            .createCellCoords(Math.max(cellRange.from.row ?? 0, 0), Math.min(-this.tableProps.countRowHeaders(), -1)))
           .add(this.tableProps
-            .createCellCoords(Math.max(cellRange.from.row, 0), Math.min(-this.tableProps.countRowHeaders(), -1)))
-          .add(this.tableProps
-            .createCellCoords(Math.max(cellRange.to.row, 0), -1))
+            .createCellCoords(Math.max(cellRange.to.row ?? 0, 0), -1))
           .commit();
       }
 
       if (highlightColumnHeaders) {
         activeColumnHeaderHighlight
+          ?.add(this.tableProps
+            .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), Math.max(cellRange.from.col ?? 0, 0)))
           .add(this.tableProps
-            .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), Math.max(cellRange.from.col, 0)))
-          .add(this.tableProps
-            .createCellCoords(-1, Math.max(cellRange.to.col, 0)))
+            .createCellCoords(-1, Math.max(cellRange.to.col ?? 0, 0)))
           .commit();
       }
 
       if (highlightRowHeaders && highlightColumnHeaders) {
         activeCornerHeaderHighlight
-          .add(this.tableProps
+          ?.add(this.tableProps
             .createCellCoords(-this.tableProps.countColHeaders(), -this.tableProps.countRowHeaders()))
           .add(this.tableProps
             .createCellCoords(-1, -1))
@@ -620,6 +630,10 @@ class Selection {
 
     if (!this.inProgress) {
       this.runLocalHooks('beforeSetFocus', coords);
+    }
+
+    if (!cellRange) {
+      return;
     }
 
     const focusHighlight = this.highlight.getFocus();
@@ -720,7 +734,8 @@ class Selection {
         disableHeadersHighlight: true,
       });
 
-    } else if (this.isSelectedByColumnHeader() || range.getOuterTopStartCorner().row >= visualRowIndex) {
+    } else if (range &&
+        (this.isSelectedByColumnHeader() || (range.getOuterTopStartCorner().row ?? 0) >= visualRowIndex)) {
       const { from, to, highlight } = range;
       const countRows = this.tableProps.countRows();
       const isSelectedByRowHeader = this.isSelectedByRowHeader();
@@ -733,20 +748,20 @@ class Selection {
       this.getSelectedRange().pop();
 
       const coordsStart = this.tableProps.createCellCoords(
-        clamp(from.row + coordsStartAmount, minRow, countRows - 1),
-        from.col
+        clamp((from.row ?? 0) + coordsStartAmount, minRow, countRows - 1),
+        from.col ?? 0
       );
       const coordsEnd = this.tableProps.createCellCoords(
-        clamp(to.row + amount, minRow, countRows - 1),
-        to.col
+        clamp((to.row ?? 0) + amount, minRow, countRows - 1),
+        to.col ?? 0
       );
 
       this.markSource('shift');
 
-      if (highlight.row >= visualRowIndex) {
+      if ((highlight.row ?? 0) >= visualRowIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
-          clamp(highlight.row + amount, 0, countRows - 1),
-          highlight.col
+          clamp((highlight.row ?? 0) + amount, 0, countRows - 1),
+          highlight.col ?? 0
         ));
 
       } else {
@@ -783,7 +798,8 @@ class Selection {
         disableHeadersHighlight: true,
       });
 
-    } else if (this.isSelectedByRowHeader() || range.getOuterTopStartCorner().col >= visualColumnIndex) {
+    } else if (range &&
+        (this.isSelectedByRowHeader() || (range.getOuterTopStartCorner().col ?? 0) >= visualColumnIndex)) {
       const { from, to, highlight } = range;
       const countCols = this.tableProps.countCols();
       const isSelectedByRowHeader = this.isSelectedByRowHeader();
@@ -796,20 +812,20 @@ class Selection {
       this.getSelectedRange().pop();
 
       const coordsStart = this.tableProps.createCellCoords(
-        from.row,
-        clamp(from.col + coordsStartAmount, minColumn, countCols - 1)
+        from.row ?? 0,
+        clamp((from.col ?? 0) + coordsStartAmount, minColumn, countCols - 1)
       );
       const coordsEnd = this.tableProps.createCellCoords(
-        to.row,
-        clamp(to.col + amount, minColumn, countCols - 1)
+        to.row ?? 0,
+        clamp((to.col ?? 0) + amount, minColumn, countCols - 1)
       );
 
       this.markSource('shift');
 
-      if (highlight.col >= visualColumnIndex) {
+      if ((highlight.col ?? 0) >= visualColumnIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
-          highlight.row,
-          clamp(highlight.col + amount, 0, countCols - 1)
+          highlight.row ?? 0,
+          clamp((highlight.col ?? 0) + amount, 0, countCols - 1)
         ));
 
       } else {
@@ -854,7 +870,7 @@ class Selection {
    * @returns {boolean}
    */
   isMultiple(cellRange = this.getActiveSelectedRange()) {
-    if (!this.isSelected()) {
+    if (!this.isSelected() || !cellRange) {
       return false;
     }
 
@@ -900,7 +916,7 @@ class Selection {
       const rowHeaders = this.tableProps.countRowHeaders();
       const countCols = this.tableProps.countCols();
 
-      return (rowHeaders > 0 && col < 0 || rowHeaders === 0) && range.getWidth() === countCols;
+      return (rowHeaders > 0 && (col ?? 0) < 0 || rowHeaders === 0) && range.getWidth() === countCols;
     };
 
     if (layerLevel === -1) {
@@ -938,7 +954,7 @@ class Selection {
       const colHeaders = this.tableProps.countColHeaders();
       const countRows = this.tableProps.countRows();
 
-      return (colHeaders > 0 && row < 0 || colHeaders === 0) && range.getHeight() === countRows;
+      return (colHeaders > 0 && (row ?? 0) < 0 || colHeaders === 0) && range.getHeight() === countRows;
     };
 
     if (layerLevel === -1) {
@@ -1093,7 +1109,7 @@ class Selection {
     this.runLocalHooks('beforeSelectAll', startCoords, endCoords, highlight);
     this.setRangeStartOnly(startCoords, undefined, highlight);
 
-    this.#disableHeadersHighlight = disableHeadersHighlight;
+    this.#disableHeadersHighlight = disableHeadersHighlight ?? false;
 
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
@@ -1131,7 +1147,7 @@ class Selection {
     const selectionSchemaNormalizer = normalizeSelectionFactory(selectionType, {
       createCellCoords: (...args: [number, number]) => this.tableProps.createCellCoords(...args),
       createCellRange: (...args: [CellCoords, CellCoords, CellCoords]) => this.tableProps.createCellRange(...args),
-      propToCol: (prop: string) => this.tableProps.propToCol(prop),
+      propToCol: (prop: string | number) => this.tableProps.propToCol(prop),
       keepDirection: true,
     });
     const navigableHeaders = this.settings.navigableHeaders;
@@ -1205,8 +1221,8 @@ class Selection {
       let highlightColumn = 0;
 
       if (isFocusPositionObject(focusPosition)) {
-        highlightRow = clamp(focusPosition.row, columnHeaderLastIndex, countRows - 1);
-        highlightColumn = clamp(focusPosition.col, Math.min(start, end), Math.max(start, end));
+        highlightRow = clamp(focusPosition.row ?? 0, columnHeaderLastIndex, countRows - 1);
+        highlightColumn = clamp(focusPosition.col ?? 0, Math.min(start, end), Math.max(start, end));
       } else {
         highlightRow = clamp(
           typeof focusPosition === 'number' ? focusPosition : 0, columnHeaderLastIndex, countRows - 1);
@@ -1214,7 +1230,7 @@ class Selection {
       }
 
       const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
-      const fromRow = countColHeaders === 0 ? 0 : clamp(highlight.row, columnHeaderLastIndex, -1);
+      const fromRow = countColHeaders === 0 ? 0 : clamp(highlight.row ?? 0, columnHeaderLastIndex, -1);
       const toRow = countRows - 1;
       const from = this.tableProps.createCellCoords(fromRow, start);
       const to = this.tableProps.createCellCoords(toRow, end);
@@ -1263,8 +1279,8 @@ class Selection {
       let highlightColumn = 0;
 
       if (isFocusPositionObject(focusPosition)) {
-        highlightRow = clamp(focusPosition.row, Math.min(startRow, endRow), Math.max(startRow, endRow));
-        highlightColumn = clamp(focusPosition.col, rowHeaderLastIndex, countCols - 1);
+        highlightRow = clamp(focusPosition.row ?? 0, Math.min(startRow, endRow), Math.max(startRow, endRow));
+        highlightColumn = clamp(focusPosition.col ?? 0, rowHeaderLastIndex, countCols - 1);
       } else {
         highlightRow = startRow;
         highlightColumn = clamp(
@@ -1272,7 +1288,7 @@ class Selection {
       }
 
       const highlight = this.tableProps.createCellCoords(highlightRow, highlightColumn);
-      const fromColumn = countRowHeaders === 0 ? 0 : clamp(highlight.col, rowHeaderLastIndex, -1);
+      const fromColumn = countRowHeaders === 0 ? 0 : clamp(highlight.col ?? 0, rowHeaderLastIndex, -1);
       const toColumn = countCols - 1;
       const from = this.tableProps.createCellCoords(startRow, fromColumn);
       const to = this.tableProps.createCellCoords(endRow, toColumn);
@@ -1387,16 +1403,16 @@ class Selection {
       const maxColumns = countColumns - 1;
 
       highlight.assign({
-        row: clamp(highlight.row, this.settings.navigableHeaders ? -Infinity : 0, maxRows),
-        col: clamp(highlight.col, this.settings.navigableHeaders ? -Infinity : 0, maxColumns),
+        row: clamp(highlight.row ?? 0, this.settings.navigableHeaders ? -Infinity : 0, maxRows),
+        col: clamp(highlight.col ?? 0, this.settings.navigableHeaders ? -Infinity : 0, maxColumns),
       });
       from.assign({
-        row: clamp(from.row, -Infinity, maxRows),
-        col: clamp(from.col, -Infinity, maxColumns),
+        row: clamp(from.row ?? 0, -Infinity, maxRows),
+        col: clamp(from.col ?? 0, -Infinity, maxColumns),
       });
       to.assign({
-        row: clamp(to.row, -Infinity, maxRows),
-        col: clamp(to.col, -Infinity, maxColumns),
+        row: clamp(to.row ?? 0, -Infinity, maxRows),
+        col: clamp(to.col ?? 0, -Infinity, maxColumns),
       });
 
       this.setRangeStartOnly(from, true, highlight);
@@ -1430,7 +1446,7 @@ class Selection {
     const currentLayer = this.getLayerLevel();
     const cellRange = this.getActiveSelectedRange();
 
-    if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
+    if (cellRange && this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
       this.highlight
         .getFocus()
         .commit()
@@ -1451,15 +1467,15 @@ class Selection {
       const rowHighlight = this.highlight.createRowHighlight();
       const columnHighlight = this.highlight.createColumnHighlight();
 
-      areaHighlight.commit();
-      areaLayeredHighlight.commit();
-      rowHeaderHighlight.commit();
-      columnHeaderHighlight.commit();
-      activeRowHeaderHighlight.commit();
-      activeColumnHeaderHighlight.commit();
-      activeCornerHeaderHighlight.commit();
-      rowHighlight.commit();
-      columnHighlight.commit();
+      areaHighlight?.commit();
+      areaLayeredHighlight?.commit();
+      rowHeaderHighlight?.commit();
+      columnHeaderHighlight?.commit();
+      activeRowHeaderHighlight?.commit();
+      activeColumnHeaderHighlight?.commit();
+      activeCornerHeaderHighlight?.commit();
+      rowHighlight?.commit();
+      columnHighlight?.commit();
     }
 
     // Reverting starting layer for the Highlight.

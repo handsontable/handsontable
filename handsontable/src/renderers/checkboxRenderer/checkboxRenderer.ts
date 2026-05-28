@@ -18,8 +18,8 @@ const SHORTCUTS_GROUP = 'checkboxRenderer';
 export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
 Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
-  function(bundleSeed: string, cellMeta: Record<string, unknown>, cellValue: unknown) {
-    const { label, type, row, column, prop } = cellMeta;
+  function(_bundleSeed: unknown, cellMeta: unknown, cellValue: unknown) {
+    const { label, type, row, column, prop } = cellMeta as Record<string, unknown>;
 
     if (type !== RENDERER_TYPE || !label) {
       return;
@@ -175,14 +175,14 @@ export function checkboxRenderer(
       position: 'before' as const,
     };
 
-    gridContext.addShortcuts([{
+    gridContext?.addShortcuts([{
       keys: [['space']],
       callback: () => {
         changeSelectedCheckboxesState();
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSelectedRangeActive()?.highlight.isCell(),
+      runOnlyIf: (): boolean => !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -190,12 +190,12 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => {
+      runOnlyIf: (): boolean => {
         const range = hotInstance.getSelectedRangeActive();
 
-        return hotInstance.getSettings().enterBeginsEditing &&
+        return !!(hotInstance.getSettings().enterBeginsEditing &&
           range?.highlight.isCell() &&
-          !hotInstance.selection.isMultiple();
+          !hotInstance.selection.isMultiple());
       },
     }, {
       keys: [['delete'], ['backspace']],
@@ -204,7 +204,7 @@ export function checkboxRenderer(
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSelectedRangeActive()?.highlight.isCell(),
+      runOnlyIf: (): boolean => !!(hotInstance.getSelectedRangeActive()?.highlight.isCell()),
     }], config);
   }
 
@@ -231,6 +231,10 @@ export function checkboxRenderer(
     for (let key = 0; key < selRange.length; key++) {
       const { row: startRow, col: startColumn } = selRange[key].getTopStartCorner();
       const { row: endRow, col: endColumn } = selRange[key].getBottomEndCorner();
+
+      if (startRow === null || startColumn === null || endRow === null || endColumn === null) {
+        continue;
+      }
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
@@ -280,10 +284,10 @@ export function checkboxRenderer(
           const dataAtCell = hotInstance.getDataAtCell(visualRow, visualColumn);
 
           if (uncheckCheckbox === false) {
-            if ([cachedCellProperties.checkedTemplate, cachedCellProperties.checkedTemplate.toString()].includes(dataAtCell)) { // eslint-disable-line max-len
+            if ([cachedCellProperties.checkedTemplate, String(cachedCellProperties.checkedTemplate)].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.uncheckedTemplate, templates]);
 
-            } else if ([cachedCellProperties.uncheckedTemplate, cachedCellProperties.uncheckedTemplate.toString(), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
+            } else if ([cachedCellProperties.uncheckedTemplate, String(cachedCellProperties.uncheckedTemplate), null, undefined].includes(dataAtCell)) { // eslint-disable-line max-len
               changes.push([visualRow, visualColumn, cachedCellProperties.checkedTemplate, templates]);
             }
 
@@ -364,6 +368,10 @@ export function checkboxRenderer(
     for (let key = 0; key < selRange.length; key++) {
       const topLeft = selRange[key].getTopStartCorner();
       const bottomRight = selRange[key].getBottomEndCorner();
+
+      if (topLeft.row === null || topLeft.col === null || bottomRight.row === null || bottomRight.col === null) {
+        continue;
+      }
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {

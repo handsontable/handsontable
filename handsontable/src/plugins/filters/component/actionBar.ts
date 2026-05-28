@@ -33,7 +33,7 @@ export class ActionBarComponent extends BaseComponent {
     this.name = options.name;
 
     this.elements.push(
-      new InputUI(this.hot, {
+      new InputUI(hotInstance, {
         type: 'button',
         value: C.FILTERS_BUTTONS_OK,
         className: 'htUIButton htUIButtonOK',
@@ -41,7 +41,7 @@ export class ActionBarComponent extends BaseComponent {
       })
     );
     this.elements.push(
-      new InputUI(this.hot, {
+      new InputUI(hotInstance, {
         type: 'button',
         value: C.FILTERS_BUTTONS_CANCEL,
         className: 'htUIButton htUIButtonCancel',
@@ -78,7 +78,13 @@ export class ActionBarComponent extends BaseComponent {
         if (isHTMLElement(wrapper.parentNode)) {
           addClass(wrapper.parentNode, 'htFiltersMenuActionBar');
         }
-        arrayEach(this.elements, ui => wrapper.appendChild((ui as InputUI).element));
+        arrayEach(this.elements, (ui) => {
+          const el = (ui as InputUI).element;
+
+          if (el) {
+            wrapper.appendChild(el);
+          }
+        });
 
         return wrapper;
       }

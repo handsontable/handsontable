@@ -56,7 +56,7 @@ export function createKeyboardShortcutsCtrl(
 
     customShortcuts.push({
       shortcuts,
-      contextName,
+      contextName: contextName ?? SHORTCUTS_CONTEXT,
     });
 
     _addShortcuts(shortcuts, contextName);

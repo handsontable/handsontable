@@ -116,7 +116,7 @@ export class RemoveColumnAction extends BaseAction {
           headers,
           columnPositions: hot.columnIndexMapper.getIndexesSequence(),
           rowPositions: hot.rowIndexMapper.getIndexesSequence(),
-          fixedColumnsStart: hot.getSettings().fixedColumnsStart,
+          fixedColumnsStart: hot.getSettings().fixedColumnsStart ?? 0,
           removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
         });
       };
@@ -180,12 +180,14 @@ export class RemoveColumnAction extends BaseAction {
       });
     }
 
-    this.removedCellMetas.forEach(([rowIndex, columnIndex, cellMeta]: [number, number, Record<string, unknown>]) => {
+    this.removedCellMetas.forEach((entry: unknown) => {
+      const [rowIndex, columnIndex, cellMeta] = entry as [number, number, Record<string, unknown>];
+
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
     });
 
     hot.addHookOnce('afterViewRender', undoneCallback);
-    hot.setSourceDataAtCell(changes, null, null, 'UndoRedo.undo');
+    hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
   }
 
   /**

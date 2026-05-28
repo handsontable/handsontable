@@ -34,12 +34,13 @@ export function timeValidator(this: Record<string, unknown>, value: unknown, cal
     valueToValidate += ':00';
   }
 
-  const date = moment(valueToValidate, STRICT_FORMATS, true).isValid() ?
-    moment(valueToValidate) : moment(valueToValidate, timeFormat);
+  const momentValue = valueToValidate as string | number;
+  const date = moment(momentValue, STRICT_FORMATS, true).isValid() ?
+    moment(momentValue) : moment(momentValue, timeFormat);
   let isValidTime = date.isValid();
 
   // is it in the specified format
-  let isValidFormat = moment(valueToValidate, timeFormat, true).isValid() && !twoDigitValue;
+  let isValidFormat = moment(momentValue, timeFormat, true).isValid() && !twoDigitValue;
 
   if (this.allowEmpty && valueToValidate === '') {
     isValidTime = true;

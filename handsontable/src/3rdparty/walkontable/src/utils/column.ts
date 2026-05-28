@@ -65,7 +65,13 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderWidth(sourceIndex: number) {
-    return this.headerWidths.get(this.dataAccessObject.wtTable.columnFilter.sourceToRendered(sourceIndex));
+    const { columnFilter } = this.dataAccessObject.wtTable;
+
+    if (!columnFilter) {
+      return undefined;
+    }
+
+    return this.headerWidths.get(columnFilter.sourceToRendered(sourceIndex));
   }
 
   /**

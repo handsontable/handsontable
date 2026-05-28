@@ -1,7 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
-import { DropdownController } from './controllers/dropdownController';
+import { DropdownController, type DropdownEntry } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
 import { addClass, setAttribute } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
@@ -90,8 +90,8 @@ export class MultiSelectEditor extends BaseEditor {
 
     this.#syncSelectedValues(valuesIntersection);
 
-    type SortFn = ((entries: unknown[]) => unknown[]) | undefined;
-    this.dropdownController!.setSourceSortFunction(this.#getEditorSetting<SortFn>('sourceSortFunction'));
+    type SortFn = ((entries: DropdownEntry[]) => DropdownEntry[]) | null;
+    this.dropdownController!.setSourceSortFunction(this.#getEditorSetting<SortFn>('sourceSortFunction') ?? null);
     this.dropdownController!.fillDropdown(this.#getSource(), valuesIntersection);
     this.dropdownController!.setVisibleRowsNumberSetting(this.#getEditorSetting<number>('visibleRows'));
     this.dropdownController!.setSearchInputVisibility(this.#getEditorSetting<boolean>('searchInput'));
@@ -209,15 +209,15 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.reset();
   }
 
-  #getSource(): unknown[] {
-    return (this.cellProperties.source as unknown[]) ?? [];
+  #getSource(): DropdownEntry[] {
+    return (this.cellProperties.source as DropdownEntry[]) ?? [];
   }
 
   #registerShortcuts(): void {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.addShortcuts([{
+    editorContext!.addShortcuts([{
       keys: [['ArrowUp']],
       callback: () => {
         this.dropdownController!.focusPreviousItem();
@@ -235,7 +235,7 @@ export class MultiSelectEditor extends BaseEditor {
       group: SHORTCUTS_GROUP,
     });
 
-    editorContext.addShortcuts([{
+    editorContext!.addShortcuts([{
       keys: [['enter'], ['shift', 'enter'], ['control/meta', 'enter'], ['control/meta', 'shift', 'enter']],
       runOnlyIf: () => !this.#getEditorSetting('enterCommits'),
       callback: (event: Event) => {
@@ -267,7 +267,7 @@ export class MultiSelectEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   #showEditableElement(): void {

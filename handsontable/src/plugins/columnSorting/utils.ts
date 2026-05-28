@@ -18,7 +18,7 @@ export const HEADER_SPAN_CLASS = 'colHeader';
  * @param {number} columnState Particular column state.
  * @returns {boolean}
  */
-function isValidColumnState(columnState: unknown) {
+function isValidColumnState(columnState: unknown): columnState is { column: number; sortOrder: string } {
   if (isObject(columnState) === false) {
     return false;
   }
@@ -39,7 +39,8 @@ export function areValidSortStates(sortStates: unknown[]) {
     return false;
   }
 
-  const sortedColumns = sortStates.map(({ column }: { column: number }) => column);
+  const validStates = sortStates.filter(isValidColumnState);
+  const sortedColumns = validStates.map(state => state.column);
 
   // Indexes occurs only once.
   return new Set(sortedColumns).size === sortedColumns.length;
@@ -111,7 +112,7 @@ export function wasHeaderClickedProperly(row: number, column: number, clickEvent
     ? eventTargetEl(clickEvent)!.closest('th')
     : null;
 
-  return isBottomMostColumnHeader(targetHeader);
+  return targetHeader !== null && isBottomMostColumnHeader(targetHeader);
 }
 
 /**
@@ -154,8 +155,8 @@ export function createDateTimeCompareFunction(
       return FIRST_BEFORE_SECOND;
     }
 
-    const firstDate = moment(value, format);
-    const nextDate = moment(nextValue, format);
+    const firstDate = moment(String(value), format);
+    const nextDate = moment(String(nextValue), format);
 
     if (!firstDate.isValid()) {
       return FIRST_AFTER_SECOND;

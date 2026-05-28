@@ -48,21 +48,16 @@ export class CellsRenderer extends BaseRenderer {
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for cells (TD).
    * @returns {SharedOrderView}
    */
-  obtainOrderView(rootNode: HTMLElement) {
-    let orderView;
-
-    if (this.orderViews.has(rootNode)) {
-      orderView = this.orderViews.get(rootNode);
-    } else {
-      orderView = new SharedOrderView(
+  obtainOrderView(rootNode: HTMLElement): SharedOrderView {
+    if (!this.orderViews.has(rootNode)) {
+      this.orderViews.set(rootNode, new SharedOrderView(
         rootNode,
-        (sourceColumnIndex: number) => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
-        this.nodeType,
-      );
-      this.orderViews.set(rootNode, orderView);
+        (sourceColumnIndex?: number) => this.nodesPool!.obtain(this.sourceRowIndex, sourceColumnIndex) as HTMLElement,
+        this.nodeType!,
+      ));
     }
 
-    return orderView;
+    return this.orderViews.get(rootNode)!;
   }
 
   /**
@@ -73,12 +68,16 @@ export class CellsRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = rows!.getRenderedNode(visibleRowIndex);
 
       this.sourceRowIndex = sourceRowIndex;
 
+      if (!TR) {
+        continue; // eslint-disable-line no-continue
+      }
+
       const orderView = this.obtainOrderView(TR);
-      const rowHeadersView = rowHeaders.obtainOrderView(TR);
+      const rowHeadersView = rowHeaders!.obtainOrderView(TR);
 
       orderView
         .prependView(rowHeadersView)
@@ -91,6 +90,10 @@ export class CellsRenderer extends BaseRenderer {
 
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex);
         const TD = orderView.getCurrentNode();
+
+        if (!TD) {
+          continue; // eslint-disable-line no-continue
+        }
 
         if (!hasClass(TD, 'hide')) { // Workaround for hidden columns plugin
           TD.className = '';

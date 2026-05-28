@@ -61,19 +61,19 @@ class CollapsingUI extends BaseUI {
         this.lastCollapsedRows = this.collapsedRows.slice(0);
 
         // Workaround for wrong indexes being set in the trimRows plugin
-        this.expandMultipleChildren(this.lastCollapsedRows, forceRender);
+        this.expandMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
       },
       shiftStash: (baseIndex: number, targetIndex: number | null | undefined = undefined, delta = 1) => {
         const targetIdx = targetIndex === null || targetIndex === undefined ? Infinity : targetIndex;
 
-        arrayEach(this.lastCollapsedRows, (elem: number, i: number) => {
+        arrayEach(this.lastCollapsedRows ?? [], (elem: number, i: number) => {
           if (elem >= baseIndex && elem < targetIdx) {
             this.lastCollapsedRows![i] = elem + delta;
           }
         });
       },
       applyStash: (forceRender = true) => {
-        this.collapseMultipleChildren(this.lastCollapsedRows, forceRender);
+        this.collapseMultipleChildren(this.lastCollapsedRows ?? [], forceRender);
         this.lastCollapsedRows = undefined;
       },
       trimStash: (realElementIndex: number, amount: number) => {
@@ -96,11 +96,11 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    * @returns {Array}
    */
-  collapseChildren(row: number, forceRender = true, doTrimming = true): unknown[] {
+  collapseChildren(row: number, forceRender = true, doTrimming = true): number[] {
     const rowsToCollapse: number[] = [];
-    let rowObject: Record<string, unknown> | null = null;
+    let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
-    let rowsToTrim: unknown[] | null = null;
+    let rowsToTrim: number[] | null = null;
 
     if (isNaN(row)) {
       rowObject = row as unknown as Record<string, unknown>;
@@ -110,9 +110,9 @@ class CollapsingUI extends BaseUI {
       rowIndex = row;
     }
 
-    if (this.dataManager.hasChildren(rowObject)) {
+    if (rowObject && this.dataManager.hasChildren(rowObject)) {
       arrayEach(rowObject.__children as unknown[], (elem) => {
-        rowsToCollapse.push(this.dataManager.getRowIndex(elem));
+        rowsToCollapse.push(this.dataManager.getRowIndex(elem) ?? -1);
       });
     }
 
@@ -140,10 +140,10 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [forceRender=true] `true` if the table should be rendered after finishing the function.
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    */
-  collapseMultipleChildren(rows: unknown[], forceRender = true, doTrimming = true) {
-    const rowsToTrim: unknown[] = [];
+  collapseMultipleChildren(rows: number[] | RowObject[], forceRender = true, doTrimming = true) {
+    const rowsToTrim: number[] = [];
 
-    arrayEach(rows, (elem: number) => {
+    arrayEach(rows as number[], (elem: number) => {
       rowsToTrim.push(...this.collapseChildren(elem, false, false));
     });
 
@@ -174,8 +174,8 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    * @returns {Array} Rows prepared for trimming (or trimmed, if doTrimming == true).
    */
-  collapseRows(rowIndexes: unknown[], recursive = true, doTrimming = false): unknown[] {
-    const rowsToTrim: unknown[] = [];
+  collapseRows(rowIndexes: number[], recursive = true, doTrimming = false): number[] {
+    const rowsToTrim: number[] = [];
 
     arrayEach(rowIndexes, (elem: number) => {
       rowsToTrim.push(elem);
@@ -200,12 +200,12 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [recursive] `true` if the collapsing process should be recursive.
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    */
-  collapseChildRows(parentIndex: number, rowsToTrim: unknown[] = [], recursive?: boolean, doTrimming = false) {
+  collapseChildRows(parentIndex: number, rowsToTrim: number[] = [], recursive?: boolean, doTrimming = false) {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children, (elem: unknown) => {
-        const elemIndex = this.dataManager.getRowIndex(elem);
+      arrayEach(parentObject!.__children ?? [], (elem: unknown) => {
+        const elemIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
         rowsToTrim.push(elemIndex);
         this.collapseChildRows(elemIndex, rowsToTrim);
@@ -235,8 +235,8 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] I determine whether collapsing should envolve trimming rows.
    * @returns {Array} Array of row indexes to be untrimmed.
    */
-  expandRows(rowIndexes: unknown[], recursive = true, doTrimming = false): unknown[] {
-    const rowsToUntrim: unknown[] = [];
+  expandRows(rowIndexes: number[], recursive = true, doTrimming = false): number[] {
+    const rowsToUntrim: number[] = [];
 
     arrayEach(rowIndexes, (elem: number) => {
       rowsToUntrim.push(elem);
@@ -261,13 +261,13 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [recursive] `true` if it should expand the rows' children recursively.
    * @param {boolean} [doTrimming=false] I determine whether collapsing should envolve trimming rows.
    */
-  expandChildRows(parentIndex: number, rowsToUntrim: unknown[] = [], recursive?: boolean, doTrimming = false) {
+  expandChildRows(parentIndex: number, rowsToUntrim: number[] = [], recursive?: boolean, doTrimming = false) {
     if (this.dataManager.hasChildren(parentIndex)) {
       const parentObject = this.dataManager.getDataObject(parentIndex);
 
-      arrayEach(parentObject.__children, (elem: RowObject) => {
+      arrayEach(parentObject!.__children ?? [], (elem: RowObject) => {
         if (!this.isAnyParentCollapsed(elem)) {
-          const elemIndex = this.dataManager.getRowIndex(elem);
+          const elemIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
           rowsToUntrim.push(elemIndex);
           this.expandChildRows(elemIndex, rowsToUntrim);
@@ -288,11 +288,11 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [doTrimming=true] If set to `true`, the trimming will be applied when the function finishes.
    * @returns {number[]}
    */
-  expandChildren(row: number, forceRender = true, doTrimming = true): unknown[] {
+  expandChildren(row: number, forceRender = true, doTrimming = true): number[] {
     const rowsToExpand: number[] = [];
-    let rowObject: Record<string, unknown> | null = null;
+    let rowObject: Record<string, unknown> | null | undefined = null;
     let rowIndex: number | null = null;
-    let rowsToUntrim: unknown[] | null = null;
+    let rowsToUntrim: number[] | null = null;
 
     if (isNaN(row)) {
       rowObject = row as unknown as Record<string, unknown>;
@@ -304,9 +304,9 @@ class CollapsingUI extends BaseUI {
 
     this.collapsedRows.splice(this.collapsedRows.indexOf(rowIndex!), 1);
 
-    if (this.dataManager.hasChildren(rowObject)) {
+    if (rowObject && this.dataManager.hasChildren(rowObject)) {
       arrayEach(rowObject.__children as unknown[], (elem) => {
-        const childIndex = this.dataManager.getRowIndex(elem);
+        const childIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
         rowsToExpand.push(childIndex);
       });
@@ -332,10 +332,10 @@ class CollapsingUI extends BaseUI {
    * @param {boolean} [forceRender=true] `true` if the table should render after finishing the function.
    * @param {boolean} [doTrimming=true] `true` if the rows should be untrimmed after finishing the function.
    */
-  expandMultipleChildren(rows: unknown[], forceRender = true, doTrimming = true) {
-    const rowsToUntrim: unknown[] = [];
+  expandMultipleChildren(rows: number[] | RowObject[], forceRender = true, doTrimming = true) {
+    const rowsToUntrim: number[] = [];
 
-    arrayEach(rows, (elem: number) => {
+    arrayEach(rows as number[], (elem: number) => {
       rowsToUntrim.push(...this.expandChildren(elem, false, false));
     });
 
@@ -389,7 +389,7 @@ class CollapsingUI extends BaseUI {
    *
    * @param {Array} rows Physical row indexes.
    */
-  trimRows(rows: unknown[]) {
+  trimRows(rows: number[]) {
     this.hot.batchExecution(() => {
       arrayEach(rows, (physicalRow: number) => {
         this.plugin.collapsedRowsMap!.setValueAtIndex(physicalRow, true);
@@ -402,7 +402,7 @@ class CollapsingUI extends BaseUI {
    *
    * @param {Array} rows Physical row indexes.
    */
-  untrimRows(rows: unknown[]) {
+  untrimRows(rows: number[]) {
     this.hot.batchExecution(() => {
       arrayEach(rows, (physicalRow: number) => {
         this.plugin.collapsedRowsMap!.setValueAtIndex(physicalRow, false);
@@ -418,22 +418,22 @@ class CollapsingUI extends BaseUI {
    * @returns {boolean}
    */
   areChildrenCollapsed(row: number): boolean {
-    let rowObj: Record<string, unknown> = isNaN(row)
+    let rowObj: Record<string, unknown> | null | undefined = isNaN(row)
       ? row as unknown as Record<string, unknown>
       : this.dataManager.getDataObject(row);
     let allCollapsed = true;
 
     // Checking the children of the top-level "parent"
-    if (rowObj === null) {
+    if (rowObj === null || rowObj === undefined) {
       rowObj = {
         __children: this.dataManager.data
       };
 
     }
 
-    if (this.dataManager.hasChildren(rowObj)) {
+    if (rowObj && this.dataManager.hasChildren(rowObj)) {
       arrayEach(rowObj.__children as unknown[], (elem) => {
-        const rowIndex = this.dataManager.getRowIndex(elem);
+        const rowIndex = this.dataManager.getRowIndex(elem) ?? -1;
 
         if (!this.plugin.collapsedRowsMap!.getValueAtIndex(rowIndex)) {
           allCollapsed = false;
@@ -458,7 +458,7 @@ class CollapsingUI extends BaseUI {
 
     while (parent !== null) {
       parent = this.dataManager.getRowParent(parent);
-      const parentIndex = this.dataManager.getRowIndex(parent);
+      const parentIndex = this.dataManager.getRowIndex(parent) ?? -1;
 
       if (this.collapsedRows.indexOf(parentIndex) > -1) {
         return true;

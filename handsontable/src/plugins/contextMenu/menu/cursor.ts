@@ -58,12 +58,12 @@ export class Cursor {
   constructor(object: CursorSourceLiteral | Event, rootWindow: Window) {
     const windowScrollTop = rootWindow.scrollY;
     const windowScrollLeft = rootWindow.scrollX;
-    let top;
-    let topRelative;
-    let left;
-    let leftRelative;
-    let cellHeight;
-    let cellWidth;
+    let top = 0;
+    let topRelative = 0;
+    let left = 0;
+    let leftRelative = 0;
+    let cellHeight = 0;
+    let cellWidth = 0;
 
     this.rootWindow = rootWindow;
     this.type = this.getSourceType(object);

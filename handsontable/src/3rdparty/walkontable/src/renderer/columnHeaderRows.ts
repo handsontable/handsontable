@@ -32,8 +32,8 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
 
     this.orderView = new OrderView(
       rootNode,
-      (sourceRowIndex: number) => this.nodesPool.obtain(sourceRowIndex),
-      this.nodeType,
+      (sourceRowIndex?: number) => this.nodesPool!.obtain(sourceRowIndex ?? 0) as HTMLElement,
+      this.nodeType!,
     );
   }
 
@@ -69,7 +69,7 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
 
       const TR = this.orderView.getCurrentNode();
 
-      if (this.table.isAriaEnabled()) {
+      if (TR && this.table.isAriaEnabled()) {
         setAttribute(TR, [
           A11Y_ROW(),
           A11Y_ROWINDEX(visibleRowIndex + 1),

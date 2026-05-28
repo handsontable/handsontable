@@ -67,7 +67,7 @@ export class HandsontableEditor extends TextEditor {
     const containerStyle = this.htContainer.style;
 
     if (this.htEditor) {
-      this.htEditor.rootPortalElement = null;
+      this.htEditor.rootPortalElement = null as unknown as HTMLElement;
       this.htEditor.destroy();
       containerStyle.width = '';
       containerStyle.height = '';
@@ -232,6 +232,11 @@ export class HandsontableEditor extends TextEditor {
   flipDropdownVerticallyIfNeeded(): { isFlipped: boolean, spaceAbove: number, spaceBelow: number } {
     const { view } = this.hot;
     const cellRect = this.getEditedCellRect();
+
+    if (!cellRect) {
+      return { isFlipped: false, spaceAbove: 0, spaceBelow: 0 };
+    }
+
     let spaceAbove = cellRect.top;
 
     if (view.isVerticallyScrollableByWindow()) {
@@ -296,6 +301,11 @@ export class HandsontableEditor extends TextEditor {
   flipDropdownHorizontallyIfNeeded(): { isFlipped: boolean, spaceInlineStart: number, spaceInlineEnd: number } {
     const { view } = this.hot;
     const cellRect = this.getEditedCellRect();
+
+    if (!cellRect) {
+      return { isFlipped: false, spaceInlineStart: 0, spaceInlineEnd: 0 };
+    }
+
     let spaceInlineStart = cellRect.start + cellRect.width;
     let workspaceWidth = view.getWorkspaceWidth();
 
@@ -333,7 +343,7 @@ export class HandsontableEditor extends TextEditor {
    */
   flipDropdownHorizontally(): void {
     const dropdownStyle = this.htEditor.rootElement.style;
-    const { width } = this.getEditedCellRect();
+    const { width } = this.getEditedCellRect() ?? { width: 0 };
 
     dropdownStyle.position = 'absolute';
     dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = `${-(this.getDropdownWidth() - width)}px`;
@@ -402,7 +412,7 @@ export class HandsontableEditor extends TextEditor {
   assignHooks(): void {
     this.hot.addHook('afterDestroy', () => {
       if (this.htEditor) {
-        this.htEditor.rootPortalElement = null;
+        this.htEditor.rootPortalElement = null as unknown as HTMLElement;
         this.htEditor.destroy();
       }
     });
@@ -452,7 +462,7 @@ export class HandsontableEditor extends TextEditor {
       }
     };
 
-    editorContext.addShortcuts([{
+    editorContext!.addShortcuts([{
       keys: [['ArrowUp']],
       callback: (event: KeyboardEvent) => {
         const innerHOT = this.htEditor;
@@ -463,11 +473,13 @@ export class HandsontableEditor extends TextEditor {
           rowToSelect = innerHOT.countRows() - 1;
 
         } else if (innerHOT.getSelectedActive()) {
+          const active = innerHOT.getSelectedActive()!;
+
           if (this.isFlippedVertically) {
-            selectedRow = innerHOT.getSelectedActive()[0];
+            selectedRow = active[0];
             rowToSelect = Math.max(0, selectedRow - 1);
           } else {
-            selectedRow = innerHOT.getSelectedActive()[0];
+            selectedRow = active[0];
             rowToSelect = selectedRow - 1;
           }
         }
@@ -486,13 +498,15 @@ export class HandsontableEditor extends TextEditor {
           rowToSelect = 0;
 
         } else if (innerHOT.getSelectedActive()) {
+          const active = innerHOT.getSelectedActive()!;
+
           if (this.isFlippedVertically) {
-            rowToSelect = innerHOT.getSelectedActive()[0] + 1;
+            rowToSelect = active[0] + 1;
 
           } else if (!this.isFlippedVertically) {
             const lastRow = innerHOT.countRows() - 1;
 
-            selectedRow = innerHOT.getSelectedActive()[0];
+            selectedRow = active[0];
             rowToSelect = Math.min(lastRow, selectedRow + 1);
           }
         }
@@ -514,6 +528,6 @@ export class HandsontableEditor extends TextEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 }

@@ -33,7 +33,7 @@ export class OperatorsComponent extends BaseComponent {
 
     this.name = options.name;
 
-    this.buildOperatorsElement();
+    this.buildOperatorsElement(hotInstance);
   }
 
   /**
@@ -52,7 +52,13 @@ export class OperatorsComponent extends BaseComponent {
         if (isHTMLElement(wrapper.parentNode)) {
           addClass(wrapper.parentNode, 'htFiltersMenuOperators');
         }
-        arrayEach(this.elements as BaseUI[], (ui: BaseUI) => wrapper.appendChild(ui.element));
+        arrayEach(this.elements as BaseUI[], (ui: BaseUI) => {
+          const el = ui.element;
+
+          if (el) {
+            wrapper.appendChild(el);
+          }
+        });
 
         return wrapper;
       }
@@ -64,11 +70,11 @@ export class OperatorsComponent extends BaseComponent {
    *
    * @private
    */
-  buildOperatorsElement() {
+  buildOperatorsElement(hotInstance: HotInstance) {
     const operationKeys = [OPERATION_AND, OPERATION_OR];
 
     arrayEach(operationKeys, (operation: string) => {
-      const radioInput = new RadioInputUI(this.hot, {
+      const radioInput = new RadioInputUI(hotInstance, {
         name: 'operator',
         label: {
           htmlFor: operation,
@@ -104,11 +110,11 @@ export class OperatorsComponent extends BaseComponent {
    *
    * @returns {string}
    */
-  getActiveOperationId() {
+  getActiveOperationId(): string {
     const operationElement = this.elements.find(element => element instanceof RadioInputUI && element.isChecked());
 
     if (operationElement) {
-      return (operationElement as RadioInputUI).getValue();
+      return String((operationElement as RadioInputUI).getValue() ?? OPERATION_AND);
     }
 
     return OPERATION_AND;
@@ -151,7 +157,7 @@ export class OperatorsComponent extends BaseComponent {
       selectedOperationId = OPERATION_OR;
     }
 
-    this.state.setValueAtIndex(column, selectedOperationId);
+    this.state?.setValueAtIndex(column, selectedOperationId);
   }
 
   /**

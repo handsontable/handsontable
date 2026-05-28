@@ -170,7 +170,7 @@ class AutofillCalculations {
    * @param {Array} baseArea The base selection area.
    * @param {Array} fullArea The drag area (containing the base area).
    * @param {string} direction The drag direction.
-   * @returns {number|null} The "length" (height or width, depending on the direction) of the drag.
+   * @returns {number} The "length" (height or width, depending on the direction) of the drag.
    */
   getAutofillSize(baseArea: number[], fullArea: number[], direction: string) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
@@ -186,7 +186,7 @@ class AutofillCalculations {
       case 'right':
         return dragAreaEndColumn - baseAreaEndColumn;
       default:
-        return null;
+        return 0;
     }
   }
 
@@ -197,7 +197,7 @@ class AutofillCalculations {
    * @param {Array} baseArea The base selection area.
    * @param {Array} fullArea The base selection area extended by the drag area.
    * @param {string} direction Drag direction.
-   * @returns {Array|null} Array representing the drag area coordinates.
+   * @returns {Array} Array representing the drag area coordinates.
    */
   getDragArea(baseArea: number[], fullArea: number[], direction: string) {
     const [baseAreaStartRow, baseAreaStartColumn, baseAreaEndRow, baseAreaEndColumn] = baseArea;
@@ -221,7 +221,7 @@ class AutofillCalculations {
         return [baseAreaStartRow, baseAreaEndColumn + columnShift, fullAreaEndRow, fullAreaEndColumn];
       }
       default:
-        return null;
+        return [0, 0, 0, 0];
     }
   }
 
@@ -371,7 +371,7 @@ class AutofillCalculations {
         }
       }
 
-    } while (inBounds(current, fillOffset));
+    } while (current !== null && inBounds(current, fillOffset));
 
     this.currentFillData = null;
     this.plugin.hot.render();
@@ -389,39 +389,41 @@ class AutofillCalculations {
    * @returns {object} Object with `from` and `to` properties, both containing `row` and `column` keys.
    */
   getRangeFromChanges(changes: unknown[][]) {
-    const rows: { min: number | null, max: number | null } = { min: null, max: null };
-    const columns: { min: number | null, max: number | null } = { min: null, max: null };
+    let rowMin: number | null = null;
+    let rowMax: number | null = null;
+    let colMin: number | null = null;
+    let colMax: number | null = null;
 
     arrayEach(changes, (change) => {
       const changeArr = change as unknown[];
       const rowIndex = changeArr[0] as number;
       const columnIndex = this.plugin.hot.propToCol(changeArr[1] as string | number);
 
-      if (rows.min === null || rowIndex < rows.min) {
-        rows.min = rowIndex;
+      if (rowMin === null || rowIndex < rowMin) {
+        rowMin = rowIndex;
       }
 
-      if (rows.max === null || rowIndex > rows.max) {
-        rows.max = rowIndex;
+      if (rowMax === null || rowIndex > rowMax) {
+        rowMax = rowIndex;
       }
 
-      if (columns.min === null || columnIndex < columns.min) {
-        columns.min = columnIndex;
+      if (colMin === null || columnIndex < colMin) {
+        colMin = columnIndex;
       }
 
-      if (columns.max === null || columnIndex > columns.max) {
-        columns.max = columnIndex;
+      if (colMax === null || columnIndex > colMax) {
+        colMax = columnIndex;
       }
     });
 
     return {
       from: {
-        row: rows.min,
-        column: columns.min
+        row: rowMin ?? 0,
+        column: colMin ?? 0
       },
       to: {
-        row: rows.max,
-        column: columns.max
+        row: rowMax ?? 0,
+        column: colMax ?? 0
       }
     };
   }

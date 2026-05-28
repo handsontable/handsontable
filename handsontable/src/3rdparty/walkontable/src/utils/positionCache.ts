@@ -178,7 +178,7 @@ export class PositionCache {
    *
    * @returns {boolean}
    */
-  isBuilt() {
+  isBuilt(): this is PositionCache & { prefixSum: Float64Array } {
     return this.prefixSum !== null;
   }
 }

@@ -165,7 +165,7 @@ export class Autofill extends BasePlugin {
     this.addHook('afterOnCellCornerMouseDown', this.#onAfterCellCornerMouseDown);
     this.addHook('afterOnCellCornerDblClick', this.#onCellCornerDblClick);
     this.addHook('beforeOnCellMouseOver',
-      (_: unknown, coords: { row: number, col: number }) => this.#onBeforeCellMouseOver(coords));
+      (_: MouseEvent, coords: CellCoords) => this.#onBeforeCellMouseOver(coords));
     this.addHook('afterScroll', this.#onAfterScroll);
 
     super.enablePlugin();
@@ -200,6 +200,11 @@ export class Autofill extends BasePlugin {
    */
   getSelectionData(useSource = false) {
     const selection = this.hot.getSelectedRangeLast();
+
+    if (!selection) {
+      return [];
+    }
+
     const { row: startRow, col: startCol } = selection.getTopStartCorner();
     const { row: endRow, col: endCol } = selection.getBottomEndCorner();
 
@@ -271,26 +276,31 @@ export class Autofill extends BasePlugin {
     const [fillStartRow, fillStartColumn, fillEndRow, fillEndColumn] =
       this.hot.selection.highlight.getFill().getVisualCorners();
     const selectionRangeLast = this.hot.getSelectedRangeLast();
+
+    if (!selectionRangeLast) {
+      return false;
+    }
+
     const topStartCorner = selectionRangeLast.getTopStartCorner();
     const bottomEndCorner = selectionRangeLast.getBottomEndCorner();
 
     this.resetSelectionOfDraggedArea();
 
     const cornersOfSelectedCells = [
-      topStartCorner.row,
-      topStartCorner.col,
-      bottomEndCorner.row,
-      bottomEndCorner.col,
+      topStartCorner.row ?? 0,
+      topStartCorner.col ?? 0,
+      bottomEndCorner.row ?? 0,
+      bottomEndCorner.col ?? 0,
     ];
 
     const cornersOfSelectionAndDragAreas = this.hot
       .runHooks<number[]>(
         'modifyAutofillRange',
         [
-          Math.min(topStartCorner.row, fillStartRow),
-          Math.min(topStartCorner.col, fillStartColumn),
-          Math.max(bottomEndCorner.row, fillEndRow),
-          Math.max(bottomEndCorner.col, fillEndColumn),
+          Math.min(topStartCorner.row ?? 0, fillStartRow ?? 0),
+          Math.min(topStartCorner.col ?? 0, fillStartColumn ?? 0),
+          Math.max(bottomEndCorner.row ?? 0, fillEndRow ?? 0),
+          Math.max(bottomEndCorner.col ?? 0, fillEndColumn ?? 0),
         ],
         cornersOfSelectedCells
       );
@@ -305,12 +315,21 @@ export class Autofill extends BasePlugin {
       (row: number, column: number) => this.hot._createCellCoords(row, column),
     );
 
-    if (startOfDragCoords && endOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
+    if (startOfDragCoords && endOfDragCoords &&
+        startOfDragCoords.row !== null && startOfDragCoords.col !== null &&
+        endOfDragCoords.row !== null && endOfDragCoords.col !== null &&
+        startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
+      const startRow = startOfDragCoords.row;
+      const startCol = startOfDragCoords.col;
+      const endRow = endOfDragCoords.row;
+      const endCol = endOfDragCoords.col;
+      const startCoords = { row: startRow, col: startCol };
+      const endCoords = { row: endRow, col: endCol };
       const selectionData = this.getSelectionData();
       const selectionSourceData = this.getSelectionData(true);
       const sourceRange = selectionRangeLast.clone();
       const targetRange = this.hot._createCellRange(
-        startOfDragCoords as CellCoords, startOfDragCoords as CellCoords, endOfDragCoords as CellCoords);
+        startOfDragCoords, startOfDragCoords, endOfDragCoords);
 
       const beforeAutofillHookResult = this.hot.runHooks<unknown[][] | false>(
         'beforeAutofill',
@@ -337,7 +356,7 @@ export class Autofill extends BasePlugin {
         fillData = [];
 
         if (directionOfDrag === 'up') {
-          const dragLength = endOfDragCoords.row - startOfDragCoords.row + 1;
+          const dragLength = endRow - startRow + 1;
           const fillOffset = dragLength % res.length;
 
           for (let i = 0; i < dragLength; i++) {
@@ -345,7 +364,7 @@ export class Autofill extends BasePlugin {
           }
 
         } else {
-          const dragLength = endOfDragCoords.col - startOfDragCoords.col + 1;
+          const dragLength = endCol - startCol + 1;
           const fillOffset = dragLength % res[0].length;
 
           for (let i = 0; i < res.length; i++) {
@@ -364,8 +383,8 @@ export class Autofill extends BasePlugin {
         const fullFillData = this.#extendFillDataWithSourceData(
           fillData,
           selectionSourceData,
-          startOfDragCoords,
-          endOfDragCoords,
+          startCoords,
+          endCoords,
           directionOfDrag,
         );
 
@@ -375,13 +394,13 @@ export class Autofill extends BasePlugin {
       }
 
       this.hot.populateFromArray(
-        startOfDragCoords.row,
-        startOfDragCoords.col,
+        startRow,
+        startCol,
         fillData,
-        endOfDragCoords.row,
-        endOfDragCoords.col,
+        endRow,
+        endCol,
         `${this.pluginName}.fill`,
-        null
+        undefined
       );
 
       this.setSelection(cornersOfSelectionAndDragAreas, sourceRange);
@@ -416,11 +435,11 @@ export class Autofill extends BasePlugin {
    */
   addNewRowIfNeeded() {
     if (!this.hot.selection.highlight.getFill().isEmpty() && this.addingStarted === false && this.autoInsertRow) {
-      const bottomRow = this.hot.getSelectedRangeLast().getBottomEndCorner().row;
+      const bottomRow = this.hot.getSelectedRangeLast()?.getBottomEndCorner().row ?? null;
       const cornersOfSelectedDragArea = this.hot.selection.highlight.getFill().getVisualCorners();
       const nrOfTableRows = this.hot.countRows();
 
-      if (bottomRow < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
+      if (bottomRow !== null && bottomRow < nrOfTableRows - 1 && cornersOfSelectedDragArea[2] === nrOfTableRows - 1) {
         this.addingStarted = true;
 
         this.addRow();
@@ -501,8 +520,12 @@ export class Autofill extends BasePlugin {
     let toCol = maxCol;
 
     if (sourceRange) {
-      const { row: preMinRow, col: preMinCol } = sourceRange.getTopStartCorner();
-      const { row: preMaxRow, col: preMaxCol } = sourceRange.getBottomEndCorner();
+      const { row: preMinRowOrNull, col: preMinColOrNull } = sourceRange.getTopStartCorner();
+      const { row: preMaxRowOrNull, col: preMaxColOrNull } = sourceRange.getBottomEndCorner();
+      const preMinRow = preMinRowOrNull ?? 0;
+      const preMinCol = preMinColOrNull ?? 0;
+      const preMaxRow = preMaxRowOrNull ?? 0;
+      const preMaxCol = preMaxColOrNull ?? 0;
 
       if (minRow < preMinRow) {
         fromRow = maxRow; // dragged up - anchor stays at the (preserved) bottom
@@ -535,9 +558,14 @@ export class Autofill extends BasePlugin {
    */
   selectAdjacent() {
     const range = this.hot.getSelectedRangeLast();
+
+    if (!range) {
+      return false;
+    }
+
     const topStart = range.getTopStartCorner();
     const bottomEnd = range.getBottomEndCorner();
-    const cornersOfSelectedCells = [topStart.row, topStart.col, bottomEnd.row, bottomEnd.col];
+    const cornersOfSelectedCells = [topStart.row ?? 0, topStart.col ?? 0, bottomEnd.row ?? 0, bottomEnd.col ?? 0];
     const lastFilledInRowIndex = this.getIndexOfLastAdjacentFilledInRow(cornersOfSelectedCells);
 
     if (lastFilledInRowIndex === -1 || lastFilledInRowIndex === undefined) {
@@ -567,11 +595,11 @@ export class Autofill extends BasePlugin {
    * @private
    * @param {CellCoords} cellCoords `CellCoords` coord object.
    */
-  redrawBorders(cellCoords: { row: number, col: number }) {
+  redrawBorders(cellCoords: { row: number | null, col: number | null }) {
     const allowedDirections = this.directions;
     const lastRange = this.hot.getSelectedRangeLast();
 
-    if (!lastRange || !cellCoords) {
+    if (!lastRange || !cellCoords || cellCoords.row === null || cellCoords.col === null) {
       return;
     }
 
@@ -580,8 +608,10 @@ export class Autofill extends BasePlugin {
     const topStartCorner = lastRange.getTopStartCorner();
     const bottomEndCorner = lastRange.getBottomEndCorner();
 
-    const rowChanged = coords.row < topStartCorner.row || coords.row > bottomEndCorner.row;
-    const colChanged = coords.col < topStartCorner.col || coords.col > bottomEndCorner.col;
+    const rowChanged = (coords.row ?? 0) < (topStartCorner.row ?? 0) ||
+      (coords.row ?? 0) > (bottomEndCorner.row ?? 0);
+    const colChanged = (coords.col ?? 0) < (topStartCorner.col ?? 0) ||
+      (coords.col ?? 0) > (bottomEndCorner.col ?? 0);
     const isAtHighlightPosition = lastRange.includes(coords);
 
     if (isAtHighlightPosition) {
@@ -612,15 +642,15 @@ export class Autofill extends BasePlugin {
     }
 
     if (this.#currentDragDirection === 'vertical' && allowedDirections.includes('vertical')) {
-      toRow = coords.row;
-      toCol = topStartCorner.col;
+      toRow = coords.row ?? 0;
+      toCol = topStartCorner.col ?? 0;
 
     } else if (this.#currentDragDirection === 'horizontal' && allowedDirections.includes('horizontal')) {
-      toRow = topStartCorner.row;
-      toCol = coords.col;
+      toRow = topStartCorner.row ?? 0;
+      toCol = coords.col ?? 0;
     }
 
-    const to = this.hot._createCellCoords(toRow, toCol);
+    const to = this.hot._createCellCoords(toRow ?? 0, toCol ?? 0);
 
     this.hot.selection.highlight.getFill()
       .clear()
@@ -748,7 +778,7 @@ export class Autofill extends BasePlugin {
    *
    * @param {CellCoords} coords Cell coordinates.
    */
-  #onBeforeCellMouseOver(coords: { row: number, col: number }) {
+  #onBeforeCellMouseOver(coords: CellCoords) {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
       this.handleDraggedCells += 1;
 

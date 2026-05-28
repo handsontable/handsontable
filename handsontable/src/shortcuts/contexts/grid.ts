@@ -28,7 +28,7 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: (event: KeyboardEvent) => commandsPool.editorFastOpen(event),
   }, {
     keys: [['Enter'], ['Enter', 'Shift']],
-    callback: (event: KeyboardEvent, keys: string[]) => commandsPool.editorOpen(event, keys),
+    callback: (event: KeyboardEvent, keys?: string[]) => commandsPool.editorOpen(event, keys),
   }, {
     keys: [['Backspace'], ['Delete']],
     callback: () => commandsPool.emptySelectedCells(),
@@ -44,7 +44,7 @@ export function shortcutsGridContext(hot: HotInstance) {
   }, {
     keys: [['Control/Meta', 'A']],
     callback: () => {},
-    runOnlyIf: () => isDefined(hot.getSelected()) && hot.getSelectedRangeActive()?.highlight.isHeader(),
+    runOnlyIf: () => !!(isDefined(hot.getSelected()) && hot.getSelectedRangeActive()?.highlight.isHeader()),
     preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
@@ -54,8 +54,8 @@ export function shortcutsGridContext(hot: HotInstance) {
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
       return isDefined(hot.getSelected()) &&
-        !hot.getSelectedRangeActive().highlight.isHeader() &&
-        hot.getSelectedRangeActive().getCellsCount() > 1;
+        !hot.getSelectedRangeActive()?.highlight.isHeader() &&
+        (hot.getSelectedRangeActive()?.getCellsCount() ?? 0) > 1;
     },
   }, {
     keys: [['Control', 'Space']],

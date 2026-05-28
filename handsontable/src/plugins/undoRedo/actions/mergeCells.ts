@@ -32,10 +32,10 @@ export class MergeCellsAction extends BaseAction {
       const topStartCorner = typedCellRange.getTopStartCorner();
       const bottomEndCorner = typedCellRange.getBottomEndCorner();
       const data = hot.getData(
-        topStartCorner.row,
-        topStartCorner.col,
-        bottomEndCorner.row,
-        bottomEndCorner.col
+        topStartCorner.row ?? undefined,
+        topStartCorner.col ?? undefined,
+        bottomEndCorner.row ?? undefined,
+        bottomEndCorner.col ?? undefined
       );
 
       (undoRedoPlugin as { done: (callback: () => MergeCellsAction) => void }).done(
@@ -58,8 +58,8 @@ export class MergeCellsAction extends BaseAction {
     const topStartCorner = this.cellRange.getTopStartCorner();
 
     hot.populateFromArray(
-      topStartCorner.row,
-      topStartCorner.col,
+      topStartCorner.row ?? 0,
+      topStartCorner.col ?? 0,
       this.data as unknown[][],
       undefined,
       undefined,

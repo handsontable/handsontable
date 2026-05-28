@@ -16,7 +16,7 @@ type DataRow = {
  * @param {number} inputValues."1" The maximum value of the range.
  * @returns {boolean}
  */
-export function condition(dataRow: DataRow, [from, to]: unknown[]) {
+export function condition(dataRow: DataRow, [from, to]: (string | number | undefined)[]) {
   let fromValue = from;
   let toValue = to;
 
@@ -28,7 +28,7 @@ export function condition(dataRow: DataRow, [from, to]: unknown[]) {
     toValue = Math.max(_from, _to);
 
   } else if (dataRow.meta.type === 'date') {
-    const date = moment(dataRow.value, dataRow.meta.dateFormat);
+    const date = moment(String(dataRow.value), dataRow.meta.dateFormat);
     const fromDate = moment(fromValue, dataRow.meta.dateFormat);
     const toDate = moment(toValue, dataRow.meta.dateFormat);
 

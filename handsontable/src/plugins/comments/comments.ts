@@ -291,7 +291,7 @@ export class Comments extends BasePlugin {
 
     if (!this.#editor) {
       this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
-      this.#editor.addLocalHook('resize',
+      this.#editor?.addLocalHook('resize',
         (width: number, height: number) => this.#onEditorResize(width, height));
       this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
         if (!firstRun) {
@@ -315,8 +315,8 @@ export class Comments extends BasePlugin {
     this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
     this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
 
-    this.#displaySwitch.addLocalHook('hide', () => this.hide());
-    this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
+    this.#displaySwitch?.addLocalHook('hide', () => this.hide());
+    this.#displaySwitch?.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
 
     this.registerShortcuts();
     this.registerListeners();
@@ -330,7 +330,7 @@ export class Comments extends BasePlugin {
    *   - [`comments`](@/api/options.md#comments)
    */
   updatePlugin(): void {
-    this.#displaySwitch.updateDelay(this.getSetting<number>('displayDelay'));
+    this.#displaySwitch?.updateDelay(this.getSetting<number>('displayDelay'));
     super.updatePlugin();
   }
 
@@ -352,14 +352,17 @@ export class Comments extends BasePlugin {
     const gridContext = manager.getContext('grid');
     const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME);
 
-    gridContext.addShortcut({
+    gridContext?.addShortcut({
       keys: [['Control', 'Alt', 'M']],
       callback: () => {
         const range = this.hot.getSelectedRangeActive();
 
         this.#preventEditorHiding = true;
         this.hot.scrollToFocusedCell(() => {
-          this.setRange(range);
+          if (range) {
+            this.setRange(range);
+          }
+
           this.show();
           this.focusEditor();
           manager.setActiveContextName(SHORTCUTS_CONTEXT_NAME);
@@ -370,18 +373,18 @@ export class Comments extends BasePlugin {
         });
       },
       stopPropagation: true,
-      runOnlyIf: () => this.hot.getSelectedRangeActive()?.highlight.isCell(),
+      runOnlyIf: (): boolean => !!(this.hot.getSelectedRangeActive()?.highlight.isCell()),
       group: SHORTCUTS_GROUP,
     });
 
     pluginContext.addShortcut({
       keys: [['Escape']],
       callback: () => {
-        this.#editor.setValue(this.#commentValueBeforeSave);
+        this.#editor?.setValue(this.#commentValueBeforeSave);
         this.hide();
         manager.setActiveContextName('grid');
       },
-      runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
+      runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && this.#editor?.isFocused()),
       group: SHORTCUTS_GROUP,
     });
 
@@ -391,7 +394,7 @@ export class Comments extends BasePlugin {
         this.hide();
         manager.setActiveContextName('grid');
       },
-      runOnlyIf: () => this.#editor.isVisible() && this.#editor.isFocused(),
+      runOnlyIf: (): boolean => !!(this.#editor?.isVisible() && this.#editor?.isFocused()),
       group: SHORTCUTS_GROUP,
     });
 
@@ -400,7 +403,7 @@ export class Comments extends BasePlugin {
       forwardToContext: manager.getContext('grid'),
       callback: () => {
         this.#preventEditorSaveOnBlur = true;
-        this.#editor.setValue(this.#editor.getValue());
+        this.#editor?.setValue(this.#editor?.getValue());
         this.setComment();
         this.hide();
         manager.setActiveContextName('grid');
@@ -417,7 +420,7 @@ export class Comments extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -432,15 +435,22 @@ export class Comments extends BasePlugin {
     this.eventManager.addEventListener(rootDocument, 'mouseover', this.#onMouseOver);
     this.eventManager.addEventListener(rootDocument, 'mousedown', this.#onMouseDown);
     this.eventManager.addEventListener(rootDocument, 'mouseup', () => this.#onMouseUp());
-    this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
-    this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
-    this.eventManager.addEventListener(editorElement, 'keydown', this.#onEditorKeyDown);
 
-    this.eventManager.addEventListener(
-      this.getEditorInputElement(),
-      'mousedown',
-      this.#onInputElementMouseDown
-    );
+    if (editorElement) {
+      this.eventManager.addEventListener(editorElement, 'focus', () => this.#onEditorFocus());
+      this.eventManager.addEventListener(editorElement, 'blur', () => this.#onEditorBlur());
+      this.eventManager.addEventListener(editorElement, 'keydown', this.#onEditorKeyDown);
+    }
+
+    const inputElement = this.getEditorInputElement();
+
+    if (inputElement) {
+      this.eventManager.addEventListener(
+        inputElement,
+        'mousedown',
+        this.#onInputElementMouseDown
+      );
+    }
   }
 
   /**
@@ -493,7 +503,7 @@ export class Comments extends BasePlugin {
     if (!this.range.from) {
       throwWithCause('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
     }
-    const editorValue = this.#editor.getValue();
+    const editorValue = this.#editor?.getValue();
     let comment = '';
 
     if (value !== null && value !== undefined) {
@@ -597,11 +607,11 @@ export class Comments extends BasePlugin {
 
     const meta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, col);
 
-    this.#displaySwitch.cancelHiding();
+    this.#displaySwitch?.cancelHiding();
     const commentMeta = meta[META_COMMENT];
 
-    this.#editor.setValue((commentMeta ? commentMeta[META_COMMENT_VALUE] : null) ?? '');
-    this.#editor.show();
+    this.#editor?.setValue((commentMeta ? commentMeta[META_COMMENT_VALUE] : null) ?? '');
+    this.#editor?.show();
     this.refreshEditor(true);
 
     return true;
@@ -626,7 +636,7 @@ export class Comments extends BasePlugin {
    * Hides the comment editor.
    */
   hide(): void {
-    this.#editor.hide();
+    this.#editor?.hide();
   }
 
   /**
@@ -635,7 +645,11 @@ export class Comments extends BasePlugin {
    * @param {boolean} [force=false] If `true` then recalculation will be forced.
    */
   refreshEditor(force: boolean = false): void {
-    if (!force && (!this.range.from || !this.#editor.isVisible())) {
+    if (!force && (!this.range.from || !this.#editor?.isVisible())) {
+      return;
+    }
+
+    if (!this.#editor) {
       return;
     }
 
@@ -652,13 +666,19 @@ export class Comments extends BasePlugin {
     this.#editor.setPosition(0, 0);
 
     if (renderableRow === null) {
-      renderableRow = rowIndexMapper
-        .getRenderableFromVisualIndex(rowIndexMapper.getNearestNotHiddenIndex(visualRow, -1));
+      const nearestRow = rowIndexMapper.getNearestNotHiddenIndex(visualRow, -1);
+
+      renderableRow = nearestRow !== null
+        ? rowIndexMapper.getRenderableFromVisualIndex(nearestRow)
+        : null;
     }
 
     if (renderableColumn === null) {
-      renderableColumn = columnIndexMapper
-        .getRenderableFromVisualIndex(columnIndexMapper.getNearestNotHiddenIndex(visualColumn, -1));
+      const nearestCol = columnIndexMapper.getNearestNotHiddenIndex(visualColumn, -1);
+
+      renderableColumn = nearestCol !== null
+        ? columnIndexMapper.getRenderableFromVisualIndex(nearestCol)
+        : null;
     }
 
     const isBeforeRenderedRows = renderableRow === null;
@@ -749,7 +769,7 @@ export class Comments extends BasePlugin {
     );
 
     this.#editor.setPosition(clamped.x, clamped.y);
-    this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY));
+    this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
   }
 
@@ -757,7 +777,7 @@ export class Comments extends BasePlugin {
    * Focuses the comments editor element.
    */
   focusEditor(): void {
-    this.#editor.focus();
+    this.#editor?.focus();
   }
 
   /**
@@ -850,7 +870,7 @@ export class Comments extends BasePlugin {
 
     const target = eventTargetEl(event)!;
 
-    if (this.#preventEditorAutoSwitch || this.#editor.isFocused() || hasClass(target, 'wtBorder')
+    if (this.#preventEditorAutoSwitch || this.#editor?.isFocused() || hasClass(target, 'wtBorder')
         || this.#cellBelowCursor === target || !this.#editor) {
       return;
     }
@@ -859,12 +879,16 @@ export class Comments extends BasePlugin {
       (event as MouseEvent).clientX, (event as MouseEvent).clientY);
 
     if (this.targetIsCellWithComment(event)) {
-      const range = this.hot._createCellRange(this.hot.getCoords(target));
+      const coords = this.hot.getCoords(target);
 
-      this.#displaySwitch.show(range);
+      if (coords) {
+        const range = this.hot._createCellRange(coords);
+
+        this.#displaySwitch?.show(range);
+      }
 
     } else if (isChildOf(target, rootDocument) && !this.targetIsCommentTextArea(event)) {
-      this.#displaySwitch.hide();
+      this.#displaySwitch?.hide();
     }
   };
 
@@ -914,7 +938,7 @@ export class Comments extends BasePlugin {
    * the keyboard shortcuts by switching the context to plugins one.
    */
   #onEditorFocus() {
-    this.#commentValueBeforeSave = this.getComment();
+    this.#commentValueBeforeSave = this.getComment() ?? '';
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
   }
@@ -928,7 +952,7 @@ export class Comments extends BasePlugin {
    * @param {Event} event The keydown event from the comment textarea.
    */
   #onEditorKeyDown = (event: Event) => {
-    if (!this.#editor.isVisible()) {
+    if (!this.#editor?.isVisible()) {
       return;
     }
 
@@ -958,7 +982,7 @@ export class Comments extends BasePlugin {
    * @param {Event} event The keydown event.
    */
   #onAfterDocumentKeyDown = (event: Event) => {
-    if (this.#editor.isFocused()) {
+    if (this.#editor?.isFocused()) {
       stopImmediatePropagation(event);
     }
   };
@@ -994,7 +1018,7 @@ export class Comments extends BasePlugin {
    * @returns {HTMLTextAreaElement}
    */
   getEditorInputElement() {
-    return this.#editor.getInputElement();
+    return this.#editor?.getInputElement() ?? null;
   }
 
   /**
@@ -1002,12 +1026,17 @@ export class Comments extends BasePlugin {
    *
    * @returns {CellCoords} The coords object.
    */
-  #getRangeCoords() {
+  #getRangeCoords(): { row: number; col: number } {
     if (this.range instanceof CellRange) {
-      return this.range.highlight;
+      const { row, col } = this.range.highlight;
+
+      return { row: row ?? 0, col: col ?? 0 };
     }
 
-    return this.hot._createCellCoords(this.range.from!.row, this.range.from!.col);
+    return {
+      row: this.range.from!.row ?? 0,
+      col: this.range.from!.col ?? 0
+    };
   }
 
   /**

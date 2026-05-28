@@ -26,9 +26,11 @@ const availableModifiers = new Map<string, Function>([
  * @returns {object}
  */
 export function triggerNodeModification(actionName: string, nodeToProcess: TreeNode, gridColumnIndex: number) {
-  if (!availableModifiers.has(actionName)) {
+  const modifier = availableModifiers.get(actionName);
+
+  if (!modifier) {
     throwWithCause(`The node modifier action ("${actionName}") does not exist.`);
   }
 
-  return availableModifiers.get(actionName)(nodeToProcess, gridColumnIndex);
+  return modifier(nodeToProcess, gridColumnIndex);
 }

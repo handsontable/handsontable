@@ -176,7 +176,7 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.addHook('afterContextMenuDefaultOptions',
-      (options: Record<string, unknown>) => this.#onAfterContextMenuDefaultOptions(options));
+      (options: unknown) => this.#onAfterContextMenuDefaultOptions(options));
     this.addHook('init', () => this.#onAfterInit());
 
     super.enablePlugin();
@@ -499,7 +499,7 @@ export class CustomBorders extends BasePlugin {
    * @param {string} place Coordinate where add/remove border - `top`, `bottom`, `start`, `end` and `noBorders`.
    * @param {boolean} remove True when remove borders, and false when add borders.
    */
-  setBorder(row: number, column: number, place: string, remove: boolean) {
+  setBorder(row: number, column: number, place: string, remove: boolean | undefined) {
     const meta = this.hot.getCellMeta(row, column).borders;
     let bordersMeta: BorderObject;
 
@@ -751,17 +751,19 @@ export class CustomBorders extends BasePlugin {
    *
    * @returns {boolean}
    */
-  checkCustomSelectionsFromContextMenu(border: Record<string, unknown>, place: string, remove: boolean) {
+  checkCustomSelectionsFromContextMenu(border: Record<string, unknown>, place: string, remove: boolean | undefined) {
     let check = false;
 
-    arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
+    const customSelections = this.hot.selection.highlight.customSelections as unknown as Selection[];
+
+    arrayEach(customSelections, (customSelection: Selection) => {
       if (border.id === customSelection.settings.id) {
-        const borders = this.hot.view._wt.selectionManager
-          .getBorderInstances(customSelection);
+        const borders: Border[] = this.hot.view._wt.selectionManager
+          .getBorderInstances(customSelection) as Border[];
 
         if (isBorderSide(place)) {
           arrayEach(borders, (borderObject: Border) => {
-            borderObject.toggleHiddenClass(place, remove);
+            borderObject.toggleHiddenClass(place, remove ?? false);
           });
         }
 
@@ -799,8 +801,8 @@ export class CustomBorders extends BasePlugin {
           customSelection.commit();
 
           if (place && isBorderSide(place)) {
-            const borders = this.hot.view._wt.selectionManager
-              .getBorderInstances(customSelection);
+            const borders: Border[] = this.hot.view._wt.selectionManager
+              .getBorderInstances(customSelection as unknown as Selection) as Border[];
 
             arrayEach(borders, (borderObject: Border) => {
               borderObject.changeBorderStyle(place, border);
@@ -900,11 +902,16 @@ The border style will be ignored.`);
    *
    * @param {object} defaultOptions Context menu items.
    */
-  #onAfterContextMenuDefaultOptions(defaultOptions: Record<string, unknown>) {
+  #onAfterContextMenuDefaultOptions(rawOptions: unknown) {
     if (!this.hot.getSettings()[PLUGIN_KEY]) {
       return;
     }
 
+    if (typeof rawOptions !== 'object' || rawOptions === null) {
+      return;
+    }
+
+    const defaultOptions = rawOptions as Record<string, unknown>;
     const { items } = defaultOptions;
 
     if (!Array.isArray(items)) {

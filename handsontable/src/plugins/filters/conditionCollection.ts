@@ -3,7 +3,7 @@ import type { OperationType, ConditionId, ColumnConditions } from './filters';
 
 /** Internal representation of a condition — extends the public ConditionId with the resolved function. */
 interface StoredCondition extends ConditionId {
-  func: (...args: unknown[]) => boolean;
+  func: Function;
 }
 /** Internal column state as stored in filteringStates. */
 interface StoredColumnState {
@@ -76,7 +76,7 @@ class ConditionCollection {
    * @param {number} column The physical column index.
    * @returns {boolean}
    */
-  isMatch(value: Record<string, unknown>, column: number) {
+  isMatch(value: unknown, column: number) {
     const stateForColumn = this.filteringStates.getValueAtIndex<Record<string, unknown> | null>(column);
     const conditions = (stateForColumn?.conditions ?? []) as unknown[];
     const operation = stateForColumn?.operation as string;
@@ -92,7 +92,7 @@ class ConditionCollection {
    * @param {string} [operationType='conjunction'] Type of conditions operation.
    * @returns {boolean}
    */
-  isMatchInConditions(conditions: unknown[], value: Record<string, unknown>, operationType = OPERATION_AND) {
+  isMatchInConditions(conditions: unknown[], value: unknown, operationType = OPERATION_AND) {
     if (conditions.length) {
       return getOperationFunc(operationType)(conditions, value);
     }
@@ -188,8 +188,8 @@ class ConditionCollection {
    *
    * @returns {Array}
    */
-  getFilteredColumns() {
-    return this.filteringStates.getEntries().map(([physicalColumn]) => physicalColumn);
+  getFilteredColumns(): number[] {
+    return this.filteringStates.getEntries().map(([physicalColumn]) => physicalColumn as number);
   }
 
   /**
@@ -227,10 +227,10 @@ class ConditionCollection {
    *
    * @param {Array} conditions The collection of the conditions.
    */
-  importAllConditions(conditions: ColumnConditions[]) {
+  importAllConditions(conditions: ColumnConditions[] | unknown[]) {
     this.clean();
 
-    conditions.forEach((stack) => {
+    (conditions as ColumnConditions[]).forEach((stack) => {
       stack.conditions.forEach((condition) => {
         this.addCondition(stack.column, condition as unknown as Record<string, unknown>, stack.operation);
       });
@@ -288,8 +288,8 @@ class ConditionCollection {
       this.hot.columnIndexMapper.unregisterMap(MAP_NAME);
     }
 
-    this.filteringStates = null;
     this.clearLocalHooks();
+    (this as any).filteringStates = null;
   }
 }
 

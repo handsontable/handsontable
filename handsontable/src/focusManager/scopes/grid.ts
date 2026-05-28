@@ -40,7 +40,7 @@ export function focusGridScope(hot: HotInstance) {
 
   const context = hot.getShortcutManager().getContext(GRID_SCOPE);
 
-  context.addShortcuts([{
+  context?.addShortcuts([{
     keys: [['Tab'], ['Shift', 'Tab']],
     preventDefault: false,
     stopPropagation: false,
@@ -114,7 +114,7 @@ export function focusGridScope(hot: HotInstance) {
         return false;
       }
 
-      return (
+      return !!(
         (!navigableHeaders && (hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0)) ||
         (navigableHeaders && (hot.countRowHeaders() > 0 || hot.countColHeaders() > 0))
       );
@@ -125,9 +125,10 @@ export function focusGridScope(hot: HotInstance) {
 
         if (mostTopStartCoords) {
           const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
+          const { row: topRow, col: topCol } = mostTopStartCoords;
 
-          if (result !== false) {
-            hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+          if (result !== false && topRow !== null && topCol !== null) {
+            hot.selectCell(topRow, topCol);
             hot.getFocusManager().focusOnHighlightedCell();
           }
         }
@@ -136,9 +137,10 @@ export function focusGridScope(hot: HotInstance) {
 
         if (mostBottomEndCoords) {
           const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
+          const { row: bottomRow, col: bottomCol } = mostBottomEndCoords;
 
-          if (result !== false) {
-            hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+          if (result !== false && bottomRow !== null && bottomCol !== null) {
+            hot.selectCell(bottomRow, bottomCol);
           }
         }
       }

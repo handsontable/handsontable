@@ -14,7 +14,7 @@ class GuidelineUI extends BaseUI {
   build() {
     super.build();
 
-    addClass(this._element, CSS_CLASSNAME);
+    addClass(this._element!, CSS_CLASSNAME);
   }
 }
 

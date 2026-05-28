@@ -67,6 +67,10 @@ export class InlineStartOverlay extends Overlay {
       return false;
     }
 
+    if (!this.clone) {
+      return false;
+    }
+
     const { rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -167,6 +171,10 @@ export class InlineStartOverlay extends Overlay {
    * Adjust overlay root element size (width and height).
    */
   adjustRootElementSize() {
+    if (!this.clone) {
+      return;
+    }
+
     const { wtTable, wtViewport } = this.wot;
     const { rootDocument, rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
@@ -197,6 +205,10 @@ export class InlineStartOverlay extends Overlay {
    * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
+    if (!this.clone) {
+      return;
+    }
+
     const { holder } = this.clone.wtTable;
     const cornerStyle = getCornerStyle(this.wot);
     const selectionCornerOffset = this.wot.selectionManager
@@ -218,7 +230,7 @@ export class InlineStartOverlay extends Overlay {
     const total = this.wtSettings.getSetting('totalColumns');
     const styleProperty = this.isRtl() ? 'right' : 'left';
 
-    if (typeof this.wot.wtViewport.columnsRenderCalculator.startPosition === 'number') {
+    if (typeof this.wot.wtViewport.columnsRenderCalculator?.startPosition === 'number') {
       this.spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
@@ -243,7 +255,11 @@ export class InlineStartOverlay extends Overlay {
    * Synchronize calculated top position to an element.
    */
   syncOverlayOffset() {
-    if (typeof this.wot.wtViewport.rowsRenderCalculator.startPosition === 'number') {
+    if (!this.clone) {
+      return;
+    }
+
+    if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
       this.clone.wtTable.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
 
     } else {
@@ -351,7 +367,7 @@ export class InlineStartOverlay extends Overlay {
         overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
       }
       const rootWidth = this.wot.wtTable.getTotalWidth();
-      const overlayRootWidth = this.clone.wtTable.getTotalWidth();
+      const overlayRootWidth = this.clone ? this.clone.wtTable.getTotalWidth() : 0;
       const maxOffset = rootWidth - overlayRootWidth;
 
       if (overlayOffset > maxOffset) {

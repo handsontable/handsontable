@@ -39,8 +39,10 @@ class CellCoords {
   constructor(row?: number, column?: number, isRtl: boolean = false) {
     this.#isRtl = isRtl;
 
-    if (typeof row !== 'undefined' && typeof column !== 'undefined') {
+    if (typeof row !== 'undefined') {
       this.row = row;
+    }
+    if (typeof column !== 'undefined') {
       this.col = column;
     }
   }

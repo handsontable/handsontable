@@ -75,7 +75,7 @@ class Interval {
   stop() {
     if (!this.#stopped) {
       this.#stopped = true;
-      cancelAnimationFrame(this.#timer);
+      cancelAnimationFrame(this.#timer!);
       this.#timer = null;
     }
 
@@ -90,7 +90,7 @@ class Interval {
 
     if (this.delay) {
       const now = Date.now();
-      const elapsed = now - this.#then;
+      const elapsed = now - (this.#then ?? 0);
 
       if (elapsed > this.delay) {
         this.#then = now - (elapsed % this.delay);

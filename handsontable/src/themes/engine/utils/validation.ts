@@ -442,8 +442,10 @@ export function validateDensityType(type: string): DensityType {
  * @throws {Error} If the density sizes structure is invalid.
  */
 function validateDensitySizes(sizes: unknown, context: string): void {
-  if (!isObject(sizes)) {
+  if (!isObject(sizes) || typeof sizes !== 'object' || sizes === null) {
     throwWithCause(`[ThemeBuilder] ${context}.sizes must be an object.`);
+
+    return;
   }
 
   Object.keys(sizes).forEach((key) => {

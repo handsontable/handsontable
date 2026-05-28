@@ -39,20 +39,20 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
       overrideFn(this);
 
       this.rowStartOffset = startRow - this.startRow;
-      this.rowEndOffset = this.endRow - endRow;
+      this.rowEndOffset = this.endRow !== null && endRow !== null ? this.endRow - endRow : 0;
     }
 
-    if (this.startRow < 0) {
+    if (this.startRow !== null && this.startRow < 0) {
       this.startRow = 0;
     }
 
-    this.startPosition = this.startRow !== null ? positionCache.getOffset(this.startRow) : null;
+    this.startPosition = this.startRow !== null && positionCache ? positionCache.getOffset(this.startRow) : null;
 
-    if (totalRows < this.endRow) {
+    if (this.endRow !== null && totalRows < this.endRow) {
       this.endRow = totalRows - 1;
     }
 
-    if (this.startRow !== null) {
+    if (this.startRow !== null && this.endRow !== null) {
       this.count = this.endRow - this.startRow + 1;
     }
   }

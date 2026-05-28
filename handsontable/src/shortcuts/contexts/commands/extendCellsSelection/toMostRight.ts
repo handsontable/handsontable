@@ -4,7 +4,13 @@ export const command = {
   name: 'extendCellsSelectionToMostRight',
   callback(hot: HotInstance) {
     const { selection, columnIndexMapper } = hot;
-    const { highlight, from, to } = hot.getSelectedRangeActive();
+    const activeRange = hot.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { highlight, from, to } = activeRange;
     const isFocusHighlightedByHeader = highlight.isHeader() && selection.isSelectedByColumnHeader();
 
     if (highlight.isCell() || isFocusHighlightedByHeader) {
@@ -23,7 +29,7 @@ export const command = {
         selection.selectedByColumnHeader.add(selection.getLayerLevel());
       }
 
-      selection.setRangeEnd(hot._createCellCoords(to.row, column));
+      selection.setRangeEnd(hot._createCellCoords(to.row ?? 0, column ?? 0));
       selection.markEndSource();
     }
   },

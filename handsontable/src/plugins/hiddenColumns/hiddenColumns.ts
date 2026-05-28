@@ -16,6 +16,8 @@ Hooks.getSingleton().register('afterUnhideColumns');
 export const PLUGIN_KEY = 'hiddenColumns';
 export const PLUGIN_PRIORITY = 310;
 
+const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -230,8 +232,8 @@ export class HiddenColumns extends BasePlugin {
     }
 
     this.#hiddenColumnsMap = new HidingMap();
-    this.#hiddenColumnsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#hiddenColumnsMap);
+    this.#hiddenColumnsMap!.addLocalHook('init', () => this.#onMapInit());
+    this.hot.columnIndexMapper.registerMap(this.pluginName ?? '', this.#hiddenColumnsMap);
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -261,7 +263,7 @@ export class HiddenColumns extends BasePlugin {
   disablePlugin() {
     super.disablePlugin();
 
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName ?? '');
     this.resetCellsMeta();
   }
 
@@ -274,7 +276,7 @@ export class HiddenColumns extends BasePlugin {
     const currentHideConfig = this.getHiddenColumns();
     const isValidConfig = this.isValidConfig(columns);
     let destinationHideConfig = currentHideConfig;
-    const hidingMapValues = this.#hiddenColumnsMap.getValues().slice();
+    const hidingMapValues = this.#hiddenColumnsMap!.getValues().slice();
     const isAnyColumnShowed = columns.length > 0;
 
     if (isValidConfig && isAnyColumnShowed) {
@@ -303,7 +305,7 @@ export class HiddenColumns extends BasePlugin {
     }
 
     if (isValidConfig && isAnyColumnShowed) {
-      this.#hiddenColumnsMap.setValues(hidingMapValues);
+      this.#hiddenColumnsMap!.setValues(hidingMapValues);
     }
 
     // @TODO Should call once per render cycle, currently fired separately in different plugins
@@ -346,7 +348,7 @@ export class HiddenColumns extends BasePlugin {
     if (isConfigValid) {
       this.hot.batchExecution(() => {
         arrayEach(columns, (visualColumn) => {
-          this.#hiddenColumnsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
+          this.#hiddenColumnsMap!.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), true);
         });
       }, true);
     }
@@ -370,7 +372,7 @@ export class HiddenColumns extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenColumns(): number[] {
-    return arrayMap(this.#hiddenColumnsMap.getHiddenIndexes(), (physicalColumnIndex) => {
+    return arrayMap(this.#hiddenColumnsMap!.getHiddenIndexes(), (physicalColumnIndex) => {
       return this.hot.toVisualColumn(physicalColumnIndex)!;
     });
   }
@@ -382,7 +384,7 @@ export class HiddenColumns extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(column: number): boolean {
-    return this.#hiddenColumnsMap.getValueAtIndex<boolean>(this.hot.toPhysicalColumn(column)) || false;
+    return this.#hiddenColumnsMap!.getValueAtIndex<boolean>(this.hot.toPhysicalColumn(column)) || false;
   }
 
   /**
@@ -409,7 +411,12 @@ export class HiddenColumns extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      (meta as Record<string, unknown>).skipColumnOnPaste = false;
+      const cellMeta = meta as Record<string | symbol, unknown>;
+
+      if (cellMeta[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
+        delete cellMeta.skipColumnOnPaste;
+        delete cellMeta[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
+      }
     });
   }
 
@@ -444,9 +451,22 @@ export class HiddenColumns extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
-    if (this.getSetting('copyPasteEnabled') === false && this.isHidden(column)) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
-      cellProperties.skipColumnOnPaste = true;
+    if (this.getSetting('copyPasteEnabled') === false) {
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. The plugin only sets
+      // and marks cells whose `skipColumnOnPaste` it actually flips to `true`. Cells that already
+      // had `true` from user configuration (`columns`, `cells`, or `cell`) are left untouched,
+      // so that unhiding the column does not erase the user-defined value.
+      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+
+      if (this.isHidden(column)) {
+        if (cellProperties.skipColumnOnPaste !== true) {
+          cellProperties.skipColumnOnPaste = true;
+          cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN] = true;
+        }
+      } else if (cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN]) {
+        delete cellProperties.skipColumnOnPaste;
+        delete cellPropsWithMarker[SKIP_COLUMN_ON_PASTE_BY_PLUGIN];
+      }
     }
 
     if (this.isHidden(column - 1)) {

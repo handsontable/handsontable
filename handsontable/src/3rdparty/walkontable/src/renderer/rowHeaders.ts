@@ -45,21 +45,16 @@ export class RowHeadersRenderer extends BaseRenderer {
    * @param {HTMLTableRowElement} rootNode The TR element, which is root element for row headers (TH).
    * @returns {SharedOrderView}
    */
-  obtainOrderView(rootNode: HTMLElement) {
-    let orderView;
-
-    if (this.orderViews.has(rootNode)) {
-      orderView = this.orderViews.get(rootNode);
-    } else {
-      orderView = new SharedOrderView(
+  obtainOrderView(rootNode: HTMLElement): SharedOrderView {
+    if (!this.orderViews.has(rootNode)) {
+      this.orderViews.set(rootNode, new SharedOrderView(
         rootNode,
-        (sourceColumnIndex: number) => this.nodesPool.obtain(this.sourceRowIndex, sourceColumnIndex),
-        this.nodeType,
-      );
-      this.orderViews.set(rootNode, orderView);
+        (sourceColumnIndex?: number) => this.nodesPool!.obtain(this.sourceRowIndex, sourceColumnIndex) as HTMLElement,
+        this.nodeType!,
+      ));
     }
 
-    return orderView;
+    return this.orderViews.get(rootNode)!;
   }
 
   /**
@@ -70,12 +65,16 @@ export class RowHeadersRenderer extends BaseRenderer {
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = rows!.getRenderedNode(visibleRowIndex);
+
+      if (!TR) {
+        continue; // eslint-disable-line no-continue
+      }
 
       this.sourceRowIndex = sourceRowIndex;
 
       const orderView = this.obtainOrderView(TR);
-      const cellsView = cells.obtainOrderView(TR);
+      const cellsView = cells!.obtainOrderView(TR);
 
       orderView
         .appendView(cellsView)
@@ -89,6 +88,10 @@ export class RowHeadersRenderer extends BaseRenderer {
         orderView.render();
 
         const TH = orderView.getCurrentNode();
+
+        if (!TH) {
+          continue; // eslint-disable-line no-continue
+        }
 
         TH.className = '';
         TH.removeAttribute('style');

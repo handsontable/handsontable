@@ -62,7 +62,9 @@ export function runStep(cmd, opts = {}) {
     // --- spinner ---
 
     const startSpinner = () => {
-      if (!isTTY || opts.interactive) { return; }
+      if (!isTTY || opts.interactive) {
+        return;
+      }
       delayTimer = setTimeout(() => {
         indicatorActive = true;
         spinTimer = setInterval(() => {
@@ -102,7 +104,9 @@ export function runStep(cmd, opts = {}) {
     // match, which would otherwise be the original 'Path', ignoring our injection.
     const baseEnv = { ...process.env };
 
-    if (process.platform === 'win32') { delete baseEnv.Path; }
+    if (process.platform === 'win32') {
+      delete baseEnv.Path;
+    }
 
     const child = spawn(cmd, [], {
       cwd: opts.cwd ?? process.cwd(),
@@ -216,7 +220,9 @@ export class ParallelSpinner {
     process.stdout.write(`  ${mark} ${name} (${elapsed}ms)\n`);
     this.#render();
 
-    if (this.#active.size === 0) { this.stop(); }
+    if (this.#active.size === 0) {
+      this.stop();
+    }
   }
 
   stop() {
@@ -229,14 +235,18 @@ export class ParallelSpinner {
   }
 
   #clear() {
-    if (!isTTY || this.#lineCount === 0) { return; }
+    if (!isTTY || this.#lineCount === 0) {
+      return;
+    }
     // Move up and erase each spinner line.
     process.stdout.write(('\x1b[1A\x1b[K').repeat(this.#lineCount));
     this.#lineCount = 0;
   }
 
   #render() {
-    if (!isTTY || this.#active.size === 0) { return; }
+    if (!isTTY || this.#active.size === 0) {
+      return;
+    }
     this.#clear();
 
     for (const [name, state] of this.#active) {

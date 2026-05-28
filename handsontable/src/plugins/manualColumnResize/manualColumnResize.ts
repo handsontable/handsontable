@@ -111,7 +111,7 @@ export class ManualColumnResize extends BasePlugin {
    *
    * @type {PhysicalIndexToValueMap}
    */
-  #columnWidthsMap: IndexToValueMap;
+  #columnWidthsMap!: IndexToValueMap;
   /**
    * Disposer function for the column widths map observer. Called on disable to clean up.
    *
@@ -123,7 +123,7 @@ export class ManualColumnResize extends BasePlugin {
    *
    * @type {object}
    */
-  #config: unknown[];
+  #config!: unknown[];
 
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
@@ -160,7 +160,7 @@ export class ManualColumnResize extends BasePlugin {
 
     this.#columnWidthsMap = new IndexToValueMap();
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.columnIndexMapper.registerMap(this.pluginName, this.#columnWidthsMap);
+    this.hot.columnIndexMapper.registerMap(this.pluginName!, this.#columnWidthsMap);
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
       .observeMapChange(this.#columnWidthsMap, () => {
@@ -199,7 +199,7 @@ export class ManualColumnResize extends BasePlugin {
     }
 
     this.#config = this.#columnWidthsMap.getValues();
-    this.hot.columnIndexMapper.unregisterMap(this.pluginName);
+    this.hot.columnIndexMapper.unregisterMap(this.pluginName!);
     super.disablePlugin();
   }
 
@@ -294,10 +294,15 @@ export class ManualColumnResize extends BasePlugin {
 
     const { _wt: wt } = this.hot.view;
     const cellCoords = wt.wtTable.getCoords(this.#currentTH);
+
+    if (!cellCoords) {
+      return;
+    }
+
     const col = cellCoords.col;
 
     // Ignore column headers.
-    if (col < 0) {
+    if (col === null || col < 0) {
       return;
     }
 
@@ -307,11 +312,14 @@ export class ManualColumnResize extends BasePlugin {
     const fixedColumn = col < (wt.getSetting('fixedColumnsStart') as number);
     let relativeHeaderPosition;
 
+    const coordRow = cellCoords.row ?? 0;
+    const coordCol = cellCoords.col ?? 0;
+
     if (fixedColumn) {
       relativeHeaderPosition = wt
         .wtOverlays
         .topInlineStartCornerOverlay
-        .getRelativeCellPosition(this.#currentTH, cellCoords.row, cellCoords.col);
+        .getRelativeCellPosition(this.#currentTH, coordRow, coordCol);
     }
 
     // If the TH is not a child of the top-left overlay, recalculate using
@@ -320,7 +328,7 @@ export class ManualColumnResize extends BasePlugin {
       relativeHeaderPosition = wt
         .wtOverlays
         .topOverlay
-        .getRelativeCellPosition(this.#currentTH, cellCoords.row, cellCoords.col);
+        .getRelativeCellPosition(this.#currentTH, coordRow, coordCol);
     }
 
     this.#currentCol = this.hot.columnIndexMapper.getVisualFromRenderableIndex(col);
@@ -330,11 +338,15 @@ export class ManualColumnResize extends BasePlugin {
       this.hot.selection.isSelectedByColumnHeader();
 
     if (this.hot.selection.isSelected() && isFullColumnSelected) {
-      const selectionRanges = this.hot.getSelectedRange();
+      const selectionRanges = this.hot.getSelectedRange() ?? [];
 
       arrayEach(selectionRanges, (selectionRange) => {
         const fromColumn = (selectionRange as CellRange).getTopStartCorner().col;
         const toColumn = (selectionRange as CellRange).getBottomEndCorner().col;
+
+        if (fromColumn === null || toColumn === null) {
+          return;
+        }
 
         // Add every selected column for resize action.
         rangeEach(fromColumn, toColumn, (columnIndex) => {
@@ -345,9 +357,17 @@ export class ManualColumnResize extends BasePlugin {
       });
     }
 
+    if (this.#currentCol === null) {
+      return;
+    }
+
     // Resizing element beyond the current selection (also when there is no selection).
     if (!this.#selectedCols.includes(this.#currentCol)) {
       this.#selectedCols = [this.#currentCol];
+    }
+
+    if (!relativeHeaderPosition) {
+      return;
     }
 
     this.#startOffset = relativeHeaderPosition.start - 6;
@@ -367,7 +387,7 @@ export class ManualColumnResize extends BasePlugin {
    * @private
    */
   refreshHandlePosition() {
-    this.#handle.style[this.inlineDir] = `${this.#startOffset + this.#currentWidth}px`;
+    this.#handle.style[this.inlineDir] = `${(this.#startOffset ?? 0) + (this.#currentWidth ?? 0)}px`;
   }
 
   /**
@@ -501,7 +521,7 @@ export class ManualColumnResize extends BasePlugin {
         this.#newSize = hookNewSize;
       }
 
-      this.setManualSize(column, this.#newSize); // double click sets by auto row size plugin
+      this.setManualSize(column, this.#newSize ?? 0); // double click sets by auto row size plugin
 
       this.hot.runHooks('afterColumnResize', this.#newSize, column, true);
 
@@ -538,7 +558,7 @@ export class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    if (hasClass(eventTargetEl(event)!, 'manualColumnResizer')) {
+    if (hasClass(eventTargetEl(event)!, 'manualColumnResizer') && this.#currentTH) {
       this.setupHandlePosition(this.#currentTH);
       this.setupGuidePosition();
       this.#pressed = true;
@@ -563,10 +583,10 @@ export class ManualColumnResize extends BasePlugin {
       const visualChange = (event.pageX - this.startX) * this.hot.getDirectionFactor();
       const change = normalizeVisualDelta(visualChange, this.#horizontalScaleFactor);
 
-      this.#currentWidth = this.#startWidth + change;
+      this.#currentWidth = (this.#startWidth ?? 0) + change;
 
       arrayEach(this.#selectedCols, (selectedCol) => {
-        this.#newSize = this.setManualSize(selectedCol, this.#currentWidth);
+        this.#newSize = this.setManualSize(selectedCol, this.#currentWidth ?? 0);
       });
 
       this.refreshHandlePosition();
@@ -589,7 +609,7 @@ export class ManualColumnResize extends BasePlugin {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);
 
       if (hookNewSize === false) {
-        this.setManualSize(column, this.#startWidth);
+        this.setManualSize(column, this.#startWidth ?? 0);
         this.#newSize = this.#startWidth;
       } else if (typeof hookNewSize === 'number') {
         this.#newSize = hookNewSize;
@@ -624,7 +644,9 @@ export class ManualColumnResize extends BasePlugin {
         }
       }
 
-      this.setupHandlePosition(this.#currentTH);
+      if (this.#currentTH) {
+        this.setupHandlePosition(this.#currentTH);
+      }
     }
   }
 

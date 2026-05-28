@@ -44,7 +44,7 @@ export function uninstall() {
   }
 
   if (installCounter === 1) {
-    announcerElement.remove();
+    announcerElement!.remove();
     announcerElement = null;
   }
 

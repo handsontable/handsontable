@@ -102,7 +102,7 @@ export class ThemeManager {
       this.themeConfig.density.sizes[this.themeConfig.density.type]
     ) {
       this.themeStyles.textContent += flattenCssVariables(
-        this.themeConfig.density.sizes[this.themeConfig.density.type],
+        this.themeConfig.density.sizes[this.themeConfig.density.type]!,
         'density'
       );
     }

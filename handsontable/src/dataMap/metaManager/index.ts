@@ -69,7 +69,7 @@ export default class MetaManager {
      */
     this.cellMeta = new CellMeta(this.columnMeta);
 
-    metaMods.forEach((ModifierClass: new (metaManager: MetaManager) => unknown) => new ModifierClass(this));
+    (metaMods as Array<new (metaManager: MetaManager) => unknown>).forEach(ModifierClass => new ModifierClass(this));
 
     this.globalMeta.updateMeta(customSettings);
   }

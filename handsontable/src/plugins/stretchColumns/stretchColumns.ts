@@ -84,7 +84,7 @@ export class StretchColumns extends BasePlugin {
    *
    * @type {StretchCalculator}
    */
-  #stretchCalculator = new StretchCalculator(this.hot);
+  #stretchCalculator: StretchCalculator | null = new StretchCalculator(this.hot);
   /**
    * The previous width of the root element. Helps to determine if the width has changed.
    *
@@ -98,16 +98,16 @@ export class StretchColumns extends BasePlugin {
    *
    * @type {ResizeObserver}
    */
-  #resizeObserver = new ResizeObserver((entries) => {
+  #resizeObserver: ResizeObserver | null = new ResizeObserver((entries) => {
     requestAnimationFrame(() => {
-      if (!this.hot?.view.isHorizontallyScrollableByWindow()) {
+      if (!this.hot?.view?.isHorizontallyScrollableByWindow()) {
         return;
       }
 
       entries.forEach(({ contentRect }) => {
         if (this.#previousTableWidth !== null && this.#previousTableWidth !== contentRect.width) {
-          this.hot.view.adjustElementsSize();
-          this.hot.refreshDimensions();
+          this.hot?.view?.adjustElementsSize();
+          this.hot?.refreshDimensions();
         }
 
         this.#previousTableWidth = contentRect.width;
@@ -122,7 +122,7 @@ export class StretchColumns extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return ['all', 'last'].includes(this.hot.getSettings().stretchH);
+    return ['all', 'last'].includes(this.hot.getSettings().stretchH ?? '');
   }
 
   /**
@@ -133,8 +133,8 @@ export class StretchColumns extends BasePlugin {
       return;
     }
 
-    this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
-    this.#resizeObserver.observe(this.hot.rootElement);
+    this.#stretchCalculator!.useStrategy(this.hot.getSettings().stretchH);
+    this.#resizeObserver!.observe(this.hot.rootElement);
 
     this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', this.#onModifyColWidth, 10);
@@ -146,7 +146,7 @@ export class StretchColumns extends BasePlugin {
    * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
-    this.#stretchCalculator.useStrategy(this.hot.getSettings().stretchH);
+    this.#stretchCalculator!.useStrategy(this.hot.getSettings().stretchH);
     super.updatePlugin();
   }
 
@@ -155,7 +155,7 @@ export class StretchColumns extends BasePlugin {
    */
   disablePlugin() {
     super.disablePlugin();
-    this.#resizeObserver.unobserve(this.hot.rootElement);
+    this.#resizeObserver!.unobserve(this.hot.rootElement);
   }
 
   /**
@@ -166,7 +166,7 @@ export class StretchColumns extends BasePlugin {
    * @returns {number | null}
    */
   getColumnWidth(columnVisualIndex: number): number | null {
-    return this.#stretchCalculator.getStretchedWidth(columnVisualIndex) as number | null;
+    return this.#stretchCalculator!.getStretchedWidth(columnVisualIndex) as number | null;
   }
 
   /**
@@ -199,7 +199,7 @@ export class StretchColumns extends BasePlugin {
    */
   #onBeforeRender = (fullRender: boolean) => {
     if (fullRender) {
-      this.#stretchCalculator.refreshStretching();
+      this.#stretchCalculator!.refreshStretching();
     }
   };
 
@@ -207,7 +207,7 @@ export class StretchColumns extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
-    this.#resizeObserver.disconnect();
+    this.#resizeObserver!.disconnect();
     this.#resizeObserver = null;
     this.#stretchCalculator = null;
     super.destroy();
