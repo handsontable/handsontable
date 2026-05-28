@@ -678,6 +678,14 @@ export default defineConfig({
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
         },
+        // Prevent HOT from injecting a duplicate <style id="handsontable-core-styles"> at runtime.
+        // StylesHandler.#injectCoreStyles() skips injection when it finds an element with this ID.
+        // The actual HOT CSS is already loaded by handsontable-import.css via customCss above.
+        {
+          tag: 'style',
+          attrs: { id: 'handsontable-core-styles' },
+          content: '/* HOT base styles loaded via handsontable-import.css */',
+        },
         // ── All-environment 3rd-party scripts ──────────────────────────────
         // Sentry error monitoring
         {

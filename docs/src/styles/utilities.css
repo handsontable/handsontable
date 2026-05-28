@@ -52,8 +52,11 @@ html {
 
 /* ── Global checkbox styling ─────────────────────────────────────────── */
 
-.sl-markdown-content input[type="checkbox"]:not(.handsontable input),
-.hot-example input[type="checkbox"]:not(.handsontable input) {
+/* Use :not(.htCheckboxRendererInput) — an O(1) self-class check — instead of
+ * :not(.handsontable input) which forces an O(depth) ancestor walk for every
+ * HOT checkbox cell rendered during scroll. */
+.sl-markdown-content input[type="checkbox"]:not(.htCheckboxRendererInput),
+.hot-example input[type="checkbox"]:not(.htCheckboxRendererInput) {
   appearance: none;
   width: 1rem;
   height: 1rem;
@@ -66,14 +69,14 @@ html {
   vertical-align: middle;
 }
 
-.sl-markdown-content input[type="checkbox"]:checked:not(.handsontable input),
-.hot-example input[type="checkbox"]:checked:not(.handsontable input) {
+.sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput),
+.hot-example input[type="checkbox"]:checked:not(.htCheckboxRendererInput) {
   background: var(--sl-color-accent);
   border-color: var(--sl-color-accent);
 }
 
-.sl-markdown-content input[type="checkbox"]:checked:not(.handsontable input)::after,
-.hot-example input[type="checkbox"]:checked:not(.handsontable input)::after {
+.sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after,
+.hot-example input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after {
   content: '';
   position: absolute;
   left: 4px;
