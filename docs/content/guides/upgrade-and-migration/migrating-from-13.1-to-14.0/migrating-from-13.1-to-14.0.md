@@ -61,12 +61,13 @@ To make the table more accessible, this release changes the color of the invalid
 
 ### Update `ContextMenu.open()` and `DropdownMenu.open()` calls
 
-Handsontable 14.0 changes the accepted `position` argument for `ContextMenu.open()` and `DropdownMenu.open()`. When you open the menu programmatically with a literal position, use an object with `top` and `left` properties. Passing a native browser `Event` instance still works the same as before.
+Handsontable 14.0 changes the accepted `position` argument for `ContextMenu.open()` and `DropdownMenu.open()`. When you open the menu programmatically with a literal position, use an object with `top` and `left` properties instead of `pageX` and `pageY`. Passing a native browser `Event` instance still works the same as before.
 
 ```javascript
 const menu = hot.getPlugin('contextMenu');
 
-// Literal position -- use { top, left }:
+// Before (13.x): menu.open({ pageX: 200, pageY: 300 });
+// After (14.0+): use { top, left }:
 menu.open({ top: 300, left: 200 });
 
 // Native event -- works unchanged:
