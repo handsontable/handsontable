@@ -408,28 +408,36 @@ function useActiveVersion(versions: string[]): string | null {
     if (versions.length === 0) return;
     // Scroll-spy: on each intersection event, walk all observed sections and
     // pick the one whose heading is the most recently passed. A section is
-    // in the "active zone" if its bottom is below the sticky-nav line (80px)
-    // and its heading is in the upper half of the viewport. The zone has to
-    // be this wide because Starlight's `scroll-padding-top` (124px on this
-    // page) makes hash-link landings sit well below an 80px threshold; a
-    // tighter filter excludes the freshly-clicked heading and the marker
-    // falls back to the section above. Among qualifying sections, pick the
-    // one with the largest top — its heading is closest to the top of the
-    // viewport from above, i.e. the most recently passed. The observer only
-    // triggers the recompute — it does not influence which version wins.
+    // "passed" when its `top` is at or above the page's `scroll-padding-top`
+    // line — i.e. the line that hash-link navigation aligns each heading to.
+    // Reading scroll-padding-top from the scrolling element lets the
+    // threshold match the actual layout (Starlight uses 124px on this page)
+    // instead of a magic number, and avoids two bugs:
+    //
+    // - Too-tight threshold (like a hard-coded 80) excludes freshly-clicked
+    //   headings, leaving only the section above qualifying → marker shows
+    //   the previous version (off-by-one above).
+    // - Too-loose threshold (like `top < window.innerHeight * 0.5`) lets
+    //   short sections below the current one qualify, and "largest top wins"
+    //   would pick a section the user hasn't reached yet → marker shows the
+    //   next version (off-by-one below).
+    //
+    // Among qualifying (passed) sections, picking the largest top yields the
+    // most recently passed heading — the one the reader is currently on.
+    // The observer only triggers the recompute — it does not influence which
+    // version wins.
     const observer = new IntersectionObserver(
       () => {
+        const scrollEl = document.scrollingElement || document.documentElement;
+        const padTop = parseFloat(getComputedStyle(scrollEl).scrollPaddingTop);
+        const threshold = Number.isFinite(padTop) ? padTop : 0;
         let best: string | null = versions[0] ?? null;
         let bestTop = -Infinity;
         for (const v of versions) {
           const el = document.getElementById(`vc-v${v}`);
           if (!el) continue;
           const rect = el.getBoundingClientRect();
-          if (
-            rect.bottom > 80
-            && rect.top < window.innerHeight * 0.5
-            && rect.top > bestTop
-          ) {
+          if (rect.top <= threshold && rect.top > bestTop) {
             bestTop = rect.top;
             best = v;
           }
