@@ -84,12 +84,24 @@ gh auth setup-git
 git push -u origin <branch-name>
 ```
 
-**Fill the full PR template in `--body`.** Do not submit a bare "Summary / Test plan" body — the repo's template at `.github/PULL_REQUEST_TEMPLATE.md` has **Context**, **How has this been tested?**, **Types of changes**, **Related issue(s)**, **Affected project(s)**, and **Checklist** sections, and every section must be filled in. Always include the ClickUp task URL on its own line so ClickUp auto-links the PR.
+**Always write the PR body to a temp file and use `--body-file`.** Never use `--body "$(cat <<'EOF'...EOF)"` — backticks inside a heredoc passed through shell command substitution are stored as literal `\`` characters in GitHub, breaking all inline code formatting in the PR description.
+
+The correct workflow:
+
+1. Write the body to `/tmp/pr-body.md` using the Write tool (no shell escaping needed).
+2. Pass it with `--body-file /tmp/pr-body.md`.
 
 ```bash
+# Step 1: write body to file first (use the Write tool, not shell echo/cat)
+# Step 2: create the PR
 gh pr create --draft --base develop \
   --title "DEV-xxx: Short description" \
-  --body "$(cat <<'EOF'
+  --body-file /tmp/pr-body.md
+```
+
+The body file template (write this with the Write tool, backticks and all, no escaping):
+
+```markdown
 ### Context
 
 <why this change is needed; link the task and explain the problem>
@@ -123,8 +135,6 @@ gh pr create --draft --base develop \
 - [ ] My change requires a change to the documentation.
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
-EOF
-)"
 ```
 
 - **Commit messages:** Descriptive, max 80 characters. Include task ID (e.g. `DEV-627: Fix filter column index`).
@@ -134,7 +144,7 @@ EOF
 
 ## 5a. Updating an Existing PR's Body
 
-When asked to update, fix, or re-fill a PR description, use `gh pr edit <number> --body "$(cat <<'EOF' ... EOF)"`. Keep the full template structure — do not replace it with a shorter summary. The heredoc approach preserves newlines and checkboxes reliably.
+When asked to update, fix, or re-fill a PR description, use the same temp-file approach: write the body to `/tmp/pr-body.md` with the Write tool, then `gh pr edit <number> --body-file /tmp/pr-body.md`. Keep the full template structure — do not replace it with a shorter summary. Never use `--body "$(cat <<'EOF'...EOF)"` — backticks are not shell-escaped in the Write tool output and will be stored as literal `\`` on GitHub.
 
 ## 6. Changelog Entry (after PR is created)
 

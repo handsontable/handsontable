@@ -207,11 +207,34 @@ After creating a new component, wire it into the right index/factory:
 
 ## Build — type declarations
 
+The type build is a **two-step pipeline**:
+
 ```bash
-npm run build:types        # tsc -p tsconfig.build-types.json
+npm run build:types        # step 1 — tsc emits tmp/**/*.d.ts
+npm run downlevel:types    # step 2 — rewrites post-TS-5.1 lib types to TS 5.1-compatible equivalents
 ```
 
-Run this after any change that affects public type surface (new exported function, changed parameter type, new option in `GridSettings`). Wrapper packages consume `handsontable/tmp/` via workspace linking.
+Running the full build executes both automatically:
+
+```bash
+npm run build              # includes build:types → downlevel:types in sequence
+```
+
+Run this after any change that affects the public type surface (new exported function, changed parameter type, new option in `GridSettings`). Wrapper packages consume `handsontable/tmp/` via workspace linking.
+
+### Why the downlevel step exists
+
+The dev compiler is TS 6. TS 5.6+ infers newer lib types (`ArrayIterator`, `IteratorObject`) on iterator return sites, and TS 5.2+ infers `WeakKey` on bare `WeakMap` key types. These don't exist in TS 5.1, so published declarations must not reference them. `scripts/downlevel-dts.mjs` replaces them with TS 5.1 equivalents (`IterableIterator<T>`, `object`). The CI job `verify-emitted-types` enforces this by running `tsc@5.1.6 --noEmit` against `tmp/` on every PR.
+
+### If a new post-TS-5.1 lib type leaks into emit
+
+Two ways to fix it — pick whichever is cleaner:
+
+1. **Annotate at the source.** Add an explicit return type annotation that uses TS 5.1 types, e.g. `: IterableIterator<T>` instead of letting TS 6 infer `ArrayIterator<T>`, or `WeakMap<object, V>` instead of `WeakMap<WeakKey, V>`.
+
+2. **Extend the replacement table.** Add a row to the `REPLACEMENTS` array in `scripts/downlevel-dts.mjs`.
+
+The CI `verify-emitted-types` job reports the exact leaked identifier with `TS2304: Cannot find name '...'`, so it's always clear what to fix.
 
 ---
 
@@ -222,7 +245,7 @@ Run this after any change that affects public type surface (new exported functio
 - [ ] No `.d.ts` files hand-edited
 - [ ] Unit tests written (`*.unit.js`) — pure logic, no mocks
 - [ ] E2E tests written (`*.spec.js`) — DOM / rendering behavior
-- [ ] `npm run build:types` run if public types changed
+- [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files
 - [ ] Added to `metaSchema.ts` if a new option was introduced
 - [ ] JSDoc on all exported functions and classes
