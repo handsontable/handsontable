@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Upgraded ESLint to 8.57 and @typescript-eslint to v8; enabled type-aware TypeScript lint rules (`no-explicit-any`, `consistent-type-imports`, `no-floating-promises`, `no-misused-promises`). The `no-unsafe-assignment` and `no-unsafe-return` rules are active at warning level pending incremental cleanup.",
+  "type": "changed",
+  "issueOrPR": 12664,
+  "breaking": false,
+  "framework": "none"
+}
