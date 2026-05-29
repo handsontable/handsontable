@@ -202,14 +202,13 @@ for await (const filePath of walkEsm(tmpDir)) {
 
 if (violations.length > 0) {
   console.error(
-    `downlevel-dts: FATAL — "export * as" found in ESM output.\n` +
-    `This syntax crashes Parcel v1 consumers. Fix the source file by replacing:\n` +
-    `  export * as X from 'y';\n` +
-    `with:\n` +
-    `  import * as X from 'y';\n` +
-    `  export { X };\n\n` +
-    `Offending locations:\n` +
-    `${violations.join('\n')}`
+    'downlevel-dts: FATAL — "export * as" found in ESM output.\n' +
+    'This syntax crashes Parcel v1 consumers. Fix the source file by replacing:\n' +
+    '  export * as X from \'y\';\n' +
+    'with:\n' +
+    '  import * as X from \'y\';\n' +
+    '  export { X };\n\n' +
+    `Offending locations:\n${violations.join('\n')}`
   );
   process.exit(1);
 }
