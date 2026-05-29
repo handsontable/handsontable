@@ -4,7 +4,8 @@ import {
   CONTEXTMENU_ITEMS_EXPORT_FILE_CSV,
   CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX,
 } from '../../../i18n/constants';
-import { PLUGIN_KEY, ExportFile } from '../exportFile';
+import type { ExportFile } from '../exportFile';
+import { PLUGIN_KEY } from '../exportFile';
 import { getExportOptions } from './utils';
 
 /**

@@ -99,7 +99,7 @@ export class ExtendMetaPropertiesMod {
     if (!isInitialChange) {
       throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
     }
-  }
+  };
 
   /**
    * Extends the meta options based on the object descriptors from the `propDescriptors` list.

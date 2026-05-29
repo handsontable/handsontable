@@ -107,7 +107,7 @@ export class NestedHeaders extends BasePlugin {
 
   #stateManager = new StateManager();
   #hidingIndexMapObserver: { unsubscribe: () => void } | null = null;
-  #focusInitialCoords: { row: number, col: number, clone: () => any } | null = null;
+  #focusInitialCoords: { row: number, col: number, clone: () => CellCoords } | null = null;
   #isColumnsSelectionInProgress = false;
   /**
    * Keeps the last highlight position made by column selection. The coords are necessary to scroll
@@ -499,7 +499,7 @@ export class NestedHeaders extends BasePlugin {
       focusVisualCellRange.to.col = columnIndex;
       focusHighlight.commit();
     }
-  }
+  };
 
   /**
    * Finds the first visible header row for the passed coordinates. If the passed coordinates point
@@ -1091,6 +1091,7 @@ export class NestedHeaders extends BasePlugin {
   };
 
   #onBeforeSelectColumns = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => any }
   ) => {
     const headerLevel = from.row;

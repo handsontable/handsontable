@@ -1,6 +1,8 @@
 import type { PositionCache } from '../utils/positionCache';
-import { calculateAxis, AxisCalculatorContext } from './axisCalculation';
-import { ViewportBaseCalculator, CalculationTypeLike, ColumnsCalculationType } from './viewportBase';
+import type { AxisCalculatorContext } from './axisCalculation';
+import { calculateAxis } from './axisCalculation';
+import type { CalculationTypeLike, ColumnsCalculationType } from './viewportBase';
+import { ViewportBaseCalculator } from './viewportBase';
 
 /**
  * @typedef {object} ViewportColumnsCalculatorOptions

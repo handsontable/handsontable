@@ -6,7 +6,7 @@
 import type { HookCallback } from './hooks/bucket';
 import type { PluginTypeMap } from '../plugins/types';
 import type { BasePlugin } from '../plugins/base';
-import { IndexMapper } from '../translations';
+import type { IndexMapper } from '../translations';
 import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';

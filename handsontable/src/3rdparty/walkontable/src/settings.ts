@@ -256,9 +256,9 @@ export default class Settings {
    * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Settings}
    */
-  update(settings: string | Record<string, any>, value?: unknown) {
+  update(settings: string | Record<string, unknown>, value?: unknown) {
     if (value === undefined) { // settings is object
-      objectEach(settings as Record<string, any>, (settingValue: unknown, key: string) => {
+      objectEach(settings as Record<string, unknown>, (settingValue: unknown, key: string) => {
         this.settings[key] = settingValue;
       });
     } else { // if value is defined then settings is the key
@@ -279,7 +279,9 @@ export default class Settings {
    * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown) {
     if (typeof this.settings[key] === 'function') {
       return this.settings[key](param1, param2, param3, param4);
@@ -298,6 +300,7 @@ export default class Settings {
    * @param {string} key The settings key to retrieve.
    * @returns {*}
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSettingPure<T = any>(key: string): T;
   getSettingPure(key: string) {
     return this.settings[key];

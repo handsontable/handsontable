@@ -1,13 +1,13 @@
 import { staticRegister } from '../utils/staticRegister';
 import { throwWithCause } from '../helpers/errors';
-import { VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
-import { VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
-import { VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
-import { VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
-import { VALIDATOR_TYPE as INTL_TIME_VALIDATOR } from './intlTimeValidator';
-import { VALIDATOR_TYPE as MULTI_SELECT_VALIDATOR } from './multiSelectValidator';
-import { VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './numericValidator';
-import { VALIDATOR_TYPE as TIME_VALIDATOR } from './timeValidator';
+import type { VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
+import type { VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
+import type { VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
+import type { VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
+import type { VALIDATOR_TYPE as INTL_TIME_VALIDATOR } from './intlTimeValidator';
+import type { VALIDATOR_TYPE as MULTI_SELECT_VALIDATOR } from './multiSelectValidator';
+import type { VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './numericValidator';
+import type { VALIDATOR_TYPE as TIME_VALIDATOR } from './timeValidator';
 
 const {
   register,

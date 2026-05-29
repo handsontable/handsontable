@@ -9,7 +9,7 @@ import { createHighlight as createCustomHighlight } from './types/customSelectio
 import { createHighlight as createFillHighlight } from './types/fill';
 import { createHighlight as createHeaderHighlight } from './types/header';
 import { createHighlight as createRowHighlight } from './types/row';
-import VisualSelection from './visualSelection';
+import type VisualSelection from './visualSelection';
 import {
   HIGHLIGHT_ACTIVE_HEADER_TYPE,
   HIGHLIGHT_AREA_TYPE,

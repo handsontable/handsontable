@@ -13,7 +13,8 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
 import { OperatorsComponent } from './component/operators';
-import { ValueComponent, StateInfo } from './component/value';
+import type { StateInfo } from './component/value';
+import { ValueComponent } from './component/value';
 import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
@@ -29,7 +30,7 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
-import { BaseComponent } from './component/_base';
+import type { BaseComponent } from './component/_base';
 
 /**
  * Interface for a DropdownMenu's Menu instance.
@@ -1235,7 +1236,7 @@ export class Filters extends BasePlugin {
     arrayEach(filteredColumns, (physicalColumn: number) => {
       this.conditionUpdateObserver?.updateStatesAtColumn(physicalColumn);
     });
-  }
+  };
 
   /**
    * After dataProvider fetch listener.

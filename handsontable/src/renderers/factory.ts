@@ -1,5 +1,5 @@
-import Handsontable from '../base';
-import { CellProperties } from '../settings';
+import type Handsontable from '../base';
+import type { CellProperties } from '../settings';
 /**
  * Factory function for creating custom Handsontable cell renderers.
  *

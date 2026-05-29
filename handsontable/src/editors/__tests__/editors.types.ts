@@ -1,8 +1,9 @@
 import Handsontable from 'handsontable';
 import type { HotInstance } from 'handsontable';
+import type {
+  BaseEditor } from 'handsontable/editors';
 import {
   AutocompleteEditor,
-  BaseEditor,
   CheckboxEditor,
   DateEditor,
   DropdownEditor,

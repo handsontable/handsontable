@@ -1,9 +1,11 @@
 import { arrayMap, arrayReduce } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
-import HeadersTree, { HeaderNodeData } from './headersTree';
+import type { HeaderNodeData } from './headersTree';
+import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
-import TreeNode, { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
+import type TreeNode from '../../../utils/dataStructures/tree';
+import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
 
 /**
  * The state manager is a source of truth for nested headers configuration.

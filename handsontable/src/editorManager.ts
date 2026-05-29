@@ -4,7 +4,7 @@ import type { default as SelectionManager } from './selection/selection';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
-import { BaseEditor } from './editors/baseEditor';
+import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
 
 class EditorManager {

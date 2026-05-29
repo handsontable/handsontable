@@ -1,6 +1,6 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
-import SourceSettings from './sourceSettings';
+import type SourceSettings from './sourceSettings';
 
 /**
  * Interface representing the base header settings shape.

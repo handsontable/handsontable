@@ -4,21 +4,22 @@ import type { HotInstance } from '../core/types';
  */
 import { Hooks } from '../core/hooks';
 import { staticRegister } from '../utils/staticRegister';
-import { BaseEditor, EDITOR_TYPE as BASE_EDITOR } from './baseEditor';
+import type { EDITOR_TYPE as BASE_EDITOR } from './baseEditor';
+import { BaseEditor } from './baseEditor';
 import { throwWithCause } from '../helpers/errors';
-import { EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './autocompleteEditor';
-import { EDITOR_TYPE as CHECKBOX_EDITOR } from './checkboxEditor';
-import { EDITOR_TYPE as DATE_EDITOR } from './dateEditor';
-import { EDITOR_TYPE as DROPDOWN_EDITOR } from './dropdownEditor';
-import { EDITOR_TYPE as HANDSONTABLE_EDITOR } from './handsontableEditor';
-import { EDITOR_TYPE as INTL_DATE_EDITOR } from './intlDateEditor';
-import { EDITOR_TYPE as INTL_TIME_EDITOR } from './intlTimeEditor';
-import { EDITOR_TYPE as MULTI_SELECT_EDITOR } from './multiSelectEditor';
-import { EDITOR_TYPE as NUMERIC_EDITOR } from './numericEditor';
-import { EDITOR_TYPE as PASSWORD_EDITOR } from './passwordEditor';
-import { EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
-import { EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
-import { EDITOR_TYPE as TIME_EDITOR } from './timeEditor';
+import type { EDITOR_TYPE as AUTOCOMPLETE_EDITOR } from './autocompleteEditor';
+import type { EDITOR_TYPE as CHECKBOX_EDITOR } from './checkboxEditor';
+import type { EDITOR_TYPE as DATE_EDITOR } from './dateEditor';
+import type { EDITOR_TYPE as DROPDOWN_EDITOR } from './dropdownEditor';
+import type { EDITOR_TYPE as HANDSONTABLE_EDITOR } from './handsontableEditor';
+import type { EDITOR_TYPE as INTL_DATE_EDITOR } from './intlDateEditor';
+import type { EDITOR_TYPE as INTL_TIME_EDITOR } from './intlTimeEditor';
+import type { EDITOR_TYPE as MULTI_SELECT_EDITOR } from './multiSelectEditor';
+import type { EDITOR_TYPE as NUMERIC_EDITOR } from './numericEditor';
+import type { EDITOR_TYPE as PASSWORD_EDITOR } from './passwordEditor';
+import type { EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
+import type { EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
+import type { EDITOR_TYPE as TIME_EDITOR } from './timeEditor';
 
 /**
  * Constructor signature of any editor class. Editors extend `BaseEditor` but historically

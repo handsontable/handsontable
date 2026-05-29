@@ -294,7 +294,7 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (this.hot.view) {
-      this.fetchData();
+      void this.fetchData();
     }
 
     super.updatePlugin();
@@ -751,7 +751,7 @@ export class DataProvider extends BasePlugin {
               notificationPlugin.hide(toastId);
             }
 
-            this.fetchData();
+            void this.fetchData();
           },
         },
       ];
@@ -820,7 +820,7 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterInit = () => {
-    this.fetchData();
+    void this.fetchData();
   };
 
   /**
@@ -882,7 +882,7 @@ export class DataProvider extends BasePlugin {
       applyFiltersAndRefetch: (filtersForProvider) => {
         this.#queryParameters.filters = filtersForProvider ?? null;
         this.#queryParameters.page = 1;
-        this.fetchData();
+        void this.fetchData();
       },
     },
     conditionsStack
@@ -952,7 +952,7 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    this.#enqueueMutation(() => runUpdateFromChanges(this.hot, {
+    void this.#enqueueMutation(() => runUpdateFromChanges(this.hot, {
       getRowIdOption: () => this.#getRowIdOption(),
       commitRowsUpdate: (payloads, opts) => this.#commitRowsUpdate(payloads, opts),
     }, valid));

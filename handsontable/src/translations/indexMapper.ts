@@ -7,7 +7,7 @@ import {
   IndexesSequence,
   TrimmingMap,
 } from './maps';
-import { IndexMap } from './maps/indexMap';
+import type { IndexMap } from './maps/indexMap';
 import {
   AggregatedCollection,
   MapCollection,

@@ -53,6 +53,7 @@ class DataProvider {
    *   pushed into the row array.
    * @returns {Array[]}
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _extractDataMatrix(getCellValue: (row: number, col: number) => any) {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const options = this.options;

@@ -1,4 +1,5 @@
-import LinkedList, { NodeStructure } from '../../utils/dataStructures/linkedList';
+import type { NodeStructure } from '../../utils/dataStructures/linkedList';
+import LinkedList from '../../utils/dataStructures/linkedList';
 import type { IndexMapper } from '../../translations';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 
@@ -41,7 +42,6 @@ export class FocusOrder {
   /**
    * The merged cells getter function.
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
   #mergedCellsGetter!: Function;
   /**
    * The row index mapper.

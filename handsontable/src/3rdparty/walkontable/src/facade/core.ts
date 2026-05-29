@@ -11,6 +11,7 @@ import CoreAbstract from '../core/_base';
  * @inheritDoc
  */
 export default class WalkontableFacade {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   declare _wot: CoreAbstract & Record<string, any>;
 
   /**
@@ -24,6 +25,7 @@ export default class WalkontableFacade {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _initFromSettings(settings: Record<string, any>) {
     settings.facade = (instance: CoreAbstract) => {
       const facade = new WalkontableFacade(instance);
@@ -31,6 +33,7 @@ export default class WalkontableFacade {
       return () => facade;
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this._wot = new Walkontable(settings.table, settings) as CoreAbstract & Record<string, any>;
   }
 

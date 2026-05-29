@@ -1,20 +1,20 @@
 import { staticRegister } from '../utils/staticRegister';
 import { throwWithCause } from '../helpers/errors';
-import { RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './autocompleteRenderer';
-import { RENDERER_TYPE as BASE_RENDERER } from './baseRenderer';
-import { RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
-import { RENDERER_TYPE as DATE_RENDERER } from './dateRenderer';
-import { RENDERER_TYPE as DROPDOWN_RENDERER } from './dropdownRenderer';
-import { RENDERER_TYPE as HANDSONTABLE_RENDERER } from './handsontableRenderer';
-import { RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
-import { RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
-import { RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
-import { RENDERER_TYPE as MULTI_SELECT_RENDERER } from './multiSelectRenderer';
-import { RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
-import { RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
-import { RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
-import { RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
-import { RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
+import type { RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './autocompleteRenderer';
+import type { RENDERER_TYPE as BASE_RENDERER } from './baseRenderer';
+import type { RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
+import type { RENDERER_TYPE as DATE_RENDERER } from './dateRenderer';
+import type { RENDERER_TYPE as DROPDOWN_RENDERER } from './dropdownRenderer';
+import type { RENDERER_TYPE as HANDSONTABLE_RENDERER } from './handsontableRenderer';
+import type { RENDERER_TYPE as HTML_RENDERER } from './htmlRenderer';
+import type { RENDERER_TYPE as INTL_DATE_RENDERER } from './intlDateRenderer';
+import type { RENDERER_TYPE as INTL_TIME_RENDERER } from './intlTimeRenderer';
+import type { RENDERER_TYPE as MULTI_SELECT_RENDERER } from './multiSelectRenderer';
+import type { RENDERER_TYPE as NUMERIC_RENDERER } from './numericRenderer';
+import type { RENDERER_TYPE as PASSWORD_RENDERER } from './passwordRenderer';
+import type { RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
+import type { RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
+import type { RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
 
 const {
   register,
