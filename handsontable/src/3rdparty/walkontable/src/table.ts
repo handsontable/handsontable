@@ -1301,6 +1301,11 @@ class Table {
 
     return rowHeaderWidth;
   }
+
+  /**
+   * Destroys the table instance. Overridden by MasterTable to release DOM resources.
+   */
+  destroy() {}
 }
 
 export default Table;
