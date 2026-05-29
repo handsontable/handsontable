@@ -923,6 +923,43 @@ describe('Core.scrollViewportTo', () => {
     )[0]).toEqual(hot.getCell(29, 29));
   });
 
+  describe('with `preventOverflow` and a constrained dimension (#8233)', () => {
+    it('should scroll vertically when `height` is set together with `preventOverflow: "horizontal"`', async() => {
+      handsontable({
+        data: createSpreadsheetData(200, 10),
+        width: 300,
+        height: 300,
+        preventOverflow: 'horizontal',
+      });
+
+      const result = await scrollViewportTo({
+        row: 150,
+        col: 0,
+      });
+
+      expect(result).toBe(true);
+      expect(topOverlay().getScrollPosition()).toBeGreaterThan(0);
+    });
+
+    it('should scroll horizontally when `width` is set together with `preventOverflow: "vertical"`', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 200),
+        width: 300,
+        height: 300,
+        colWidths: 60,
+        preventOverflow: 'vertical',
+      });
+
+      const result = await scrollViewportTo({
+        row: 0,
+        col: 150,
+      });
+
+      expect(result).toBe(true);
+      expect(inlineStartOverlay().getScrollPosition()).toBeGreaterThan(0);
+    });
+  });
+
   describe('using backward-compatible arguments', () => {
     it('should scroll the viewport using default snapping (top, start)', async() => {
       handsontable({

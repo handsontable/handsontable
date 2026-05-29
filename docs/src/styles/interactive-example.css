@@ -60,6 +60,12 @@
 .hot-example-preview {
   padding: 1rem;
   border-left: 1px solid var(--sl-color-gray-5);
+  /* Scope layout recalculation to this subtree. Any geometry reads inside HOT
+     (offsetWidth, clientHeight, scrollHeight) only need to flush layout within
+     this container rather than the entire document, cutting forced-reflow cost
+     on heavy pages with many stylesheets. Safe because HOT uses no
+     position:fixed descendants. */
+  contain: layout;
 }
 
 /* Shield example internals from Starlight's content spacing rules
@@ -155,7 +161,7 @@
   display: none !important;
 }
 
-.example-controls-container .controls:not(:has(button:not([hidden]))) {
+.example-controls-container .controls:not(:has(button:not([hidden]))):not(:has(input:not([hidden]))) {
   display: none;
 }
 

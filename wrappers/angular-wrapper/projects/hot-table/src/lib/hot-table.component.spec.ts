@@ -276,7 +276,7 @@ describe('HotTableComponent', () => {
       };
       fixture.detectChanges();
 
-      const instance: Handsontable = fixture.componentInstance.hotInstance.runHooks('afterInit');
+      const instance = fixture.componentInstance.hotInstance.runHooks('afterInit') as unknown as Handsontable;
 
       expect(instance.getPlugin).toBeDefined();
       expect(instance.getPlugin('copyPaste')).toBeTruthy();

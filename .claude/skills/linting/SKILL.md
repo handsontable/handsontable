@@ -18,8 +18,8 @@ These live in `handsontable/.config/plugin/eslint/rules/`.
 
 | Rule | What it enforces | Why |
 |---|---|---|
-| `handsontable/no-native-error-throw` | Must use `throwWithCause()` from `src/helpers/errors.js`, never `throw new Error()`. | Consistent error handling with cause tracking across the codebase. |
-| `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from specific submodule paths. Only exception: `src/registry.js`. | Prevents circular dependencies and reduces bundle size. |
+| `handsontable/no-native-error-throw` | Must use `throwWithCause()` from `src/helpers/errors.ts`, never `throw new Error()`. | Consistent error handling with cause tracking across the codebase. |
+| `handsontable/restricted-module-imports` | No imports from barrel index files (`plugins/index`, `editors/index`, `renderers/index`, `validators/index`, `cellTypes/index`, `i18n/index`). Import from specific submodule paths. Only exception: `src/registry.ts`. | Prevents circular dependencies and reduces bundle size. |
 | `handsontable/require-async-in-it` | All `it()` callbacks in `*.spec.js` must be `async`. | E2E tests run in a browser context where HOT API calls are asynchronous. |
 | `handsontable/require-await` | Specific HOT API calls (`selectCell`, `render`, etc.) must be `await`-ed in tests. | Prevents race conditions in E2E tests. |
 
@@ -27,7 +27,7 @@ These live in `handsontable/.config/plugin/eslint/rules/`.
 
 | Rule | What it enforces | Why |
 |---|---|---|
-| `no-restricted-globals` | `window`, `document`, `console`, `Handsontable` are banned as globals. | Supports multi-instance setups and air-gapped environments. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.js`. |
+| `no-restricted-globals` | `window`, `document`, `console`, `Handsontable` are banned as globals. | Supports multi-instance setups and air-gapped environments. Use `this.hot.rootWindow`, `this.hot.rootDocument`, and helpers from `src/helpers/console.ts`. |
 | `compat/compat` | Browser API compatibility against `browser-targets.js`. | All supported browsers must work. |
 | `jsdoc/require-jsdoc` | Error level for all exported functions. | Every public API must be documented. |
 

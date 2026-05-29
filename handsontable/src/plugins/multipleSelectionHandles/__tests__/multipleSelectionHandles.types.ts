@@ -5,9 +5,9 @@ import Handsontable, {
 const hot = new Handsontable(document.createElement('div'), {});
 const plugin = hot.getPlugin('multipleSelectionHandles');
 
-const coords: { start: number, end: number } = plugin.getCurrentRangeCoords(
+const coords = plugin.getCurrentRangeCoords(
   hot.getSelectedRangeLast()!,
-  new CellCoords(0, 0),
+  hot._createCellCoords(0, 0),
   'NE-SW',
   'SE-NW',
   'top',

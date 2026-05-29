@@ -17,37 +17,49 @@ registerAllModules();
  *   {
  *     page: 1,
  *     pageSize: 10,
- *     sort: { column: 'status', order: 'asc' } | undefined,
- *     filters: [{ prop: 'status', condition: 'eq', value: ['open'] }] | undefined,
+ *     sort: { prop: 'status', order: 'asc' } | undefined,
+ *     filters: [
+ *       { prop: 'status', operation: 'conjunction',
+ *         conditions: [{ name: 'eq', args: ['open'] }] }
+ *     ] | undefined,
  *   }
  *
  * NestJS expects nested objects as bracket notation in the query string:
  *   sort[column]=status&sort[order]=asc
- *   filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][]=open
+ *   filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][0]=open
+ *
+ * Each DataProviderFilterColumn can have multiple conditions (e.g. between),
+ * so we flatten them: one entry per condition, incrementing the index.
  */
-function buildUrl(base, params) {
+function buildUrl(params) {
   const query = new URLSearchParams();
 
   query.set('page', String(params.page));
   query.set('pageSize', String(params.pageSize));
 
   if (params.sort) {
-    query.set('sort[column]', params.sort.column);
+    query.set('sort[column]', params.sort.prop);
     query.set('sort[order]', params.sort.order);
   }
 
   if (params.filters && params.filters.length > 0) {
-    params.filters.forEach((filter, i) => {
-      query.set(`filters[${i}][prop]`, filter.prop);
-      query.set(`filters[${i}][condition]`, filter.condition);
+    let idx = 0;
 
-      filter.value.forEach((v, j) => {
-        query.set(`filters[${i}][value][${j}]`, String(v));
+    params.filters.forEach((filter) => {
+      filter.conditions.forEach((cond) => {
+        query.set(`filters[${idx}][prop]`, filter.prop);
+        query.set(`filters[${idx}][condition]`, cond.name);
+
+        cond.args.forEach((arg, j) => {
+          query.set(`filters[${idx}][value][${j}]`, String(arg));
+        });
+
+        idx++;
       });
     });
   }
 
-  return `${base}?${query.toString()}`;
+  return `/tickets?${query.toString()}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -81,8 +93,7 @@ const hotOptions = {
      * of pages.
      */
     fetchRows: async (params, { signal }) => {
-      const url = buildUrl('http://localhost:3000/tickets', params);
-      const res = await fetch(url, { signal });
+      const res = await fetch(buildUrl(params), { signal });
 
       if (!res.ok) {
         throw new Error(`Server error ${res.status}`);
@@ -92,15 +103,24 @@ const hotOptions = {
     },
 
     /**
-     * onRowsCreate is called after the user adds one or more rows.
-     * `payload` contains the new row data keyed by the column `data` property.
-     * The server must return the created rows (including generated IDs).
+     * onRowsCreate receives { rowsAmount } -- the number of rows to add.
+     * Build default row objects for each new row, POST them to the server,
+     * and return the created rows with their server-generated UUIDs so the
+     * grid can update its row map.
      */
-    onRowsCreate: async (payload) => {
-      const res = await fetch('http://localhost:3000/tickets', {
+    onRowsCreate: async ({ rowsAmount }) => {
+      const rows = Array.from({ length: rowsAmount }, () => ({
+        subject: '',
+        status: 'open',
+        priority: 'medium',
+        assignee: '',
+        createdAt: new Date().toISOString().slice(0, 10),
+      }));
+
+      const res = await fetch('/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(rows),
       });
 
       if (!res.ok) {
@@ -111,15 +131,16 @@ const hotOptions = {
     },
 
     /**
-     * onRowsUpdate is called after the user edits cells and commits changes.
-     * `rows` is an array of partial row objects, each including the row ID
-     * and only the changed column values.
+     * onRowsUpdate receives an array of { id, changes } objects.
+     * Flatten each entry into { id, ...changes } before sending so the
+     * server receives a plain object with only the changed fields.
      */
     onRowsUpdate: async (rows) => {
-      const res = await fetch('http://localhost:3000/tickets', {
+      const payload = rows.map(({ id, changes }) => ({ id, ...changes }));
+      const res = await fetch('/tickets', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rows),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -132,7 +153,7 @@ const hotOptions = {
      * `rowIds` is an array of the string IDs of the deleted rows.
      */
     onRowsRemove: async (rowIds) => {
-      const res = await fetch('http://localhost:3000/tickets', {
+      const res = await fetch('/tickets', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rowIds),

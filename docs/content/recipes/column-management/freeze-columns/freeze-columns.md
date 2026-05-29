@@ -26,10 +26,9 @@ In this tutorial, you will freeze and unfreeze columns at runtime using external
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1 --html 2 --css 3
+::: example #example1 :hot-recipe --js 1 --css 2
 
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.js)
-@[code](@/content/recipes/column-management/freeze-columns/javascript/example1.html)
 @[code](@/content/recipes/column-management/freeze-columns/javascript/example1.css)
 
 :::
@@ -80,7 +79,7 @@ This recipe uses only the built-in Handsontable API. No extra dependencies are r
 
 The example uses marketing analytics data with eight columns: Campaign, Channel, Impressions, Clicks, Conversions, CPC, Revenue, and ROI. With many columns the grid scrolls horizontally, making frozen columns genuinely useful -- the identifier columns stay visible while metric columns scroll.
 
-## Step 1 -- Set up the grid with fixedColumnsStart and manualColumnMove
+## Step 1: Set up the grid with fixedColumnsStart and manualColumnMove
 
 ```javascript
 const hot = new Handsontable(container, {
@@ -110,7 +109,7 @@ const hot = new Handsontable(container, {
 
 **Why set `fixedColumnsStart: 0` explicitly?** The default is `0`, but declaring it makes the initial state visible in the config and makes the runtime change more explicit to anyone reading the code.
 
-## Step 2 -- Track state and apply the freeze boundary
+## Step 2: Track state and apply the freeze boundary
 
 ```javascript
 let frozenCount = 0;
@@ -130,7 +129,7 @@ function freezeUpTo(n) {
 
 **Why `Math.min(n, total)`?** If `fixedColumnsStart` exceeds the number of rendered columns, Handsontable clamps it internally -- but being explicit in application code prevents confusion and makes the guard visible.
 
-## Step 3 -- Generate freeze buttons from the column headers
+## Step 3: Generate freeze buttons from the column headers
 
 ```javascript
 const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions', 'CPC ($)', 'Revenue ($)', 'ROI'];
@@ -154,7 +153,7 @@ colHeaders.forEach((header, index) => {
 
 **Why `index + 1`?** `fixedColumnsStart` is a count, not an index. To freeze the column at visual index `i`, you set the count to `i + 1`.
 
-## Step 4 -- Add the Unfreeze all button
+## Step 4: Add the Unfreeze all button
 
 ```javascript
 document.querySelector('#unfreeze-btn').addEventListener('click', () => {
@@ -166,7 +165,7 @@ document.querySelector('#unfreeze-btn').addEventListener('click', () => {
 
 **What's happening:** Setting `fixedColumnsStart: 0` releases all frozen columns. The grid re-renders without any pinned column overlay. The status indicator is updated to "No columns frozen".
 
-## Step 5 -- Show a frozen column count indicator
+## Step 5: Show a frozen column count indicator
 
 ```javascript
 function updateStatus() {

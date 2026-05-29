@@ -1,78 +1,137 @@
-import Handsontable from 'handsontable';
+import {
+  addClass,
+  addEvent,
+  clearTextSelection,
+  closest,
+  closestDown,
+  empty,
+  fastInnerHTML,
+  fastInnerText,
+  getCaretPosition,
+  getCssTransform,
+  getFrameElement,
+  getFractionalScalingCompensation,
+  getParent,
+  getParentWindow,
+  getScrollLeft,
+  getScrollTop,
+  getScrollableElement,
+  getScrollbarWidth,
+  getSelectionEndPosition,
+  getSelectionText,
+  getStyle,
+  getTrimmingContainer,
+  getWindowScrollLeft,
+  getWindowScrollTop,
+  hasAccessToParentWindow,
+  hasClass,
+  hasHorizontalScrollbar,
+  hasVerticalScrollbar,
+  hasZeroHeight,
+  HTML_CHARACTERS,
+  index,
+  innerHeight,
+  innerWidth,
+  isChildOf,
+  isDetached,
+  isHTMLElement,
+  isInput,
+  isOutsideInput,
+  isVisible,
+  matchesCSSRules,
+  offset,
+  outerHeight,
+  outerWidth,
+  overlayContainsElement,
+  removeClass,
+  removeEvent,
+  removeTextNodes,
+  resetCssTransform,
+  selectElementIfAllowed,
+  setCaretPosition,
+  setOverlayPosition,
+} from 'handsontable/helpers/dom/element';
+
+import {
+  isImmediatePropagationStopped,
+  isLeftClick,
+  isRightClick,
+  isTouchEvent,
+  offsetRelativeTo,
+  stopImmediatePropagation,
+} from 'handsontable/helpers/dom/event';
 
 const domElement = new HTMLElement();
+const inputElement = new HTMLInputElement();
 const domEvent = new Event('foo');
 const cssRule = new CSSRule();
 
-const htmlCharacters = Handsontable.dom.HTML_CHARACTERS;
+const htmlCharacters = HTML_CHARACTERS;
 
-Handsontable.dom.addEvent(domElement, 'foo', () => {});
-Handsontable.dom.addClass(domElement, ['foo', 'bar']);
-Handsontable.dom.clearTextSelection();
-Handsontable.dom.clearTextSelection(window);
-Handsontable.dom.closest(domElement, ['foo']);
-Handsontable.dom.closest(domElement, ['foo'], domElement);
-Handsontable.dom.closestDown(domElement, [domElement, domElement]);
-Handsontable.dom.closestDown(domElement, [domElement], domElement);
-Handsontable.dom.empty(domElement);
-Handsontable.dom.fastInnerHTML(domElement, 'foo', (content) => {
-  return String(content).trim();
-});
-Handsontable.dom.fastInnerHTML(domElement, 'foo');
-Handsontable.dom.fastInnerText(domElement, 'foo');
-Handsontable.dom.getCaretPosition(domElement);
-Handsontable.dom.getCssTransform(domElement);
-Handsontable.dom.getFrameElement(window);
-Handsontable.dom.getParent(domElement, 1);
-Handsontable.dom.getParentWindow(window);
-Handsontable.dom.getScrollLeft(domElement);
-Handsontable.dom.getScrollLeft(domElement, window);
-Handsontable.dom.getScrollTop(domElement);
-Handsontable.dom.getScrollTop(domElement, window);
-Handsontable.dom.getScrollableElement(domElement);
-Handsontable.dom.getFractionalScalingCompensation();
-Handsontable.dom.getFractionalScalingCompensation(document);
-Handsontable.dom.getScrollbarWidth();
-Handsontable.dom.getScrollbarWidth(document);
-Handsontable.dom.getSelectionEndPosition(domElement);
-Handsontable.dom.getSelectionText();
-Handsontable.dom.getSelectionText(window);
-Handsontable.dom.getStyle(domElement, 'foo');
-Handsontable.dom.getStyle(domElement, 'foo', window);
-Handsontable.dom.getTrimmingContainer(domElement);
-Handsontable.dom.getWindowScrollLeft();
-Handsontable.dom.getWindowScrollLeft(window);
-Handsontable.dom.getWindowScrollTop();
-Handsontable.dom.getWindowScrollTop(window);
-Handsontable.dom.hasAccessToParentWindow(window);
-Handsontable.dom.hasClass(domElement, 'foo');
-Handsontable.dom.hasHorizontalScrollbar(domElement);
-Handsontable.dom.hasVerticalScrollbar(domElement);
-Handsontable.dom.hasZeroHeight(domElement);
-Handsontable.dom.index(domElement);
-Handsontable.dom.innerHeight(domElement);
-Handsontable.dom.innerWidth(domElement);
-Handsontable.dom.isChildOf(domElement, 'foo');
-Handsontable.dom.isDetached(domElement);
-Handsontable.dom.isImmediatePropagationStopped(domEvent);
-Handsontable.dom.isInput(domElement);
-Handsontable.dom.isLeftClick(domEvent);
-Handsontable.dom.isOutsideInput(domElement);
-Handsontable.dom.isRightClick(domEvent);
-Handsontable.dom.isTouchEvent(domEvent);
-Handsontable.dom.isVisible(domElement);
-Handsontable.dom.matchesCSSRules(domElement, cssRule);
-Handsontable.dom.offset(domElement);
-Handsontable.dom.offsetRelativeTo(domEvent, domElement);
-Handsontable.dom.outerHeight(domElement);
-Handsontable.dom.outerWidth(domElement);
-Handsontable.dom.overlayContainsElement('top', domElement, domElement);
-Handsontable.dom.removeClass(domElement, ['foo', 'bar']);
-Handsontable.dom.removeEvent(domElement, 'foo', () => {});
-Handsontable.dom.removeTextNodes(domElement);
-Handsontable.dom.resetCssTransform(domElement);
-Handsontable.dom.setCaretPosition(domElement, 0, 0);
-Handsontable.dom.setOverlayPosition(domElement, 0, 0);
-Handsontable.dom.selectElementIfAllowed(domElement);
-Handsontable.dom.stopImmediatePropagation(domEvent);
-Handsontable.dom.isHTMLElement(domElement);
+addEvent(domElement, 'foo', () => {});
+addClass(domElement, ['foo', 'bar']);
+clearTextSelection();
+clearTextSelection(window);
+closest(domElement, ['foo']);
+closest(domElement, ['foo'], domElement);
+closestDown(domElement, [domElement, domElement]);
+closestDown(domElement, [domElement], domElement);
+empty(domElement);
+fastInnerHTML(domElement, 'foo');
+fastInnerText(domElement, 'foo');
+getCaretPosition(inputElement);
+getCssTransform(domElement);
+getFrameElement(window);
+getParent(domElement, 1);
+getParentWindow(window);
+getScrollLeft(domElement);
+getScrollLeft(domElement, window);
+getScrollTop(domElement);
+getScrollTop(domElement, window);
+getScrollableElement(domElement);
+getFractionalScalingCompensation();
+getFractionalScalingCompensation(document);
+getScrollbarWidth();
+getScrollbarWidth(document);
+getSelectionEndPosition(inputElement);
+getSelectionText();
+getSelectionText(window);
+getStyle(domElement, 'foo');
+getStyle(domElement, 'foo', window);
+getTrimmingContainer(domElement);
+getWindowScrollLeft();
+getWindowScrollLeft(window);
+getWindowScrollTop();
+getWindowScrollTop(window);
+hasAccessToParentWindow(window);
+hasClass(domElement, 'foo');
+hasHorizontalScrollbar(domElement);
+hasVerticalScrollbar(domElement);
+hasZeroHeight(domElement);
+index(domElement);
+innerHeight(domElement);
+innerWidth(domElement);
+isChildOf(domElement, 'foo');
+isDetached(domElement);
+isImmediatePropagationStopped(domEvent);
+isInput(domElement);
+isLeftClick(domEvent);
+isOutsideInput(domElement);
+isRightClick(domEvent);
+isTouchEvent(domEvent);
+isVisible(domElement);
+matchesCSSRules(domElement, cssRule);
+offset(domElement);
+offsetRelativeTo(domEvent, domElement);
+outerHeight(domElement);
+outerWidth(domElement);
+overlayContainsElement('top', domElement, domElement);
+removeClass(domElement, ['foo', 'bar']);
+removeEvent(domElement, 'foo', () => {});
+removeTextNodes(domElement);
+resetCssTransform(domElement);
+setCaretPosition(inputElement, 0, 0);
+setOverlayPosition(domElement, 0, 0);
+selectElementIfAllowed(domElement);
+stopImmediatePropagation(domEvent);
+isHTMLElement(domElement);

@@ -1,5 +1,5 @@
+import Handsontable from 'handsontable/base';
 import { Directive, EventEmitter, HostBinding, Input, Output } from '@angular/core';
-import { CellProperties } from 'handsontable/settings';
 
 /**
  * Abstract class representing a Handsontable editor in angular.
@@ -36,7 +36,7 @@ export abstract class HotCellEditorComponent<T extends string | number | boolean
   @Input() originalValue: T;
 
   /** The cell properties of the cell being edited. */
-  @Input() cellProperties: CellProperties;
+  @Input() cellProperties: Handsontable.CellProperties;
 
   /** Event emitted when the edit is finished.
    * The data will be saved to the model.

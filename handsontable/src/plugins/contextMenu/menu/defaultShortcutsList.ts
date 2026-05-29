@@ -1,0 +1,122 @@
+import type { Shortcut } from '../../../shortcuts/context';
+import type { Menu } from './menu';
+
+/**
+ * Creates a keyboard shortcuts list with default keyboards binds.
+ *
+ * @param {Menu} menu The main menu instance.
+ * @returns {KeyboardShortcut[]}
+ */
+export function createDefaultShortcutsList(menu: Menu): Shortcut[] {
+  const hot = menu.hot;
+  const hotMenu = menu.hotMenu;
+
+  const gridContext = hot.getShortcutManager().getContext('grid');
+
+  return [{
+    keys: [['Control/Meta', 'A']],
+    ...(gridContext ? { forwardToContext: gridContext } : {}),
+    callback: () => menu.close(true)
+  }, {
+    keys: [['Tab'], ['Shift', 'Tab']],
+    callback: (event: KeyboardEvent, keys?: string[]) => {
+      const settings = hot.getSettings();
+      const tabMoves = typeof settings.tabMoves === 'function'
+        ? settings.tabMoves(event as KeyboardEvent)
+        : settings.tabMoves;
+
+      if (tabMoves) {
+        if (keys?.includes('shift')) {
+          hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+        } else {
+          hot.selection.transformStart(tabMoves.row, tabMoves.col);
+        }
+      }
+
+      menu.close(true);
+    },
+  }, {
+    keys: [['Escape']],
+    callback: () => menu.close(),
+  }, {
+    keys: [['ArrowDown']],
+    callback: () => menu.getNavigator()?.toNextItem(),
+  }, {
+    keys: [['ArrowUp']],
+    callback: () => menu.getNavigator()?.toPreviousItem(),
+  }, {
+    keys: [[hot.isRtl() ? 'ArrowLeft' : 'ArrowRight']],
+    callback: () => {
+      const selection = hotMenu?.getSelectedActive();
+
+      if (selection) {
+        const subMenu = menu.openSubMenu(selection[0]);
+
+        if (subMenu) {
+          subMenu.getNavigator()?.toFirstItem();
+        }
+      }
+    }
+  }, {
+    keys: [[hot.isRtl() ? 'ArrowRight' : 'ArrowLeft']],
+    callback: () => {
+      const selection = hotMenu?.getSelectedActive();
+
+      if (selection && menu.isSubMenu()) {
+        menu.close();
+
+        if (menu.isSubMenu()) {
+          menu.parentMenu?.hotMenu?.listen();
+        }
+      }
+    },
+  }, {
+    keys: [['Control/Meta', 'ArrowUp'], ['Home']],
+    callback: () => menu.getNavigator()?.toFirstItem(),
+  }, {
+    keys: [['Control/Meta', 'ArrowDown'], ['End']],
+    callback: () => menu.getNavigator()?.toLastItem(),
+  }, {
+    keys: [['Enter'], ['Space']],
+    callback: (event: Event) => {
+      const selection = hotMenu?.getSelectedActive();
+
+      if (!selection) {
+        return;
+      }
+
+      if ((hotMenu?.getSourceDataAtRow(selection[0]) as Record<string, unknown>)?.submenu) {
+        const subMenu = menu.openSubMenu(selection[0]);
+
+        if (subMenu) {
+          subMenu.getNavigator()?.toFirstItem();
+        }
+      } else {
+        menu.executeCommand(event);
+        menu.close(true);
+      }
+    }
+  }, {
+    keys: [['PageUp']],
+    callback: () => {
+      const selection = hotMenu?.getSelectedActive();
+
+      if (selection) {
+        hotMenu?.selection.transformStart(-hotMenu.countVisibleRows(), 0);
+      } else {
+        menu.getNavigator()?.toFirstItem();
+      }
+    },
+  }, {
+    keys: [['PageDown']],
+    callback: () => {
+      const selection = hotMenu?.getSelectedActive();
+
+      if (selection) {
+        hotMenu?.selection.transformStart(hotMenu.countVisibleRows(), 0);
+      } else {
+        menu.getNavigator()?.toLastItem();
+      }
+    },
+  }];
+}

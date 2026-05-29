@@ -1,21 +1,33 @@
+import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { TicketsController } from './tickets.controller';
 import { TicketsService } from './tickets.service';
+import { TicketEntity } from './ticket.entity';
 
 /**
- * AppModule declares the tickets feature inline for brevity.
+ * AppModule wires the TypeORM connection and the tickets feature together.
  *
- * In a real application, split this into a dedicated TicketsModule:
- *
- *   @Module({ controllers: [TicketsController], providers: [TicketsService] })
- *   export class TicketsModule {}
- *
- *   @Module({ imports: [TicketsModule] })
- *   export class AppModule {}
+ * TypeOrmModule.forRoot() creates the database connection.
+ * TypeOrmModule.forFeature([TicketEntity]) registers the repository so
+ * TicketsService can inject it via @InjectRepository(TicketEntity).
  */
 @Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432'),
+      username: process.env.DB_USER || 'tickets',
+      password: process.env.DB_PASS || 'tickets',
+      database: process.env.DB_NAME || 'tickets',
+      entities: [TicketEntity],
+      synchronize: false,
+    }),
+    TypeOrmModule.forFeature([TicketEntity]),
+  ],
   controllers: [TicketsController],
   providers: [TicketsService],
 })

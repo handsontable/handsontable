@@ -1,8 +1,10 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
+import { HandsontableEditor } from 'handsontable/editors';
 
 const element = document.createElement('div');
-const hot = new Handsontable(element, {});
-const editor = new Handsontable.editors.HandsontableEditor(hot);
+const hot = Handsontable(element, {}) as unknown as HotInstance;
+const editor = new HandsontableEditor(hot);
 
 // abstract ones
 editor.open();
@@ -10,7 +12,7 @@ editor.close();
 editor.beginEditing();
 editor.createElements();
 editor.finishEditing();
-const value: string = editor.getValue();
+const value: unknown = editor.getValue();
 
 // editor specific ones
 const isFlippedVertically: boolean = editor.isFlippedVertically;

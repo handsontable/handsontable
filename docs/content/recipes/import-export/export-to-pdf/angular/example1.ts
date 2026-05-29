@@ -48,7 +48,7 @@ export class AppComponent {
       return;
     }
 
-    const body = hot.getData();
+    const body: any = hot.getData();
     const colCount = hot.countCols();
     const head = [
       Array.from({ length: colCount }, (_, col) => String(hot.getColHeader(col))),

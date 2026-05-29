@@ -54,7 +54,7 @@ export class AppComponent {
   applyNamedExpression() {
     const formulasPlugin = this.hotTable.hotInstance!.getPlugin('formulas');
 
-    formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', this.namedExpressionsControl.value);
+    (formulasPlugin.engine as any)?.changeNamedExpression('ADDITIONAL_COST', this.namedExpressionsControl.value);
     this.hotTable.hotInstance!.render();
   }
 }

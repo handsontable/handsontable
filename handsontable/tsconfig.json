@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "es2015",
+    "lib": ["es2015", "es2016", "es2017", "es2020", "esnext", "dom", "dom.iterable"],
+    "allowJs": false,
+    "checkJs": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "handsontable/*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/**/__tests__/**", "src/**/*.types.ts", "src/**/test/**", "src/3rdparty/**"]
+}

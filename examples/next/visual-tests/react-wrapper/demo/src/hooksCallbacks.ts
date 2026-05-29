@@ -2,9 +2,32 @@ import Handsontable from "handsontable";
 import {
   SELECTED_CLASS
 } from "./constants";
-import { Events } from "handsontable";
 
-export const addClassesToRows: Events['beforeRenderer'] = (
+const dom = (Handsontable as unknown as {
+  dom: {
+    addClass(el: HTMLElement, className: string): void;
+    removeClass(el: HTMLElement, className: string): void;
+  };
+}).dom;
+
+type BeforeRenderer = (
+  TD: HTMLTableCellElement,
+  row: number,
+  column: number,
+  prop: number | string,
+  value: unknown,
+  cellProperties: Handsontable.CellProperties
+) => void;
+
+type AfterGetRowHeader = (this: Handsontable, row: number, TH: HTMLTableCellElement) => void;
+
+type AfterOnCellMouseDown = (
+  this: Handsontable,
+  event: MouseEvent,
+  coords: { row: number; col: number }
+) => void;
+
+export const addClassesToRows: BeforeRenderer = (
   TD,
   row,
   column,
@@ -25,14 +48,14 @@ export const addClassesToRows: Events['beforeRenderer'] = (
 
   // Add class to selected rows
   if (cellProperties.instance.getDataAtRowProp(row, "0")) {
-    Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
+    dom.addClass(parentElement, SELECTED_CLASS);
   } else {
-    Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
+    dom.removeClass(parentElement, SELECTED_CLASS);
   }
+
 };
 
-export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function drawCheckboxInRowHeaders(
-  this: Handsontable,
+export const drawCheckboxInRowHeaders: AfterGetRowHeader = function drawCheckboxInRowHeaders(
   row,
   TH
 ) {
@@ -54,8 +77,7 @@ export const drawCheckboxInRowHeaders: Events["afterGetRowHeader"] = function dr
   }
 };
 
-export const changeCheckboxCell: Events["afterOnCellMouseDown"] = function changeCheckboxCell(
-  this: Handsontable,
+export const changeCheckboxCell: AfterOnCellMouseDown = function changeCheckboxCell(
   event,
   coords
 ) {
@@ -64,6 +86,7 @@ export const changeCheckboxCell: Events["afterOnCellMouseDown"] = function chang
   if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
 
-    this.setDataAtRowProp(coords.row, "0", !target.checked);
+    const hot = this as unknown as Handsontable;
+    (hot.setDataAtRowProp as (row: number, prop: string, value: boolean) => void)(coords.row, "0", !target.checked);
   }
 };

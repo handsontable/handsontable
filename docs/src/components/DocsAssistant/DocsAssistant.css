@@ -4,6 +4,13 @@
   font-family: var(--sl-font, system-ui, sans-serif);
   font-size: var(--sl-text-base, 1rem);
   color: var(--sl-color-white);
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+#docs-assistant-root:has(.da-panel[data-open='true']) {
+  z-index: 10200;
 }
 
 /* ── Panel ──────────────────────────────────────────────────────────── */
@@ -24,8 +31,10 @@
   z-index: 49;
   transform: translateX(100%);
   transition: transform 0.2s ease;
+  pointer-events: none;
 }
 .da-panel[data-open='true'] {
+  pointer-events: auto;
   transform: translateX(0);
   top: 0;
   bottom: 0;
@@ -36,9 +45,14 @@
   .da-panel {
     top: 0;
     height: 100vh;
+    height: 100dvh;
     width: 100vw !important;
     z-index: 100;
     border-left: none;
+  }
+
+  .da-panel[data-open='true'] {
+    z-index: 10200;
   }
 }
 

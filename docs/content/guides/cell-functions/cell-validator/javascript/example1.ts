@@ -107,7 +107,7 @@ new Handsontable(container, {
       }
       // capitalise first letter in column 1 and 2
       else if (currChange[1] === 'name.first' || currChange[1] === 'name.last') {
-        if (currChange[3] !== null) {
+        if (currChange[3] !== null && typeof currChange[3] === 'string') {
           changes[i]![3] = currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
         }
       }

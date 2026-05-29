@@ -105,8 +105,10 @@ module Api
 
     private
 
-    # Translate Handsontable's sort state into ActiveRecord's .order() call.
-    # Uses the hash form of .order so the column name is quoted safely.
+    # Translate Handsontable's sort state into ActiveRecord's .reorder() call.
+    # Uses .reorder (not .order) so any default_scope ordering is replaced
+    # rather than appended, which guarantees a single deterministic sort.
+    # The hash form quotes the column name safely.
     # Values that are not on the whitelist are silently ignored -- no SQL
     # is generated for them.
     def apply_sort(scope)
@@ -115,7 +117,7 @@ module Api
 
       return scope unless SORTABLE_COLUMNS.include?(prop)
 
-      scope.order(prop => order)
+      scope.reorder(prop => order)
     end
 
     # Translate Handsontable's filters[] param into chained .where calls.
@@ -127,6 +129,7 @@ module Api
     #   eq / neq                -- exact match
     #   begins_with / ends_with -- case-insensitive prefix / suffix match
     #   gt / gte / lt / lte     -- numeric comparisons
+    #   empty / not_empty       -- checks for NULL or empty string
     def apply_filters(scope)
       filters = params[:filters]
       return scope if filters.blank?
@@ -138,22 +141,31 @@ module Api
 
         next unless SORTABLE_COLUMNS.include?(prop)
 
+        safe = Order.sanitize_sql_like(value.to_s)
         scope = case condition
-                when "contains"     then scope.where("#{prop} ILIKE ?", "%#{value}%")
-                when "not_contains" then scope.where.not("#{prop} ILIKE ?", "%#{value}%")
+                when "contains"     then scope.where("#{prop} ILIKE ?", "%#{safe}%")
+                when "not_contains" then scope.where.not("#{prop} ILIKE ?", "%#{safe}%")
                 when "eq"           then scope.where(prop => value)
                 when "neq"          then scope.where.not(prop => value)
-                when "begins_with"  then scope.where("#{prop} ILIKE ?", "#{value}%")
-                when "ends_with"    then scope.where("#{prop} ILIKE ?", "%#{value}")
+                when "begins_with"  then scope.where("#{prop} ILIKE ?", "#{safe}%")
+                when "ends_with"    then scope.where("#{prop} ILIKE ?", "%#{safe}")
                 when "gt"           then scope.where("#{prop} > ?", value)
                 when "gte"          then scope.where("#{prop} >= ?", value)
                 when "lt"           then scope.where("#{prop} < ?", value)
                 when "lte"          then scope.where("#{prop} <= ?", value)
+                when "empty"
+                  string_col?(prop) ? scope.where("#{prop} IS NULL OR #{prop} = ''") : scope.where(prop => nil)
+                when "not_empty"
+                  string_col?(prop) ? scope.where.not("#{prop} IS NULL OR #{prop} = ''") : scope.where.not(prop => nil)
                 else scope
                 end
       end
 
       scope
+    end
+
+    def string_col?(prop)
+      Order.column_for_attribute(prop)&.type&.in?(%i[string text])
     end
   end
 end

@@ -1,6 +1,10 @@
 /* file: app.component.ts */
 import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotCellEditorAdvancedComponent, KeyboardShortcutConfig, HotTableModule } from '@handsontable/angular-wrapper';
+<<<<<<< claude/style-grid-components-iqqhf
+=======
+import { RowObject } from 'handsontable';
+>>>>>>> develop
 
 /* start:skip-in-preview */
 const inputData = [

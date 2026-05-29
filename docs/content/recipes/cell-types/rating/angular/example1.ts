@@ -8,7 +8,11 @@ import {
   KeyboardShortcutConfig,
   HotTableModule
 } from '@handsontable/angular-wrapper';
+<<<<<<< claude/style-grid-components-iqqhf
 
+=======
+import { RowObject } from 'handsontable';
+>>>>>>> develop
 
 /* start:skip-in-preview */
 const starSvg =

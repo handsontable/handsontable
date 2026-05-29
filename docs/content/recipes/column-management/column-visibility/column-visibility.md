@@ -25,9 +25,10 @@ In this tutorial, you will build a checkbox list outside the grid that shows or 
 
 ::: only-for javascript
 
-::: example #example1 :hot-recipe --js 1
+::: example #example1 :hot-recipe --js 1 --ts 2
 
 @[code](@/content/recipes/column-management/column-visibility/javascript/example1.js)
+@[code](@/content/recipes/column-management/column-visibility/javascript/example1.ts)
 
 :::
 
@@ -85,10 +86,11 @@ const allColumns = [
     data: 'salary',
     title: 'Salary',
     type: 'numeric',
-    numericFormat: { pattern: '$0,0', culture: 'en-US' },
+    locale: 'en-US',
+    numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 },
     width: 110,
   },
-  { data: 'startDate', title: 'Start Date', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
+  { data: 'startDate', title: 'Start Date', type: 'intl-date', locale: 'en-CA', dateFormat: { dateStyle: 'short' }, width: 110 },
   { data: 'location', title: 'Location', type: 'text', width: 110 },
   {
     data: 'status',

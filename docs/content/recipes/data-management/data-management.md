@@ -33,8 +33,10 @@ Current recipes:
 - [Auto-save changes to a backend](@/recipes/data-management/auto-save-backend/auto-save-backend.md)
 - [Undo / redo with a custom UI](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md)
 - [Server-side data with Django](@/recipes/data-management/server-side-django/server-side-django.md)
+- [Server-side data with Express.js](@/recipes/data-management/server-side-expressjs/server-side-expressjs.md)
 - [Server-side data with Laravel](@/recipes/data-management/server-side-laravel/server-side-laravel.md)
 - [Server-side data with NestJS](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md)
 - [Server-side data with Ruby on Rails](@/recipes/data-management/server-side-rails/server-side-rails.md)
 - [Server-side data with Spring Boot](@/recipes/data-management/server-side-spring/server-side-spring.md)
+- [Server-side data with Symfony](@/recipes/data-management/server-side-symfony/server-side-symfony.md)
 </div>

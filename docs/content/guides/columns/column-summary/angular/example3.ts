@@ -26,7 +26,7 @@ export class AppComponent implements OnInit {
       const configArray = [];
       const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
-      for (let i = 0; i < this.hot.countCols(); i++) {
+      for (let i = 0; i < (this as any).hot.countCols(); i++) {
         // iterate over visible columns
         // for each visible column, add a column summary with a configuration
         configArray.push({

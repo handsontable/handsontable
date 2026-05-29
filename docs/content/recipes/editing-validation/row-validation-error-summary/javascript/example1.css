@@ -56,20 +56,21 @@
   color: var(--sl-color-text, #333333);
 }
 
-.row-validation-demo__summary-list {
+.validation-summary__list {
+  list-style: none;
   margin: 0;
   padding-left: 1.25rem;
   font-size: var(--sl-text-sm, 0.875rem);
   color: var(--sl-color-text, #333333);
 }
 
-.row-validation-demo__summary-list:empty::before {
+.validation-summary__list:empty::before {
   content: 'No issues. Click Submit orders to validate.';
   display: block;
   margin-left: -1.25rem;
   color: var(--sl-color-gray-3, #777777);
 }
 
-.row-validation-demo #example1 .handsontable td.htInvalid {
+#example1 .handsontable td.htInvalid {
   background-color: var(--ht-cell-error-background-color, #ffe4e4) !important;
 }

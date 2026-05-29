@@ -33,20 +33,17 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
   imports: [HotTableModule],
   selector: 'example1-freeze-columns',
   template: `
-    <div class="freeze-controls">
-      <div class="freeze-controls__freeze-btns">
+    <div class="example-controls-container">
+      <div class="controls">
         @for (header of colHeaders; track header; let i = $index) {
-          <button
-            type="button"
-            (click)="freezeUpTo(i + 1)"
-          >
+          <button type="button" (click)="freezeUpTo(i + 1)">
             Freeze up to "{{ header }}"
           </button>
         }
       </div>
-      <div class="freeze-controls__footer">
+      <div class="controls">
         <button type="button" (click)="unfreezeAll()">Unfreeze all</button>
-        <span class="freeze-controls__status">{{ statusText }}</span>
+        <span class="freeze-status">{{ statusText }}</span>
       </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>

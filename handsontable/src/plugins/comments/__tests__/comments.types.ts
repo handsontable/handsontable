@@ -3,6 +3,7 @@ import Handsontable, { CellCoords } from 'handsontable';
 const hot = new Handsontable(document.createElement('div'), {
   comments: true,
 });
+
 new Handsontable(document.createElement('div'), {
   comments: {
     displayDelay: 100,
@@ -11,7 +12,7 @@ new Handsontable(document.createElement('div'), {
 const comments = hot.getPlugin('comments');
 
 comments.focusEditor();
-comments.setRange({ from: new CellCoords(1, 1), to: new CellCoords(2, 2) });
+comments.setRange({ from: hot._createCellCoords(1, 1) });
 comments.clearRange();
 comments.setCommentAtCell(1, 2, 'test');
 comments.removeComment();
@@ -23,8 +24,8 @@ comments.refreshEditor();
 comments.refreshEditor(true);
 comments.updateCommentMeta(1, 2, { test: 'test' });
 
-const comment: string = comments.getComment();
-const commentAt: string = comments.getCommentAtCell(1, 2);
+const comment: string | undefined = comments.getComment();
+const commentAt: string | undefined = comments.getCommentAtCell(1, 2);
 const isShown: boolean = comments.show();
 const isShownAt: boolean = comments.showAtCell(1, 2);
-const testMeta: string = comments.getCommentMeta(1, 2, 'test');
+const testMeta: unknown = comments.getCommentMeta(1, 2, 'test');

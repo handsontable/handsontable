@@ -3,13 +3,6 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-/**
- * Builds a URL with query parameters, skipping undefined and null values.
- *
- * @param {string} base - The base path (e.g. '/api/products').
- * @param {Object} params - Key/value pairs to append as query parameters.
- * @returns {string} The assembled URL string.
- */
 function buildUrl(base, params) {
   const url = new URL(base, window.location.origin);
 
@@ -22,11 +15,12 @@ function buildUrl(base, params) {
   return url.toString();
 }
 
-// Get the DOM element where Handsontable will be rendered.
 const container = document.querySelector('#example1');
 
+let removeConfirmed = false;
+
+// eslint-disable-next-line no-unused-vars
 const hot = new Handsontable(container, {
-  // Column definitions map to the fields returned by the Spring Boot API.
   columns: [
     { data: 'id', title: 'ID', readOnly: true, width: 60 },
     { data: 'name', title: 'Name', width: 200 },
@@ -45,88 +39,107 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   height: 450,
   width: '100%',
-  // Enable server-side column sorting.
   columnSorting: true,
-  // Enable column filter dropdowns.
   filters: true,
   dropdownMenu: true,
-  // Show 10 rows per page; the server returns the matching slice.
+  contextMenu: true,
   pagination: { pageSize: 10 },
-  // Show a placeholder message when no rows match the active filters.
   emptyDataState: true,
-  // Show an error toast when a fetch or mutation request fails.
   notification: true,
 
   dataProvider: {
-    // 'id' is the primary key returned by the Spring Boot API.
     rowId: 'id',
 
-    /**
-     * Fetches a page of products from the Spring Boot REST API.
-     *
-     * Handsontable passes the current page, pageSize, sort state, and active
-     * filters. The function maps them to Spring Boot query parameters and
-     * returns { rows, totalRows } so the grid can render pagination controls.
-     *
-     * The AbortSignal in the second argument lets the browser cancel
-     * in-flight requests when the user quickly changes pages or filters.
-     */
     fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
       const url = buildUrl('/api/products', {
         page,
         pageSize,
         sortProp: sort?.prop,
         sortOrder: sort?.order,
-        // Handsontable passes filters as an array of objects; serialize to JSON
-        // so it can travel as a single query parameter.
         filters: filters ? JSON.stringify(filters) : undefined,
       });
 
       const res = await fetch(url, { signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
 
-      // The Spring Boot controller returns { rows, totalRows }.
       return { rows: json.rows, totalRows: json.totalRows };
     },
 
-    /**
-     * Sends a request to create one or more empty rows on the server.
-     *
-     * The payload shape is { position, referenceRowId, rowsAmount }, which
-     * matches the CreateRowsPayload DTO in ProductController.
-     */
     onRowsCreate: async (payload) => {
-      await fetch('/api/products/create-rows', {
+      const res = await fetch('/api/products/create-rows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      const info = data.map(r => `(id: ${r.id})`).join(', ');
+      hot.getPlugin('notification').showMessage({
+        variant: 'success',
+        title: 'Row added',
+        message: `Created: ${info}`,
+        duration: 3000,
+      });
+      return data;
     },
 
-    /**
-     * Sends changed cell values to the server.
-     *
-     * Each element in the array is { id, changes } where changes is a map
-     * of column name to new value -- matching UpdateRowPayload on the server.
-     */
     onRowsUpdate: async (rows) => {
-      await fetch('/api/products/update-rows', {
+      const res = await fetch('/api/products/update-rows', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rows),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
     },
 
-    /**
-     * Sends an array of row IDs to delete on the server.
-     */
     onRowsRemove: async (rowIds) => {
-      await fetch('/api/products/remove-rows', {
+      const res = await fetch('/api/products/remove-rows', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rowIds),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
     },
+  },
+
+  // beforeRowsMutation is sync (checks for a strict `=== false` return), so
+  // we can't await an async prompt inline. Instead: cancel the original
+  // attempt, show a notification with Delete/Cancel actions, and on Delete
+  // re-issue the remove via the DataProvider API. The flag lets the second
+  // pass through without re-prompting.
+  beforeRowsMutation(operation, payload) {
+    if (operation === 'remove' && !removeConfirmed) {
+      const count = payload.rowsRemove.length;
+      const notification = hot.getPlugin('notification');
+      const id = notification.showMessage({
+        variant: 'warning',
+        title: 'Delete rows',
+        message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+        duration: 0,
+        actions: [
+          {
+            label: 'Delete',
+            type: 'primary',
+            callback: () => {
+              notification.hide(id);
+              removeConfirmed = true;
+              hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
+                removeConfirmed = false;
+              });
+            },
+          },
+          {
+            label: 'Cancel',
+            type: 'secondary',
+            callback: () => notification.hide(id),
+          },
+        ],
+      });
+      return false;
+    }
   },
 
   licenseKey: 'non-commercial-and-evaluation',

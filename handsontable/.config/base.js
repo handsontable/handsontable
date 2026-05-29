@@ -24,6 +24,7 @@ module.exports.create = function create(envArgs) {
     },
     resolve: {
       alias: {},
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     },
     mode: 'none',
     module: {
@@ -54,6 +55,25 @@ module.exports.create = function create(envArgs) {
             },
           },
         },
+        {
+          test: /\.(ts|tsx)$/,
+          loader: 'builtin:swc-loader',
+          exclude: [
+            /node_modules/,
+          ],
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+                decorators: true,
+              },
+            },
+          },
+        },
       ]
     },
     plugins: [
@@ -63,8 +83,8 @@ module.exports.create = function create(envArgs) {
         'process.env.HOT_VERSION': JSON.stringify(process.env.HOT_VERSION),
         'process.env.HOT_BUILD_DATE': JSON.stringify(process.env.HOT_BUILD_DATE),
         'process.env.HOT_RELEASE_DATE': JSON.stringify(process.env.HOT_RELEASE_DATE),
-        'process.env.HOT_FILENAME': JSON.stringify(process.env.HOT_FILENAME),
         'process.env.HOT_PACKAGE_NAME': JSON.stringify(process.env.HOT_PACKAGE_NAME),
+        'process.env.HOT_FILENAME': JSON.stringify(process.env.HOT_FILENAME),
         'process.env.JEST_WORKER_ID': JSON.stringify(''),
       }),
       compilationDoneMarker(),
