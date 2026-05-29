@@ -49,7 +49,7 @@ export const collections = {
         /** Framework-specific frontmatter overrides (Phase 3). */
         react: z.record(z.string(), z.unknown()).optional(),
         angular: z.record(z.string(), z.unknown()).optional(),
-        vue3: z.record(z.string(), z.unknown()).optional(),
+        vue: z.record(z.string(), z.unknown()).optional(),
 
         /** Sidebar badge label (e.g. "Updated", "New"). */
         menuTag: z.string().optional(),
