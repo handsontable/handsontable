@@ -113,10 +113,15 @@ export class ThemeBuilder {
    * @param {object} config The config object to modify.
    * @param {string|object} density The density value from params.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  #applyDensityConfig(config: Record<string, any>, density: DensityType | Partial<ThemeDensityConfig>) {
+  #applyDensityConfig(
+    config: ThemeConfig & Record<string, unknown>, density: DensityType | Partial<ThemeDensityConfig>
+  ) {
     if (typeof density !== 'string') {
-      config.density = deepMerge(config.density as Record<string, unknown>, density as Record<string, unknown>);
+      const mergedDensity = deepMerge(
+        config.density as unknown as Record<string, unknown>, density as Record<string, unknown>
+      );
+
+      config.density = mergedDensity as unknown as ThemeDensityConfig;
 
       if (density.type !== undefined) {
         this.#densityType = density.type;

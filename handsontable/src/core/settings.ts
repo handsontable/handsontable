@@ -64,7 +64,7 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
-  columns?: Record<string, any>[] | ((column: number) => Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
+  columns?: Record<string, unknown>[] | ((column: number) => Record<string, unknown>);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);

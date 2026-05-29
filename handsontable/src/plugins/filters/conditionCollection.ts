@@ -289,8 +289,7 @@ class ConditionCollection {
     }
 
     this.clearLocalHooks();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this as any).filteringStates = null;
+    (this as unknown as { filteringStates: null }).filteringStates = null;
   }
 }
 
