@@ -12,7 +12,7 @@ import { join, relative, dirname } from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
 
 // Read the current handsontable library version for StackBlitz package.json.
@@ -1211,6 +1211,12 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
   // CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
+
+  // Fix {{$currentMinorVersion}} → major.minor version string.
+  // Production builds strip the patch (e.g. "17.1.0" → "17.1") to match the
+  // prod-docs/X.Y branch naming convention used for GitHub source-code links.
+  // Staging/dev builds resolve to "develop".
+  result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
 
   // Transform @/framework/path.md links to absolute Starlight URLs using permalinks.
   // When prefix/contentDir are available (framework pages), do full permalink resolution.

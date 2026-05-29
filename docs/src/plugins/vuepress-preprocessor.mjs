@@ -11,12 +11,13 @@
  * - ::: example / ::: example-without-tabs  (strip markers, keep code blocks)
  * - ::: source-code-link URL  (convert to <a> tag)
  * - $withBase('/path') → /path
- * - {{$currentVersion}} → resolved Handsontable version string
+ * - {{$currentVersion}} → resolved Handsontable version string (full semver, e.g. "17.1.0")
+ * - {{$currentMinorVersion}} → major.minor version (e.g. "17.1") for prod-docs GitHub branch links
  * - @/framework/path links  → /path (cross-framework alias)
  * - <div class="boxes-list"> ... </div>  → Starlight-styled card grid HTML
  */
 
-import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
 import { convertAsideInlineMarkdown } from './aside-inline-markdown.mjs';
 
 /**
@@ -91,6 +92,12 @@ function preprocessMarkdown(content, framework) {
   //     Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
   //     CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
+
+  // 6d. Fix {{$currentMinorVersion}} → major.minor version string.
+  //     Production builds strip the patch (e.g. "17.1.0" → "17.1") to match the
+  //     prod-docs/X.Y branch naming convention used for GitHub source-code links.
+  //     Staging/dev builds resolve to "develop".
+  result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
 
   // 7. Transform @/framework/... cross-framework alias links to absolute paths.
   //    e.g. @/react/guides/foo/foo.md → /guides/foo/foo
