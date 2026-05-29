@@ -17,7 +17,7 @@ export default class ColumnUtils {
   /**
    * @type {Map<number, number>}
    */
-  headerWidths = new Map();
+  headerWidths = new Map<number, number>();
 
   /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
@@ -34,9 +34,9 @@ export default class ColumnUtils {
    * @param {number} sourceIndex Column source index.
    * @returns {number}
    */
-  getWidth(sourceIndex: number) {
-    const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
-      || this.wtSettings.getSetting('defaultColumnWidth');
+  getWidth(sourceIndex: number): number | undefined {
+    const width = this.wtSettings.getSetting<number | undefined>('columnWidth', sourceIndex)
+      || this.wtSettings.getSetting<number | undefined>('defaultColumnWidth');
 
     return width;
   }

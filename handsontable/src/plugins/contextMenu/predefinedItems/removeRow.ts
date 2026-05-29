@@ -9,7 +9,7 @@ export const KEY = 'remove_row';
 export default function removeRowItem() {
   return {
     key: KEY,
-    name() {
+    name(): string {
       const selection = this.getSelected();
       let pluralForm = 0;
 
@@ -25,14 +25,14 @@ export default function removeRowItem() {
         }
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm) as string;
     },
     callback() {
       // TODO: Please keep in mind that below `1` may be improper. The table's way of work, before change `f1747b3912ea3b21fe423fd102ca94c87db81379` was restored.
       // There is still problem when removing more than one row.
       this.alter('remove_row', transformSelectionToRowDistance(this), 1, 'ContextMenu.removeRow');
     },
-    disabled() {
+    disabled(): boolean {
       const range = this.getSelectedRangeActive();
 
       if (!range) {
@@ -50,7 +50,7 @@ export default function removeRowItem() {
         return totalRows === 0;
       }
 
-      return this.selection.isSelectedByColumnHeader() || totalRows === 0;
+      return (this.selection.isSelectedByColumnHeader() as boolean) || totalRows === 0;
     },
     hidden() {
       return !this.getSettings().allowRemoveRow;

@@ -55,7 +55,7 @@ export class SelectionManager {
    *
    * @type {WeakMap}
    */
-  #appliedClasses = new WeakMap();
+  #appliedClasses = new WeakMap<WalkontableInstance, Set<string>>();
   /**
    * The Map tracks applied "destroy" listeners for Selection instances.
    *
@@ -68,7 +68,7 @@ export class SelectionManager {
    *
    * @type {Map}
    */
-  #selectionBorders = new Map();
+  #selectionBorders = new Map<Selection, Map<WalkontableInstance, Border>>();
 
   constructor(selections: SelectionsContainer | null) {
     this.#selections = selections;
@@ -121,7 +121,7 @@ export class SelectionManager {
     }
 
     if (this.#selectionBorders.has(selection)) {
-      const borders = this.#selectionBorders.get(selection);
+      const borders = this.#selectionBorders.get(selection)!;
 
       if (borders.has(this.#activeOverlaysWot!)) {
         return borders.get(this.#activeOverlaysWot!);
@@ -157,7 +157,7 @@ export class SelectionManager {
    * @param {Selection} selection The selection instance.
    */
   destroyBorders(selection: Selection) {
-    this.#selectionBorders.get(selection).forEach((border: { destroy: () => void }) => border.destroy());
+    this.#selectionBorders.get(selection)?.forEach(border => border.destroy());
     this.#selectionBorders.delete(selection);
   }
 
@@ -166,8 +166,14 @@ export class SelectionManager {
    */
   refreshAllBorderHandleStyles() {
     this.#selectionBorders.forEach((bordersMap) => {
-      bordersMap.forEach((border: { updateMultipleSelectorHandlesStyles?: () => void }) => {
-        border.updateMultipleSelectorHandlesStyles?.();
+      bordersMap.forEach((border) => {
+        const borderAsRecord = border as unknown as Record<string, unknown>;
+
+        if ('updateMultipleSelectorHandlesStyles' in border &&
+            typeof borderAsRecord.updateMultipleSelectorHandlesStyles === 'function') {
+          type WithHandleStyles = { updateMultipleSelectorHandlesStyles: () => void };
+          (border as unknown as WithHandleStyles).updateMultipleSelectorHandlesStyles();
+        }
       });
     });
   }
@@ -251,7 +257,7 @@ export class SelectionManager {
     }
 
     classNamesMap.forEach((classNamesLayers, element) => {
-      const classNames = Array.from(classNamesLayers).map(([className, occurrenceCount]) => {
+      const classNames: string[] = Array.from(classNamesLayers).map(([className, occurrenceCount]) => {
         if (occurrenceCount === 1) {
           return className;
         }
@@ -263,7 +269,7 @@ export class SelectionManager {
 
       classNames.forEach((className: string) => this.#appliedClasses
         .get(this.#activeOverlaysWot!)
-        .add(className));
+        ?.add(className));
 
       addClass(element, classNames as string[]);
 
@@ -284,6 +290,11 @@ export class SelectionManager {
    */
   #resetCells() {
     const appliedOverlaysClasses = this.#appliedClasses.get(this.#activeOverlaysWot!);
+
+    if (!appliedOverlaysClasses) {
+      return;
+    }
+
     const classesToRemove = this.#activeOverlaysWot!.wtSettings.getSetting('onBeforeRemoveCellClassNames');
 
     if (Array.isArray(classesToRemove)) {

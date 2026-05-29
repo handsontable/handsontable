@@ -7,8 +7,10 @@ import * as C from '../../../i18n/constants';
 export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
   return {
     key: 'unfreeze_column',
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN);
+    name(): string {
+      const phrase: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNFREEZE_COLUMN);
+
+      return phrase;
     },
     callback(key: unknown, selected: { start: { col: number } }[]) {
       const [{ start: { col: selectedColumn } }] = selected;

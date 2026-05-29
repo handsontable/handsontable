@@ -38,7 +38,7 @@ function _getItem(name: string | Function): Function {
     throwWithCause(`No registered renderer found under "${name}" name`);
   }
 
-  return getItem(name);
+  return getItem(name) as Function;
 }
 
 /**

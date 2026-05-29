@@ -750,7 +750,11 @@ class Xlsx extends BaseType {
       return null;
     }
 
-    return value.map(item => (item !== null && typeof item === 'object' ? item.value : item)).join(', ');
+    return value
+      .map(item => (item !== null && typeof item === 'object'
+        ? String((item as { value: unknown }).value)
+        : String(item)))
+      .join(', ');
   }
 
   /**
@@ -1163,7 +1167,7 @@ class Xlsx extends BaseType {
 
     validationSheet.state = 'veryHidden';
 
-    const validationMap = new Map();
+    const validationMap = new Map<string, string>();
     let colNumber = 1;
 
     sourceMap.forEach((source, key) => {

@@ -1,5 +1,6 @@
 import * as C from '../../../i18n/constants';
 import type { Comments } from '../comments';
+import type { HotInstance } from '../../../core/types';
 
 /**
  * @param {Comments} plugin The Comments plugin instance.
@@ -8,7 +9,7 @@ import type { Comments } from '../comments';
 export default function removeCommentItem(plugin: Comments) {
   return {
     key: 'commentsRemove',
-    name() {
+    name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
     },
     callback() {

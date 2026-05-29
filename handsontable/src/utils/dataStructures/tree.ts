@@ -11,8 +11,8 @@ export const TRAVERSAL_DF_PRE = 'DF-pre-order';
  * @param {*} context A context to pass through.
  * @returns {boolean}
  */
-export function depthFirstPreOrder(this: TreeNode, callback: Function, context: unknown) {
-  let continueTraverse = callback.call(context, this);
+export function depthFirstPreOrder(this: TreeNode, callback: Function, context: unknown): unknown {
+  let continueTraverse: unknown = callback.call(context, this);
 
   for (let i = 0; i < this.childs.length; i++) {
     if (continueTraverse === false) {
@@ -36,7 +36,7 @@ export const TRAVERSAL_DF_POST = 'DF-post-order';
  * @param {*} context A context to pass through.
  * @returns {boolean}
  */
-function depthFirstPostOrder(this: TreeNode, callback: Function, context: unknown) {
+function depthFirstPostOrder(this: TreeNode, callback: Function, context: unknown): unknown {
   for (let i = 0; i < this.childs.length; i++) {
     const continueTraverse = depthFirstPostOrder.call(this.childs[i] as TreeNode, callback, context);
 
@@ -45,7 +45,7 @@ function depthFirstPostOrder(this: TreeNode, callback: Function, context: unknow
     }
   }
 
-  return callback.call(context, this);
+  return callback.call(context, this) as unknown;
 }
 
 /**

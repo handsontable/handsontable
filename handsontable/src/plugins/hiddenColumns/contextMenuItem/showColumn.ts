@@ -10,10 +10,10 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
 
   return {
     key: 'hidden_columns_show',
-    name() {
+    name(): string {
       const pluralForm = columns.length > 1 ? 1 : 0;
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm) as string;
     },
     callback() {
       if (columns.length === 0) {
@@ -48,7 +48,7 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
     disabled: false,
     hidden() {
       const hiddenPhysicalColumns = arrayMap(hiddenColumnsPlugin.getHiddenColumns(), (visualColumnIndex) => {
-        return this.toPhysicalColumn(visualColumnIndex);
+        return this.toPhysicalColumn(visualColumnIndex) as number;
       });
 
       if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||

@@ -13,21 +13,21 @@ export default function readOnlyItem() {
     ariaChecked() {
       const atLeastOneReadOnly = checkSelectionConsistency(
         this.getSelectedRange(),
-        (row: number, col: number) => this.getCellMeta(row, col).readOnly
+        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
       );
 
       return atLeastOneReadOnly;
     },
 
-    ariaLabel() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
+    ariaLabel(): string {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
     },
 
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
+    name(): string {
+      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
       const atLeastOneReadOnly = checkSelectionConsistency(
         this.getSelectedRange(),
-        (row: number, col: number) => this.getCellMeta(row, col).readOnly
+        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
       );
 
       if (atLeastOneReadOnly) {
@@ -40,7 +40,7 @@ export default function readOnlyItem() {
       const ranges = this.getSelectedRange();
       const atLeastOneReadOnly = checkSelectionConsistency(
         ranges,
-        (row: number, col: number) => this.getCellMeta(row, col).readOnly
+        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
       );
 
       for (const range of ranges) {

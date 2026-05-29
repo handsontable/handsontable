@@ -145,7 +145,9 @@ export class Formulas extends BasePlugin {
    * @param {object} change The HyperFormula exported change.
    * @returns {object}
    */
-  #exportChangeValue(change: { address?: { sheet: number; row: number; col: number }; newValue: unknown }) {
+  #exportChangeValue(
+    change: { address?: { sheet: number; row: number; col: number }; newValue: unknown }
+  ): { address?: { sheet: number; row: number; col: number }; newValue: unknown } {
     if (!change.address || change.address.sheet !== this.sheetId || typeof change.newValue !== 'number') {
       return change;
     }
@@ -168,7 +170,8 @@ export class Formulas extends BasePlugin {
       return change;
     }
 
-    const clone = Object.assign(Object.create(Object.getPrototypeOf(change)), change);
+    type ExportedChange = { address?: { sheet: number; row: number; col: number }; newValue: unknown };
+    const clone = Object.assign(Object.create(Object.getPrototypeOf(change)), change) as ExportedChange;
 
     clone.newValue = newValue;
 

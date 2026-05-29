@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { CONTEXTMENU_ITEMS_COPY_COLUMN_HEADERS_ONLY } from '../../../i18n/constants';
 import { clamp } from '../../../helpers/number';
 
@@ -15,7 +16,7 @@ interface CopyPastePluginLike {
 export default function copyColumnHeadersOnlyItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy_column_headers_only',
-    name() {
+    name(this: HotInstance): string {
       const activeSelectedRange = this.getSelectedRangeActive();
       const nounForm = activeSelectedRange ? clamp(activeSelectedRange.getWidth() - 1, 0, 1) : 0;
 

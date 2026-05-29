@@ -8,14 +8,14 @@ import type { Comments } from '../comments';
 export default function addEditCommentItem(plugin: Comments) {
   return {
     key: 'commentsAddEdit',
-    name() {
+    name(): string {
       const highlight = this.getSelectedRangeActive()?.highlight;
 
       if (highlight?.isCell() && plugin.getCommentAtCell(highlight.row, highlight.col)) {
-        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT);
+        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT) as string;
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT) as string;
     },
     callback() {
       const range = this.getSelectedRangeActive();

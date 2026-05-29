@@ -8,8 +8,10 @@ export const KEY = 'undo';
 export default function undoItem() {
   return {
     key: KEY,
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
+    name(): string {
+      const phrase: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
+
+      return phrase;
     },
     callback() {
       this.getPlugin('undoRedo').undo();

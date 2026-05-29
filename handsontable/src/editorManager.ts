@@ -360,7 +360,7 @@ class EditorManager {
   }
 }
 
-const instances = new WeakMap();
+const instances = new WeakMap<object, EditorManager>();
 
 /**
  * @param {Core} hotInstance The Handsontable instance.
@@ -370,7 +370,7 @@ const instances = new WeakMap();
  */
 (EditorManager as unknown as Record<string, Function>).getInstance = function(
   hotInstance: HotInstance, tableMeta: GridSettings, selection: SelectionManager
-) {
+): EditorManager {
   let editorManager = instances.get(hotInstance);
 
   if (!editorManager) {

@@ -1,6 +1,7 @@
-import { isUndefined, isDefined } from '../../helpers/mixed';
+import { isUndefined } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
+import type { IndexMap } from '../maps/indexMap';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
@@ -19,7 +20,7 @@ export class MapCollection {
    *
    * @type {Map<string, IndexMap>}
    */
-  collection = new Map();
+  collection = new Map<string, IndexMap>();
 
   /**
    * Register custom index map.
@@ -27,11 +28,11 @@ export class MapCollection {
    * @param {string} uniqueName Unique name of the index map.
    * @param {IndexMap} indexMap Index map containing miscellaneous (i.e. Meta data, indexes sequence), updated after remove and insert data actions.
    */
-  register(uniqueName: string, indexMap: object) {
+  register(uniqueName: string, indexMap: IndexMap) {
     if (this.collection.has(uniqueName) === false) {
       this.collection.set(uniqueName, indexMap);
 
-      (indexMap as { addLocalHook: Function }).addLocalHook('change', () => this.runLocalHooks('change', indexMap));
+      indexMap.addLocalHook('change', () => this.runLocalHooks('change', indexMap));
 
       registeredMaps += 1;
     }
@@ -45,7 +46,7 @@ export class MapCollection {
   unregister(name: string) {
     const indexMap = this.collection.get(name);
 
-    if (isDefined(indexMap)) {
+    if (indexMap !== undefined) {
       indexMap.destroy();
       this.collection.delete(name);
 
@@ -59,7 +60,7 @@ export class MapCollection {
    * Unregisters and destroys all collected index map instances.
    */
   unregisterAll() {
-    this.collection.forEach((indexMap: unknown, name: string) => this.unregister(name));
+    this.collection.forEach((_indexMap, name) => this.unregister(name));
     this.collection.clear();
   }
 
@@ -74,7 +75,7 @@ export class MapCollection {
       return Array.from(this.collection.values());
     }
 
-    return this.collection.get(name);
+    return this.collection.get(name!);
   }
 
   /**

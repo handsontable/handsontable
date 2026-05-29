@@ -9,8 +9,8 @@ import type { CustomBordersPlugin } from '../utils';
 export default function bottom(customBordersPlugin: CustomBordersPlugin) {
   return {
     key: 'borders:bottom',
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM);
+    name(): string {
+      let label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_BOTTOM);
       const hasBorder = checkSelectionBorders(this, 'bottom');
 
       if (hasBorder) {

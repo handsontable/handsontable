@@ -37,6 +37,14 @@ export interface ColumnSortingConfig {
   sortOrder: 'asc' | 'desc' | 'none';
 }
 
+interface ColumnSortingPluginColumnSettings {
+  indicator: boolean;
+  headerAction: boolean;
+  sortEmptyCells: boolean;
+  compareFunctionFactory?: unknown;
+  [key: string]: unknown;
+}
+
 export const PLUGIN_KEY = 'columnSorting';
 export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
@@ -607,8 +615,8 @@ export class ColumnSorting extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {object}
    */
-  getMergedPluginSettings(column: number) {
-    const pluginMainSettings = this.hot.getSettings()[this.pluginKey];
+  getMergedPluginSettings(column: number): Record<string, unknown> {
+    const pluginMainSettings = this.hot.getSettings()[this.pluginKey] as Record<string, unknown>;
     const storedColumnProperties = this.columnStatesManager?.getAllColumnsProperties() ?? {};
     const cellMeta = this.hot.getCellMeta(0, column);
     const columnMeta = Object.getPrototypeOf(cellMeta);
@@ -634,10 +642,10 @@ export class ColumnSorting extends BasePlugin {
    */
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from column meta we call this function.
   // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
-  getFirstCellSettings(column: number) {
+  getFirstCellSettings(column: number): Record<string, unknown> {
     const cellMeta = this.hot.getCellMeta(0, column);
 
-    const cellMetaCopy = Object.create(cellMeta);
+    const cellMetaCopy: Record<string, unknown> = Object.create(cellMeta);
 
     cellMetaCopy[this.pluginKey] = this.columnMetaCache?.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
@@ -770,7 +778,8 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
+    const columnSettings = this.getFirstCellSettings(column);
+    const pluginSettingsForColumn = columnSettings[this.pluginKey] as ColumnSortingPluginColumnSettings;
     const showSortIndicator = pluginSettingsForColumn.indicator;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
@@ -869,8 +878,9 @@ export class ColumnSorting extends BasePlugin {
    * @param {number} column Visual column index.
    * @returns {boolean}
    */
-  wasClickableHeaderClicked(event: Event, column: number) {
-    const pluginSettingsForColumn = this.getFirstCellSettings(column)[this.pluginKey];
+  wasClickableHeaderClicked(event: Event, column: number): boolean {
+    const columnSettings = this.getFirstCellSettings(column);
+    const pluginSettingsForColumn = columnSettings[this.pluginKey] as ColumnSortingPluginColumnSettings;
     const headerActionEnabled = pluginSettingsForColumn.headerAction;
 
     return (

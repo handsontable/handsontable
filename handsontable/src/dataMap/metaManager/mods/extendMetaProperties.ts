@@ -152,7 +152,7 @@ export class ExtendMetaPropertiesMod {
     const self = this;
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
-      get() {
+      get(): unknown {
         return this[origProp as string];
       },
       set(value) {

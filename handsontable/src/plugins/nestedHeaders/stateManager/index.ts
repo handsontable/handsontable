@@ -125,7 +125,9 @@ export default class StateManager {
    * @param {number} columnIndex A visual column index.
    * @returns {object|undefined}
    */
-  triggerNodeModification(action: string, headerLevel: number, columnIndex: number) {
+  triggerNodeModification(
+    action: string, headerLevel: number, columnIndex: number
+  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
@@ -139,7 +141,7 @@ export default class StateManager {
       this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
     }
 
-    return actionResult;
+    return actionResult ?? undefined;
   }
 
   /**
@@ -149,7 +151,9 @@ export default class StateManager {
    * @param {number} columnIndex A visual column index.
    * @returns {object|undefined}
    */
-  triggerColumnModification(action: string, columnIndex: number) {
+  triggerColumnModification(
+    action: string, columnIndex: number
+  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
     return this.triggerNodeModification(action, -1, columnIndex);
   }
 
@@ -237,7 +241,7 @@ export default class StateManager {
     }
 
     return {
-      ...node.data,
+      ...(node.data as HeaderNodeData),
     };
   }
 

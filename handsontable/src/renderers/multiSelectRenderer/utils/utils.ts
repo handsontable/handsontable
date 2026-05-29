@@ -31,14 +31,16 @@ export function parseValue(value: unknown): (string | Record<string, string>)[] 
   }
 
   if (Array.isArray(value)) {
-    return value;
+    return value as (string | Record<string, string>)[];
   }
 
   if (typeof value === 'string') {
     try {
-      const parsed = JSON.parse(value);
+      const parsed: unknown = JSON.parse(value);
 
-      return Array.isArray(parsed) ? parsed : [parsed];
+      const parsedArray = parsed as (string | Record<string, string>)[];
+
+      return Array.isArray(parsed) ? parsedArray : [parsed as string | Record<string, string>];
     } catch {
       return value.trim() ? [value] : [];
     }

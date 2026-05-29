@@ -282,16 +282,16 @@ export default class Settings {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown) {
+  getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): unknown {
     if (typeof this.settings[key] === 'function') {
-      return this.settings[key](param1, param2, param3, param4);
+      return (this.settings[key] as (...args: unknown[]) => unknown)(param1, param2, param3, param4);
 
     } else if (param1 !== undefined && Array.isArray(this.settings[key])) {
-      return this.settings[key][param1];
+      return (this.settings[key] as unknown[])[param1 as number];
 
     }
 
-    return this.settings[key];
+    return this.settings[key] as unknown;
   }
 
   /**

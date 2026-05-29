@@ -1,4 +1,5 @@
 import * as C from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 
 export const KEY = 'redo';
 
@@ -8,7 +9,7 @@ export const KEY = 'redo';
 export default function redoItem() {
   return {
     key: KEY,
-    name() {
+    name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REDO);
     },
     callback() {

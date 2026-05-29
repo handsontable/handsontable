@@ -56,7 +56,7 @@ class Storage {
    *
    * @returns {object|undefined}
    */
-  loadValue(key: string, defaultValue: Record<string, unknown>) {
+  loadValue(key: string, defaultValue: Record<string, unknown>): unknown {
     const itemKey = typeof key === 'undefined' ? defaultValue : key;
     const value = this.rootWindow.localStorage.getItem(`${this.prefix}_${itemKey}`);
 

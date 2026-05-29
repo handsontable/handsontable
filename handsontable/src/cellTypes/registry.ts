@@ -45,7 +45,7 @@ function _getItem(name: string): CellTypeObject {
                  "Handsontable.cellTypes.registerCellType" method`);
   }
 
-  return getItem(name);
+  return getItem(name) as CellTypeObject;
 }
 
 /**

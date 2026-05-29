@@ -9,7 +9,7 @@ import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
 const isListeningKeyDownEvent = new WeakMap();
-const isCheckboxListenerAdded = new WeakMap();
+const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
 const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';

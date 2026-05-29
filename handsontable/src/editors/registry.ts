@@ -132,7 +132,7 @@ export function _getEditorInstance(name: string | EditorClass, hotInstance: HotI
     editor = registeredEditorClasses.get(name);
 
   } else if (typeof name === 'string') {
-    editor = getItem(name);
+    editor = getItem(name) as RegisteredEditor | undefined;
 
   } else {
     throwWithCause('Only strings and functions can be passed as "editor" parameter');
@@ -159,7 +159,7 @@ function _getItem(name: string | EditorClass): EditorConstructorWithType {
     throwWithCause(`No registered editor found under "${name}" name`);
   }
 
-  const wrapper: RegisteredEditor = getItem(name);
+  const wrapper = getItem(name) as RegisteredEditor;
 
   return wrapper.getConstructor();
 }

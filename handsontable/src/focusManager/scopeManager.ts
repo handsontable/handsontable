@@ -72,7 +72,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       return null;
     }
 
-    return SCOPES.getId(activeScope);
+    return SCOPES.getId(activeScope) as string | null;
   }
 
   /**
@@ -146,7 +146,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       throwWithCause(`Scope with id "${scopeId}" not found`);
     }
 
-    const scope = SCOPES.getItem(scopeId);
+    const scope = SCOPES.getItem(scopeId) as ReturnType<typeof createFocusScope>;
 
     scope.destroy();
     SCOPES.removeItem(scopeId);
@@ -167,7 +167,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
 
     const resolvedSource = focusSource ?? FOCUS_SOURCES.UNKNOWN;
 
-    activateScope(SCOPES.getItem(scopeId), resolvedSource);
+    activateScope(SCOPES.getItem(scopeId) as ReturnType<typeof createFocusScope>, resolvedSource);
   }
 
   /**
@@ -182,7 +182,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       throwWithCause(`Scope with id "${scopeId}" not found`);
     }
 
-    deactivateScope(SCOPES.getItem(scopeId));
+    deactivateScope(SCOPES.getItem(scopeId) as ReturnType<typeof createFocusScope>);
   }
 
   /**
@@ -228,7 +228,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
    * that the next native focus move won't be disturbed.
    */
   function updateScopesFocusVisibilityState(): void {
-    const scopes = SCOPES.getValues();
+    const scopes = SCOPES.getValues() as ReturnType<typeof createFocusScope>[];
     const modalScopes = scopes.filter(
       (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf() && scope.getType() === 'modal');
 
@@ -271,7 +271,7 @@ export function createFocusScopeManager(hotInstance: HotInstance): FocusScopeMan
       return;
     }
 
-    const allEnabledScopes = SCOPES.getValues().filter(
+    const allEnabledScopes = (SCOPES.getValues() as ReturnType<typeof createFocusScope>[]).filter(
       (scope: ReturnType<typeof createFocusScope>) => scope.runOnlyIf());
     let hasActiveScope = false;
 

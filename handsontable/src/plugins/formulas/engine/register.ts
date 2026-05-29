@@ -21,7 +21,7 @@ function getEngineRelationshipRegistry() {
     pluginStaticRegistry.register(registryKey, new Map());
   }
 
-  return pluginStaticRegistry.getItem(registryKey);
+  return pluginStaticRegistry.getItem(registryKey) as Map<HyperFormulaEngine, HotInstance[]>;
 }
 
 /**
@@ -37,7 +37,7 @@ function getSharedEngineUsageRegistry() {
     pluginStaticRegistry.register(registryKey, new Map());
   }
 
-  return pluginStaticRegistry.getItem(registryKey);
+  return pluginStaticRegistry.getItem(registryKey) as Map<HyperFormulaEngine, string[]>;
 }
 
 /**
@@ -87,7 +87,7 @@ export function setupEngine(hotInstance: HotInstance) {
       engineRelationship.set(engineConfigItem, []);
     }
 
-    engineRelationship.get(engineConfigItem).push(hotInstance);
+    engineRelationship.get(engineConfigItem)!.push(hotInstance);
 
     if (sharedEngineUsage) {
       sharedEngineUsage.push(hotInstance.guid);

@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'row_above';
@@ -8,7 +9,7 @@ export const KEY = 'row_above';
 export default function rowAboveItem() {
   return {
     key: KEY,
-    name() {
+    name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_ABOVE);
     },
     callback() {

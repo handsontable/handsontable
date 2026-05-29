@@ -9,7 +9,7 @@ export const KEY = 'remove_col';
 export default function removeColumnItem() {
   return {
     key: KEY,
-    name() {
+    name(): string {
       const selection = this.getSelected();
       let pluralForm = 0;
 
@@ -25,12 +25,12 @@ export default function removeColumnItem() {
         }
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm) as string;
     },
     callback() {
       this.alter('remove_col', transformSelectionToColumnDistance(this), null, 'ContextMenu.removeColumn');
     },
-    disabled() {
+    disabled(): boolean {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
@@ -52,7 +52,7 @@ export default function removeColumnItem() {
         return totalColumns === 0;
       }
 
-      return this.selection.isSelectedByRowHeader() || totalColumns === 0;
+      return (this.selection.isSelectedByRowHeader() as boolean) || totalColumns === 0;
     },
     hidden() {
       return !this.getSettings().allowRemoveColumn;

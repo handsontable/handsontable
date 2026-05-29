@@ -14,8 +14,8 @@ interface CopyPastePluginLike {
 export default function copyItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy',
-    name() {
-      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY);
+    name(): string {
+      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY) as string;
     },
     callback() {
       copyPastePlugin.copyCellsOnly();

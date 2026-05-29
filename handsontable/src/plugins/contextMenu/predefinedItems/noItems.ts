@@ -8,8 +8,10 @@ export const KEY = 'no_items';
 export default function noItemsItem() {
   return {
     key: KEY,
-    name() {
-      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_NO_ITEMS);
+    name(): string {
+      const phrase: string = this.getTranslatedPhrase(CONTEXTMENU_ITEMS_NO_ITEMS);
+
+      return phrase;
     },
     disabled: true,
     isCommand: false,

@@ -163,14 +163,14 @@ export class IndexMapper {
    * @private
    * @type {Map}
    */
-  fromPhysicalToVisualIndexesCache = new Map();
+  fromPhysicalToVisualIndexesCache = new Map<number | null, number>();
   /**
    * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
    *
    * @private
    * @type {Map}
    */
-  fromVisualToRenderableIndexesCache = new Map();
+  fromVisualToRenderableIndexesCache = new Map<number | null, number>();
   /**
    * Map of observed IndexMap instances to their registered callback sets.
    * Used by {@link IndexMapper#observeMapChange} to track which maps are being
@@ -370,11 +370,7 @@ export class IndexMapper {
     const visualIndex = this.fromPhysicalToVisualIndexesCache.get(physicalIndex);
 
     // Index in the table boundaries provided by the `DataMap`.
-    if (isDefined(visualIndex)) {
-      return visualIndex;
-    }
-
-    return null;
+    return visualIndex ?? null;
   }
 
   /**
@@ -397,11 +393,7 @@ export class IndexMapper {
     const renderableIndex = this.fromVisualToRenderableIndexesCache.get(visualIndex);
 
     // Index in the renderable table boundaries.
-    if (isDefined(renderableIndex)) {
-      return renderableIndex;
-    }
-
-    return null;
+    return renderableIndex ?? null;
   }
 
   /**
@@ -432,9 +424,9 @@ export class IndexMapper {
     let index = -1;
 
     if (searchDirection > 0) {
-      index = visibleIndexes.findIndex(visualIndex => visualIndex > fromVisualIndex);
+      index = visibleIndexes.findIndex(visualIndex => visualIndex !== null && visualIndex > fromVisualIndex);
     } else {
-      index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex < fromVisualIndex);
+      index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex !== null && visualIndex < fromVisualIndex);
     }
 
     if (index === -1) {

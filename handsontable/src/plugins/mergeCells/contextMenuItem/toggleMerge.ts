@@ -18,7 +18,7 @@ interface MergeCellsPluginRef {
 export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
   return {
     key: 'mergeCells',
-    name() {
+    name(): string {
       const selection = this.getSelectedActive();
 
       if (selection && plugin.mergedCellsCollection) {
@@ -26,11 +26,11 @@ export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
 
         if (info !== false && info.row === selection[0] && info.col === selection[1] &&
             info.row + info.rowspan - 1 === selection[2] && info.col + info.colspan - 1 === selection[3]) {
-          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS);
+          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNMERGE_CELLS) as string;
         }
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS) as string;
     },
     callback() {
       const activeRange = this.getSelectedRangeActive();
@@ -60,7 +60,7 @@ export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
         colspan: selection[3] - selection[1] + 1
       } as { rowspan: number, colspan: number });
 
-      return isSingleCell || this.selection.isSelectedByCorner();
+      return isSingleCell || (this.selection.isSelectedByCorner() as boolean);
     },
     hidden: false
   };

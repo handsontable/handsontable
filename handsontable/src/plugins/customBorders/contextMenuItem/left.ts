@@ -11,8 +11,8 @@ export default function left(customBordersPlugin: CustomBordersPlugin) {
 
   return {
     key: 'borders:left',
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_LEFT);
+    name(): string {
+      let label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_LEFT);
       const hasBorder = checkSelectionBorders(this, borderDirection);
 
       if (hasBorder) {

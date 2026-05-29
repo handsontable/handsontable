@@ -3,12 +3,21 @@ import { fastCall } from './../helpers/function';
 
 const MIXIN_NAME = 'localHooks';
 
+interface LocalHooks {
+  _localHooks: Record<string, Function[]>;
+  addLocalHook(key: string, callback: Function): this;
+  removeLocalHook(key: string, callback: Function): this;
+  runLocalHooks(key: string,
+                arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown): void;
+  clearLocalHooks(): this;
+}
+
 /**
  * Mixin object to extend objects functionality for local hooks.
  *
  * @type {object}
  */
-const localHooks = {
+const localHooks: LocalHooks = {
   /**
    * Internal hooks storage.
    */
@@ -21,7 +30,7 @@ const localHooks = {
    * @param {Function} callback The hook callback.
    * @returns {object}
    */
-  addLocalHook(key: string, callback: Function) {
+  addLocalHook(this: LocalHooks, key: string, callback: Function): LocalHooks {
     if (!this._localHooks[key]) {
       this._localHooks[key] = [];
     }
@@ -37,7 +46,7 @@ const localHooks = {
    * @param {*} callback The hook callback.
    * @returns {object}
    */
-  removeLocalHook(key: string, callback: Function) {
+  removeLocalHook(this: LocalHooks, key: string, callback: Function): LocalHooks {
     if (this._localHooks[key]) {
       const index = this._localHooks[key].indexOf(callback);
 
@@ -79,7 +88,7 @@ const localHooks = {
    *
    * @returns {object}
    */
-  clearLocalHooks() {
+  clearLocalHooks(this: LocalHooks): LocalHooks {
     this._localHooks = {};
 
     return this;

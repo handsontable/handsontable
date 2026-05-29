@@ -454,7 +454,7 @@ export abstract class Overlay {
    * @returns {boolean}
    */
   isRtl() {
-    return this.wtSettings.getSetting('rtlMode');
+    return this.wtSettings.getSetting<boolean>('rtlMode');
   }
 
   /**

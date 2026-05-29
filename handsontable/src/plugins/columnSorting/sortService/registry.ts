@@ -39,18 +39,22 @@ const {
   getItem: getRootComparator,
 } = staticRegister('sorting.mainSortComparator');
 
+type CompareFunctionFactory = (
+  sortOrder: unknown, columnMeta: unknown, columnPluginSettings: unknown
+) => (value: unknown, nextValue: unknown) => number;
+
 /**
  * Gets sort function for the particular column basing on it's data type.
  *
  * @param {string} type The data type.
  * @returns {Function}
  */
-export function getCompareFunctionFactory(type: string) {
+export function getCompareFunctionFactory(type: string): CompareFunctionFactory {
   if (hasGloballyCompareFunctionFactory(type)) {
-    return getGloballyCompareFunctionFactory(type);
+    return getGloballyCompareFunctionFactory(type) as CompareFunctionFactory;
   }
 
-  return getGloballyCompareFunctionFactory(DEFAULT_DATA_TYPE);
+  return getGloballyCompareFunctionFactory(DEFAULT_DATA_TYPE) as CompareFunctionFactory;
 }
 
 registerCompareFunctionFactory(CHECKBOX_DATA_TYPE, checkboxSort);

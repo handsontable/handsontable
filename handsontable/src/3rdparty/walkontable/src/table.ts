@@ -1190,8 +1190,8 @@ class Table {
    * @param {number} sourceColumn The physical column index.
    * @returns {number}
    */
-  getColumnWidth(sourceColumn: number) {
-    return this.columnUtils.getWidth(sourceColumn);
+  getColumnWidth(sourceColumn: number): number {
+    return this.columnUtils.getWidth(sourceColumn) as number;
   }
 
   /**

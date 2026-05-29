@@ -7,7 +7,7 @@ import * as C from '../../../i18n/constants';
 export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) {
   return {
     key: 'hidden_rows_hide',
-    name() {
+    name(): string {
       const selection = this.getSelectedActive();
       let pluralForm = 0;
 
@@ -19,7 +19,7 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
         }
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
+      return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm) as string);
     },
     callback() {
       const { from, to } = this.getSelectedRangeActive();

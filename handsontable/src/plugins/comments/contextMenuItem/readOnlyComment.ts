@@ -9,8 +9,8 @@ import { META_READONLY, type Comments } from '../comments';
 export default function readOnlyCommentItem(plugin: Comments) {
   return {
     key: 'commentsReadOnly',
-    name() {
-      const label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
+    name(): string {
+      const label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
       const areReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row: number, col: number) => {
         return !!(plugin.getCommentMeta(row, col, META_READONLY));
       });

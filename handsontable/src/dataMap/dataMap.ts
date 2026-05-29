@@ -301,18 +301,18 @@ class DataMap {
    *
    * @returns {object}
    */
-  getSchema() {
+  getSchema(): unknown[] | Record<string, unknown> {
     const schema = this.tableMeta.dataSchema;
 
     if (schema) {
       if (typeof schema === 'function') {
-        return schema();
+        return (schema as () => unknown[] | Record<string, unknown>)();
       }
 
-      return schema;
+      return schema as unknown[] | Record<string, unknown>;
     }
 
-    return this.duckSchema;
+    return this.duckSchema as unknown[] | Record<string, unknown>;
   }
 
   /**
@@ -366,7 +366,7 @@ class DataMap {
     }
 
     const maxRows = this.tableMeta.maxRows;
-    const columnCount = this.getSchema().length;
+    const columnCount = (this.getSchema() as unknown[]).length;
     const rowsToAdd = [];
 
     while (numberOfCreatedRows < amount && sourceRowsCount + numberOfCreatedRows < (maxRows ?? Infinity)) {
@@ -393,7 +393,7 @@ class DataMap {
 
       } else {
         row = {};
-        deepExtend(row, this.getSchema());
+        deepExtend(row, this.getSchema() as Record<string, unknown>);
       }
 
       rowsToAdd.push(row);

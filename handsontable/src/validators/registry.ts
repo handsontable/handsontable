@@ -31,7 +31,7 @@ function _getItem(name: string | Function): Function {
     throwWithCause(`No registered validator found under "${name}" name`);
   }
 
-  return getItem(name);
+  return getItem(name) as Function;
 }
 
 /**

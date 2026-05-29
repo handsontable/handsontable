@@ -17,14 +17,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow() {
+  getFirstRenderedRow(): number {
     const startRow = this.dataAccessObject.startRowRendered;
 
     if (startRow === null) {
       return -1;
     }
 
-    return startRow;
+    return startRow as number;
   },
 
   /**
@@ -33,14 +33,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow() {
+  getFirstVisibleRow(): number {
     const startRow = this.dataAccessObject.startRowVisible;
 
     if (startRow === null) {
       return -1;
     }
 
-    return startRow;
+    return startRow as number;
   },
 
   /**
@@ -49,14 +49,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow() {
+  getFirstPartiallyVisibleRow(): number {
     const startRow = this.dataAccessObject.startRowPartiallyVisible;
 
     if (startRow === null) {
       return -1;
     }
 
-    return startRow;
+    return startRow as number;
   },
 
   /**
@@ -65,14 +65,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow() {
+  getLastRenderedRow(): number {
     const endRow = this.dataAccessObject.endRowRendered;
 
     if (endRow === null) {
       return -1;
     }
 
-    return endRow;
+    return endRow as number;
   },
 
   /**
@@ -81,14 +81,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow() {
+  getLastVisibleRow(): number {
     const endRow = this.dataAccessObject.endRowVisible;
 
     if (endRow === null) {
       return -1;
     }
 
-    return endRow;
+    return endRow as number;
   },
 
   /**
@@ -97,14 +97,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow() {
+  getLastPartiallyVisibleRow(): number {
     const endRow = this.dataAccessObject.endRowPartiallyVisible;
 
     if (endRow === null) {
       return -1;
     }
 
-    return endRow;
+    return endRow as number;
   },
 
   /**
@@ -113,8 +113,8 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount() {
-    return this.dataAccessObject.countRowsRendered;
+  getRenderedRowsCount(): number {
+    return this.dataAccessObject.countRowsRendered as number;
   },
 
   /**
@@ -123,8 +123,8 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount() {
-    return this.dataAccessObject.countRowsVisible;
+  getVisibleRowsCount(): number {
+    return this.dataAccessObject.countRowsVisible as number;
   },
 
   /**
@@ -133,8 +133,8 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount() {
-    return this.dataAccessObject.columnHeaders.length;
+  getColumnHeadersCount(): number {
+    return (this.dataAccessObject.columnHeaders as unknown[]).length;
   },
 };
 

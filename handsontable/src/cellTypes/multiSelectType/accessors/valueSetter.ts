@@ -17,7 +17,7 @@ export function valueSetter(
       sourceDataAtCell.length > 0 &&
       isKeyValueObject(sourceDataAtCell[0])
     ) {
-      return newValue.map((val) => {
+      return newValue.map((val): unknown => {
         return isKeyValueObject(val) ? val : { key: val, value: val };
       });
     }

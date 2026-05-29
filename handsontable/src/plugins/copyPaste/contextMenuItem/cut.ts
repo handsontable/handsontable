@@ -14,8 +14,8 @@ interface CopyPastePluginLike {
 export default function cutItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'cut',
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT);
+    name(): string {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT) as string;
     },
     callback() {
       copyPastePlugin.cut();

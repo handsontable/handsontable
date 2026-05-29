@@ -100,7 +100,7 @@ function replaceData(
         (data as unknown[]).push(row);
 
       } else if (hotInstance.dataType === 'array') {
-        row = deepClone(dataSchema[0]);
+        row = deepClone((dataSchema as unknown[])[0]);
         (data as unknown[]).push(row);
 
       } else {

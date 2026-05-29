@@ -11,13 +11,16 @@ export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
  * @param {*} value The comparable value.
  * @returns {boolean}
  */
-export function operationResult(conditions: { func: Function }[], value: unknown) {
+export function operationResult(conditions: { func: Function }[], value: unknown): boolean {
   if (conditions.length < 3) {
     throwWithCause('Operation doesn\'t work on less then three conditions.');
   }
 
-  return conditions.slice(0, conditions.length - 1).some((condition: { func: Function }) => condition.func(value))
-    && conditions[conditions.length - 1].func(value);
+  const lastCondition = conditions[conditions.length - 1];
+  const otherConditions = conditions.slice(0, conditions.length - 1);
+
+  return otherConditions.some((condition: { func: Function }) => Boolean(condition.func(value)))
+    && Boolean(lastCondition.func(value));
 }
 
 registerOperation(OPERATION_ID, SHORT_NAME_FOR_COMPONENT, operationResult);

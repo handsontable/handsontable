@@ -34,8 +34,8 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow() {
-    return this.getFirstRenderedRow();
+  getFirstVisibleRow(): number {
+    return this.getFirstRenderedRow() as number;
   },
 
   /**
@@ -45,8 +45,8 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow() {
-    return this.getFirstRenderedRow();
+  getFirstPartiallyVisibleRow(): number {
+    return this.getFirstRenderedRow() as number;
   },
 
   /**
@@ -72,8 +72,8 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow() {
-    return this.getLastRenderedRow();
+  getLastVisibleRow(): number {
+    return this.getLastRenderedRow() as number;
   },
 
   /**
@@ -83,8 +83,8 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow() {
-    return this.getLastRenderedRow();
+  getLastPartiallyVisibleRow(): number {
+    return this.getLastRenderedRow() as number;
   },
 
   /**
@@ -107,8 +107,8 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount() {
-    return this.getRenderedRowsCount();
+  getVisibleRowsCount(): number {
+    return this.getRenderedRowsCount() as number;
   },
 
   /**

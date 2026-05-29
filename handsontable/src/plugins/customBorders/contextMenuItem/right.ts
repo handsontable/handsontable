@@ -11,8 +11,8 @@ export default function right(customBordersPlugin: CustomBordersPlugin) {
 
   return {
     key: 'borders:right',
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
+    name(): string {
+      let label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
       const hasBorder = checkSelectionBorders(this, borderDirection);
 
       if (hasBorder) {

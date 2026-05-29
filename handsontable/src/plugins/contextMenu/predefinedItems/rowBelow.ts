@@ -8,8 +8,8 @@ export const KEY = 'row_below';
 export default function rowBelowItem() {
   return {
     key: KEY,
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
+    name(): string {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW) as string;
     },
     callback() {
       const activeSelection = this.getSelectedRangeActive().getBottomRightCorner();

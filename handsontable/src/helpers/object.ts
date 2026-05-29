@@ -126,7 +126,7 @@ export function deepExtend(target: Record<string, unknown>, extension: Record<st
  */
 export function deepClone<T>(obj: T): T {
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as T;
+    return obj.map((item: unknown) => deepClone(item)) as T;
   }
   if (obj instanceof Date) {
     return new Date(obj) as T;
@@ -456,7 +456,7 @@ export function createObjectPropListener(
   };
 
   Object.defineProperty(holder, propertyToListen, {
-    get() {
+    get(this: ObjectPropListener) {
       return this[privateProperty];
     },
     set(value) {

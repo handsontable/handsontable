@@ -271,7 +271,7 @@ class DataSource {
    * @param {Array|object} dataRow A representation of a data row.
    * @returns {*} Value at the provided coordinates.
    */
-  getAtPhysicalCell(row: number, column: number | string | Function, dataRow: unknown) {
+  getAtPhysicalCell(row: number, column: number | string | Function, dataRow: unknown): unknown {
     let result = null;
 
     if (dataRow) {
@@ -310,7 +310,7 @@ class DataSource {
    * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row: number, columnOrProp: number | string) {
+  getAtCell(row: number, columnOrProp: number | string): unknown {
     const dataRow = this.modifyRowData(row);
 
     return this.getAtPhysicalCell(row, this.colToProp(columnOrProp) as number | string | Function, dataRow);
@@ -367,7 +367,7 @@ class DataSource {
    * @since 16.1.0
    * @returns {string}
    */
-  getCopyable(row: number, prop: string | number) {
+  getCopyable(row: number, prop: string | number): unknown {
     const visualColumn = this.propToCol(prop);
 
     if (typeof visualColumn === 'number' && this.hot!.getCellMeta(row, visualColumn).copyable) {

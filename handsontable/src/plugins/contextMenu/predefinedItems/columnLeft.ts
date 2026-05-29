@@ -8,8 +8,8 @@ export const KEY = 'col_left';
 export default function columnLeftItem() {
   return {
     key: KEY,
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
+    name(): string {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT) as string;
     },
     callback() {
       const activeSelection = this.getSelectedRangeActive().getTopLeftCorner();

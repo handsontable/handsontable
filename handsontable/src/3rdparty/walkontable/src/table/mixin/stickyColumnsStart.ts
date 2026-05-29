@@ -34,8 +34,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleColumn() {
-    return this.getFirstRenderedColumn();
+  getFirstVisibleColumn(): number {
+    return this.getFirstRenderedColumn() as number;
   },
 
   /**
@@ -45,8 +45,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleColumn() {
-    return this.getFirstRenderedColumn();
+  getFirstPartiallyVisibleColumn(): number {
+    return this.getFirstRenderedColumn() as number;
   },
 
   /**
@@ -66,8 +66,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleColumn() {
-    return this.getLastRenderedColumn();
+  getLastVisibleColumn(): number {
+    return this.getLastRenderedColumn() as number;
   },
 
   /**
@@ -77,8 +77,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleColumn() {
-    return this.getLastRenderedColumn();
+  getLastPartiallyVisibleColumn(): number {
+    return this.getLastRenderedColumn() as number;
   },
 
   /**
@@ -101,8 +101,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getVisibleColumnsCount() {
-    return this.getRenderedColumnsCount();
+  getVisibleColumnsCount(): number {
+    return this.getRenderedColumnsCount() as number;
   },
 
   /**
@@ -111,8 +111,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getRowHeadersCount() {
-    return this.dataAccessObject.rowHeaders.length;
+  getRowHeadersCount(): number {
+    return (this.dataAccessObject.rowHeaders as unknown[]).length;
   },
 };
 

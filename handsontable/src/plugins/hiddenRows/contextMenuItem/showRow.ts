@@ -10,10 +10,10 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
 
   return {
     key: 'hidden_rows_show',
-    name() {
+    name(): string {
       const pluralForm = rows.length > 1 ? 1 : 0;
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm);
+      return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm) as string);
     },
     callback() {
       if (rows.length === 0) {
@@ -47,8 +47,8 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
     },
     disabled: false,
     hidden() {
-      const hiddenPhysicalRows = arrayMap(hiddenRowsPlugin.getHiddenRows(), (visualRowIndex) => {
-        return this.toPhysicalRow(visualRowIndex);
+      const hiddenPhysicalRows = arrayMap(hiddenRowsPlugin.getHiddenRows(), (visualRowIndex): number | null => {
+        return (this.toPhysicalRow(visualRowIndex) as number | null);
       });
 
       if (!(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner()) ||
