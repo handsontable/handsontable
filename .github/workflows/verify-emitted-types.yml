@@ -1,0 +1,45 @@
+name: Verify emitted .d.ts against TS 5.1
+
+on:
+  pull_request:
+    paths:
+      - 'handsontable/**'
+      - '.github/workflows/verify-emitted-types.yml'
+  push:
+    branches:
+      - develop
+      - master
+
+jobs:
+  type-emit-floor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Build Handsontable (includes downlevel:types)
+        run: npm run build --prefix handsontable
+      - name: Type-check downleveled .d.ts with pinned TS 5.1.6
+        run: |
+          cd handsontable
+          node -e "
+            const fs = require('fs');
+            fs.writeFileSync('tsconfig.verify-types.json', JSON.stringify({
+              compilerOptions: {
+                noEmit: true,
+                target: 'es2015',
+                lib: ['es2015','es2016','es2017','es2020','esnext','dom','dom.iterable'],
+                moduleResolution: 'node',
+                strict: true,
+                skipLibCheck: false
+              },
+              include: ['tmp/**/*.d.ts']
+            }, null, 2));
+          "
+          npx -y -p typescript@5.1.6 tsc -p tsconfig.verify-types.json
+          rm tsconfig.verify-types.json
