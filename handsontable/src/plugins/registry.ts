@@ -62,6 +62,12 @@ export interface PluginClassMap {}
  */
 export function getPlugin<K extends keyof PluginClassMap>(pluginName: K): PluginClassMap[K] | undefined;
 export function getPlugin(pluginName: string): typeof BasePlugin | undefined;
+/**
+ * Gets registered plugin's class based on the given name.
+ *
+ * @param {string} pluginName Plugin's name.
+ * @returns {typeof BasePlugin | undefined}
+ */
 export function getPlugin(pluginName: string): typeof BasePlugin | undefined {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
 

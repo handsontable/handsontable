@@ -1,7 +1,10 @@
-import { isObject } from './../helpers/object';
+import { isPlainObject } from './../helpers/object';
 import { throwWithCause } from '../helpers/errors';
 import { rangeEach } from './../helpers/number';
 import { stringify } from './../helpers/mixed';
+
+type DataFactoryResult = false | { value: unknown; bundleSeed?: string };
+type DataFactory = (row: number, col: number, instance: SamplesGenerator) => DataFactoryResult;
 
 /**
  * @class SamplesGenerator
@@ -27,7 +30,7 @@ class SamplesGenerator {
    *
    * @type {Function}
    */
-  dataFactory: Function | null = null;
+  dataFactory: DataFactory | null = null;
   /**
    * Custom number of samples to take of each value length.
    *
@@ -50,7 +53,7 @@ class SamplesGenerator {
    */
   includeHidden = false;
 
-  constructor(dataFactory: Function) {
+  constructor(dataFactory: DataFactory) {
     this.dataFactory = dataFactory;
   }
 
@@ -170,7 +173,7 @@ class SamplesGenerator {
       if (hasCustomBundleSeed) {
         seed = bundleSeed;
 
-      } else if (isObject(value)) {
+      } else if (isPlainObject(value)) {
         seed = `${Object.keys(value).length}`;
 
       } else if (Array.isArray(value)) {
