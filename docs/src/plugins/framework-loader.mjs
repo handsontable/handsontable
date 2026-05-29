@@ -153,7 +153,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const jsRef  = (!codeOnly && !isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
   const jsxRef = (!codeOnly && isReactDir) ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
   const tsRef  = (!codeOnly && isAngularDir) ? fileRefs.find(r => r.endsWith('.ts')) : null;
-  const vueRef = (!codeOnly && isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const vueRef = (!codeOnly && isVueDir) ? fileRefs.find(r => r.endsWith('.vue')) : null;
 
   const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
@@ -186,12 +186,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   } else if (jsxRef) {
     exampleAttr = ` data-example-jsx="/content/${escapeHtml(jsxRef)}" data-example-id="${escapeHtml(id)}"`;
   } else if (vueRef) {
-    const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
-
     exampleAttr = ` data-example-vue="/content/${escapeHtml(vueRef)}" data-example-id="${escapeHtml(id)}"`;
-    if (htmlRef) {
-      exampleAttr += ` data-example-html="/content/${escapeHtml(htmlRef)}"`;
-    }
   } else if (tsRef) {
     const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
 
@@ -227,7 +222,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   // its content into the preview area instead of a bare <div id="…"></div>.
   let htmlPreviewContent = '';
 
-  if (jsRef || vueRef) {
+  if (jsRef) {
     const htmlFile = files.find(f => f.ext === 'html');
 
     if (htmlFile) {
