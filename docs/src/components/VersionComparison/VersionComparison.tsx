@@ -407,8 +407,15 @@ function useActiveVersion(versions: string[]): string | null {
   useEffect(() => {
     if (versions.length === 0) return;
     // Scroll-spy: on each intersection event, walk all observed sections and
-    // pick the one whose heading is the most recently scrolled past (largest
-    // top still at or above the sticky-nav threshold). The observer only
+    // pick the one whose heading is the most recently passed. A section is
+    // in the "active zone" if its bottom is below the sticky-nav line (80px)
+    // and its heading is in the upper half of the viewport. The zone has to
+    // be this wide because Starlight's `scroll-padding-top` (124px on this
+    // page) makes hash-link landings sit well below an 80px threshold; a
+    // tighter filter excludes the freshly-clicked heading and the marker
+    // falls back to the section above. Among qualifying sections, pick the
+    // one with the largest top — its heading is closest to the top of the
+    // viewport from above, i.e. the most recently passed. The observer only
     // triggers the recompute — it does not influence which version wins.
     const observer = new IntersectionObserver(
       () => {
@@ -418,10 +425,11 @@ function useActiveVersion(versions: string[]): string | null {
           const el = document.getElementById(`vc-v${v}`);
           if (!el) continue;
           const rect = el.getBoundingClientRect();
-          // Active section = the heading we just passed. Sections still below
-          // the threshold don't count as active yet. The literal 80 mirrors
-          // the `rootMargin: '-80px 0px -50% 0px'` on the observer below.
-          if (rect.top <= 80 && rect.top > bestTop) {
+          if (
+            rect.bottom > 80
+            && rect.top < window.innerHeight * 0.5
+            && rect.top > bestTop
+          ) {
             bestTop = rect.top;
             best = v;
           }
