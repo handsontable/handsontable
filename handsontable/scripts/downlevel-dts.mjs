@@ -140,76 +140,87 @@ function replaceGenericType(str, typeName, replacement) {
 }
 
 /**
- * Recursively yields all *.d.ts file paths under `dir`, skipping *.d.ts.map.
+ * Recursively yields file paths under `dir` whose names satisfy `predicate`.
  *
  * @param {string} dir - Directory to walk.
+ * @param {function(string): boolean} predicate - Returns true for file names to include.
  * @returns {AsyncGenerator<string>}
  */
-async function* walkDts(dir) {
+async function* walkFiles(dir, predicate) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const fullPath = join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      yield* walkDts(fullPath);
-    } else if (
-      entry.isFile() &&
-      entry.name.endsWith('.d.ts') &&
-      !entry.name.endsWith('.d.ts.map')
-    ) {
+      yield* walkFiles(fullPath, predicate);
+    } else if (entry.isFile() && predicate(entry.name)) {
       yield fullPath;
     }
   }
 }
-
-const EXPORT_STAR_AS_RE = /\bexport\s+\*\s+as\b/;
 
 /**
- * Recursively yields all *.mjs and *.js file paths under `dir`.
- *
- * @param {string} dir - Directory to walk.
- * @returns {AsyncGenerator<string>}
+ * @param {string} name - File name to test.
+ * @returns {boolean}
  */
-async function* walkEsm(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name);
+const isDts = name => name.endsWith('.d.ts') && !name.endsWith('.d.ts.map');
 
-    if (entry.isDirectory()) {
-      yield* walkEsm(fullPath);
-    } else if (
-      entry.isFile() &&
-      (entry.name.endsWith('.mjs') || entry.name.endsWith('.js'))
-    ) {
-      yield fullPath;
-    }
-  }
-}
+/**
+ * @param {string} name - File name to test.
+ * @returns {boolean}
+ */
+const isEsm = name => name.endsWith('.mjs') || name.endsWith('.js');
 
-// Regression guard: fail if "export * as" appears in ESM runtime output.
-// This syntax crashes Parcel v1 silently. The fix belongs in the source file,
-// not here — this check only detects regressions.
-const violations = [];
+/**
+ * Patterns that must never appear in the ESM runtime output (`tmp/**\/*.mjs`,
+ * `tmp/**\/*.js`). Each entry is checked line-by-line; a match causes the
+ * script to exit with a non-zero code and print the offending file:line.
+ *
+ * To add a new guard, append an entry:
+ *   { pattern: /your-regex/, message: 'human-readable description of the problem and fix' }
+ *
+ * @type {Array<{ pattern: RegExp, message: string }>}
+ */
+const ESM_FORBIDDEN = [
+  {
+    pattern: /\bexport\s+\*\s+as\b/,
+    message:
+      '"export * as" found in ESM output. ' +
+      'This syntax crashes Parcel v1 consumers. Fix the source file by replacing:\n' +
+      '  export * as X from \'y\';\n' +
+      'with:\n' +
+      '  import * as X from \'y\';\n' +
+      '  export { X };',
+  },
+];
 
-for await (const filePath of walkEsm(tmpDir)) {
+// Regression guard: scan ESM output for forbidden patterns.
+// Fixes belong in source files — this check only detects regressions.
+let esmGuardFailed = false;
+
+for await (const filePath of walkFiles(tmpDir, isEsm)) {
   const content = await readFile(filePath, 'utf8');
   const lines = content.split('\n');
 
-  for (let i = 0; i < lines.length; i++) {
-    if (EXPORT_STAR_AS_RE.test(lines[i])) {
-      violations.push(`  ${filePath}:${i + 1}: ${lines[i].trim()}`);
+  for (const { pattern, message } of ESM_FORBIDDEN) {
+    const violations = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      if (pattern.test(lines[i])) {
+        violations.push(`  ${filePath}:${i + 1}: ${lines[i].trim()}`);
+      }
+    }
+
+    if (violations.length > 0) {
+      console.error(
+        `downlevel-dts: FATAL — ${message}\n\n` +
+        `Offending locations:\n${violations.join('\n')}`
+      );
+      esmGuardFailed = true;
     }
   }
 }
 
-if (violations.length > 0) {
-  console.error(
-    'downlevel-dts: FATAL — "export * as" found in ESM output.\n' +
-    'This syntax crashes Parcel v1 consumers. Fix the source file by replacing:\n' +
-    '  export * as X from \'y\';\n' +
-    'with:\n' +
-    '  import * as X from \'y\';\n' +
-    '  export { X };\n\n' +
-    `Offending locations:\n${violations.join('\n')}`
-  );
+if (esmGuardFailed) {
   process.exit(1);
 }
 
@@ -217,7 +228,7 @@ let filesRewrote = 0;
 let totalReplacements = 0;
 
 try {
-  for await (const filePath of walkDts(tmpDir)) {
+  for await (const filePath of walkFiles(tmpDir, isDts)) {
     const original = await readFile(filePath, 'utf8');
     let updated = original;
     let fileReplacements = 0;
