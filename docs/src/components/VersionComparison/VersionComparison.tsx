@@ -407,21 +407,23 @@ function useActiveVersion(versions: string[]): string | null {
   useEffect(() => {
     if (versions.length === 0) return;
     // Scroll-spy: on each intersection event, walk all observed sections and
-    // pick the one closest to the top of the visible window. The observer
-    // only triggers the recompute — it does not influence which version wins.
+    // pick the one whose heading is the most recently scrolled past (largest
+    // top still at or above the sticky-nav threshold). The observer only
+    // triggers the recompute — it does not influence which version wins.
     const observer = new IntersectionObserver(
       () => {
-        let best: string | null = null;
-        let bestTop = Infinity;
+        let best: string | null = versions[0] ?? null;
+        let bestTop = -Infinity;
         for (const v of versions) {
           const el = document.getElementById(`vc-v${v}`);
           if (!el) continue;
           const rect = el.getBoundingClientRect();
-          if (rect.bottom > 80 && rect.top < window.innerHeight * 0.5) {
-            if (rect.top < bestTop) {
-              bestTop = rect.top;
-              best = v;
-            }
+          // Active section = the heading we just passed. Sections still below
+          // the threshold don't count as active yet. The literal 80 mirrors
+          // the `rootMargin: '-80px 0px -50% 0px'` on the observer below.
+          if (rect.top <= 80 && rect.top > bestTop) {
+            bestTop = rect.top;
+            best = v;
           }
         }
         if (best) setActive(best);
